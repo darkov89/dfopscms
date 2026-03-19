@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DFOPSCMS - Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script defer src="js/core/config.js"></script>
+    <script defer src="js/core/supabaseClient.js"></script>
+    <script defer src="js/templates/registry.js"></script>
+    <script defer src="js/core/contentSchema.js"></script>
+    <script defer src="js/core/contentUpgrader.js"></script>
+    <script defer src="js/core/themeStyling.js"></script>
+    <script defer src="js/core/pageRepository.js"></script>
+    <script defer src="js/features/adminApp.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col" x-data="createAdminApp()">
+
+    <div x-show="!user && !loadingAuth" class="flex-grow flex items-center justify-center p-6" x-transition>
+        <div class="bg-white p-10 rounded-sm shadow-xl border w-full max-w-md">
+            <h1 class="text-3xl font-black tracking-widest text-gray-900 text-center mb-2">DFOPS<span class="text-[#D4AF37]">CMS</span></h1>
+            <p class="text-xs text-gray-500 uppercase tracking-widest text-center mb-8">Autoryzacja Wymagana</p>
+            
+            <form @submit.prevent="login" class="space-y-6">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Adres E-mail</label>
+                    <input type="email" x-model="email" required class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Hasło</label>
+                    <input type="password" x-model="password" required class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                </div>
+                
+                <div x-show="authError" class="text-red-500 text-sm font-bold text-center" x-text="authError"></div>
+
+                <button type="submit" class="w-full bg-[#121212] hover:bg-[#D4AF37] hover:text-[#121212] text-white px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-md">
+                    Zaloguj się
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div x-show="loadingAuth" class="flex-grow flex items-center justify-center">
+        <p class="text-gray-500 tracking-widest text-sm animate-pulse">Weryfikacja tożsamości...</p>
+    </div>
+
+    <div x-show="user" style="display: none;" class="flex-grow flex flex-col">
+        <header class="bg-white shadow-sm border-b px-8 py-4 flex justify-between items-center sticky top-0 z-50">
+            <div>
+                <h1 class="text-2xl font-black tracking-widest text-gray-900">DFOPS<span class="text-[#D4AF37]">CMS</span></h1>
+                <p class="text-xs text-gray-500 uppercase tracking-widest">Witaj, <span x-text="user?.email"></span></p>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="flex items-center bg-gray-100 rounded-md overflow-hidden border px-4 py-2">
+                    <span class="text-sm text-gray-500 mr-2">Motyw:<span class="ml-2 text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded uppercase tracking-widest" x-text="theme"></span></span>
+                    <span class="text-sm font-bold text-[#D4AF37] tracking-wider ml-2" x-text="slug"></span>
+                    <a :href="'index.html?site=' + slug" target="_blank" class="ml-4 text-xs font-bold text-blue-500 hover:text-blue-700 uppercase tracking-widest transition-colors">👀 Podgląd na żywo</a>
+                </div>
+
+                <button @click="saveData()" x-show="content" class="bg-[#121212] hover:bg-[#D4AF37] hover:text-[#121212] text-white px-8 py-2.5 rounded-sm text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-lg">
+                    <span x-show="!saving">Publikuj Zmiany</span>
+                    <span x-show="saving" class="animate-pulse">Zapisywanie...</span>
+                </button>
+                
+                <button @click="logout()" class="text-xs font-bold text-gray-400 hover:text-red-500 uppercase tracking-widest transition-colors">Wyloguj</button>
+            </div>
+        </header>
+
+        <main class="max-w-6xl w-full mx-auto mt-8 px-6 pb-24" x-show="content" x-transition.opacity>
+            <div x-show="message" class="mb-6 p-4 bg-green-100 text-green-800 border border-green-200 rounded-sm shadow-sm flex items-center gap-3">
+                <span x-text="message" class="font-medium text-sm"></span>
+            </div>
+
+            <div x-show="updateAvailable" class="mb-6 p-4 bg-amber-50 text-amber-900 border border-amber-200 rounded-sm shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="text-sm">
+                    <div class="font-bold uppercase tracking-widest text-xs mb-1">Dostępna aktualizacja szablonu</div>
+                    <div>
+                        Twoja wersja: <span class="font-mono font-bold" x-text="currentTemplateVersion"></span>
+                        → najnowsza: <span class="font-mono font-bold" x-text="latestTemplateVersion"></span>
+                    </div>
+                    <div class="text-xs text-amber-700 mt-1">Aktualizacja doda brakujące pola/sekcje. Twoje istniejące wartości pozostaną bez zmian.</div>
+                </div>
+                <button @click="upgradeTemplate()" :disabled="upgrading"
+                        class="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-sm text-xs font-bold tracking-widest uppercase transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+                    <span x-show="!upgrading">Upgrade do v<span x-text="latestTemplateVersion"></span></span>
+                    <span x-show="upgrading" class="animate-pulse">Aktualizuję…</span>
+                </button>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-8">
+                <div class="md:w-1/4">
+                    <div class="bg-white rounded-sm border shadow-sm flex flex-col overflow-hidden sticky top-28">
+                        <button @click="activeTab = 'settings'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'settings', 'text-gray-600 hover:bg-gray-50': activeTab !== 'settings'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">Ustawienia Główne</button>
+                        <button @click="activeTab = 'hero'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'hero', 'text-gray-600 hover:bg-gray-50': activeTab !== 'hero'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">Sekcja Główna</button>
+                        <button @click="activeTab = 'services'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'services', 'text-gray-600 hover:bg-gray-50': activeTab !== 'services'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">Lista Usług</button>
+                        
+                        <button @click="activeTab = 'contact'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'contact', 'text-gray-600 hover:bg-gray-50': activeTab !== 'contact'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">Kontakt i Info</button>
+                        <button @click="activeTab = 'faq'" x-show="theme === 'consultant' || theme === 'beauty'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'faq', 'text-gray-600 hover:bg-gray-50': activeTab !== 'faq'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">FAQ / Akordeony</button>
+                        <button @click="activeTab = 'reviews'" x-show="theme === 'consultant'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'reviews', 'text-gray-600 hover:bg-gray-50': activeTab !== 'reviews'}" class="px-5 py-4 text-left transition-colors text-sm uppercase tracking-wider">Opinie Klientów</button>
+                    </div>
+                </div>
+
+                <div class="md:w-3/4 bg-white rounded-sm border shadow-sm p-8">
+                    
+                    <div x-show="activeTab === 'settings'" x-transition.opacity>
+                        <h2 class="text-2xl font-serif text-gray-900 mb-8 border-b pb-4">Wygląd i Nawigacja</h2>
+        
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Logo (Wersja Tekstowa)</label>
+                                <input type="text" x-model="content.pl.nav.logo" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                            </div>
+
+                            <div class="mt-8 pt-6 border-t border-gray-100" x-show="theme === 'beauty'">
+                                <h3 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-widest">Menu (etykiety)</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">O nas</label>
+                                        <input type="text" x-model="content.pl.nav.menu.about" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Cennik</label>
+                                        <input type="text" x-model="content.pl.nav.menu.pricing" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">FAQ</label>
+                                        <input type="text" x-model="content.pl.nav.menu.faq" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kontakt</label>
+                                        <input type="text" x-model="content.pl.nav.menu.contact" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                    </div>
+                                </div>
+                                <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">To są nazwy zakładek w górnym menu na stronie.</p>
+                            </div>
+
+                            <div class="mt-8 pt-6 border-t border-gray-100">
+                                <h3 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-widest">Kolory (Preset)</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Preset kolorystyczny</label>
+                                        <select x-model="content.pl.settings.color_preset"
+                                                @change="applyThemeStylingFromContent()"
+                                                class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none bg-white">
+                                            <template x-for="p in availablePresets" :key="p.id">
+                                                <option :value="p.id" x-text="p.label"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                    <div class="flex items-center justify-between border border-gray-200 rounded-sm px-4 py-3 bg-gray-50">
+                                        <div class="text-xs uppercase tracking-widest text-gray-500">Podgląd akcentu</div>
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-5 h-5 rounded-sm border border-gray-300" :style="`background:${accentColor}`"></div>
+                                            <div class="text-xs font-mono text-gray-700" x-text="accentColor"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">Zapisz zmiany, aby utrwalić preset w bazie.</p>
+                            </div>
+
+                            <div class="mt-8 pt-6 border-t border-gray-100">
+                                <h3 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-widest">Tło i Typografia</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Styl tła</label>
+                                        <select x-model="content.pl.settings.background_style"
+                                                @change="applyThemeStylingFromContent()"
+                                                class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none bg-white">
+                                            <option value="clean">Clean</option>
+                                            <option value="glow">Glow (premium)</option>
+                                            <option value="soft">Soft (delikatne)</option>
+                                            <option value="smoky">Smoky (barber / luxe)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Fonty</label>
+                                        <select x-model="content.pl.settings.font_preset"
+                                                @change="applyThemeStylingFromContent()"
+                                                class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none bg-white">
+                                            <option value="inter">Inter + Playfair</option>
+                                            <option value="poppins">Poppins + Playfair</option>
+                                            <option value="barber">Oswald + Playfair</option>
+                                            <option value="elegant">Cormorant + Inter</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">Podgląd działa od razu, zapis utrwala w bazie.</p>
+                            </div>
+
+                            <div class="mt-8 pt-6 border-t border-gray-100">
+                                <h3 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-widest">Gotowe zestawy stylu</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                                    <div class="md:col-span-2">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Wybierz zestaw</label>
+                                        <select x-model="selectedStyleBundle"
+                                                class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none bg-white">
+                                            <option value="">-- wybierz --</option>
+                                            <template x-for="b in styleBundles" :key="b.id">
+                                                <option :value="b.id" x-text="b.label"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                    <button type="button" @click="applyStyleBundle()"
+                                            class="bg-[#121212] text-white px-4 py-3 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-[#2a2a2a] transition-colors">
+                                        Zastosuj 1-click
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mt-8 pt-6 border-t border-gray-100">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Logo (Plik Graficzny)</label>
+                                <div class="flex items-center gap-6">
+                                    <div class="w-40 h-16 rounded-sm border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-100 shrink-0 p-2">
+                                        <template x-if="content.pl.nav.logoImage">
+                                            <img :src="content.pl.nav.logoImage" class="w-full h-full object-contain mix-blend-multiply">
+                                        </template>
+                                        <template x-if="!content.pl.nav.logoImage">
+                                            <span class="text-[10px] text-gray-500 uppercase tracking-widest text-center">Brak Pliku</span>
+                                        </template>
+                                    </div>
+                                    <div class="flex-grow">
+                                        <input type="file" accept="image/*" @change="uploadImage($event, 'nav', 'logoImage')" class="text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-sm file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-widest file:bg-[#121212] file:text-[#D4AF37] hover:file:bg-gray-800 cursor-pointer transition-colors w-full">
+                                        <p x-show="uploadingImage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse">Wysyłanie na serwer...</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-8 pt-6 border-t border-gray-100" x-show="theme === 'consultant'">
+                                <label class="flex items-center gap-3 cursor-pointer">
+                                    <div class="relative">
+                                        <input type="checkbox" x-model="content.pl.settings.darkMode" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div>
+                                    </div>
+                                    <span class="text-sm font-bold text-gray-700 uppercase tracking-widest">Tryb Ciemny (Dark Mode)</span>
+                                </label>
+                            </div>
+
+                            <div class="mt-8 pt-6 border-t border-gray-100" x-show="theme === 'consultant'">
+                                <h3 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-widest">Widoczność Sekcji (Consultant)</h3>
+                                <div class="space-y-4">
+                                    <label class="flex items-center gap-3 cursor-pointer">
+                                        <div class="relative"><input type="checkbox" x-model="content.pl.settings.showManifesto" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                        <span class="text-sm font-bold text-gray-700">Sekcja: Manifesto / O mnie</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 cursor-pointer">
+                                        <div class="relative"><input type="checkbox" x-model="content.pl.settings.showServices" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                        <span class="text-sm font-bold text-gray-700">Sekcja: Usługi</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 cursor-pointer">
+                                        <div class="relative"><input type="checkbox" x-model="content.pl.settings.showProof" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                        <span class="text-sm font-bold text-gray-700">Sekcja: Proof / Statystyka</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 cursor-pointer">
+                                        <div class="relative"><input type="checkbox" x-model="content.pl.settings.showFaq" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                        <span class="text-sm font-bold text-gray-700">Sekcja: FAQ</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 cursor-pointer">
+                                        <div class="relative"><input type="checkbox" x-model="content.pl.settings.showReviews" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                        <span class="text-sm font-bold text-gray-700">Sekcja: Opinie</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 cursor-pointer">
+                                        <div class="relative"><input type="checkbox" x-model="content.pl.settings.showContact" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                        <span class="text-sm font-bold text-gray-700">Sekcja: Kontakt</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mt-8 pt-6 border-t border-gray-100" x-show="theme === 'beauty'">
+                                <h3 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-widest">Widoczność Sekcji</h3>
+                                <div class="space-y-4">
+                                    <label class="flex items-center gap-3 cursor-pointer">
+                                        <div class="relative"><input type="checkbox" x-model="content.pl.settings.showManifesto" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                        <span class="text-sm font-bold text-gray-700">Sekcja: O nas / Filozofia</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 cursor-pointer">
+                                        <div class="relative"><input type="checkbox" x-model="content.pl.settings.showServices" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                        <span class="text-sm font-bold text-gray-700">Sekcja: Usługi (Cennik)</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 cursor-pointer">
+                                        <div class="relative"><input type="checkbox" x-model="content.pl.settings.showFaq" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                        <span class="text-sm font-bold text-gray-700">Sekcja: FAQ</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 cursor-pointer">
+                                        <div class="relative"><input type="checkbox" x-model="content.pl.settings.showContact" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                        <span class="text-sm font-bold text-gray-700">Sekcja: Kontakt / Rezerwacja</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    
+                    <div x-show="activeTab === 'hero'" x-transition.opacity style="display: none;">
+                        <h2 class="text-2xl font-serif text-gray-900 mb-8 border-b pb-4">Edycja Sekcji Głównej</h2>
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Przedrostek / Mały tekst nad tytułem</label>
+                                <input type="text" x-model="content.pl.hero.name" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Główny Nagłówek</label>
+                                <input type="text" x-model="content.pl.hero.headline" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none text-lg font-bold">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Opis pod nagłówkiem</label>
+                                <textarea x-model="content.pl.hero.description" rows="3" class="w-full border border-gray-300 rounded-sm px-4 py-2 text-sm outline-none bg-white"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tekst na przycisku</label>
+                                <input type="text" x-model="content.pl.hero.button" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none text-sm">
+                            </div>
+                        </div>
+
+                        <div class="mt-8 pt-6 border-t border-gray-100">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Zdjęcie Główne (Hero)</label>
+                            <div class="flex items-center gap-6">
+                                <div class="w-20 h-20 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50 shrink-0">
+                                    <template x-if="content.pl.hero.image">
+                                        <img :src="content.pl.hero.image" class="w-full h-full object-cover">
+                                    </template>
+                                    <template x-if="!content.pl.hero.image">
+                                        <span class="text-[10px] text-gray-400 uppercase tracking-widest text-center">Brak</span>
+                                    </template>
+                                </div>
+                                <div class="flex-grow">
+                                    <input type="file" accept="image/*" @change="uploadImage($event, 'hero', 'image')" class="text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-sm file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-widest file:bg-[#121212] file:text-[#D4AF37] hover:file:bg-gray-800 cursor-pointer transition-colors w-full">
+                                    <p x-show="uploadingImage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse">Wysyłanie na serwer...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 pt-6 border-t border-gray-100" x-show="theme === 'beauty'">
+                            <h3 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-widest">Sekcja QR Code (Tylko Beauty)</h3>
+                            <div class="mb-4">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tekst nad QR Kodem</label>
+                                <input type="text" x-model="content.pl.hero.qrText" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                            </div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Obrazek QR Kod</label>
+                            <div class="flex items-center gap-6">
+                                <div class="w-20 h-20 rounded-sm border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50 shrink-0 p-1">
+                                    <template x-if="content.pl.hero.qrImage">
+                                        <img :src="content.pl.hero.qrImage" class="w-full h-full object-contain">
+                                    </template>
+                                    <template x-if="!content.pl.hero.qrImage">
+                                        <span class="text-[10px] text-gray-400 uppercase tracking-widest text-center">Brak</span>
+                                    </template>
+                                </div>
+                                <div class="flex-grow">
+                                    <input type="file" accept="image/*" @change="uploadImage($event, 'hero', 'qrImage')" class="text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-sm file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-widest file:bg-[#121212] file:text-[#D4AF37] hover:file:bg-gray-800 cursor-pointer">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div x-show="activeTab === 'services'" x-transition.opacity style="display: none;">
+                        <h2 class="text-2xl font-serif text-gray-900 mb-8 border-b pb-4">Zarządzanie Usługami</h2>
+                        <div class="space-y-6">
+                            <template x-for="(service, index) in content.pl.services" :key="index">
+                                <div class="bg-gray-50 p-6 rounded-sm border relative group mb-4">
+                                    <button @click="content.pl.services.splice(index, 1)" class="absolute top-4 right-4 text-red-400 hover:text-red-600 text-xs font-bold uppercase">Usuń</button>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                        <div>
+                                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Nazwa</label>
+                                            <input type="text" x-model="service.title" class="w-full border border-gray-300 rounded-sm px-4 py-2 font-bold outline-none bg-white">
+                                        </div>
+                                        <div x-show="theme === 'beauty'">
+                                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Czas trwania</label>
+                                            <input type="text" x-model="service.duration" placeholder="np. 1h 30min" class="w-full border border-gray-300 rounded-sm px-4 py-2 outline-none bg-white">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Cena</label>
+                                            <input type="text" x-model="service.price" placeholder="np. 400,00 zł" class="w-full border border-gray-300 rounded-sm px-4 py-2 outline-none bg-white text-[#D4AF37] font-bold">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Krótki opis (zawsze widoczny)</label>
+                                        <input type="text" x-model="service.desc" class="w-full border border-gray-300 rounded-sm px-4 py-2 text-sm outline-none bg-white">
+                                    </div>
+                                    
+                                    <div x-show="theme === 'beauty'">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Szczegóły (Rozwijane w akordeonie)</label>
+                                        <textarea x-model="service.details" rows="2" placeholder="Przeciwwskazania, szczegóły zabiegu..." class="w-full border border-gray-300 rounded-sm px-4 py-2 text-sm outline-none bg-white"></textarea>
+                                    </div>
+                                </div>
+                            </template>
+                            <button @click="content.pl.services.push({title: 'Nowa Usługa', desc: 'Opis...', price: '', duration: '', details: ''})" class="w-full border-2 border-dashed border-gray-300 text-gray-500 font-bold uppercase tracking-widest py-4 rounded-sm hover:bg-[#D4AF37] hover:text-white transition-all">
+                                + Dodaj usługę
+                            </button>
+                        </div>
+                    </div>
+
+                    <div x-show="activeTab === 'contact'" x-transition.opacity style="display: none;">
+                        <h2 class="text-2xl font-serif text-gray-900 mb-8 border-b pb-4">Kontakt i Informacje</h2>
+                        <div class="space-y-6">
+                            <template x-if="content.pl.contact">
+                                <div>
+                                    <div class="mb-4">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Telefon</label>
+                                        <input type="text" x-model="content.pl.contact.phone" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">E-mail</label>
+                                        <input type="email" x-model="content.pl.contact.email" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Adres</label>
+                                        <input type="text" x-model="content.pl.contact.address" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                    </div>
+
+                                    <div class="pt-6 border-t border-gray-100" x-show="theme === 'consultant' || theme === 'beauty'">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Mapka Google (embed URL)</label>
+                                        <input type="url" x-model="content.pl.contact.map_embed_url" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none" placeholder="https://www.google.com/maps/embed?pb=...">
+                                        <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">
+                                            Tip: Google Maps → Udostępnij → Umieść mapę → skopiuj sam URL z iframe (src).
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="pt-6 border-t border-gray-100" x-show="theme === 'beauty'">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Link do rezerwacji (Booksy itp.)</label>
+                                        <input type="url" x-model="content.pl.contact.booksyUrl" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none" placeholder="https://booksy.com/...">
+                                    </div>
+
+                                    <div class="pt-6 border-t border-gray-100" x-show="theme === 'consultant'">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">LinkedIn URL</label>
+                                        <input type="url" x-model="content.pl.social.linkedin" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none" placeholder="https://linkedin.com/...">
+                                    </div>
+                                    <div class="pt-6 border-t border-gray-100" x-show="theme === 'consultant'">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Facebook URL</label>
+                                        <input type="url" x-model="content.pl.social.facebook" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none" placeholder="https://facebook.com/...">
+                                    </div>
+                                    <div class="pt-6 border-t border-gray-100" x-show="theme === 'consultant'">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Instagram URL</label>
+                                        <input type="url" x-model="content.pl.social.instagram" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none" placeholder="https://instagram.com/...">
+                                    </div>
+                                    <div class="pt-6 border-t border-gray-100" x-show="theme === 'consultant'">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">TikTok URL</label>
+                                        <input type="url" x-model="content.pl.social.tiktok" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none" placeholder="https://tiktok.com/@...">
+                                    </div>
+
+                                    <div class="pt-6 border-t border-gray-100">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Google Reviews - tytuł sekcji</label>
+                                        <input type="text" x-model="content.pl.google_reviews.title" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                    </div>
+                                    <div class="pt-6 border-t border-gray-100">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Google Reviews - place query</label>
+                                        <input type="text" x-model="content.pl.google_reviews.place_query" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none" placeholder="np. Sattva Gabinet Terapii Naturalnych, Wrocław">
+                                        <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">
+                                            Ta wartość trafi do Edge Function i zwróci same opinie (bez mapy). Zalecane.
+                                        </p>
+                                    </div>
+                                    <div class="pt-6 border-t border-gray-100">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Google Reviews - max liczba</label>
+                                        <input type="number" min="1" max="20" x-model.number="content.pl.google_reviews.max_reviews" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                    </div>
+                                    <div class="pt-6 border-t border-gray-100">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Google Reviews - embed URL (opcjonalnie)</label>
+                                        <input type="url" x-model="content.pl.google_reviews.embed_url" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none" placeholder="opcjonalnie: widget pokazujący tylko opinie (bez mapy)">
+                                        <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">
+                                            Jeśli użyjesz place query powyżej, embed_url nie jest potrzebny.
+                                        </p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div x-show="activeTab === 'faq'" x-transition.opacity style="display: none;">
+                        <h2 class="text-2xl font-serif text-gray-900 mb-8 border-b pb-4">FAQ / Akordeony</h2>
+                        <div class="space-y-6">
+                            <template x-for="(item, index) in content.pl.faq" :key="index">
+                                <div class="bg-gray-50 p-6 rounded-sm border relative group mb-4">
+                                    <button @click="content.pl.faq.splice(index, 1)" class="absolute top-4 right-4 text-red-400 hover:text-red-600 text-xs font-bold uppercase">Usuń</button>
+                                    <div class="mb-4">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Pytanie</label>
+                                        <input type="text" x-model="item.question" class="w-full border border-gray-300 rounded-sm px-4 py-2 font-bold outline-none bg-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Odpowiedź</label>
+                                        <textarea x-model="item.answer" rows="3" class="w-full border border-gray-300 rounded-sm px-4 py-2 text-sm outline-none bg-white"></textarea>
+                                    </div>
+                                </div>
+                            </template>
+                            <button @click="content.pl.faq.push({question: 'Nowe pytanie?', answer: 'Odpowiedź...'})" class="w-full border-2 border-dashed border-gray-300 text-gray-500 font-bold uppercase tracking-widest py-4 rounded-sm hover:bg-[#D4AF37] hover:text-white transition-all">
+                                + Dodaj pytanie
+                            </button>
+                        </div>
+                    </div>
+
+                    <div x-show="activeTab === 'reviews'" x-transition.opacity style="display: none;">
+                        <h2 class="text-2xl font-serif text-gray-900 mb-8 border-b pb-4">Opinie Klientów</h2>
+                        <div class="space-y-6">
+                            <template x-for="(review, index) in content.pl.reviews" :key="index">
+                                <div class="bg-gray-50 p-6 rounded-sm border relative group mb-4">
+                                    <button @click="content.pl.reviews.splice(index, 1)" class="absolute top-4 right-4 text-red-400 hover:text-red-600 text-xs font-bold uppercase">Usuń</button>
+                                    <div class="mb-4">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Autor Opinii</label>
+                                        <input type="text" x-model="review.author" class="w-full border border-gray-300 rounded-sm px-4 py-2 font-bold outline-none bg-white">
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Treść Opinii</label>
+                                        <textarea x-model="review.content" rows="3" class="w-full border border-gray-300 rounded-sm px-4 py-2 text-sm outline-none bg-white"></textarea>
+                                    </div>
+                                    <div class="mt-4 pt-4 border-t border-gray-200" x-show="theme === 'consultant'">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Logo klienta (opcjonalnie)</label>
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-20 h-12 rounded-sm border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50 shrink-0 p-1">
+                                                <template x-if="review.logoImage">
+                                                    <img :src="review.logoImage" class="w-full h-full object-contain">
+                                                </template>
+                                                <template x-if="!review.logoImage">
+                                                    <span class="text-[10px] text-gray-400 uppercase tracking-widest text-center">Brak</span>
+                                                </template>
+                                            </div>
+                                            <input type="file" accept="image/*" @change="uploadImage($event, 'reviews', 'logoImage', index)" class="text-sm text-gray-500 file:mr-4 file:py-2 file:px-3 file:rounded-sm file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-widest file:bg-[#121212] file:text-[#D4AF37] hover:file:bg-gray-800 cursor-pointer">
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                            <button @click="content.pl.reviews.push({author: 'Imię Nazwisko', content: 'Treść opinii...', logoImage: ''})" class="w-full border-2 border-dashed border-gray-300 text-gray-500 font-bold uppercase tracking-widest py-4 rounded-sm hover:bg-[#D4AF37] hover:text-white transition-all">
+                                + Dodaj opinię
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

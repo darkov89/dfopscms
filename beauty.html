@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strona beauty</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Poppins:wght@300;400;500;600&family=Oswald:wght@300;400;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sattva: {
+                            bg: '#Fdfbf7',       /* Główne tło */
+                            accent: '#EAE0D5',   /* Tło Hero i FAQ */
+                            text: '#2b2b2b',     /* Główny tekst */
+                            brand: '#A38771',    /* Akcenty, przyciski */
+                            white: '#ffffff'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'], 
+                        sans: ['"Poppins"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="js/core/config.js"></script>
+    <script defer src="js/core/supabaseClient.js"></script>
+    <script defer src="js/templates/registry.js"></script>
+    <script defer src="js/core/contentSchema.js"></script>
+    <script defer src="js/core/themeStyling.js"></script>
+    <script defer src="js/core/pageRepository.js"></script>
+    <script defer src="js/features/publicSiteApp.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    <script src="js/ui/reveal.js" defer></script>
+</head>
+
+<body 
+    class="bg-sattva-bg text-sattva-text font-sans antialiased selection:bg-sattva-brand selection:text-white"
+    x-data="createPublicSiteApp('beauty')"
+>
+
+    <div x-show="!content" class="fixed inset-0 bg-sattva-bg z-[100] flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="w-12 h-12 border-t-2 border-b-2 border-sattva-brand rounded-full animate-spin mb-4"></div>
+        <p class="text-sattva-brand font-serif tracking-widest text-sm animate-pulse">Ładowanie harmonii...</p>
+    </div>
+
+    <template x-if="content">
+        <div x-transition.opacity.duration.1000ms>
+        
+        <nav class="fixed w-full z-50 bg-sattva-white shadow-sm py-4 transition-all duration-300">
+            <div class="max-w-6xl mx-auto px-6 flex justify-between items-center">
+                <div class="flex items-center">
+                    <template x-if="content[lang].nav?.logoImage">
+                        <img :src="content[lang].nav.logoImage" alt="Logo" class="h-16 mix-blend-multiply object-contain">
+                    </template>
+                    <template x-if="!content[lang].nav?.logoImage">
+                        <div class="text-2xl font-serif font-semibold text-sattva-text" x-html="content[lang].nav.logo"></div>
+                    </template>
+                </div>                
+                <div class="hidden md:flex items-center gap-8 font-medium">
+                    <a href="#o-nas" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.about || 'O nas'"></a>
+                    <a href="#cennik" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.pricing || 'Cennik'"></a>
+                    <a href="#faq" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.faq || 'Q&A'"></a>
+                    <a href="#kontakt" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></a>
+                </div>
+            </div>
+        </nav>
+
+        <header class="pt-32 pb-20 px-6 bg-sattva-accent text-center min-h-[85vh] flex flex-col justify-center">
+            <div class="max-w-4xl mx-auto w-full reveal">
+                <h1 class="font-serif text-4xl md:text-5xl lg:text-6xl mb-6" x-html="content[lang].hero.headline"></h1>
+                <h2 class="text-xl md:text-2xl font-medium mb-6 text-sattva-text/90" x-text="content[lang].hero.name"></h2>
+                <p class="text-lg text-sattva-text/80 mb-10 leading-relaxed max-w-2xl mx-auto" x-text="content[lang].hero.description"></p>
+                
+                <a :href="content[lang].contact?.booksyUrl || '#'" target="_blank" class="inline-block bg-sattva-brand text-sattva-white px-8 py-3 rounded-full font-medium tracking-wide hover:bg-[#8a705c] hover:-translate-y-1 transition-all duration-300 shadow-md">
+                    <span x-text="content[lang].hero.button"></span>
+                </a>
+
+                <template x-if="content[lang].hero.qrImage">
+                    <div class="mt-10 animate-[fadeIn_1.5s_ease-in-out]">
+                        <p class="text-sm text-sattva-text/70 mb-3" x-text="content[lang].hero.qrText"></p>
+                        <img :src="content[lang].hero.qrImage" alt="QR Code" class="mx-auto max-w-[130px] rounded-lg shadow-lg hover:scale-105 transition-transform duration-300">
+                    </div>
+                </template>
+            </div>
+        </header>
+
+        <section id="o-nas" class="py-24 px-6 bg-sattva-bg" x-show="content[lang].settings?.showManifesto !== false">
+            <div class="max-w-3xl mx-auto text-center reveal">
+                <h2 class="text-3xl md:text-4xl font-serif mb-8" x-text="content[lang].manifesto?.title"></h2>
+                <p class="text-lg leading-relaxed text-sattva-text/80" x-html="content[lang].manifesto?.text"></p>
+            </div>
+        </section>
+
+        <section id="cennik" class="py-24 px-6 bg-sattva-bg" x-show="content[lang].settings?.showServices !== false">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-16 reveal">
+                    <h2 class="text-3xl md:text-4xl font-serif">Nasz Cennik</h2>
+                </div>
+
+                <div class="flex flex-col gap-4">
+                    <template x-for="(service, index) in content[lang].services" :key="index">
+                        <div class="reveal bg-sattva-white p-6 rounded-lg shadow-sm border-l-4 border-sattva-brand hover:translate-x-1 transition-transform duration-200 cursor-pointer" :class="'delay-' + (index * 50)" x-data="{ expanded: false }" @click="expanded = !expanded">
+                            
+                            <div class="flex flex-col md:flex-row justify-between md:items-center gap-2 md:gap-4">
+                                <div>
+                                    <h3 class="font-serif text-lg md:text-xl font-medium mb-1" x-text="service.title"></h3>
+                                    <span class="text-sm text-sattva-text/60" x-text="service.duration"></span>
+                                </div>
+                                <div class="font-semibold text-xl text-sattva-brand whitespace-nowrap mt-2 md:mt-0">
+                                    <span x-text="service.price"></span>
+                                </div>
+                            </div>
+                            
+                            <div x-show="expanded" x-collapse x-cloak>
+                                <div class="pt-4 mt-4 border-t border-gray-100 text-sattva-text/80 text-sm">
+                                    <p class="mb-2 font-medium" x-text="service.desc"></p>
+                                    <p class="font-light leading-relaxed" x-text="service.details"></p>
+                                </div>
+                            </div>
+
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </section>
+
+        <section id="faq" class="py-24 px-6 bg-sattva-accent" x-show="content[lang].settings?.showFaq !== false && content[lang].faq && content[lang].faq.length > 0">
+            <div class="max-w-3xl mx-auto">
+                <div class="text-center mb-16 reveal">
+                    <h2 class="text-3xl md:text-4xl font-serif">Pytania i Odpowiedzi (Q&A)</h2>
+                </div>
+                
+                <div class="space-y-4">
+                    <template x-for="(item, index) in content[lang].faq" :key="index">
+                        <div class="reveal bg-sattva-white rounded-xl shadow-sm border border-transparent hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden" :class="expanded ? 'border-sattva-brand' : ''" x-data="{ expanded: false }">
+                            <button @click="expanded = !expanded" class="w-full px-6 py-5 flex justify-between items-center text-left hover:text-sattva-brand transition-colors font-medium">
+                                <span class="text-lg" x-text="item.question"></span>
+                                <div class="w-2.5 h-2.5 border-r-2 border-b-2 border-current transform transition-transform duration-300" :class="expanded ? '-rotate-135' : 'rotate-45'"></div>
+                            </button>
+                            <div x-show="expanded" x-collapse x-cloak>
+                                <div class="px-6 pb-6 text-sattva-text/70 leading-relaxed" x-text="item.answer"></div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </section>
+
+        <template x-if="content[lang].google_reviews?.place_query">
+            <section class="py-24 px-6 bg-sattva-bg">
+                <div class="max-w-5xl mx-auto">
+                    <div class="text-center mb-10 reveal">
+                        <h2 class="text-3xl md:text-4xl font-serif" x-text="content[lang].google_reviews?.title || 'Opinie z Google'"></h2>
+                    </div>
+
+                    <!-- Google Reviews (no map) via Edge Function -->
+                    <div x-data="{ loading: true, reviews: [], error: '' }"
+                         x-init="(async () => {
+                            try {
+                                var failSafeId = setTimeout(() => {
+                                    // Fail-safe in case fetch never resolves; ensures Alpine stops showing loader.
+                                    this.loading = false;
+                                    this.error = 'Timeout pobierania opinii.';
+                                }, 25000);
+                                const fnUrl = (window.DFOPS_CONFIG?.supabaseUrl
+                                    ? window.DFOPS_CONFIG.supabaseUrl + '/functions/v1/get-google-reviews'
+                                    : '/functions/v1/get-google-reviews');
+                                const resp = await fetch(fnUrl, {
+                                    method: 'POST',
+                                    headers: {
+                                        'content-type': 'application/json',
+                                        // Supabase Edge Functions verify JWT by default; for public pages we send legacy anon token.
+                                        'authorization': 'Bearer ' + (window.DFOPS_CONFIG?.supabaseAnonKey || '')
+                                    },
+                                    body: JSON.stringify({
+                                        query: content[lang].google_reviews.place_query,
+                                        maxReviews: content[lang].google_reviews.max_reviews || 6
+                                    })
+                                });
+                                clearTimeout(failSafeId);
+                                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                                const json = await resp.json();
+                                this.reviews = json?.reviews || [];
+                                this.error = json?.error || '';
+                            } catch (e) {
+                                this.error = e?.message || 'Błąd pobierania opinii.';
+                            } finally {
+                                try { clearTimeout(failSafeId); } catch (_) {}
+                                this.loading = false;
+                            }
+                         })()"
+                         class=""
+                    >
+                        <template x-if="loading">
+                            <div class="bg-sattva-white rounded-xl shadow-sm border border-transparent p-8 text-center">
+                                <div class="text-gray-600 text-sm font-bold">Ładowanie opinii z Google...</div>
+                            </div>
+                        </template>
+
+                        <template x-if="!loading && reviews.length">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <template x-for="(r, i) in reviews" :key="i">
+                                    <div class="bg-sattva-white rounded-xl shadow-sm border border-transparent p-6">
+                                        <div class="flex items-center justify-between gap-4 mb-4">
+                                            <div class="flex items-center gap-3">
+                                                <template x-if="r.profile_photo_url">
+                                                    <img :src="r.profile_photo_url" class="w-10 h-10 rounded-full object-cover" alt="" loading="lazy">
+                                                </template>
+                                                <div class="text-sm font-bold text-gray-900" x-text="r.author_name || 'Klient'"></div>
+                                            </div>
+                                            <div class="text-sm font-bold text-[#D4AF37]" x-text="r.rating ? (Number(r.rating).toFixed(1) + '★') : '★'"></div>
+                                        </div>
+                                        <p class="text-gray-600 text-sm italic leading-relaxed" x-text="r.text"></p>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+
+                        <template x-if="!loading && !reviews.length">
+                            <div class="bg-sattva-white rounded-xl shadow-sm border border-transparent p-8 text-center">
+                                <div class="text-gray-600 text-sm font-bold" x-text="error || 'Brak opinii w tym miejscu.'"></div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </section>
+        </template>
+
+        <footer id="kontakt" class="bg-[#2b2b2b] text-sattva-white pt-16 pb-8 px-6" x-show="content[lang].settings?.showContact !== false">
+            <div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between gap-10 mb-10 reveal">
+                <div class="md:w-1/2 space-y-3">
+                    <h2 class="font-serif text-3xl mb-6">Kontakt</h2>
+                    <p class="font-semibold text-lg" x-text="content[lang].hero.name"></p>
+                    <template x-if="content[lang].contact">
+                        <div>
+                            <div class="flex flex-col md:flex-row gap-6 items-start">
+                                <template x-if="content[lang].contact?.map_embed_url">
+                                    <div class="w-full md:w-[320px] max-w-full rounded-xl overflow-hidden border border-white/10 shadow-sm aspect-[4/3]">
+                                        <iframe
+                                            class="w-full h-full"
+                                            loading="lazy"
+                                            referrerpolicy="no-referrer-when-downgrade"
+                                            :src="content[lang].contact.map_embed_url">
+                                        </iframe>
+                                    </div>
+                                </template>
+
+                                <div class="flex-1 min-w-0 space-y-2">
+                                    <p class="text-gray-300" x-text="content[lang].contact.address"></p>
+                                    <p class="text-gray-300">Tel: <a :href="'tel:' + content[lang].contact.phone.replace(/\s/g, '')" class="text-sattva-brand hover:underline" x-text="content[lang].contact.phone"></a></p>
+                                    <p class="text-gray-300">Email: <a :href="'mailto:' + content[lang].contact.email" class="text-sattva-brand hover:underline" x-text="content[lang].contact.email"></a></p>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                
+                <div class="md:w-1/2 text-left md:text-center">
+                    <h3 class="font-serif text-2xl mb-6">Umów się wygodnie</h3>
+                    <a :href="content[lang].contact?.booksyUrl || '#'" target="_blank" class="inline-block bg-sattva-brand text-sattva-white px-8 py-3 rounded-full font-medium hover:bg-[#8a705c] transition-colors shadow-md">
+                        Przejdź do Booksy
+                    </a>
+                </div>
+            </div>
+            
+            <div class="max-w-5xl mx-auto border-t border-gray-700 pt-6 text-center text-sm text-gray-400">
+                <p>&copy; <span x-text="new Date().getFullYear()"></span> <span x-text="content[lang].hero.name"></span>. Wszelkie prawa zastrzeżone.</p>
+            </div>
+        </footer>
+
+        </div>
+    </template>
+</body>
+</html>

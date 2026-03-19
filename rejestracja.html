@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DFOPSCMS - Załóż Stronę</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script defer src="js/core/config.js"></script>
+    <script defer src="js/core/supabaseClient.js"></script>
+    <script defer src="js/core/pageRepository.js"></script>
+    <script defer src="js/templates/registry.js"></script>
+    <script defer src="js/core/contentSchema.js"></script>
+    <script defer src="js/features/registrationApp.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+</head>
+<body class="bg-[#121212] text-gray-200 font-sans min-h-screen flex items-center justify-center p-6" x-data="createRegistrationApp()">
+
+    <div class="bg-white/5 p-10 rounded-sm shadow-2xl border border-white/10 w-full max-w-xl relative overflow-hidden my-8">
+        
+        <div class="absolute -top-20 -right-20 w-64 h-64 bg-[#D4AF37] opacity-20 blur-[80px] rounded-full pointer-events-none"></div>
+
+        <div class="text-center mb-10 relative z-10">
+            <h1 class="text-3xl font-black tracking-widest text-white mb-2">DFOPS<span class="text-[#D4AF37]">CMS</span></h1>
+            <p class="text-sm text-gray-400 uppercase tracking-widest">Wybierz Swój Motyw</p>
+        </div>
+
+        <form @submit.prevent="createPage" x-show="!success" class="space-y-8 relative z-10">
+            
+            <div class="space-y-4">
+                <h3 class="text-[#D4AF37] text-xs font-bold uppercase tracking-widest border-b border-white/10 pb-2">1. Wybierz Architekture Strony</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    
+                    <label class="cursor-pointer relative">
+                        <input type="radio" x-model="form.theme" value="consultant" class="peer sr-only">
+                        <div class="border border-gray-700 bg-[#1e1e1e] rounded-sm p-4 text-center peer-checked:border-[#D4AF37] peer-checked:bg-[#D4AF37]/10 transition-all hover:border-gray-500">
+                            <div class="w-12 h-12 bg-gray-800 rounded-full mx-auto mb-3 flex items-center justify-center">💼</div>
+                            <h4 class="font-bold text-white text-sm uppercase tracking-wider mb-1">Ekspert / CV</h4>
+                            <p class="text-[10px] text-gray-400">Opinie, Karuzele, Dark/Light Mode, LinkedIn</p>
+                        </div>
+                        <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-[#D4AF37] transition-opacity">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                        </div>
+                    </label>
+
+                    <label class="cursor-pointer relative">
+                        <input type="radio" x-model="form.theme" value="beauty" class="peer sr-only">
+                        <div class="border border-gray-700 bg-[#1e1e1e] rounded-sm p-4 text-center peer-checked:border-[#D4AF37] peer-checked:bg-[#D4AF37]/10 transition-all hover:border-gray-500">
+                            <div class="w-12 h-12 bg-gray-800 rounded-full mx-auto mb-3 flex items-center justify-center">✨</div>
+                            <h4 class="font-bold text-white text-sm uppercase tracking-wider mb-1">Beauty / SPA</h4>
+                            <p class="text-[10px] text-gray-400">Zabiegi, Cenniki, Galeria, Delikatny styl</p>
+                        </div>
+                        <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-[#D4AF37] transition-opacity">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                        </div>
+                    </label>
+
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <h3 class="text-[#D4AF37] text-xs font-bold uppercase tracking-widest border-b border-white/10 pb-2">2. Kolorystyka</h3>
+                <div class="grid grid-cols-1 gap-3">
+                    <label class="text-xs uppercase tracking-widest text-gray-400">Preset kolorystyczny</label>
+                    <select x-model="form.color_preset"
+                            class="w-full bg-[#1e1e1e] border border-gray-700 text-white rounded-sm px-4 py-3 focus:ring-1 focus:ring-[#D4AF37] outline-none transition-colors">
+                        <template x-for="preset in availablePresets" :key="preset.id">
+                            <option :value="preset.id" x-text="preset.label"></option>
+                        </template>
+                    </select>
+
+                    <div class="flex items-center justify-between gap-3 bg-[#1e1e1e] border border-gray-700 rounded-sm px-4 py-3">
+                        <div class="text-xs uppercase tracking-widest text-gray-400">Podgląd akcentu</div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-5 h-5 rounded-sm border border-white/20" :style="`background:${accentColor}`"></div>
+                            <div class="text-xs text-gray-300 font-mono" x-text="accentColor"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <h3 class="text-[#D4AF37] text-xs font-bold uppercase tracking-widest border-b border-white/10 pb-2">3. Dane Logowania</h3>
+                <div>
+                    <input type="email" x-model="form.email" required placeholder="Adres e-mail" class="w-full bg-[#1e1e1e] border border-gray-700 text-white rounded-sm px-4 py-3 focus:ring-1 focus:ring-[#D4AF37] outline-none transition-colors mb-3">
+                    <input type="password" x-model="form.password" required minlength="6" placeholder="Hasło do panelu" class="w-full bg-[#1e1e1e] border border-gray-700 text-white rounded-sm px-4 py-3 focus:ring-1 focus:ring-[#D4AF37] outline-none transition-colors">
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <h3 class="text-[#D4AF37] text-xs font-bold uppercase tracking-widest border-b border-white/10 pb-2">4. Adres Twojej Strony</h3>
+                <div>
+                    <div class="flex items-center bg-[#1e1e1e] border border-gray-700 rounded-sm overflow-hidden focus-within:ring-1 focus-within:ring-[#D4AF37] transition-colors">
+                        <span class="px-3 text-gray-500 text-sm border-r border-gray-700">dfopscms.pl/?site=</span>
+                        <input type="text"
+                               x-model="form.slug"
+                               @input="formatSlug(); scheduleSlugCheck()"
+                               required
+                               placeholder="twoja-nazwa"
+                               class="w-full bg-transparent text-white px-3 py-3 outline-none">
+                    </div>
+                    <div class="mt-2 text-xs" x-show="form.slug">
+                        <span class="text-gray-500" x-show="slugStatus === 'idle'">Sprawdzę dostępność sluga…</span>
+                        <span class="text-gray-500" x-show="slugStatus === 'checking'">Sprawdzam dostępność…</span>
+                        <span class="text-green-400 font-bold" x-show="slugStatus === 'available'">Slug dostępny</span>
+                        <span class="text-red-400 font-bold" x-show="slugStatus === 'taken'">Slug zajęty</span>
+                        <span class="text-red-400 font-bold" x-show="slugStatus === 'invalid'">Niepoprawny slug</span>
+                        <span class="text-red-400 font-bold" x-show="slugStatus === 'error'">Błąd sprawdzania sluga</span>
+                    </div>
+                </div>
+            </div>
+
+            <div x-show="bypassUnlocked" class="space-y-2 bg-[#1e1e1e] border border-amber-400/30 rounded-sm px-4 py-3">
+                <label class="flex items-center gap-3 cursor-pointer select-none">
+                    <input type="checkbox" x-model="adminBypass" class="w-4 h-4 accent-[#D4AF37]">
+                    <div>
+                        <div class="text-xs font-bold uppercase tracking-widest text-amber-200">Jestem właścicielem – pomiń płatność</div>
+                        <div class="text-[10px] text-gray-400">Tryb tylko dla Ciebie. Używaj wyłącznie w środowisku produkcyjnym z RLS.</div>
+                    </div>
+                </label>
+            </div>
+
+            <div x-show="errorMessage" class="text-red-400 text-sm font-bold text-center bg-red-400/10 py-2 rounded-sm border border-red-400/20" x-text="errorMessage"></div>
+
+            <button type="submit" :disabled="loading" class="w-full bg-[#D4AF37] hover:bg-white text-[#121212] px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-[0_0_20px_rgba(212,175,55,0.15)] mt-4 disabled:opacity-50 disabled:cursor-not-allowed">
+                <span x-show="!loading" x-text="adminBypass ? 'Utwórz konto i stronę (bypass)' : 'Zapłać i utwórz stronę'"></span>
+                <span x-show="loading" class="animate-pulse">Budowanie architektury...</span>
+            </button>
+        </form>
+
+        <div x-show="success" style="display: none;" class="text-center relative z-10 py-8" x-transition>
+            <div class="w-20 h-20 bg-[#D4AF37]/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#D4AF37]/50">
+                <svg class="w-10 h-10 text-[#D4AF37]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <h2 class="text-2xl font-serif text-white mb-2">Strona Gotowa!</h2>
+            <p class="text-gray-400 mb-8">
+                Motyw: <span class="text-[#D4AF37] font-bold uppercase" x-text="form.theme"></span>,
+                preset: <span class="text-[#D4AF37] font-bold uppercase" x-text="form.color_preset"></span>,
+                slug: <span class="text-[#D4AF37] font-bold uppercase" x-text="form.slug"></span>
+            </p>
+            
+            <div class="space-y-4">
+                <a :href="'index.html?site=' + form.slug" target="_blank" class="block w-full border border-gray-600 hover:border-[#D4AF37] text-white px-6 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-colors">
+                    👀 Zobacz swoją stronę
+                </a>
+                <a :href="'admin.html?site=' + form.slug" target="_blank" class="block w-full bg-[#1e1e1e] hover:bg-[#2a2a2a] border border-gray-700 text-white px-6 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-colors">
+                    ⚙️ Przejdź do panelu edycji
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

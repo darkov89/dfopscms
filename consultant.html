@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="pl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strona konsultanta</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Poppins:wght@300;400;500;600&family=Oswald:wght@300;400;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#121212',
+                            gold: '#D4AF37',
+                            gray: '#2A2A2A',
+                            text: '#E0E0E0'
+                        }
+                    },
+                    fontFamily: {
+                        // ZMIANA: Wszędzie używamy 'Inter' (Tech vibe)
+                        serif: ['"Inter"', 'sans-serif'], 
+                        sans: ['"Inter"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="js/core/config.js"></script>
+    <script defer src="js/core/supabaseClient.js"></script>
+    <script defer src="js/templates/registry.js"></script>
+    <script defer src="js/core/contentSchema.js"></script>
+    <script defer src="js/core/themeStyling.js"></script>
+    <script defer src="js/core/pageRepository.js"></script>
+    <script defer src="js/features/publicSiteApp.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    
+    <script src="js/ui/reveal.js" defer></script>
+</head>
+
+<body 
+    :class="content && content[lang].settings?.darkMode ? 'dark' : ''"
+    class="bg-zinc-50 text-gray-900 dark:bg-brand-dark dark:text-brand-text font-sans antialiased selection:bg-brand-gold selection:text-brand-dark transition-colors duration-500"
+    x-data="createPublicSiteApp('consultant')"
+>
+
+    <div x-show="!content" class="fixed inset-0 bg-zinc-50 dark:bg-brand-dark z-[100] flex flex-col items-center justify-center transition-opacity duration-500">
+        <svg class="animate-spin h-10 w-10 text-brand-gold mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="text-brand-gold font-serif tracking-widest text-sm animate-pulse">DISTILLING ESSENCE...</p>
+    </div>
+
+    <div x-show="bazaBlad" class="fixed inset-0 bg-zinc-50 dark:bg-brand-dark z-[100] flex flex-col items-center justify-center text-center px-6" style="display: none;">
+        <h1 class="text-6xl text-brand-gold font-serif mb-4">404</h1>
+        <p class="text-xl text-gray-400">Nie znaleziono danych dla tej strony.</p>
+    </div>
+
+    <template x-if="content">
+        <div x-transition.opacity.duration.700ms>
+        
+        <nav class="fixed w-full z-50 bg-white/80 dark:bg-brand-dark/90 backdrop-blur-md border-b border-gray-100 dark:border-white/5 py-4 transition-all duration-300">
+            <div class="max-w-6xl mx-auto px-6 flex justify-between items-center">
+                <div class="flex items-center">
+                     <template x-if="content[lang].nav?.logoImage">
+                        <img :src="content[lang].nav.logoImage" alt="Logo" class="h-8 md:h-12 object-contain">
+                     </template>
+    
+                    <template x-if="!content[lang].nav?.logoImage">
+                        <div class="text-lg md:text-xl font-sans font-bold tracking-[0.15em] uppercase text-gray-900 dark:text-white" x-html="content[lang].nav.logo || 'MOJA <span class=\'text-brand-gold\'>FIRMA</span>'"></div>
+                    </template>
+                </div>                
+                <div class="flex items-center gap-6">
+                    <template x-if="content[lang].social?.linkedin">
+                        <a :href="content[lang].social.linkedin" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-brand-gold transition-colors">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                                <rect x="2" y="9" width="4" height="12"></rect>
+                                <circle cx="4" cy="4" r="2"></circle>
+                            </svg>
+                        </a>
+                    </template>
+
+                    <template x-if="Object.keys(content).length > 1">
+                        <div class="flex items-center gap-6">
+                            <div class="h-4 w-px bg-gray-700"></div> 
+                            <div class="flex space-x-3 text-xs uppercase tracking-widest">
+                                <template x-for="(langKey, index) in Object.keys(content)" :key="langKey">
+                                    <div class="flex items-center space-x-3">
+                                        <button @click="lang = langKey" :class="lang === langKey ? 'text-brand-gold font-bold scale-110' : 'text-gray-600 hover:text-white transition-all'" x-text="langKey"></button>
+                                        <span class="text-gray-800" x-show="index < Object.keys(content).length - 1">|</span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+
+                    <a href="#contact" class="hidden md:block text-sm uppercase tracking-widest text-brand-gold hover:text-white transition-colors duration-300" x-text="content[lang].nav?.cta"></a>
+                </div>
+            </div>
+        </nav>
+
+       <header class="min-h-screen flex flex-col justify-center items-center text-center px-6 relative overflow-hidden pt-24">
+            
+            <div class="mb-6 reveal relative group">
+                <div class="absolute -inset-1 bg-gradient-to-r from-brand-gold to-brand-dark rounded-full opacity-30 group-hover:opacity-60 blur transition duration-500"></div>
+               <template x-if="content[lang].hero?.image">
+                    <img 
+                        :src="content[lang].hero.image" 
+                        alt="Zdjęcie profilowe" 
+                        class="relative w-40 h-40 md:w-48 md:h-48 object-cover object-top rounded-full border-2 border-brand-gold/30 grayscale hover:grayscale-0 transition-all duration-700 shadow-2xl"
+                    >
+               </template>
+               <template x-if="!content[lang].hero?.image">
+                    <div class="relative w-40 h-40 md:w-48 md:h-48 rounded-full border-2 border-brand-gold/30 bg-white/10 dark:bg-white/5 flex items-center justify-center shadow-2xl">
+                        <span class="text-brand-gold font-serif text-3xl tracking-widest" x-text="(content[lang].hero?.name || 'JA').trim().slice(0,2).toUpperCase()"></span>
+                    </div>
+               </template>
+            </div>
+
+            <h3 class="font-serif text-xl md:text-2xl text-brand-gold tracking-widest uppercase mb-6 reveal delay-100" x-text="content[lang].hero.name"></h3>
+
+            <div class="mb-8 reveal delay-100">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="drop-shadow-lg text-brand-gold">
+                    <path d="M12 22V2"></path>
+                    <path d="M12 2C7 2 3 7 3 9C3 11 12 14 12 14C12 14 21 11 21 9C21 7 17 2 12 2Z"></path>
+                    <path d="M12 14C8 14 2 16 2 18C2 20 12 22 12 22"></path>
+                    <path d="M12 14C16 14 22 16 22 18C22 20 12 22 12 22"></path>
+                </svg>
+            </div>
+
+            <h1 class="font-serif text-4xl md:text-6xl lg:text-7xl leading-tight text-gray-900 dark:text-white max-w-4xl mb-6 reveal delay-200" x-html="content[lang].hero.headline"></h1>
+            <p class="font-serif text-xl md:text-2xl text-gray-400 mb-4 reveal delay-300" x-text="content[lang].hero.subheadline"></p>
+            <p class="max-w-2xl text-base md:text-lg text-gray-500 mb-10 font-light reveal delay-500" x-text="content[lang].hero.description"></p>
+            
+            <a href="#contact" class="group relative px-8 py-3 border border-brand-gold text-brand-gold font-serif text-lg tracking-wide hover:bg-brand-gold hover:text-brand-dark transition-all duration-300 reveal delay-500" x-text="content[lang].hero.button"></a>
+        </header>
+
+ <section class="py-24 px-6 bg-zinc-50 dark:bg-[#0f0f0f]" x-show="content[lang].settings?.showManifesto !== false">
+    <div class="max-w-3xl mx-auto reveal">
+        
+        <div class="text-center mb-12">
+            <span class="text-xs uppercase tracking-[0.2em] text-gray-500 mb-4 block" x-text="content && content[lang].manifesto?.label"></span>
+            <h2 class="text-3xl md:text-4xl text-gray-900 dark:text-white font-bold tracking-tight" x-text="content && content[lang].manifesto?.title"></h2>
+            <div class="h-px w-24 bg-brand-gold mx-auto mt-6"></div>
+        </div>
+
+        <div class="px-2 md:px-8">
+            <p class="text-lg md:text-xl text-gray-600 dark:text-gray-300 leading-relaxed text-left font-light" 
+               x-html="content && content[lang].manifesto?.text">
+            </p>
+        </div>
+
+    </div>
+</section>
+
+        <section class="py-24 px-6 relative" x-show="content[lang].settings?.showServices !== false">
+            <div class="max-w-6xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <template x-for="(service, index) in content[lang].services">
+                        <div class="service-card reveal border border-gray-100 dark:border-white/10 p-8 hover:border-brand-gold/50 transition-all duration-500 bg-white dark:bg-white/5 flex flex-col shadow-xl hover:-translate-y-1" :class="'delay-' + (index * 100)">
+                            <div class="text-brand-gold mb-4">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                            </div>
+                            <h3 class="font-serif text-2xl text-gray-900 dark:text-white mb-4" x-text="service.title"></h3>
+                            <p class="text-gray-500 dark:text-gray-400 font-light flex-grow" x-text="service.desc"></p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-24 px-6 bg-white dark:bg-[#0f0f0f]" x-show="content[lang].settings?.showProof !== false && content[lang].proof">
+            <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-12">
+                <div class="md:w-1/2 reveal">
+                    <span class="text-xs uppercase tracking-[0.2em] text-brand-gold mb-2 block" x-text="content[lang].proof?.label"></span>
+                    <h2 class="font-serif text-3xl md:text-4xl text-gray-900 dark:text-white mb-6" x-text="content[lang].proof?.title"></h2>
+                    <p class="text-gray-600 dark:text-gray-400 leading-relaxed mb-6 font-light" x-text="content[lang].proof?.text"></p>
+                </div>
+                <div class="md:w-1/2 w-full reveal">
+                    <div class="bg-zinc-50 dark:bg-brand-gray/30 p-8 border-l-2 border-brand-gold shadow-lg">
+                        <span class="block text-5xl md:text-6xl font-serif text-gray-900 dark:text-white mb-2" x-text="content[lang].proof?.statNumber"></span>
+                        <span class="text-lg text-brand-gold uppercase tracking-wider mb-4 block" x-text="content[lang].proof?.statLabel"></span>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm italic" x-text="content[lang].proof?.statDesc"></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="py-24 px-6 relative" x-show="content[lang].settings?.showFaq !== false && content[lang].faq && content[lang].faq.length > 0">
+            <div class="max-w-3xl mx-auto">
+                <div class="text-center mb-16 reveal">
+                    <span class="text-xs uppercase tracking-[0.2em] text-brand-gold mb-4 block">Częste pytania</span>
+                    <h2 class="text-4xl font-serif text-gray-900 dark:text-white">FAQ / Q&A</h2>
+                </div>
+                
+                <div class="space-y-4">
+                    <template x-for="(item, index) in content[lang].faq" :key="index">
+                        <div class="reveal border border-gray-100 dark:border-white/10 bg-white dark:bg-white/5 overflow-hidden shadow-lg" x-data="{ expanded: false }">
+                            <button @click="expanded = !expanded" class="w-full px-8 py-6 flex justify-between items-center text-left hover:bg-zinc-50 dark:hover:bg-white/10 transition-colors">
+                                <span class="font-bold text-gray-900 dark:text-white text-lg" x-text="item.question"></span>
+                                <svg class="w-5 h-5 text-brand-gold transform transition-transform duration-300" :class="expanded ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                            <div x-show="expanded" x-collapse x-cloak>
+                                <div class="px-8 pb-6 text-gray-600 dark:text-gray-400 leading-relaxed" x-text="item.answer"></div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reviews Section -->
+        <section class="py-24 px-6 bg-zinc-50 dark:bg-[#0f0f0f]" x-show="content[lang].settings?.showReviews !== false && content[lang].reviews && content[lang].reviews.length > 0">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-16 reveal">
+                    <span class="text-xs uppercase tracking-[0.2em] text-brand-gold mb-4 block">Głos Klientów</span>
+                    <h2 class="text-4xl font-serif text-gray-900 dark:text-white">Opinie i Współpraca</h2>
+                </div>
+
+                <div x-data="{ idx: 0, timer: null, init(){ if ((content[lang].reviews || []).length > 1) { this.timer = setInterval(() => { this.idx = (this.idx + 1) % content[lang].reviews.length }, 4500); } } }"
+                     class="relative overflow-hidden">
+                    <div class="flex transition-transform duration-700 ease-in-out"
+                         :style="`transform: translateX(-${idx * 100}%);`">
+                        <template x-for="(review, index) in content[lang].reviews" :key="index">
+                            <div class="w-full shrink-0 px-2 md:px-8">
+                                <div class="reveal bg-white dark:bg-[#121212] p-8 border border-gray-100 dark:border-white/5 flex flex-col shadow-xl min-h-[290px]">
+                                    <div class="mb-6">
+                                        <div class="h-16 w-full max-w-[220px] rounded-sm border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 flex items-center justify-center overflow-hidden px-3">
+                                            <template x-if="review.logoImage">
+                                                <img :src="review.logoImage" class="max-h-12 w-full object-contain opacity-95">
+                                            </template>
+                                            <template x-if="!review.logoImage">
+                                                <span class="text-[10px] uppercase tracking-[0.2em] text-gray-400">Logo Klienta</span>
+                                            </template>
+                                        </div>
+                                    </div>
+                                    <p class="text-gray-600 dark:text-gray-400 font-light italic mb-8 flex-grow text-lg leading-relaxed" x-text="'„' + review.content + '”'"></p>
+                                    <div class="flex items-center gap-4">
+                                        <div class="h-px w-8 bg-brand-gold"></div>
+                                        <span class="text-sm font-bold uppercase tracking-widest text-gray-900 dark:text-white" x-text="review.author"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="flex justify-center mt-6 gap-2" x-show="(content[lang].reviews || []).length > 1">
+                        <template x-for="(dot, dotIndex) in content[lang].reviews" :key="dotIndex">
+                            <button class="w-2.5 h-2.5 rounded-full transition-colors"
+                                    :class="idx === dotIndex ? 'bg-brand-gold' : 'bg-gray-300 dark:bg-gray-600'"
+                                    @click="idx = dotIndex"></button>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-32 px-6" x-show="content[lang].settings?.showContact !== false">
+            <div class="max-w-6xl mx-auto">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-20">
+                    <div class="reveal">
+                        <span class="text-xs uppercase tracking-[0.2em] text-brand-gold mb-4 block">Zróbmy to razem</span>
+                        <h2 class="font-serif text-5xl text-gray-900 dark:text-white mb-8 leading-tight">Gotowy na <span class="italic text-brand-gold">nowy etap</span> Twojego biznesu?</h2>
+                        <p class="text-xl text-gray-600 dark:text-gray-400 mb-12 font-light">Skontaktuj się ze mną bezpośrednio lub umów szybką konsultację online.</p>
+                        
+                        <div class="space-y-6 mb-12">
+                            <template x-if="content[lang].contact?.email">
+                                <div class="flex items-center gap-6 group">
+                                    <div class="w-12 h-12 rounded-full border border-brand-gold/20 flex items-center justify-center text-brand-gold group-hover:bg-brand-gold group-hover:text-brand-dark transition-all">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                    </div>
+                                    <div>
+                                        <span class="block text-[10px] uppercase tracking-[0.2em] text-gray-500">Email</span>
+                                        <a :href="'mailto:' + content[lang].contact.email" class="text-lg font-bold text-gray-900 dark:text-white hover:text-brand-gold transition-colors" x-text="content[lang].contact.email"></a>
+                                    </div>
+                                </div>
+                            </template>
+                            <template x-if="content[lang].contact?.phone">
+                                <div class="flex items-center gap-6 group">
+                                    <div class="w-12 h-12 rounded-full border border-brand-gold/20 flex items-center justify-center text-brand-gold group-hover:bg-brand-gold group-hover:text-brand-dark transition-all">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                                    </div>
+                                    <div>
+                                        <span class="block text-[10px] uppercase tracking-[0.2em] text-gray-500">Telefon</span>
+                                        <a :href="'tel:' + content[lang].contact.phone.replace(/\s/g, '')" class="text-lg font-bold text-gray-900 dark:text-white hover:text-brand-gold transition-colors" x-text="content[lang].contact.phone"></a>
+                                    </div>
+                                </div>
+                            </template>
+
+                        <div class="flex flex-col md:flex-row gap-6 items-start">
+                                <template x-if="content[lang].contact?.address">
+                                    <div class="flex-1 min-w-0 flex items-start gap-6 group">
+                                        <div class="w-12 h-12 rounded-full border border-brand-gold/20 flex items-center justify-center text-brand-gold group-hover:bg-brand-gold group-hover:text-brand-dark transition-all shrink-0">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21s-6-4.35-6-10a6 6 0 1112 0c0 5.65-6 10-6 10zm0-7a3 3 0 100-6 3 3 0 000 6z"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <span class="block text-[10px] uppercase tracking-[0.2em] text-gray-500">Adres</span>
+                                            <p class="text-lg font-bold text-gray-900 dark:text-white leading-relaxed" x-text="content[lang].contact.address"></p>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <template x-if="content[lang].contact?.map_embed_url">
+                                    <div class="w-full md:w-[320px] max-w-full rounded-xl overflow-hidden border border-gray-100 dark:border-white/10 shadow-sm aspect-[4/3]">
+                                        <iframe
+                                            class="w-full h-full"
+                                            loading="lazy"
+                                            referrerpolicy="no-referrer-when-downgrade"
+                                            :src="content[lang].contact.map_embed_url">
+                                        </iframe>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-4 mt-6">
+                            <template x-if="content[lang].social?.linkedin">
+                                <a :href="content[lang].social.linkedin" target="_blank" class="w-12 h-12 bg-white dark:bg-[#121212] text-gray-900 dark:text-white rounded-sm flex items-center justify-center hover:bg-brand-gold hover:text-white dark:hover:bg-brand-gold transition-colors shadow-lg border border-gray-100 dark:border-white/5">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                                </a>
+                            </template>
+                            <template x-if="content[lang].social?.instagram">
+                                <a :href="content[lang].social.instagram" target="_blank" class="w-12 h-12 bg-white dark:bg-[#121212] text-gray-900 dark:text-white rounded-sm flex items-center justify-center hover:bg-brand-gold hover:text-white dark:hover:bg-brand-gold transition-colors shadow-lg border border-gray-100 dark:border-white/5">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                                </a>
+                            </template>
+                            <template x-if="content[lang].social?.twitter">
+                                <a :href="content[lang].social.twitter" target="_blank" class="w-12 h-12 bg-white dark:bg-[#121212] text-gray-900 dark:text-white rounded-sm flex items-center justify-center hover:bg-brand-gold hover:text-white dark:hover:bg-brand-gold transition-colors shadow-lg border border-gray-100 dark:border-white/5">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                                </a>
+                            </template>
+                            <template x-if="content[lang].social?.youtube">
+                                <a :href="content[lang].social.youtube" target="_blank" class="w-12 h-12 bg-white dark:bg-[#121212] text-gray-900 dark:text-white rounded-sm flex items-center justify-center hover:bg-brand-gold hover:text-white dark:hover:bg-brand-gold transition-colors shadow-lg border border-gray-100 dark:border-white/5">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21.582 6.186a2.665 2.665 0 0 0-1.875-1.884C17.986 3.843 12 3.843 12 3.843s-5.986 0-7.707.459a2.665 2.665 0 0 0-1.875 1.884C2 7.915 2 12 2 12s0 4.085.418 5.814a2.665 2.665 0 0 0 1.875 1.884C5.986 20.157 12 20.157 12 20.157s5.986 0 7.707-.459a2.665 2.665 0 0 0 1.875-1.884C22 16.085 22 12 22 12s0-4.085-.418-5.814zM9.99 15.443V8.557l5.986 3.443-5.986 3.443z"/></svg>
+                                </a>
+                            </template>
+                            <template x-if="content[lang].social?.facebook">
+                                <a :href="content[lang].social.facebook" target="_blank" class="w-12 h-12 bg-white dark:bg-[#121212] text-gray-900 dark:text-white rounded-sm flex items-center justify-center hover:bg-brand-gold hover:text-white dark:hover:bg-brand-gold transition-colors shadow-lg border border-gray-100 dark:border-white/5">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
+                                </a>
+                            </template>
+                        </div>
+
+                    </div>
+
+                    <div class="reveal">
+                        <div class="bg-white dark:bg-[#121212] p-12 border border-gray-100 dark:border-white/5 shadow-xl relative overflow-hidden rounded-sm">
+                            <div class="absolute -top-10 -right-10 w-64 h-64 bg-brand-gold/10 blur-3xl rounded-full"></div>
+                            
+                            <h3 class="text-2xl font-serif text-gray-900 dark:text-white mb-6">Szybki kalendarz</h3>
+                            <p class="text-gray-500 dark:text-gray-400 mb-8 text-sm">Wybierz dogodny termin na 15-minutową rozmowę zapoznawczą.</p>
+                            
+                            <a href="https://calendly.com/dfops/30min" 
+                               target="_blank" 
+                               rel="noopener noreferrer" 
+                               class="inline-flex items-center justify-center w-full gap-4 bg-brand-gold text-brand-dark px-10 py-5 rounded-sm font-serif text-xl font-bold tracking-wide hover:bg-white hover:scale-[1.02] transition-all duration-300 group">
+                                <span>Umów termin</span>
+                                <svg class="w-6 h-6 transform group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                            </a>
+                            
+                            <p class="mt-8 text-[10px] text-gray-400 text-center uppercase tracking-widest">Wszystkie dane są chronione zgodnie z polityką prywatności.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <template x-if="content[lang].google_reviews?.place_query">
+            <section class="py-24 px-6 bg-white dark:bg-[#0f0f0f]">
+                <div class="max-w-5xl mx-auto">
+                    <div class="text-center mb-10 reveal">
+                        <span class="text-xs uppercase tracking-[0.2em] text-brand-gold mb-4 block">Zaufanie</span>
+                        <h2 class="text-4xl font-serif text-gray-900 dark:text-white" x-text="content[lang].google_reviews?.title || 'Opinie z Google'"></h2>
+                    </div>
+                    
+                    <!-- Google Reviews (no map) via Edge Function -->
+                    <div x-data="{ loading: true, reviews: [], error: '' }"
+                         x-init="(async () => {
+                            try {
+                                const controller = new AbortController();
+                                const timeoutId = setTimeout(() => controller.abort(), 12000);
+                                const fnUrl = (window.DFOPS_CONFIG?.supabaseUrl
+                                    ? window.DFOPS_CONFIG.supabaseUrl + '/functions/v1/get-google-reviews'
+                                    : '/functions/v1/get-google-reviews');
+                                const resp = await fetch(fnUrl, {
+                                    method: 'POST',
+                                    headers: {
+                                        'content-type': 'application/json',
+                                        // Supabase Edge Functions verify JWT by default; for public pages we send legacy anon token.
+                                        'authorization': 'Bearer ' + (window.DFOPS_CONFIG?.supabaseAnonKey || '')
+                                    },
+                                    signal: controller.signal,
+                                    body: JSON.stringify({
+                                        query: content[lang].google_reviews.place_query,
+                                        maxReviews: content[lang].google_reviews.max_reviews || 6
+                                    })
+                                });
+                                clearTimeout(timeoutId);
+                                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                                const json = await resp.json();
+                                this.reviews = json?.reviews || [];
+                                this.error = json?.error || '';
+                            } catch (e) {
+                                this.error = e?.message || 'Błąd pobierania opinii.';
+                            } finally {
+                                this.loading = false;
+                            }
+                         })()"
+                         class="reveal"
+                    >
+                        <template x-if="loading">
+                            <div class="bg-white dark:bg-[#121212] border border-gray-100 dark:border-white/5 shadow-xl p-8 text-center">
+                                <div class="text-gray-600 dark:text-gray-300 text-sm font-bold">Ładowanie opinii z Google...</div>
+                            </div>
+                        </template>
+
+                        <template x-if="!loading && reviews.length">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <template x-for="(r, i) in reviews" :key="i">
+                                    <div class="bg-white dark:bg-[#121212] border border-gray-100 dark:border-white/5 shadow-lg p-6 rounded-sm">
+                                        <div class="flex items-center justify-between gap-4 mb-4">
+                                            <div class="flex items-center gap-3">
+                                                <template x-if="r.profile_photo_url">
+                                                    <img :src="r.profile_photo_url" class="w-10 h-10 rounded-full object-cover" alt="" loading="lazy">
+                                                </template>
+                                                <div class="text-sm font-bold text-gray-900 dark:text-white" x-text="r.author_name || 'Klient'"></div>
+                                            </div>
+                                            <div class="text-sm font-bold text-brand-gold" x-text="r.rating ? (Number(r.rating).toFixed(1) + '★') : '★'"></div>
+                                        </div>
+                                        <p class="text-gray-600 dark:text-gray-400 text-sm italic leading-relaxed" x-text="r.text"></p>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+
+                        <template x-if="!loading && !reviews.length">
+                            <div class="bg-white dark:bg-[#121212] border border-gray-100 dark:border-white/5 shadow-xl p-8 text-center">
+                                <div class="text-gray-600 dark:text-gray-300 text-sm font-bold" x-text="error || 'Brak opinii w tym miejscu.'"></div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </section>
+        </template>
+
+        <footer class="py-12 border-t border-gray-100 dark:border-white/5 text-center bg-zinc-50 dark:bg-[#0f0f0f]">
+            <p class="font-serif text-xl italic text-gray-500 dark:text-gray-400 mb-6" x-text="content[lang].footer?.quote"></p>
+            
+            <div class="flex justify-center gap-4 mb-6">
+                <template x-if="content[lang].social?.linkedin">
+                    <a :href="content[lang].social.linkedin" target="_blank" class="text-gray-400 hover:text-brand-gold transition-colors">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                    </a>
+                </template>
+                <template x-if="content[lang].social?.instagram">
+                    <a :href="content[lang].social.instagram" target="_blank" class="text-gray-400 hover:text-brand-gold transition-colors">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    </a>
+                </template>
+                <template x-if="content[lang].social?.twitter">
+                    <a :href="content[lang].social.twitter" target="_blank" class="text-gray-400 hover:text-brand-gold transition-colors">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                    </a>
+                </template>
+                <template x-if="content[lang].social?.youtube">
+                    <a :href="content[lang].social.youtube" target="_blank" class="text-gray-400 hover:text-brand-gold transition-colors">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21.582 6.186a2.665 2.665 0 0 0-1.875-1.884C17.986 3.843 12 3.843 12 3.843s-5.986 0-7.707.459a2.665 2.665 0 0 0-1.875 1.884C2 7.915 2 12 2 12s0 4.085.418 5.814a2.665 2.665 0 0 0 1.875 1.884C5.986 20.157 12 20.157 12 20.157s5.986 0 7.707-.459a2.665 2.665 0 0 0 1.875-1.884C22 16.085 22 12 22 12s0-4.085-.418-5.814zM9.99 15.443V8.557l5.986 3.443-5.986 3.443z"/></svg>
+                    </a>
+                </template>
+                <template x-if="content[lang].social?.facebook">
+                    <a :href="content[lang].social.facebook" target="_blank" class="text-gray-400 hover:text-brand-gold transition-colors">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
+                    </a>
+                </template>
+            </div>
+            
+            <p class="text-xs text-gray-500 dark:text-gray-600 uppercase tracking-widest" x-text="content[lang].footer?.copyright"></p>
+        </footer>
+
+    </div>
+    </template>
+
+    <div x-data="{ show: !localStorage.getItem('cookieAccepted') }"
+         x-show="show"
+         x-transition.opacity.duration.500ms
+         class="fixed bottom-4 left-4 right-4 z-[9999]"
+         style="display: none;">
+        <div class="max-w-5xl mx-auto bg-white/90 dark:bg-[#121212]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 shadow-2xl rounded-sm p-4 md:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="text-sm text-gray-700 dark:text-gray-300">
+                <div class="text-xs uppercase tracking-[0.2em] text-brand-gold font-bold mb-1">Cookies</div>
+                <div x-text="content && content[lang].cookies.text"></div>
+                <template x-if="content && content[lang].footer?.privacy">
+                    <a class="text-xs text-gray-500 hover:text-brand-gold transition-colors underline underline-offset-4"
+                       href="#"
+                       @click.prevent="alert('Dodaj link do polityki prywatności w footer.privacy (URL)')"
+                       x-text="content[lang].footer.privacy"></a>
+                </template>
+            </div>
+            <div class="flex items-center gap-3 justify-end">
+                <button @click="show = false; localStorage.setItem('cookieAccepted', 'true')"
+                        class="px-4 py-2 bg-brand-gold text-brand-dark text-xs font-bold uppercase tracking-widest hover:bg-white transition-colors border border-brand-gold">
+                    <span x-text="content && content[lang].cookies.accept"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
