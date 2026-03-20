@@ -38,6 +38,7 @@
     <script defer src="js/core/supabaseClient.js"></script>
     <script defer src="js/templates/registry.js"></script>
     <script defer src="js/core/contentSchema.js"></script>
+    <script defer src="js/core/contentUpgrader.js"></script>
     <script defer src="js/core/themeStyling.js"></script>
     <script defer src="js/core/pageRepository.js"></script>
     <script defer src="js/features/publicSiteApp.js"></script>
@@ -159,78 +160,219 @@
         </section>
 
         <template x-if="content[lang].google_reviews?.place_query">
-            <section class="py-24 px-6 bg-sattva-bg">
-                <div class="max-w-5xl mx-auto">
+            <section class="py-24 px-4 sm:px-6 bg-sattva-bg overflow-hidden">
+                <div class="max-w-6xl mx-auto">
                     <div class="text-center mb-10 reveal">
-                        <h2 class="text-3xl md:text-4xl font-serif" x-text="content[lang].google_reviews?.title || 'Opinie z Google'"></h2>
+                        <h2 class="text-3xl md:text-4xl font-serif text-sattva-text" x-text="content[lang].google_reviews?.title || 'Opinie z Google'"></h2>
                     </div>
 
-                    <!-- Google Reviews (no map) via Edge Function -->
-                    <div x-data="{ loading: true, reviews: [], error: '' }"
-                         x-init="(async () => {
-                            try {
-                                var failSafeId = setTimeout(() => {
-                                    // Fail-safe in case fetch never resolves; ensures Alpine stops showing loader.
+                    <div
+                        x-data="{
+                            loading: true,
+                            reviews: [],
+                            error: '',
+                            slide: 0,
+                            placeId: '',
+                            placeRating: null,
+                            userRatingCount: null,
+                            failSafeId: null,
+                            formatRel(iso, L) {
+                                if (!iso) return '';
+                                const d = new Date(iso);
+                                if (Number.isNaN(d.getTime())) return '';
+                                const pl = L !== 'en';
+                                const days = Math.floor((Date.now() - d.getTime()) / 86400000);
+                                if (days <= 0) return pl ? 'Dzisiaj' : 'Today';
+                                if (days === 1) return pl ? 'Wczoraj' : 'Yesterday';
+                                if (days < 7) return pl ? (days + ' dni temu') : (days + ' days ago');
+                                if (days < 30) return pl ? (Math.floor(days / 7) + ' tyg. temu') : (Math.floor(days / 7) + ' wk ago');
+                                return d.toLocaleDateString(pl ? 'pl-PL' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+                            },
+                            t(key, L) {
+                                const pl = { excellent: 'Doskonała', writeReview: 'Napisz recenzję', readMore: 'Czytaj więcej', readLess: 'Zwiń' };
+                                const en = { excellent: 'Excellent', writeReview: 'Write a review', readMore: 'Read more', readLess: 'Show less' };
+                                return (L === 'en' ? en : pl)[key] || key;
+                            },
+                            avgFromReviews() {
+                                if (!this.reviews.length) return null;
+                                const sum = this.reviews.reduce((a, r) => a + (Number(r.rating) || 0), 0);
+                                return Math.round((sum / this.reviews.length) * 10) / 10;
+                            },
+                            headerRating() {
+                                const pr = this.placeRating != null && !Number.isNaN(Number(this.placeRating)) ? Number(this.placeRating) : null;
+                                if (pr != null) return pr;
+                                return this.avgFromReviews();
+                            },
+                            displayCount() {
+                                if (this.userRatingCount != null && this.userRatingCount > 0) return this.userRatingCount;
+                                return this.reviews.length;
+                            },
+                            labelExcellent(L) {
+                                const h = this.headerRating();
+                                const pl = L !== 'en';
+                                if (h == null) return this.t('excellent', L);
+                                if (h >= 4.5) return this.t('excellent', L);
+                                if (h >= 4) return pl ? 'Bardzo dobrze' : 'Very good';
+                                return pl ? 'Dobrze' : 'Good';
+                            },
+                            writeReviewUrl() {
+                                if (!this.placeId) return 'https://www.google.com/maps';
+                                return 'https://search.google.com/local/writereview?placeid=' + encodeURIComponent(this.placeId);
+                            },
+                            prevSlide() { this.slide = Math.max(0, this.slide - 1); },
+                            nextSlide() { this.slide = Math.min(Math.max(0, this.reviews.length - 1), this.slide + 1); },
+                            async fetchReviews() {
+                                this.loading = true;
+                                this.reviews = [];
+                                this.error = '';
+                                this.slide = 0;
+                                try {
+                                    this.failSafeId = setTimeout(() => {
+                                        this.loading = false;
+                                        this.error = 'Timeout pobierania opinii.';
+                                    }, 25000);
+                                    const fnUrl = (window.DFOPS_CONFIG?.supabaseUrl
+                                        ? window.DFOPS_CONFIG.supabaseUrl + '/functions/v1/get-google-reviews'
+                                        : '/functions/v1/get-google-reviews');
+                                    const resp = await fetch(fnUrl, {
+                                        method: 'POST',
+                                        headers: {
+                                            'content-type': 'application/json',
+                                            'authorization': 'Bearer ' + (window.DFOPS_CONFIG?.supabaseAnonKey || '')
+                                        },
+                                        body: JSON.stringify({
+                                            query: content[lang].google_reviews.place_query,
+                                            maxReviews: content[lang].google_reviews.max_reviews || 8
+                                        })
+                                    });
+                                    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                                    const json = await resp.json();
+                                    this.placeId = json?.placeId || '';
+                                    this.placeRating = json?.placeRating ?? null;
+                                    this.userRatingCount = json?.userRatingCount ?? null;
+                                    this.reviews = json?.reviews || [];
+                                    this.error = json?.error || '';
+                                } catch (e) {
+                                    this.error = e?.message || 'Błąd pobierania opinii.';
+                                } finally {
+                                    if (this.failSafeId) clearTimeout(this.failSafeId);
                                     this.loading = false;
-                                    this.error = 'Timeout pobierania opinii.';
-                                }, 25000);
-                                const fnUrl = (window.DFOPS_CONFIG?.supabaseUrl
-                                    ? window.DFOPS_CONFIG.supabaseUrl + '/functions/v1/get-google-reviews'
-                                    : '/functions/v1/get-google-reviews');
-                                const resp = await fetch(fnUrl, {
-                                    method: 'POST',
-                                    headers: {
-                                        'content-type': 'application/json',
-                                        // Supabase Edge Functions verify JWT by default; for public pages we send legacy anon token.
-                                        'authorization': 'Bearer ' + (window.DFOPS_CONFIG?.supabaseAnonKey || '')
-                                    },
-                                    body: JSON.stringify({
-                                        query: content[lang].google_reviews.place_query,
-                                        maxReviews: content[lang].google_reviews.max_reviews || 6
-                                    })
-                                });
-                                clearTimeout(failSafeId);
-                                if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                                const json = await resp.json();
-                                this.reviews = json?.reviews || [];
-                                this.error = json?.error || '';
-                            } catch (e) {
-                                this.error = e?.message || 'Błąd pobierania opinii.';
-                            } finally {
-                                try { clearTimeout(failSafeId); } catch (_) {}
-                                this.loading = false;
+                                }
                             }
-                         })()"
-                         class=""
+                        }"
+                        x-init="fetchReviews()"
                     >
                         <template x-if="loading">
-                            <div class="bg-sattva-white rounded-xl shadow-sm border border-transparent p-8 text-center">
-                                <div class="text-gray-600 text-sm font-bold">Ładowanie opinii z Google...</div>
+                            <div class="bg-white rounded-[2rem] border border-[#E8DFD0] p-10 text-center shadow-sm">
+                                <div class="text-sattva-text/70 text-sm font-medium">Ładowanie opinii z Google…</div>
                             </div>
                         </template>
 
                         <template x-if="!loading && reviews.length">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <template x-for="(r, i) in reviews" :key="i">
-                                    <div class="bg-sattva-white rounded-xl shadow-sm border border-transparent p-6">
-                                        <div class="flex items-center justify-between gap-4 mb-4">
-                                            <div class="flex items-center gap-3">
-                                                <template x-if="r.profile_photo_url">
-                                                    <img :src="r.profile_photo_url" class="w-10 h-10 rounded-full object-cover" alt="" loading="lazy">
-                                                </template>
-                                                <div class="text-sm font-bold text-gray-900" x-text="r.author_name || 'Klient'"></div>
-                                            </div>
-                                            <div class="text-sm font-bold text-[#D4AF37]" x-text="r.rating ? (Number(r.rating).toFixed(1) + '★') : '★'"></div>
+                            <div class="space-y-8">
+                                <!-- Nagłówek jak w mockupie (pill) -->
+                                <div class="reveal flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-5 sm:px-8 py-4 rounded-full border border-[#D4C4B0] bg-white/90 shadow-sm">
+                                    <div class="flex flex-wrap items-center gap-3 sm:gap-4 justify-center sm:justify-start">
+                                        <svg class="h-7 w-7 shrink-0" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.666 32.657 29.234 36 24 36c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.222 0-9.673-3.453-11.284-8.091l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>
+                                        <span class="text-sm font-semibold text-sattva-text tracking-wide" x-text="labelExcellent($root.lang)"></span>
+                                        <div class="flex items-center gap-1 text-amber-500 text-base leading-none" aria-hidden="true">
+                                            <template x-for="si in [1,2,3,4,5]" :key="si">
+                                                <span x-text="si <= Math.round(headerRating() || 0) ? '★' : '☆'"></span>
+                                            </template>
                                         </div>
-                                        <p class="text-gray-600 text-sm italic leading-relaxed" x-text="r.text"></p>
+                                        <span class="text-sm font-bold text-sattva-text tabular-nums" x-text="headerRating() != null ? Number(headerRating()).toFixed(1) : '—'"></span>
+                                        <span class="text-sattva-text/40">|</span>
+                                        <span class="text-sm text-sattva-text/70" x-text="displayCount() + ' ' + ($root.lang === 'en' ? 'reviews' : 'opinii')"></span>
                                     </div>
-                                </template>
+                                    <a :href="writeReviewUrl()" target="_blank" rel="noopener noreferrer"
+                                       class="shrink-0 self-center rounded-full border border-[#C4B5A4] px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-sattva-text hover:bg-[#F5EFE6] transition-colors text-center"
+                                       x-text="t('writeReview', $root.lang)"></a>
+                                </div>
+
+                                <!-- Karuzela -->
+                                <div class="relative flex items-stretch gap-2 md:gap-4">
+                                    <button type="button" @click="prevSlide()"
+                                            class="hidden sm:flex shrink-0 w-11 h-11 rounded-full border border-[#D4C4B0] bg-white items-center justify-center text-sattva-text hover:bg-[#F5EFE6] transition-colors self-center shadow-sm"
+                                            :class="slide === 0 ? 'opacity-40 pointer-events-none' : ''"
+                                            aria-label="Poprzednia opinia">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                    </button>
+
+                                    <div class="flex-1 min-w-0 overflow-hidden rounded-[2rem]">
+                                        <div class="flex transition-transform duration-500 ease-out"
+                                             :style="'transform: translateX(-' + (slide * 100) + '%)'">
+                                            <template x-for="(r, i) in reviews" :key="i">
+                                                <div class="w-full shrink-0 px-1 sm:px-2 box-border">
+                                                    <div x-data="{ expanded: false }"
+                                                         class="relative h-full bg-white border border-[#E5D5C5] rounded-[2rem] p-6 md:p-8 shadow-sm flex flex-col min-h-[280px]">
+                                                        <div class="flex items-start justify-between gap-3 mb-4">
+                                                            <div class="flex items-center gap-3 min-w-0">
+                                                                <template x-if="r.profile_photo_url">
+                                                                    <img :src="r.profile_photo_url" class="w-12 h-12 rounded-full object-cover shrink-0 ring-2 ring-[#F0E6DC]" alt="" loading="lazy">
+                                                                </template>
+                                                                <template x-if="!r.profile_photo_url">
+                                                                    <div class="w-12 h-12 rounded-full bg-[#E8DFD0] flex items-center justify-center text-sattva-brand font-bold text-lg shrink-0"
+                                                                         x-text="(r.author_name || '?').charAt(0).toUpperCase()"></div>
+                                                                </template>
+                                                                <div class="min-w-0">
+                                                                    <div class="font-bold text-sattva-text truncate" x-text="r.author_name || 'Klient'"></div>
+                                                                    <div class="text-xs text-sattva-text/50" x-text="formatRel(r.publishTime, $root.lang) || 'Google'"></div>
+                                                                </div>
+                                                            </div>
+                                                            <svg class="w-7 h-7 shrink-0 opacity-90" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M24 22h-4v-4h4v4zm0 8h-4v-4h4v4z"/><path fill="#EA4335" d="M24 12v4h8c0-2.21-1.79-4-4-4h-4z"/><path fill="#FBBC05" d="M12 24c0-2.21.55-4.28 1.52-6.08L8.11 15.5A15.97 15.97 0 004 24h8z"/><path fill="#34A853" d="M24 36c4.97 0 9.19-3.25 10.69-7.73l-3.9-2.97C29.72 27.52 27.05 29 24 29c-3.51 0-6.49-2.24-7.58-5.38l-3.96 3.05C14.45 32.81 18.77 36 24 36z"/></svg>
+                                                        </div>
+                                                        <div class="flex items-center gap-2 mb-4">
+                                                            <div class="flex text-amber-500 text-sm leading-none gap-0.5">
+                                                                <template x-for="si in [1,2,3,4,5]" :key="'s'+si">
+                                                                    <span x-text="si <= Math.round(Number(r.rating) || 0) ? '★' : '☆'"></span>
+                                                                </template>
+                                                            </div>
+                                                            <span class="inline-flex items-center justify-center rounded-full bg-[#E8F0FE] text-[#1A73E8] px-1.5 py-0.5" title="Google">
+                                                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                                            </span>
+                                                        </div>
+                                                        <p class="text-sattva-text/80 text-sm leading-relaxed flex-grow"
+                                                           :class="expanded ? '' : 'line-clamp-4'"
+                                                           x-text="r.text"></p>
+                                                        <div class="flex items-end justify-between mt-4 pt-2">
+                                                            <button type="button" class="text-xs font-semibold uppercase tracking-widest text-sattva-text/50 hover:text-sattva-brand transition-colors"
+                                                                    @click="expanded = !expanded"
+                                                                    x-show="r.text && r.text.length > 160"
+                                                                    x-text="expanded ? t('readLess', $root.lang) : t('readMore', $root.lang)"></button>
+                                                            <span class="text-6xl font-serif text-[#D4C4B0]/40 leading-none select-none pointer-events-none" aria-hidden="true">“</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <button type="button" @click="nextSlide()"
+                                            class="hidden sm:flex shrink-0 w-11 h-11 rounded-full border border-[#D4C4B0] bg-white items-center justify-center text-sattva-text hover:bg-[#F5EFE6] transition-colors self-center shadow-sm"
+                                            :class="slide >= reviews.length - 1 ? 'opacity-40 pointer-events-none' : ''"
+                                            aria-label="Następna opinia">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                    </button>
+                                </div>
+
+                                <div class="flex sm:hidden justify-center gap-2 mt-2">
+                                    <button type="button" @click="prevSlide()" class="px-4 py-2 rounded-full border border-[#D4C4B0] text-xs font-bold uppercase tracking-widest text-sattva-text/70" :disabled="slide === 0">←</button>
+                                    <button type="button" @click="nextSlide()" class="px-4 py-2 rounded-full border border-[#D4C4B0] text-xs font-bold uppercase tracking-widest text-sattva-text/70" :disabled="slide >= reviews.length - 1">→</button>
+                                </div>
+
+                                <div class="flex justify-center gap-2 mt-4" x-show="reviews.length > 1">
+                                    <template x-for="(dot, di) in reviews" :key="'d'+di">
+                                        <button type="button" class="h-2 rounded-full transition-all"
+                                                :class="slide === di ? 'w-8 bg-sattva-brand' : 'w-2 bg-[#D4C4B0]/60'"
+                                                @click="slide = di" :aria-label="'Opinia ' + (di+1)"></button>
+                                    </template>
+                                </div>
                             </div>
                         </template>
 
                         <template x-if="!loading && !reviews.length">
-                            <div class="bg-sattva-white rounded-xl shadow-sm border border-transparent p-8 text-center">
-                                <div class="text-gray-600 text-sm font-bold" x-text="error || 'Brak opinii w tym miejscu.'"></div>
+                            <div class="bg-white rounded-[2rem] border border-[#E8DFD0] p-10 text-center shadow-sm">
+                                <div class="text-sattva-text/70 text-sm font-medium" x-text="error || 'Brak opinii w tym miejscu.'"></div>
                             </div>
                         </template>
                     </div>

@@ -70,12 +70,16 @@ function normalizeReview(r: any) {
     r?.authorAttribution?.photoUrl ??
     "";
 
+  const publishTimeRaw = r?.publishTime ?? r?.publish_time ?? "";
+  const publishTime = typeof publishTimeRaw === "string" ? publishTimeRaw : "";
+
   return {
     rating: Number.isFinite(rating) ? rating : null,
     text: String(text),
     author_name: String(author_name),
     author_url: String(author_url),
     profile_photo_url: String(profile_photo_url),
+    publishTime,
   };
 }
 
@@ -165,7 +169,7 @@ serve(async (req) => {
       method: "GET",
       headers: {
         "X-Goog-Api-Key": googleApiKey,
-        "X-Goog-FieldMask": "displayName,reviews,rating",
+        "X-Goog-FieldMask": "displayName,reviews,rating,userRatingCount",
       },
     },
     9000,
@@ -190,10 +194,25 @@ serve(async (req) => {
     .slice(0, maxReviews)
     .map(normalizeReview);
 
+  const placeRating =
+    typeof detailsJson?.rating === "number"
+      ? detailsJson.rating
+      : detailsJson?.rating != null
+      ? Number(detailsJson.rating)
+      : null;
+  const userRatingCount =
+    typeof detailsJson?.userRatingCount === "number"
+      ? detailsJson.userRatingCount
+      : detailsJson?.userRatingCount != null
+      ? Number(detailsJson.userRatingCount)
+      : null;
+
   return jsonResponse({
     ok: true,
     placeId,
     placeName: detailsJson?.displayName?.text ?? detailsJson?.displayName ?? "",
+    placeRating: Number.isFinite(placeRating) ? placeRating : null,
+    userRatingCount: Number.isFinite(userRatingCount) ? userRatingCount : null,
     reviews: normalized,
     debug: detailsError ? { detailsError } : undefined,
   });

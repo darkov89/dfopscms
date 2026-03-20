@@ -17,7 +17,8 @@
     return out;
   }
 
-  function normalizeContent(theme, content) {
+  /** Merge user JSON with template defaults (theme + fillDefaults). */
+  function mergeContentWithTemplate(theme, content) {
     const getT = window.DFOPS_getTemplate;
     if (typeof getT !== 'function') throw new Error('Brak DFOPS_getTemplate');
     const base = getT(theme);
@@ -32,6 +33,6 @@
 
   window.DFOPS_deepClone = deepClone;
   window.DFOPS_fillDefaults = fillDefaults;
-  window.DFOPS_normalizeContent = normalizeContent;
+  window.DFOPS_mergeContentWithTemplate = mergeContentWithTemplate;
 })();
 

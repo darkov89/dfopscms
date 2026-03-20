@@ -26,11 +26,11 @@
             <form @submit.prevent="login" class="space-y-6">
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Adres E-mail</label>
-                    <input type="email" x-model="email" required class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                    <input type="email" x-model="email" required class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Hasło</label>
-                    <input type="password" x-model="password" required class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                    <input type="password" x-model="password" required class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
                 </div>
                 
                 <div x-show="authError" class="text-red-500 text-sm font-bold text-center" x-text="authError"></div>
@@ -69,7 +69,12 @@
             </div>
         </header>
 
-        <main class="max-w-6xl w-full mx-auto mt-8 px-6 pb-24" x-show="content" x-transition.opacity>
+        <template x-if="content">
+        <main class="max-w-6xl w-full mx-auto mt-8 px-6 pb-24" x-transition.opacity>
+            <div x-show="errorMessage" class="mb-6 p-4 bg-red-100 text-red-800 border border-red-200 rounded-sm shadow-sm flex items-center gap-3">
+                <span x-text="errorMessage" class="font-medium text-sm"></span>
+            </div>
+
             <div x-show="message" class="mb-6 p-4 bg-green-100 text-green-800 border border-green-200 rounded-sm shadow-sm flex items-center gap-3">
                 <span x-text="message" class="font-medium text-sm"></span>
             </div>
@@ -99,7 +104,8 @@
                         
                         <button @click="activeTab = 'contact'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'contact', 'text-gray-600 hover:bg-gray-50': activeTab !== 'contact'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">Kontakt i Info</button>
                         <button @click="activeTab = 'faq'" x-show="theme === 'consultant' || theme === 'beauty'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'faq', 'text-gray-600 hover:bg-gray-50': activeTab !== 'faq'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">FAQ / Akordeony</button>
-                        <button @click="activeTab = 'reviews'" x-show="theme === 'consultant'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'reviews', 'text-gray-600 hover:bg-gray-50': activeTab !== 'reviews'}" class="px-5 py-4 text-left transition-colors text-sm uppercase tracking-wider">Opinie Klientów</button>
+                        <button @click="activeTab = 'reviews'" x-show="theme === 'consultant'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'reviews', 'text-gray-600 hover:bg-gray-50': activeTab !== 'reviews'}" class="px-5 py-4 text-left border-b border-gray-100 transition-colors text-sm uppercase tracking-wider">Opinie Klientów</button>
+                        <button @click="activeTab = 'seo'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'seo', 'text-gray-600 hover:bg-gray-50': activeTab !== 'seo'}" class="px-5 py-4 text-left border-t border-gray-200 transition-colors text-sm uppercase tracking-wider">Ustawienia SEO</button>
                     </div>
                 </div>
 
@@ -111,7 +117,8 @@
                         <div class="space-y-6">
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Logo (Wersja Tekstowa)</label>
-                                <input type="text" x-model="content.pl.nav.logo" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                <input type="text" x-model="content.pl.nav.logo" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed max-w-2xl">Krótka nazwa marki lub podpis w menu — widoczna obok grafiki jako „tekstowe logo”.</p>
                             </div>
 
                             <div class="mt-8 pt-6 border-t border-gray-100" x-show="theme === 'beauty'">
@@ -119,22 +126,22 @@
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">O nas</label>
-                                        <input type="text" x-model="content.pl.nav.menu.about" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                        <input type="text" x-model="content.pl.nav.menu.about" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Cennik</label>
-                                        <input type="text" x-model="content.pl.nav.menu.pricing" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                        <input type="text" x-model="content.pl.nav.menu.pricing" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">FAQ</label>
-                                        <input type="text" x-model="content.pl.nav.menu.faq" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                        <input type="text" x-model="content.pl.nav.menu.faq" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kontakt</label>
-                                        <input type="text" x-model="content.pl.nav.menu.contact" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                        <input type="text" x-model="content.pl.nav.menu.contact" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
                                     </div>
                                 </div>
-                                <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">To są nazwy zakładek w górnym menu na stronie.</p>
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed max-w-2xl">Etykiety linków w górnym menu (np. Cennik, Kontakt). Zmieniają tylko tekst — kolejność sekcji wynika z szablonu.</p>
                             </div>
 
                             <div class="mt-8 pt-6 border-t border-gray-100">
@@ -144,7 +151,7 @@
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Preset kolorystyczny</label>
                                         <select x-model="content.pl.settings.color_preset"
                                                 @change="applyThemeStylingFromContent()"
-                                                class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none bg-white">
+                                                class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white">
                                             <template x-for="p in availablePresets" :key="p.id">
                                                 <option :value="p.id" x-text="p.label"></option>
                                             </template>
@@ -158,7 +165,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">Zapisz zmiany, aby utrwalić preset w bazie.</p>
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed max-w-2xl">Gotowa paleta kolorów dopasowana do Twojego motywu. Po publikacji odwiedzący zobaczą ją na żywo.</p>
                             </div>
 
                             <div class="mt-8 pt-6 border-t border-gray-100">
@@ -168,7 +175,7 @@
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Styl tła</label>
                                         <select x-model="content.pl.settings.background_style"
                                                 @change="applyThemeStylingFromContent()"
-                                                class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none bg-white">
+                                                class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white">
                                             <option value="clean">Clean</option>
                                             <option value="glow">Glow (premium)</option>
                                             <option value="soft">Soft (delikatne)</option>
@@ -179,7 +186,7 @@
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Fonty</label>
                                         <select x-model="content.pl.settings.font_preset"
                                                 @change="applyThemeStylingFromContent()"
-                                                class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none bg-white">
+                                                class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white">
                                             <option value="inter">Inter + Playfair</option>
                                             <option value="poppins">Poppins + Playfair</option>
                                             <option value="barber">Oswald + Playfair</option>
@@ -187,7 +194,7 @@
                                         </select>
                                     </div>
                                 </div>
-                                <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">Podgląd działa od razu, zapis utrwala w bazie.</p>
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed max-w-2xl">Charakter tła i para czcionek (nagłówki / tekst). Podgląd w panelu jest natychmiastowy — <strong>Publikuj</strong>, aby zapisać w bazie.</p>
                             </div>
 
                             <div class="mt-8 pt-6 border-t border-gray-100">
@@ -196,7 +203,7 @@
                                     <div class="md:col-span-2">
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Wybierz zestaw</label>
                                         <select x-model="selectedStyleBundle"
-                                                class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none bg-white">
+                                                class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white">
                                             <option value="">-- wybierz --</option>
                                             <template x-for="b in styleBundles" :key="b.id">
                                                 <option :value="b.id" x-text="b.label"></option>
@@ -208,21 +215,28 @@
                                         Zastosuj 1-click
                                     </button>
                                 </div>
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed max-w-2xl">Gotowe połączenie koloru, tła i fontów jednym klikiem — potem możesz dopracować szczegóły ręcznie.</p>
                             </div>
 
                             <div class="mt-8 pt-6 border-t border-gray-100">
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Logo (Plik Graficzny)</label>
                                 <div class="flex items-center gap-6">
-                                    <div class="w-40 h-16 rounded-sm border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-100 shrink-0 p-2">
+                                    <div class="flex flex-col items-center shrink-0">
+                                        <div class="w-40 h-16 rounded-sm border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-100 p-2">
+                                            <template x-if="content.pl.nav.logoImage">
+                                                <img :src="content.pl.nav.logoImage" class="w-full h-full object-contain mix-blend-multiply">
+                                            </template>
+                                            <template x-if="!content.pl.nav.logoImage">
+                                                <span class="text-[10px] text-gray-500 uppercase tracking-widest text-center">Brak Pliku</span>
+                                            </template>
+                                        </div>
                                         <template x-if="content.pl.nav.logoImage">
-                                            <img :src="content.pl.nav.logoImage" class="w-full h-full object-contain mix-blend-multiply">
-                                        </template>
-                                        <template x-if="!content.pl.nav.logoImage">
-                                            <span class="text-[10px] text-gray-500 uppercase tracking-widest text-center">Brak Pliku</span>
+                                            <button @click="content.pl.nav.logoImage = ''" type="button" class="mt-2 text-[10px] text-red-500 hover:text-red-700 font-bold uppercase tracking-widest">✖ Usuń grafikę</button>
                                         </template>
                                     </div>
                                     <div class="flex-grow">
                                         <input type="file" accept="image/*" @change="uploadImage($event, 'nav', 'logoImage')" class="text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-sm file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-widest file:bg-[#121212] file:text-[#D4AF37] hover:file:bg-gray-800 cursor-pointer transition-colors w-full">
+                                        <p class="text-xs text-gray-500 mt-2 leading-relaxed">PNG lub SVG z przezroczystym tłem działają najlepiej. Po wgraniu kliknij <strong>Publikuj Zmiany</strong>.</p>
                                         <p x-show="uploadingImage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse">Wysyłanie na serwer...</p>
                                     </div>
                                 </div>
@@ -298,31 +312,41 @@
                         <div class="space-y-6">
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Przedrostek / Mały tekst nad tytułem</label>
-                                <input type="text" x-model="content.pl.hero.name" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                <input type="text" x-model="content.pl.hero.name" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed max-w-2xl">Krótka etykieta nad hero (np. „Witaj”, nazwa usługi) — buduje kontekst przed głównym nagłówkiem.</p>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Główny Nagłówek</label>
-                                <input type="text" x-model="content.pl.hero.headline" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none text-lg font-bold">
+                                <input type="text" x-model="content.pl.hero.headline" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none text-lg font-bold">
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed max-w-2xl">Najważniejszy komunikat strony. W szablonie konsultanta możesz użyć prostego HTML (np. <code class="text-[11px] bg-gray-100 px-1 rounded">&lt;span class='text-brand-gold'&gt;</code>).</p>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Opis pod nagłówkiem</label>
-                                <textarea x-model="content.pl.hero.description" rows="3" class="w-full border border-gray-300 rounded-sm px-4 py-2 text-sm outline-none bg-white"></textarea>
+                                <textarea x-model="content.pl.hero.description" rows="3" class="w-full border border-gray-300 rounded-sm px-4 py-3 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white"></textarea>
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed max-w-2xl">2–4 zdania: kim jesteś, dla kogo pracujesz, główna obietnica. Ten tekst często trafia też do podglądów SEO, jeśli nie ustawisz osobnego opisu.</p>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tekst na przycisku</label>
-                                <input type="text" x-model="content.pl.hero.button" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none text-sm">
+                                <input type="text" x-model="content.pl.hero.button" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none text-sm">
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed max-w-2xl">Wezwanie do działania (CTA), np. „Umów konsultację”, „Rezerwuj wizytę” — krótko i konkretnie.</p>
                             </div>
                         </div>
 
                         <div class="mt-8 pt-6 border-t border-gray-100">
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Zdjęcie Główne (Hero)</label>
-                            <div class="flex items-center gap-6">
-                                <div class="w-20 h-20 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50 shrink-0">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Zdjęcie Główne (Hero)</label>
+                            <p class="text-xs text-gray-500 mb-4 leading-relaxed max-w-2xl">Zdjęcie profilowe lub obrazek marki — najlepiej kwadrat lub pion w dobrej rozdzielczości (min. 800px).</p>
+                            <div class="flex items-start gap-6">
+                                <div class="flex flex-col items-center shrink-0">
+                                    <div class="w-20 h-20 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
+                                        <template x-if="content.pl.hero.image">
+                                            <img :src="content.pl.hero.image" class="w-full h-full object-cover">
+                                        </template>
+                                        <template x-if="!content.pl.hero.image">
+                                            <span class="text-[10px] text-gray-400 uppercase tracking-widest text-center">Brak</span>
+                                        </template>
+                                    </div>
                                     <template x-if="content.pl.hero.image">
-                                        <img :src="content.pl.hero.image" class="w-full h-full object-cover">
-                                    </template>
-                                    <template x-if="!content.pl.hero.image">
-                                        <span class="text-[10px] text-gray-400 uppercase tracking-widest text-center">Brak</span>
+                                        <button @click="content.pl.hero.image = ''" type="button" class="mt-2 text-[10px] text-red-500 hover:text-red-700 font-bold uppercase tracking-widest">✖ Usuń grafikę</button>
                                     </template>
                                 </div>
                                 <div class="flex-grow">
@@ -336,16 +360,22 @@
                             <h3 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-widest">Sekcja QR Code (Tylko Beauty)</h3>
                             <div class="mb-4">
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tekst nad QR Kodem</label>
-                                <input type="text" x-model="content.pl.hero.qrText" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                <input type="text" x-model="content.pl.hero.qrText" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed">Krótki nagłówek nad kodem QR (np. „Zarezerwuj w aplikacji”).</p>
                             </div>
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Obrazek QR Kod</label>
-                            <div class="flex items-center gap-6">
-                                <div class="w-20 h-20 rounded-sm border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50 shrink-0 p-1">
+                            <div class="flex items-start gap-6">
+                                <div class="flex flex-col items-center shrink-0">
+                                    <div class="w-20 h-20 rounded-sm border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50 p-1">
+                                        <template x-if="content.pl.hero.qrImage">
+                                            <img :src="content.pl.hero.qrImage" class="w-full h-full object-contain">
+                                        </template>
+                                        <template x-if="!content.pl.hero.qrImage">
+                                            <span class="text-[10px] text-gray-400 uppercase tracking-widest text-center">Brak</span>
+                                        </template>
+                                    </div>
                                     <template x-if="content.pl.hero.qrImage">
-                                        <img :src="content.pl.hero.qrImage" class="w-full h-full object-contain">
-                                    </template>
-                                    <template x-if="!content.pl.hero.qrImage">
-                                        <span class="text-[10px] text-gray-400 uppercase tracking-widest text-center">Brak</span>
+                                        <button @click="content.pl.hero.qrImage = ''" type="button" class="mt-2 text-[10px] text-red-500 hover:text-red-700 font-bold uppercase tracking-widest">✖ Usuń grafikę</button>
                                     </template>
                                 </div>
                                 <div class="flex-grow">
@@ -365,26 +395,26 @@
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                         <div>
                                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Nazwa</label>
-                                            <input type="text" x-model="service.title" class="w-full border border-gray-300 rounded-sm px-4 py-2 font-bold outline-none bg-white">
+                                            <input type="text" x-model="service.title" class="w-full border border-gray-300 rounded-sm px-4 py-2 font-bold focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white">
                                         </div>
                                         <div x-show="theme === 'beauty'">
                                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Czas trwania</label>
-                                            <input type="text" x-model="service.duration" placeholder="np. 1h 30min" class="w-full border border-gray-300 rounded-sm px-4 py-2 outline-none bg-white">
+                                            <input type="text" x-model="service.duration" placeholder="np. 1h 30min" class="w-full border border-gray-300 rounded-sm px-4 py-2 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white">
                                         </div>
                                         <div>
                                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Cena</label>
-                                            <input type="text" x-model="service.price" placeholder="np. 400,00 zł" class="w-full border border-gray-300 rounded-sm px-4 py-2 outline-none bg-white text-[#D4AF37] font-bold">
+                                            <input type="text" x-model="service.price" placeholder="np. 400,00 zł" class="w-full border border-gray-300 rounded-sm px-4 py-2 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white text-[#D4AF37] font-bold">
                                         </div>
                                     </div>
                                     
                                     <div class="mb-4">
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Krótki opis (zawsze widoczny)</label>
-                                        <input type="text" x-model="service.desc" class="w-full border border-gray-300 rounded-sm px-4 py-2 text-sm outline-none bg-white">
+                                        <input type="text" x-model="service.desc" class="w-full border border-gray-300 rounded-sm px-4 py-2 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white">
                                     </div>
                                     
                                     <div x-show="theme === 'beauty'">
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Szczegóły (Rozwijane w akordeonie)</label>
-                                        <textarea x-model="service.details" rows="2" placeholder="Przeciwwskazania, szczegóły zabiegu..." class="w-full border border-gray-300 rounded-sm px-4 py-2 text-sm outline-none bg-white"></textarea>
+                                        <textarea x-model="service.details" rows="2" placeholder="Przeciwwskazania, szczegóły zabiegu..." class="w-full border border-gray-300 rounded-sm px-4 py-2 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white resize-y"></textarea>
                                     </div>
                                 </div>
                             </template>
@@ -401,20 +431,20 @@
                                 <div>
                                     <div class="mb-4">
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Telefon</label>
-                                        <input type="text" x-model="content.pl.contact.phone" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                        <input type="text" x-model="content.pl.contact.phone" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
                                     </div>
                                     <div class="mb-4">
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">E-mail</label>
-                                        <input type="email" x-model="content.pl.contact.email" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                        <input type="email" x-model="content.pl.contact.email" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
                                     </div>
                                     <div class="mb-4">
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Adres</label>
-                                        <input type="text" x-model="content.pl.contact.address" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                        <input type="text" x-model="content.pl.contact.address" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
                                     </div>
 
                                     <div class="pt-6 border-t border-gray-100" x-show="theme === 'consultant' || theme === 'beauty'">
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Mapka Google (embed URL)</label>
-                                        <input type="url" x-model="content.pl.contact.map_embed_url" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none" placeholder="https://www.google.com/maps/embed?pb=...">
+                                        <input type="url" x-model="content.pl.contact.map_embed_url" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://www.google.com/maps/embed?pb=...">
                                         <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">
                                             Tip: Google Maps → Udostępnij → Umieść mapę → skopiuj sam URL z iframe (src).
                                         </p>
@@ -422,44 +452,44 @@
                                     
                                     <div class="pt-6 border-t border-gray-100" x-show="theme === 'beauty'">
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Link do rezerwacji (Booksy itp.)</label>
-                                        <input type="url" x-model="content.pl.contact.booksyUrl" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none" placeholder="https://booksy.com/...">
+                                        <input type="url" x-model="content.pl.contact.booksyUrl" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://booksy.com/...">
                                     </div>
 
                                     <div class="pt-6 border-t border-gray-100" x-show="theme === 'consultant'">
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">LinkedIn URL</label>
-                                        <input type="url" x-model="content.pl.social.linkedin" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none" placeholder="https://linkedin.com/...">
+                                        <input type="url" x-model="content.pl.social.linkedin" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://linkedin.com/...">
                                     </div>
                                     <div class="pt-6 border-t border-gray-100" x-show="theme === 'consultant'">
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Facebook URL</label>
-                                        <input type="url" x-model="content.pl.social.facebook" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none" placeholder="https://facebook.com/...">
+                                        <input type="url" x-model="content.pl.social.facebook" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://facebook.com/...">
                                     </div>
                                     <div class="pt-6 border-t border-gray-100" x-show="theme === 'consultant'">
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Instagram URL</label>
-                                        <input type="url" x-model="content.pl.social.instagram" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none" placeholder="https://instagram.com/...">
+                                        <input type="url" x-model="content.pl.social.instagram" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://instagram.com/...">
                                     </div>
                                     <div class="pt-6 border-t border-gray-100" x-show="theme === 'consultant'">
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">TikTok URL</label>
-                                        <input type="url" x-model="content.pl.social.tiktok" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none" placeholder="https://tiktok.com/@...">
+                                        <input type="url" x-model="content.pl.social.tiktok" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://tiktok.com/@...">
                                     </div>
 
                                     <div class="pt-6 border-t border-gray-100">
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Google Reviews - tytuł sekcji</label>
-                                        <input type="text" x-model="content.pl.google_reviews.title" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                        <input type="text" x-model="content.pl.google_reviews.title" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
                                     </div>
                                     <div class="pt-6 border-t border-gray-100">
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Google Reviews - place query</label>
-                                        <input type="text" x-model="content.pl.google_reviews.place_query" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none" placeholder="np. Sattva Gabinet Terapii Naturalnych, Wrocław">
+                                        <input type="text" x-model="content.pl.google_reviews.place_query" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="np. Sattva Gabinet Terapii Naturalnych, Wrocław">
                                         <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">
                                             Ta wartość trafi do Edge Function i zwróci same opinie (bez mapy). Zalecane.
                                         </p>
                                     </div>
                                     <div class="pt-6 border-t border-gray-100">
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Google Reviews - max liczba</label>
-                                        <input type="number" min="1" max="20" x-model.number="content.pl.google_reviews.max_reviews" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                        <input type="number" min="1" max="20" x-model.number="content.pl.google_reviews.max_reviews" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
                                     </div>
                                     <div class="pt-6 border-t border-gray-100">
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Google Reviews - embed URL (opcjonalnie)</label>
-                                        <input type="url" x-model="content.pl.google_reviews.embed_url" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none" placeholder="opcjonalnie: widget pokazujący tylko opinie (bez mapy)">
+                                        <input type="url" x-model="content.pl.google_reviews.embed_url" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="opcjonalnie: widget pokazujący tylko opinie (bez mapy)">
                                         <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">
                                             Jeśli użyjesz place query powyżej, embed_url nie jest potrzebny.
                                         </p>
@@ -477,11 +507,11 @@
                                     <button @click="content.pl.faq.splice(index, 1)" class="absolute top-4 right-4 text-red-400 hover:text-red-600 text-xs font-bold uppercase">Usuń</button>
                                     <div class="mb-4">
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Pytanie</label>
-                                        <input type="text" x-model="item.question" class="w-full border border-gray-300 rounded-sm px-4 py-2 font-bold outline-none bg-white">
+                                        <input type="text" x-model="item.question" class="w-full border border-gray-300 rounded-sm px-4 py-2 font-bold focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white">
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Odpowiedź</label>
-                                        <textarea x-model="item.answer" rows="3" class="w-full border border-gray-300 rounded-sm px-4 py-2 text-sm outline-none bg-white"></textarea>
+                                        <textarea x-model="item.answer" rows="3" class="w-full border border-gray-300 rounded-sm px-4 py-3 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white resize-y"></textarea>
                                     </div>
                                 </div>
                             </template>
@@ -499,21 +529,26 @@
                                     <button @click="content.pl.reviews.splice(index, 1)" class="absolute top-4 right-4 text-red-400 hover:text-red-600 text-xs font-bold uppercase">Usuń</button>
                                     <div class="mb-4">
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Autor Opinii</label>
-                                        <input type="text" x-model="review.author" class="w-full border border-gray-300 rounded-sm px-4 py-2 font-bold outline-none bg-white">
+                                        <input type="text" x-model="review.author" class="w-full border border-gray-300 rounded-sm px-4 py-2 font-bold focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white">
                                     </div>
                                     <div class="mb-4">
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Treść Opinii</label>
-                                        <textarea x-model="review.content" rows="3" class="w-full border border-gray-300 rounded-sm px-4 py-2 text-sm outline-none bg-white"></textarea>
+                                        <textarea x-model="review.content" rows="3" class="w-full border border-gray-300 rounded-sm px-4 py-3 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white resize-y"></textarea>
                                     </div>
                                     <div class="mt-4 pt-4 border-t border-gray-200" x-show="theme === 'consultant'">
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Logo klienta (opcjonalnie)</label>
-                                        <div class="flex items-center gap-4">
-                                            <div class="w-20 h-12 rounded-sm border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50 shrink-0 p-1">
+                                        <div class="flex items-start gap-4">
+                                            <div class="flex flex-col items-center shrink-0">
+                                                <div class="w-20 h-12 rounded-sm border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50 p-1">
+                                                    <template x-if="review.logoImage">
+                                                        <img :src="review.logoImage" class="w-full h-full object-contain">
+                                                    </template>
+                                                    <template x-if="!review.logoImage">
+                                                        <span class="text-[10px] text-gray-400 uppercase tracking-widest text-center">Brak</span>
+                                                    </template>
+                                                </div>
                                                 <template x-if="review.logoImage">
-                                                    <img :src="review.logoImage" class="w-full h-full object-contain">
-                                                </template>
-                                                <template x-if="!review.logoImage">
-                                                    <span class="text-[10px] text-gray-400 uppercase tracking-widest text-center">Brak</span>
+                                                    <button @click="review.logoImage = ''" type="button" class="mt-2 text-[10px] text-red-500 hover:text-red-700 font-bold uppercase tracking-widest">✖ Usuń grafikę</button>
                                                 </template>
                                             </div>
                                             <input type="file" accept="image/*" @change="uploadImage($event, 'reviews', 'logoImage', index)" class="text-sm text-gray-500 file:mr-4 file:py-2 file:px-3 file:rounded-sm file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-widest file:bg-[#121212] file:text-[#D4AF37] hover:file:bg-gray-800 cursor-pointer">
@@ -527,9 +562,62 @@
                         </div>
                     </div>
 
+                    <div x-show="activeTab === 'seo'" x-transition.opacity style="display: none;">
+                        <div class="rounded-sm border border-gray-200 bg-gradient-to-br from-amber-50/40 via-white to-gray-50/80 p-1 mb-8">
+                            <div class="bg-white/90 backdrop-blur-sm rounded-sm px-6 py-5 border border-gray-100">
+                                <h2 class="text-2xl font-serif text-gray-900 border-b border-gray-100 pb-4 mb-1">Widoczność w Google i sieciach społecznościowych</h2>
+                                <p class="text-sm text-gray-600 leading-relaxed mt-3 max-w-3xl">Ustaw tytuł i opis strony oraz grafikę udostępnień. Te dane trafiają do znaczników meta na publicznej stronie (po wdrożeniu w szablonie).</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-8 max-w-3xl">
+                            <div class="bg-gray-50/80 rounded-sm border border-gray-100 p-6">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Meta Title</label>
+                                <input type="text" x-model="content.pl.seo.title" maxlength="120"
+                                       class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white">
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed">Tytuł wyświetlany w Google i na karcie przeglądarki. Zalecane max 60 znaków.</p>
+                            </div>
+
+                            <div class="bg-gray-50/80 rounded-sm border border-gray-100 p-6">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Meta Description</label>
+                                <textarea x-model="content.pl.seo.description" rows="3" maxlength="320"
+                                          class="w-full border border-gray-300 rounded-sm px-4 py-3 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white resize-y min-h-[5rem]"></textarea>
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed">Krótki opis Twojej strony zachęcający do kliknięcia. Zalecane max 160 znaków.</p>
+                            </div>
+
+                            <div class="bg-gray-50/80 rounded-sm border border-gray-100 p-6">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Obrazek Social Media (Open Graph)</label>
+                                <p class="text-xs text-gray-500 mb-4 leading-relaxed">Ten obrazek wyświetli się, gdy ktoś udostępni link do Twojej strony na Facebooku, LinkedIn lub w wiadomości.</p>
+                                <div class="flex flex-col sm:flex-row items-start gap-6">
+                                    <div class="flex flex-col items-center shrink-0">
+                                        <div class="w-40 h-[5.5rem] rounded-sm border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-white p-2">
+                                            <template x-if="content.pl.seo.ogImage">
+                                                <img :src="content.pl.seo.ogImage" class="w-full h-full object-cover rounded-sm" alt="Podgląd OG">
+                                            </template>
+                                            <template x-if="!content.pl.seo.ogImage">
+                                                <span class="text-[10px] text-gray-500 uppercase tracking-widest text-center px-2">Brak grafiki</span>
+                                            </template>
+                                        </div>
+                                        <template x-if="content.pl.seo.ogImage">
+                                            <button type="button" @click="content.pl.seo.ogImage = ''"
+                                                    class="mt-2 text-[10px] text-red-500 hover:text-red-700 font-bold uppercase tracking-widest">✖ Usuń grafikę</button>
+                                        </template>
+                                    </div>
+                                    <div class="flex-grow w-full min-w-0">
+                                        <input type="file" accept="image/*" @change="uploadImage($event, 'seo', 'ogImage')"
+                                               class="text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-sm file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-widest file:bg-[#121212] file:text-[#D4AF37] hover:file:bg-gray-800 cursor-pointer transition-colors w-full">
+                                        <p class="text-xs text-gray-500 mt-3 leading-relaxed">Zalecany format 1200×630 px lub zbliżony (JPG/PNG). Po wgraniu kliknij <strong>Publikuj Zmiany</strong>.</p>
+                                        <p x-show="uploadingImage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse">Wysyłanie na serwer...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </main>
+        </template>
     </div>
 
 </body>

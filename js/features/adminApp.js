@@ -16,6 +16,9 @@
       saving: false,
       uploadingImage: false,
       message: '',
+      errorMessage: '',
+      hasUnsavedChanges: false,
+      _stopContentWatch: null,
       upgrading: false,
       latestTemplateVersion: window.DFOPS_LATEST_TEMPLATE_VERSION || 3,
       currentTemplateVersion: 1,
@@ -25,7 +28,18 @@
       get accentColor() { return cfg.accentByPreset[this.content?.pl?.settings?.color_preset] || '#D4AF37'; },
       get styleBundles() { return cfg.bundlesByTheme[this.theme] || []; },
 
+      showError(msg) {
+        this.errorMessage = msg;
+        setTimeout(() => { this.errorMessage = ''; }, 5000);
+      },
+
       init() {
+        window.addEventListener('beforeunload', (e) => {
+          if (this.hasUnsavedChanges) {
+            e.preventDefault();
+            e.returnValue = 'Masz niezapisane zmiany!';
+          }
+        });
         this.supabase = window.DFOPS_getSupabaseClient();
         this.supabase.auth.getSession().then(({ data: { session } }) => {
           this.user = session?.user || null;
@@ -40,48 +54,39 @@
         else { this.user = data.user; await this.loadData(); }
       },
       async logout() {
+        if (typeof this._stopContentWatch === 'function') {
+          this._stopContentWatch();
+          this._stopContentWatch = null;
+        }
         await this.supabase.auth.signOut();
         this.user = null;
         this.content = null;
-      },
-      ensureSettingsDefaults() {
-        const s = this.content.pl.settings;
-        if (!s.color_preset) s.color_preset = this.theme === 'beauty' ? 'beige' : 'gold';
-        if (!s.background_style) s.background_style = this.theme === 'beauty' ? 'soft' : 'glow';
-        if (!s.font_preset) s.font_preset = this.theme === 'beauty' ? 'poppins' : 'inter';
+        this.hasUnsavedChanges = false;
       },
       async loadData() {
         this.content = null;
         const { data, error } = await repo.getCurrentUserPage(this.user.id);
-        if (error || !data) { alert('Nie znaleziono Twojej strony.'); return; }
+        if (error || !data) {
+          this.showError('Nie znaleziono Twojej strony.');
+          return;
+        }
         this.slug = data.slug;
         this.theme = data.theme;
-        this.content = window.DFOPS_normalizeContent(this.theme, data.content);
-        this.ensureSettingsDefaults();
-        if (!this.content.pl.nav) this.content.pl.nav = {};
-        if (this.theme === 'beauty') {
-          if (!this.content.pl.nav.menu) this.content.pl.nav.menu = { about: 'O nas', pricing: 'Cennik', faq: 'Q&A', contact: 'Kontakt' };
-          if (this.content.pl.nav.menu.about === undefined) this.content.pl.nav.menu.about = 'O nas';
-          if (this.content.pl.nav.menu.pricing === undefined) this.content.pl.nav.menu.pricing = 'Cennik';
-          if (this.content.pl.nav.menu.faq === undefined) this.content.pl.nav.menu.faq = 'Q&A';
-          if (this.content.pl.nav.menu.contact === undefined) this.content.pl.nav.menu.contact = 'Kontakt';
-        }
-        if (!this.content.pl.contact) this.content.pl.contact = {};
-        if (!this.content.pl.contact.map_embed_url) this.content.pl.contact.map_embed_url = '';
-        if (!this.content.pl.google_reviews) this.content.pl.google_reviews = { embed_url: '', place_query: '', max_reviews: 6, title: 'Opinie z Google' };
-        if (this.content.pl.google_reviews.embed_url === undefined) this.content.pl.google_reviews.embed_url = '';
-        if (this.content.pl.google_reviews.place_query === undefined) this.content.pl.google_reviews.place_query = '';
-        if (this.content.pl.google_reviews.max_reviews === undefined) this.content.pl.google_reviews.max_reviews = 6;
-        if (this.content.pl.google_reviews.title === undefined) this.content.pl.google_reviews.title = 'Opinie z Google';
-        if (!this.content.pl.social) this.content.pl.social = {};
-        if (this.theme === 'consultant') {
-          if (this.content.pl.social.facebook === undefined) this.content.pl.social.facebook = '';
-          if (this.content.pl.social.instagram === undefined) this.content.pl.social.instagram = '';
-          if (this.content.pl.social.tiktok === undefined) this.content.pl.social.tiktok = '';
-        }
+        this.content = window.DFOPS_normalizeContent(data.content, this.theme);
         this.currentTemplateVersion = Number(this.content.pl.settings.template_version || 1);
         this.updateAvailable = this.currentTemplateVersion < this.latestTemplateVersion;
         this.applyThemeStylingFromContent();
+
+        this.$nextTick(() => {
+          setTimeout(() => {
+            if (typeof this._stopContentWatch === 'function') {
+              this._stopContentWatch();
+              this._stopContentWatch = null;
+            }
+            this.hasUnsavedChanges = false;
+            this._stopContentWatch = this.$watch('content', () => { this.hasUnsavedChanges = true; }, { deep: true });
+          }, 0);
+        });
       },
       applyThemeStylingFromContent() {
         if (!this.content?.pl?.settings) return;
@@ -105,11 +110,12 @@
           this.content = upgraded;
           this.currentTemplateVersion = this.latestTemplateVersion;
           this.updateAvailable = false;
+          this.hasUnsavedChanges = false;
           this.message = `Szablon zaktualizowany do v${this.latestTemplateVersion}.`;
           setTimeout(() => { this.message = ''; }, 3500);
         } catch (e) {
           console.error(e);
-          alert('Upgrade nie powiódł się.');
+          this.showError('Upgrade nie powiódł się.');
         } finally {
           this.upgrading = false;
         }
@@ -118,14 +124,18 @@
         if (!this.content) return;
         this.saving = true;
         try {
+          if (Array.isArray(this.content.pl.services)) {
+            this.content.pl.services = this.content.pl.services.filter((s) => s.title && String(s.title).trim() !== '');
+          }
           this.content.pl.settings.template_version = this.latestTemplateVersion;
           const { error } = await repo.saveCurrentUserPage(this.user.id, { content: this.content, color_preset: this.content.pl.settings.color_preset });
           if (error) throw error;
+          this.hasUnsavedChanges = false;
           this.message = 'Zmiany zostały opublikowane!';
           setTimeout(() => { this.message = ''; }, 3000);
         } catch (e) {
           console.error(e);
-          alert('Błąd zapisu (RLS lub walidacja).');
+          this.showError('Błąd zapisu (RLS lub walidacja).');
         } finally {
           this.saving = false;
         }
@@ -149,7 +159,7 @@
           setTimeout(() => { this.message = ''; }, 3000);
         } catch (e) {
           console.error(e);
-          alert('Nie udało się wgrać pliku.');
+          this.showError('Nie udało się wgrać pliku.');
         } finally {
           this.uploadingImage = false;
           event.target.value = '';
@@ -160,4 +170,3 @@
 
   window.createAdminApp = createAdminApp;
 })();
-

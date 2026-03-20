@@ -1,4 +1,9 @@
 ;(function () {
+  /**
+   * Router tylko przekierowuje na consultant.html / beauty.html.
+   * Title, meta description i Open Graph ustawiane są po załadowaniu treści
+   * w createPublicSiteApp().init() → DFOPS_applyDocumentSeo (publicSiteApp.js).
+   */
   async function routeByThemeAndDomain() {
     const cfg = window.DFOPS_CONFIG;
     const repo = window.DFOPS_pageRepository;

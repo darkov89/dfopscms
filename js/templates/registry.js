@@ -22,6 +22,12 @@
         contact: { email: "", phone: "", address: "", map_embed_url: "" },
         social: { linkedin: "", facebook: "", instagram: "", tiktok: "" },
         google_reviews: { embed_url: "", place_query: "", max_reviews: 6, title: "Opinie z Google" },
+        seo: {
+          title: "Konsultacje i coaching — profesjonalna strona eksperta",
+          description:
+            "Strona dla konsultantów, coachów i specjalistów. Umów rozmowę, poznaj ofertę i buduj zaufanie dzięki przejrzystemu, nowoczesnemu układowi.",
+          ogImage: ""
+        },
         footer: { quote: "", copyright: "", privacy: "" },
         cookies: { text: "Ta strona używa plików cookies w celach funkcjonalnych.", accept: "Akceptuję" },
         settings: {
@@ -53,6 +59,12 @@
         faq: [],
         contact: { phone: "", email: "", address: "", booksyUrl: "", map_embed_url: "" },
         google_reviews: { embed_url: "", place_query: "", max_reviews: 6, title: "Opinie z Google" },
+        seo: {
+          title: "Salon beauty i zabiegi — rezerwacja online",
+          description:
+            "Profesjonalne zabiegi kosmetyczne, barber i relaks w jednym miejscu. Sprawdź cennik, przeczytaj opinie i umów wizytę w kilka kliknięć.",
+          ogImage: ""
+        },
         settings: {
           showManifesto: true,
           showServices: true,

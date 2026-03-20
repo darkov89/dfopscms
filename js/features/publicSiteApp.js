@@ -42,6 +42,73 @@
     }
   }
 
+  /** Usuwa prosty HTML z tytułów/opisów SEO (żeby nie trafił surowy markup do <title>). */
+  function seoPlainText(value) {
+    if (value == null || value === '') return '';
+    const s = String(value).trim();
+    if (!s) return '';
+    if (!/[<>]/.test(s)) return s;
+    const d = document.createElement('div');
+    d.innerHTML = s;
+    return (d.textContent || d.innerText || '').trim();
+  }
+
+  function ensureMetaByName(name, contentAttr) {
+    let el = document.querySelector(`meta[name="${name}"]`);
+    if (!el) {
+      el = document.createElement('meta');
+      el.setAttribute('name', name);
+      document.head.appendChild(el);
+    }
+    el.setAttribute('content', contentAttr);
+  }
+
+  function ensureMetaByProperty(property, contentAttr) {
+    let el = document.querySelector(`meta[property="${property}"]`);
+    if (!el) {
+      el = document.createElement('meta');
+      el.setAttribute('property', property);
+      document.head.appendChild(el);
+    }
+    el.setAttribute('content', contentAttr);
+  }
+
+  /**
+   * Aktualizacja SEO / Open Graph po stronie klienta (title, description, obraz udostępnień).
+   */
+  function applyDocumentSeo(content, lang) {
+    const seoData = content?.[lang]?.seo;
+    if (!seoData) return;
+
+    const title = seoPlainText(seoData.title);
+    if (title) document.title = title;
+
+    const desc = seoPlainText(seoData.description);
+    if (desc) {
+      let metaDesc = document.querySelector('meta[name="description"]');
+      if (!metaDesc) {
+        metaDesc = document.createElement('meta');
+        metaDesc.setAttribute('name', 'description');
+        document.head.appendChild(metaDesc);
+      }
+      metaDesc.setAttribute('content', desc);
+      ensureMetaByProperty('og:description', desc);
+      ensureMetaByName('twitter:description', desc);
+    }
+
+    if (title) {
+      ensureMetaByProperty('og:title', title);
+      ensureMetaByName('twitter:title', title);
+    }
+
+    const og = typeof seoData.ogImage === 'string' ? seoData.ogImage.trim() : '';
+    if (og) {
+      ensureMetaByProperty('og:image', og);
+      ensureMetaByName('twitter:image', og);
+      ensureMetaByName('twitter:card', 'summary_large_image');
+    }
+  }
+
   function createPublicSiteApp(expectedTheme) {
     const cfg = window.DFOPS_CONFIG;
     const repo = window.DFOPS_pageRepository;
@@ -77,12 +144,14 @@
 
           this.slug = page.slug;
           this.theme = page.theme || expectedTheme;
-          this.content = window.DFOPS_normalizeContent(this.theme, page.content);
+          this.content = window.DFOPS_normalizeContent(page.content, this.theme);
           normalizeEmbedFields(this.content);
           window.DFOPS_applyThemeStyling(this.content?.pl?.settings, this.theme, 'public');
 
           const userLang = navigator.language.slice(0, 2);
           this.lang = this.content[userLang] ? userLang : (Object.keys(this.content)[0] || 'pl');
+
+          applyDocumentSeo(this.content, this.lang);
         } catch (error) {
           console.error('Błąd krytyczny aplikacji:', error);
           this.bazaBlad = true;
@@ -92,5 +161,6 @@
   }
 
   window.createPublicSiteApp = createPublicSiteApp;
+  window.DFOPS_applyDocumentSeo = applyDocumentSeo;
 })();
 
