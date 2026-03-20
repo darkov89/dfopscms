@@ -174,27 +174,6 @@
         if (!this.content?.pl?.gallery?.images || !Array.isArray(this.content.pl.gallery.images)) return;
         this.content.pl.gallery.images.splice(index, 1);
       },
-      insertLink(textareaId) {
-        const el = document.getElementById(textareaId);
-        if (!el) return;
-        if (!this.content?.pl?.manifesto) this.content.pl.manifesto = { label: '', title: '', text: '' };
-        const text = this.content.pl.manifesto.text || '';
-        const start = el.selectionStart;
-        const end = el.selectionEnd;
-        const selected = text.substring(start, end);
-        if (!selected.trim()) {
-          this.showError('Zaznacz fragment tekstu, który ma stać się linkiem.');
-          return;
-        }
-        const url = prompt('Podaj URL linku:', 'https://');
-        if (!url || url === 'https://') return;
-        const before = text.substring(0, start);
-        const after = text.substring(end);
-        const escapedUrl = url.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        const escapedText = selected.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-        const linkHtml = '<a href="' + escapedUrl + '" class="text-sattva-brand underline hover:text-sattva-text transition-colors">' + escapedText + '</a>';
-        this.content.pl.manifesto.text = before + linkHtml + after;
-      },
     };
   }
 

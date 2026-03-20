@@ -24,8 +24,8 @@
                         }
                     },
                     fontFamily: {
-                        serif: ['"Playfair Display"', 'serif'], 
-                        sans: ['"Poppins"', 'sans-serif'],
+                        serif: ['var(--font-serif)', 'ui-serif', 'Georgia', 'serif'],
+                        sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
                     }
                 }
             }
@@ -112,7 +112,7 @@
         <section id="o-nas" class="py-24 px-6 bg-sattva-bg" x-show="content[lang].settings?.showManifesto !== false">
             <div class="max-w-3xl mx-auto text-center reveal">
                 <h2 class="text-3xl md:text-4xl font-serif mb-8" x-text="content[lang].manifesto?.title"></h2>
-                <p class="text-lg leading-relaxed text-sattva-text/80" x-html="content[lang].manifesto?.text"></p>
+                <p class="text-lg leading-relaxed text-sattva-text/80" x-text="content[lang].manifesto?.text"></p>
             </div>
         </section>
 
@@ -138,8 +138,8 @@
                             
                             <div x-show="expanded" x-collapse x-cloak>
                                 <div class="pt-4 mt-4 border-t border-gray-100 text-sattva-text/80 text-sm">
-                                    <p class="mb-2 font-medium" x-html="service.desc"></p>
-                                    <p class="font-light leading-relaxed" x-html="service.details"></p>
+                                    <p class="mb-2 font-medium" x-text="service.desc"></p>
+                                    <p class="font-light leading-relaxed" x-text="service.details"></p>
                                 </div>
                             </div>
 
@@ -189,7 +189,7 @@
                                 <div class="w-2.5 h-2.5 border-r-2 border-b-2 border-current transform transition-transform duration-300" :class="expanded ? '-rotate-135' : 'rotate-45'"></div>
                             </button>
                             <div x-show="expanded" x-collapse x-cloak>
-                                <div class="px-6 pb-6 text-sattva-text/70 leading-relaxed" x-html="item.answer"></div>
+                                <div class="px-6 pb-6 text-sattva-text/70 leading-relaxed" x-text="item.answer"></div>
                             </div>
                         </div>
                     </template>
@@ -301,7 +301,7 @@
                         x-init="fetchReviews()"
                     >
                         <template x-if="loading">
-                            <div class="bg-white rounded-[2rem] border border-[#E8DFD0] p-10 text-center shadow-sm">
+                            <div class="bg-sattva-white rounded-[2rem] border border-sattva-brand/20 p-10 text-center shadow-sm">
                                 <div class="text-sattva-text/70 text-sm font-medium">Ładowanie opinii z Google…</div>
                             </div>
                         </template>
@@ -309,11 +309,11 @@
                         <template x-if="!loading && reviews.length">
                             <div class="space-y-8">
                                 <!-- Nagłówek jak w mockupie (pill) -->
-                                <div class="reveal flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-5 sm:px-8 py-4 rounded-full border border-[#D4C4B0] bg-white/90 shadow-sm">
+                                <div class="reveal flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-5 sm:px-8 py-4 rounded-full border border-sattva-brand/30 bg-sattva-bg/50 shadow-sm">
                                     <div class="flex flex-wrap items-center gap-3 sm:gap-4 justify-center sm:justify-start">
                                         <svg class="h-7 w-7 shrink-0" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.666 32.657 29.234 36 24 36c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.222 0-9.673-3.453-11.284-8.091l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>
                                         <span class="text-sm font-semibold text-sattva-text tracking-wide" x-text="labelExcellent($root.lang)"></span>
-                                        <div class="flex items-center gap-1 text-amber-500 text-base leading-none" aria-hidden="true">
+                                        <div class="flex items-center gap-1 text-sattva-brand text-base leading-none" aria-hidden="true">
                                             <template x-for="si in [1,2,3,4,5]" :key="si">
                                                 <span x-text="si <= Math.round(headerRating() || 0) ? '★' : '☆'"></span>
                                             </template>
@@ -323,14 +323,14 @@
                                         <span class="text-sm text-sattva-text/70" x-text="displayCount() + ' ' + ($root.lang === 'en' ? 'reviews' : 'opinii')"></span>
                                     </div>
                                     <a :href="writeReviewUrl()" target="_blank" rel="noopener noreferrer"
-                                       class="shrink-0 self-center rounded-full border border-[#C4B5A4] px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-sattva-text hover:bg-[#F5EFE6] transition-colors text-center"
+                                       class="shrink-0 self-center rounded-full border border-sattva-brand/40 px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-sattva-text hover:bg-sattva-accent transition-colors text-center"
                                        x-text="t('writeReview', $root.lang)"></a>
                                 </div>
 
                                 <!-- Karuzela -->
                                 <div class="relative flex items-stretch gap-2 md:gap-4">
                                     <button type="button" @click="prevSlide()"
-                                            class="hidden sm:flex shrink-0 w-11 h-11 rounded-full border border-[#D4C4B0] bg-white items-center justify-center text-sattva-text hover:bg-[#F5EFE6] transition-colors self-center shadow-sm"
+                                            class="hidden sm:flex shrink-0 w-11 h-11 rounded-full border border-sattva-brand/30 bg-sattva-white items-center justify-center text-sattva-text hover:bg-sattva-accent transition-colors self-center shadow-sm"
                                             :class="slide === 0 ? 'opacity-40 pointer-events-none' : ''"
                                             aria-label="Poprzednia opinia">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
@@ -342,14 +342,14 @@
                                             <template x-for="(r, i) in reviews" :key="i">
                                                 <div class="w-full shrink-0 px-1 sm:px-2 box-border">
                                                     <div x-data="{ expanded: false }"
-                                                         class="relative h-full bg-white border border-[#E5D5C5] rounded-[2rem] p-6 md:p-8 shadow-sm flex flex-col min-h-[280px]">
+                                                         class="relative h-full bg-sattva-white border border-sattva-brand/20 rounded-[2rem] p-6 md:p-8 shadow-sm flex flex-col min-h-[280px]">
                                                         <div class="flex items-start justify-between gap-3 mb-4">
                                                             <div class="flex items-center gap-3 min-w-0">
                                                                 <template x-if="r.profile_photo_url">
-                                                                    <img :src="r.profile_photo_url" class="w-12 h-12 rounded-full object-cover shrink-0 ring-2 ring-[#F0E6DC]" alt="" loading="lazy">
+                                                                    <img :src="r.profile_photo_url" class="w-12 h-12 rounded-full object-cover shrink-0 ring-2 ring-sattva-brand/20" alt="" loading="lazy">
                                                                 </template>
                                                                 <template x-if="!r.profile_photo_url">
-                                                                    <div class="w-12 h-12 rounded-full bg-[#E8DFD0] flex items-center justify-center text-sattva-brand font-bold text-lg shrink-0"
+                                                                    <div class="w-12 h-12 rounded-full bg-sattva-accent flex items-center justify-center text-sattva-brand font-bold text-lg shrink-0"
                                                                          x-text="(r.author_name || '?').charAt(0).toUpperCase()"></div>
                                                                 </template>
                                                                 <div class="min-w-0">
@@ -360,12 +360,12 @@
                                                             <svg class="w-7 h-7 shrink-0 opacity-90" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M24 22h-4v-4h4v4zm0 8h-4v-4h4v4z"/><path fill="#EA4335" d="M24 12v4h8c0-2.21-1.79-4-4-4h-4z"/><path fill="#FBBC05" d="M12 24c0-2.21.55-4.28 1.52-6.08L8.11 15.5A15.97 15.97 0 004 24h8z"/><path fill="#34A853" d="M24 36c4.97 0 9.19-3.25 10.69-7.73l-3.9-2.97C29.72 27.52 27.05 29 24 29c-3.51 0-6.49-2.24-7.58-5.38l-3.96 3.05C14.45 32.81 18.77 36 24 36z"/></svg>
                                                         </div>
                                                         <div class="flex items-center gap-2 mb-4">
-                                                            <div class="flex text-amber-500 text-sm leading-none gap-0.5">
+                                                            <div class="flex text-sattva-brand text-sm leading-none gap-0.5">
                                                                 <template x-for="si in [1,2,3,4,5]" :key="'s'+si">
                                                                     <span x-text="si <= Math.round(Number(r.rating) || 0) ? '★' : '☆'"></span>
                                                                 </template>
                                                             </div>
-                                                            <span class="inline-flex items-center justify-center rounded-full bg-[#E8F0FE] text-[#1A73E8] px-1.5 py-0.5" title="Google">
+                                                            <span class="inline-flex items-center justify-center rounded-full bg-sattva-brand/10 text-sattva-brand px-1.5 py-0.5" title="Google">
                                                                 <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                                                             </span>
                                                         </div>
@@ -377,7 +377,7 @@
                                                                     @click="expanded = !expanded"
                                                                     x-show="r.text && r.text.length > 160"
                                                                     x-text="expanded ? t('readLess', $root.lang) : t('readMore', $root.lang)"></button>
-                                                            <span class="text-6xl font-serif text-[#D4C4B0]/40 leading-none select-none pointer-events-none" aria-hidden="true">“</span>
+                                                            <span class="text-6xl font-serif text-sattva-brand/40 leading-none select-none pointer-events-none" aria-hidden="true">“</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -386,7 +386,7 @@
                                     </div>
 
                                     <button type="button" @click="nextSlide()"
-                                            class="hidden sm:flex shrink-0 w-11 h-11 rounded-full border border-[#D4C4B0] bg-white items-center justify-center text-sattva-text hover:bg-[#F5EFE6] transition-colors self-center shadow-sm"
+                                            class="hidden sm:flex shrink-0 w-11 h-11 rounded-full border border-sattva-brand/30 bg-sattva-white items-center justify-center text-sattva-text hover:bg-sattva-accent transition-colors self-center shadow-sm"
                                             :class="slide >= reviews.length - 1 ? 'opacity-40 pointer-events-none' : ''"
                                             aria-label="Następna opinia">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -394,14 +394,14 @@
                                 </div>
 
                                 <div class="flex sm:hidden justify-center gap-2 mt-2">
-                                    <button type="button" @click="prevSlide()" class="px-4 py-2 rounded-full border border-[#D4C4B0] text-xs font-bold uppercase tracking-widest text-sattva-text/70" :disabled="slide === 0">←</button>
-                                    <button type="button" @click="nextSlide()" class="px-4 py-2 rounded-full border border-[#D4C4B0] text-xs font-bold uppercase tracking-widest text-sattva-text/70" :disabled="slide >= reviews.length - 1">→</button>
+                                    <button type="button" @click="prevSlide()" class="px-4 py-2 rounded-full border border-sattva-brand/30 text-xs font-bold uppercase tracking-widest text-sattva-text/70" :disabled="slide === 0">←</button>
+                                    <button type="button" @click="nextSlide()" class="px-4 py-2 rounded-full border border-sattva-brand/30 text-xs font-bold uppercase tracking-widest text-sattva-text/70" :disabled="slide >= reviews.length - 1">→</button>
                                 </div>
 
                                 <div class="flex justify-center gap-2 mt-4" x-show="reviews.length > 1">
                                     <template x-for="(dot, di) in reviews" :key="'d'+di">
                                         <button type="button" class="h-2 rounded-full transition-all"
-                                                :class="slide === di ? 'w-8 bg-sattva-brand' : 'w-2 bg-[#D4C4B0]/60'"
+                                                :class="slide === di ? 'w-8 bg-sattva-brand' : 'w-2 bg-sattva-brand/40'"
                                                 @click="slide = di" :aria-label="'Opinia ' + (di+1)"></button>
                                     </template>
                                 </div>
@@ -409,7 +409,7 @@
                         </template>
 
                         <template x-if="!loading && !reviews.length">
-                            <div class="bg-white rounded-[2rem] border border-[#E8DFD0] p-10 text-center shadow-sm">
+                            <div class="bg-sattva-white rounded-[2rem] border border-sattva-brand/20 p-10 text-center shadow-sm">
                                 <div class="text-sattva-text/70 text-sm font-medium" x-text="error || 'Brak opinii w tym miejscu.'"></div>
                             </div>
                         </template>
