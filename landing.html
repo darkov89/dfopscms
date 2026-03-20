@@ -3,104 +3,262 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DFCMS — landing w minuty dla Twojego biznesu</title>
-    <meta name="description" content="Szablony pod konsultantów, salony i małe firmy. Jedna opłata, własna strona, panel administracyjny.">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>DFCMS — Strona internetowa w 2 minuty</title>
+    <meta name="description" content="Błyskawiczny CMS dla Twojego biznesu. Uruchom nowoczesną stronę bez kodu.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: {
-                        gold: { DEFAULT: '#D4AF37', dim: '#b8962e' }
+                    fontFamily: {
+                        sans: ['"DM Sans"', 'system-ui', 'sans-serif'],
+                        display: ['Outfit', '"DM Sans"', 'sans-serif'],
                     },
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'] }
-                }
-            }
+                    colors: {
+                        brand: {
+                            gold: '#D4AF37',
+                            dark: '#0a0a0b',
+                        },
+                    },
+                    boxShadow: {
+                        'soft': '0 25px 50px -12px rgba(0, 0, 0, 0.45)',
+                        'gold': '0 25px 50px -12px rgba(0, 0, 0, 0.45), 0 0 60px -10px rgba(212, 175, 55, 0.28)',
+                    },
+                },
+            },
         };
     </script>
-    <style>html { font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif; }</style>
+    <style>
+        body { font-feature-settings: "cv02", "cv03", "cv04", "cv11"; }
+    </style>
 </head>
-<body class="bg-[#0a0a0c] text-gray-300 antialiased selection:bg-gold/30 selection:text-white">
+<body class="min-h-screen bg-zinc-900 text-zinc-100 antialiased font-sans selection:bg-[#D4AF37]/30 selection:text-white">
 
-    <div class="fixed inset-0 pointer-events-none">
-        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[min(140%,900px)] h-[420px] bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.12)_0%,transparent_65%)]"></div>
-        <div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle_at_bottom_right,rgba(212,175,55,0.06)_0%,transparent_55%)]"></div>
+    <!-- Subtelny gradient w tle -->
+    <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div class="absolute -top-40 left-1/2 h-[520px] w-[900px] -translate-x-1/2 rounded-full bg-[#D4AF37]/[0.06] blur-3xl"></div>
+        <div class="absolute bottom-0 right-0 h-80 w-80 translate-x-1/3 rounded-full bg-amber-500/5 blur-3xl"></div>
     </div>
 
-    <header class="relative z-20 border-b border-white/5 bg-[#0a0a0c]/80 backdrop-blur-md">
-        <div class="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between gap-4">
-            <a href="landing.html" class="flex items-center gap-2 shrink-0">
-                <span class="text-xl font-black tracking-tight text-white">DF<span class="text-gold">CMS</span></span>
-                <span class="hidden sm:inline text-[10px] uppercase tracking-[0.2em] text-gray-500 font-semibold border-l border-white/10 pl-3 ml-1">micro‑saas</span>
+    <header class="sticky top-0 z-50 border-b border-white/5 bg-zinc-900/80 backdrop-blur-xl">
+        <nav class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8" aria-label="Główna nawigacja">
+            <a href="landing.html" class="font-display text-xl font-bold tracking-tight text-white">
+                <span class="text-[#D4AF37]">DF</span>CMS
             </a>
-            <nav class="flex items-center gap-3 sm:gap-4">
-                <a href="rejestracja.html" class="text-sm font-medium text-gray-400 hover:text-white transition-colors hidden sm:inline">Stwórz konto</a>
+            <div class="flex items-center gap-3 sm:gap-4">
                 <a href="admin.html"
-                   class="inline-flex items-center justify-center px-4 py-2.5 rounded-sm border border-white/15 text-xs font-bold uppercase tracking-widest text-white hover:border-gold hover:text-gold transition-all">
-                    Zaloguj
+                   class="rounded-xl px-4 py-2.5 text-sm font-semibold text-zinc-300 transition hover:bg-white/5 hover:text-white">
+                    Zaloguj się
                 </a>
-            </nav>
-        </div>
+                <a href="rejestracja.html"
+                   class="rounded-xl bg-[#D4AF37] px-4 py-2.5 text-sm font-bold text-zinc-900 shadow-lg shadow-[#D4AF37]/25 transition hover:bg-[#c9a432] hover:shadow-[#D4AF37]/35">
+                    Wypróbuj za darmo
+                </a>
+            </div>
+        </nav>
     </header>
 
-    <main class="relative z-10">
-        <section class="max-w-6xl mx-auto px-5 pt-16 pb-20 md:pt-24 md:pb-28">
-            <div class="max-w-3xl">
-                <p class="text-xs font-bold uppercase tracking-[0.25em] text-gold mb-6">Strona, która sprzedaje — bez kodowania</p>
-                <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-[1.08] tracking-tight mb-6">
-                    Zbuduj swój cyfrowy salon. <span class="text-gold italic font-serif">Błyskawicznie.</span>
-                </h1>
-                <p class="text-lg sm:text-xl text-gray-400 leading-relaxed mb-10 max-w-xl">
-                    Gotowe szablony pod ekspertów, salony beauty, gabinety i małe firmy.
-                    Jeden panel, Twoja domena, opinie z Google i sekcje dopasowane do branży.
+    <main>
+        <!-- Hero -->
+        <section class="relative px-4 pb-20 pt-12 sm:px-6 sm:pb-24 sm:pt-16 lg:px-8 lg:pt-20" aria-labelledby="hero-heading">
+            <div class="mx-auto max-w-7xl">
+                <div class="mx-auto max-w-3xl text-center lg:mx-0 lg:max-w-none lg:text-left">
+                    <p class="mb-4 inline-flex items-center rounded-full border border-[#D4AF37]/25 bg-[#D4AF37]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-[#e8cf6a]">
+                        CMS bez kodu · hosting w cenie
+                    </p>
+                    <h1 id="hero-heading" class="font-display text-4xl font-extrabold leading-[1.1] tracking-tight text-white sm:text-5xl lg:text-6xl">
+                        Strona internetowa w 2 minuty? <span class="text-[#D4AF37]">Tak, to możliwe.</span>
+                    </h1>
+                    <p class="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-zinc-400 lg:mx-0">
+                        Błyskawiczny CMS dla Twojego biznesu. Uruchom nowoczesną, zoptymalizowaną stronę bez pisania ani jednej linijki kodu.
+                    </p>
+                    <div class="mt-10 flex flex-col items-stretch justify-center gap-4 sm:flex-row sm:justify-center lg:justify-start">
+                        <a href="rejestracja.html"
+                           class="inline-flex items-center justify-center rounded-2xl bg-[#D4AF37] px-8 py-4 text-center text-base font-bold text-zinc-900 shadow-soft shadow-[#D4AF37]/20 transition hover:bg-[#c9a432]">
+                            Załóż stronę teraz
+                        </a>
+                        <a href="#demo"
+                           class="inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/5 px-8 py-4 text-center text-base font-semibold text-white backdrop-blur-sm transition hover:border-[#D4AF37]/40 hover:bg-white/[0.08]">
+                            Zobacz Demo
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Wideo placeholder 1 -->
+                <div class="mx-auto mt-14 max-w-4xl lg:mt-16">
+                    <figure class="relative">
+                        <div class="relative overflow-hidden rounded-2xl border border-[#D4AF37]/20 bg-zinc-800/50 shadow-gold ring-1 ring-white/5 aspect-video flex items-center justify-center">
+                            <div class="absolute inset-0 bg-gradient-to-br from-zinc-800 via-zinc-900 to-black"></div>
+                            <div class="absolute inset-0 opacity-[0.03]" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23D4AF37\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
+                            <button type="button" class="relative z-10 flex h-20 w-20 items-center justify-center rounded-full border-2 border-[#D4AF37]/50 bg-[#D4AF37]/15 text-[#D4AF37] shadow-lg backdrop-blur-sm transition hover:scale-105 hover:border-[#D4AF37] hover:bg-[#D4AF37]/25 focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2 focus:ring-offset-zinc-900" aria-label="Odtwórz wideo">
+                                <svg class="ml-1 h-9 w-9" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <figcaption class="mt-4 text-center text-sm font-medium text-zinc-500">
+                            Zobacz jak to działa w 60 sekund
+                        </figcaption>
+                    </figure>
+                </div>
+            </div>
+        </section>
+
+        <!-- Demo -->
+        <section id="demo" class="scroll-mt-24 border-t border-white/5 bg-zinc-950/50 px-4 py-20 sm:px-6 lg:px-8" aria-labelledby="demo-heading">
+            <div class="mx-auto max-w-7xl">
+                <div class="mx-auto max-w-2xl text-center">
+                    <h2 id="demo-heading" class="font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                        Zobacz to na własne oczy
+                    </h2>
+                    <p class="mt-4 text-lg text-zinc-400">
+                        Sprawdź, jak wyglądają gotowe szablony i jak banalnie prosta jest ich edycja.
+                    </p>
+                </div>
+                <div class="mx-auto mt-12 max-w-4xl">
+                    <figure class="relative">
+                        <div class="relative overflow-hidden rounded-2xl border border-[#D4AF37]/20 bg-zinc-800/50 shadow-gold ring-1 ring-white/5 aspect-video flex items-center justify-center">
+                            <div class="absolute inset-0 bg-gradient-to-br from-zinc-800 via-zinc-900 to-black"></div>
+                            <button type="button" class="relative z-10 flex h-20 w-20 items-center justify-center rounded-full border-2 border-[#D4AF37]/50 bg-[#D4AF37]/15 text-[#D4AF37] shadow-lg backdrop-blur-sm transition hover:scale-105 hover:border-[#D4AF37] hover:bg-[#D4AF37]/25 focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2 focus:ring-offset-zinc-950" aria-label="Odtwórz wideo demo">
+                                <svg class="ml-1 h-9 w-9" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <figcaption class="mt-4 text-center text-sm font-medium text-zinc-500">
+                            Przegląd panelu i edytora
+                        </figcaption>
+                    </figure>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cennik -->
+        <section class="px-4 py-20 sm:px-6 lg:px-8" aria-labelledby="pricing-heading">
+            <div class="mx-auto max-w-7xl">
+                <h2 id="pricing-heading" class="text-center font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                    Wybierz pakiet idealny dla siebie
+                </h2>
+                <p class="mx-auto mt-3 max-w-xl text-center text-zinc-400">
+                    Przejrzyste ceny, pełna kontrola nad rozwojem witryny.
                 </p>
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-                    <a href="rejestracja.html"
-                       class="inline-flex justify-center items-center px-8 py-4 rounded-sm bg-gold text-[#0a0a0c] text-sm font-bold uppercase tracking-widest hover:bg-white transition-all shadow-lg shadow-gold/20">
-                        Załóż stronę za darmo
-                    </a>
-                    <a href="admin.html"
-                       class="inline-flex justify-center items-center px-8 py-4 rounded-sm border border-white/20 text-sm font-bold uppercase tracking-widest text-gray-300 hover:border-gold/50 hover:text-white transition-all">
-                        Mam już konto
-                    </a>
+
+                <div class="mt-14 grid gap-8 lg:grid-cols-3 lg:items-start">
+                    <!-- Karta 1 -->
+                    <article class="flex flex-col rounded-2xl border border-white/10 bg-zinc-800/40 p-8 shadow-soft ring-1 ring-white/5">
+                        <h3 class="font-display text-xl font-bold text-white">Zrób to sam</h3>
+                        <p class="mt-1 text-sm font-medium text-zinc-500">DIY</p>
+                        <p class="mt-6 font-display text-3xl font-bold text-white">
+                            499&nbsp;PLN <span class="text-base font-normal text-zinc-500">jednorazowo</span>
+                        </p>
+                        <p class="mt-1 text-sm text-zinc-400">+ 49&nbsp;PLN / miesiąc</p>
+                        <ul class="mt-8 flex-1 space-y-4 text-sm text-zinc-300">
+                            <li class="flex gap-3">
+                                <span class="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-[#D4AF37]/20 text-center text-[#D4AF37]">✓</span>
+                                <span>Czysty szablon do samodzielnej edycji</span>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-[#D4AF37]/20 text-center text-[#D4AF37]">✓</span>
+                                <span>Dokumentacja (Docs)</span>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-[#D4AF37]/20 text-center text-[#D4AF37]">✓</span>
+                                <span>Hosting i utrzymanie (Maint)</span>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-[#D4AF37]/20 text-center text-[#D4AF37]">✓</span>
+                                <span>Możliwość dokupienia konsultacji (150&nbsp;PLN/h)</span>
+                            </li>
+                        </ul>
+                        <a href="rejestracja.html"
+                           class="mt-8 inline-flex w-full items-center justify-center rounded-2xl border border-white/15 bg-white/5 py-3.5 text-center text-sm font-bold text-white transition hover:border-[#D4AF37]/40 hover:bg-white/[0.08]">
+                            Wybieram ten pakiet
+                        </a>
+                    </article>
+
+                    <!-- Karta 2 — wyróżniona -->
+                    <article class="relative flex flex-col rounded-2xl border-2 border-[#D4AF37]/50 bg-gradient-to-b from-zinc-800/80 to-zinc-900/90 p-8 shadow-gold lg:-mt-4 lg:scale-[1.02]">
+                        <div class="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#D4AF37] px-4 py-1 text-xs font-bold uppercase tracking-wider text-zinc-900">
+                            Bestseller
+                        </div>
+                        <h3 class="mt-4 font-display text-xl font-bold text-white">Zrobimy to za Ciebie</h3>
+                        <p class="mt-6 font-display text-3xl font-bold text-white">
+                            999&nbsp;PLN <span class="text-base font-normal text-zinc-500">jednorazowo</span>
+                        </p>
+                        <p class="mt-1 text-sm text-zinc-400">+ 99&nbsp;PLN / miesiąc</p>
+                        <ul class="mt-8 flex-1 space-y-4 text-sm text-zinc-200">
+                            <li class="flex gap-3">
+                                <span class="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-[#D4AF37] text-center text-sm font-bold text-zinc-900">✓</span>
+                                <span>Wypakowany po brzegi! My konfigurujemy stronę za Ciebie</span>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-[#D4AF37] text-center text-sm font-bold text-zinc-900">✓</span>
+                                <span>Hosting i utrzymanie</span>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-[#D4AF37] text-center text-sm font-bold text-zinc-900">✓</span>
+                                <span>2 pełne konsultacje w cenie</span>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-[#D4AF37] text-center text-sm font-bold text-zinc-900">✓</span>
+                                <span>Priorytetowe wsparcie. Kolejne konsultacje 150&nbsp;PLN</span>
+                            </li>
+                        </ul>
+                        <a href="rejestracja.html"
+                           class="mt-8 inline-flex w-full items-center justify-center rounded-2xl bg-[#D4AF37] py-3.5 text-center text-sm font-bold text-zinc-900 shadow-lg shadow-[#D4AF37]/25 transition hover:bg-[#c9a432]">
+                            Wybieram ten pakiet
+                        </a>
+                    </article>
+
+                    <!-- Karta 3 -->
+                    <article class="flex flex-col rounded-2xl border border-white/10 bg-zinc-800/40 p-8 shadow-soft ring-1 ring-white/5">
+                        <h3 class="font-display text-xl font-bold text-white">Premium Custom</h3>
+                        <p class="mt-6 font-display text-3xl font-bold text-[#D4AF37]">
+                            Od 1499&nbsp;PLN
+                        </p>
+                        <p class="mt-1 text-sm text-zinc-400">Wycena indywidualna</p>
+                        <ul class="mt-8 flex-1 space-y-4 text-sm text-zinc-300">
+                            <li class="flex gap-3">
+                                <span class="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-[#D4AF37]/20 text-center text-[#D4AF37]">✓</span>
+                                <span>Indywidualne wdrożenie</span>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-[#D4AF37]/20 text-center text-[#D4AF37]">✓</span>
+                                <span>Customowe rozwiązania i sekcje</span>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-[#D4AF37]/20 text-center text-[#D4AF37]">✓</span>
+                                <span>Dedykowany opiekun projektu</span>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-[#D4AF37]/20 text-center text-[#D4AF37]">✓</span>
+                                <span>Wycena indywidualna</span>
+                            </li>
+                        </ul>
+                        <a href="rejestracja.html"
+                           class="mt-8 inline-flex w-full items-center justify-center rounded-2xl border border-white/15 bg-white/5 py-3.5 text-center text-sm font-bold text-white transition hover:border-[#D4AF37]/40 hover:bg-white/[0.08]">
+                            Wybieram ten pakiet
+                        </a>
+                    </article>
                 </div>
-                <p class="mt-8 text-xs text-gray-500 max-w-md">* Rejestracja i konfiguracja zajmą kilka minut. Pełna oferta i płatność — według aktualnego cennika w <code class="text-gold/90">rejestracja.html</code>.</p>
             </div>
         </section>
-
-        <section class="border-t border-white/5 bg-[#08080a]/80 py-16 md:py-20">
-            <div class="max-w-6xl mx-auto px-5">
-                <h2 class="text-center text-xs font-bold uppercase tracking-[0.2em] text-gold mb-10">Dlaczego DFCMS</h2>
-                <div class="grid sm:grid-cols-3 gap-8 md:gap-10">
-                    <div class="rounded-sm border border-white/10 bg-white/[0.02] p-6 hover:border-gold/25 transition-colors">
-                        <div class="text-gold text-2xl font-serif mb-3">01</div>
-                        <h3 class="text-white font-semibold mb-2">Szablony „pro”</h3>
-                        <p class="text-sm text-gray-500 leading-relaxed">Czytelna typografia, ciemny i jasny motyw, sekcje pod kontakt, usługi i FAQ.</p>
-                    </div>
-                    <div class="rounded-sm border border-white/10 bg-white/[0.02] p-6 hover:border-gold/25 transition-colors">
-                        <div class="text-gold text-2xl font-serif mb-3">02</div>
-                        <h3 class="text-white font-semibold mb-2">Panel admina</h3>
-                        <p class="text-sm text-gray-500 leading-relaxed">Edytuj teksty, kolory, SEO i mapę — bez programisty.</p>
-                    </div>
-                    <div class="rounded-sm border border-white/10 bg-white/[0.02] p-6 hover:border-gold/25 transition-colors">
-                        <div class="text-gold text-2xl font-serif mb-3">03</div>
-                        <h3 class="text-white font-semibold mb-2">Twoja domena</h3>
-                        <p class="text-sm text-gray-500 leading-relaxed">Obsługa custom domain — Twój brand zostaje na pierwszym planie.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <footer class="border-t border-white/5 py-10">
-            <div class="max-w-6xl mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500 uppercase tracking-widest">
-                <span>© <span id="y"></span> DFCMS</span>
-                <a href="rejestracja.html" class="text-gray-400 hover:text-gold transition-colors">Rozpocznij</a>
-            </div>
-        </footer>
     </main>
-    <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+
+    <footer class="border-t border-white/10 px-4 py-10 sm:px-6 lg:px-8">
+        <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left">
+            <p class="text-sm text-zinc-500">
+                © 2026 DFCMS. Wszelkie prawa zastrzeżone.
+            </p>
+            <nav class="flex flex-wrap items-center justify-center gap-6 text-sm font-medium" aria-label="Stopka">
+                <a href="#" class="text-zinc-400 transition hover:text-[#D4AF37]">Regulamin</a>
+                <a href="#" class="text-zinc-400 transition hover:text-[#D4AF37]">Polityka prywatności</a>
+            </nav>
+        </div>
+    </footer>
+
 </body>
 </html>
