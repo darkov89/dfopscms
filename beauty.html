@@ -72,6 +72,7 @@
                 <div class="hidden md:flex items-center gap-8 font-medium">
                     <a href="#o-nas" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.about || 'O nas'"></a>
                     <a href="#cennik" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.pricing || 'Cennik'"></a>
+                    <a href="#galeria" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.gallery || 'Galeria'" x-show="content[lang].gallery?.images?.length > 0"></a>
                     <a href="#faq" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.faq || 'Q&A'"></a>
                     <a href="#kontakt" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></a>
                 </div>
@@ -131,6 +132,21 @@
                                 </div>
                             </div>
 
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </section>
+
+        <section id="galeria" class="py-24 px-6 bg-sattva-bg" x-show="content[lang].gallery?.images?.length > 0">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-16 reveal">
+                    <h2 class="text-3xl md:text-4xl font-serif" x-text="content[lang].gallery?.title || 'Nasze realizacje'"></h2>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 reveal">
+                    <template x-for="(imgUrl, index) in content[lang].gallery.images" :key="index">
+                        <div class="overflow-hidden rounded-xl">
+                            <img :src="imgUrl" alt="" class="w-full h-64 object-cover rounded-xl shadow-sm hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy">
                         </div>
                     </template>
                 </div>

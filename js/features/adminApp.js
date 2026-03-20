@@ -150,8 +150,13 @@
           const { error } = await this.supabase.storage.from('images').upload(fileName, file);
           if (error) throw error;
           const { data: publicUrlData } = this.supabase.storage.from('images').getPublicUrl(fileName);
-          if (index !== null) this.content.pl[section][index][field] = publicUrlData.publicUrl;
-          else {
+          if (section === 'gallery' && field === 'images') {
+            if (!this.content.pl.gallery) this.content.pl.gallery = { title: 'Nasze realizacje', images: [] };
+            if (!Array.isArray(this.content.pl.gallery.images)) this.content.pl.gallery.images = [];
+            this.content.pl.gallery.images.push(publicUrlData.publicUrl);
+          } else if (index !== null) {
+            this.content.pl[section][index][field] = publicUrlData.publicUrl;
+          } else {
             if (!this.content.pl[section]) this.content.pl[section] = {};
             this.content.pl[section][field] = publicUrlData.publicUrl;
           }
@@ -164,6 +169,10 @@
           this.uploadingImage = false;
           event.target.value = '';
         }
+      },
+      removeGalleryImage(index) {
+        if (!this.content?.pl?.gallery?.images || !Array.isArray(this.content.pl.gallery.images)) return;
+        this.content.pl.gallery.images.splice(index, 1);
       },
     };
   }

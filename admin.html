@@ -101,7 +101,10 @@
                         <button @click="activeTab = 'settings'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'settings', 'text-gray-600 hover:bg-gray-50': activeTab !== 'settings'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">Ustawienia Główne</button>
                         <button @click="activeTab = 'hero'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'hero', 'text-gray-600 hover:bg-gray-50': activeTab !== 'hero'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">Sekcja Główna</button>
                         <button @click="activeTab = 'services'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'services', 'text-gray-600 hover:bg-gray-50': activeTab !== 'services'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">Lista Usług</button>
-                        
+                        <button @click="activeTab = 'gallery'" x-show="theme === 'beauty'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'gallery', 'text-gray-600 hover:bg-gray-50': activeTab !== 'gallery'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider flex items-center gap-2">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            Galeria
+                        </button>
                         <button @click="activeTab = 'contact'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'contact', 'text-gray-600 hover:bg-gray-50': activeTab !== 'contact'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">Kontakt i Info</button>
                         <button @click="activeTab = 'faq'" x-show="theme === 'consultant' || theme === 'beauty'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'faq', 'text-gray-600 hover:bg-gray-50': activeTab !== 'faq'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">FAQ / Akordeony</button>
                         <button @click="activeTab = 'reviews'" x-show="theme === 'consultant'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'reviews', 'text-gray-600 hover:bg-gray-50': activeTab !== 'reviews'}" class="px-5 py-4 text-left border-b border-gray-100 transition-colors text-sm uppercase tracking-wider">Opinie Klientów</button>
@@ -421,6 +424,35 @@
                             <button @click="content.pl.services.push({title: 'Nowa Usługa', desc: 'Opis...', price: '', duration: '', details: ''})" class="w-full border-2 border-dashed border-gray-300 text-gray-500 font-bold uppercase tracking-widest py-4 rounded-sm hover:bg-[#D4AF37] hover:text-white transition-all">
                                 + Dodaj usługę
                             </button>
+                        </div>
+                    </div>
+
+                    <div x-show="activeTab === 'gallery'" x-transition.opacity style="display: none;">
+                        <h2 class="text-2xl font-serif text-gray-900 mb-8 border-b pb-4">Galeria Zdjęć</h2>
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tytuł sekcji galerii</label>
+                                <input type="text" x-model="content.pl.gallery.title" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed">Np. „Nasze realizacje”, „Portfolio” — wyświetlany nad siatką zdjęć na stronie.</p>
+                            </div>
+                            <div class="pt-6 border-t border-gray-100">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Zdjęcia w galerii</label>
+                                <label class="inline-block border-2 border-dashed border-gray-300 text-gray-500 font-bold uppercase tracking-widest py-3 px-6 rounded-sm hover:bg-[#D4AF37] hover:text-white hover:border-[#D4AF37] transition-all cursor-pointer mb-6">
+                                    Dodaj zdjęcie
+                                    <input type="file" accept="image/*" @change="uploadImage($event, 'gallery', 'images')" class="hidden">
+                                </label>
+                                <p x-show="uploadingImage" class="text-xs text-[#D4AF37] font-bold animate-pulse mb-4">Wysyłanie na serwer...</p>
+                                <p class="text-xs text-gray-500 mb-4">Po wgraniu zdjęcie pojawi się poniżej. Kliknij <strong>Publikuj Zmiany</strong>, aby zapisać.</p>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" x-show="content.pl.gallery?.images?.length">
+                                    <template x-for="(imgUrl, index) in content.pl.gallery.images" :key="index">
+                                        <div class="relative group rounded-sm overflow-hidden border border-gray-200 bg-gray-50 aspect-square">
+                                            <img :src="imgUrl" class="w-full h-full object-cover" alt="">
+                                            <button type="button" @click="removeGalleryImage(index)" class="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-colors shadow-lg opacity-0 group-hover:opacity-100" title="Usuń zdjęcie">✕</button>
+                                        </div>
+                                    </template>
+                                </div>
+                                <p x-show="!content.pl.gallery?.images?.length" class="text-sm text-gray-400 italic">Brak zdjęć. Kliknij „Dodaj zdjęcie” powyżej.</p>
+                            </div>
                         </div>
                     </div>
 

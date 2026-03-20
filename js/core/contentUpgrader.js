@@ -16,9 +16,10 @@
 
     if (!pl.nav) pl.nav = {};
     if (theme === 'beauty') {
-      if (!pl.nav.menu) pl.nav.menu = { about: 'O nas', pricing: 'Cennik', faq: 'Q&A', contact: 'Kontakt' };
+      if (!pl.nav.menu) pl.nav.menu = { about: 'O nas', pricing: 'Cennik', gallery: 'Galeria', faq: 'Q&A', contact: 'Kontakt' };
       if (pl.nav.menu.about === undefined) pl.nav.menu.about = 'O nas';
       if (pl.nav.menu.pricing === undefined) pl.nav.menu.pricing = 'Cennik';
+      if (pl.nav.menu.gallery === undefined) pl.nav.menu.gallery = 'Galeria';
       if (pl.nav.menu.faq === undefined) pl.nav.menu.faq = 'Q&A';
       if (pl.nav.menu.contact === undefined) pl.nav.menu.contact = 'Kontakt';
     }
@@ -31,6 +32,10 @@
     if (pl.google_reviews.place_query === undefined) pl.google_reviews.place_query = '';
     if (pl.google_reviews.max_reviews === undefined) pl.google_reviews.max_reviews = 6;
     if (pl.google_reviews.title === undefined) pl.google_reviews.title = 'Opinie z Google';
+
+    if (!pl.gallery) pl.gallery = { title: 'Nasze realizacje', images: [] };
+    if (!Array.isArray(pl.gallery.images)) pl.gallery.images = [];
+    if (pl.gallery.title === undefined || pl.gallery.title === null) pl.gallery.title = 'Nasze realizacje';
 
     if (!pl.social) pl.social = {};
     if (theme === 'consultant') {

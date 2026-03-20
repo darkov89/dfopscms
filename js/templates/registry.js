@@ -22,6 +22,7 @@
         contact: { email: "", phone: "", address: "", map_embed_url: "" },
         social: { linkedin: "", facebook: "", instagram: "", tiktok: "" },
         google_reviews: { embed_url: "", place_query: "", max_reviews: 6, title: "Opinie z Google" },
+        gallery: { title: "Nasze realizacje", images: [] },
         seo: {
           title: "Konsultacje i coaching — profesjonalna strona eksperta",
           description:
@@ -51,7 +52,7 @@
           logo: "Twoja Marka",
           cta: "Rezerwuj",
           logoImage: "",
-          menu: { about: "O nas", pricing: "Cennik", faq: "Q&A", contact: "Kontakt" }
+          menu: { about: "O nas", pricing: "Cennik", gallery: "Galeria", faq: "Q&A", contact: "Kontakt" }
         },
         hero: { name: "Twoje miejsce", headline: "Odkryj <i>siebie</i> na nowo", description: "Krótki opis Twojej oferty i atmosfery.", button: "Umów wizytę", image: "", qrText: "", qrImage: "" },
         manifesto: { label: "O nas", title: "Kilka słów", text: "" },
@@ -59,6 +60,7 @@
         faq: [],
         contact: { phone: "", email: "", address: "", booksyUrl: "", map_embed_url: "" },
         google_reviews: { embed_url: "", place_query: "", max_reviews: 6, title: "Opinie z Google" },
+        gallery: { title: "Nasze realizacje", images: [] },
         seo: {
           title: "Salon beauty i zabiegi — rezerwacja online",
           description:
