@@ -104,11 +104,15 @@ html, body {
 .text-sattva-brand { color: var(--accent) !important; }
 .bg-sattva-brand { background-color: var(--accent) !important; }
 .border-sattva-brand { border-color: var(--accent) !important; }
+.border-sattva-brand\/10 { border-color: color-mix(in srgb, var(--accent) 10%, transparent) !important; }
+.ring-sattva-brand\/20 { --tw-ring-color: color-mix(in srgb, var(--accent) 20%, transparent) !important; }
+.border-sattva-text\/20 { border-color: color-mix(in oklab, var(--beauty-text) 20%, transparent) !important; }
 
 /* Beauty backgrounds become dynamic via surfaces */
 .bg-sattva-bg { background-color: var(--surface-bg) !important; }
 .bg-sattva-accent { background-color: var(--surface-accent) !important; }
 .bg-sattva-white { background-color: var(--surface-card) !important; }
+.bg-sattva-accent\/95 { background-color: color-mix(in oklab, var(--surface-accent) 95%, transparent) !important; }
 
 /* Beauty text becomes dynamic for dark backgrounds */
 .text-sattva-text { color: var(--beauty-text) !important; }
@@ -117,6 +121,8 @@ html, body {
 .text-sattva-text\/80 { color: color-mix(in oklab, var(--beauty-text) 80%, transparent) !important; }
 .text-sattva-text\/70 { color: color-mix(in oklab, var(--beauty-text) 70%, transparent) !important; }
 .text-sattva-text\/60 { color: color-mix(in oklab, var(--beauty-text) 60%, transparent) !important; }
+.hover\:bg-sattva-bg\/50:hover { background-color: color-mix(in oklab, var(--surface-bg) 50%, transparent) !important; }
+.hover\:bg-sattva-text\/5:hover { background-color: color-mix(in oklab, var(--beauty-text) 5%, transparent) !important; }
 
 /* Consultant readability profiles (public only) */
 html[data-dfops-scope="public"][data-theme="consultant"][data-bg-style="smoky"] .bg-zinc-50,

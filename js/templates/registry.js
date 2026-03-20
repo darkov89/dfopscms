@@ -2,6 +2,11 @@
 (function () {
   const LATEST_TEMPLATE_VERSION = 3;
 
+  const TEMPLATE_LABELS = {
+    beauty: { name: 'Beauty & Wellness', desc: 'Idealny dla salonów, spa, fizjoterapii i branży usługowej' },
+    consultant: { name: 'Coaching & Biznes', desc: 'Stworzony dla trenerów, konsultantów, agencji i freelancerów' }
+  };
+
   const templatesV3 = {
     consultant: {
       pl: {
@@ -92,7 +97,12 @@
     return deepClone(t);
   }
 
+  function getTemplateLabel(theme) {
+    return TEMPLATE_LABELS[theme] || { name: theme, desc: '' };
+  }
+
   window.DFOPS_LATEST_TEMPLATE_VERSION = LATEST_TEMPLATE_VERSION;
   window.DFOPS_getTemplate = getTemplate;
+  window.DFOPS_getTemplateLabel = getTemplateLabel;
 })();
 

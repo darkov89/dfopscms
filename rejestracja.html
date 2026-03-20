@@ -35,8 +35,8 @@
                         <input type="radio" x-model="form.theme" value="consultant" class="peer sr-only">
                         <div class="border border-gray-700 bg-[#1e1e1e] rounded-sm p-4 text-center peer-checked:border-[#D4AF37] peer-checked:bg-[#D4AF37]/10 transition-all hover:border-gray-500">
                             <div class="w-12 h-12 bg-gray-800 rounded-full mx-auto mb-3 flex items-center justify-center">💼</div>
-                            <h4 class="font-bold text-white text-sm uppercase tracking-wider mb-1">Ekspert / CV</h4>
-                            <p class="text-[10px] text-gray-400">Opinie, Karuzele, Dark/Light Mode, LinkedIn</p>
+                            <h4 class="font-bold text-white text-sm uppercase tracking-wider mb-1">Coaching & Biznes</h4>
+                            <p class="text-[10px] text-gray-400">Stworzony dla trenerów, konsultantów, agencji i freelancerów</p>
                         </div>
                         <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-[#D4AF37] transition-opacity">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
@@ -47,8 +47,8 @@
                         <input type="radio" x-model="form.theme" value="beauty" class="peer sr-only">
                         <div class="border border-gray-700 bg-[#1e1e1e] rounded-sm p-4 text-center peer-checked:border-[#D4AF37] peer-checked:bg-[#D4AF37]/10 transition-all hover:border-gray-500">
                             <div class="w-12 h-12 bg-gray-800 rounded-full mx-auto mb-3 flex items-center justify-center">✨</div>
-                            <h4 class="font-bold text-white text-sm uppercase tracking-wider mb-1">Beauty / SPA</h4>
-                            <p class="text-[10px] text-gray-400">Zabiegi, Cenniki, Galeria, Delikatny styl</p>
+                            <h4 class="font-bold text-white text-sm uppercase tracking-wider mb-1">Beauty & Wellness</h4>
+                            <p class="text-[10px] text-gray-400">Idealny dla salonów, spa, fizjoterapii i branży usługowej</p>
                         </div>
                         <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-[#D4AF37] transition-opacity">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
@@ -124,7 +124,7 @@
             </div>
             <h2 class="text-2xl font-serif text-white mb-2">Strona Gotowa!</h2>
             <p class="text-gray-400 mb-8">
-                Motyw: <span class="text-[#D4AF37] font-bold uppercase" x-text="form.theme"></span>,
+                Motyw: <span class="text-[#D4AF37] font-bold" x-text="(typeof DFOPS_getTemplateLabel === 'function' ? DFOPS_getTemplateLabel(form.theme).name : form.theme)"></span>,
                 preset: <span class="text-[#D4AF37] font-bold uppercase" x-text="form.color_preset"></span>,
                 slug: <span class="text-[#D4AF37] font-bold uppercase" x-text="form.slug"></span>
             </p>
