@@ -13,6 +13,12 @@
     if (!pl.settings.color_preset) pl.settings.color_preset = theme === 'beauty' ? 'beige' : 'gold';
     if (!pl.settings.background_style) pl.settings.background_style = theme === 'beauty' ? 'soft' : 'glow';
     if (!pl.settings.font_preset) pl.settings.font_preset = theme === 'beauty' ? 'poppins' : 'inter';
+    if (!pl.settings.subscription) {
+      pl.settings.subscription = { plan: 'trial', trial_started_at: new Date().toISOString() };
+    } else {
+      if (!pl.settings.subscription.plan) pl.settings.subscription.plan = 'trial';
+      if (!pl.settings.subscription.trial_started_at) pl.settings.subscription.trial_started_at = new Date().toISOString();
+    }
 
     if (!pl.nav) pl.nav = {};
     if (theme === 'beauty') {

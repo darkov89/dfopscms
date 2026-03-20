@@ -473,5 +473,11 @@
 
         </div>
     </template>
+
+    <a x-show="content && (content[lang].settings?.subscription?.plan === 'trial' || content[lang].settings?.subscription?.plan === 'tier0')"
+       href="https://dfcms.pl" target="_blank"
+       class="fixed bottom-4 right-4 z-[100] bg-black/80 text-white text-xs font-sans px-4 py-2 rounded-full shadow-2xl backdrop-blur-md hover:bg-black transition-colors border border-white/10 flex items-center gap-2">
+        <span>⚡ Zbudowano w DFCMS</span>
+    </a>
 </body>
 </html>

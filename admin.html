@@ -71,6 +71,10 @@
 
         <template x-if="content">
         <main class="max-w-6xl w-full mx-auto mt-8 px-6 pb-24" x-transition.opacity>
+            <div x-show="content?.pl?.settings?.subscription?.plan === 'trial'" class="mb-6 p-4 bg-amber-100 text-amber-900 border border-amber-300 rounded-sm shadow-sm flex items-center justify-between gap-4">
+                <span class="font-medium text-sm">⏳ Wersja testowa. Zostało: <strong x-text="trialDaysLeft"></strong> dni. Aktywuj pakiet, aby utrzymać stronę!</span>
+                <button @click="activeTab = 'subscription'" class="shrink-0 text-amber-800 font-bold text-xs uppercase tracking-widest hover:underline">Subskrypcja →</button>
+            </div>
             <div x-show="errorMessage" class="mb-6 p-4 bg-red-100 text-red-800 border border-red-200 rounded-sm shadow-sm flex items-center gap-3">
                 <span x-text="errorMessage" class="font-medium text-sm"></span>
             </div>
@@ -108,6 +112,7 @@
                         <button @click="activeTab = 'contact'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'contact', 'text-gray-600 hover:bg-gray-50': activeTab !== 'contact'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">Kontakt i Info</button>
                         <button @click="activeTab = 'faq'" x-show="theme === 'consultant' || theme === 'beauty'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'faq', 'text-gray-600 hover:bg-gray-50': activeTab !== 'faq'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">FAQ / Akordeony</button>
                         <button @click="activeTab = 'reviews'" x-show="theme === 'consultant'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'reviews', 'text-gray-600 hover:bg-gray-50': activeTab !== 'reviews'}" class="px-5 py-4 text-left border-b border-gray-100 transition-colors text-sm uppercase tracking-wider">Opinie Klientów</button>
+                        <button @click="activeTab = 'subscription'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'subscription', 'text-gray-600 hover:bg-gray-50': activeTab !== 'subscription'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">Subskrypcja</button>
                         <button @click="activeTab = 'seo'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'seo', 'text-gray-600 hover:bg-gray-50': activeTab !== 'seo'}" class="px-5 py-4 text-left border-t border-gray-200 transition-colors text-sm uppercase tracking-wider">Ustawienia SEO</button>
                     </div>
                 </div>
@@ -219,6 +224,14 @@
                                     </button>
                                 </div>
                                 <p class="text-xs text-gray-500 mt-2 leading-relaxed max-w-2xl">Gotowe połączenie koloru, tła i fontów jednym klikiem — potem możesz dopracować szczegóły ręcznie.</p>
+                            </div>
+
+                            <div class="mt-8 pt-6 border-t border-gray-100">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Własna domena (custom domain)</label>
+                                <input type="text" x-model="customDomain" :disabled="isCustomDomainLocked" placeholder="np. twojadomena.pl"
+                                       class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" :class="isCustomDomainLocked ? 'opacity-50 bg-gray-100 cursor-not-allowed' : 'bg-white'">
+                                <p x-show="isCustomDomainLocked" class="text-xs text-amber-700 mt-2">🔒 Podpięcie własnej domeny jest dostępne od pakietu Pro (Tier 1). Przejdź do zakładki Subskrypcja.</p>
+                                <p x-show="!isCustomDomainLocked" class="text-xs text-gray-500 mt-2">Podaj hostname (np. twojadomena.pl) — skonfiguruj rekord CNAME lub A u rejestratora domeny.</p>
                             </div>
 
                             <div class="mt-8 pt-6 border-t border-gray-100">
@@ -621,6 +634,41 @@
                             <button @click="content.pl.reviews.push({author: 'Imię Nazwisko', content: 'Treść opinii...', logoImage: ''})" class="w-full border-2 border-dashed border-gray-300 text-gray-500 font-bold uppercase tracking-widest py-4 rounded-sm hover:bg-[#D4AF37] hover:text-white transition-all">
                                 + Dodaj opinię
                             </button>
+                        </div>
+                    </div>
+
+                    <div x-show="activeTab === 'subscription'" x-transition.opacity style="display: none;">
+                        <h2 class="text-2xl font-serif text-gray-900 mb-8 border-b pb-4">Subskrypcja</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="border border-gray-200 rounded-sm p-6 bg-gray-50">
+                                <h3 class="font-bold text-gray-900 text-lg mb-1">Tier 0 (Starter)</h3>
+                                <p class="text-2xl font-bold text-[#D4AF37] mb-4">49 PLN <span class="text-sm font-normal text-gray-500">/ msc</span></p>
+                                <ul class="text-sm text-gray-600 space-y-2 mb-6">
+                                    <li>• Brak własnej domeny</li>
+                                    <li>• Znak wodny DFCMS widoczny</li>
+                                </ul>
+                                <a href="mailto:kontakt@dfcms.pl?subject=DFCMS%20Tier%200" class="block w-full text-center border-2 border-gray-300 text-gray-700 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-gray-100 transition-colors">Integracja płatności wkrótce</a>
+                            </div>
+                            <div class="border-2 border-[#D4AF37] rounded-sm p-6 bg-white shadow-lg relative">
+                                <span class="absolute -top-2 left-4 bg-[#D4AF37] text-[#121212] text-xs font-bold px-2 py-0.5">PRO</span>
+                                <h3 class="font-bold text-gray-900 text-lg mb-1">Tier 1 (Pro)</h3>
+                                <p class="text-2xl font-bold text-[#D4AF37] mb-4">499 PLN <span class="text-sm font-normal text-gray-500">wdrożenie</span> + 49 PLN <span class="text-sm font-normal text-gray-500">/ msc</span></p>
+                                <ul class="text-sm text-gray-600 space-y-2 mb-6">
+                                    <li>• Własna domena</li>
+                                    <li>• Brak znaku wodnego</li>
+                                </ul>
+                                <a href="mailto:kontakt@dfcms.pl?subject=DFCMS%20Tier%201%20Pro" class="block w-full text-center bg-[#D4AF37] text-[#121212] px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-[#c9a432] transition-colors">Integracja płatności wkrótce</a>
+                            </div>
+                            <div class="border border-gray-200 rounded-sm p-6 bg-gray-50">
+                                <h3 class="font-bold text-gray-900 text-lg mb-1">Tier Custom</h3>
+                                <p class="text-2xl font-bold text-[#D4AF37] mb-4">od 1499 PLN</p>
+                                <ul class="text-sm text-gray-600 space-y-2 mb-6">
+                                    <li>• Indywidualne wdrożenie</li>
+                                    <li>• Customowe rozwiązania</li>
+                                    <li>• Wycena indywidualna</li>
+                                </ul>
+                                <a href="mailto:kontakt@dfcms.pl?subject=DFCMS%20Tier%20Custom" class="block w-full text-center border-2 border-gray-300 text-gray-700 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-gray-100 transition-colors">Integracja płatności wkrótce</a>
+                            </div>
                         </div>
                     </div>
 

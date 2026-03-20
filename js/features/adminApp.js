@@ -12,6 +12,7 @@
       slug: new URLSearchParams(window.location.search).get('site') || 'moj-test',
       theme: '',
       content: null,
+      customDomain: '',
       activeTab: 'hero',
       saving: false,
       uploadingImage: false,
@@ -27,6 +28,16 @@
       get availablePresets() { return cfg.presetsByTheme[this.theme] || []; },
       get accentColor() { return cfg.accentByPreset[this.content?.pl?.settings?.color_preset] || '#D4AF37'; },
       get styleBundles() { return cfg.bundlesByTheme[this.theme] || []; },
+      get subscriptionPlan() { return this.content?.pl?.settings?.subscription?.plan || 'trial'; },
+      get trialDaysLeft() {
+        const sub = this.content?.pl?.settings?.subscription;
+        if (!sub || sub.plan !== 'trial' || !sub.trial_started_at) return 14;
+        const start = new Date(sub.trial_started_at).getTime();
+        const now = Date.now();
+        const elapsed = Math.floor((now - start) / 86400000);
+        return Math.max(0, 14 - elapsed);
+      },
+      get isCustomDomainLocked() { return this.subscriptionPlan === 'trial' || this.subscriptionPlan === 'tier0'; },
 
       showError(msg) {
         this.errorMessage = msg;
@@ -72,6 +83,7 @@
         }
         this.slug = data.slug;
         this.theme = data.theme;
+        this.customDomain = data.custom_domain || '';
         this.content = window.DFOPS_normalizeContent(data.content, this.theme);
         this.currentTemplateVersion = Number(this.content.pl.settings.template_version || 1);
         this.updateAvailable = this.currentTemplateVersion < this.latestTemplateVersion;
@@ -128,7 +140,9 @@
             this.content.pl.services = this.content.pl.services.filter((s) => s.title && String(s.title).trim() !== '');
           }
           this.content.pl.settings.template_version = this.latestTemplateVersion;
-          const { error } = await repo.saveCurrentUserPage(this.user.id, { content: this.content, color_preset: this.content.pl.settings.color_preset });
+          const payload = { content: this.content, color_preset: this.content.pl.settings.color_preset };
+          if (!this.isCustomDomainLocked) payload.custom_domain = this.customDomain;
+          const { error } = await repo.saveCurrentUserPage(this.user.id, payload);
           if (error) throw error;
           this.hasUnsavedChanges = false;
           this.message = 'Zmiany zostały opublikowane!';

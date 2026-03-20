@@ -6,7 +6,6 @@
     <title>DFOPSCMS - Załóż Stronę</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://js.stripe.com/v3/"></script>
     <script defer src="js/core/config.js"></script>
     <script defer src="js/core/supabaseClient.js"></script>
     <script defer src="js/core/pageRepository.js"></script>
@@ -111,21 +110,11 @@
                 </div>
             </div>
 
-            <div x-show="bypassUnlocked" class="space-y-2 bg-[#1e1e1e] border border-amber-400/30 rounded-sm px-4 py-3">
-                <label class="flex items-center gap-3 cursor-pointer select-none">
-                    <input type="checkbox" x-model="adminBypass" class="w-4 h-4 accent-[#D4AF37]">
-                    <div>
-                        <div class="text-xs font-bold uppercase tracking-widest text-amber-200">Jestem właścicielem – pomiń płatność</div>
-                        <div class="text-[10px] text-gray-400">Tryb tylko dla Ciebie. Używaj wyłącznie w środowisku produkcyjnym z RLS.</div>
-                    </div>
-                </label>
-            </div>
-
             <div x-show="errorMessage" class="text-red-400 text-sm font-bold text-center bg-red-400/10 py-2 rounded-sm border border-red-400/20" x-text="errorMessage"></div>
 
             <button type="submit" :disabled="loading" class="w-full bg-[#D4AF37] hover:bg-white text-[#121212] px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-[0_0_20px_rgba(212,175,55,0.15)] mt-4 disabled:opacity-50 disabled:cursor-not-allowed">
-                <span x-show="!loading" x-text="adminBypass ? 'Utwórz konto i stronę (bypass)' : 'Zapłać i utwórz stronę'"></span>
-                <span x-show="loading" class="animate-pulse">Budowanie architektury...</span>
+                <span x-show="!loading">Utwórz konto i stronę</span>
+                <span x-show="loading" class="animate-pulse">Tworzenie konta...</span>
             </button>
         </form>
 
@@ -140,14 +129,9 @@
                 slug: <span class="text-[#D4AF37] font-bold uppercase" x-text="form.slug"></span>
             </p>
             
-            <div class="space-y-4">
-                <a :href="'index.html?site=' + form.slug" target="_blank" class="block w-full border border-gray-600 hover:border-[#D4AF37] text-white px-6 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-colors">
-                    👀 Zobacz swoją stronę
-                </a>
-                <a :href="'admin.html?site=' + form.slug" target="_blank" class="block w-full bg-[#1e1e1e] hover:bg-[#2a2a2a] border border-gray-700 text-white px-6 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-colors">
-                    ⚙️ Przejdź do panelu edycji
-                </a>
-            </div>
+            <a :href="'admin.html?site=' + form.slug" class="block w-full bg-[#D4AF37] hover:bg-white text-[#121212] px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all text-center">
+                Przejdź do panelu edycji →
+            </a>
         </div>
 
     </div>

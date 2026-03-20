@@ -35,6 +35,7 @@
           darkMode: false,
           template_version: 3,
           color_preset: "gold",
+          subscription: { plan: "trial", trial_started_at: new Date().toISOString() },
           background_style: "glow",
           font_preset: "inter",
           showManifesto: true,
@@ -69,6 +70,7 @@
           ogImage: ""
         },
         settings: {
+          subscription: { plan: "trial", trial_started_at: new Date().toISOString() },
           showManifesto: true,
           showServices: true,
           showFaq: true,
