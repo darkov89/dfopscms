@@ -83,8 +83,14 @@
             </div>
         </nav>
 
-        <header class="pt-32 pb-20 px-6 bg-sattva-accent text-center min-h-[85vh] flex flex-col justify-center">
-            <div class="max-w-4xl mx-auto w-full reveal">
+        <header class="pt-32 pb-20 px-6 text-center min-h-[85vh] flex flex-col justify-center relative overflow-hidden" :class="content[lang].hero?.image ? '' : 'bg-sattva-accent'">
+            <template x-if="content[lang].hero?.image">
+                <div class="absolute inset-0 z-0">
+                    <img :src="content[lang].hero.image" class="w-full h-full object-cover object-center" alt="Tło Hero" loading="eager" decoding="async">
+                    <div class="absolute inset-0 bg-sattva-bg/70 backdrop-blur-[2px]"></div>
+                </div>
+            </template>
+            <div class="max-w-4xl mx-auto w-full reveal relative z-10">
                 <h1 class="font-serif text-4xl md:text-5xl lg:text-6xl mb-6" x-html="content[lang].hero.headline"></h1>
                 <h2 class="text-xl md:text-2xl font-medium mb-6 text-sattva-text/90" x-text="content[lang].hero.name"></h2>
                 <p class="text-lg text-sattva-text/80 mb-10 leading-relaxed max-w-2xl mx-auto" x-text="content[lang].hero.description"></p>
