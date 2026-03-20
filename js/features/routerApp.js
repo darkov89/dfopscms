@@ -13,6 +13,13 @@
       const params = url.searchParams;
       const hostname = window.location.hostname.replace(/^www\./, '').toLowerCase();
 
+      // Domeny systemowe (nasz landing sprzedażowy). Z ?site= nadal idziemy w bazę (testy / podgląd).
+      const systemDomains = ['dfcms.pl', 'dfopscms.pl', 'dfopscms.pages.dev', 'localhost', '127.0.0.1'];
+      if (systemDomains.includes(hostname) && !params.has('site')) {
+        window.location.replace('landing.html');
+        return;
+      }
+
       let page = null;
       if (!params.has('site') && !cfg.localHosts.includes(hostname) && hostname !== cfg.appDomain) {
         const { data, error } = await repo.getPageByCustomDomain(hostname);

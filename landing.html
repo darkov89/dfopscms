@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DFCMS — landing w minuty dla Twojego biznesu</title>
+    <meta name="description" content="Szablony pod konsultantów, salony i małe firmy. Jedna opłata, własna strona, panel administracyjny.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: { DEFAULT: '#D4AF37', dim: '#b8962e' }
+                    },
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'] }
+                }
+            }
+        };
+    </script>
+    <style>html { font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif; }</style>
+</head>
+<body class="bg-[#0a0a0c] text-gray-300 antialiased selection:bg-gold/30 selection:text-white">
+
+    <div class="fixed inset-0 pointer-events-none">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[min(140%,900px)] h-[420px] bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.12)_0%,transparent_65%)]"></div>
+        <div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle_at_bottom_right,rgba(212,175,55,0.06)_0%,transparent_55%)]"></div>
+    </div>
+
+    <header class="relative z-20 border-b border-white/5 bg-[#0a0a0c]/80 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between gap-4">
+            <a href="landing.html" class="flex items-center gap-2 shrink-0">
+                <span class="text-xl font-black tracking-tight text-white">DF<span class="text-gold">CMS</span></span>
+                <span class="hidden sm:inline text-[10px] uppercase tracking-[0.2em] text-gray-500 font-semibold border-l border-white/10 pl-3 ml-1">micro‑saas</span>
+            </a>
+            <nav class="flex items-center gap-3 sm:gap-4">
+                <a href="rejestracja.html" class="text-sm font-medium text-gray-400 hover:text-white transition-colors hidden sm:inline">Stwórz konto</a>
+                <a href="admin.html"
+                   class="inline-flex items-center justify-center px-4 py-2.5 rounded-sm border border-white/15 text-xs font-bold uppercase tracking-widest text-white hover:border-gold hover:text-gold transition-all">
+                    Zaloguj
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="relative z-10">
+        <section class="max-w-6xl mx-auto px-5 pt-16 pb-20 md:pt-24 md:pb-28">
+            <div class="max-w-3xl">
+                <p class="text-xs font-bold uppercase tracking-[0.25em] text-gold mb-6">Strona, która sprzedaje — bez kodowania</p>
+                <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-[1.08] tracking-tight mb-6">
+                    Zbuduj swój cyfrowy salon. <span class="text-gold italic font-serif">Błyskawicznie.</span>
+                </h1>
+                <p class="text-lg sm:text-xl text-gray-400 leading-relaxed mb-10 max-w-xl">
+                    Gotowe szablony pod ekspertów, salony beauty, gabinety i małe firmy.
+                    Jeden panel, Twoja domena, opinie z Google i sekcje dopasowane do branży.
+                </p>
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                    <a href="rejestracja.html"
+                       class="inline-flex justify-center items-center px-8 py-4 rounded-sm bg-gold text-[#0a0a0c] text-sm font-bold uppercase tracking-widest hover:bg-white transition-all shadow-lg shadow-gold/20">
+                        Załóż stronę za darmo
+                    </a>
+                    <a href="admin.html"
+                       class="inline-flex justify-center items-center px-8 py-4 rounded-sm border border-white/20 text-sm font-bold uppercase tracking-widest text-gray-300 hover:border-gold/50 hover:text-white transition-all">
+                        Mam już konto
+                    </a>
+                </div>
+                <p class="mt-8 text-xs text-gray-500 max-w-md">* Rejestracja i konfiguracja zajmą kilka minut. Pełna oferta i płatność — według aktualnego cennika w <code class="text-gold/90">rejestracja.html</code>.</p>
+            </div>
+        </section>
+
+        <section class="border-t border-white/5 bg-[#08080a]/80 py-16 md:py-20">
+            <div class="max-w-6xl mx-auto px-5">
+                <h2 class="text-center text-xs font-bold uppercase tracking-[0.2em] text-gold mb-10">Dlaczego DFCMS</h2>
+                <div class="grid sm:grid-cols-3 gap-8 md:gap-10">
+                    <div class="rounded-sm border border-white/10 bg-white/[0.02] p-6 hover:border-gold/25 transition-colors">
+                        <div class="text-gold text-2xl font-serif mb-3">01</div>
+                        <h3 class="text-white font-semibold mb-2">Szablony „pro”</h3>
+                        <p class="text-sm text-gray-500 leading-relaxed">Czytelna typografia, ciemny i jasny motyw, sekcje pod kontakt, usługi i FAQ.</p>
+                    </div>
+                    <div class="rounded-sm border border-white/10 bg-white/[0.02] p-6 hover:border-gold/25 transition-colors">
+                        <div class="text-gold text-2xl font-serif mb-3">02</div>
+                        <h3 class="text-white font-semibold mb-2">Panel admina</h3>
+                        <p class="text-sm text-gray-500 leading-relaxed">Edytuj teksty, kolory, SEO i mapę — bez programisty.</p>
+                    </div>
+                    <div class="rounded-sm border border-white/10 bg-white/[0.02] p-6 hover:border-gold/25 transition-colors">
+                        <div class="text-gold text-2xl font-serif mb-3">03</div>
+                        <h3 class="text-white font-semibold mb-2">Twoja domena</h3>
+                        <p class="text-sm text-gray-500 leading-relaxed">Obsługa custom domain — Twój brand zostaje na pierwszym planie.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="border-t border-white/5 py-10">
+            <div class="max-w-6xl mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500 uppercase tracking-widest">
+                <span>© <span id="y"></span> DFCMS</span>
+                <a href="rejestracja.html" class="text-gray-400 hover:text-gold transition-colors">Rozpocznij</a>
+            </div>
+        </footer>
+    </main>
+    <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+</body>
+</html>
