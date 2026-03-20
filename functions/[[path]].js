@@ -33,6 +33,8 @@ function escapeAttr(s) {
 export async function onRequest(context) {
   const { request, env, next } = context;
   const url = new URL(request.url);
+  const hostname = url.hostname;
+  const siteParam = url.searchParams.get('site');
 
   if (STATIC_EXT.test(url.pathname)) {
     return next();
@@ -65,9 +67,15 @@ export async function onRequest(context) {
       return response;
     }
 
-    const hostname = url.hostname.replace(/^www\./i, '').toLowerCase();
+    const hostnameNorm = hostname.replace(/^www\./i, '').toLowerCase();
+    const slugTrimmed = siteParam != null ? String(siteParam).trim() : '';
 
-    const restUrl = `${supabaseUrl}/rest/v1/pages?custom_domain=eq.${encodeURIComponent(hostname)}&select=content`;
+    let restUrl;
+    if (slugTrimmed) {
+      restUrl = `${supabaseUrl}/rest/v1/pages?slug=eq.${encodeURIComponent(slugTrimmed)}&select=content`;
+    } else {
+      restUrl = `${supabaseUrl}/rest/v1/pages?custom_domain=eq.${encodeURIComponent(hostnameNorm)}&select=content`;
+    }
 
     const supaRes = await fetch(restUrl, {
       headers: {
@@ -115,13 +123,17 @@ export async function onRequest(context) {
 
     rewriter.on('head', {
       element(el) {
+        /* charset na początku <head> (WAŻNE przy stream rewriting); OG na końcu sekcji */
+        el.prepend('<meta charset="UTF-8">', { html: true });
         const parts = [];
         if (description) {
           parts.push(`<meta name="description" content="${descAttr}">`);
-          parts.push(`<meta property="og:description" content="${descAttr}">`);
         }
         if (title) {
           parts.push(`<meta property="og:title" content="${titleAttr}">`);
+        }
+        if (description) {
+          parts.push(`<meta property="og:description" content="${descAttr}">`);
         }
         if (ogImageRaw) {
           parts.push(`<meta property="og:image" content="${escapeAttr(ogImageRaw)}">`);
