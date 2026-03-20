@@ -59,6 +59,7 @@
         services: [],
         faq: [],
         contact: { phone: "", email: "", address: "", booksyUrl: "", map_embed_url: "" },
+        social: { facebook: "", instagram: "", tiktok: "" },
         google_reviews: { embed_url: "", place_query: "", max_reviews: 6, title: "Opinie z Google" },
         gallery: { title: "Nasze realizacje", images: [] },
         seo: {

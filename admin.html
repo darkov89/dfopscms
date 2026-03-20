@@ -359,6 +359,22 @@
                             </div>
                         </div>
 
+                        <div class="mt-8 pt-6 border-t border-gray-100" x-show="theme === 'beauty' || theme === 'consultant'">
+                            <h3 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-widest">Sekcja O nas (Manifesto)</h3>
+                            <div class="mb-2">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tytuł sekcji</label>
+                                <input type="text" x-model="content.pl.manifesto.title" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="np. Kilka słów">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Treść (O nas)</label>
+                                <div class="flex gap-2 mb-2">
+                                    <button type="button" @click="insertLink('manifestoText')" class="px-3 py-1.5 rounded-sm border border-gray-300 text-sm font-medium hover:bg-gray-100 transition-colors" title="Zaznacz tekst i kliknij, aby wstawić link">🔗 Wstaw Link</button>
+                                </div>
+                                <textarea id="manifestoText" x-model="content.pl.manifesto.text" rows="5" class="w-full border border-gray-300 rounded-sm px-4 py-3 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white resize-y" placeholder="Opis Twojej marki, filozofii, oferty..."></textarea>
+                                <p class="text-xs text-gray-500 mt-2">Zaznacz fragment tekstu, kliknij „Wstaw Link” i podaj URL.</p>
+                            </div>
+                        </div>
+
                         <div class="mt-8 pt-6 border-t border-gray-100" x-show="theme === 'beauty'">
                             <h3 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-widest">Sekcja QR Code (Tylko Beauty)</h3>
                             <div class="mb-4">
@@ -485,6 +501,24 @@
                                     <div class="pt-6 border-t border-gray-100" x-show="theme === 'beauty'">
                                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Link do rezerwacji (Booksy itp.)</label>
                                         <input type="url" x-model="content.pl.contact.booksyUrl" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://booksy.com/...">
+                                    </div>
+
+                                    <div class="pt-6 border-t border-gray-100" x-show="theme === 'beauty'">
+                                        <h3 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-widest">Social Media</h3>
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Facebook URL</label>
+                                                <input type="url" x-model="content.pl.social.facebook" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://facebook.com/...">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Instagram URL</label>
+                                                <input type="url" x-model="content.pl.social.instagram" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://instagram.com/...">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">TikTok URL</label>
+                                                <input type="url" x-model="content.pl.social.tiktok" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://tiktok.com/@...">
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div class="pt-6 border-t border-gray-100" x-show="theme === 'consultant'">

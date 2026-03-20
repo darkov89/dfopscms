@@ -38,11 +38,9 @@
     if (pl.gallery.title === undefined || pl.gallery.title === null) pl.gallery.title = 'Nasze realizacje';
 
     if (!pl.social) pl.social = {};
-    if (theme === 'consultant') {
-      if (pl.social.facebook === undefined) pl.social.facebook = '';
-      if (pl.social.instagram === undefined) pl.social.instagram = '';
-      if (pl.social.tiktok === undefined) pl.social.tiktok = '';
-    }
+    if (pl.social.facebook === undefined) pl.social.facebook = '';
+    if (pl.social.instagram === undefined) pl.social.instagram = '';
+    if (pl.social.tiktok === undefined) pl.social.tiktok = '';
 
     function ensureSeo(block) {
       if (!block || typeof block !== 'object' || Array.isArray(block)) return;
