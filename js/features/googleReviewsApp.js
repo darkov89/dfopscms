@@ -18,25 +18,29 @@
 
       init() {
         const tryLoad = () => {
-          // W Alpine.js child dziedziczy dane parenta, więc mamy dostęp do this.content i this.lang
-          const c = this.content;
-          const l = this.lang || 'pl';
+          // Alpine.js automatycznie dziedziczy dane z rodzica (x-data publicSiteApp),
+          // więc używamy this.content zamiast this.$root.content
+          const c = this.content || this.$root?.content;
+          const l = this.lang || this.$root?.lang || 'pl';
+
           if (!c) return;
 
-          const query = c[l]?.google_reviews?.place_query?.trim();
+          // Szukamy w settings (nowy standard) lub bezpośrednio w języku (stary standard)
+          const gr = c[l]?.settings?.google_reviews || c[l]?.google_reviews;
+          const query = gr?.place_query?.trim();
 
           if (query && query !== this._lastFetchedQuery) {
             this.loadReviews();
-          } else if (query === '' || (c[l]?.google_reviews && !query)) {
+          } else if (query === '' || (gr && !query)) {
             this.loading = false;
             this.error = 'Brak konfiguracji place_query.';
           }
         };
 
-        // 1. Sprawdź przy starcie (jeśli dane zeszły wyjątkowo szybko)
+        // 1. Sprawdź przy starcie
         tryLoad();
 
-        // 2. Obserwuj zmianę w obiekcie (Alpine używa stringa jako pierwszego argumentu)
+        // 2. Poprawna składnia Alpine.js (string jako nazwa obserwowanej zmiennej)
         this.$watch('content', () => {
           tryLoad();
         });
@@ -101,9 +105,9 @@
       },
 
       async loadReviews() {
-        const c = this.content;
-        const l = this.lang || 'pl';
-        const gr = c?.[l]?.google_reviews;
+        const c = this.content || this.$root?.content;
+        const l = this.lang || this.$root?.lang || 'pl';
+        const gr = c?.[l]?.settings?.google_reviews || c?.[l]?.google_reviews;
         const query = gr?.place_query?.trim();
         const maxReviews = gr?.max_reviews ?? 8;
 
