@@ -40,10 +40,12 @@
         // 1. Sprawdź przy starcie
         tryLoad();
 
-        // 2. Poprawna składnia Alpine.js (string jako nazwa obserwowanej zmiennej)
-        this.$watch('content', () => {
-          tryLoad();
-        });
+        // 2. Obserwuj content rodzica (getter śledzi $root.content – działa gdy dane z Supabase przychodzą async)
+        this.$watch(
+          () => this.content || this.$root?.content,
+          () => tryLoad(),
+          { deep: true }
+        );
       },
 
       avgFromReviews() {

@@ -1,168 +1,265 @@
-;(function () {
-  function googleReviews() {
-    return {
-      loading: true,
-      reviews: [],
-      error: '',
-      slide: 0,
-      placeId: '',
-      placeRating: null,
-      userRatingCount: null,
-      _lastFetchedQuery: null,
+// @ts-ignore - remote Deno std module isn't resolvable by local TS linter.
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 
-      init() {
-        const tryLoad = () => {
-          // Alpine.js automatycznie dziedziczy zmienne z publicSiteApp. 
-          // Używamy bezposrednio this.content i this.lang!
-          const c = this.content;
-          const l = this.lang || 'pl';
-          
-          if (!c) return; // Jeśli dane z bazy jeszcze nie zeszły - czekamy
+/** Deno global - available at runtime in Supabase Edge Functions. */
+declare const Deno: { env: { get: (k: string) => string | undefined } };
 
-          // Pobieramy konfigurację niezależnie od tego, czy jest w 'settings' czy bezpośrednio
-          const gr = c[l]?.settings?.google_reviews || c[l]?.google_reviews;
-          const query = gr?.place_query?.trim();
+const ALLOWED_ORIGINS = [
+  "https://dfcms.pl",
+  "https://www.dfcms.pl",
+  "http://localhost:8788",
+];
 
-          if (query && query !== this._lastFetchedQuery) {
-            this.loadReviews();
-          } else if (query === '' || (gr && !query)) {
-            this.loading = false;
-            this.error = 'Brak konfiguracji place_query.';
-          }
-        };
+function getCorsHeaders(origin: string | null): Record<string, string> {
+  const allowOrigin =
+    origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "content-type": "application/json; charset=utf-8",
+    "access-control-allow-origin": allowOrigin,
+    "access-control-allow-headers": "authorization, x-client-info, apikey, content-type",
+    "access-control-allow-methods": "POST, OPTIONS",
+  };
+}
 
-        // 1. Sprawdzamy przy starcie
-        tryLoad();
+function jsonResponse(body: unknown, status = 200, origin: string | null = null) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: getCorsHeaders(origin),
+  });
+}
 
-        // 2. Obserwujemy zmiany w obiekcie content (poprawna składnia Alpine.js)
-        this.$watch('content', () => {
-          tryLoad();
-        });
-      },
+function safeToInt(v: unknown, fallback: number) {
+  const n = typeof v === "number" ? v : Number(v);
+  return Number.isFinite(n) ? Math.max(1, Math.min(20, Math.floor(n))) : fallback;
+}
 
-      avgFromReviews() {
-        if (!this.reviews.length) return null;
-        const sum = this.reviews.reduce((a, r) => a + (Number(r.rating) || 0), 0);
-        return Math.round((sum / this.reviews.length) * 10) / 10;
-      },
+async function readResponseAsJsonOrText(resp: Response) {
+  const text = await resp.text();
+  try {
+    return { ok: resp.ok, json: JSON.parse(text), text };
+  } catch {
+    return { ok: resp.ok, json: null, text };
+  }
+}
 
-      headerRating() {
-        const pr = this.placeRating != null && !Number.isNaN(Number(this.placeRating)) ? Number(this.placeRating) : null;
-        return pr != null ? pr : this.avgFromReviews();
-      },
+async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number) {
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const resp = await fetch(url, { ...init, signal: controller.signal });
+    const parsed = await readResponseAsJsonOrText(resp);
+    return { resp, ...parsed };
+  } finally {
+    clearTimeout(t);
+  }
+}
 
-      displayCount() {
-        if (this.userRatingCount != null && this.userRatingCount > 0) return this.userRatingCount;
-        return this.reviews.length;
-      },
+interface PlaceSearchPlace {
+  id?: string;
+}
 
-      t(key, L) {
-        const pl = { excellent: 'Doskonała', writeReview: 'Napisz recenzję', readMore: 'Czytaj więcej', readLess: 'Zwiń', reviews: 'opinii' };
-        const en = { excellent: 'Excellent', writeReview: 'Write a review', readMore: 'Read more', readLess: 'Show less', reviews: 'reviews' };
-        return (L === 'en' ? en : pl)[key] || key;
-      },
+interface PlaceSearchResponse {
+  places?: PlaceSearchPlace[];
+  error?: { message?: string };
+  message?: string;
+}
 
-      labelExcellent(L) {
-        const h = this.headerRating();
-        const pl = L !== 'en';
-        if (h == null) return this.t('excellent', L);
-        if (h >= 4.5) return this.t('excellent', L);
-        if (h >= 4) return pl ? 'Bardzo dobrze' : 'Very good';
-        return pl ? 'Dobrze' : 'Good';
-      },
+function pickFirstPlaceIdFromSearchText(searchTextJson: PlaceSearchResponse | null): string | null {
+  const places = searchTextJson?.places;
+  if (!Array.isArray(places) || places.length === 0) return null;
+  return places[0]?.id ?? null;
+}
 
-      writeReviewUrl() {
-        if (!this.placeId) return 'https://www.google.com/maps';
-        return 'https://search.google.com/local/writereview?placeid=' + encodeURIComponent(this.placeId);
-      },
+interface ReviewRaw {
+  rating?: number | string;
+  text?: string | { text?: string; value?: string };
+  authorAttribution?: {
+    displayName?: string | { text?: string };
+    display_name?: string;
+    uri?: string;
+    photoURI?: string;
+    photoUrl?: string;
+  };
+  publishTime?: string;
+  publish_time?: string;
+}
 
-      formatRel(iso, L) {
-        if (!iso) return '';
-        const d = new Date(iso);
-        if (Number.isNaN(d.getTime())) return '';
-        const pl = L !== 'en';
-        const msPerDay = (window.DFOPS_CONFIG?.timeouts?.msPerDay ?? 86400000);
-        const days = Math.floor((Date.now() - d.getTime()) / msPerDay);
-        if (days <= 0) return pl ? 'Dzisiaj' : 'Today';
-        if (days === 1) return pl ? 'Wczoraj' : 'Yesterday';
-        if (days < 7) return pl ? (days + ' dni temu') : (days + ' days ago');
-        if (days < 30) return pl ? (Math.floor(days / 7) + ' tyg. temu') : (Math.floor(days / 7) + ' wk ago');
-        return d.toLocaleDateString(pl ? 'pl-PL' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' });
-      },
+interface PlaceDetailsResponse {
+  displayName?: string | { text?: string };
+  reviews?: ReviewRaw[];
+  rating?: number;
+  userRatingCount?: number;
+  error?: { message?: string } | string;
+  error_message?: string;
+}
 
-      prevSlide() {
-        this.slide = Math.max(0, this.slide - 1);
-      },
+function normalizeReview(r: ReviewRaw | null) {
+  const rating = typeof r?.rating === "number" ? r.rating : Number(r?.rating ?? NaN);
+  const text =
+    r?.text?.text ??
+    r?.text?.value ??
+    r?.text ??
+    "";
 
-      nextSlide() {
-        this.slide = Math.min(Math.max(0, (this.reviews || []).length - 1), this.slide + 1);
-      },
+  const author_name =
+    r?.authorAttribution?.displayName?.text ??
+    r?.authorAttribution?.displayName ??
+    r?.authorAttribution?.display_name ??
+    "";
 
-      async loadReviews() {
-        const c = this.content;
-        const l = this.lang || 'pl';
-        const gr = c?.[l]?.settings?.google_reviews || c?.[l]?.google_reviews;
-        const query = gr?.place_query?.trim();
-        const maxReviews = gr?.max_reviews ?? 8;
+  const author_url = r?.authorAttribution?.uri ?? "";
+  const profile_photo_url =
+    r?.authorAttribution?.photoURI ??
+    r?.authorAttribution?.photoUrl ??
+    "";
 
-        if (!query) return;
+  const publishTimeRaw = r?.publishTime ?? r?.publish_time ?? "";
+  const publishTime = typeof publishTimeRaw === "string" ? publishTimeRaw : "";
 
-        this._lastFetchedQuery = query;
-        this.loading = true;
-        this.reviews = [];
-        this.error = '';
-        this.slide = 0;
-        let failSafeId = null;
-        let timeoutId = null;
+  return {
+    rating: Number.isFinite(rating) ? rating : null,
+    text: String(text),
+    author_name: String(author_name),
+    author_url: String(author_url),
+    profile_photo_url: String(profile_photo_url),
+    publishTime,
+  };
+}
 
-        try {
-          const t = window.DFOPS_CONFIG?.timeouts || {};
-          const apiTimeout = t.apiTimeout ?? 25000;
-          const abortTimeout = t.abortTimeout ?? 12000;
-          
-          failSafeId = setTimeout(() => {
-            this.loading = false;
-            this.error = 'Timeout pobierania opinii.';
-          }, apiTimeout);
+serve(async (req) => {
+  const origin = req.headers.get("origin");
 
-          const controller = new AbortController();
-          timeoutId = setTimeout(() => controller.abort(), abortTimeout);
-
-          const fnUrl = (window.DFOPS_CONFIG?.supabaseUrl
-            ? window.DFOPS_CONFIG.supabaseUrl + '/functions/v1/get-google-reviews'
-            : '/functions/v1/get-google-reviews');
-
-          const resp = await fetch(fnUrl, {
-            method: 'POST',
-            headers: {
-              'content-type': 'application/json',
-              'authorization': 'Bearer ' + (window.DFOPS_CONFIG?.supabaseAnonKey || '')
-            },
-            signal: controller.signal,
-            body: JSON.stringify({
-              query,
-              maxReviews: typeof maxReviews === 'number' ? Math.min(20, Math.max(1, maxReviews)) : 8
-            })
-          });
-
-          if (timeoutId) clearTimeout(timeoutId);
-          if (!resp.ok) throw new Error('HTTP ' + resp.status);
-
-          const json = await resp.json();
-          this.placeId = json?.placeId || '';
-          this.placeRating = json?.placeRating ?? null;
-          this.userRatingCount = json?.userRatingCount ?? null;
-          this.reviews = json?.reviews || [];
-          this.error = json?.error || '';
-        } catch (e) {
-          this.error = e?.message || 'Błąd pobierania opinii.';
-        } finally {
-          if (failSafeId) clearTimeout(failSafeId);
-          this.loading = false;
-        }
-      }
-    };
+  if (req.method === "OPTIONS") {
+    return jsonResponse({ ok: true }, 200, origin);
   }
 
-  window.googleReviews = googleReviews;
-})();
+  if (req.method !== "POST") {
+    return jsonResponse({ ok: false, error: "Metoda nieobsługiwana." }, 405, origin);
+  }
+
+  const googleApiKey = Deno.env.get("GOOGLE_MAPS_API_KEY") || Deno.env.get("GOOGLE_API_KEY");
+  if (!googleApiKey) {
+    return jsonResponse({
+      ok: false,
+      error: "Brak GOOGLE_MAPS_API_KEY w środowisku Edge Function.",
+    }, 500, origin);
+  }
+
+  let payload: { query?: string; maxReviews?: unknown } = {};
+  try {
+    payload = (await req.json()) as typeof payload;
+  } catch {
+    return jsonResponse({ ok: false, error: "Nieprawidłowe JSON w body." }, 400, origin);
+  }
+
+  const query = typeof payload?.query === "string" ? payload.query.trim() : "";
+  const maxReviews = safeToInt(payload?.maxReviews, 6);
+
+  if (!query) {
+    return jsonResponse({ ok: false, error: "Brak parametru query." }, 400, origin);
+  }
+
+  const searchTextUrl = "https://places.googleapis.com/v1/places:searchText";
+
+  const searchReq = await fetchWithTimeout(
+    searchTextUrl,
+    {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "X-Goog-Api-Key": googleApiKey,
+        "X-Goog-FieldMask": "places.id",
+      },
+      body: JSON.stringify({ textQuery: query }),
+    },
+    9000,
+  );
+
+  if (!searchReq.ok) {
+    return jsonResponse({
+      ok: false,
+      stage: "places_searchText",
+      httpStatus: searchReq.resp.status,
+      errorText: searchReq.text,
+    }, 502, origin);
+  }
+
+  const searchJson = (searchReq.json ?? {}) as PlaceSearchResponse;
+  const placesCount = Array.isArray(searchJson?.places) ? searchJson.places.length : 0;
+  const placeId = pickFirstPlaceIdFromSearchText(searchJson);
+
+  if (!placeId) {
+    return jsonResponse({
+      ok: true,
+      placeId: null,
+      reviews: [],
+      debug: {
+        searchStatus: searchJson?.error?.message ? "ERROR" : null,
+        searchErrorMessage: searchJson?.error?.message ?? searchJson?.message ?? null,
+        searchPlacesCount: placesCount,
+        query,
+        httpStatus: searchReq.resp.status,
+      },
+    }, 200, origin);
+  }
+
+  const detailsUrl = `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`;
+
+  const detailsReq = await fetchWithTimeout(
+    detailsUrl,
+    {
+      method: "GET",
+      headers: {
+        "X-Goog-Api-Key": googleApiKey,
+        "X-Goog-FieldMask": "displayName,reviews,rating,userRatingCount",
+      },
+    },
+    9000,
+  );
+
+  if (!detailsReq.ok) {
+    return jsonResponse({
+      ok: false,
+      stage: "place_details",
+      placeId,
+      httpStatus: detailsReq.resp.status,
+      errorText: detailsReq.text,
+    }, 502, origin);
+  }
+
+  const detailsJson = (detailsReq.json ?? {}) as PlaceDetailsResponse;
+  const detailsError =
+    typeof detailsJson?.error === "object"
+      ? (detailsJson.error as { message?: string })?.message
+      : typeof detailsJson?.error === "string"
+      ? detailsJson.error
+      : detailsJson?.error_message ?? null;
+  const reviews = Array.isArray(detailsJson?.reviews) ? detailsJson.reviews : [];
+
+  const normalized = reviews
+    .slice(0, maxReviews)
+    .map(normalizeReview);
+
+  const placeRating =
+    typeof detailsJson?.rating === "number"
+      ? detailsJson.rating
+      : detailsJson?.rating != null
+      ? Number(detailsJson.rating)
+      : null;
+  const userRatingCount =
+    typeof detailsJson?.userRatingCount === "number"
+      ? detailsJson.userRatingCount
+      : detailsJson?.userRatingCount != null
+      ? Number(detailsJson.userRatingCount)
+      : null;
+
+  return jsonResponse({
+    ok: true,
+    placeId,
+    placeName: detailsJson?.displayName?.text ?? detailsJson?.displayName ?? "",
+    placeRating: Number.isFinite(placeRating) ? placeRating : null,
+    userRatingCount: Number.isFinite(userRatingCount) ? userRatingCount : null,
+    reviews: normalized,
+    debug: detailsError ? { detailsError } : undefined,
+  }, 200, origin);
+});
