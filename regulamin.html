@@ -12,9 +12,7 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: {
-                        brand: { dark: '#121212', gold: '#D4AF37', gray: '#2A2A2A' }
-                    },
+                    colors: { brand: { dark: '#121212', gold: '#D4AF37' } },
                     fontFamily: { serif: ['Playfair Display', 'Georgia', 'serif'], sans: ['Inter', 'system-ui', 'sans-serif'] }
                 }
             }
@@ -22,55 +20,48 @@
     </script>
     <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="bg-[#121212] text-gray-200 font-sans min-h-screen flex flex-col">
-    <nav class="border-b border-white/10 py-4">
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col">
+    <nav class="bg-[#121212] border-b border-white/10 py-4">
         <div class="max-w-4xl mx-auto px-4 flex justify-between items-center">
             <a href="/" class="text-xl font-black tracking-widest text-white hover:text-[#D4AF37] transition-colors">DFOPS<span class="text-[#D4AF37]">CMS</span></a>
             <a href="/rejestracja.html" class="text-sm text-gray-400 hover:text-[#D4AF37] transition-colors">Rejestracja</a>
         </div>
     </nav>
 
-    <main class="flex-1 max-w-4xl mx-auto py-20 px-4 w-full">
-        <h1 class="font-serif text-4xl md:text-5xl text-white mb-12 border-b border-[#D4AF37]/30 pb-4">Regulamin</h1>
+    <main class="flex-1 py-12 px-4">
+        <div class="max-w-4xl mx-auto py-20 px-8 md:px-12 bg-white rounded-lg shadow-sm">
+            <h1 class="font-serif text-4xl text-gray-900 mb-8">Regulamin Serwisu DFCMS</h1>
 
-        <div class="space-y-10 text-gray-300 leading-relaxed">
-            <section>
-                <h2 class="text-2xl font-serif text-[#D4AF37] mb-4">1. Definicje</h2>
-                <ul class="list-disc list-inside space-y-2 ml-2">
-                    <li><strong class="text-white">Usługodawca</strong> – [TWOJE DANE FIRMY], z siedzibą przy [ADRES], NIP: [NIP], adres e-mail: [ADRES EMAIL].</li>
-                    <li><strong class="text-white">Użytkownik</strong> – osoba fizyczna, prawna lub jednostka organizacyjna nieposiadająca osobowości prawnej, korzystająca z Serwisu.</li>
-                    <li><strong class="text-white">Serwis</strong> – platforma dfcms.pl umożliwiająca tworzenie i zarządzanie stronami internetowymi w modelu subskrypcyjnym.</li>
-                </ul>
-            </section>
+            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">1. Postanowienia ogólne</h2>
+            <p class="text-gray-700 leading-relaxed mb-4">Niniejszy regulamin określa zasady korzystania z serwisu DFCMS, dostępnego pod domeną dfcms.pl (zwanego dalej „Serwisem").</p>
+            <p class="text-gray-700 leading-relaxed mb-4">Usługodawcą jest [TWOJA NAZWA FIRMY / IMIĘ I NAZWISKO JDG], NIP: [TWÓJ NIP], z siedzibą: [TWÓJ ADRES], kontakt: [TWÓJ EMAIL].</p>
+            <p class="text-gray-700 leading-relaxed mb-4">Użytkownikiem jest każda osoba fizyczna, osoba prawna lub jednostka organizacyjna korzystająca z Serwisu.</p>
 
-            <section>
-                <h2 class="text-2xl font-serif text-[#D4AF37] mb-4">2. Rodzaj i zakres usług</h2>
-                <p>Usługodawca świadczy usługi polegające na:</p>
-                <ul class="list-disc list-inside space-y-2 ml-2">
-                    <li>utrzymaniu i hostingu stron internetowych Użytkownika,</li>
-                    <li>udostępnieniu systemu CMS (Content Management System) umożliwiającego edycję treści strony,</li>
-                    <li>technicznym wsparciu w zakresie funkcjonowania Serwisu.</li>
-                </ul>
-            </section>
+            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">2. Rodzaj i zakres usług</h2>
+            <p class="text-gray-700 leading-relaxed mb-4">Serwis świadczy usługi drogą elektroniczną w modelu SaaS (Software as a Service), polegające na udostępnieniu narzędzi do tworzenia, edycji i hostowania stron wizytówkowych.</p>
+            <p class="text-gray-700 leading-relaxed mb-4">Usługodawca dokłada wszelkich starań, aby zapewnić nieprzerwane działanie Serwisu, jednak nie gwarantuje 100% dostępności (SLA) i nie ponosi odpowiedzialności za przerwy techniczne niezależne od niego.</p>
 
-            <section>
-                <h2 class="text-2xl font-serif text-[#D4AF37] mb-4">3. Warunki płatności</h2>
-                <p>Usługi są świadczone w modelu subskrypcyjnym. Płatności realizowane są przez platformę Stripe. Okres rozliczeniowy wynosi miesiąc i odnawia się automatycznie do momentu rezygnacji przez Użytkownika. Cennik oraz szczegóły planów dostępne są w Serwisie.</p>
-            </section>
+            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">3. Płatności i Subskrypcje</h2>
+            <ul class="list-disc list-inside space-y-2 text-gray-700 leading-relaxed mb-4">
+                <li>Korzystanie z pełnej funkcjonalności Serwisu (w tym publikacja strony pod własną subdomeną lub domeną) wymaga opłacenia subskrypcji.</li>
+                <li>Płatności obsługiwane są przez zewnętrznego operatora – firmę Stripe.</li>
+                <li>Subskrypcja odnawia się automatycznie co miesiąc. Użytkownik może anulować subskrypcję w dowolnym momencie w Panelu Administracyjnym.</li>
+            </ul>
 
-            <section>
-                <h2 class="text-2xl font-serif text-[#D4AF37] mb-4">4. Reklamacje</h2>
-                <p>Reklamacje należy kierować na adres e-mail Usługodawcy: [ADRES EMAIL]. Usługodawca rozpatruje reklamacje w terminie do 14 dni roboczych od ich otrzymania.</p>
-            </section>
+            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">4. Odpowiedzialność za Treści</h2>
+            <ul class="list-disc list-inside space-y-2 text-gray-700 leading-relaxed mb-4">
+                <li>Usługodawca udostępnia jedynie infrastrukturę informatyczną.</li>
+                <li>Użytkownik ponosi pełną i wyłączną odpowiedzialność za wszelkie treści (teksty, zdjęcia, grafiki, linki) publikowane na stronach stworzonych za pomocą Serwisu.</li>
+                <li>Zabrania się publikowania treści niezgodnych z polskim prawem, naruszających prawa autorskie osób trzecich, wzywających do nienawiści lub o charakterze pornograficznym. Usługodawca zastrzega sobie prawo do zablokowania konta w przypadku złamania tego punktu.</li>
+            </ul>
 
-            <section>
-                <h2 class="text-2xl font-serif text-[#D4AF37] mb-4">5. Prawo do odstąpienia od umowy</h2>
-                <p>Konsument ma prawo odstąpić od umowy w terminie 14 dni bez podawania przyczyny. Termin do odstąpienia upływa 14 dni od dnia zawarcia umowy. Aby skorzystać z prawa odstąpienia, należy poinformować Usługodawcę (np. e-mailem na [ADRES EMAIL]) o swojej decyzji. W przypadku odstąpienia zwracane są wszystkie otrzymane płatności.</p>
-            </section>
+            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">5. Reklamacje i Odstąpienie od umowy</h2>
+            <p class="text-gray-700 leading-relaxed mb-4">Wszelkie reklamacje związane z funkcjonowaniem Serwisu należy zgłaszać na adres e-mail: [TWÓJ EMAIL].</p>
+            <p class="text-gray-700 leading-relaxed mb-4">Konsument ma prawo odstąpić od umowy zawartej na odległość w terminie 14 dni bez podania przyczyny, chyba że wyraził zgodę na natychmiastowe rozpoczęcie świadczenia usług cyfrowych, co skutkuje utratą tego prawa.</p>
         </div>
     </main>
 
-    <footer class="border-t border-white/10 py-6 mt-16">
+    <footer class="bg-[#121212] border-t border-white/10 py-6">
         <div class="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-500">
             <a href="/polityka.html" class="hover:text-[#D4AF37] transition-colors">Polityka Prywatności</a>
             <a href="/" class="hover:text-[#D4AF37] transition-colors">Strona główna</a>

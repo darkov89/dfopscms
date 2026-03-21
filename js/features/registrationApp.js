@@ -9,7 +9,8 @@
       errorMessage: '',
       slugStatus: 'idle',
       slugCheckTimer: null,
-      form: { theme: 'consultant', color_preset: 'gold', email: '', password: '', slug: '', acceptRegulamin: false, acceptFaktury: false },
+      accepted: false,
+      form: { theme: 'consultant', color_preset: 'gold', email: '', password: '', slug: '' },
       get availablePresets() { return cfg.presetsByTheme[this.form.theme] || []; },
       get accentColor() { return cfg.accentByPreset[this.form.color_preset] || '#D4AF37'; },
 
@@ -53,8 +54,8 @@
         this.loading = true;
         this.errorMessage = '';
         try {
-          if (!this.form.acceptRegulamin || !this.form.acceptFaktury) {
-            throw new Error('Zaakceptuj Regulamin, Politykę Prywatności oraz zgodę na faktury elektroniczne.');
+          if (!this.accepted) {
+            throw new Error('Zaakceptuj Regulamin oraz Politykę Prywatności.');
           }
           const okSlug = await this.checkSlugUnique();
           if (!okSlug) throw new Error('Popraw slug (unikalny, format twoja-nazwa).');

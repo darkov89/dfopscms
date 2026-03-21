@@ -12,9 +12,7 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: {
-                        brand: { dark: '#121212', gold: '#D4AF37', gray: '#2A2A2A' }
-                    },
+                    colors: { brand: { dark: '#121212', gold: '#D4AF37' } },
                     fontFamily: { serif: ['Playfair Display', 'Georgia', 'serif'], sans: ['Inter', 'system-ui', 'sans-serif'] }
                 }
             }
@@ -22,61 +20,47 @@
     </script>
     <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="bg-[#121212] text-gray-200 font-sans min-h-screen flex flex-col">
-    <nav class="border-b border-white/10 py-4">
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col">
+    <nav class="bg-[#121212] border-b border-white/10 py-4">
         <div class="max-w-4xl mx-auto px-4 flex justify-between items-center">
             <a href="/" class="text-xl font-black tracking-widest text-white hover:text-[#D4AF37] transition-colors">DFOPS<span class="text-[#D4AF37]">CMS</span></a>
             <a href="/rejestracja.html" class="text-sm text-gray-400 hover:text-[#D4AF37] transition-colors">Rejestracja</a>
         </div>
     </nav>
 
-    <main class="flex-1 max-w-4xl mx-auto py-20 px-4 w-full">
-        <h1 class="font-serif text-4xl md:text-5xl text-white mb-12 border-b border-[#D4AF37]/30 pb-4">Polityka Prywatności</h1>
+    <main class="flex-1 py-12 px-4">
+        <div class="max-w-4xl mx-auto py-20 px-8 md:px-12 bg-white rounded-lg shadow-sm">
+            <h1 class="font-serif text-4xl text-gray-900 mb-8">Polityka Prywatności</h1>
 
-        <div class="space-y-10 text-gray-300 leading-relaxed">
-            <section>
-                <h2 class="text-2xl font-serif text-[#D4AF37] mb-4">1. Administrator danych</h2>
-                <p>Administratorem danych osobowych jest [TWOJE DANE FIRMY], z siedzibą przy [ADRES], NIP: [NIP], adres e-mail: [ADRES EMAIL].</p>
-            </section>
+            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">1. Administrator Danych Osobowych</h2>
+            <p class="text-gray-700 leading-relaxed mb-4">Administratorem Twoich danych osobowych jest [TWOJA NAZWA FIRMY / IMIĘ I NAZWISKO JDG], NIP: [TWÓJ NIP], kontakt: [TWÓJ EMAIL].</p>
 
-            <section>
-                <h2 class="text-2xl font-serif text-[#D4AF37] mb-4">2. Zakres zbieranych danych</h2>
-                <p>Zbieramy następujące dane:</p>
-                <ul class="list-disc list-inside space-y-2 ml-2">
-                    <li>adres e-mail (w celu logowania i kontaktu),</li>
-                    <li>treść strony internetowej tworzonej przez Użytkownika (artykuły, opisy, zdjęcia itp.),</li>
-                    <li>dane techniczne: adres IP, typ przeglądarki, dane logowania – w celach technicznych i bezpieczeństwa.</li>
-                </ul>
-            </section>
+            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">2. Jakie dane zbieramy i w jakim celu?</h2>
+            <ul class="list-disc list-inside space-y-2 text-gray-700 leading-relaxed mb-4">
+                <li><strong>Rejestracja i obsługa konta:</strong> Zbieramy Twój adres e-mail oraz hasło (w formie zaszyfrowanej) w celu założenia i utrzymania konta w systemie. Podstawa prawna: realizacja umowy (art. 6 ust. 1 lit. b RODO).</li>
+                <li><strong>Płatności:</strong> W przypadku przejścia na plan płatny, zbieramy dane niezbędne do wystawienia faktury (NIP, nazwa firmy, adres). Dane karty płatniczej przetwarzane są bezpośrednio przez operatora Stripe i nie są przechowywane na naszych serwerach.</li>
+                <li><strong>Dane techniczne:</strong> Zbieramy standardowe logi serwera (adres IP, rodzaj przeglądarki), by zapewnić bezpieczeństwo Serwisu.</li>
+            </ul>
 
-            <section>
-                <h2 class="text-2xl font-serif text-[#D4AF37] mb-4">3. Cel przetwarzania</h2>
-                <p>Dane są przetwarzane w celu realizacji świadczonych usług (udostępnianie CMS, hostingu strony), obsługi płatności oraz wykonywania obowiązków prawnych ciążących na Administratorze.</p>
-            </section>
+            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">3. Odbiorcy danych (Podwykonawcy)</h2>
+            <p class="text-gray-700 leading-relaxed mb-4">Aby świadczyć usługi na najwyższym poziomie, korzystamy z zaufanych partnerów, którym możemy powierzyć przetwarzanie danych:</p>
+            <ul class="list-disc list-inside space-y-2 text-gray-700 leading-relaxed mb-4">
+                <li><strong>Supabase</strong> – dostawca bazy danych i systemu autoryzacji.</li>
+                <li><strong>Stripe</strong> – operator płatności internetowych.</li>
+            </ul>
 
-            <section>
-                <h2 class="text-2xl font-serif text-[#D4AF37] mb-4">4. Odbiorcy danych</h2>
-                <p>Dane mogą być udostępniane:</p>
-                <ul class="list-disc list-inside space-y-2 ml-2">
-                    <li><strong class="text-white">Supabase</strong> – hosting bazy danych i przechowywanie treści stron,</li>
-                    <li><strong class="text-white">Stripe</strong> – obsługa płatności,</li>
-                    <li>podmiotom uprawnionym na podstawie przepisów prawa.</li>
-                </ul>
-            </section>
+            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">4. Umowa Powierzenia Przetwarzania (DPA)</h2>
+            <p class="text-gray-700 leading-relaxed mb-4">W ramach usługi, Użytkownik (np. właściciel salonu) może przetwarzać dane swoich klientów (np. przez formularz kontaktowy). W takich relacjach to Użytkownik jest Administratorem Danych, a my (DFCMS) jesteśmy Procesorem. Akceptacja Regulaminu oznacza jednoczesne zawarcie Umowy Powierzenia Przetwarzania Danych w ramach infrastruktury DFCMS.</p>
 
-            <section>
-                <h2 class="text-2xl font-serif text-[#D4AF37] mb-4">5. Prawa użytkownika</h2>
-                <p>Przysługuje Ci prawo do: dostępu do swoich danych, ich sprostowania, usunięcia (prawo do bycia zapomnianym), ograniczenia przetwarzania, przenoszenia danych oraz wniesienia skargi do Prezesa Urzędu Ochrony Danych Osobowych. Aby skorzystać z tych praw, skontaktuj się z nami: [ADRES EMAIL].</p>
-            </section>
+            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">5. Twoje prawa</h2>
+            <p class="text-gray-700 leading-relaxed mb-4">Masz prawo do dostępu do swoich danych, ich sprostowania, usunięcia ("prawo do bycia zapomnianym"), ograniczenia przetwarzania oraz przenoszenia danych. W celu realizacji praw skontaktuj się z nami pod adresem: [TWÓJ EMAIL].</p>
 
-            <section>
-                <h2 class="text-2xl font-serif text-[#D4AF37] mb-4">6. Pliki Cookies</h2>
-                <p>Serwis korzysta z plików cookies i podobnych mechanizmów w celu przechowywania sesji użytkownika (logowanie) oraz poprawy działania strony. Nie wykorzystujemy ich do celów marketingowych bez Twojej zgody.</p>
-            </section>
+            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">6. Pliki Cookies</h2>
+            <p class="text-gray-700 leading-relaxed mb-4">Serwis korzysta z plików cookies (ciasteczek) wyłącznie w celach technicznych – do utrzymania sesji logowania (tzw. cookies niezbędne). Nie używamy obecnie zaawansowanych cookies śledzących do celów reklamowych bez Twojej zgody.</p>
         </div>
     </main>
 
-    <footer class="border-t border-white/10 py-6 mt-16">
+    <footer class="bg-[#121212] border-t border-white/10 py-6">
         <div class="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-500">
             <a href="/regulamin.html" class="hover:text-[#D4AF37] transition-colors">Regulamin</a>
             <a href="/" class="hover:text-[#D4AF37] transition-colors">Strona główna</a>
