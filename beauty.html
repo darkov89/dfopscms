@@ -205,10 +205,7 @@
                         <h2 class="text-3xl md:text-4xl font-serif text-sattva-text" x-text="content[lang].google_reviews?.title || 'Opinie z Google'"></h2>
                     </div>
 
-                    <div
-                        x-data="googleReviews()"
-                        x-init="fetchReviews()"
-                    >
+                    <div x-data="googleReviews()">
                         <template x-if="loading">
                             <div class="bg-sattva-white rounded-[2rem] border border-sattva-brand/20 p-10 text-center shadow-sm">
                                 <div class="text-sattva-text/70 text-sm font-medium">Ładowanie opinii z Google…</div>

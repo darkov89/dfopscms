@@ -2,6 +2,8 @@
   /**
    * Współdzielony komponent Alpine.js do obsługi Opinii Google.
    * Używa $root.content i $root.lang z rodzica (createPublicSiteApp).
+   * Obserwuje asynchroniczne ładowanie content – ładowanie opinii startuje dopiero
+   * gdy content jest dostępny i zawiera place_query.
    */
   function googleReviews() {
     return {
@@ -12,6 +14,30 @@
       placeId: '',
       placeRating: null,
       userRatingCount: null,
+      _lastFetchedQuery: null,
+
+      init() {
+        const tryLoad = () => {
+          const content = this.$root?.content;
+          const lang = this.$root?.lang || 'pl';
+          if (content == null) return;
+          const query = content?.[lang]?.google_reviews?.place_query?.trim();
+          if (query && query !== this._lastFetchedQuery) {
+            this.loadReviews();
+          } else if (query === '' || (content[lang]?.google_reviews && !query)) {
+            this.loading = false;
+            this.error = 'Brak konfiguracji place_query.';
+          }
+        };
+        tryLoad();
+        this.$watch(
+          () => this.$root?.content,
+          (newVal) => {
+            if (newVal) tryLoad();
+          },
+          { deep: true }
+        );
+      },
 
       avgFromReviews() {
         if (!this.reviews.length) return null;
@@ -71,25 +97,22 @@
         this.slide = Math.min(Math.max(0, (this.reviews || []).length - 1), this.slide + 1);
       },
 
-      async fetchReviews() {
+      async loadReviews() {
         const content = this.$root?.content;
         const lang = this.$root?.lang || 'pl';
         const gr = content?.[lang]?.google_reviews;
         const query = gr?.place_query?.trim();
         const maxReviews = gr?.max_reviews ?? 8;
 
+        if (!query) return;
+
+        this._lastFetchedQuery = query;
         this.loading = true;
         this.reviews = [];
         this.error = '';
         this.slide = 0;
         let failSafeId = null;
         let timeoutId = null;
-
-        if (!query) {
-          this.loading = false;
-          this.error = 'Brak konfiguracji place_query.';
-          return;
-        }
 
         try {
           const t = window.DFOPS_CONFIG?.timeouts || {};
