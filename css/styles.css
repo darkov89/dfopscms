@@ -1,3 +1,6 @@
+/* Alpine.js: ukrywa elementy przed inicjalizacją (zastępuje style="display: none;" + x-show) */
+[x-cloak] { display: none !important; }
+
 /* Subtelny gradient TYLKO dla trybu ciemnego */
 .dark body {
     background-color: #121212;

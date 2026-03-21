@@ -103,7 +103,7 @@
                 </div>
                 <template x-if="content[lang].hero?.image">
                     <div class="reveal order-first md:order-last">
-                        <img :src="content[lang].hero.image" alt="" class="w-full aspect-[4/5] object-cover rounded-tl-[4rem] rounded-br-[4rem] md:rounded-tl-[6rem] md:rounded-br-[6rem] shadow-2xl" loading="eager" decoding="async">
+                        <img :src="content[lang].hero.image" :alt="content[lang].hero?.headline || 'Zdjęcie sekcji hero'" class="w-full aspect-[4/5] object-cover rounded-tl-[4rem] rounded-br-[4rem] md:rounded-tl-[6rem] md:rounded-br-[6rem] shadow-2xl" loading="eager" decoding="async">
                     </div>
                 </template>
             </div>
@@ -168,7 +168,7 @@
                 <div x-ref="slider" class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-8 hide-scrollbar reveal">
                     <template x-for="(imgUrl, index) in content[lang].gallery.images" :key="index">
                         <div class="min-w-[85%] md:min-w-[45%] lg:min-w-[30%] snap-center shrink-0">
-                            <img :src="imgUrl" alt="" class="w-full h-[400px] object-cover rounded-2xl shadow-md" loading="lazy" decoding="async">
+                            <img :src="imgUrl" :alt="(content[lang].gallery?.title || 'Galeria') + ' - zdjęcie ' + (index + 1)" class="w-full h-[400px] object-cover rounded-2xl shadow-md" loading="lazy" decoding="async">
                         </div>
                     </template>
                 </div>
@@ -184,11 +184,11 @@
                 <div class="space-y-4">
                     <template x-for="(item, index) in content[lang].faq" :key="index">
                         <div class="reveal bg-sattva-white rounded-xl shadow-sm border border-transparent hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden" :class="expanded ? 'border-sattva-brand' : ''" x-data="{ expanded: false }">
-                            <button @click="expanded = !expanded" class="w-full px-6 py-5 flex justify-between items-center text-left hover:text-sattva-brand transition-colors font-medium">
+                            <button @click="expanded = !expanded" :aria-expanded="expanded" :aria-controls="'faq-answer-' + index" class="w-full px-6 py-5 flex justify-between items-center text-left hover:text-sattva-brand transition-colors font-medium">
                                 <span class="text-lg" x-text="item.question"></span>
                                 <div class="w-2.5 h-2.5 border-r-2 border-b-2 border-current transform transition-transform duration-300" :class="expanded ? '-rotate-135' : 'rotate-45'"></div>
                             </button>
-                            <div x-show="expanded" x-collapse x-cloak>
+                            <div x-show="expanded" x-collapse x-cloak :id="'faq-answer-' + index">
                                 <div class="px-6 pb-6 text-sattva-text/70 leading-relaxed" x-text="item.answer"></div>
                             </div>
                         </div>
@@ -219,7 +219,8 @@
                                 const d = new Date(iso);
                                 if (Number.isNaN(d.getTime())) return '';
                                 const pl = L !== 'en';
-                                const days = Math.floor((Date.now() - d.getTime()) / 86400000);
+                                const msPerDay = (window.DFOPS_CONFIG?.timeouts?.msPerDay ?? 86400000);
+                                const days = Math.floor((Date.now() - d.getTime()) / msPerDay);
                                 if (days <= 0) return pl ? 'Dzisiaj' : 'Today';
                                 if (days === 1) return pl ? 'Wczoraj' : 'Yesterday';
                                 if (days < 7) return pl ? (days + ' dni temu') : (days + ' days ago');
@@ -265,10 +266,11 @@
                                 this.error = '';
                                 this.slide = 0;
                                 try {
+                                    const apiTimeout = (window.DFOPS_CONFIG?.timeouts?.apiTimeout ?? 25000);
                                     this.failSafeId = setTimeout(() => {
                                         this.loading = false;
                                         this.error = 'Timeout pobierania opinii.';
-                                    }, 25000);
+                                    }, apiTimeout);
                                     const fnUrl = (window.DFOPS_CONFIG?.supabaseUrl
                                         ? window.DFOPS_CONFIG.supabaseUrl + '/functions/v1/get-google-reviews'
                                         : '/functions/v1/get-google-reviews');
@@ -346,7 +348,7 @@
                                                         <div class="flex items-start justify-between gap-3 mb-4">
                                                             <div class="flex items-center gap-3 min-w-0">
                                                                 <template x-if="r.profile_photo_url">
-                                                                    <img :src="r.profile_photo_url" class="w-12 h-12 rounded-full object-cover shrink-0 ring-2 ring-sattva-brand/20" alt="" loading="lazy">
+                                                                    <img :src="r.profile_photo_url" :alt="(r.author_name || 'Klient') + ' - zdjęcie profilowe'" class="w-12 h-12 rounded-full object-cover shrink-0 ring-2 ring-sattva-brand/20" loading="lazy">
                                                                 </template>
                                                                 <template x-if="!r.profile_photo_url">
                                                                     <div class="w-12 h-12 rounded-full bg-sattva-accent flex items-center justify-center text-sattva-brand font-bold text-lg shrink-0"

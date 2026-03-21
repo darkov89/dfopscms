@@ -47,6 +47,16 @@
       barber: { sans: 'Oswald, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif', serif: 'Playfair Display, ui-serif, Georgia, serif' },
       elegant: { sans: 'Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif', serif: 'Cormorant Garamond, ui-serif, Georgia, serif' },
     },
+    timeouts: {
+      msPerDay: 86400000,
+      apiTimeout: 25000,
+      abortTimeout: 12000,
+      slugDebounce: 400,
+      redirectDelay: 800,
+      errorMessage: 5000,
+      successMessage: 3000,
+      upgradeMessage: 3500,
+    },
     bundlesByTheme: {
       consultant: [
         { id: 'consultant-premium', label: 'Premium Gold', color_preset: 'gold', background_style: 'glow', font_preset: 'inter' },

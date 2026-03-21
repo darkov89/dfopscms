@@ -26,7 +26,8 @@
       },
       scheduleSlugCheck() {
         if (this.slugCheckTimer) window.clearTimeout(this.slugCheckTimer);
-        this.slugCheckTimer = window.setTimeout(() => this.checkSlugUnique(), 400);
+        const debounce = (cfg.timeouts?.slugDebounce ?? 400);
+        this.slugCheckTimer = window.setTimeout(() => this.checkSlugUnique(), debounce);
       },
       async checkSlugUnique() {
         const s = (this.form.slug || '').trim();
@@ -72,9 +73,10 @@
           if (dbError) throw dbError;
 
           this.success = true;
+          const delay = (cfg.timeouts?.redirectDelay ?? 800);
           setTimeout(() => {
             window.location.href = 'admin.html?site=' + encodeURIComponent(this.form.slug);
-          }, 800);
+          }, delay);
         } catch (e) {
           this.errorMessage = e?.message || 'Błąd tworzenia strony.';
         } finally {

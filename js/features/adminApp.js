@@ -1,5 +1,10 @@
 ;(function () {
   function createAdminApp() {
+    const t = window.DFOPS_CONFIG?.timeouts || {};
+    const MS_PER_DAY = t.msPerDay ?? 86400000;
+    const ERROR_MESSAGE_TIMEOUT = t.errorMessage ?? 5000;
+    const SUCCESS_MESSAGE_TIMEOUT = t.successMessage ?? 3000;
+    const UPGRADE_MESSAGE_TIMEOUT = t.upgradeMessage ?? 3500;
     const cfg = window.DFOPS_CONFIG;
     const repo = window.DFOPS_pageRepository;
     return {
@@ -34,14 +39,14 @@
         if (!sub || sub.plan !== 'trial' || !sub.trial_started_at) return 14;
         const start = new Date(sub.trial_started_at).getTime();
         const now = Date.now();
-        const elapsed = Math.floor((now - start) / 86400000);
+        const elapsed = Math.floor((now - start) / MS_PER_DAY);
         return Math.max(0, 14 - elapsed);
       },
       get isCustomDomainLocked() { return this.subscriptionPlan === 'trial' || this.subscriptionPlan === 'tier0'; },
 
       showError(msg) {
         this.errorMessage = msg;
-        setTimeout(() => { this.errorMessage = ''; }, 5000);
+        setTimeout(() => { this.errorMessage = ''; }, ERROR_MESSAGE_TIMEOUT);
       },
 
       init() {
@@ -124,7 +129,7 @@
           this.updateAvailable = false;
           this.hasUnsavedChanges = false;
           this.message = `Szablon zaktualizowany do v${this.latestTemplateVersion}.`;
-          setTimeout(() => { this.message = ''; }, 3500);
+          setTimeout(() => { this.message = ''; }, UPGRADE_MESSAGE_TIMEOUT);
         } catch (e) {
           console.error(e);
           this.showError('Upgrade nie powiódł się.');
@@ -146,7 +151,7 @@
           if (error) throw error;
           this.hasUnsavedChanges = false;
           this.message = 'Zmiany zostały opublikowane!';
-          setTimeout(() => { this.message = ''; }, 3000);
+          setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
         } catch (e) {
           console.error(e);
           this.showError('Błąd zapisu (RLS lub walidacja).');
@@ -175,7 +180,7 @@
             this.content.pl[section][field] = publicUrlData.publicUrl;
           }
           this.message = 'Plik załadowany. Kliknij "Publikuj Zmiany".';
-          setTimeout(() => { this.message = ''; }, 3000);
+          setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
         } catch (e) {
           console.error(e);
           this.showError('Nie udało się wgrać pliku.');
