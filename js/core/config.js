@@ -2,7 +2,8 @@
   const APP_CONFIG = {
     supabaseUrl: 'https://tawywecinkubmouyprab.supabase.co',
     supabaseAnonKey: 'sb_publishable_b-y5BLfAZBNnPdjhFx61Tw_NP_FI1Sp',
-    appDomain: 'dfopscms.pl',
+    appDomain: 'dfcms.pl',
+    systemDomains: ['dfcms.pl', 'localhost', '127.0.0.1'],
     localHosts: ['localhost', '127.0.0.1'],
     accentByPreset: {
       gold: '#D4AF37',

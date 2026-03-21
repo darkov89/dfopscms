@@ -129,11 +129,13 @@
             const { data, error } = await repo.getPageByCustomDomain(hostname);
             if (error) throw error;
             page = data;
-          } else {
-            const currentSlug = urlParams.get('site') || 'moj-test';
+          } else if (urlParams.has('site') && urlParams.get('site')?.trim()) {
+            const currentSlug = urlParams.get('site').trim();
             const { data, error } = await repo.getPageBySlug(currentSlug);
             if (error) throw error;
             page = data;
+          } else {
+            throw new Error('Brak parametru site');
           }
 
           if (!page) throw new Error('Brak strony');

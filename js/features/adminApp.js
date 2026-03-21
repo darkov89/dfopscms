@@ -9,7 +9,7 @@
       email: '',
       password: '',
       authError: '',
-      slug: new URLSearchParams(window.location.search).get('site') || 'moj-test',
+      slug: new URLSearchParams(window.location.search).get('site') || '',
       theme: '',
       content: null,
       customDomain: '',

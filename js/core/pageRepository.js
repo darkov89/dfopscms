@@ -32,8 +32,8 @@
       .from('pages')
       .select('slug, theme, content, color_preset, custom_domain')
       .eq('user_id', userId)
-      .single();
-    return { data, error };
+      .maybeSingle();
+    return { data: data || null, error };
   }
 
   async function saveCurrentUserPage(userId, payload) {
