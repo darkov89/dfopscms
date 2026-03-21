@@ -1,7 +1,7 @@
 ;(function () {
   /**
    * Współdzielony komponent Alpine.js do obsługi Opinii Google.
-   * Używa $root.content i $root.lang z rodzica (createPublicSiteApp).
+   * Dziecko dziedziczy content i lang z parenta (createPublicSiteApp).
    * Obserwuje asynchroniczne ładowanie content – ładowanie opinii startuje dopiero
    * gdy content jest dostępny i zawiera place_query.
    */
@@ -18,25 +18,28 @@
 
       init() {
         const tryLoad = () => {
-          const content = this.$root?.content;
-          const lang = this.$root?.lang || 'pl';
-          if (content == null) return;
-          const query = content?.[lang]?.google_reviews?.place_query?.trim();
+          // W Alpine.js child dziedziczy dane parenta, więc mamy dostęp do this.content i this.lang
+          const c = this.content;
+          const l = this.lang || 'pl';
+          if (!c) return;
+
+          const query = c[l]?.google_reviews?.place_query?.trim();
+
           if (query && query !== this._lastFetchedQuery) {
             this.loadReviews();
-          } else if (query === '' || (content[lang]?.google_reviews && !query)) {
+          } else if (query === '' || (c[l]?.google_reviews && !query)) {
             this.loading = false;
             this.error = 'Brak konfiguracji place_query.';
           }
         };
+
+        // 1. Sprawdź przy starcie (jeśli dane zeszły wyjątkowo szybko)
         tryLoad();
-        this.$watch(
-          () => this.$root?.content,
-          (newVal) => {
-            if (newVal) tryLoad();
-          },
-          { deep: true }
-        );
+
+        // 2. Obserwuj zmianę w obiekcie (Alpine używa stringa jako pierwszego argumentu)
+        this.$watch('content', () => {
+          tryLoad();
+        });
       },
 
       avgFromReviews() {
@@ -98,9 +101,9 @@
       },
 
       async loadReviews() {
-        const content = this.$root?.content;
-        const lang = this.$root?.lang || 'pl';
-        const gr = content?.[lang]?.google_reviews;
+        const c = this.content;
+        const l = this.lang || 'pl';
+        const gr = c?.[l]?.google_reviews;
         const query = gr?.place_query?.trim();
         const maxReviews = gr?.max_reviews ?? 8;
 
