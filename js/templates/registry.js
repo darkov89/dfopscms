@@ -35,7 +35,7 @@
           ogImage: ""
         },
         footer: { quote: "", copyright: "", privacy: "" },
-        legal: { privacy_policy: "", terms: "" },
+        legal: { enabled: true, privacy_policy: "", terms: "" },
         cookies: { text: "Ta strona używa plików cookies w celach funkcjonalnych.", accept: "Akceptuję" },
         settings: {
           darkMode: false,
@@ -75,7 +75,7 @@
             "Profesjonalne zabiegi kosmetyczne, barber i relaks w jednym miejscu. Sprawdź cennik, przeczytaj opinie i umów wizytę w kilka kliknięć.",
           ogImage: ""
         },
-        legal: { privacy_policy: "", terms: "" },
+        legal: { enabled: true, privacy_policy: "", terms: "" },
         settings: {
           subscription: { plan: "trial", trial_started_at: new Date().toISOString() },
           showManifesto: true,

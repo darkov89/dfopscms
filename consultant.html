@@ -107,7 +107,23 @@
                         </div>
                     </template>
 
-                    <a href="#contact" class="hidden md:block text-sm uppercase tracking-widest text-sattva-brand hover:text-sattva-text transition-colors duration-300" x-text="content[lang].nav?.cta"></a>
+                    <div class="hidden md:flex items-center gap-4 text-sm uppercase tracking-widest">
+                        <template x-if="content[lang].settings?.showManifesto !== false">
+                            <a href="#manifesto" class="text-sattva-text/80 hover:text-sattva-brand transition-colors" x-text="content[lang].manifesto?.title || 'O nas'"></a>
+                        </template>
+                        <template x-if="content[lang].settings?.showServices !== false">
+                            <a href="#uslugi" class="text-sattva-text/80 hover:text-sattva-brand transition-colors">Usługi</a>
+                        </template>
+                        <template x-if="content[lang].settings?.showFaq !== false && content[lang].faq?.length">
+                            <a href="#faq" class="text-sattva-text/80 hover:text-sattva-brand transition-colors">FAQ</a>
+                        </template>
+                        <template x-if="content[lang].settings?.showReviews !== false && content[lang].reviews?.length">
+                            <a href="#opinie" class="text-sattva-text/80 hover:text-sattva-brand transition-colors" x-text="content[lang].google_reviews?.title || 'Opinie'"></a>
+                        </template>
+                        <template x-if="content[lang].settings?.showContact !== false">
+                            <a href="#contact" class="text-sattva-brand hover:text-sattva-text transition-colors duration-300" x-text="content[lang].nav?.cta || 'Kontakt'"></a>
+                        </template>
+                    </div>
                 </div>
             </div>
         </nav>
@@ -139,7 +155,7 @@
             <a href="#contact" class="group relative px-8 py-3 border border-sattva-brand text-sattva-brand font-serif text-lg tracking-wide hover:bg-sattva-brand hover:text-sattva-white transition-all duration-300 reveal delay-500" x-text="content[lang].hero.button"></a>
         </header>
 
- <section class="py-24 px-6 bg-sattva-accent" x-show="content[lang].settings?.showManifesto !== false">
+ <section id="manifesto" class="py-24 px-6 bg-sattva-accent" x-show="content[lang].settings?.showManifesto !== false">
     <div class="max-w-3xl mx-auto reveal">
         
         <div class="text-center mb-12">
@@ -157,7 +173,7 @@
     </div>
 </section>
 
-        <section class="py-24 px-6 relative" x-show="content[lang].settings?.showServices !== false">
+        <section id="uslugi" class="py-24 px-6 relative" x-show="content[lang].settings?.showServices !== false">
             <div class="max-w-6xl mx-auto">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <template x-for="(service, index) in content[lang].services">
@@ -191,7 +207,7 @@
         </section>
 
         <!-- FAQ Section -->
-        <section class="py-24 px-6 relative" x-show="content[lang].settings?.showFaq !== false && content[lang].faq && content[lang].faq.length > 0">
+        <section id="faq" class="py-24 px-6 relative" x-show="content[lang].settings?.showFaq !== false && content[lang].faq && content[lang].faq.length > 0">
             <div class="max-w-3xl mx-auto">
                 <div class="text-center mb-16 reveal">
                     <span class="text-xs uppercase tracking-[0.2em] text-sattva-brand mb-4 block">Częste pytania</span>
@@ -215,7 +231,7 @@
         </section>
 
         <!-- Reviews Section -->
-        <section class="py-24 px-6 bg-sattva-accent" x-show="content[lang].settings?.showReviews !== false && content[lang].reviews && content[lang].reviews.length > 0">
+        <section id="opinie" class="py-24 px-6 bg-sattva-accent" x-show="content[lang].settings?.showReviews !== false && content[lang].reviews && content[lang].reviews.length > 0">
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-16 reveal">
                     <span class="text-xs uppercase tracking-[0.2em] text-sattva-brand mb-4 block">Głos Klientów</span>
@@ -522,13 +538,13 @@
             </div>
             
             <div class="flex flex-wrap items-center justify-center gap-3 text-sm">
-                <template x-if="content[lang]?.legal?.privacy_policy">
+                <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.privacy_policy">
                     <a href="#" @click.prevent="openModal('privacy')" class="underline text-sattva-text/80 hover:text-sattva-brand transition-colors">Polityka Prywatności</a>
                 </template>
-                <template x-if="content[lang]?.legal?.terms">
+                <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.terms">
                     <a href="#" @click.prevent="openModal('terms')" class="underline text-sattva-text/80 hover:text-sattva-brand transition-colors">Regulamin</a>
                 </template>
-                <span class="text-sattva-text/60" x-show="content[lang]?.legal?.privacy_policy || content[lang]?.legal?.terms">|</span>
+                <span class="text-sattva-text/60" x-show="content[lang]?.legal?.enabled !== false && (content[lang]?.legal?.privacy_policy || content[lang]?.legal?.terms)">|</span>
                 <p class="text-xs text-sattva-text/80 tracking-widest">© <span x-text="new Date().getFullYear()"></span> <span x-text="content[lang].hero?.name || 'Twoja Firma'"></span>. Wszelkie prawa zastrzeżone.</p>
             </div>
         </footer>
@@ -540,15 +556,15 @@
          x-show="showBanner"
          x-transition.opacity.duration.500ms
          x-cloak
-         class="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 shadow-2xl border-t border-gray-200 dark:border-gray-700">
+         class="fixed bottom-0 left-0 right-0 z-[9999] isolate relative bg-white dark:bg-gray-900 shadow-2xl border-t border-gray-200 dark:border-gray-700">
         <div class="max-w-5xl mx-auto px-4 py-4 md:px-6 md:py-5">
             <div class="text-sm text-gray-700 dark:text-gray-300 mb-4">
                 Ta strona korzysta z ciasteczek, aby zapewnić działanie podstawowych funkcji oraz (opcjonalnie) analityki i marketingu. Możesz wybrać, które kategorie akceptujesz.
             </div>
             <div class="flex flex-wrap items-center gap-3 mb-4" x-show="!showDetails">
-                <button @click="acceptAll()" class="px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors">Akceptuję wszystkie</button>
-                <button @click="rejectAll()" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">Tylko niezbędne</button>
-                <button @click="showDetails = true" class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Dostosuj</button>
+                <button @click.prevent="acceptAll()" class="px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors">Akceptuję wszystkie</button>
+                <button @click.prevent="rejectAll()" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">Tylko niezbędne</button>
+                <button @click.prevent="showDetails = true" class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Dostosuj</button>
             </div>
             <div x-show="showDetails" x-collapse class="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <div class="flex items-center justify-between gap-4">
@@ -575,7 +591,7 @@
                         <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5"></span>
                     </label>
                 </div>
-                <button @click="acceptSelected()" class="px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors">Zapisz ustawienia</button>
+                <button @click.prevent="acceptSelected()" class="px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors">Zapisz ustawienia</button>
             </div>
         </div>
     </div>

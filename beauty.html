@@ -76,11 +76,24 @@
                     </template>
                 </div>                
                 <div class="hidden md:flex items-center gap-8 font-medium">
-                    <a href="#o-nas" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.about || 'O nas'"></a>
-                    <a href="#cennik" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.pricing || 'Cennik'"></a>
-                    <a href="#galeria" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.gallery || 'Galeria'" x-show="content[lang].gallery?.images?.length > 0"></a>
-                    <a href="#faq" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.faq || 'Q&A'"></a>
-                    <a href="#kontakt" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></a>
+                    <template x-if="content[lang].settings?.showManifesto !== false">
+                        <a href="#o-nas" class="hover:text-sattva-brand transition-colors" x-text="content[lang].manifesto?.title || content[lang].nav?.menu?.about || 'O nas'"></a>
+                    </template>
+                    <template x-if="content[lang].settings?.showServices !== false">
+                        <a href="#cennik" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.pricing || 'Usługi'"></a>
+                    </template>
+                    <template x-if="content[lang].gallery?.images?.length > 0">
+                        <a href="#galeria" class="hover:text-sattva-brand transition-colors" x-text="content[lang].gallery?.title || content[lang].nav?.menu?.gallery || 'Galeria'"></a>
+                    </template>
+                    <template x-if="content[lang].google_reviews?.place_query">
+                        <a href="#opinie" class="hover:text-sattva-brand transition-colors" x-text="content[lang].google_reviews?.title || 'Opinie'"></a>
+                    </template>
+                    <template x-if="content[lang].settings?.showFaq !== false && content[lang].faq?.length">
+                        <a href="#faq" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.faq || 'Q&A'"></a>
+                    </template>
+                    <template x-if="content[lang].settings?.showContact !== false">
+                        <a href="#kontakt" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></a>
+                    </template>
                 </div>
             </div>
         </nav>
@@ -200,7 +213,7 @@
         </section>
 
         <template x-if="content[lang].google_reviews?.place_query">
-            <section class="py-24 px-4 sm:px-6 bg-sattva-bg overflow-hidden">
+            <section id="opinie" class="py-24 px-4 sm:px-6 bg-sattva-bg overflow-hidden">
                 <div class="max-w-6xl mx-auto">
                     <div class="text-center mb-10 reveal">
                         <h2 class="text-3xl md:text-4xl font-serif text-sattva-text" x-text="content[lang].google_reviews?.title || 'Opinie z Google'"></h2>
@@ -374,10 +387,10 @@
             </div>
             
             <div class="max-w-5xl mx-auto border-t border-gray-700 pt-6 text-center text-sm text-gray-400 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
-                <template x-if="content[lang]?.legal?.privacy_policy">
+                <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.privacy_policy">
                     <a href="#" @click.prevent="openModal('privacy')" class="underline hover:text-sattva-brand transition-colors">Polityka Prywatności</a>
                 </template>
-                <template x-if="content[lang]?.legal?.terms">
+                <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.terms">
                     <a href="#" @click.prevent="openModal('terms')" class="underline hover:text-sattva-brand transition-colors">Regulamin</a>
                 </template>
                 <p>&copy; <span x-text="new Date().getFullYear()"></span> <span x-text="content[lang].hero.name"></span>. Wszelkie prawa zastrzeżone.</p>
@@ -397,13 +410,13 @@
          x-show="showBanner"
          x-transition.opacity.duration.500ms
          x-cloak
-         class="fixed bottom-0 left-0 right-0 z-50 bg-white shadow-2xl border-t border-gray-200">
+         class="fixed bottom-0 left-0 right-0 z-[9999] isolate relative bg-white shadow-2xl border-t border-gray-200">
         <div class="max-w-5xl mx-auto px-4 py-4 md:px-6 md:py-5">
             <div class="text-sm text-sattva-text mb-4">Ta strona korzysta z ciasteczek, aby zapewnić działanie podstawowych funkcji oraz (opcjonalnie) analityki i marketingu. Możesz wybrać, które kategorie akceptujesz.</div>
             <div class="flex flex-wrap items-center gap-3 mb-4" x-show="!showDetails">
-                <button @click="acceptAll()" class="px-4 py-2 bg-sattva-brand text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-colors">Akceptuję wszystkie</button>
-                <button @click="rejectAll()" class="px-4 py-2 bg-sattva-accent text-sattva-text text-sm font-medium rounded-lg hover:bg-sattva-accent/80 transition-colors">Tylko niezbędne</button>
-                <button @click="showDetails = true" class="px-4 py-2 border border-sattva-brand/40 text-sattva-text text-sm font-medium rounded-lg hover:bg-sattva-accent/50 transition-colors">Dostosuj</button>
+                <button @click.prevent="acceptAll()" class="px-4 py-2 bg-sattva-brand text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-colors">Akceptuję wszystkie</button>
+                <button @click.prevent="rejectAll()" class="px-4 py-2 bg-sattva-accent text-sattva-text text-sm font-medium rounded-lg hover:bg-sattva-accent/80 transition-colors">Tylko niezbędne</button>
+                <button @click.prevent="showDetails = true" class="px-4 py-2 border border-sattva-brand/40 text-sattva-text text-sm font-medium rounded-lg hover:bg-sattva-accent/50 transition-colors">Dostosuj</button>
             </div>
             <div x-show="showDetails" x-collapse class="space-y-4 pt-4 border-t border-sattva-accent">
                 <div class="flex items-center justify-between gap-4">
@@ -430,7 +443,7 @@
                         <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5"></span>
                     </label>
                 </div>
-                <button @click="acceptSelected()" class="px-4 py-2 bg-sattva-brand text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-colors">Zapisz ustawienia</button>
+                <button @click.prevent="acceptSelected()" class="px-4 py-2 bg-sattva-brand text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-colors">Zapisz ustawienia</button>
             </div>
         </div>
     </div>

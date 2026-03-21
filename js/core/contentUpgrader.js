@@ -61,7 +61,8 @@
 
     function ensureLegal(block) {
       if (!block || typeof block !== 'object' || Array.isArray(block)) return;
-      if (!block.legal) block.legal = { privacy_policy: '', terms: '' };
+      if (!block.legal) block.legal = { enabled: true, privacy_policy: '', terms: '' };
+      if (block.legal.enabled === undefined) block.legal.enabled = true;
       if (block.legal.privacy_policy === undefined) block.legal.privacy_policy = '';
       if (block.legal.terms === undefined) block.legal.terms = '';
     }

@@ -102,30 +102,40 @@
 
             <div class="flex flex-col md:flex-row gap-8">
                 <div class="md:w-1/4">
-                    <div class="bg-white rounded-sm border shadow-sm flex flex-col overflow-hidden sticky top-28">
-                        <button @click="activeTab = 'settings'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'settings', 'text-gray-600 hover:bg-gray-50': activeTab !== 'settings'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">Ustawienia Główne</button>
-                        <button @click="activeTab = 'hero'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'hero', 'text-gray-600 hover:bg-gray-50': activeTab !== 'hero'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">Sekcja Główna</button>
-                        <button @click="activeTab = 'services'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'services', 'text-gray-600 hover:bg-gray-50': activeTab !== 'services'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">Lista Usług</button>
-                        <button @click="activeTab = 'gallery'" x-show="theme === 'beauty'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'gallery', 'text-gray-600 hover:bg-gray-50': activeTab !== 'gallery'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider flex items-center gap-2">
+                    <div class="bg-white rounded-sm border shadow-sm flex flex-col overflow-hidden sticky top-28 py-2">
+                        <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-2 px-5">Treść Strony</div>
+                        <button @click="activeTab = 'settings'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'settings', 'text-gray-600 hover:bg-gray-50': activeTab !== 'settings'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">Szablon i Kolory</button>
+                        <button @click="activeTab = 'hero'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'hero', 'text-gray-600 hover:bg-gray-50': activeTab !== 'hero'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">Hero</button>
+                        <button @click="activeTab = 'services'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'services', 'text-gray-600 hover:bg-gray-50': activeTab !== 'services'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">Usługi</button>
+                        <button @click="activeTab = 'gallery'" x-show="theme === 'beauty'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'gallery', 'text-gray-600 hover:bg-gray-50': activeTab !== 'gallery'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider flex items-center gap-2">
                             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             Galeria
                         </button>
-                        <button @click="activeTab = 'contact'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'contact', 'text-gray-600 hover:bg-gray-50': activeTab !== 'contact'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">Kontakt i Info</button>
-                        <button @click="activeTab = 'faq'" x-show="theme === 'consultant' || theme === 'beauty'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'faq', 'text-gray-600 hover:bg-gray-50': activeTab !== 'faq'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">FAQ / Akordeony</button>
-                        <button @click="activeTab = 'reviews'" x-show="theme === 'consultant'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'reviews', 'text-gray-600 hover:bg-gray-50': activeTab !== 'reviews'}" class="px-5 py-4 text-left border-b border-gray-100 transition-colors text-sm uppercase tracking-wider">Opinie Klientów</button>
-                        <button @click="activeTab = 'subscription'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'subscription', 'text-gray-600 hover:bg-gray-50': activeTab !== 'subscription'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">Subskrypcja</button>
-                        <button @click="activeTab = 'legal'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'legal', 'text-gray-600 hover:bg-gray-50': activeTab !== 'legal'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider flex items-center gap-2">
+                        <button @click="activeTab = 'contact'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'contact', 'text-gray-600 hover:bg-gray-50': activeTab !== 'contact'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">Kontakt</button>
+                        <button @click="activeTab = 'faq'" x-show="theme === 'consultant' || theme === 'beauty'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'faq', 'text-gray-600 hover:bg-gray-50': activeTab !== 'faq'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">FAQ</button>
+
+                        <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6 px-5">Narzędzia & Rozwój</div>
+                        <button @click="activeTab = 'google_reviews'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'google_reviews', 'text-gray-600 hover:bg-gray-50': activeTab !== 'google_reviews'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">Opinie Google</button>
+                        <button @click="activeTab = 'reviews'" x-show="theme === 'consultant'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'reviews', 'text-gray-600 hover:bg-gray-50': activeTab !== 'reviews'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">Opinie Klientów</button>
+                        <button @click="activeTab = 'leady'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'leady', 'text-gray-600 hover:bg-gray-50': activeTab !== 'leady'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">Wiadomości (Leady)</button>
+
+                        <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6 px-5">Ustawienia</div>
+                        <button @click="activeTab = 'seo'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'seo', 'text-gray-600 hover:bg-gray-50': activeTab !== 'seo'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">SEO i Social Media</button>
+                        <button @click="activeTab = 'legal'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'legal', 'text-gray-600 hover:bg-gray-50': activeTab !== 'legal'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider flex items-center gap-2">
                             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                             Prawne / RODO
                         </button>
-                        <button @click="activeTab = 'seo'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'seo', 'text-gray-600 hover:bg-gray-50': activeTab !== 'seo'}" class="px-5 py-4 text-left border-t border-gray-200 transition-colors text-sm uppercase tracking-wider">Ustawienia SEO</button>
+                        <button @click="activeTab = 'subscription'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'subscription', 'text-gray-600 hover:bg-gray-50': activeTab !== 'subscription'}" class="px-5 py-3 text-left border-t border-gray-100 mt-2 transition-colors text-sm uppercase tracking-wider">Subskrypcja</button>
                     </div>
                 </div>
 
                 <div class="md:w-3/4 bg-white rounded-sm border shadow-sm p-8">
                     
                     <div x-show="activeTab === 'settings'" x-transition.opacity>
-                        <h2 class="text-2xl font-serif text-gray-900 mb-8 border-b pb-4">Wygląd i Nawigacja</h2>
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
+                            <h2 class="text-2xl font-serif text-gray-900 mb-2">Szablon i Kolory</h2>
+                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl">Logo, menu, paleta kolorów, tło i typografia. Ustaw widoczność sekcji na stronie.</p>
+                        </div>
         
                         <div class="space-y-6">
                             <div>
@@ -329,7 +339,20 @@
                     </div>
                     
                     <div x-show="activeTab === 'hero'" x-transition.opacity x-cloak>
-                        <h2 class="text-2xl font-serif text-gray-900 mb-8 border-b pb-4">Edycja Sekcji Głównej</h2>
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
+                            <h2 class="text-2xl font-serif text-gray-900 mb-2">Hero</h2>
+                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl mb-6">Główna sekcja strony — nagłówek, zdjęcie, opis. Poniżej edycja sekcji O nas (Manifesto).</p>
+                            <div x-show="theme === 'consultant' || theme === 'beauty'" class="flex items-center gap-4 pt-4 border-t border-gray-100">
+                                <label class="flex items-center gap-3 cursor-pointer">
+                                    <div class="relative">
+                                        <input type="checkbox" x-model="content.pl.settings.showManifesto" class="sr-only peer">
+                                        <div class="w-11 h-6 rounded-full transition-colors peer-checked:bg-emerald-500 bg-gray-200"></div>
+                                        <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5 pointer-events-none"></div>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-900">Włącz sekcję O nas / Manifesto</span>
+                                </label>
+                            </div>
+                        </div>
                         <div class="space-y-6">
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Przedrostek / Mały tekst nad tytułem</label>
@@ -419,7 +442,18 @@
                     </div>
 
                     <div x-show="activeTab === 'services'" x-transition.opacity x-cloak>
-                        <h2 class="text-2xl font-serif text-gray-900 mb-8 border-b pb-4">Zarządzanie Usługami</h2>
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
+                            <h2 class="text-2xl font-serif text-gray-900 mb-2">Usługi</h2>
+                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl mb-6">Lista usług, cennik i opisy. Sekcja widoczna na stronie gdy włączona.</p>
+                            <label class="flex items-center gap-4 cursor-pointer">
+                                <div class="relative">
+                                    <input type="checkbox" x-model="content.pl.settings.showServices" class="sr-only peer">
+                                    <div class="w-11 h-6 rounded-full transition-colors peer-checked:bg-emerald-500 bg-gray-200"></div>
+                                    <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5 pointer-events-none"></div>
+                                </div>
+                                <span class="text-sm font-medium text-gray-900">Włącz sekcję Usługi</span>
+                            </label>
+                        </div>
                         <div class="space-y-6">
                             <template x-for="(service, index) in content.pl.services" :key="index">
                                 <div class="bg-gray-50 p-6 rounded-sm border relative group mb-4">
@@ -458,7 +492,10 @@
                     </div>
 
                     <div x-show="activeTab === 'gallery'" x-transition.opacity x-cloak>
-                        <h2 class="text-2xl font-serif text-gray-900 mb-8 border-b pb-4">Galeria Zdjęć</h2>
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
+                            <h2 class="text-2xl font-serif text-gray-900 mb-2">Galeria</h2>
+                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl">Zdjęcia portfolio wyświetlane na stronie. Sekcja pojawia się automatycznie, gdy dodasz zdjęcia.</p>
+                        </div>
                         <div class="space-y-6">
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tytuł sekcji galerii</label>
@@ -487,7 +524,18 @@
                     </div>
 
                     <div x-show="activeTab === 'contact'" x-transition.opacity x-cloak>
-                        <h2 class="text-2xl font-serif text-gray-900 mb-8 border-b pb-4">Kontakt i Informacje</h2>
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
+                            <h2 class="text-2xl font-serif text-gray-900 mb-2">Kontakt</h2>
+                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl mb-6">Dane kontaktowe, mapa i linki rezerwacyjne. Social media znajdziesz w zakładce SEO i Social Media.</p>
+                            <label class="flex items-center gap-4 cursor-pointer">
+                                <div class="relative">
+                                    <input type="checkbox" x-model="content.pl.settings.showContact" class="sr-only peer">
+                                    <div class="w-11 h-6 rounded-full transition-colors peer-checked:bg-emerald-500 bg-gray-200"></div>
+                                    <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5 pointer-events-none"></div>
+                                </div>
+                                <span class="text-sm font-medium text-gray-900">Włącz sekcję Kontakt</span>
+                            </label>
+                        </div>
                         <div class="space-y-6">
                             <template x-if="content.pl.contact">
                                 <div>
@@ -517,70 +565,24 @@
                                         <input type="url" x-model="content.pl.contact.booksyUrl" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://booksy.com/...">
                                     </div>
 
-                                    <div class="pt-6 border-t border-gray-100" x-show="theme === 'beauty'">
-                                        <h3 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-widest">Social Media</h3>
-                                        <div class="space-y-4">
-                                            <div>
-                                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Facebook URL</label>
-                                                <input type="url" x-model="content.pl.social.facebook" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://facebook.com/...">
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Instagram URL</label>
-                                                <input type="url" x-model="content.pl.social.instagram" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://instagram.com/...">
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">TikTok URL</label>
-                                                <input type="url" x-model="content.pl.social.tiktok" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://tiktok.com/@...">
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="pt-6 border-t border-gray-100" x-show="theme === 'consultant'">
-                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">LinkedIn URL</label>
-                                        <input type="url" x-model="content.pl.social.linkedin" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://linkedin.com/...">
-                                    </div>
-                                    <div class="pt-6 border-t border-gray-100" x-show="theme === 'consultant'">
-                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Facebook URL</label>
-                                        <input type="url" x-model="content.pl.social.facebook" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://facebook.com/...">
-                                    </div>
-                                    <div class="pt-6 border-t border-gray-100" x-show="theme === 'consultant'">
-                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Instagram URL</label>
-                                        <input type="url" x-model="content.pl.social.instagram" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://instagram.com/...">
-                                    </div>
-                                    <div class="pt-6 border-t border-gray-100" x-show="theme === 'consultant'">
-                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">TikTok URL</label>
-                                        <input type="url" x-model="content.pl.social.tiktok" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://tiktok.com/@...">
-                                    </div>
-
-                                    <div class="pt-6 border-t border-gray-100">
-                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Google Reviews - tytuł sekcji</label>
-                                        <input type="text" x-model="content.pl.google_reviews.title" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
-                                    </div>
-                                    <div class="pt-6 border-t border-gray-100">
-                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Google Reviews - place query</label>
-                                        <input type="text" x-model="content.pl.google_reviews.place_query" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="np. Sattva Gabinet Terapii Naturalnych, Wrocław">
-                                        <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">
-                                            Ta wartość trafi do Edge Function i zwróci same opinie (bez mapy). Zalecane.
-                                        </p>
-                                    </div>
-                                    <div class="pt-6 border-t border-gray-100">
-                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Google Reviews - max liczba</label>
-                                        <input type="number" min="1" max="20" x-model.number="content.pl.google_reviews.max_reviews" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
-                                    </div>
-                                    <div class="pt-6 border-t border-gray-100">
-                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Google Reviews - embed URL (opcjonalnie)</label>
-                                        <input type="url" x-model="content.pl.google_reviews.embed_url" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="opcjonalnie: widget pokazujący tylko opinie (bez mapy)">
-                                        <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">
-                                            Jeśli użyjesz place query powyżej, embed_url nie jest potrzebny.
-                                        </p>
-                                    </div>
                                 </div>
                             </template>
                         </div>
                     </div>
 
                     <div x-show="activeTab === 'faq'" x-transition.opacity x-cloak>
-                        <h2 class="text-2xl font-serif text-gray-900 mb-8 border-b pb-4">FAQ / Akordeony</h2>
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
+                            <h2 class="text-2xl font-serif text-gray-900 mb-2">FAQ</h2>
+                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl mb-6">Pytania i odpowiedzi w formie rozwijanych akordeonów.</p>
+                            <label class="flex items-center gap-4 cursor-pointer">
+                                <div class="relative">
+                                    <input type="checkbox" x-model="content.pl.settings.showFaq" class="sr-only peer">
+                                    <div class="w-11 h-6 rounded-full transition-colors peer-checked:bg-emerald-500 bg-gray-200"></div>
+                                    <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5 pointer-events-none"></div>
+                                </div>
+                                <span class="text-sm font-medium text-gray-900">Włącz sekcję FAQ</span>
+                            </label>
+                        </div>
                         <div class="space-y-6">
                             <template x-for="(item, index) in content.pl.faq" :key="index">
                                 <div class="bg-gray-50 p-6 rounded-sm border relative group mb-4">
@@ -602,7 +604,18 @@
                     </div>
 
                     <div x-show="activeTab === 'reviews'" x-transition.opacity x-cloak>
-                        <h2 class="text-2xl font-serif text-gray-900 mb-8 border-b pb-4">Opinie Klientów</h2>
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
+                            <h2 class="text-2xl font-serif text-gray-900 mb-2">Opinie Klientów</h2>
+                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl mb-6">Własne opinie z logo klientów (szablon Consultant).</p>
+                            <label class="flex items-center gap-4 cursor-pointer">
+                                <div class="relative">
+                                    <input type="checkbox" x-model="content.pl.settings.showReviews" class="sr-only peer">
+                                    <div class="w-11 h-6 rounded-full transition-colors peer-checked:bg-emerald-500 bg-gray-200"></div>
+                                    <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5 pointer-events-none"></div>
+                                </div>
+                                <span class="text-sm font-medium text-gray-900">Włącz sekcję Opinie</span>
+                            </label>
+                        </div>
                         <div class="space-y-6">
                             <template x-for="(review, index) in content.pl.reviews" :key="index">
                                 <div class="bg-gray-50 p-6 rounded-sm border relative group mb-4">
@@ -642,24 +655,77 @@
                         </div>
                     </div>
 
-                    <div x-show="activeTab === 'legal'" x-transition.opacity x-cloak>
-                        <h2 class="text-2xl font-serif text-gray-900 mb-8 border-b pb-4">Prawne / RODO</h2>
-                        <div class="space-y-8">
-                            <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Polityka Prywatności</label>
-                                <textarea x-model="content.pl.legal.privacy_policy" rows="12" class="w-full border border-gray-300 rounded-sm px-4 py-3 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white resize-y font-mono"></textarea>
-                                <p class="text-xs text-gray-500 mt-2 leading-relaxed">Wklej tutaj treść swojej Polityki Prywatności. Pojawi się ona jako link w stopce Twojej strony. Możesz używać tagów HTML.</p>
+                    <div x-show="activeTab === 'google_reviews'" x-transition.opacity x-cloak>
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
+                            <h2 class="text-2xl font-serif text-gray-900 mb-2">Opinie Google</h2>
+                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl">Skonfiguruj integrację z Google Places API. Opinie będą wyświetlane na stronie (szablony Beauty i Consultant).</p>
+                        </div>
+                        <div class="space-y-6">
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tytuł sekcji</label>
+                                <input type="text" x-model="content.pl.google_reviews.title" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed">Np. „Opinie z Google” — nagłówek nad blokiem opinii.</p>
                             </div>
-                            <div>
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Place query (nazwa + miasto)</label>
+                                <input type="text" x-model="content.pl.google_reviews.place_query" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="np. Sattva Gabinet Terapii Naturalnych, Wrocław">
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed">Ta wartość trafi do Edge Function i zwróci opinie. Zalecane.</p>
+                            </div>
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Maks. liczba opinii</label>
+                                <input type="number" min="1" max="20" x-model.number="content.pl.google_reviews.max_reviews" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
+                            </div>
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Embed URL (opcjonalnie)</label>
+                                <input type="url" x-model="content.pl.google_reviews.embed_url" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="Widget z osadzonymi opiniami">
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed">Jeśli używasz place query, embed_url nie jest potrzebny.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div x-show="activeTab === 'leady'" x-transition.opacity x-cloak>
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+                            <h2 class="text-2xl font-serif text-gray-900 mb-2">Wiadomości (Leady)</h2>
+                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl mb-6">Zarządzaj zapytaniami z formularza kontaktowego. Ta funkcja będzie dostępna w przyszłej wersji.</p>
+                            <div class="py-12 text-center text-gray-400 border-2 border-dashed border-gray-200 rounded-lg">
+                                <span class="text-4xl block mb-2">📬</span>
+                                <span class="text-sm font-medium uppercase tracking-wider">Wkrótce</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div x-show="activeTab === 'legal'" x-transition.opacity x-cloak>
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
+                            <h2 class="text-2xl font-serif text-gray-900 mb-2">Prawne / RODO</h2>
+                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl mb-6">Dokumenty prawne wyświetlane jako modal po kliknięciu w linki w stopce strony.</p>
+                            <label class="flex items-center gap-4 cursor-pointer">
+                                <div class="relative shrink-0">
+                                    <input type="checkbox" id="legal-enabled" x-model="content.pl.legal.enabled" class="sr-only peer">
+                                    <div class="w-12 h-7 bg-gray-200 rounded-full peer-focus:outline-none transition-colors peer-checked:bg-emerald-500"></div>
+                                    <div class="absolute left-0.5 top-0.5 w-6 h-6 bg-white rounded-full shadow border border-gray-200 transition-transform peer-checked:translate-x-5"></div>
+                                </div>
+                                <span class="text-base font-semibold text-gray-900">Włącz sekcję dokumentów prawnych w stopce</span>
+                            </label>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Polityka Prywatności</label>
+                                <textarea x-model="content.pl.legal.privacy_policy" rows="16" class="w-full border border-gray-300 rounded-sm px-4 py-3 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white resize-y font-mono"></textarea>
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed">Treść polityki prywatności. Możesz używać tagów HTML.</p>
+                            </div>
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Regulamin</label>
-                                <textarea x-model="content.pl.legal.terms" rows="12" class="w-full border border-gray-300 rounded-sm px-4 py-3 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white resize-y font-mono"></textarea>
-                                <p class="text-xs text-gray-500 mt-2 leading-relaxed">Wklej tutaj treść swojego Regulaminu. Pojawi się ona jako link w stopce Twojej strony. Możesz używać tagów HTML.</p>
+                                <textarea x-model="content.pl.legal.terms" rows="16" class="w-full border border-gray-300 rounded-sm px-4 py-3 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white resize-y font-mono"></textarea>
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed">Treść regulaminu. Możesz używać tagów HTML.</p>
                             </div>
                         </div>
                     </div>
 
                     <div x-show="activeTab === 'subscription'" x-transition.opacity x-cloak>
-                        <h2 class="text-2xl font-serif text-gray-900 mb-8 border-b pb-4">Subskrypcja</h2>
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
+                            <h2 class="text-2xl font-serif text-gray-900 mb-2">Subskrypcja</h2>
+                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl">Wybierz plan i aktywuj usługę, aby utrzymać stronę online.</p>
+                        </div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="border border-gray-200 rounded-sm p-6 bg-gray-50">
                                 <h3 class="font-bold text-gray-900 text-lg mb-1">Tier 0 (Starter)</h3>
@@ -694,29 +760,27 @@
                     </div>
 
                     <div x-show="activeTab === 'seo'" x-transition.opacity x-cloak>
-                        <div class="rounded-sm border border-gray-200 bg-gradient-to-br from-amber-50/40 via-white to-gray-50/80 p-1 mb-8">
-                            <div class="bg-white/90 backdrop-blur-sm rounded-sm px-6 py-5 border border-gray-100">
-                                <h2 class="text-2xl font-serif text-gray-900 border-b border-gray-100 pb-4 mb-1">Widoczność w Google i sieciach społecznościowych</h2>
-                                <p class="text-sm text-gray-600 leading-relaxed mt-3 max-w-3xl">Ustaw tytuł i opis strony oraz grafikę udostępnień. Te dane trafiają do znaczników meta na publicznej stronie (po wdrożeniu w szablonie).</p>
-                            </div>
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
+                            <h2 class="text-2xl font-serif text-gray-900 mb-2">SEO i Social Media</h2>
+                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl">Meta tytuł, opis, grafika udostępnień oraz linki do profili social media.</p>
                         </div>
 
-                        <div class="space-y-8 max-w-3xl">
-                            <div class="bg-gray-50/80 rounded-sm border border-gray-100 p-6">
+                        <div class="space-y-6">
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Meta Title</label>
                                 <input type="text" x-model="content.pl.seo.title" maxlength="120"
                                        class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white">
                                 <p class="text-xs text-gray-500 mt-2 leading-relaxed">Tytuł wyświetlany w Google i na karcie przeglądarki. Zalecane max 60 znaków.</p>
                             </div>
 
-                            <div class="bg-gray-50/80 rounded-sm border border-gray-100 p-6">
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Meta Description</label>
                                 <textarea x-model="content.pl.seo.description" rows="3" maxlength="320"
                                           class="w-full border border-gray-300 rounded-sm px-4 py-3 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white resize-y min-h-[5rem]"></textarea>
                                 <p class="text-xs text-gray-500 mt-2 leading-relaxed">Krótki opis Twojej strony zachęcający do kliknięcia. Zalecane max 160 znaków.</p>
                             </div>
 
-                            <div class="bg-gray-50/80 rounded-sm border border-gray-100 p-6">
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Obrazek Social Media (Open Graph)</label>
                                 <p class="text-xs text-gray-500 mb-4 leading-relaxed">Ten obrazek wyświetli się, gdy ktoś udostępni link do Twojej strony na Facebooku, LinkedIn lub w wiadomości.</p>
                                 <div class="flex flex-col sm:flex-row items-start gap-6">
@@ -739,6 +803,29 @@
                                                class="text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-sm file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-widest file:bg-[#121212] file:text-[#D4AF37] hover:file:bg-gray-800 cursor-pointer transition-colors w-full">
                                         <p class="text-xs text-gray-500 mt-3 leading-relaxed">Zalecany format 1200×630 px lub zbliżony (JPG/PNG). Po wgraniu kliknij <strong>Publikuj Zmiany</strong>.</p>
                                         <p x-show="uploadingImage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse">Wysyłanie na serwer...</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6" x-show="theme === 'consultant' || theme === 'beauty'">
+                                <h3 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-widest">Social Media</h3>
+                                <p class="text-xs text-gray-500 mb-4 leading-relaxed">Linki do profili — ikony pojawią się w sekcji kontaktowej na stronie.</p>
+                                <div class="space-y-4">
+                                    <div x-show="theme === 'consultant'">
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">LinkedIn URL</label>
+                                        <input type="url" x-model="content.pl.social.linkedin" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://linkedin.com/...">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Facebook URL</label>
+                                        <input type="url" x-model="content.pl.social.facebook" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://facebook.com/...">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Instagram URL</label>
+                                        <input type="url" x-model="content.pl.social.instagram" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://instagram.com/...">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">TikTok URL</label>
+                                        <input type="url" x-model="content.pl.social.tiktok" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://tiktok.com/@...">
                                     </div>
                                 </div>
                             </div>
