@@ -1,10 +1,4 @@
 ;(function () {
-  /**
-   * Współdzielony komponent Alpine.js do obsługi Opinii Google.
-   * Dziecko dziedziczy content i lang z parenta (createPublicSiteApp).
-   * Obserwuje asynchroniczne ładowanie content – ładowanie opinii startuje dopiero
-   * gdy content jest dostępny i zawiera place_query.
-   */
   function googleReviews() {
     return {
       loading: true,
@@ -18,14 +12,14 @@
 
       init() {
         const tryLoad = () => {
-          // Alpine.js automatycznie dziedziczy dane z rodzica (x-data publicSiteApp),
-          // więc używamy this.content zamiast this.$root.content
-          const c = this.content || this.$root?.content;
-          const l = this.lang || this.$root?.lang || 'pl';
+          // Alpine.js automatycznie dziedziczy zmienne z publicSiteApp.
+          // Używamy bezpośrednio this.content i this.lang!
+          const c = this.content;
+          const l = this.lang || 'pl';
 
-          if (!c) return;
+          if (!c) return; // Jeśli dane z bazy jeszcze nie zeszły - czekamy
 
-          // Szukamy w settings (nowy standard) lub bezpośrednio w języku (stary standard)
+          // Pobieramy konfigurację niezależnie od tego, czy jest w 'settings' czy bezpośrednio
           const gr = c[l]?.settings?.google_reviews || c[l]?.google_reviews;
           const query = gr?.place_query?.trim();
 
@@ -37,15 +31,13 @@
           }
         };
 
-        // 1. Sprawdź przy starcie
+        // 1. Sprawdzamy przy starcie
         tryLoad();
 
-        // 2. Obserwuj content rodzica (getter śledzi $root.content – działa gdy dane z Supabase przychodzą async)
-        this.$watch(
-          () => this.content || this.$root?.content,
-          () => tryLoad(),
-          { deep: true }
-        );
+        // 2. Obserwujemy zmiany w obiekcie content (poprawna składnia Alpine.js)
+        this.$watch('content', () => {
+          tryLoad();
+        });
       },
 
       avgFromReviews() {
@@ -107,8 +99,8 @@
       },
 
       async loadReviews() {
-        const c = this.content || this.$root?.content;
-        const l = this.lang || this.$root?.lang || 'pl';
+        const c = this.content;
+        const l = this.lang || 'pl';
         const gr = c?.[l]?.settings?.google_reviews || c?.[l]?.google_reviews;
         const query = gr?.place_query?.trim();
         const maxReviews = gr?.max_reviews ?? 8;
@@ -127,6 +119,7 @@
           const t = window.DFOPS_CONFIG?.timeouts || {};
           const apiTimeout = t.apiTimeout ?? 25000;
           const abortTimeout = t.abortTimeout ?? 12000;
+
           failSafeId = setTimeout(() => {
             this.loading = false;
             this.error = 'Timeout pobierania opinii.';
