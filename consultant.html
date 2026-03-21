@@ -43,6 +43,7 @@
     <script defer src="js/core/pageRepository.js"></script>
     <script defer src="js/features/publicSiteApp.js"></script>
     <script defer src="js/features/googleReviewsApp.js"></script>
+    <script defer src="js/features/cookieConsentApp.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     
     <script src="js/ui/reveal.js" defer></script>
@@ -535,27 +536,46 @@
     </div>
     </template>
 
-    <div x-data="{ show: !localStorage.getItem('cookieAccepted') }"
-         x-show="show"
+    <div x-data="cookieConsent"
+         x-show="showBanner"
          x-transition.opacity.duration.500ms
          x-cloak
-         class="fixed bottom-4 left-4 right-4 z-[9999]">
-        <div class="max-w-5xl mx-auto bg-sattva-accent/95 backdrop-blur-md border border-sattva-text/20 shadow-2xl rounded-sm p-4 md:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div class="text-sm text-sattva-text">
-                <div class="text-xs uppercase tracking-[0.2em] text-sattva-brand font-bold mb-1">Cookies</div>
-                <div x-text="content && content[lang].cookies.text"></div>
-                <template x-if="content && content[lang].footer?.privacy">
-                    <a class="text-xs text-sattva-text/70 hover:text-sattva-brand transition-colors underline underline-offset-4"
-                       href="#"
-                       @click.prevent="alert('Dodaj link do polityki prywatności w footer.privacy (URL)')"
-                       x-text="content[lang].footer.privacy"></a>
-                </template>
+         class="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 shadow-2xl border-t border-gray-200 dark:border-gray-700">
+        <div class="max-w-5xl mx-auto px-4 py-4 md:px-6 md:py-5">
+            <div class="text-sm text-gray-700 dark:text-gray-300 mb-4">
+                Ta strona korzysta z ciasteczek, aby zapewnić działanie podstawowych funkcji oraz (opcjonalnie) analityki i marketingu. Możesz wybrać, które kategorie akceptujesz.
             </div>
-            <div class="flex items-center gap-3 justify-end">
-                <button @click="show = false; localStorage.setItem('cookieAccepted', 'true')"
-                        class="px-4 py-2 bg-sattva-brand text-sattva-white text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-colors border border-sattva-brand">
-                    <span x-text="content && content[lang].cookies.accept"></span>
-                </button>
+            <div class="flex flex-wrap items-center gap-3 mb-4" x-show="!showDetails">
+                <button @click="acceptAll()" class="px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors">Akceptuję wszystkie</button>
+                <button @click="rejectAll()" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">Tylko niezbędne</button>
+                <button @click="showDetails = true" class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Dostosuj</button>
+            </div>
+            <div x-show="showDetails" x-collapse class="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between gap-4">
+                    <span class="text-sm font-medium text-gray-800 dark:text-gray-200">Niezbędne</span>
+                    <label class="relative inline-flex cursor-not-allowed opacity-75">
+                        <input type="checkbox" checked disabled class="sr-only peer">
+                        <span class="w-11 h-6 bg-emerald-600 rounded-full peer-checked:bg-emerald-600"></span>
+                        <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></span>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                    <span class="text-sm font-medium text-gray-800 dark:text-gray-200">Analityczne</span>
+                    <label class="relative inline-flex cursor-pointer">
+                        <input type="checkbox" x-model="consents.analytics" class="sr-only peer">
+                        <span class="w-11 h-6 bg-gray-200 dark:bg-gray-700 rounded-full peer-checked:bg-emerald-600 transition-colors"></span>
+                        <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5"></span>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                    <span class="text-sm font-medium text-gray-800 dark:text-gray-200">Marketingowe</span>
+                    <label class="relative inline-flex cursor-pointer">
+                        <input type="checkbox" x-model="consents.marketing" class="sr-only peer">
+                        <span class="w-11 h-6 bg-gray-200 dark:bg-gray-700 rounded-full peer-checked:bg-emerald-600 transition-colors"></span>
+                        <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5"></span>
+                    </label>
+                </div>
+                <button @click="acceptSelected()" class="px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors">Zapisz ustawienia</button>
             </div>
         </div>
     </div>
