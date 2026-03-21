@@ -114,6 +114,10 @@
                         <button @click="activeTab = 'faq'" x-show="theme === 'consultant' || theme === 'beauty'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'faq', 'text-gray-600 hover:bg-gray-50': activeTab !== 'faq'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">FAQ / Akordeony</button>
                         <button @click="activeTab = 'reviews'" x-show="theme === 'consultant'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'reviews', 'text-gray-600 hover:bg-gray-50': activeTab !== 'reviews'}" class="px-5 py-4 text-left border-b border-gray-100 transition-colors text-sm uppercase tracking-wider">Opinie Klientów</button>
                         <button @click="activeTab = 'subscription'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'subscription', 'text-gray-600 hover:bg-gray-50': activeTab !== 'subscription'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider">Subskrypcja</button>
+                        <button @click="activeTab = 'legal'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'legal', 'text-gray-600 hover:bg-gray-50': activeTab !== 'legal'}" class="px-5 py-4 text-left border-b transition-colors text-sm uppercase tracking-wider flex items-center gap-2">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                            Prawne / RODO
+                        </button>
                         <button @click="activeTab = 'seo'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'seo', 'text-gray-600 hover:bg-gray-50': activeTab !== 'seo'}" class="px-5 py-4 text-left border-t border-gray-200 transition-colors text-sm uppercase tracking-wider">Ustawienia SEO</button>
                     </div>
                 </div>
@@ -635,6 +639,22 @@
                             <button @click="content.pl.reviews.push({author: 'Imię Nazwisko', content: 'Treść opinii...', logoImage: ''})" class="w-full border-2 border-dashed border-gray-300 text-gray-500 font-bold uppercase tracking-widest py-4 rounded-sm hover:bg-[#D4AF37] hover:text-white transition-all">
                                 + Dodaj opinię
                             </button>
+                        </div>
+                    </div>
+
+                    <div x-show="activeTab === 'legal'" x-transition.opacity x-cloak>
+                        <h2 class="text-2xl font-serif text-gray-900 mb-8 border-b pb-4">Prawne / RODO</h2>
+                        <div class="space-y-8">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Polityka Prywatności</label>
+                                <textarea x-model="content.pl.legal.privacy_policy" rows="12" class="w-full border border-gray-300 rounded-sm px-4 py-3 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white resize-y font-mono"></textarea>
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed">Wklej tutaj treść swojej Polityki Prywatności. Pojawi się ona jako link w stopce Twojej strony. Możesz używać tagów HTML.</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Regulamin</label>
+                                <textarea x-model="content.pl.legal.terms" rows="12" class="w-full border border-gray-300 rounded-sm px-4 py-3 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white resize-y font-mono"></textarea>
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed">Wklej tutaj treść swojego Regulaminu. Pojawi się ona jako link w stopce Twojej strony. Możesz używać tagów HTML.</p>
+                            </div>
                         </div>
                     </div>
 

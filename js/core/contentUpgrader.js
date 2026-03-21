@@ -59,8 +59,16 @@
       }
     }
 
+    function ensureLegal(block) {
+      if (!block || typeof block !== 'object' || Array.isArray(block)) return;
+      if (!block.legal) block.legal = { privacy_policy: '', terms: '' };
+      if (block.legal.privacy_policy === undefined) block.legal.privacy_policy = '';
+      if (block.legal.terms === undefined) block.legal.terms = '';
+    }
+
     for (const _lang of Object.keys(merged)) {
       ensureSeo(merged[_lang]);
+      ensureLegal(merged[_lang]);
     }
 
     return merged;

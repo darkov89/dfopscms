@@ -118,6 +118,13 @@
       bazaBlad: false,
       theme: expectedTheme,
       slug: null,
+      activeModal: null,
+      openModal(type) {
+        this.activeModal = type;
+      },
+      closeModal() {
+        this.activeModal = null;
+      },
       async init() {
         try {
           const url = new URL(window.location.href);
