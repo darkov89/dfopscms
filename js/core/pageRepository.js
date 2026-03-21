@@ -3,6 +3,52 @@
     return window.DFOPS_getSupabaseClient();
   }
 
+  /**
+   * Sanityzuje HTML, usuwając tagi i atrybuty niebezpieczne dla XSS.
+   * Używa DOMParser (bez zewnętrznych bibliotek).
+   */
+  function sanitizeHtml(htmlString) {
+    if (typeof htmlString !== 'string') return htmlString;
+    try {
+      const doc = new DOMParser().parseFromString(htmlString, 'text/html');
+      const removeTags = ['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'FORM'];
+      const walk = (node) => {
+        if (!node || !node.nodeType) return;
+        if (node.nodeType === 1) {
+          const tag = (node.tagName || '').toUpperCase();
+          if (removeTags.includes(tag)) {
+            node.parentNode?.removeChild(node);
+            return;
+          }
+          const attrs = Array.from(node.attributes || []);
+          attrs.forEach((a) => {
+            if (/^on/i.test(a.name)) node.removeAttribute(a.name);
+          });
+        }
+        const children = Array.from(node.childNodes || []);
+        children.forEach((c) => walk(c));
+      };
+      walk(doc.body);
+      return doc.body ? doc.body.innerHTML : '';
+    } catch {
+      return htmlString;
+    }
+  }
+
+  function sanitizeContent(obj) {
+    if (obj == null) return obj;
+    if (typeof obj === 'string') return sanitizeHtml(obj);
+    if (Array.isArray(obj)) return obj.map((x) => sanitizeContent(x));
+    if (typeof obj === 'object') {
+      const out = {};
+      for (const k of Object.keys(obj)) {
+        out[k] = sanitizeContent(obj[k]);
+      }
+      return out;
+    }
+    return obj;
+  }
+
   async function getPageBySlug(slug) {
     const { data, error } = await supabase()
       .from('pages')
@@ -37,9 +83,11 @@
   }
 
   async function saveCurrentUserPage(userId, payload) {
+    const safe = { ...payload };
+    if (safe.content) safe.content = sanitizeContent(safe.content);
     const { data, error } = await supabase()
       .from('pages')
-      .update(payload)
+      .update(safe)
       .eq('user_id', userId)
       .select()
       .maybeSingle();
@@ -47,7 +95,9 @@
   }
 
   async function createPage(payload) {
-    const { data, error } = await supabase().from('pages').insert(payload).select().maybeSingle();
+    const safe = { ...payload };
+    if (safe.content) safe.content = sanitizeContent(safe.content);
+    const { data, error } = await supabase().from('pages').insert(safe).select().maybeSingle();
     return { data, error };
   }
 
@@ -58,6 +108,7 @@
     getCurrentUserPage,
     saveCurrentUserPage,
     createPage,
+    sanitizeHtml,
   };
 })();
 

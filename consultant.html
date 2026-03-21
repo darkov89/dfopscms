@@ -42,6 +42,7 @@
     <script defer src="js/core/themeStyling.js"></script>
     <script defer src="js/core/pageRepository.js"></script>
     <script defer src="js/features/publicSiteApp.js"></script>
+    <script defer src="js/features/googleReviewsApp.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     
     <script src="js/ui/reveal.js" defer></script>
@@ -267,90 +268,7 @@
                     </div>
 
                     <div
-                        x-data="{
-                            loading: true,
-                            reviews: [],
-                            error: '',
-                            slide: 0,
-                            placeId: '',
-                            placeRating: null,
-                            userRatingCount: null,
-                            avgFromReviews() {
-                                if (!this.reviews.length) return null;
-                                const sum = this.reviews.reduce((a, r) => a + (Number(r.rating) || 0), 0);
-                                return Math.round((sum / this.reviews.length) * 10) / 10;
-                            },
-                            headerRating() {
-                                const pr = this.placeRating != null && !Number.isNaN(Number(this.placeRating)) ? Number(this.placeRating) : null;
-                                return pr != null ? pr : this.avgFromReviews();
-                            },
-                            displayCount() {
-                                if (this.userRatingCount != null && this.userRatingCount > 0) return this.userRatingCount;
-                                return this.reviews.length;
-                            },
-                            writeReviewUrl() {
-                                if (!this.placeId) return 'https://www.google.com/maps';
-                                return 'https://search.google.com/local/writereview?placeid=' + encodeURIComponent(this.placeId);
-                            },
-                            formatRel(iso, L) {
-                                if (!iso) return '';
-                                const d = new Date(iso);
-                                if (Number.isNaN(d.getTime())) return '';
-                                const pl = L !== 'en';
-                                const msPerDay = (window.DFOPS_CONFIG?.timeouts?.msPerDay ?? 86400000);
-                                const days = Math.floor((Date.now() - d.getTime()) / msPerDay);
-                                if (days <= 0) return pl ? 'Dzisiaj' : 'Today';
-                                if (days === 1) return pl ? 'Wczoraj' : 'Yesterday';
-                                if (days < 7) return pl ? (days + ' dni temu') : (days + ' days ago');
-                                return d.toLocaleDateString(pl ? 'pl-PL' : 'en-US', { day: 'numeric', month: 'short' });
-                            },
-                            prevSlide() { this.slide = Math.max(0, this.slide - 1); },
-                            nextSlide() { this.slide = Math.min(Math.max(0, this.reviews.length - 1), this.slide + 1); },
-                            async fetchReviews() {
-                                this.loading = true;
-                                this.reviews = [];
-                                this.error = '';
-                                this.slide = 0;
-                                let failSafeId = null;
-                                let timeoutId = null;
-                                try {
-                                    const t = window.DFOPS_CONFIG?.timeouts || {};
-                                    const apiTimeout = t.apiTimeout ?? 25000;
-                                    const abortTimeout = t.abortTimeout ?? 12000;
-                                    failSafeId = setTimeout(() => { this.loading = false; this.error = 'Timeout pobierania opinii.'; }, apiTimeout);
-                                    const controller = new AbortController();
-                                    timeoutId = setTimeout(() => controller.abort(), abortTimeout);
-                                    const fnUrl = (window.DFOPS_CONFIG?.supabaseUrl
-                                        ? window.DFOPS_CONFIG.supabaseUrl + '/functions/v1/get-google-reviews'
-                                        : '/functions/v1/get-google-reviews');
-                                    const resp = await fetch(fnUrl, {
-                                        method: 'POST',
-                                        headers: {
-                                            'content-type': 'application/json',
-                                            'authorization': 'Bearer ' + (window.DFOPS_CONFIG?.supabaseAnonKey || '')
-                                        },
-                                        signal: controller.signal,
-                                        body: JSON.stringify({
-                                            query: content[lang].google_reviews.place_query,
-                                            maxReviews: content[lang].google_reviews.max_reviews || 8
-                                        })
-                                    });
-                                    if (timeoutId) clearTimeout(timeoutId);
-                                    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                                    const json = await resp.json();
-                                    this.placeId = json?.placeId || '';
-                                    this.placeRating = json?.placeRating ?? null;
-                                    this.userRatingCount = json?.userRatingCount ?? null;
-                                    this.reviews = json?.reviews || [];
-                                    this.error = json?.error || '';
-                                } catch (e) {
-                                    this.error = e?.message || 'Błąd pobierania opinii.';
-                                } finally {
-                                    if (failSafeId) clearTimeout(failSafeId);
-                                    this.loading = false;
-                                }
-                            }
-                        }"
+                        x-data="googleReviews()"
                         x-init="fetchReviews()"
                         class="reveal"
                     >

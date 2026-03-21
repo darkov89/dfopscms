@@ -1,18 +1,30 @@
 // @ts-ignore - remote Deno std module isn't resolvable by local TS linter.
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 
-// @ts-ignore - Deno global exists at runtime in Edge Functions.
-declare const Deno: any;
+/** Deno global - available at runtime in Supabase Edge Functions. */
+declare const Deno: { env: { get: (k: string) => string | undefined } };
 
-function jsonResponse(body: unknown, status = 200) {
+const ALLOWED_ORIGINS = [
+  "https://dfcms.pl",
+  "https://www.dfcms.pl",
+  "http://localhost:8788",
+];
+
+function getCorsHeaders(origin: string | null): Record<string, string> {
+  const allowOrigin =
+    origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "content-type": "application/json; charset=utf-8",
+    "access-control-allow-origin": allowOrigin,
+    "access-control-allow-headers": "authorization, x-client-info, apikey, content-type",
+    "access-control-allow-methods": "POST, OPTIONS",
+  };
+}
+
+function jsonResponse(body: unknown, status = 200, origin: string | null = null) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: {
-      "content-type": "application/json; charset=utf-8",
-      "access-control-allow-origin": "*",
-      "access-control-allow-headers": "authorization, x-client-info, apikey, content-type",
-      "access-control-allow-methods": "POST, OPTIONS",
-    },
+    headers: getCorsHeaders(origin),
   });
 }
 
@@ -42,14 +54,46 @@ async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: numbe
   }
 }
 
-function pickFirstPlaceIdFromSearchText(searchTextJson: any): string | null {
+interface PlaceSearchPlace {
+  id?: string;
+}
+
+interface PlaceSearchResponse {
+  places?: PlaceSearchPlace[];
+  error?: { message?: string };
+  message?: string;
+}
+
+function pickFirstPlaceIdFromSearchText(searchTextJson: PlaceSearchResponse | null): string | null {
   const places = searchTextJson?.places;
   if (!Array.isArray(places) || places.length === 0) return null;
-  // Places API (New) returns "id" field with format like "ChIJ..."
   return places[0]?.id ?? null;
 }
 
-function normalizeReview(r: any) {
+interface ReviewRaw {
+  rating?: number | string;
+  text?: string | { text?: string; value?: string };
+  authorAttribution?: {
+    displayName?: string | { text?: string };
+    display_name?: string;
+    uri?: string;
+    photoURI?: string;
+    photoUrl?: string;
+  };
+  publishTime?: string;
+  publish_time?: string;
+}
+
+interface PlaceDetailsResponse {
+  displayName?: string | { text?: string };
+  reviews?: ReviewRaw[];
+  rating?: number;
+  userRatingCount?: number;
+  error?: { message?: string } | string;
+  error_message?: string;
+}
+
+function normalizeReview(r: ReviewRaw | null) {
   // Place Details (New) review shapes can differ slightly. Be defensive.
   const rating = typeof r?.rating === "number" ? r.rating : Number(r?.rating ?? NaN);
   const text =
@@ -84,13 +128,15 @@ function normalizeReview(r: any) {
 }
 
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+
   // CORS preflight
   if (req.method === "OPTIONS") {
-    return jsonResponse({ ok: true }, 200);
+    return jsonResponse({ ok: true }, 200, origin);
   }
 
   if (req.method !== "POST") {
-    return jsonResponse({ ok: false, error: "Metoda nieobsługiwana." }, 405);
+    return jsonResponse({ ok: false, error: "Metoda nieobsługiwana." }, 405, origin);
   }
 
   const googleApiKey = Deno.env.get("GOOGLE_MAPS_API_KEY") || Deno.env.get("GOOGLE_API_KEY");
@@ -98,21 +144,21 @@ serve(async (req) => {
     return jsonResponse({
       ok: false,
       error: "Brak GOOGLE_MAPS_API_KEY w środowisku Edge Function.",
-    }, 500);
+    }, 500, origin);
   }
 
-  let payload: any = {};
+  let payload: { query?: string; maxReviews?: unknown } = {};
   try {
-    payload = await req.json();
+    payload = (await req.json()) as typeof payload;
   } catch {
-    return jsonResponse({ ok: false, error: "Nieprawidłowe JSON w body." }, 400);
+    return jsonResponse({ ok: false, error: "Nieprawidłowe JSON w body." }, 400, origin);
   }
 
   const query = typeof payload?.query === "string" ? payload.query.trim() : "";
   const maxReviews = safeToInt(payload?.maxReviews, 6);
 
   if (!query) {
-    return jsonResponse({ ok: false, error: "Brak parametru query." }, 400);
+    return jsonResponse({ ok: false, error: "Brak parametru query." }, 400, origin);
   }
 
   // 1) Find place id from query (Places API - New)
@@ -138,10 +184,10 @@ serve(async (req) => {
       stage: "places_searchText",
       httpStatus: searchReq.resp.status,
       errorText: searchReq.text,
-    }, 502);
+    }, 502, origin);
   }
 
-  const searchJson = searchReq.json ?? {};
+  const searchJson = (searchReq.json ?? {}) as PlaceSearchResponse;
   const placesCount = Array.isArray(searchJson?.places) ? searchJson.places.length : 0;
   const placeId = pickFirstPlaceIdFromSearchText(searchJson);
 
@@ -157,7 +203,7 @@ serve(async (req) => {
         query,
         httpStatus: searchReq.resp.status,
       },
-    });
+    }, 200, origin);
   }
 
   // 2) Fetch reviews using Place Details (New)
@@ -182,10 +228,10 @@ serve(async (req) => {
       placeId,
       httpStatus: detailsReq.resp.status,
       errorText: detailsReq.text,
-    }, 502);
+    }, 502, origin);
   }
 
-  const detailsJson = detailsReq.json ?? {};
+  const detailsJson = (detailsReq.json ?? {}) as PlaceDetailsResponse;
   const detailsError =
     detailsJson?.error?.message ?? detailsJson?.error_message ?? detailsJson?.error ?? null;
   const reviews = Array.isArray(detailsJson?.reviews) ? detailsJson.reviews : [];
@@ -215,6 +261,6 @@ serve(async (req) => {
     userRatingCount: Number.isFinite(userRatingCount) ? userRatingCount : null,
     reviews: normalized,
     debug: detailsError ? { detailsError } : undefined,
-  });
+  }, 200, origin);
 });
 

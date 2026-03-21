@@ -162,6 +162,8 @@
       async uploadImage(event, section, field, index = null) {
         const file = event.target.files?.[0];
         if (!file || !this.slug) return;
+        const pl = this.content?.pl;
+        if (!pl) return;
         this.uploadingImage = true;
         try {
           const fileExt = file.name.split('.').pop() || 'png';
@@ -170,14 +172,17 @@
           if (error) throw error;
           const { data: publicUrlData } = this.supabase.storage.from('images').getPublicUrl(fileName);
           if (section === 'gallery' && field === 'images') {
-            if (!this.content.pl.gallery) this.content.pl.gallery = { title: 'Nasze realizacje', images: [] };
-            if (!Array.isArray(this.content.pl.gallery.images)) this.content.pl.gallery.images = [];
-            this.content.pl.gallery.images.push(publicUrlData.publicUrl);
+            if (!pl.gallery) pl.gallery = { title: 'Nasze realizacje', images: [] };
+            if (!Array.isArray(pl.gallery.images)) pl.gallery.images = [];
+            pl.gallery.images.push(publicUrlData.publicUrl);
           } else if (index !== null) {
-            this.content.pl[section][index][field] = publicUrlData.publicUrl;
+            const sec = pl[section];
+            const el = Array.isArray(sec) ? sec[index] : sec?.[index];
+            if (el == null) return;
+            el[field] = publicUrlData.publicUrl;
           } else {
-            if (!this.content.pl[section]) this.content.pl[section] = {};
-            this.content.pl[section][field] = publicUrlData.publicUrl;
+            if (!pl[section]) pl[section] = {};
+            pl[section][field] = publicUrlData.publicUrl;
           }
           this.message = 'Plik załadowany. Kliknij "Publikuj Zmiany".';
           setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
