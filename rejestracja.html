@@ -114,9 +114,21 @@
                 </div>
             </div>
 
+            <div class="space-y-3">
+                <h3 class="text-[#D4AF37] text-xs font-bold uppercase tracking-widest border-b border-white/10 pb-2">5. Wymogi prawne</h3>
+                <label class="flex items-start gap-3 cursor-pointer">
+                    <input type="checkbox" x-model="form.acceptRegulamin" class="mt-1 w-4 h-4 rounded border-gray-600 bg-[#1e1e1e] text-[#D4AF37] focus:ring-[#D4AF37]">
+                    <span class="text-sm text-gray-600">Akceptuję <a href="/regulamin.html" class="text-[#D4AF37] hover:underline">Regulamin</a> oraz <a href="/polityka.html" class="text-[#D4AF37] hover:underline">Politykę Prywatności</a> serwisu dfcms.pl</span>
+                </label>
+                <label class="flex items-start gap-3 cursor-pointer">
+                    <input type="checkbox" x-model="form.acceptFaktury" class="mt-1 w-4 h-4 rounded border-gray-600 bg-[#1e1e1e] text-[#D4AF37] focus:ring-[#D4AF37]">
+                    <span class="text-sm text-gray-600">Wyrażam zgodę na otrzymywanie faktur drogą elektroniczną</span>
+                </label>
+            </div>
+
             <div x-show="errorMessage" class="text-red-400 text-sm font-bold text-center bg-red-400/10 py-2 rounded-sm border border-red-400/20" x-text="errorMessage"></div>
 
-            <button type="submit" :disabled="loading" class="w-full bg-[#D4AF37] hover:bg-white text-[#121212] px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-[0_0_20px_rgba(212,175,55,0.15)] mt-4 disabled:opacity-50 disabled:cursor-not-allowed">
+            <button type="submit" :disabled="loading || !form.acceptRegulamin || !form.acceptFaktury" class="w-full bg-[#D4AF37] hover:bg-white text-[#121212] px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-[0_0_20px_rgba(212,175,55,0.15)] mt-4 disabled:opacity-50 disabled:cursor-not-allowed">
                 <span x-show="!loading">Utwórz konto i stronę</span>
                 <span x-show="loading" class="animate-pulse">Tworzenie konta...</span>
             </button>

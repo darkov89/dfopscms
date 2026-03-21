@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regulamin – dfcms.pl</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { dark: '#121212', gold: '#D4AF37', gray: '#2A2A2A' }
+                    },
+                    fontFamily: { serif: ['Playfair Display', 'Georgia', 'serif'], sans: ['Inter', 'system-ui', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-[#121212] text-gray-200 font-sans min-h-screen flex flex-col">
+    <nav class="border-b border-white/10 py-4">
+        <div class="max-w-4xl mx-auto px-4 flex justify-between items-center">
+            <a href="/" class="text-xl font-black tracking-widest text-white hover:text-[#D4AF37] transition-colors">DFOPS<span class="text-[#D4AF37]">CMS</span></a>
+            <a href="/rejestracja.html" class="text-sm text-gray-400 hover:text-[#D4AF37] transition-colors">Rejestracja</a>
+        </div>
+    </nav>
+
+    <main class="flex-1 max-w-4xl mx-auto py-20 px-4 w-full">
+        <h1 class="font-serif text-4xl md:text-5xl text-white mb-12 border-b border-[#D4AF37]/30 pb-4">Regulamin</h1>
+
+        <div class="space-y-10 text-gray-300 leading-relaxed">
+            <section>
+                <h2 class="text-2xl font-serif text-[#D4AF37] mb-4">1. Definicje</h2>
+                <ul class="list-disc list-inside space-y-2 ml-2">
+                    <li><strong class="text-white">Usługodawca</strong> – [TWOJE DANE FIRMY], z siedzibą przy [ADRES], NIP: [NIP], adres e-mail: [ADRES EMAIL].</li>
+                    <li><strong class="text-white">Użytkownik</strong> – osoba fizyczna, prawna lub jednostka organizacyjna nieposiadająca osobowości prawnej, korzystająca z Serwisu.</li>
+                    <li><strong class="text-white">Serwis</strong> – platforma dfcms.pl umożliwiająca tworzenie i zarządzanie stronami internetowymi w modelu subskrypcyjnym.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-serif text-[#D4AF37] mb-4">2. Rodzaj i zakres usług</h2>
+                <p>Usługodawca świadczy usługi polegające na:</p>
+                <ul class="list-disc list-inside space-y-2 ml-2">
+                    <li>utrzymaniu i hostingu stron internetowych Użytkownika,</li>
+                    <li>udostępnieniu systemu CMS (Content Management System) umożliwiającego edycję treści strony,</li>
+                    <li>technicznym wsparciu w zakresie funkcjonowania Serwisu.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-serif text-[#D4AF37] mb-4">3. Warunki płatności</h2>
+                <p>Usługi są świadczone w modelu subskrypcyjnym. Płatności realizowane są przez platformę Stripe. Okres rozliczeniowy wynosi miesiąc i odnawia się automatycznie do momentu rezygnacji przez Użytkownika. Cennik oraz szczegóły planów dostępne są w Serwisie.</p>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-serif text-[#D4AF37] mb-4">4. Reklamacje</h2>
+                <p>Reklamacje należy kierować na adres e-mail Usługodawcy: [ADRES EMAIL]. Usługodawca rozpatruje reklamacje w terminie do 14 dni roboczych od ich otrzymania.</p>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-serif text-[#D4AF37] mb-4">5. Prawo do odstąpienia od umowy</h2>
+                <p>Konsument ma prawo odstąpić od umowy w terminie 14 dni bez podawania przyczyny. Termin do odstąpienia upływa 14 dni od dnia zawarcia umowy. Aby skorzystać z prawa odstąpienia, należy poinformować Usługodawcę (np. e-mailem na [ADRES EMAIL]) o swojej decyzji. W przypadku odstąpienia zwracane są wszystkie otrzymane płatności.</p>
+            </section>
+        </div>
+    </main>
+
+    <footer class="border-t border-white/10 py-6 mt-16">
+        <div class="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-500">
+            <a href="/polityka.html" class="hover:text-[#D4AF37] transition-colors">Polityka Prywatności</a>
+            <a href="/" class="hover:text-[#D4AF37] transition-colors">Strona główna</a>
+        </div>
+    </footer>
+</body>
+</html>

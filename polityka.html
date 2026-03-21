@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polityka Prywatności – dfcms.pl</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { dark: '#121212', gold: '#D4AF37', gray: '#2A2A2A' }
+                    },
+                    fontFamily: { serif: ['Playfair Display', 'Georgia', 'serif'], sans: ['Inter', 'system-ui', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-[#121212] text-gray-200 font-sans min-h-screen flex flex-col">
+    <nav class="border-b border-white/10 py-4">
+        <div class="max-w-4xl mx-auto px-4 flex justify-between items-center">
+            <a href="/" class="text-xl font-black tracking-widest text-white hover:text-[#D4AF37] transition-colors">DFOPS<span class="text-[#D4AF37]">CMS</span></a>
+            <a href="/rejestracja.html" class="text-sm text-gray-400 hover:text-[#D4AF37] transition-colors">Rejestracja</a>
+        </div>
+    </nav>
+
+    <main class="flex-1 max-w-4xl mx-auto py-20 px-4 w-full">
+        <h1 class="font-serif text-4xl md:text-5xl text-white mb-12 border-b border-[#D4AF37]/30 pb-4">Polityka Prywatności</h1>
+
+        <div class="space-y-10 text-gray-300 leading-relaxed">
+            <section>
+                <h2 class="text-2xl font-serif text-[#D4AF37] mb-4">1. Administrator danych</h2>
+                <p>Administratorem danych osobowych jest [TWOJE DANE FIRMY], z siedzibą przy [ADRES], NIP: [NIP], adres e-mail: [ADRES EMAIL].</p>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-serif text-[#D4AF37] mb-4">2. Zakres zbieranych danych</h2>
+                <p>Zbieramy następujące dane:</p>
+                <ul class="list-disc list-inside space-y-2 ml-2">
+                    <li>adres e-mail (w celu logowania i kontaktu),</li>
+                    <li>treść strony internetowej tworzonej przez Użytkownika (artykuły, opisy, zdjęcia itp.),</li>
+                    <li>dane techniczne: adres IP, typ przeglądarki, dane logowania – w celach technicznych i bezpieczeństwa.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-serif text-[#D4AF37] mb-4">3. Cel przetwarzania</h2>
+                <p>Dane są przetwarzane w celu realizacji świadczonych usług (udostępnianie CMS, hostingu strony), obsługi płatności oraz wykonywania obowiązków prawnych ciążących na Administratorze.</p>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-serif text-[#D4AF37] mb-4">4. Odbiorcy danych</h2>
+                <p>Dane mogą być udostępniane:</p>
+                <ul class="list-disc list-inside space-y-2 ml-2">
+                    <li><strong class="text-white">Supabase</strong> – hosting bazy danych i przechowywanie treści stron,</li>
+                    <li><strong class="text-white">Stripe</strong> – obsługa płatności,</li>
+                    <li>podmiotom uprawnionym na podstawie przepisów prawa.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-serif text-[#D4AF37] mb-4">5. Prawa użytkownika</h2>
+                <p>Przysługuje Ci prawo do: dostępu do swoich danych, ich sprostowania, usunięcia (prawo do bycia zapomnianym), ograniczenia przetwarzania, przenoszenia danych oraz wniesienia skargi do Prezesa Urzędu Ochrony Danych Osobowych. Aby skorzystać z tych praw, skontaktuj się z nami: [ADRES EMAIL].</p>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-serif text-[#D4AF37] mb-4">6. Pliki Cookies</h2>
+                <p>Serwis korzysta z plików cookies i podobnych mechanizmów w celu przechowywania sesji użytkownika (logowanie) oraz poprawy działania strony. Nie wykorzystujemy ich do celów marketingowych bez Twojej zgody.</p>
+            </section>
+        </div>
+    </main>
+
+    <footer class="border-t border-white/10 py-6 mt-16">
+        <div class="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-500">
+            <a href="/regulamin.html" class="hover:text-[#D4AF37] transition-colors">Regulamin</a>
+            <a href="/" class="hover:text-[#D4AF37] transition-colors">Strona główna</a>
+        </div>
+    </footer>
+</body>
+</html>
