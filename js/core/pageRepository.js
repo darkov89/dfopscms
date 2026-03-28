@@ -58,11 +58,19 @@
     return { data, error };
   }
 
-  async function getPageByCustomDomain(hostname) {
+  /**
+   * Strona przypisana do niestandardowej domeny (SaaS). Kolumny: custom_domain, custom_domain_status.
+   * Hostname bez www — normalizuj przed wywołaniem (np. w routerze).
+   */
+  async function getPageByCustomDomain(domain) {
+    const normalized =
+      typeof domain === 'string'
+        ? domain.replace(/^www\./i, '').toLowerCase().trim()
+        : domain;
     const { data, error } = await supabase()
       .from('pages')
-      .select('slug, theme, content, color_preset, custom_domain')
-      .eq('custom_domain', hostname)
+      .select('*')
+      .eq('custom_domain', normalized)
       .maybeSingle();
     return { data, error };
   }
@@ -76,7 +84,7 @@
   async function getCurrentUserPage(userId) {
     const { data, error } = await supabase()
       .from('pages')
-      .select('slug, theme, content, color_preset, custom_domain')
+      .select('id, slug, theme, content, color_preset, custom_domain')
       .eq('user_id', userId)
       .maybeSingle();
     return { data: data || null, error };

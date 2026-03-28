@@ -18,6 +18,11 @@
       theme: '',
       content: null,
       customDomain: '',
+      pageId: null,
+      verifyingDomain: false,
+      domainMessage: '',
+      domainError: '',
+      showDnsInstructions: false,
       activeTab: 'hero',
       saving: false,
       uploadingImage: false,
@@ -42,7 +47,7 @@
         const elapsed = Math.floor((now - start) / MS_PER_DAY);
         return Math.max(0, 14 - elapsed);
       },
-      get isCustomDomainLocked() { return this.subscriptionPlan === 'trial' || this.subscriptionPlan === 'tier0'; },
+      get isCustomDomainLocked() { return false;}, //this.subscriptionPlan === 'trial' || this.subscriptionPlan === 'tier0'; },
 
       showError(msg) {
         this.errorMessage = msg;
@@ -77,6 +82,8 @@
         await this.supabase.auth.signOut();
         this.user = null;
         this.content = null;
+        this.pageId = null;
+        this.showDnsInstructions = false;
         this.hasUnsavedChanges = false;
       },
       async loadData() {
@@ -86,6 +93,7 @@
           this.showError('Nie znaleziono Twojej strony.');
           return;
         }
+        this.pageId = data.id;
         this.slug = data.slug;
         this.theme = data.theme;
         this.customDomain = data.custom_domain || '';
@@ -137,8 +145,81 @@
           this.upgrading = false;
         }
       },
+      async verifyCustomDomain() {
+        if (this.isCustomDomainLocked) return;
+        if (window.location.protocol === 'file:') {
+          this.domainError = 'Otwórz panel przez adres http:// (np. Live Server na localhost), nie z dysku (file://) — inaczej przeglądarka blokuje połączenie z Supabase.';
+          this.domainMessage = '';
+          return;
+        }
+        const domain = typeof this.customDomain === 'string' ? this.customDomain.trim() : '';
+        if (!this.pageId || !domain) {
+          this.domainError = 'Podaj domenę (hostname, np. twojadomena.pl).';
+          this.domainMessage = '';
+          return;
+        }
+
+        if (!confirm('Podpięcie domeny spowoduje również zapisanie i opublikowanie wszystkich wprowadzonych przez Ciebie zmian na stronie. Czy chcesz kontynuować?')) {
+          return;
+        }
+
+        const saved = await this.saveData();
+        if (!saved) {
+          this.domainError = 'Nie udało się zapisać zmian — domena nie została zgłoszona do Cloudflare. Popraw błędy i spróbuj ponownie.';
+          this.domainMessage = '';
+          return;
+        }
+
+        this.verifyingDomain = true;
+        this.domainMessage = '';
+        this.domainError = '';
+        this.showDnsInstructions = false;
+
+        try {
+          const { data: { session } } = await this.supabase.auth.getSession();
+
+          if (!session) {
+            throw new Error('Brak aktywnej sesji. Zaloguj się ponownie.');
+          }
+
+          const cfg = window.DFOPS_CONFIG || {};
+          const response = await fetch(`${cfg.supabaseUrl}/functions/v1/add-custom-domain`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${session.access_token}`,
+              apikey: cfg.supabaseAnonKey || '',
+            },
+            body: JSON.stringify({
+              domain,
+              pageId: this.pageId,
+            }),
+          });
+
+          const result = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            throw new Error(result.error || result.message || `HTTP ${response.status}`);
+          }
+          if (result.success === false) {
+            throw new Error(result.error || 'Odmowa dostępu z serwera Cloudflare.');
+          }
+
+          this.domainMessage = 'Domena zgłoszona! Cloudflare weryfikuje rekordy DNS (może to potrwać do kilkunastu minut).';
+          this.showDnsInstructions = true;
+          await this.loadData();
+        } catch (e) {
+          console.error('Błąd weryfikacji domeny:', e);
+          const raw = e instanceof Error ? e.message : String(e);
+          this.domainError = raw === 'Failed to fetch'
+            ? 'Brak połączenia z serwerem (CORS, sieć lub otwórz stronę przez http/https, nie file://).'
+            : (raw || 'Wystąpił błąd podczas komunikacji z serwerem.');
+        } finally {
+          this.verifyingDomain = false;
+        }
+      },
       async saveData() {
-        if (!this.content) return;
+        if (!this.content) return false;
         this.saving = true;
         try {
           if (Array.isArray(this.content.pl.services)) {
@@ -152,9 +233,11 @@
           this.hasUnsavedChanges = false;
           this.message = 'Zmiany zostały opublikowane!';
           setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
+          return true;
         } catch (e) {
           console.error(e);
           this.showError('Błąd zapisu (RLS lub walidacja).');
+          return false;
         } finally {
           this.saving = false;
         }
