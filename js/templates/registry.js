@@ -66,7 +66,21 @@
         proof: { label: "", title: "", text: "", statNumber: "", statLabel: "", statDesc: "" },
         faq: [],
         reviews: [],
-        contact: { email: "", phone: "", address: "", map_embed_url: "", map_place_id: "" },
+        contact: {
+          email: "",
+          phone: "",
+          address: "",
+          map_embed_url: "",
+          map_place_id: "",
+          cta: {
+            enabled: true,
+            title: "Szybki kalendarz",
+            description:
+              "Wybierz dogodny termin i umów się na darmową, 15-minutową konsultację wstępną.",
+            button_text: "Wybierz termin na Calendly",
+            button_url: "https://calendly.com/",
+          },
+        },
         social: { linkedin: "", facebook: "", instagram: "", tiktok: "" },
         google_reviews: { embed_url: "", place_query: "", max_reviews: 6, title: "Opinie z Google" },
         gallery: { title: "Nasze realizacje", images: [] },

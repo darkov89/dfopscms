@@ -70,9 +70,34 @@
       if (block.legal.terms === undefined) block.legal.terms = '';
     }
 
+    const defaultContactCta = {
+      enabled: true,
+      title: 'Szybki kalendarz',
+      description:
+        'Wybierz dogodny termin i umów się na darmową, 15-minutową konsultację wstępną.',
+      button_text: 'Wybierz termin na Calendly',
+      button_url: 'https://calendly.com/',
+    };
+
+    function ensureContactCta(block) {
+      if (!block || typeof block !== 'object' || Array.isArray(block)) return;
+      if (!block.contact) block.contact = {};
+      if (!block.contact.cta) {
+        block.contact.cta = { ...defaultContactCta };
+        return;
+      }
+      const c = block.contact.cta;
+      if (c.enabled === undefined) c.enabled = defaultContactCta.enabled;
+      if (c.title === undefined || c.title === null) c.title = defaultContactCta.title;
+      if (c.description === undefined || c.description === null) c.description = defaultContactCta.description;
+      if (c.button_text === undefined || c.button_text === null) c.button_text = defaultContactCta.button_text;
+      if (c.button_url === undefined || c.button_url === null) c.button_url = defaultContactCta.button_url;
+    }
+
     for (const _lang of Object.keys(merged)) {
       ensureSeo(merged[_lang]);
       ensureLegal(merged[_lang]);
+      ensureContactCta(merged[_lang]);
     }
 
     return merged;

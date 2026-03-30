@@ -463,22 +463,22 @@
                             </div>
                         </div>
 
-                        <div class="mt-10 lg:mt-12 shrink-0">
-                            <div class="bg-sattva-accent p-8 border border-sattva-text/20 shadow-lg relative overflow-hidden rounded-sm">
-                                <div class="absolute -top-10 -right-10 w-48 h-48 bg-sattva-brand/10 blur-3xl rounded-full"></div>
+                        <div x-show="content[lang].contact?.cta?.enabled" class="mt-auto mt-10 lg:mt-12 shrink-0" x-transition>
+                            <div class="p-8 rounded-2xl border shadow-lg relative overflow-hidden" style="background-color: var(--surface-card, var(--bg-main)); border-color: var(--color-primary); color: var(--text-main);">
+                                <div class="absolute -top-10 -right-10 w-48 h-48 opacity-30 blur-3xl rounded-full" style="background-color: var(--color-primary);"></div>
 
-                                <h3 class="text-xl font-serif font-semibold text-sattva-text mb-4">Szybki kalendarz</h3>
-                                <p class="text-sattva-text/80 mb-6 text-sm leading-relaxed">Wybierz dogodny termin na 15-minutową rozmowę zapoznawczą.</p>
+                                <h3 class="text-xl font-bold mb-3 relative z-[1]" style="color: var(--color-primary)" x-text="content[lang].contact.cta.title || 'Rezerwacja'"></h3>
+                                <p class="mb-6 opacity-80 text-sm leading-relaxed relative z-[1]" x-text="content[lang].contact.cta.description || 'Umów się na spotkanie.'"></p>
 
-                                <a href="https://calendly.com/dfops/30min"
-                                   target="_blank"
-                                   rel="noopener noreferrer"
-                                   class="inline-flex items-center justify-center w-full gap-2 bg-sattva-brand text-sattva-white px-8 py-3.5 rounded-sm font-serif text-base font-semibold tracking-wide hover:opacity-90 transition-all duration-300 group">
-                                    <span>Umów termin</span>
-                                    <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                                <a
+                                    :href="content[lang].contact.cta.button_url || '#'"
+                                    :target="(content[lang].contact.cta.button_url || '').startsWith('mailto:') || (content[lang].contact.cta.button_url || '').startsWith('tel:') ? '_self' : '_blank'"
+                                    :rel="((u) => (u.startsWith('http://') || u.startsWith('https://')) ? 'noopener noreferrer' : null)((content[lang].contact.cta.button_url || ''))"
+                                    class="relative z-[1] inline-flex items-center justify-center w-full gap-2 px-8 py-3.5 rounded-sm text-base font-semibold tracking-wide transition-all hover:-translate-y-0.5 shadow-md hover:shadow-xl"
+                                    style="background-color: var(--color-primary); color: var(--color-accent-text);">
+                                    <span x-text="content[lang].contact.cta.button_text || 'Zarezerwuj'"></span>
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                                 </a>
-
-                                <p class="mt-6 text-[10px] text-sattva-text/70 text-center uppercase tracking-widest">Wszystkie dane są chronione zgodnie z polityką prywatności.</p>
                             </div>
                         </div>
                     </div>
