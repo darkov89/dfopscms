@@ -10,7 +10,9 @@
     if (!pl) merged.pl = {};
     if (!pl.settings) pl.settings = {};
 
-    if (!pl.settings.color_preset) pl.settings.color_preset = theme === 'beauty' ? 'beige' : 'gold';
+    if (!pl.settings.color_preset) {
+      pl.settings.color_preset = theme === 'beauty' ? 'beige' : theme === 'consultant' ? 'dfops-tech' : 'gold';
+    }
     if (!pl.settings.background_style) pl.settings.background_style = theme === 'beauty' ? 'soft' : 'glow';
     if (!pl.settings.font_preset) pl.settings.font_preset = theme === 'beauty' ? 'poppins' : 'inter';
     if (!pl.settings.subscription) {

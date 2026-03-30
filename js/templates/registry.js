@@ -80,9 +80,9 @@
         legal: { enabled: true, privacy_policy: "", terms: "" },
         cookies: { text: "Ta strona używa plików cookies w celach funkcjonalnych.", accept: "Akceptuję" },
         settings: {
-          darkMode: false,
+          darkMode: true,
           template_version: 3,
-          color_preset: "gold",
+          color_preset: "dfops-tech",
           subscription: { plan: "trial", trial_started_at: new Date().toISOString() },
           background_style: "glow",
           font_preset: "inter",

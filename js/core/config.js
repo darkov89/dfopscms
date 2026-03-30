@@ -21,10 +21,32 @@
       rosewood: '#7A2E2E',
       'black-gold': '#D4AF37',
       'forest-mint': '#4FBDAA',
+      /** Consultant — Modern Cloud / DevOps (slate + niebieski) */
+      'dfops-tech': '#3b82f6',
+    },
+    /**
+     * Pełna paleta powierzchni/tła dla consultant przy wybranym color_preset (poza samym akcentem).
+     * Stosowane w themeStyling.js — nadpisują domyślny gradient darkMode.
+     */
+    consultantPresetPalette: {
+      'dfops-tech': {
+        accent: '#3b82f6',
+        accentContrast: '#f8fafc',
+        bgA: '#0B132B',
+        bgB: '#0f172a',
+        bgC: 'rgba(59, 130, 246, 0.14)',
+        bgTextureOpacity: 0.05,
+        surfaceBg: 'transparent',
+        surfaceAccent: 'rgba(30, 41, 59, 0.92)',
+        surfaceCard: 'rgba(30, 41, 59, 0.78)',
+        text: '#f8fafc',
+        textMuted: '#94a3b8',
+      },
     },
     presetsByTheme: {
       setup: [{ id: 'gold', label: 'Gold' }],
       consultant: [
+        { id: 'dfops-tech', label: 'DFOPS Tech (ciemny granat)' },
         { id: 'gold', label: 'Gold (premium)' },
         { id: 'navy', label: 'Navy (biznes)' },
         { id: 'emerald', label: 'Emerald (zaufanie)' },
@@ -68,6 +90,7 @@
     bundlesByTheme: {
       setup: [],
       consultant: [
+        { id: 'consultant-dfops-tech', label: 'DFOPS Tech (slate)', color_preset: 'dfops-tech', background_style: 'glow', font_preset: 'inter' },
         { id: 'consultant-premium', label: 'Premium Gold', color_preset: 'gold', background_style: 'glow', font_preset: 'inter' },
         { id: 'consultant-navy', label: 'Navy Modern', color_preset: 'navy', background_style: 'clean', font_preset: 'inter' },
         { id: 'consultant-emerald', label: 'Emerald Trust', color_preset: 'emerald', background_style: 'soft', font_preset: 'elegant' },

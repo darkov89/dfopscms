@@ -39,29 +39,47 @@
       setCssVar('--beauty-white', '#ffffff');
     }
 
-    // Consultant: surfaces + text + gradient adapt to darkMode (Onyx vs jasny)
+    // Consultant: opcjonalna pełna paleta per color_preset (np. dfops-tech), inaczej darkMode vs jasny
     if (theme === 'consultant') {
-      const isDark = !!s.darkMode;
-      const gradientStyle = isDark ? 'glow' : 'clean';
-      const gradientBg = (cfg.backgroundByStyle || {})[gradientStyle] || cfg.backgroundByStyle?.glow;
-      if (gradientBg) {
-        setCssVar('--bg-a', gradientBg.a);
-        setCssVar('--bg-b', gradientBg.b);
-        setCssVar('--bg-c', gradientBg.c);
-        setCssVar('--bg-texture-opacity', String(gradientBg.texture ?? 0.06));
-      }
-      if (isDark) {
-        setCssVar('--surface-bg', 'transparent');
-        setCssVar('--surface-accent', 'rgba(18,18,18,0.9)');
-        setCssVar('--surface-card', 'rgba(18,18,18,0.55)');
-        setCssVar('--beauty-text', '#E5E7EB');
+      const presetPalette = (cfg.consultantPresetPalette || {})[s.color_preset];
+      if (presetPalette) {
+        setCssVar('--accent', presetPalette.accent);
+        setCssVar('--accent-contrast', presetPalette.accentContrast || '#121212');
+        setCssVar('--bg-a', presetPalette.bgA);
+        setCssVar('--bg-b', presetPalette.bgB);
+        setCssVar('--bg-c', presetPalette.bgC);
+        if (presetPalette.bgTextureOpacity != null) {
+          setCssVar('--bg-texture-opacity', String(presetPalette.bgTextureOpacity));
+        }
+        setCssVar('--surface-bg', presetPalette.surfaceBg);
+        setCssVar('--surface-accent', presetPalette.surfaceAccent);
+        setCssVar('--surface-card', presetPalette.surfaceCard);
+        setCssVar('--beauty-text', presetPalette.text);
+        setCssVar('--beauty-text-muted', presetPalette.textMuted);
         setCssVar('--beauty-white', '#ffffff');
       } else {
-        setCssVar('--surface-bg', '#f4f4f5');
-        setCssVar('--surface-accent', 'rgba(255,255,255,0.95)');
-        setCssVar('--surface-card', 'rgba(255,255,255,0.92)');
-        setCssVar('--beauty-text', '#171717');
-        setCssVar('--beauty-white', '#ffffff');
+        const isDark = !!s.darkMode;
+        const gradientStyle = isDark ? 'glow' : 'clean';
+        const gradientBg = (cfg.backgroundByStyle || {})[gradientStyle] || cfg.backgroundByStyle?.glow;
+        if (gradientBg) {
+          setCssVar('--bg-a', gradientBg.a);
+          setCssVar('--bg-b', gradientBg.b);
+          setCssVar('--bg-c', gradientBg.c);
+          setCssVar('--bg-texture-opacity', String(gradientBg.texture ?? 0.06));
+        }
+        if (isDark) {
+          setCssVar('--surface-bg', 'transparent');
+          setCssVar('--surface-accent', 'rgba(18,18,18,0.9)');
+          setCssVar('--surface-card', 'rgba(18,18,18,0.55)');
+          setCssVar('--beauty-text', '#E5E7EB');
+          setCssVar('--beauty-white', '#ffffff');
+        } else {
+          setCssVar('--surface-bg', '#f4f4f5');
+          setCssVar('--surface-accent', 'rgba(255,255,255,0.95)');
+          setCssVar('--surface-card', 'rgba(255,255,255,0.92)');
+          setCssVar('--beauty-text', '#171717');
+          setCssVar('--beauty-white', '#ffffff');
+        }
       }
     }
 
