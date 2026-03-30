@@ -1,4 +1,16 @@
 ;(function () {
+  function formatRegistrationAuthError(err) {
+    if (!err) return 'Błąd tworzenia konta.';
+    const code = err.code || err.name;
+    const msg = String(err.message || '');
+    if (code === 'over_email_send_rate_limit' || msg.includes('over_email_send_rate_limit')) {
+      const secMatch = msg.match(/(\d+)\s*seconds?/i);
+      const sec = secMatch ? secMatch[1] : 'kilka';
+      return `Wysłano już niedawno wiadomość na ten adres. Ze względów bezpieczeństwa odczekaj ok. ${sec} s i spróbuj ponownie — albo sprawdź skrzynkę, czy wcześniejszy mail z linkiem już doszedł.`;
+    }
+    return msg || 'Błąd tworzenia konta.';
+  }
+
   function createRegistrationApp() {
     const cfg = window.DFOPS_CONFIG;
     const repo = window.DFOPS_pageRepository;
@@ -74,7 +86,7 @@
             }, delay);
           }
         } catch (e) {
-          this.errorMessage = e?.message || 'Błąd tworzenia konta.';
+          this.errorMessage = formatRegistrationAuthError(e);
         } finally {
           this.loading = false;
         }
