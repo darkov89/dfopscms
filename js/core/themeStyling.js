@@ -32,10 +32,13 @@
       setCssVar('--surface-card', surface.card);
     }
 
+    /** Tekst na ciemnym tle: unikamy czystej #fff (męczy wzrok); slate-200 */
+    const darkBodyText = '#E2E8F0';
+
     // Beauty text contrast for dark backgrounds (barber luxe)
     if (theme === 'beauty') {
       const isDark = (bgStyle === 'smoky' || bgStyle === 'glow');
-      setCssVar('--beauty-text', isDark ? '#E5E7EB' : '#2b2b2b');
+      setCssVar('--beauty-text', isDark ? darkBodyText : '#2b2b2b');
       setCssVar('--beauty-white', '#ffffff');
     }
 
@@ -54,7 +57,7 @@
         setCssVar('--surface-bg', presetPalette.surfaceBg);
         setCssVar('--surface-accent', presetPalette.surfaceAccent);
         setCssVar('--surface-card', presetPalette.surfaceCard);
-        setCssVar('--beauty-text', presetPalette.text);
+        setCssVar('--beauty-text', darkBodyText);
         setCssVar('--beauty-text-muted', presetPalette.textMuted);
         setCssVar('--beauty-white', '#ffffff');
       } else {
@@ -71,7 +74,7 @@
           setCssVar('--surface-bg', 'transparent');
           setCssVar('--surface-accent', 'rgba(18,18,18,0.9)');
           setCssVar('--surface-card', 'rgba(18,18,18,0.55)');
-          setCssVar('--beauty-text', '#E5E7EB');
+          setCssVar('--beauty-text', darkBodyText);
           setCssVar('--beauty-white', '#ffffff');
         } else {
           setCssVar('--surface-bg', '#f4f4f5');
@@ -93,16 +96,16 @@
     if (theme === 'beauty') {
       const isDark = bgStyle === 'smoky' || bgStyle === 'glow';
       setCssVar('--bg-main', isDark ? '#0b0b0f' : '#Fdfbf7');
-      setCssVar('--text-main', isDark ? '#E5E7EB' : '#2b2b2b');
+      setCssVar('--text-main', isDark ? darkBodyText : '#2b2b2b');
     } else if (theme === 'consultant') {
       const presetPalette = (cfg.consultantPresetPalette || {})[s.color_preset];
       if (presetPalette) {
         setCssVar('--bg-main', presetPalette.bgA || '#0B132B');
-        setCssVar('--text-main', presetPalette.text || '#ffffff');
+        setCssVar('--text-main', darkBodyText);
       } else {
         const isDark = !!s.darkMode;
         setCssVar('--bg-main', isDark ? '#121212' : '#ffffff');
-        setCssVar('--text-main', isDark ? '#E5E7EB' : '#1f2937');
+        setCssVar('--text-main', isDark ? darkBodyText : '#1f2937');
       }
     } else {
       setCssVar('--bg-main', 'transparent');
@@ -110,16 +113,16 @@
     }
 
     const root = document.documentElement;
-    const accentResolved = getComputedStyle(root).getPropertyValue('--accent').trim() || accent
-    const beautyTextResolved = getComputedStyle(root).getPropertyValue('--beauty-text').trim()
-    const accentContrastResolved = getComputedStyle(root).getPropertyValue('--accent-contrast').trim() || '#121212'
-    setCssVar('--color-primary', accentResolved)
+    const accentResolved = getComputedStyle(root).getPropertyValue('--accent').trim() || accent;
+    const beautyTextResolved = getComputedStyle(root).getPropertyValue('--beauty-text').trim();
+    const accentContrastResolved = getComputedStyle(root).getPropertyValue('--accent-contrast').trim() || '#121212';
+    setCssVar('--color-primary', accentResolved);
     setCssVar(
       '--color-text-body',
       beautyTextResolved ||
-        (theme === 'beauty' ? '#2b2b2b' : theme === 'consultant' ? '#171717' : '#E5E7EB')
-    )
-    setCssVar('--color-accent-text', accentContrastResolved)
+        (theme === 'beauty' ? '#2b2b2b' : theme === 'consultant' ? '#171717' : darkBodyText)
+    );
+    setCssVar('--color-accent-text', accentContrastResolved);
   }
 
   window.DFOPS_applyThemeStyling = applyThemeStyling;

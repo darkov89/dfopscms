@@ -31,7 +31,7 @@
     consultantPresetPalette: {
       'dfops-tech': {
         accent: '#3b82f6',
-        accentContrast: '#f8fafc',
+        accentContrast: '#f1f5f9',
         bgA: '#0B132B',
         bgB: '#0f172a',
         bgC: 'rgba(59, 130, 246, 0.14)',
@@ -39,7 +39,7 @@
         surfaceBg: 'transparent',
         surfaceAccent: 'rgba(30, 41, 59, 0.92)',
         surfaceCard: 'rgba(30, 41, 59, 0.78)',
-        text: '#f8fafc',
+        text: '#E2E8F0',
         textMuted: '#94a3b8',
       },
     },
