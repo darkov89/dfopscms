@@ -52,8 +52,8 @@
 
 <body 
     :class="content && content[lang].settings?.darkMode ? 'dark' : ''"
-    class="font-sans antialiased selection:bg-sattva-brand selection:text-sattva-white transition-colors duration-500"
-    style="background-color: var(--bg-main, #ffffff); color: var(--text-main, #1f2937);"
+    class="font-sans antialiased selection:bg-sattva-brand selection:text-sattva-white transition-colors duration-500 bg-transparent"
+    style="color: var(--text-main, #1f2937);"
     x-data="createPublicSiteApp('consultant')"
 >
 
@@ -405,7 +405,7 @@
             <div id="contact" class="absolute left-0 top-0 h-px w-px overflow-hidden pointer-events-none" aria-hidden="true"></div>
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
-                    <div class="w-full h-64 lg:h-80 min-h-[250px] rounded-lg overflow-hidden shadow-md">
+                    <div class="w-full max-w-md mx-auto lg:mx-0 h-44 sm:h-48 lg:h-52 min-h-[160px] max-h-52 rounded-lg overflow-hidden shadow-md">
                         <template x-if="content[lang].contact?.map_embed_url || mapIframeSrc">
                             <iframe
                                 :src="content[lang].contact.map_embed_url || mapIframeSrc"

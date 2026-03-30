@@ -1,11 +1,10 @@
 /* Alpine.js: ukrywa elementy przed inicjalizacją (zastępuje style="display: none;" + x-show) */
 [x-cloak] { display: none !important; }
 
-/* Subtelny gradient TYLKO dla trybu ciemnego */
+/* Tło: gradient na html::before (--bg-a / --bg-b / --bg-c). Body musi być przezroczyste, żeby zmiana presetu była widoczna. */
 .dark body {
-    background-color: #121212;
-    background-image: radial-gradient(circle at 50% 0%, #1e1e1e 0%, #121212 60%);
-    background-attachment: fixed;
+    background-color: transparent;
+    background-image: none;
 }
 
 /* Klasy do animacji pojawiania się elementów */
@@ -96,7 +95,7 @@ html {
     background-color: transparent !important;
 }
 body {
-    background-color: var(--bg-main, transparent);
+    background-color: transparent;
     color: var(--text-main, inherit);
 }
 
