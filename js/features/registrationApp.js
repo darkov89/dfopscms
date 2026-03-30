@@ -61,6 +61,20 @@
           if (authError) throw authError;
           if (!authData?.user?.id) throw new Error('Nie udało się utworzyć użytkownika.');
 
+          let session = authData.session;
+          if (!session) {
+            const { data: signInData, error: signInError } = await this.supabase.auth.signInWithPassword({
+              email: this.form.email,
+              password: this.form.password,
+            });
+            if (signInError || !signInData.session) {
+              throw new Error(
+                'Konto może wymagać potwierdzenia e-maila — wtedy zaloguj się po kliknięciu w link z maila, albo w Supabase Auth wyłącz „Confirm email” dla testów. Bez sesji nie da się zapisać strony (RLS).'
+              );
+            }
+            session = signInData.session;
+          }
+
           const content = this.buildInitialContent();
           const colorPreset = content.pl.settings.color_preset;
 
