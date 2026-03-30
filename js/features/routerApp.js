@@ -98,7 +98,15 @@
       }
 
       if (!page || !page.theme || !page.slug) throw new Error('Strona nie istnieje');
-      window.location.replace(page.theme + '.html?site=' + encodeURIComponent(page.slug));
+
+      const localHosts = cfg.localHosts || [];
+      const isLocal = localHosts.indexOf(window.location.hostname) !== -1;
+      const slugFromSub = extractSubdomainAsSlug(hostname, baseDomains);
+      let target = page.theme + '.html';
+      if (isLocal || (isHostUnderBaseDomain(hostname, baseDomains) && !slugFromSub)) {
+        target += '?site=' + encodeURIComponent(page.slug);
+      }
+      window.location.replace(target);
     } catch (error) {
       show404();
     }

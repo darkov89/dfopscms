@@ -181,7 +181,7 @@
   async function getCurrentUserPage(userId) {
     const { data, error } = await supabase()
       .from('pages')
-      .select('id, slug, theme, content, color_preset, custom_domain')
+      .select('id, slug, theme, content, color_preset, custom_domain, custom_domain_status')
       .eq('user_id', userId)
       .maybeSingle();
     return { data: data || null, error };

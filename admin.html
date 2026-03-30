@@ -242,7 +242,7 @@
                 <p class="text-xs font-bold text-[#D4AF37] uppercase tracking-widest mb-3">Gratulacje</p>
                 <h2 class="text-2xl font-black text-gray-900 mb-3">Twoja strona jest zapisana</h2>
                 <p class="text-sm text-gray-600 mb-6 leading-relaxed">Możesz ją dopracować w zakładkach po lewej. Zacznij od sekcji Hero albo zobacz podgląd na żywo.</p>
-                <a :href="previewSiteUrl" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 w-full bg-gray-100 hover:bg-gray-200 text-gray-900 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest mb-4 transition-colors">Otwórz podgląd w nowej karcie</a>
+                <a :href="getPublicSiteUrl()" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 w-full bg-gray-100 hover:bg-gray-200 text-gray-900 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest mb-4 transition-colors">Otwórz podgląd w nowej karcie</a>
                 <button type="button" @click="dismissWizardCompletion()" class="w-full bg-[#121212] hover:bg-[#D4AF37] hover:text-[#121212] text-white px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest transition-colors">
                     Przejdź do zakładki Hero
                 </button>
@@ -303,7 +303,7 @@
                 <div class="flex items-center bg-gray-100 rounded-md overflow-hidden border px-4 py-2">
                     <span class="text-sm text-gray-500 mr-2">Motyw:<span class="ml-2 text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded uppercase tracking-widest" x-text="theme"></span></span>
                     <span class="text-sm font-bold text-[#D4AF37] tracking-wider ml-2" x-text="slug"></span>
-                    <a :href="previewSiteUrl" target="_blank" rel="noopener noreferrer" class="ml-4 text-xs font-bold text-blue-500 hover:text-blue-700 uppercase tracking-widest transition-colors">👀 Podgląd na żywo</a>
+                    <a :href="getPublicSiteUrl()" target="_blank" rel="noopener noreferrer" class="ml-4 text-xs font-bold text-blue-500 hover:text-blue-700 uppercase tracking-widest transition-colors">👀 Podgląd na żywo</a>
                 </div>
 
                 <button @click="saveData()" x-show="content" class="bg-[#121212] hover:bg-[#D4AF37] hover:text-[#121212] text-white px-8 py-2.5 rounded-sm text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-lg">

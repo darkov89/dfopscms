@@ -24,6 +24,7 @@
       wizardFieldWarning: '',
       showNinjaChecklist: false,
       customDomain: '',
+      customDomainStatus: '',
       pageId: null,
       verifyingDomain: false,
       domainMessage: '',
@@ -61,10 +62,20 @@
         const p = this.subscriptionPlan;
         return p === 'trial' || p === 'tier0';
       },
-      get previewSiteUrl() {
-        if (!this.slug || !this.theme) return '#';
-        const origin = typeof window !== 'undefined' ? window.location.origin : '';
-        return `${origin}/${this.theme}.html?site=${encodeURIComponent(this.slug)}`;
+      getPublicSiteUrl() {
+        const hostCustom = typeof this.customDomain === 'string' ? this.customDomain.trim() : '';
+        if (hostCustom && this.customDomainStatus === 'active') {
+          const h = hostCustom.replace(/^https?:\/\//i, '').split('/')[0];
+          return `https://${h}`;
+        }
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        if (isLocalhost) {
+          if (!this.slug || !this.theme) return '#';
+          return `/${this.theme}.html?site=${encodeURIComponent(this.slug)}`;
+        }
+        if (!this.slug) return '#';
+        const base = (cfg.appDomain || 'dfcms.pl').toLowerCase();
+        return `https://${this.slug}.${base}`;
       },
       get planDisplayLabel() {
         if (typeof window.DFOPS_planDisplayName === 'function') {
@@ -113,6 +124,7 @@
         this.user = null;
         this.content = null;
         this.pageId = null;
+        this.customDomainStatus = '';
         this.showDnsInstructions = false;
         this.showWizard = false;
         this.wizardStep = 0;
@@ -197,6 +209,7 @@
         this.slug = data.slug;
         this.theme = data.theme;
         this.customDomain = data.custom_domain || '';
+        this.customDomainStatus = data.custom_domain_status || '';
         this.content = window.DFOPS_normalizeContent(data.content, this.theme);
         this.currentTemplateVersion = Number(this.content.pl.settings.template_version || 1);
         this.updateAvailable = this.currentTemplateVersion < this.latestTemplateVersion;

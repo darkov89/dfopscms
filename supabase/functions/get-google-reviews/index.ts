@@ -4,40 +4,19 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 /** Deno global - available at runtime in Supabase Edge Functions. */
 declare const Deno: { env: { get: (k: string) => string | undefined } };
 
-const ALLOWED_ORIGINS = [
-  "https://dfcms.pl",
-  "https://www.dfcms.pl",
-  "http://localhost:8788",
-];
+export const corsHeaders: Record<string, string> = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
 
-function isLocalDevOrigin(origin: string): boolean {
-  try {
-    const u = new URL(origin);
-    if (u.protocol !== "http:" && u.protocol !== "https:") return false;
-    const h = u.hostname.toLowerCase();
-    return h === "localhost" || h === "127.0.0.1";
-  } catch {
-    return false;
-  }
-}
-
-function getCorsHeaders(origin: string | null): Record<string, string> {
-  const allowOrigin =
-    origin && (ALLOWED_ORIGINS.includes(origin) || isLocalDevOrigin(origin))
-      ? origin
-      : ALLOWED_ORIGINS[0];
-  return {
-    "content-type": "application/json; charset=utf-8",
-    "access-control-allow-origin": allowOrigin,
-    "access-control-allow-headers": "authorization, x-client-info, apikey, content-type",
-    "access-control-allow-methods": "POST, OPTIONS",
-  };
-}
-
-function jsonResponse(body: unknown, status = 200, origin: string | null = null) {
+function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: getCorsHeaders(origin),
+    headers: {
+      ...corsHeaders,
+      "content-type": "application/json; charset=utf-8",
+    },
   });
 }
 
@@ -163,14 +142,12 @@ function normalizeReview(r: ReviewRaw | null) {
 }
 
 serve(async (req) => {
-  const origin = req.headers.get("origin");
-
   if (req.method === "OPTIONS") {
-    return jsonResponse({ ok: true }, 200, origin);
+    return new Response("ok", { headers: corsHeaders });
   }
 
   if (req.method !== "POST") {
-    return jsonResponse({ ok: false, error: "Metoda nieobsługiwana." }, 405, origin);
+    return jsonResponse({ ok: false, error: "Metoda nieobsługiwana." }, 405);
   }
 
   const googleApiKey = Deno.env.get("GOOGLE_MAPS_API_KEY") || Deno.env.get("GOOGLE_API_KEY");
@@ -178,7 +155,7 @@ serve(async (req) => {
     return jsonResponse({
       ok: false,
       error: "Brak GOOGLE_MAPS_API_KEY w środowisku Edge Function.",
-    }, 500, origin);
+    }, 500);
   }
 
   let payload: {
@@ -191,14 +168,14 @@ serve(async (req) => {
   try {
     payload = (await req.json()) as typeof payload;
   } catch {
-    return jsonResponse({ ok: false, error: "Nieprawidłowe JSON w body." }, 400, origin);
+    return jsonResponse({ ok: false, error: "Nieprawidłowe JSON w body." }, 400);
   }
 
   /** Mapa: URL iframe (Maps Embed API). */
   if (typeof payload.embed_for_place_id === "string" && payload.embed_for_place_id.trim() !== "") {
     const placeId = sanitizePlaceIdForEmbed(payload.embed_for_place_id);
     if (!placeId) {
-      return jsonResponse({ ok: false, error: "Nieprawidłowe embed_for_place_id." }, 400, origin);
+      return jsonResponse({ ok: false, error: "Nieprawidłowe embed_for_place_id." }, 400);
     }
     const q = `place_id:${placeId}`;
     const embedUrl =
@@ -208,7 +185,7 @@ serve(async (req) => {
         q,
         zoom: "15",
       }).toString();
-    return jsonResponse({ ok: true, embedUrl }, 200, origin);
+    return jsonResponse({ ok: true, embedUrl }, 200);
   }
 
   /** Panel: lista miejsc do wyboru (Places searchText). */
@@ -216,7 +193,7 @@ serve(async (req) => {
     const listQuery = typeof payload.query === "string" ? payload.query.trim() : "";
     const maxResults = safePlacesListCount(payload?.maxResults, 8);
     if (!listQuery || listQuery.length < 2) {
-      return jsonResponse({ ok: false, error: "Podaj frazę (min. 2 znaki)." }, 400, origin);
+      return jsonResponse({ ok: false, error: "Podaj frazę (min. 2 znaki)." }, 400);
     }
 
     const searchTextUrl = "https://places.googleapis.com/v1/places:searchText";
@@ -256,7 +233,7 @@ serve(async (req) => {
         ok: false,
         stage: "places_list_parse",
         errorText: listText.slice(0, 500),
-      }, 502, origin);
+      }, 502);
     }
 
     if (!listSearchReq.ok) {
@@ -265,7 +242,7 @@ serve(async (req) => {
         stage: "places_list_searchText",
         httpStatus: listSearchReq.resp.status,
         errorText: listText.slice(0, 800),
-      }, 502, origin);
+      }, 502);
     }
 
     const rawPlaces = Array.isArray(listJson?.places) ? listJson.places : [];
@@ -288,14 +265,14 @@ serve(async (req) => {
       });
     }
 
-    return jsonResponse({ ok: true, places }, 200, origin);
+    return jsonResponse({ ok: true, places }, 200);
   }
 
   const query = typeof payload?.query === "string" ? payload.query.trim() : "";
   const maxReviews = safeToInt(payload?.maxReviews, 6);
 
   if (!query) {
-    return jsonResponse({ ok: false, error: "Brak parametru query." }, 400, origin);
+    return jsonResponse({ ok: false, error: "Brak parametru query." }, 400);
   }
 
   const searchTextUrl = "https://places.googleapis.com/v1/places:searchText";
@@ -320,7 +297,7 @@ serve(async (req) => {
       stage: "places_searchText",
       httpStatus: searchReq.resp.status,
       errorText: searchReq.text,
-    }, 502, origin);
+    }, 502);
   }
 
   const searchJson = (searchReq.json ?? {}) as PlaceSearchResponse;
@@ -339,7 +316,7 @@ serve(async (req) => {
         query,
         httpStatus: searchReq.resp.status,
       },
-    }, 200, origin);
+    }, 200);
   }
 
   const detailsUrl = `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`;
@@ -363,7 +340,7 @@ serve(async (req) => {
       placeId,
       httpStatus: detailsReq.resp.status,
       errorText: detailsReq.text,
-    }, 502, origin);
+    }, 502);
   }
 
   const detailsJson = (detailsReq.json ?? {}) as PlaceDetailsResponse;
@@ -400,5 +377,5 @@ serve(async (req) => {
     userRatingCount: Number.isFinite(userRatingCount) ? userRatingCount : null,
     reviews: normalized,
     debug: detailsError ? { detailsError } : undefined,
-  }, 200, origin);
+  }, 200);
 });

@@ -208,29 +208,74 @@
           console.warn('DFOPS resolveMapIframeFromPlace:', e);
         }
       },
+      getSiteSlug() {
+        const baseDomain = (cfg.appDomain || 'dfcms.pl').toLowerCase();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const siteParam = urlParams.get('site');
+        if (siteParam && String(siteParam).trim()) return String(siteParam).trim();
+
+        const hostname = window.location.hostname.replace(/^www\./, '').toLowerCase();
+
+        if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === baseDomain) {
+          return null;
+        }
+
+        if (hostname.endsWith(`.${baseDomain}`)) {
+          const slug = hostname.replace(`.${baseDomain}`, '');
+          return slug || null;
+        }
+
+        return hostname;
+      },
+      /** URL do właściwego pliku szablonu (zachowanie hosta: subdomena / custom / apex z ?site=). */
+      buildThemePageUrl(page) {
+        const baseDomain = (cfg.appDomain || 'dfcms.pl').toLowerCase();
+        const host = window.location.hostname.replace(/^www\./, '').toLowerCase();
+        const isLocal = (cfg.localHosts || []).includes(window.location.hostname);
+        const theme = page.theme;
+        const slug = page.slug;
+        if (!theme || !slug) return `${window.location.origin}/${theme || 'setup'}.html`;
+
+        if (isLocal) {
+          return `${window.location.origin}/${theme}.html?site=${encodeURIComponent(slug)}`;
+        }
+
+        if (host.endsWith(`.${baseDomain}`) && host !== baseDomain) {
+          return `${window.location.protocol}//${window.location.host}/${theme}.html`;
+        }
+
+        if (host !== baseDomain && host !== 'localhost' && host !== '127.0.0.1' && !host.endsWith(`.${baseDomain}`)) {
+          return `${window.location.protocol}//${window.location.host}/${theme}.html`;
+        }
+
+        return `${window.location.origin}/${theme}.html?site=${encodeURIComponent(slug)}`;
+      },
       async init() {
         try {
-          const url = new URL(window.location.href);
-          const urlParams = url.searchParams;
+          const urlParams = new URLSearchParams(window.location.search);
           const hostname = window.location.hostname.replace(/^www\./, '').toLowerCase();
+          const baseDomain = (cfg.appDomain || 'dfcms.pl').toLowerCase();
+          const hasSiteParam = urlParams.has('site') && urlParams.get('site')?.trim();
+          const onTenantSubdomain = hostname.endsWith(`.${baseDomain}`) && hostname !== baseDomain;
+
+          this.slug = this.getSiteSlug();
+          if (!this.slug) throw new Error('Brak identyfikatora strony');
 
           let page = null;
-          if (!urlParams.has('site') && !cfg.localHosts.includes(hostname) && hostname !== cfg.appDomain) {
-            const { data, error } = await repo.getPageByCustomDomain(hostname);
-            if (error) throw error;
-            page = data;
-          } else if (urlParams.has('site') && urlParams.get('site')?.trim()) {
-            const currentSlug = urlParams.get('site').trim();
-            const { data, error } = await repo.getPageBySlug(currentSlug);
+          if (hasSiteParam || onTenantSubdomain) {
+            const { data, error } = await repo.getPageBySlug(this.slug);
             if (error) throw error;
             page = data;
           } else {
-            throw new Error('Brak parametru site');
+            const { data, error } = await repo.getPageByCustomDomain(hostname);
+            if (error) throw error;
+            page = data;
           }
 
           if (!page) throw new Error('Brak strony');
           if (expectedTheme && page.theme && page.theme !== expectedTheme) {
-            window.location.replace(`${page.theme}.html?site=${encodeURIComponent(page.slug)}`);
+            window.location.replace(this.buildThemePageUrl(page));
             return;
           }
 
@@ -251,6 +296,7 @@
           this.bazaBlad = true;
         }
       },
+
     };
   }
 
