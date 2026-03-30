@@ -2,6 +2,9 @@
  * Cloudflare Pages — globalny middleware (SEO + HTMLRewriter + Supabase).
  * Zmienne: SUPABASE_URL, SUPABASE_ANON_KEY
  * Opcjonalnie: SEO_DEBUG=1 — wstrzyknie <meta name="dfops-debug" …> (tylko diagnostyka).
+ *
+ * Znak wodny DFOPSCMS (trial / tier0) jest doklejany po stronie klienta w publicSiteApp.js
+ * (Shadow DOM), po załadowaniu treści — nie w tym middleware.
  */
 
 const STATIC_EXT = /\.(css|js|mjs|png|jpg|jpeg|gif|svg|ico|webp|woff2?|ttf|eot|map|json|xml|txt|pdf|webmanifest)$/i;

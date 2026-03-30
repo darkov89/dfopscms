@@ -2,6 +2,13 @@
   const APP_CONFIG = {
     supabaseUrl: 'https://tawywecinkubmouyprab.supabase.co',
     supabaseAnonKey: 'sb_publishable_b-y5BLfAZBNnPdjhFx61Tw_NP_FI1Sp',
+    /** Opcjonalny URL (np. Edge Function) do zapisu zdarzeń DFOPS_trackEvent — może zostać puste. */
+    analyticsEndpoint: '',
+    /**
+     * Tabela w Supabase pod zdarzenia DFOPS_trackEvent (kolumny: user_id, event_name, created_at).
+     * Puste = bez zapisu do bazy. Nazwa musi zgadzać się z tabelą w projekcie.
+     */
+    analyticsTable: 'analytics_events',
     appDomain: 'dfcms.pl',
     systemDomains: ['dfcms.pl', 'localhost', '127.0.0.1'],
     localHosts: ['localhost', '127.0.0.1'],
@@ -16,6 +23,7 @@
       'forest-mint': '#4FBDAA',
     },
     presetsByTheme: {
+      setup: [{ id: 'gold', label: 'Gold' }],
       consultant: [
         { id: 'gold', label: 'Gold (premium)' },
         { id: 'navy', label: 'Navy (biznes)' },
@@ -58,6 +66,7 @@
       upgradeMessage: 3500,
     },
     bundlesByTheme: {
+      setup: [],
       consultant: [
         { id: 'consultant-premium', label: 'Premium Gold', color_preset: 'gold', background_style: 'glow', font_preset: 'inter' },
         { id: 'consultant-navy', label: 'Navy Modern', color_preset: 'navy', background_style: 'clean', font_preset: 'inter' },

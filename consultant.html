@@ -41,6 +41,7 @@
     <script defer src="js/core/contentUpgrader.js"></script>
     <script defer src="js/core/themeStyling.js"></script>
     <script defer src="js/core/pageRepository.js"></script>
+    <script defer src="js/core/planUtils.js"></script>
     <script defer src="js/features/publicSiteApp.js"></script>
     <script defer src="js/features/googleReviewsApp.js"></script>
     <script defer src="js/features/cookieConsentApp.js"></script>
@@ -446,13 +447,13 @@
                                     </div>
                                 </template>
 
-                                <template x-if="content[lang].contact?.map_embed_url">
+                                <template x-if="content[lang].contact?.map_embed_url || mapIframeSrc">
                                     <div class="w-full md:w-[320px] max-w-full rounded-xl overflow-hidden border border-sattva-text/20 shadow-sm aspect-[4/3]">
                                         <iframe
                                             class="w-full h-full"
                                             loading="lazy"
                                             referrerpolicy="no-referrer-when-downgrade"
-                                            :src="content[lang].contact.map_embed_url">
+                                            :src="content[lang].contact.map_embed_url || mapIframeSrc">
                                         </iframe>
                                     </div>
                                 </template>

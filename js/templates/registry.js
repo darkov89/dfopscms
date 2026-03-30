@@ -3,11 +3,53 @@
   const LATEST_TEMPLATE_VERSION = 3;
 
   const TEMPLATE_LABELS = {
+    setup: { name: 'Konfiguracja', desc: 'Widok startowy do czasu ukończenia kreatora' },
     beauty: { name: 'Beauty & Wellness', desc: 'Idealny dla salonów, spa, fizjoterapii i branży usługowej' },
     consultant: { name: 'Coaching & Biznes', desc: 'Stworzony dla trenerów, konsultantów, agencji i freelancerów' }
   };
 
   const templatesV3 = {
+    setup: {
+      pl: {
+        nav: { logo: 'DFCMS', cta: '', logoImage: '' },
+        hero: {
+          name: '',
+          headline: 'Twoja strona jest już prawie gotowa!',
+          subheadline: '',
+          description:
+            'Właśnie trwają prace nad konfiguracją Twojego serwisu. Jeśli jesteś właścicielem, zaloguj się do panelu admina, aby uruchomić Kreator Magii.',
+          button: '',
+          image: '',
+          qrText: '',
+          qrImage: '',
+        },
+        manifesto: { label: '', title: '', text: '' },
+        services: [],
+        faq: [],
+        contact: { email: '', phone: '', address: '', booksyUrl: '', map_embed_url: '', map_place_id: '' },
+        social: { facebook: '', instagram: '', tiktok: '' },
+        google_reviews: { embed_url: '', place_query: '', max_reviews: 6, title: 'Opinie z Google' },
+        gallery: { title: 'Nasze realizacje', images: [] },
+        seo: {
+          title: 'Strona w budowie — DFCMS',
+          description: 'Trwa konfiguracja serwisu. Właściciel może zalogować się do panelu i dokończyć stronę w Kreatorze.',
+          ogImage: '',
+        },
+        legal: { enabled: false, privacy_policy: '', terms: '' },
+        settings: {
+          template_version: 3,
+          color_preset: 'gold',
+          subscription: { plan: 'trial', trial_started_at: new Date().toISOString() },
+          background_style: 'glow',
+          font_preset: 'inter',
+          showManifesto: false,
+          showServices: false,
+          showFaq: false,
+          showContact: false,
+          onboarding_completed: false,
+        },
+      },
+    },
     consultant: {
       pl: {
         nav: { logo: "Ekspert", cta: "", logoImage: "" },
@@ -24,7 +66,7 @@
         proof: { label: "", title: "", text: "", statNumber: "", statLabel: "", statDesc: "" },
         faq: [],
         reviews: [],
-        contact: { email: "", phone: "", address: "", map_embed_url: "" },
+        contact: { email: "", phone: "", address: "", map_embed_url: "", map_place_id: "" },
         social: { linkedin: "", facebook: "", instagram: "", tiktok: "" },
         google_reviews: { embed_url: "", place_query: "", max_reviews: 6, title: "Opinie z Google" },
         gallery: { title: "Nasze realizacje", images: [] },
@@ -49,7 +91,8 @@
           showProof: true,
           showFaq: true,
           showReviews: true,
-          showContact: true
+          showContact: true,
+          onboarding_completed: false
         }
       }
     },
@@ -65,7 +108,7 @@
         manifesto: { label: "O nas", title: "Kilka słów", text: "" },
         services: [],
         faq: [],
-        contact: { phone: "", email: "", address: "", booksyUrl: "", map_embed_url: "" },
+        contact: { phone: "", email: "", address: "", booksyUrl: "", map_embed_url: "", map_place_id: "" },
         social: { facebook: "", instagram: "", tiktok: "" },
         google_reviews: { embed_url: "", place_query: "", max_reviews: 6, title: "Opinie z Google" },
         gallery: { title: "Nasze realizacje", images: [] },
@@ -85,7 +128,8 @@
           template_version: 3,
           color_preset: "beige",
           background_style: "soft",
-          font_preset: "poppins"
+          font_preset: "poppins",
+          onboarding_completed: false
         }
       }
     }

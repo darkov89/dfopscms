@@ -28,6 +28,9 @@
     if (!normalized.pl.settings.template_version) {
       normalized.pl.settings.template_version = window.DFOPS_LATEST_TEMPLATE_VERSION || 1;
     }
+    if (normalized.pl.settings.onboarding_completed === undefined) {
+      normalized.pl.settings.onboarding_completed = false;
+    }
     return normalized;
   }
 

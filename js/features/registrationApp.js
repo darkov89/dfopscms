@@ -10,16 +10,10 @@
       slugStatus: 'idle',
       slugCheckTimer: null,
       accepted: false,
-      form: { theme: 'consultant', color_preset: 'gold', email: '', password: '', slug: '' },
-      get availablePresets() { return cfg.presetsByTheme[this.form.theme] || []; },
-      get accentColor() { return cfg.accentByPreset[this.form.color_preset] || '#D4AF37'; },
+      form: { email: '', password: '', slug: '' },
 
       init() {
         this.supabase = window.DFOPS_getSupabaseClient();
-        this.$watch('form.theme', (t) => {
-          const first = (cfg.presetsByTheme[t] || [])[0]?.id;
-          if (first && !this.availablePresets.some((p) => p.id === this.form.color_preset)) this.form.color_preset = first;
-        });
       },
 
       formatSlug() {
@@ -41,9 +35,9 @@
         return available;
       },
       buildInitialContent() {
-        const c = window.DFOPS_getTemplate(this.form.theme);
-        c.pl.settings.color_preset = this.form.color_preset;
-        c.pl.settings.template_version = window.DFOPS_LATEST_TEMPLATE_VERSION || c.pl.settings.template_version || 1;
+        const theme = 'setup';
+        const c = window.DFOPS_getTemplate(theme);
+        c.pl.settings.template_version = window.DFOPS_LATEST_TEMPLATE_VERSION || c.pl.settings.template_version || 3;
         c.pl.settings.subscription = {
           plan: 'trial',
           trial_started_at: new Date().toISOString(),
@@ -67,11 +61,14 @@
           if (authError) throw authError;
           if (!authData?.user?.id) throw new Error('Nie udało się utworzyć użytkownika.');
 
+          const content = this.buildInitialContent();
+          const colorPreset = content.pl.settings.color_preset;
+
           const { error: dbError } = await repo.createPage({
             slug: this.form.slug,
-            theme: this.form.theme,
-            color_preset: this.form.color_preset,
-            content: this.buildInitialContent(),
+            theme: 'setup',
+            color_preset: colorPreset,
+            content,
             user_id: authData.user.id,
           });
           if (dbError) throw dbError;

@@ -1,4 +1,61 @@
 ;(function () {
+  class DFCMSWatermark extends HTMLElement {
+    constructor() {
+      super();
+      const shadow = this.attachShadow({ mode: 'closed' });
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = `
+            <style>
+                .dfcms-badge {
+                    position: fixed !important;
+                    bottom: 16px !important;
+                    right: 16px !important;
+                    background: #121212 !important;
+                    color: #D4AF37 !important;
+                    padding: 8px 12px !important;
+                    font-family: system-ui, -apple-system, sans-serif !important;
+                    font-size: 11px !important;
+                    font-weight: 800 !important;
+                    letter-spacing: 0.1em !important;
+                    text-transform: uppercase !important;
+                    border-radius: 4px !important;
+                    text-decoration: none !important;
+                    z-index: 2147483647 !important;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+                    transition: transform 0.2s ease, background 0.2s ease !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    gap: 6px !important;
+                    pointer-events: auto !important;
+                }
+                .dfcms-badge:hover { background: #000 !important; transform: translateY(-2px) !important; }
+            </style>
+            <a href="https://dfcms.pl?ref=watermark" target="_blank" rel="noopener noreferrer" class="dfcms-badge">⚡ Stworzono w DFOPSCMS</a>
+        `;
+      shadow.appendChild(wrapper);
+    }
+  }
+  if (!customElements.get('dfcms-watermark')) {
+    customElements.define('dfcms-watermark', DFCMSWatermark);
+  }
+
+  function initWatermark(plan) {
+    const show =
+      typeof window.DFOPS_planShowsWatermark === 'function'
+        ? window.DFOPS_planShowsWatermark(plan)
+        : (plan || 'trial') === 'trial' || (plan || 'trial') === 'tier0';
+    if (show) {
+      if (!document.querySelector('dfcms-watermark')) {
+        document.body.appendChild(document.createElement('dfcms-watermark'));
+      }
+    } else {
+      const badge = document.querySelector('dfcms-watermark');
+      if (badge) badge.remove();
+    }
+  }
+
+  window.DFOPS_initWatermark = initWatermark;
+
   function extractEmbedUrl(rawValue) {
     if (!rawValue) return '';
     let value = String(rawValue).trim();
@@ -118,12 +175,38 @@
       bazaBlad: false,
       theme: expectedTheme,
       slug: null,
+      /** URL iframe z get-google-reviews (embed_for_place_id), gdy brak map_embed_url. */
+      mapIframeSrc: '',
       activeModal: null,
       openModal(type) {
         this.activeModal = type;
       },
       closeModal() {
         this.activeModal = null;
+      },
+      async resolveMapIframeFromPlace() {
+        this.mapIframeSrc = '';
+        const c = this.content?.[this.lang]?.contact;
+        if (!c) return;
+        if (String(c.map_embed_url || '').trim()) return;
+        const pid = String(c.map_place_id || '').trim();
+        if (!pid) return;
+        if (!cfg.supabaseAnonKey) return;
+        try {
+          const sb = window.DFOPS_getSupabaseClient();
+          const { data, error } = await sb.functions.invoke('get-google-reviews', {
+            body: { embed_for_place_id: pid },
+          });
+          if (error) {
+            console.warn('DFOPS map embed:', error.message || error);
+            return;
+          }
+          if (data?.ok && typeof data.embedUrl === 'string' && data.embedUrl.startsWith('https://')) {
+            this.mapIframeSrc = data.embedUrl;
+          }
+        } catch (e) {
+          console.warn('DFOPS resolveMapIframeFromPlace:', e);
+        }
       },
       async init() {
         try {
@@ -161,6 +244,8 @@
           this.lang = this.content[userLang] ? userLang : (Object.keys(this.content)[0] || 'pl');
 
           applyDocumentSeo(this.content, this.lang);
+          initWatermark(this.content?.pl?.settings?.subscription?.plan);
+          await this.resolveMapIframeFromPlace();
         } catch (error) {
           console.error('Błąd krytyczny aplikacji:', error);
           this.bazaBlad = true;

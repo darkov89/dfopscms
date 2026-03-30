@@ -10,9 +10,22 @@ const ALLOWED_ORIGINS = [
   "http://localhost:8788",
 ];
 
+function isLocalDevOrigin(origin: string): boolean {
+  try {
+    const u = new URL(origin);
+    if (u.protocol !== "http:" && u.protocol !== "https:") return false;
+    const h = u.hostname.toLowerCase();
+    return h === "localhost" || h === "127.0.0.1";
+  } catch {
+    return false;
+  }
+}
+
 function getCorsHeaders(origin: string | null): Record<string, string> {
   const allowOrigin =
-    origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+    origin && (ALLOWED_ORIGINS.includes(origin) || isLocalDevOrigin(origin))
+      ? origin
+      : ALLOWED_ORIGINS[0];
   return {
     "content-type": "application/json; charset=utf-8",
     "access-control-allow-origin": allowOrigin,
@@ -31,6 +44,29 @@ function jsonResponse(body: unknown, status = 200, origin: string | null = null)
 function safeToInt(v: unknown, fallback: number) {
   const n = typeof v === "number" ? v : Number(v);
   return Number.isFinite(n) ? Math.max(1, Math.min(20, Math.floor(n))) : fallback;
+}
+
+function safePlacesListCount(v: unknown, fallback: number) {
+  const n = typeof v === "number" ? v : Number(v);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(1, Math.min(15, Math.floor(n)));
+}
+
+function normalizePlaceIdForList(raw: string): string {
+  const s = raw.trim();
+  if (!s) return "";
+  return s.startsWith("places/") ? s.slice("places/".length) : s;
+}
+
+/** place_id pod Maps Embed API */
+function sanitizePlaceIdForEmbed(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  let s = raw.trim();
+  if (!s) return null;
+  if (s.startsWith("places/")) s = s.slice("places/".length);
+  if (s.length > 512 || s.length < 4) return null;
+  if (/[<>'"&\s]/.test(s)) return null;
+  return s;
 }
 
 async function readResponseAsJsonOrText(resp: Response) {
@@ -145,11 +181,114 @@ serve(async (req) => {
     }, 500, origin);
   }
 
-  let payload: { query?: string; maxReviews?: unknown } = {};
+  let payload: {
+    query?: string;
+    maxReviews?: unknown;
+    maxResults?: unknown;
+    listPlaces?: boolean;
+    embed_for_place_id?: string;
+  } = {};
   try {
     payload = (await req.json()) as typeof payload;
   } catch {
     return jsonResponse({ ok: false, error: "Nieprawidłowe JSON w body." }, 400, origin);
+  }
+
+  /** Mapa: URL iframe (Maps Embed API). */
+  if (typeof payload.embed_for_place_id === "string" && payload.embed_for_place_id.trim() !== "") {
+    const placeId = sanitizePlaceIdForEmbed(payload.embed_for_place_id);
+    if (!placeId) {
+      return jsonResponse({ ok: false, error: "Nieprawidłowe embed_for_place_id." }, 400, origin);
+    }
+    const q = `place_id:${placeId}`;
+    const embedUrl =
+      `https://www.google.com/maps/embed/v1/place?` +
+      new URLSearchParams({
+        key: googleApiKey,
+        q,
+        zoom: "15",
+      }).toString();
+    return jsonResponse({ ok: true, embedUrl }, 200, origin);
+  }
+
+  /** Panel: lista miejsc do wyboru (Places searchText). */
+  if (payload.listPlaces === true) {
+    const listQuery = typeof payload.query === "string" ? payload.query.trim() : "";
+    const maxResults = safePlacesListCount(payload?.maxResults, 8);
+    if (!listQuery || listQuery.length < 2) {
+      return jsonResponse({ ok: false, error: "Podaj frazę (min. 2 znaki)." }, 400, origin);
+    }
+
+    const searchTextUrl = "https://places.googleapis.com/v1/places:searchText";
+    const listSearchReq = await fetchWithTimeout(
+      searchTextUrl,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "X-Goog-Api-Key": googleApiKey,
+          "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress",
+        },
+        body: JSON.stringify({
+          textQuery: listQuery,
+          maxResultCount: maxResults,
+        }),
+      },
+      12000,
+    );
+
+    const listText = listSearchReq.text;
+    let listJson: {
+      places?: Array<{
+        id?: string;
+        displayName?: { text?: string } | string;
+        formattedAddress?: string;
+      }>;
+      error?: { message?: string };
+      message?: string;
+    };
+    try {
+      listJson = listSearchReq.json
+        ? (listSearchReq.json as typeof listJson)
+        : (JSON.parse(listText) as typeof listJson);
+    } catch {
+      return jsonResponse({
+        ok: false,
+        stage: "places_list_parse",
+        errorText: listText.slice(0, 500),
+      }, 502, origin);
+    }
+
+    if (!listSearchReq.ok) {
+      return jsonResponse({
+        ok: false,
+        stage: "places_list_searchText",
+        httpStatus: listSearchReq.resp.status,
+        errorText: listText.slice(0, 800),
+      }, 502, origin);
+    }
+
+    const rawPlaces = Array.isArray(listJson?.places) ? listJson.places : [];
+    const places: { id: string; name: string; address: string }[] = [];
+    for (const p of rawPlaces) {
+      const rawId = typeof p?.id === "string" ? p.id : "";
+      const id = normalizePlaceIdForList(rawId);
+      if (!id) continue;
+      const name =
+        typeof p?.displayName === "object" && p.displayName?.text
+          ? String(p.displayName.text)
+          : typeof p?.displayName === "string"
+          ? p.displayName
+          : "";
+      const address = typeof p?.formattedAddress === "string" ? p.formattedAddress : "";
+      places.push({
+        id,
+        name: name || address || id,
+        address,
+      });
+    }
+
+    return jsonResponse({ ok: true, places }, 200, origin);
   }
 
   const query = typeof payload?.query === "string" ? payload.query.trim() : "";

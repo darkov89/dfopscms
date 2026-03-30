@@ -13,11 +13,242 @@
     <script defer src="js/core/contentUpgrader.js"></script>
     <script defer src="js/core/themeStyling.js"></script>
     <script defer src="js/core/pageRepository.js"></script>
+    <script defer src="js/core/planUtils.js"></script>
+    <script defer src="js/core/analytics.js"></script>
     <script defer src="js/features/adminApp.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col" x-data="createAdminApp()">
+
+    <div x-show="showWizard" x-cloak class="fixed inset-0 z-[100] bg-gray-50 overflow-y-auto" x-transition.opacity>
+        <div x-show="wizardStep === 0" class="min-h-screen flex flex-col items-center justify-center p-6 max-w-5xl mx-auto" x-transition>
+            <div class="text-center mb-12">
+                <h1 class="text-4xl font-black tracking-widest text-gray-900 mb-4">WITAJ W DFOPS<span class="text-[#D4AF37]">CMS</span></h1>
+                <p class="text-gray-500 max-w-xl mx-auto text-lg">Jak chcesz stworzyć swoją nową stronę? Wybierz ścieżkę, która najbardziej Ci odpowiada.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
+                <button type="button" @click="startWizard()" class="group text-left bg-white p-10 rounded-xl shadow-xl border-2 border-transparent hover:border-[#D4AF37] transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="w-16 h-16 bg-amber-50 text-[#D4AF37] rounded-full flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-3 uppercase tracking-widest">Kreator Magii</h2>
+                    <p class="text-gray-500 mb-6 leading-relaxed">Cztery krótkie kroki (styl, marka, hero, kontakt) — zbudujemy solidne fundamenty Twojej strony.</p>
+                    <span class="text-[#D4AF37] font-bold text-sm uppercase tracking-widest flex items-center gap-2 group-hover:translate-x-2 transition-transform">
+                        Rozpocznij krok po kroku <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </span>
+                </button>
+
+                <button type="button" @click="skipWizard()" class="group text-left bg-white p-10 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300">
+                    <div class="w-16 h-16 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-3 uppercase tracking-widest">Tryb Ninja</h2>
+                    <p class="text-gray-500 mb-6 leading-relaxed">Pomiń kreator. Wiem co robię, przenieś mnie bezpośrednio do pełnego panelu administracyjnego, gdzie sam uzupełnię wszystkie dane.</p>
+                    <span class="text-gray-900 font-bold text-sm uppercase tracking-widest flex items-center gap-2 group-hover:translate-x-2 transition-transform">
+                        Przejdź do Panelu <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </span>
+                </button>
+            </div>
+        </div>
+
+        <div x-show="wizardStep >= 1 && wizardStep <= 4" class="min-h-screen p-6 max-w-2xl mx-auto flex flex-col justify-center" x-transition.opacity>
+            <div class="mb-8">
+                <div class="flex justify-between text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
+                    <span>Krok <span x-text="wizardStep"></span> z 4</span>
+                    <button type="button" @click="skipWizard()" class="hover:text-gray-900 transition-colors">Pomiń Kreator ✕</button>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                    <div class="bg-[#D4AF37] h-1.5 rounded-full transition-all duration-500" :style="'width: ' + ((wizardStep / 4) * 100) + '%'"></div>
+                </div>
+            </div>
+
+            <div x-show="wizardFieldWarning" class="mb-4 p-3 rounded-sm bg-amber-50 border border-amber-200 text-amber-900 text-sm" x-text="wizardFieldWarning"></div>
+
+            <div class="bg-white p-10 rounded-xl shadow-2xl border border-gray-100">
+                <div x-show="wizardStep === 1" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+                    <h2 class="text-3xl font-black text-gray-900 mb-2">Wybierz swój styl 🎨</h2>
+                    <p class="text-sm text-gray-500 mb-8">Od tego zaczniemy. Nie martw się — zmienisz to później w ustawieniach.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label class="relative block cursor-pointer group">
+                            <input type="radio" x-model="wizardTheme" value="beauty" class="peer sr-only">
+                            <div class="border-2 border-gray-200 rounded-xl overflow-hidden peer-checked:border-[#D4AF37] peer-checked:ring-2 peer-checked:ring-[#D4AF37] transition-all">
+                                <div class="h-32 bg-pink-50 relative flex items-center justify-center">
+                                    <span class="text-pink-300 font-bold text-xl uppercase tracking-widest">BEAUTY</span>
+                                </div>
+                                <div class="p-4 bg-white">
+                                    <h3 class="font-bold text-gray-900">Salon Urody</h3>
+                                    <p class="text-xs text-gray-500 mt-1">Dla kosmetyczek, spa i fryzjerów.</p>
+                                </div>
+                            </div>
+                            <div class="absolute top-2 right-2 w-6 h-6 bg-[#D4AF37] text-white rounded-full flex items-center justify-center opacity-0 peer-checked:opacity-100 transition-opacity shadow-md pointer-events-none">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                        </label>
+
+                        <label class="relative block cursor-pointer group">
+                            <input type="radio" x-model="wizardTheme" value="consultant" class="peer sr-only">
+                            <div class="border-2 border-gray-200 rounded-xl overflow-hidden peer-checked:border-[#D4AF37] peer-checked:ring-2 peer-checked:ring-[#D4AF37] transition-all">
+                                <div class="h-32 bg-blue-50 relative flex items-center justify-center">
+                                    <span class="text-blue-300 font-bold text-xl uppercase tracking-widest">BIZNES</span>
+                                </div>
+                                <div class="p-4 bg-white">
+                                    <h3 class="font-bold text-gray-900">Konsultant</h3>
+                                    <p class="text-xs text-gray-500 mt-1">Dla doradców, prawników i freelancerów.</p>
+                                </div>
+                            </div>
+                            <div class="absolute top-2 right-2 w-6 h-6 bg-[#D4AF37] text-white rounded-full flex items-center justify-center opacity-0 peer-checked:opacity-100 transition-opacity shadow-md pointer-events-none">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div x-show="wizardStep === 2" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+                    <h2 class="text-3xl font-black text-gray-900 mb-2">Podstawy Twojej Marki 💅</h2>
+                    <p class="text-sm text-gray-500 mb-8">Zacznijmy od najważniejszego. Jak klienci mają Cię zapamiętać?</p>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Nazwa Twojego biznesu</label>
+                            <input type="text" x-model="content.pl.nav.logo" placeholder="np. Studio Urody Glamour" class="w-full border border-gray-300 rounded-sm px-4 py-4 text-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Główny kolor strony</label>
+                            <select x-model="content.pl.settings.color_preset" @change="applyThemeStylingFromContent()" class="w-full border border-gray-300 rounded-sm px-4 py-4 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white text-lg">
+                                <template x-for="p in availablePresets" :key="p.id">
+                                    <option :value="p.id" x-text="p.label"></option>
+                                </template>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Logo Twojej marki</label>
+                        <div class="flex items-center gap-4">
+                            <div class="w-20 h-12 bg-gray-100 border-2 border-dashed border-gray-300 rounded flex items-center justify-center overflow-hidden">
+                                <template x-if="content.pl.nav.logoImage"><img :src="content.pl.nav.logoImage" class="h-full object-contain" alt=""></template>
+                                <template x-if="!content.pl.nav.logoImage"><span class="text-[10px] text-gray-400">BRAK</span></template>
+                            </div>
+                            <input type="file" accept="image/*" @change="uploadImage($event, 'nav', 'logoImage')" class="text-xs">
+                        </div>
+                    </div>
+                </div>
+
+                <div x-show="wizardStep === 3" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+                    <h2 class="text-3xl font-black text-gray-900 mb-2">Pierwsze wrażenie ✨</h2>
+                    <p class="text-sm text-gray-500 mb-8">To sekcja widoczna od razu po wejściu na stronę. Zróbmy z niej wizytówkę.</p>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Główne hasło (Nagłówek)</label>
+                            <input type="text" x-model="content.pl.hero.headline" placeholder="np. Odkryj swoje naturalne piękno" class="w-full border border-gray-300 rounded-sm px-4 py-4 font-bold text-xl focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Krótki opis</label>
+                            <textarea x-model="content.pl.hero.description" rows="3" placeholder="Zajmujemy się profesjonalną kosmetologią..." class="w-full border border-gray-300 rounded-sm px-4 py-4 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white resize-none"></textarea>
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Zdjęcie główne (tło)</label>
+                        <div class="flex items-center gap-4">
+                            <div class="w-20 h-20 bg-gray-100 border-2 border-dashed border-gray-300 rounded flex items-center justify-center overflow-hidden">
+                                <template x-if="content.pl.hero.image"><img :src="content.pl.hero.image" class="w-full h-full object-cover" alt=""></template>
+                                <template x-if="!content.pl.hero.image"><span class="text-[10px] text-gray-400">BRAK</span></template>
+                            </div>
+                            <input type="file" accept="image/*" @change="uploadImage($event, 'hero', 'image')" class="text-xs">
+                        </div>
+                    </div>
+                </div>
+
+                <div x-show="wizardStep === 4" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+                    <h2 class="text-3xl font-black text-gray-900 mb-2">Złapmy kontakt 📞</h2>
+                    <p class="text-sm text-gray-500 mb-8">Jak nowi klienci mogą się z Tobą umówić?</p>
+
+                    <div class="space-y-6">
+                        <template x-if="content.pl.contact">
+                            <div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Numer telefonu</label>
+                                        <input type="text" x-model="content.pl.contact.phone" placeholder="+48 000 000 000" class="w-full border border-gray-300 rounded-sm px-4 py-4 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none text-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">E-mail</label>
+                                        <input type="email" x-model="content.pl.contact.email" placeholder="kontakt@mojsalon.pl" class="w-full border border-gray-300 rounded-sm px-4 py-4 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none text-lg">
+                                    </div>
+                                </div>
+                                <div class="mt-6 space-y-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Adres stacjonarny</label>
+                                        <input type="text" x-model="content.pl.contact.address" placeholder="ul. Piękna 12, Warszawa" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Mapa Google</label>
+                                        <p class="text-xs text-gray-500 mb-3">Wpisz nazwę firmy lub adres, kliknij Szukaj, wybierz wynik i zatwierdź.</p>
+                                        <div class="flex gap-2 mb-3">
+                                            <input type="text" x-model="mapPlaceQuery" @keydown.enter.prevent="searchPlacesForMap()" placeholder="np. Przychodnia, Wrocław" class="flex-1 border border-gray-300 rounded-sm px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#D4AF37]">
+                                            <button type="button" @click="searchPlacesForMap()" :disabled="mapPlaceLoading" class="shrink-0 px-4 py-2 bg-[#121212] text-white text-xs font-bold uppercase rounded-sm disabled:opacity-50">Szukaj</button>
+                                        </div>
+                                        <p x-show="mapPlaceError" class="text-xs text-red-600 mb-2" x-text="mapPlaceError"></p>
+                                        <div x-show="mapPlaceLoading" class="text-xs text-gray-500 mb-2">Szukam…</div>
+                                        <ul x-show="mapPlaceResults.length" class="border border-gray-200 rounded-sm divide-y divide-gray-100 max-h-48 overflow-y-auto mb-3">
+                                            <template x-for="p in mapPlaceResults" :key="p.id">
+                                                <li class="flex items-start gap-2 p-2 hover:bg-gray-50 cursor-pointer" @click="mapPlaceSelectedId = p.id">
+                                                    <input type="radio" :value="p.id" x-model="mapPlaceSelectedId" class="mt-1">
+                                                    <div class="min-w-0">
+                                                        <div class="text-sm font-medium text-gray-900" x-text="p.name"></div>
+                                                        <div class="text-xs text-gray-500" x-text="p.address"></div>
+                                                    </div>
+                                                </li>
+                                            </template>
+                                        </ul>
+                                        <div class="flex flex-wrap gap-2 mb-3">
+                                            <button type="button" x-show="mapPlaceSelectedId" @click="confirmMapPlaceSelection()" class="px-4 py-2 bg-emerald-600 text-white text-xs font-bold uppercase rounded-sm">Użyj wybranej lokalizacji</button>
+                                            <button type="button" x-show="content.pl.contact?.map_place_id" @click="clearMapPlaceSelection()" class="px-4 py-2 border border-gray-300 text-xs font-bold uppercase rounded-sm">Usuń mapę z wyszukiwarki</button>
+                                        </div>
+                                        <p x-show="content.pl.contact?.map_place_id" class="text-xs text-emerald-800 mb-3">Lokalizacja zapisana — opublikuj stronę. W Google Cloud włącz <strong>Maps Embed API</strong> (ten sam projekt co Places).</p>
+                                        <details class="text-xs text-gray-600 border-t border-gray-100 pt-3">
+                                            <summary class="cursor-pointer font-bold text-gray-700 mb-2">Zaawansowane: własny URL / iframe</summary>
+                                            <input type="text" x-model="content.pl.contact.map_embed_url" placeholder="https://www.google.com/maps/embed?..." class="w-full border border-gray-300 rounded-sm px-3 py-2 outline-none focus:ring-2 focus:ring-[#D4AF37]">
+                                            <p class="mt-2 text-gray-500">Jeśli to pole jest wypełnione, ma pierwszeństwo przed wyszukiwarką.</p>
+                                        </details>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <div class="mt-10 pt-6 border-t border-gray-100 flex items-center justify-between gap-4">
+                    <div class="min-h-[44px] flex items-center">
+                        <button type="button" @click="prevWizardStep()" x-show="wizardStep > 1" class="text-xs font-bold text-gray-500 hover:text-gray-900 uppercase tracking-widest px-4 py-2 transition-colors">← Wróć</button>
+                    </div>
+                    <div class="flex items-center justify-end gap-3 flex-1">
+                        <button type="button" @click="nextWizardStep()" x-show="wizardStep < 4" class="bg-[#121212] hover:bg-[#D4AF37] hover:text-[#121212] text-white px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-md">
+                            Dalej →
+                        </button>
+                        <button type="button" @click="finishWizard()" x-show="wizardStep === 4" class="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-xl shadow-emerald-500/20 animate-pulse">
+                            ✨ Opublikuj moją stronę
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div x-show="showWizard && wizardStep === 5" class="min-h-screen p-6 max-w-lg mx-auto flex flex-col justify-center" x-transition.opacity>
+            <div class="bg-white p-10 rounded-xl shadow-2xl border border-gray-100 text-center">
+                <p class="text-xs font-bold text-[#D4AF37] uppercase tracking-widest mb-3">Gratulacje</p>
+                <h2 class="text-2xl font-black text-gray-900 mb-3">Twoja strona jest zapisana</h2>
+                <p class="text-sm text-gray-600 mb-6 leading-relaxed">Możesz ją dopracować w zakładkach po lewej. Zacznij od sekcji Hero albo zobacz podgląd na żywo.</p>
+                <a :href="previewSiteUrl" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 w-full bg-gray-100 hover:bg-gray-200 text-gray-900 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest mb-4 transition-colors">Otwórz podgląd w nowej karcie</a>
+                <button type="button" @click="dismissWizardCompletion()" class="w-full bg-[#121212] hover:bg-[#D4AF37] hover:text-[#121212] text-white px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest transition-colors">
+                    Przejdź do zakładki Hero
+                </button>
+            </div>
+        </div>
+    </div>
 
     <div x-show="!user && !loadingAuth" class="flex-grow flex items-center justify-center p-6" x-transition>
         <div class="bg-white p-10 rounded-sm shadow-xl border w-full max-w-md">
@@ -48,6 +279,20 @@
     </div>
 
     <div x-show="user" x-cloak class="flex-grow flex flex-col">
+        <div x-show="showNinjaChecklist" x-transition class="mx-4 md:mx-8 mt-4 p-4 bg-amber-50 border border-amber-200 rounded-sm shadow-sm">
+            <div class="flex justify-between items-start gap-4 mb-3">
+                <h3 class="text-sm font-bold text-amber-900 uppercase tracking-widest">Szybki start (pominąłeś kreator)</h3>
+                <button type="button" @click="showNinjaChecklist = false" class="text-amber-800 hover:text-gray-900 text-lg leading-none" aria-label="Zamknij">✕</button>
+            </div>
+            <p class="text-xs text-amber-800 mb-3">Uzupełnij te elementy — wtedy strona będzie spójna i gotowa do gości.</p>
+            <ul class="text-sm text-gray-700 space-y-2 mb-4 list-disc list-inside">
+                <li>Logo i nazwa w <button type="button" @click="activeTab = 'settings'; showNinjaChecklist = false" class="text-[#D4AF37] font-bold underline">Szablon i kolory</button></li>
+                <li>Sekcja <button type="button" @click="activeTab = 'hero'; showNinjaChecklist = false" class="text-[#D4AF37] font-bold underline">Hero</button> (nagłówek, zdjęcie)</li>
+                <li><button type="button" @click="activeTab = 'contact'; showNinjaChecklist = false" class="text-[#D4AF37] font-bold underline">Kontakt</button> (telefon / e-mail)</li>
+                <li>Opcjonalnie: <button type="button" @click="activeTab = 'seo'; showNinjaChecklist = false" class="text-[#D4AF37] font-bold underline">SEO</button></li>
+            </ul>
+        </div>
+
         <header class="bg-white shadow-sm border-b px-8 py-4 flex justify-between items-center sticky top-0 z-50">
             <div>
                 <h1 class="text-2xl font-black tracking-widest text-gray-900">DFOPS<span class="text-[#D4AF37]">CMS</span></h1>
@@ -58,7 +303,7 @@
                 <div class="flex items-center bg-gray-100 rounded-md overflow-hidden border px-4 py-2">
                     <span class="text-sm text-gray-500 mr-2">Motyw:<span class="ml-2 text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded uppercase tracking-widest" x-text="theme"></span></span>
                     <span class="text-sm font-bold text-[#D4AF37] tracking-wider ml-2" x-text="slug"></span>
-                    <a :href="'index.html?site=' + slug" target="_blank" class="ml-4 text-xs font-bold text-blue-500 hover:text-blue-700 uppercase tracking-widest transition-colors">👀 Podgląd na żywo</a>
+                    <a :href="previewSiteUrl" target="_blank" rel="noopener noreferrer" class="ml-4 text-xs font-bold text-blue-500 hover:text-blue-700 uppercase tracking-widest transition-colors">👀 Podgląd na żywo</a>
                 </div>
 
                 <button @click="saveData()" x-show="content" class="bg-[#121212] hover:bg-[#D4AF37] hover:text-[#121212] text-white px-8 py-2.5 rounded-sm text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-lg">
@@ -66,7 +311,10 @@
                     <span x-show="saving" class="animate-pulse">Zapisywanie...</span>
                 </button>
                 
-                <button @click="logout()" class="text-xs font-bold text-gray-400 hover:text-red-500 uppercase tracking-widest transition-colors">Wyloguj</button>
+                <div class="flex flex-col items-end gap-1">
+                    <button type="button" @click="activeTab = 'subscription'; $nextTick(() => { const el = document.getElementById('dfops-platnosci-info'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); })" class="text-xs text-gray-400 hover:text-[#D4AF37] uppercase tracking-widest transition-colors">Warunki planów i płatności</button>
+                    <button type="button" @click="logout()" class="text-xs font-bold text-gray-400 hover:text-red-500 uppercase tracking-widest transition-colors">Wyloguj</button>
+                </div>
             </div>
         </header>
 
@@ -104,7 +352,7 @@
                 <div class="md:w-1/4">
                     <div class="bg-white rounded-sm border shadow-sm flex flex-col overflow-hidden sticky top-28 py-2">
                         <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-2 px-5">Treść Strony</div>
-                        <button @click="activeTab = 'settings'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'settings', 'text-gray-600 hover:bg-gray-50': activeTab !== 'settings'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">Szablon i Kolory</button>
+                        <button @click="activeTab = 'settings'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'settings', 'text-gray-600 hover:bg-gray-50': activeTab !== 'settings'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">Szablon i kolory</button>
                         <button @click="activeTab = 'hero'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'hero', 'text-gray-600 hover:bg-gray-50': activeTab !== 'hero'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">Hero</button>
                         <button @click="activeTab = 'services'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'services', 'text-gray-600 hover:bg-gray-50': activeTab !== 'services'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">Usługi</button>
                         <button @click="activeTab = 'gallery'" x-show="theme === 'beauty'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'gallery', 'text-gray-600 hover:bg-gray-50': activeTab !== 'gallery'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider flex items-center gap-2">
@@ -115,6 +363,10 @@
                         <button @click="activeTab = 'faq'" x-show="theme === 'consultant' || theme === 'beauty'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'faq', 'text-gray-600 hover:bg-gray-50': activeTab !== 'faq'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">FAQ</button>
 
                         <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6 px-5">Narzędzia & Rozwój</div>
+                        <button type="button" @click="reopenWizard()" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider text-[#D4AF37] font-bold flex items-center gap-2 hover:bg-amber-50">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            Uruchom Kreator
+                        </button>
                         <button @click="activeTab = 'google_reviews'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'google_reviews', 'text-gray-600 hover:bg-gray-50': activeTab !== 'google_reviews'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">Opinie Google</button>
                         <button @click="activeTab = 'reviews'" x-show="theme === 'consultant'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'reviews', 'text-gray-600 hover:bg-gray-50': activeTab !== 'reviews'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">Opinie Klientów</button>
                         <button @click="activeTab = 'leady'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'leady', 'text-gray-600 hover:bg-gray-50': activeTab !== 'leady'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">Wiadomości (Leady)</button>
@@ -133,258 +385,316 @@
                     
                     <div x-show="activeTab === 'settings'" x-transition.opacity>
                         <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
-                            <h2 class="text-2xl font-serif text-gray-900 mb-2">Szablon i Kolory</h2>
-                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl">Logo, menu, paleta kolorów, tło i typografia. Ustaw widoczność sekcji na stronie.</p>
+                            <h2 class="text-2xl font-serif text-gray-900 mb-2">Szablon i kolory</h2>
+                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl">Najpierw marka w menu, potem wygląd (kolory, tło, fonty), na końcu — jeśli potrzebujesz — zmiana branżowego szablonu, domena i to, które sekcje są widoczne.</p>
                         </div>
-        
-                        <div class="space-y-6">
-                            <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Logo (Wersja Tekstowa)</label>
-                                <input type="text" x-model="content.pl.nav.logo" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
-                                <p class="text-xs text-gray-500 mt-2 leading-relaxed max-w-2xl">Krótka nazwa marki lub podpis w menu — widoczna obok grafiki jako „tekstowe logo”.</p>
-                            </div>
 
-                            <div class="mt-8 pt-6 border-t border-gray-100" x-show="theme === 'beauty'">
-                                <h3 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-widest">Menu (etykiety)</h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-8 max-w-4xl">
+                            <!-- 1 Marka -->
+                            <section class="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
+                                <div class="px-5 py-3.5 bg-gray-50 border-b border-gray-100 flex flex-wrap items-baseline justify-between gap-2">
                                     <div>
-                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">O nas</label>
-                                        <input type="text" x-model="content.pl.nav.menu.about" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
+                                        <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest">Marka w nagłówku</h3>
+                                        <p class="text-xs text-gray-500 mt-1">To widzą goście obok menu — nazwa i opcjonalnie grafika.</p>
                                     </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Cennik</label>
-                                        <input type="text" x-model="content.pl.nav.menu.pricing" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">FAQ</label>
-                                        <input type="text" x-model="content.pl.nav.menu.faq" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kontakt</label>
-                                        <input type="text" x-model="content.pl.nav.menu.contact" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
-                                    </div>
+                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Krok 1</span>
                                 </div>
-                                <p class="text-xs text-gray-500 mt-2 leading-relaxed max-w-2xl">Etykiety linków w górnym menu (np. Cennik, Kontakt). Zmieniają tylko tekst — kolejność sekcji wynika z szablonu.</p>
-                            </div>
-
-                            <div class="mt-8 pt-6 border-t border-gray-100">
-                                <h3 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-widest">Kolory (Preset)</h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                                <div class="p-5 md:p-6 space-y-6">
                                     <div>
-                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Preset kolorystyczny</label>
-                                        <select x-model="content.pl.settings.color_preset"
-                                                @change="applyThemeStylingFromContent()"
-                                                class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white">
-                                            <template x-for="p in availablePresets" :key="p.id">
-                                                <option :value="p.id" x-text="p.label"></option>
-                                            </template>
-                                        </select>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Nazwa w menu (tekst)</label>
+                                        <input type="text" x-model="content.pl.nav.logo" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
+                                        <p class="text-xs text-gray-500 mt-2 leading-relaxed">Krótka nazwa marki lub podpis — obok grafiki jako „tekstowe logo”.</p>
                                     </div>
-                                    <div class="flex items-center justify-between border border-gray-200 rounded-sm px-4 py-3 bg-gray-50">
-                                        <div class="text-xs uppercase tracking-widest text-gray-500">Podgląd akcentu</div>
-                                        <div class="flex items-center gap-2">
-                                            <div class="w-5 h-5 rounded-sm border border-gray-300" :style="`background:${accentColor}`"></div>
-                                            <div class="text-xs font-mono text-gray-700" x-text="accentColor"></div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Logo graficzne</label>
+                                        <div class="flex flex-col sm:flex-row items-start gap-6">
+                                            <div class="flex flex-col items-center shrink-0">
+                                                <div class="w-40 h-16 rounded-sm border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-100 p-2">
+                                                    <template x-if="content.pl.nav.logoImage">
+                                                        <img :src="content.pl.nav.logoImage" class="w-full h-full object-contain mix-blend-multiply" alt="">
+                                                    </template>
+                                                    <template x-if="!content.pl.nav.logoImage">
+                                                        <span class="text-[10px] text-gray-500 uppercase tracking-widest text-center">Brak pliku</span>
+                                                    </template>
+                                                </div>
+                                                <template x-if="content.pl.nav.logoImage">
+                                                    <button type="button" @click="content.pl.nav.logoImage = ''" class="mt-2 text-[10px] text-red-500 hover:text-red-700 font-bold uppercase tracking-widest">Usuń grafikę</button>
+                                                </template>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <input type="file" accept="image/*" @change="uploadImage($event, 'nav', 'logoImage')" class="text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-sm file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-widest file:bg-[#121212] file:text-[#D4AF37] hover:file:bg-gray-800 cursor-pointer transition-colors w-full">
+                                                <p class="text-xs text-gray-500 mt-2 leading-relaxed">PNG lub SVG z przezroczystym tłem. Po wgraniu kliknij <strong>Publikuj zmiany</strong>.</p>
+                                                <p x-show="uploadingImage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse">Wysyłanie…</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <p class="text-xs text-gray-500 mt-2 leading-relaxed max-w-2xl">Gotowa paleta kolorów dopasowana do Twojego motywu. Po publikacji odwiedzący zobaczą ją na żywo.</p>
-                            </div>
-
-                            <div class="mt-8 pt-6 border-t border-gray-100">
-                                <h3 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-widest">Tło i Typografia</h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Styl tła</label>
-                                        <select x-model="content.pl.settings.background_style"
-                                                @change="applyThemeStylingFromContent()"
-                                                class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white">
-                                            <option value="clean">Clean</option>
-                                            <option value="glow">Glow (premium)</option>
-                                            <option value="soft">Soft (delikatne)</option>
-                                            <option value="smoky">Smoky (barber / luxe)</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Fonty</label>
-                                        <select x-model="content.pl.settings.font_preset"
-                                                @change="applyThemeStylingFromContent()"
-                                                class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white">
-                                            <option value="inter">Inter + Playfair</option>
-                                            <option value="poppins">Poppins + Playfair</option>
-                                            <option value="barber">Oswald + Playfair</option>
-                                            <option value="elegant">Cormorant + Inter</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <p class="text-xs text-gray-500 mt-2 leading-relaxed max-w-2xl">Charakter tła i para czcionek (nagłówki / tekst). Podgląd w panelu jest natychmiastowy — <strong>Publikuj</strong>, aby zapisać w bazie.</p>
-                            </div>
-
-                            <div class="mt-8 pt-6 border-t border-gray-100">
-                                <h3 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-widest">Gotowe zestawy stylu</h3>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                                    <div class="md:col-span-2">
-                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Wybierz zestaw</label>
-                                        <select x-model="selectedStyleBundle"
-                                                class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white">
-                                            <option value="">-- wybierz --</option>
-                                            <template x-for="b in styleBundles" :key="b.id">
-                                                <option :value="b.id" x-text="b.label"></option>
-                                            </template>
-                                        </select>
-                                    </div>
-                                    <button type="button" @click="applyStyleBundle()"
-                                            class="bg-[#121212] text-white px-4 py-3 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-[#2a2a2a] transition-colors">
-                                        Zastosuj 1-click
-                                    </button>
-                                </div>
-                                <p class="text-xs text-gray-500 mt-2 leading-relaxed max-w-2xl">Gotowe połączenie koloru, tła i fontów jednym klikiem — potem możesz dopracować szczegóły ręcznie.</p>
-                            </div>
-
-                            <div class="mt-8 pt-6 border-t border-gray-100">
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Własna domena (custom domain)</label>
-                                <div class="flex flex-col sm:flex-row gap-2 sm:items-stretch">
-                                    <input type="text" x-model="customDomain" :disabled="isCustomDomainLocked" placeholder="np. twojadomena.pl"
-                                           class="min-w-0 flex-1 border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" :class="isCustomDomainLocked ? 'opacity-50 bg-gray-100 cursor-not-allowed' : 'bg-white'">
-                                    <button type="button" @click="verifyCustomDomain()"
-                                            title="Zapisuje wszystkie zmiany i rozpoczyna weryfikację domeny w Cloudflare"
-                                            :disabled="verifyingDomain || !customDomain || isCustomDomainLocked"
-                                            :class="{ 'animate-pulse': verifyingDomain }"
-                                            class="shrink-0 px-4 py-3 rounded-sm text-sm font-semibold border border-[#D4AF37] text-[#8B7355] bg-white hover:bg-[#faf8f3] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                                        <span x-text="verifyingDomain ? 'Przetwarzanie...' : 'Podepnij domenę'"></span>
-                                    </button>
-                                </div>
-                                <p class="text-[10px] text-amber-600 mt-2 font-bold uppercase tracking-widest flex items-center gap-1"><svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Uwaga: Ta akcja opublikuje również pozostałe zmiany w panelu.</p>
-                                <div x-show="domainMessage" x-cloak class="mt-4 p-4 bg-green-50 text-green-800 border border-green-200 rounded-sm shadow-sm text-sm font-medium flex items-center gap-2"><span x-text="domainMessage"></span></div>
-                                <div x-show="showDnsInstructions" x-cloak x-transition.opacity class="mt-6 p-6 bg-blue-50 border border-blue-200 rounded-sm shadow-sm">
-                                    <h4 class="text-sm font-bold text-blue-900 mb-2 uppercase tracking-widest flex items-center gap-2">
-                                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
-                                        Krok 2: Skonfiguruj DNS
-                                    </h4>
-                                    <p class="text-xs text-blue-800 mb-4 leading-relaxed">Zaloguj się do panelu swojego operatora domeny (np. OVH, Nazwa.pl, Home.pl) i dodaj poniższe rekordy. To skieruje ruch na Twoją stronę.</p>
-
-                                    <div class="bg-white border border-blue-100 rounded-sm overflow-hidden">
-                                        <table class="w-full text-left text-sm">
-                                            <thead class="bg-blue-100/50 text-blue-900 text-[10px] uppercase tracking-wider">
-                                                <tr>
-                                                    <th class="px-4 py-3 font-bold">Typ rekordu</th>
-                                                    <th class="px-4 py-3 font-bold">Nazwa (Host)</th>
-                                                    <th class="px-4 py-3 font-bold">Wartość (Kieruje na)</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="text-gray-700 text-xs">
-                                                <tr>
-                                                    <td class="px-4 py-3 font-mono font-bold">CNAME</td>
-                                                    <td class="px-4 py-3 font-mono">@ <span class="text-[9px] text-gray-400 font-sans tracking-normal">(lub zostaw puste)</span></td>
-                                                    <td class="px-4 py-3 font-mono font-bold text-[#D4AF37]">proxy.dfcms.pl</td>
-                                                </tr>
-                                                <tr class="border-t border-gray-100">
-                                                    <td class="px-4 py-3 font-mono font-bold">CNAME</td>
-                                                    <td class="px-4 py-3 font-mono">www</td>
-                                                    <td class="px-4 py-3 font-mono font-bold text-[#D4AF37]">proxy.dfcms.pl</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <p class="text-[10px] text-blue-700 mt-4 uppercase tracking-widest font-bold flex items-center gap-1">
-                                        <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        Propagacja zmian w DNS może potrwać od 1 do 24 godzin.
-                                    </p>
-                                </div>
-                                <div x-show="domainError" x-cloak class="mt-4 p-4 bg-red-50 text-red-800 border border-red-200 rounded-sm shadow-sm text-sm font-medium flex items-center gap-2"><span x-text="domainError"></span></div>
-                                <p x-show="isCustomDomainLocked" class="text-xs text-amber-700 mt-2">🔒 Podpięcie własnej domeny jest dostępne od pakietu Pro (Tier 1). Przejdź do zakładki Subskrypcja.</p>
-                                <p x-show="!isCustomDomainLocked" class="text-xs text-gray-500 mt-2">Podaj hostname (np. twojadomena.pl) — skonfiguruj rekord CNAME lub A u rejestratora domeny.</p>
-                            </div>
-
-                            <div class="mt-8 pt-6 border-t border-gray-100">
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Logo (Plik Graficzny)</label>
-                                <div class="flex items-center gap-6">
-                                    <div class="flex flex-col items-center shrink-0">
-                                        <div class="w-40 h-16 rounded-sm border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-100 p-2">
-                                            <template x-if="content.pl.nav.logoImage">
-                                                <img :src="content.pl.nav.logoImage" class="w-full h-full object-contain mix-blend-multiply">
-                                            </template>
-                                            <template x-if="!content.pl.nav.logoImage">
-                                                <span class="text-[10px] text-gray-500 uppercase tracking-widest text-center">Brak Pliku</span>
-                                            </template>
+                                    <div x-show="theme === 'beauty'" class="pt-2 border-t border-gray-100">
+                                        <h4 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Etykiety w menu (Beauty)</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">O nas</label>
+                                                <input type="text" x-model="content.pl.nav.menu.about" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Cennik</label>
+                                                <input type="text" x-model="content.pl.nav.menu.pricing" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">FAQ</label>
+                                                <input type="text" x-model="content.pl.nav.menu.faq" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kontakt</label>
+                                                <input type="text" x-model="content.pl.nav.menu.contact" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
+                                            </div>
                                         </div>
-                                        <template x-if="content.pl.nav.logoImage">
-                                            <button @click="content.pl.nav.logoImage = ''" type="button" class="mt-2 text-[10px] text-red-500 hover:text-red-700 font-bold uppercase tracking-widest">✖ Usuń grafikę</button>
-                                        </template>
-                                    </div>
-                                    <div class="flex-grow">
-                                        <input type="file" accept="image/*" @change="uploadImage($event, 'nav', 'logoImage')" class="text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-sm file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-widest file:bg-[#121212] file:text-[#D4AF37] hover:file:bg-gray-800 cursor-pointer transition-colors w-full">
-                                        <p class="text-xs text-gray-500 mt-2 leading-relaxed">PNG lub SVG z przezroczystym tłem działają najlepiej. Po wgraniu kliknij <strong>Publikuj Zmiany</strong>.</p>
-                                        <p x-show="uploadingImage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse">Wysyłanie na serwer...</p>
+                                        <p class="text-xs text-gray-500 mt-2">Tylko tekst linków — kolejność sekcji wynika z szablonu.</p>
                                     </div>
                                 </div>
-                            </div>
+                            </section>
 
-                            <div class="mt-8 pt-6 border-t border-gray-100" x-show="theme === 'consultant'">
-                                <label class="flex items-center gap-3 cursor-pointer">
-                                    <div class="relative">
-                                        <input type="checkbox" x-model="content.pl.settings.darkMode" class="sr-only peer">
-                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div>
+                            <!-- 2 Wygląd -->
+                            <section class="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
+                                <div class="px-5 py-3.5 bg-gray-50 border-b border-gray-100 flex flex-wrap items-baseline justify-between gap-2">
+                                    <div>
+                                        <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest">Kolory i styl</h3>
+                                        <p class="text-xs text-gray-500 mt-1">Preset, tło i czcionki — podgląd w panelu od razu po zmianie.</p>
                                     </div>
-                                    <span class="text-sm font-bold text-gray-700 uppercase tracking-widest">Tryb Ciemny (Dark Mode)</span>
-                                </label>
-                            </div>
-
-                            <div class="mt-8 pt-6 border-t border-gray-100" x-show="theme === 'consultant'">
-                                <h3 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-widest">Widoczność Sekcji (Consultant)</h3>
-                                <div class="space-y-4">
-                                    <label class="flex items-center gap-3 cursor-pointer">
-                                        <div class="relative"><input type="checkbox" x-model="content.pl.settings.showManifesto" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                        <span class="text-sm font-bold text-gray-700">Sekcja: Manifesto / O mnie</span>
-                                    </label>
-                                    <label class="flex items-center gap-3 cursor-pointer">
-                                        <div class="relative"><input type="checkbox" x-model="content.pl.settings.showServices" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                        <span class="text-sm font-bold text-gray-700">Sekcja: Usługi</span>
-                                    </label>
-                                    <label class="flex items-center gap-3 cursor-pointer">
-                                        <div class="relative"><input type="checkbox" x-model="content.pl.settings.showProof" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                        <span class="text-sm font-bold text-gray-700">Sekcja: Proof / Statystyka</span>
-                                    </label>
-                                    <label class="flex items-center gap-3 cursor-pointer">
-                                        <div class="relative"><input type="checkbox" x-model="content.pl.settings.showFaq" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                        <span class="text-sm font-bold text-gray-700">Sekcja: FAQ</span>
-                                    </label>
-                                    <label class="flex items-center gap-3 cursor-pointer">
-                                        <div class="relative"><input type="checkbox" x-model="content.pl.settings.showReviews" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                        <span class="text-sm font-bold text-gray-700">Sekcja: Opinie</span>
-                                    </label>
-                                    <label class="flex items-center gap-3 cursor-pointer">
-                                        <div class="relative"><input type="checkbox" x-model="content.pl.settings.showContact" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                        <span class="text-sm font-bold text-gray-700">Sekcja: Kontakt</span>
-                                    </label>
+                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Krok 2</span>
                                 </div>
-                            </div>
-
-                            <div class="mt-8 pt-6 border-t border-gray-100" x-show="theme === 'beauty'">
-                                <h3 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-widest">Widoczność Sekcji</h3>
-                                <div class="space-y-4">
-                                    <label class="flex items-center gap-3 cursor-pointer">
-                                        <div class="relative"><input type="checkbox" x-model="content.pl.settings.showManifesto" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                        <span class="text-sm font-bold text-gray-700">Sekcja: O nas / Filozofia</span>
-                                    </label>
-                                    <label class="flex items-center gap-3 cursor-pointer">
-                                        <div class="relative"><input type="checkbox" x-model="content.pl.settings.showServices" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                        <span class="text-sm font-bold text-gray-700">Sekcja: Usługi (Cennik)</span>
-                                    </label>
-                                    <label class="flex items-center gap-3 cursor-pointer">
-                                        <div class="relative"><input type="checkbox" x-model="content.pl.settings.showFaq" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                        <span class="text-sm font-bold text-gray-700">Sekcja: FAQ</span>
-                                    </label>
-                                    <label class="flex items-center gap-3 cursor-pointer">
-                                        <div class="relative"><input type="checkbox" x-model="content.pl.settings.showContact" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                        <span class="text-sm font-bold text-gray-700">Sekcja: Kontakt / Rezerwacja</span>
-                                    </label>
+                                <div class="p-5 md:p-6 space-y-8">
+                                    <div>
+                                        <h4 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3">Paleta</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Preset kolorystyczny</label>
+                                                <select x-model="content.pl.settings.color_preset"
+                                                        @change="applyThemeStylingFromContent()"
+                                                        class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white">
+                                                    <template x-for="p in availablePresets" :key="p.id">
+                                                        <option :value="p.id" x-text="p.label"></option>
+                                                    </template>
+                                                </select>
+                                            </div>
+                                            <div class="flex items-center justify-between border border-gray-200 rounded-sm px-4 py-3 bg-gray-50">
+                                                <div class="text-xs uppercase tracking-widest text-gray-500">Akcent</div>
+                                                <div class="flex items-center gap-2">
+                                                    <div class="w-6 h-6 rounded-sm border border-gray-300 shadow-inner" :style="`background:${accentColor}`"></div>
+                                                    <div class="text-xs font-mono text-gray-700" x-text="accentColor"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="pt-6 border-t border-gray-100">
+                                        <h4 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3">Tło i typografia</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Styl tła</label>
+                                                <select x-model="content.pl.settings.background_style"
+                                                        @change="applyThemeStylingFromContent()"
+                                                        class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white">
+                                                    <option value="clean">Clean</option>
+                                                    <option value="glow">Glow (premium)</option>
+                                                    <option value="soft">Soft (delikatne)</option>
+                                                    <option value="smoky">Smoky (barber / luxe)</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Fonty</label>
+                                                <select x-model="content.pl.settings.font_preset"
+                                                        @change="applyThemeStylingFromContent()"
+                                                        class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white">
+                                                    <option value="inter">Inter + Playfair</option>
+                                                    <option value="poppins">Poppins + Playfair</option>
+                                                    <option value="barber">Oswald + Playfair</option>
+                                                    <option value="elegant">Cormorant + Inter</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="pt-6 border-t border-gray-100">
+                                        <h4 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3">Skrót: gotowe zestawy</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                                            <div class="md:col-span-2">
+                                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Wybierz zestaw</label>
+                                                <select x-model="selectedStyleBundle"
+                                                        class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white">
+                                                    <option value="">— wybierz —</option>
+                                                    <template x-for="b in styleBundles" :key="b.id">
+                                                        <option :value="b.id" x-text="b.label"></option>
+                                                    </template>
+                                                </select>
+                                            </div>
+                                            <button type="button" @click="applyStyleBundle()"
+                                                    class="bg-[#121212] text-white px-4 py-3 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-[#2a2a2a] transition-colors">
+                                                Zastosuj
+                                            </button>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-2">Jednym klikiem ustawia kolor, tło i fonty — potem możesz dopracować ręcznie.</p>
+                                    </div>
                                 </div>
-                            </div>
+                            </section>
+
+                            <!-- 3 Zmiana szablonu (ryzykowne) -->
+                            <section class="rounded-lg border border-amber-200 bg-amber-50/50 shadow-sm overflow-hidden">
+                                <div class="px-5 py-3.5 bg-amber-100/40 border-b border-amber-200/80 flex flex-wrap items-baseline justify-between gap-2">
+                                    <div>
+                                        <h3 class="text-sm font-bold text-amber-950 uppercase tracking-widest">Zmiana motywu branżowego</h3>
+                                        <p class="text-xs text-amber-900/80 mt-1">Nadpisuje treści sekcji (zostają kontakt, logo i subskrypcja). Rzadko potrzebne po starcie.</p>
+                                    </div>
+                                    <span class="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Opcja</span>
+                                </div>
+                                <div class="p-5 md:p-6">
+                                    <p class="text-xs text-gray-700 mb-4">Aktywny szablon: <strong class="text-[#D4AF37] uppercase" x-text="theme"></strong></p>
+                                    <button type="button" @click="showTemplateSwitcher = !showTemplateSwitcher" :disabled="saving" class="bg-white border border-amber-300 text-amber-950 px-4 py-2 rounded-sm text-xs font-bold uppercase tracking-wide hover:bg-amber-50 transition-colors disabled:opacity-50">
+                                        Wybierz inny szablon
+                                    </button>
+                                    <div x-show="showTemplateSwitcher" x-cloak class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4" x-transition.opacity>
+                                        <button type="button" @click="switchTemplate('beauty')" x-show="theme !== 'beauty'" :disabled="saving" class="border-2 border-pink-200 hover:border-pink-400 bg-white p-4 text-left rounded-sm transition disabled:opacity-50">
+                                            <h5 class="font-bold text-gray-900">Beauty</h5>
+                                            <p class="text-xs text-gray-500 mt-1">Salon, spa, usługi lokalne</p>
+                                        </button>
+                                        <button type="button" @click="switchTemplate('consultant')" x-show="theme !== 'consultant'" :disabled="saving" class="border-2 border-blue-200 hover:border-blue-400 bg-white p-4 text-left rounded-sm transition disabled:opacity-50">
+                                            <h5 class="font-bold text-gray-900">Konsultant</h5>
+                                            <p class="text-xs text-gray-500 mt-1">Ekspert, freelancer, B2B</p>
+                                        </button>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- 4 Domena -->
+                            <section class="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
+                                <div class="px-5 py-3.5 bg-gray-50 border-b border-gray-100 flex flex-wrap items-baseline justify-between gap-2">
+                                    <div>
+                                        <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest">Własna domena</h3>
+                                        <p class="text-xs text-gray-500 mt-1">Dla planów z własną domeną — podłączenie przez DNS.</p>
+                                    </div>
+                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Opcja Pro</span>
+                                </div>
+                                <div class="p-5 md:p-6 space-y-4">
+                                    <div class="flex flex-col sm:flex-row gap-2 sm:items-stretch">
+                                        <input type="text" x-model="customDomain" :disabled="isCustomDomainLocked" placeholder="np. twojadomena.pl"
+                                               class="min-w-0 flex-1 border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" :class="isCustomDomainLocked ? 'opacity-50 bg-gray-100 cursor-not-allowed' : 'bg-white'">
+                                        <button type="button" @click="verifyCustomDomain()"
+                                                title="Zapisuje wszystkie zmiany i rozpoczyna weryfikację domeny w Cloudflare"
+                                                :disabled="verifyingDomain || !customDomain || isCustomDomainLocked"
+                                                :class="{ 'animate-pulse': verifyingDomain }"
+                                                class="shrink-0 px-4 py-3 rounded-sm text-sm font-semibold border border-[#D4AF37] text-[#8B7355] bg-white hover:bg-[#faf8f3] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                            <span x-text="verifyingDomain ? 'Przetwarzanie...' : 'Podepnij domenę'"></span>
+                                        </button>
+                                    </div>
+                                    <p class="text-[10px] text-amber-700 font-bold uppercase tracking-widest flex items-center gap-1"><svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Ta akcja publikuje też pozostałe zmiany w panelu.</p>
+                                    <div x-show="domainMessage" x-cloak class="p-4 bg-green-50 text-green-800 border border-green-200 rounded-sm text-sm font-medium flex items-center gap-2"><span x-text="domainMessage"></span></div>
+                                    <div x-show="showDnsInstructions" x-cloak x-transition.opacity class="p-6 bg-blue-50 border border-blue-200 rounded-sm shadow-sm">
+                                        <h4 class="text-sm font-bold text-blue-900 mb-2 uppercase tracking-widest flex items-center gap-2">
+                                            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                                            Krok 2: Skonfiguruj DNS
+                                        </h4>
+                                        <p class="text-xs text-blue-800 mb-4 leading-relaxed">Zaloguj się do panelu swojego operatora domeny (np. OVH, Nazwa.pl, Home.pl) i dodaj poniższe rekordy. To skieruje ruch na Twoją stronę.</p>
+
+                                        <div class="bg-white border border-blue-100 rounded-sm overflow-hidden">
+                                            <table class="w-full text-left text-sm">
+                                                <thead class="bg-blue-100/50 text-blue-900 text-[10px] uppercase tracking-wider">
+                                                    <tr>
+                                                        <th class="px-4 py-3 font-bold">Typ rekordu</th>
+                                                        <th class="px-4 py-3 font-bold">Nazwa (Host)</th>
+                                                        <th class="px-4 py-3 font-bold">Wartość (Kieruje na)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="text-gray-700 text-xs">
+                                                    <tr>
+                                                        <td class="px-4 py-3 font-mono font-bold">CNAME</td>
+                                                        <td class="px-4 py-3 font-mono">@ <span class="text-[9px] text-gray-400 font-sans tracking-normal">(lub zostaw puste)</span></td>
+                                                        <td class="px-4 py-3 font-mono font-bold text-[#D4AF37]">proxy.dfcms.pl</td>
+                                                    </tr>
+                                                    <tr class="border-t border-gray-100">
+                                                        <td class="px-4 py-3 font-mono font-bold">CNAME</td>
+                                                        <td class="px-4 py-3 font-mono">www</td>
+                                                        <td class="px-4 py-3 font-mono font-bold text-[#D4AF37]">proxy.dfcms.pl</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <p class="text-[10px] text-blue-700 mt-4 uppercase tracking-widest font-bold flex items-center gap-1">
+                                            <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            Propagacja zmian w DNS może potrwać od 1 do 24 godzin.
+                                        </p>
+                                    </div>
+                                    <div x-show="domainError" x-cloak class="p-4 bg-red-50 text-red-800 border border-red-200 rounded-sm text-sm font-medium flex items-center gap-2"><span x-text="domainError"></span></div>
+                                    <p x-show="isCustomDomainLocked" class="text-xs text-amber-700">Własna domena od pakietu Pro (Tier 1) — <button type="button" @click="activeTab = 'subscription'" class="font-bold underline text-amber-900 hover:text-gray-900">Zobacz plany</button>.</p>
+                                    <p x-show="!isCustomDomainLocked" class="text-xs text-gray-500">Hostname (np. twojadomena.pl) — rekord CNAME u rejestratora.</p>
+                                </div>
+                            </section>
+
+                            <!-- 5 Widoczność -->
+                            <section class="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
+                                <div class="px-5 py-3.5 bg-gray-50 border-b border-gray-100 flex flex-wrap items-baseline justify-between gap-2">
+                                    <div>
+                                        <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest">Co widnieje na stronie</h3>
+                                        <p class="text-xs text-gray-500 mt-1">Ukryj sekcję bez kasowania treści — wrócisz do niej później.</p>
+                                    </div>
+                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Krok 3</span>
+                                </div>
+                                <div class="p-5 md:p-6 space-y-6">
+                                    <div x-show="theme === 'consultant'">
+                                        <label class="flex items-center gap-3 cursor-pointer">
+                                            <div class="relative">
+                                                <input type="checkbox" x-model="content.pl.settings.darkMode" class="sr-only peer">
+                                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div>
+                                            </div>
+                                            <span class="text-sm font-bold text-gray-700 uppercase tracking-widest">Tryb ciemny (consultant)</span>
+                                        </label>
+                                    </div>
+                                    <div x-show="theme === 'consultant'" class="space-y-4 pt-2 border-t border-gray-100">
+                                        <label class="flex items-center gap-3 cursor-pointer">
+                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showManifesto" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                            <span class="text-sm font-bold text-gray-700">Manifesto / O mnie</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 cursor-pointer">
+                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showServices" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                            <span class="text-sm font-bold text-gray-700">Usługi</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 cursor-pointer">
+                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showProof" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                            <span class="text-sm font-bold text-gray-700">Proof / statystyka</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 cursor-pointer">
+                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showFaq" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                            <span class="text-sm font-bold text-gray-700">FAQ</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 cursor-pointer">
+                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showReviews" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                            <span class="text-sm font-bold text-gray-700">Opinie</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 cursor-pointer">
+                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showContact" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                            <span class="text-sm font-bold text-gray-700">Kontakt</span>
+                                        </label>
+                                    </div>
+                                    <div x-show="theme === 'beauty'" class="space-y-4 pt-2 border-t border-gray-100">
+                                        <label class="flex items-center gap-3 cursor-pointer">
+                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showManifesto" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                            <span class="text-sm font-bold text-gray-700">O nas / filozofia</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 cursor-pointer">
+                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showServices" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                            <span class="text-sm font-bold text-gray-700">Usługi (cennik)</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 cursor-pointer">
+                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showFaq" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                            <span class="text-sm font-bold text-gray-700">FAQ</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 cursor-pointer">
+                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showContact" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                            <span class="text-sm font-bold text-gray-700">Kontakt / rezerwacja</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </section>
 
                         </div>
                     </div>
-                    
+
                     <div x-show="activeTab === 'hero'" x-transition.opacity x-cloak>
                         <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
                             <h2 class="text-2xl font-serif text-gray-900 mb-2">Hero</h2>
@@ -600,11 +910,35 @@
                                     </div>
 
                                     <div class="pt-6 border-t border-gray-100" x-show="theme === 'consultant' || theme === 'beauty'">
-                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Mapka Google (embed URL)</label>
-                                        <input type="url" x-model="content.pl.contact.map_embed_url" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="https://www.google.com/maps/embed?pb=...">
-                                        <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">
-                                            Tip: Google Maps → Udostępnij → Umieść mapę → skopiuj sam URL z iframe (src).
-                                        </p>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Mapa Google</label>
+                                        <p class="text-xs text-gray-500 mb-3">Wpisz nazwę lub adres, wybierz wynik z listy i zatwierdź — mapa wstawi się na stronie po publikacji.</p>
+                                        <div class="flex gap-2 mb-3">
+                                            <input type="text" x-model="mapPlaceQuery" @keydown.enter.prevent="searchPlacesForMap()" placeholder="np. Warsztat, ul. Kwiatowa 1, Poznań" class="flex-1 border border-gray-300 rounded-sm px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#D4AF37]">
+                                            <button type="button" @click="searchPlacesForMap()" :disabled="mapPlaceLoading" class="shrink-0 px-5 py-3 bg-[#121212] text-white text-xs font-bold uppercase rounded-sm disabled:opacity-50">Szukaj</button>
+                                        </div>
+                                        <p x-show="mapPlaceError" class="text-xs text-red-600 mb-2" x-text="mapPlaceError"></p>
+                                        <div x-show="mapPlaceLoading" class="text-xs text-gray-500 mb-2">Szukam…</div>
+                                        <ul x-show="mapPlaceResults.length" class="border border-gray-200 rounded-sm divide-y divide-gray-100 max-h-56 overflow-y-auto mb-3">
+                                            <template x-for="p in mapPlaceResults" :key="p.id">
+                                                <li class="flex items-start gap-3 p-3 hover:bg-gray-50 cursor-pointer" @click="mapPlaceSelectedId = p.id">
+                                                    <input type="radio" :value="p.id" x-model="mapPlaceSelectedId" class="mt-1">
+                                                    <div class="min-w-0">
+                                                        <div class="text-sm font-semibold text-gray-900" x-text="p.name"></div>
+                                                        <div class="text-xs text-gray-500 mt-0.5" x-text="p.address"></div>
+                                                    </div>
+                                                </li>
+                                            </template>
+                                        </ul>
+                                        <div class="flex flex-wrap gap-2 mb-3">
+                                            <button type="button" x-show="mapPlaceSelectedId" @click="confirmMapPlaceSelection()" class="px-5 py-2.5 bg-emerald-600 text-white text-xs font-bold uppercase rounded-sm tracking-wide">Użyj wybranej lokalizacji</button>
+                                            <button type="button" x-show="content.pl.contact?.map_place_id" @click="clearMapPlaceSelection()" class="px-5 py-2.5 border border-gray-300 text-xs font-bold uppercase rounded-sm">Usuń mapę z wyszukiwarki</button>
+                                        </div>
+                                        <p x-show="content.pl.contact?.map_place_id" class="text-xs text-emerald-800 mb-3">Lokalizacja zapisana. W Google Cloud włącz <strong>Maps Embed API</strong> (ten sam projekt i klucz co Places).</p>
+                                        <details class="text-xs text-gray-600">
+                                            <summary class="cursor-pointer font-bold text-gray-700 mb-2">Zaawansowane: własny URL lub iframe</summary>
+                                            <input type="text" x-model="content.pl.contact.map_embed_url" autocomplete="off" class="w-full border border-gray-300 rounded-sm px-4 py-3 outline-none focus:ring-2 focus:ring-[#D4AF37]" placeholder="https://www.google.com/maps/embed?...">
+                                            <p class="mt-2 text-gray-500 leading-relaxed">Zapisujemy bezpieczny link (<code class="text-[10px]">/maps/embed</code>) lub wyciągamy <code class="text-[10px]">src</code> z iframe. Wypełnione pole ma pierwszeństwo przed wyszukiwarką.</p>
+                                        </details>
                                     </div>
                                     
                                     <div class="pt-6 border-t border-gray-100" x-show="theme === 'beauty'">
@@ -773,23 +1107,35 @@
                             <h2 class="text-2xl font-serif text-gray-900 mb-2">Subskrypcja</h2>
                             <p class="text-sm text-gray-600 leading-relaxed max-w-2xl">Wybierz plan i aktywuj usługę, aby utrzymać stronę online.</p>
                         </div>
+                        <div class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-sm">
+                            <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Twój aktualny plan</p>
+                            <p class="text-lg font-bold text-gray-900" x-text="planDisplayLabel"></p>
+                            <p class="text-sm text-gray-600 mt-1" x-text="planSummaryLine"></p>
+                        </div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="border border-gray-200 rounded-sm p-6 bg-gray-50">
                                 <h3 class="font-bold text-gray-900 text-lg mb-1">Tier 0 (Starter)</h3>
-                                <p class="text-2xl font-bold text-[#D4AF37] mb-4">49 PLN <span class="text-sm font-normal text-gray-500">/ msc</span></p>
+                                <p class="text-2xl font-bold text-[#D4AF37] mb-1">0 zł / msc</p>
+                                <p class="text-xs text-gray-600 mb-1 font-medium">Zawsze darmowy w fazie Beta</p>
+                                <p class="text-xs text-gray-500 mb-4">Aktywacja w panelu — bez opłat w czasie beta.</p>
                                 <ul class="text-sm text-gray-600 space-y-2 mb-6">
-                                    <li>• Brak własnej domeny</li>
-                                    <li>• Znak wodny DFCMS widoczny</li>
+                                    <li>• <strong class="text-gray-800">Publikacja na subdomenie</strong> (np. twojanazwa.dfcms.pl)</li>
+                                    <li>• <strong class="text-gray-800">Widoczny znak wodny DFCMS</strong></li>
                                 </ul>
-                                <a href="mailto:kontakt@dfcms.pl?subject=DFCMS%20Tier%200" class="block w-full text-center border-2 border-gray-300 text-gray-700 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-gray-100 transition-colors">Integracja płatności wkrótce</a>
+                                <button type="button" @click="activateTier0()" x-show="content?.pl?.settings?.subscription?.plan !== 'tier0'" class="w-full bg-[#121212] text-white px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors">
+                                    Aktywuj ten pakiet
+                                </button>
+                                <div x-show="content?.pl?.settings?.subscription?.plan === 'tier0'" class="w-full border-2 border-[#D4AF37] text-[#D4AF37] px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest text-center bg-amber-50">
+                                    Aktualny plan
+                                </div>
                             </div>
                             <div class="border-2 border-[#D4AF37] rounded-sm p-6 bg-white shadow-lg relative">
                                 <span class="absolute -top-2 left-4 bg-[#D4AF37] text-[#121212] text-xs font-bold px-2 py-0.5">PRO</span>
                                 <h3 class="font-bold text-gray-900 text-lg mb-1">Tier 1 (Pro)</h3>
-                                <p class="text-2xl font-bold text-[#D4AF37] mb-4">499 PLN <span class="text-sm font-normal text-gray-500">wdrożenie</span> + 49 PLN <span class="text-sm font-normal text-gray-500">/ msc</span></p>
+                                <p class="text-2xl font-bold text-[#D4AF37] mb-4">49 zł <span class="text-sm font-normal text-gray-500">/ msc</span></p>
                                 <ul class="text-sm text-gray-600 space-y-2 mb-6">
-                                    <li>• Własna domena</li>
-                                    <li>• Brak znaku wodnego</li>
+                                    <li>• <strong class="text-gray-800">Możliwość podpięcia własnej domeny</strong> (.pl, .com)</li>
+                                    <li>• <strong class="text-gray-800">Brak znaku wodnego</strong></li>
                                 </ul>
                                 <a href="mailto:kontakt@dfcms.pl?subject=DFCMS%20Tier%201%20Pro" class="block w-full text-center bg-[#D4AF37] text-[#121212] px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-[#c9a432] transition-colors">Integracja płatności wkrótce</a>
                             </div>
@@ -803,6 +1149,13 @@
                                 </ul>
                                 <a href="mailto:kontakt@dfcms.pl?subject=DFCMS%20Tier%20Custom" class="block w-full text-center border-2 border-gray-300 text-gray-700 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-gray-100 transition-colors">Integracja płatności wkrótce</a>
                             </div>
+                        </div>
+
+                        <div id="dfops-platnosci-info" class="mt-8 p-6 bg-white border border-gray-200 rounded-sm text-sm text-gray-700 leading-relaxed max-w-3xl">
+                            <h3 class="text-base font-bold text-gray-900 mb-2">Warunki planów i rozliczeń (szkic)</h3>
+                            <p class="mb-2">Ceny i zakres usług mogą ulec doprecyzowaniu do momentu uruchomienia płatności online. Aktywacja pakietu Starter w panelu jest bezpłatna i służy testom produktu.</p>
+                            <p class="mb-2">Po starcie płatności: faktura lub paragon zgodnie z obowiązującymi przepisami; rezygnacja — zgodnie z regulaminem obowiązującym w dniu zakupu.</p>
+                            <p class="text-xs text-gray-500">Pełny regulamin i polityka prywatności — w zakładkach Prawne oraz na stronie głównej serwisu.</p>
                         </div>
                     </div>
 

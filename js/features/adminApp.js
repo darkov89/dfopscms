@@ -15,14 +15,21 @@
       password: '',
       authError: '',
       slug: new URLSearchParams(window.location.search).get('site') || '',
+      lang: 'pl',
       theme: '',
       content: null,
+      showWizard: false,
+      wizardStep: 0,
+      wizardTheme: '',
+      wizardFieldWarning: '',
+      showNinjaChecklist: false,
       customDomain: '',
       pageId: null,
       verifyingDomain: false,
       domainMessage: '',
       domainError: '',
       showDnsInstructions: false,
+      showTemplateSwitcher: false,
       activeTab: 'hero',
       saving: false,
       uploadingImage: false,
@@ -47,7 +54,30 @@
         const elapsed = Math.floor((now - start) / MS_PER_DAY);
         return Math.max(0, 14 - elapsed);
       },
-      get isCustomDomainLocked() { return false;}, //this.subscriptionPlan === 'trial' || this.subscriptionPlan === 'tier0'; },
+      get isCustomDomainLocked() {
+        if (typeof window.DFOPS_planAllowsCustomDomain === 'function') {
+          return !window.DFOPS_planAllowsCustomDomain(this.subscriptionPlan);
+        }
+        const p = this.subscriptionPlan;
+        return p === 'trial' || p === 'tier0';
+      },
+      get previewSiteUrl() {
+        if (!this.slug || !this.theme) return '#';
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        return `${origin}/${this.theme}.html?site=${encodeURIComponent(this.slug)}`;
+      },
+      get planDisplayLabel() {
+        if (typeof window.DFOPS_planDisplayName === 'function') {
+          return window.DFOPS_planDisplayName(this.subscriptionPlan);
+        }
+        return this.subscriptionPlan;
+      },
+      get planSummaryLine() {
+        if (typeof window.DFOPS_planCapabilitiesSummary === 'function') {
+          return window.DFOPS_planCapabilitiesSummary(this.subscriptionPlan);
+        }
+        return '';
+      },
 
       showError(msg) {
         this.errorMessage = msg;
@@ -84,9 +114,15 @@
         this.content = null;
         this.pageId = null;
         this.showDnsInstructions = false;
+        this.showWizard = false;
+        this.wizardStep = 0;
+        this.wizardTheme = '';
+        this.wizardFieldWarning = '';
+        this.showNinjaChecklist = false;
         this.hasUnsavedChanges = false;
       },
       async loadData() {
+        this.showNinjaChecklist = false;
         this.content = null;
         const { data, error } = await repo.getCurrentUserPage(this.user.id);
         if (error || !data) {
@@ -101,6 +137,15 @@
         this.currentTemplateVersion = Number(this.content.pl.settings.template_version || 1);
         this.updateAvailable = this.currentTemplateVersion < this.latestTemplateVersion;
         this.applyThemeStylingFromContent();
+
+        if (
+          this.content &&
+          this.content[this.lang] &&
+          this.content[this.lang].settings &&
+          this.content[this.lang].settings.onboarding_completed === false
+        ) {
+          this.showWizard = true;
+        }
 
         this.$nextTick(() => {
           setTimeout(() => {
@@ -117,6 +162,64 @@
         if (!this.content?.pl?.settings) return;
         window.DFOPS_applyThemeStyling(this.content.pl.settings, this.theme, 'admin');
       },
+
+      async switchTemplate(newTemplateId) {
+        if (newTemplateId !== 'beauty' && newTemplateId !== 'consultant') return;
+        if (this.theme === newTemplateId) return;
+        if (
+          !confirm(
+            'Uwaga: zmiana szablonu nadpisze aktualne teksty i układ sekcji (hero, usługi, FAQ itd.). Zachowamy dane kontaktowe, logo tekstowe i logo graficzne oraz ustawienia subskrypcji. Kontynuować?'
+          )
+        ) {
+          return;
+        }
+        if (typeof window.DFOPS_mergeContentWithTemplate !== 'function' || typeof window.DFOPS_getTemplate !== 'function') {
+          this.showError('Brak konfiguracji szablonów (registry).');
+          return;
+        }
+        try {
+          const savedContact = JSON.parse(JSON.stringify(this.content?.pl?.contact || {}));
+          const savedLogo = this.content?.pl?.nav?.logo ?? '';
+          const savedLogoImage = this.content?.pl?.nav?.logoImage ?? '';
+          const savedSubscription = JSON.parse(JSON.stringify(this.content?.pl?.settings?.subscription || {}));
+
+          const merged = window.DFOPS_mergeContentWithTemplate(newTemplateId, {});
+          merged.pl.contact = savedContact;
+          if (!merged.pl.nav) merged.pl.nav = {};
+          merged.pl.nav.logo = savedLogo;
+          merged.pl.nav.logoImage = savedLogoImage;
+          if (merged.pl.settings) {
+            merged.pl.settings.subscription = {
+              ...(merged.pl.settings.subscription || {}),
+              ...savedSubscription,
+            };
+          }
+
+          this.theme = newTemplateId;
+          this.content = window.DFOPS_normalizeContent(merged, newTemplateId);
+
+          const presets = cfg.presetsByTheme[newTemplateId] || [];
+          const cp = this.content.pl.settings.color_preset;
+          if (presets.length && !presets.some((p) => p.id === cp)) {
+            this.content.pl.settings.color_preset = presets[0].id;
+          }
+
+          this.selectedStyleBundle = '';
+          this.applyThemeStylingFromContent();
+
+          const ok = await this.saveData({ silentSuccess: true });
+          if (!ok) return;
+
+          this.showTemplateSwitcher = false;
+          this.message = 'Szablon zmieniony. Odświeżam panel…';
+          setTimeout(() => {
+            window.location.reload();
+          }, 900);
+        } catch (e) {
+          console.error(e);
+          this.showError('Nie udało się zmienić szablonu.');
+        }
+      },
       applyStyleBundle() {
         const bundle = this.styleBundles.find((b) => b.id === this.selectedStyleBundle);
         if (!bundle || !this.content?.pl?.settings) return;
@@ -124,6 +227,154 @@
         this.content.pl.settings.background_style = bundle.background_style;
         this.content.pl.settings.font_preset = bundle.font_preset;
         this.applyThemeStylingFromContent();
+      },
+      validateWizardStep(step) {
+        const pl = this.content?.pl;
+        if (!pl) return '';
+        if (step === 1) {
+          if (this.wizardTheme !== 'beauty' && this.wizardTheme !== 'consultant') {
+            return 'Wybierz szablon (Salon lub Konsultant).';
+          }
+        }
+        if (step === 2) {
+          if (!String(pl.nav?.logo || '').trim()) {
+            return 'Podaj nazwę firmy — wyświetli się w menu i buduje rozpoznawalność marki.';
+          }
+        }
+        if (step === 4) {
+          const phone = String(pl.contact?.phone || '').trim();
+          const email = String(pl.contact?.email || '').trim();
+          if (!phone && !email) {
+            return 'Podaj numer telefonu lub e-mail — klienci muszą mieć sposób kontaktu.';
+          }
+        }
+        return '';
+      },
+      startWizard() {
+        this.wizardStep = 1;
+        this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
+        this.wizardFieldWarning = '';
+        if (typeof window.DFOPS_trackEvent === 'function') {
+          window.DFOPS_trackEvent('onboarding_started', { slug: this.slug });
+        }
+      },
+      async skipWizard() {
+        if (!this.content?.[this.lang]?.settings) return;
+        this.content[this.lang].settings.onboarding_completed = true;
+        const ok = await this.saveData({ silentSuccess: true });
+        if (!ok) return;
+        this.showWizard = false;
+        this.wizardStep = 0;
+        this.wizardFieldWarning = '';
+        this.showNinjaChecklist = true;
+        this.message = 'Kreator pominięty. Poniżej masz krótką listę — uzupełnij stronę, gdy będziesz gotów.';
+        setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
+        if (typeof window.DFOPS_trackEvent === 'function') {
+          window.DFOPS_trackEvent('onboarding_skipped', { slug: this.slug });
+        }
+      },
+      nextWizardStep() {
+        const err = this.validateWizardStep(this.wizardStep);
+        if (err) {
+          this.wizardFieldWarning = err;
+          return;
+        }
+        this.wizardFieldWarning = '';
+
+        if (this.wizardStep === 1 && this.wizardTheme !== this.theme) {
+          if (typeof window.DFOPS_mergeContentWithTemplate !== 'function') {
+            this.showError('Brak konfiguracji szablonów (registry).');
+            return;
+          }
+          const savedContact = JSON.parse(JSON.stringify(this.content?.pl?.contact || {}));
+          const savedLogo = this.content?.pl?.nav?.logo ?? '';
+          const savedLogoImage = this.content?.pl?.nav?.logoImage ?? '';
+          const savedSubscription = JSON.parse(JSON.stringify(this.content?.pl?.settings?.subscription || {}));
+
+          const merged = window.DFOPS_mergeContentWithTemplate(this.wizardTheme, {});
+          merged.pl.contact = savedContact;
+          if (!merged.pl.nav) merged.pl.nav = {};
+          merged.pl.nav.logo = savedLogo;
+          merged.pl.nav.logoImage = savedLogoImage;
+          if (merged.pl.settings) {
+            merged.pl.settings.subscription = {
+              ...(merged.pl.settings.subscription || {}),
+              ...savedSubscription,
+            };
+          }
+
+          this.theme = this.wizardTheme;
+          this.content = window.DFOPS_normalizeContent(merged, this.wizardTheme);
+
+          const presets = cfg.presetsByTheme[this.wizardTheme] || [];
+          const cp = this.content.pl.settings.color_preset;
+          if (presets.length && !presets.some((p) => p.id === cp)) {
+            this.content.pl.settings.color_preset = presets[0].id;
+          }
+          this.selectedStyleBundle = '';
+          this.applyThemeStylingFromContent();
+        }
+
+        if (this.wizardStep < 4) {
+          if (typeof window.DFOPS_trackEvent === 'function') {
+            window.DFOPS_trackEvent('onboarding_step_completed', { step: this.wizardStep });
+          }
+          this.wizardStep++;
+        }
+      },
+      prevWizardStep() {
+        this.wizardFieldWarning = '';
+        if (this.wizardStep > 1) this.wizardStep--;
+      },
+      async finishWizard() {
+        if (!this.content?.[this.lang]?.settings) return;
+        const err = this.validateWizardStep(4);
+        if (err) {
+          this.wizardFieldWarning = err;
+          return;
+        }
+        this.wizardFieldWarning = '';
+        this.content[this.lang].settings.onboarding_completed = true;
+        const ok = await this.saveData({ silentSuccess: true });
+        if (!ok) return;
+        this.wizardStep = 5;
+        if (typeof window.DFOPS_trackEvent === 'function') {
+          window.DFOPS_trackEvent('onboarding_finished', { slug: this.slug });
+        }
+      },
+      dismissWizardCompletion() {
+        this.showWizard = false;
+        this.wizardStep = 0;
+        this.wizardFieldWarning = '';
+        this.activeTab = 'hero';
+      },
+      reopenWizard() {
+        this.wizardStep = 1;
+        this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
+        this.showWizard = true;
+        this.wizardFieldWarning = '';
+        if (typeof window.DFOPS_trackEvent === 'function') {
+          window.DFOPS_trackEvent('onboarding_reopened', { slug: this.slug });
+        }
+      },
+      async activateTier0() {
+        if (!confirm('Aktywacja pakietu Starter (Tier 0) spowoduje odpięcie Twojej własnej domeny. Czy na pewno chcesz kontynuować?')) {
+          return;
+        }
+        if (!this.content?.pl?.settings) return;
+        if (!this.content.pl.settings.subscription) {
+          this.content.pl.settings.subscription = { plan: 'trial', trial_started_at: new Date().toISOString() };
+        }
+        this.content.pl.settings.subscription.plan = 'tier0';
+        this.customDomain = '';
+        const ok = await this.saveData();
+        if (ok) {
+          this.message = 'Pakiet Starter (Tier 0) aktywny! Na stronie publicznej widać znak wodny DFOPSCMS, a własna domena została odpięta w bazie.';
+          setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
+          if (typeof window.DFOPS_trackEvent === 'function') {
+            window.DFOPS_trackEvent('tier0_activated', { slug: this.slug });
+          }
+        }
       },
       async upgradeTemplate() {
         if (!this.content || !this.theme) return;
@@ -218,7 +469,10 @@
           this.verifyingDomain = false;
         }
       },
-      async saveData() {
+      async saveData(opts) {
+        const options = opts && typeof opts === 'object' ? opts : {};
+        const silentSuccess = options.silentSuccess === true;
+        const successMessage = typeof options.successMessage === 'string' ? options.successMessage : '';
         if (!this.content) return false;
         this.saving = true;
         try {
@@ -226,17 +480,29 @@
             this.content.pl.services = this.content.pl.services.filter((s) => s.title && String(s.title).trim() !== '');
           }
           this.content.pl.settings.template_version = this.latestTemplateVersion;
-          const payload = { content: this.content, color_preset: this.content.pl.settings.color_preset };
-          if (!this.isCustomDomainLocked) payload.custom_domain = this.customDomain;
+          const payload = {
+            content: this.content,
+            color_preset: this.content.pl.settings.color_preset,
+            theme: this.theme,
+          };
+          if (!this.isCustomDomainLocked) {
+            payload.custom_domain = this.customDomain;
+          } else {
+            payload.custom_domain = null;
+            payload.custom_domain_status = 'none';
+          }
           const { error } = await repo.saveCurrentUserPage(this.user.id, payload);
           if (error) throw error;
+          if (this.isCustomDomainLocked) this.customDomain = '';
           this.hasUnsavedChanges = false;
-          this.message = 'Zmiany zostały opublikowane!';
-          setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
+          if (!silentSuccess) {
+            this.message = successMessage || 'Zmiany zostały opublikowane!';
+            setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
+          }
           return true;
         } catch (e) {
           console.error(e);
-          this.showError('Błąd zapisu (RLS lub walidacja).');
+          this.showError('Nie udało się zapisać zmian. Sprawdź połączenie i spróbuj ponownie. Jeśli błąd się powtarza, napisz do nas.');
           return false;
         } finally {
           this.saving = false;
@@ -267,7 +533,9 @@
             if (!pl[section]) pl[section] = {};
             pl[section][field] = publicUrlData.publicUrl;
           }
-          this.message = 'Plik załadowany. Kliknij "Publikuj Zmiany".';
+          this.message = this.showWizard
+            ? 'Plik jest w treści strony. Zapisze się na końcu kreatora (przycisk „Opublikuj moją stronę”) lub możesz opublikować później z panelu.'
+            : 'Plik załadowany. Kliknij „Publikuj Zmiany”.';
           setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
         } catch (e) {
           console.error(e);
@@ -280,6 +548,73 @@
       removeGalleryImage(index) {
         if (!this.content?.pl?.gallery?.images || !Array.isArray(this.content.pl.gallery.images)) return;
         this.content.pl.gallery.images.splice(index, 1);
+      },
+
+      mapPlaceQuery: '',
+      mapPlaceResults: [],
+      mapPlaceLoading: false,
+      mapPlaceError: '',
+      mapPlaceSelectedId: null,
+
+      async searchPlacesForMap() {
+        const q = (this.mapPlaceQuery || '').trim();
+        if (!q || q.length < 2) {
+          this.mapPlaceError = 'Wpisz co najmniej 2 znaki (nazwa firmy lub adres).';
+          return;
+        }
+        if (!cfg.supabaseUrl || !cfg.supabaseAnonKey) {
+          this.mapPlaceError = 'Brak konfiguracji Supabase.';
+          return;
+        }
+        this.mapPlaceLoading = true;
+        this.mapPlaceError = '';
+        this.mapPlaceResults = [];
+        this.mapPlaceSelectedId = null;
+        try {
+          const { data, error } = await this.supabase.functions.invoke('get-google-reviews', {
+            body: { query: q, maxResults: 8, listPlaces: true },
+          });
+          if (error) {
+            throw new Error(error.message || String(error));
+          }
+          if (!data?.ok) {
+            throw new Error(typeof data?.error === 'string' ? data.error : 'Błąd wyszukiwania.');
+          }
+          this.mapPlaceResults = Array.isArray(data.places) ? data.places : [];
+          if (!this.mapPlaceResults.length) {
+            this.mapPlaceError = 'Brak wyników — spróbuj innej frazy (np. miasto + nazwa).';
+          }
+        } catch (e) {
+          console.error(e);
+          const msg = e instanceof Error ? e.message : String(e);
+          this.mapPlaceError =
+            /401|JWT|Unauthorized/i.test(msg)
+              ? 'Brak uprawnień (401). Wdróż get-google-reviews z supabase/config.toml (verify_jwt) lub zaloguj się ponownie.'
+              : 'Nie udało się wyszukać. Sprawdź połączenie i czy funkcja get-google-reviews jest wdrożona.';
+        } finally {
+          this.mapPlaceLoading = false;
+        }
+      },
+
+      confirmMapPlaceSelection() {
+        if (!this.mapPlaceSelectedId || !this.content?.pl) return;
+        const hit = this.mapPlaceResults.find((p) => p.id === this.mapPlaceSelectedId);
+        if (!hit) return;
+        if (!this.content.pl.contact) this.content.pl.contact = {};
+        this.content.pl.contact.map_place_id = hit.id;
+        this.content.pl.contact.map_embed_url = '';
+        if (hit.address && !String(this.content.pl.contact.address || '').trim()) {
+          this.content.pl.contact.address = hit.address;
+        }
+        this.message = 'Wybrano lokalizację mapy. Opublikuj zmiany, żeby była widoczna na stronie.';
+        setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
+      },
+
+      clearMapPlaceSelection() {
+        if (this.content?.pl?.contact) {
+          this.content.pl.contact.map_place_id = '';
+        }
+        this.mapPlaceSelectedId = null;
       },
     };
   }

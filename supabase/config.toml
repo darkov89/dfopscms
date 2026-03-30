@@ -1,0 +1,9 @@
+# Supabase CLI / wdrożenia Edge Functions.
+# Wyłączenie weryfikacji JWT na bramie: funkcje są wołane z frontu z kluczem anon
+# (w tym nowy format sb_publishable_…), a logika i tak używa GOOGLE_MAPS_API_KEY po stronie serwera.
+# https://supabase.com/docs/guides/functions/function-configuration
+#
+# Wyszukiwanie miejsc (listPlaces) i embed mapy (embed_for_place_id) są w get-google-reviews.
+
+[functions.get-google-reviews]
+verify_jwt = false

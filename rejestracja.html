@@ -23,65 +23,13 @@
 
         <div class="text-center mb-10 relative z-10">
             <h1 class="text-3xl font-black tracking-widest text-white mb-2">DFOPS<span class="text-[#D4AF37]">CMS</span></h1>
-            <p class="text-sm text-gray-400 uppercase tracking-widest">Wybierz Swój Motyw</p>
+            <p class="text-sm text-gray-400 uppercase tracking-widest">Konto i adres strony</p>
         </div>
 
         <form @submit.prevent="createPage" x-show="!success" class="space-y-8 relative z-10">
-            
-            <div class="space-y-4">
-                <h3 class="text-[#D4AF37] text-xs font-bold uppercase tracking-widest border-b border-white/10 pb-2">1. Wybierz Architekture Strony</h3>
-                <div class="grid grid-cols-2 gap-4">
-                    
-                    <label class="cursor-pointer relative">
-                        <input type="radio" x-model="form.theme" value="consultant" class="peer sr-only">
-                        <div class="border border-gray-700 bg-[#1e1e1e] rounded-sm p-4 text-center peer-checked:border-[#D4AF37] peer-checked:bg-[#D4AF37]/10 transition-all hover:border-gray-500">
-                            <div class="w-12 h-12 bg-gray-800 rounded-full mx-auto mb-3 flex items-center justify-center">💼</div>
-                            <h4 class="font-bold text-white text-sm uppercase tracking-wider mb-1">Coaching & Biznes</h4>
-                            <p class="text-[10px] text-gray-400">Stworzony dla trenerów, konsultantów, agencji i freelancerów</p>
-                        </div>
-                        <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-[#D4AF37] transition-opacity">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
-                        </div>
-                    </label>
-
-                    <label class="cursor-pointer relative">
-                        <input type="radio" x-model="form.theme" value="beauty" class="peer sr-only">
-                        <div class="border border-gray-700 bg-[#1e1e1e] rounded-sm p-4 text-center peer-checked:border-[#D4AF37] peer-checked:bg-[#D4AF37]/10 transition-all hover:border-gray-500">
-                            <div class="w-12 h-12 bg-gray-800 rounded-full mx-auto mb-3 flex items-center justify-center">✨</div>
-                            <h4 class="font-bold text-white text-sm uppercase tracking-wider mb-1">Beauty & Wellness</h4>
-                            <p class="text-[10px] text-gray-400">Idealny dla salonów, spa, fizjoterapii i branży usługowej</p>
-                        </div>
-                        <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-[#D4AF37] transition-opacity">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
-                        </div>
-                    </label>
-
-                </div>
-            </div>
 
             <div class="space-y-4">
-                <h3 class="text-[#D4AF37] text-xs font-bold uppercase tracking-widest border-b border-white/10 pb-2">2. Kolorystyka</h3>
-                <div class="grid grid-cols-1 gap-3">
-                    <label for="reg-color-preset" class="text-xs uppercase tracking-widest text-gray-400">Preset kolorystyczny</label>
-                    <select id="reg-color-preset" x-model="form.color_preset"
-                            class="w-full bg-[#1e1e1e] border border-gray-700 text-white rounded-sm px-4 py-3 focus:ring-1 focus:ring-[#D4AF37] outline-none transition-colors">
-                        <template x-for="preset in availablePresets" :key="preset.id">
-                            <option :value="preset.id" x-text="preset.label"></option>
-                        </template>
-                    </select>
-
-                    <div class="flex items-center justify-between gap-3 bg-[#1e1e1e] border border-gray-700 rounded-sm px-4 py-3">
-                        <div class="text-xs uppercase tracking-widest text-gray-400">Podgląd akcentu</div>
-                        <div class="flex items-center gap-2">
-                            <div class="w-5 h-5 rounded-sm border border-white/20" :style="`background:${accentColor}`"></div>
-                            <div class="text-xs text-gray-300 font-mono" x-text="accentColor"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="space-y-4">
-                <h3 class="text-[#D4AF37] text-xs font-bold uppercase tracking-widest border-b border-white/10 pb-2">3. Dane Logowania</h3>
+                <h3 class="text-[#D4AF37] text-xs font-bold uppercase tracking-widest border-b border-white/10 pb-2">1. Dane logowania</h3>
                 <div>
                     <label for="reg-email" class="sr-only">Adres e-mail</label>
                     <input id="reg-email" type="email" x-model="form.email" required placeholder="Adres e-mail" class="w-full bg-[#1e1e1e] border border-gray-700 text-white rounded-sm px-4 py-3 focus:ring-1 focus:ring-[#D4AF37] outline-none transition-colors mb-3">
@@ -133,9 +81,7 @@
             </div>
             <h2 class="text-2xl font-serif text-white mb-2">Strona Gotowa!</h2>
             <p class="text-gray-400 mb-8">
-                Motyw: <span class="text-[#D4AF37] font-bold" x-text="(typeof DFOPS_getTemplateLabel === 'function' ? DFOPS_getTemplateLabel(form.theme).name : form.theme)"></span>,
-                preset: <span class="text-[#D4AF37] font-bold uppercase" x-text="form.color_preset"></span>,
-                slug: <span class="text-[#D4AF37] font-bold uppercase" x-text="form.slug"></span>
+                Adres: <span class="text-[#D4AF37] font-bold" x-text="form.slug"></span> — zaraz przeniesiemy Cię do panelu. Szablon i kolory ustawisz tam.
             </p>
             
             <a :href="'admin.html?site=' + form.slug" class="block w-full bg-[#D4AF37] hover:bg-white text-[#121212] px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all text-center">
