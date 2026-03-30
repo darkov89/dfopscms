@@ -147,8 +147,20 @@
     return TEMPLATE_LABELS[theme] || { name: theme, desc: '' };
   }
 
+  /** Domyślna treść nowej strony (szablon setup + trial). Używane przy rejestracji z triggera DB i przy pierwszym logowaniu (fallback). */
+  function buildNewSiteContent() {
+    const c = getTemplate('setup');
+    c.pl.settings.template_version = LATEST_TEMPLATE_VERSION || c.pl.settings.template_version || 3;
+    c.pl.settings.subscription = {
+      plan: 'trial',
+      trial_started_at: new Date().toISOString(),
+    };
+    return c;
+  }
+
   window.DFOPS_LATEST_TEMPLATE_VERSION = LATEST_TEMPLATE_VERSION;
   window.DFOPS_getTemplate = getTemplate;
   window.DFOPS_getTemplateLabel = getTemplateLabel;
+  window.DFOPS_buildNewSiteContent = buildNewSiteContent;
 })();
 

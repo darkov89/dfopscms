@@ -121,13 +121,77 @@
         this.showNinjaChecklist = false;
         this.hasUnsavedChanges = false;
       },
+      async ensurePageFromRegistrationMetadata() {
+        const { data: first } = await repo.getCurrentUserPage(this.user.id);
+        if (first) return true;
+
+        const { data: udata, error: uerr } = await this.supabase.auth.getUser();
+        if (uerr || !udata?.user) {
+          this.showError('Nie znaleziono Twojej strony.');
+          return false;
+        }
+        const user = udata.user;
+        let slug = user.user_metadata && user.user_metadata.slug;
+        if (typeof slug !== 'string' || !String(slug).trim()) {
+          this.showError(
+            'Nie znaleziono Twojej strony (brak slug w koncie). Jeśli rejestrowałeś się przed aktualizacją aplikacji, skontaktuj się z pomocą.'
+          );
+          return false;
+        }
+        slug = String(slug)
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9-]/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '');
+        if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+          this.showError('Nieprawidłowy zapis adresu strony w koncie. Skontaktuj się z pomocą.');
+          return false;
+        }
+
+        if (typeof window.DFOPS_buildNewSiteContent !== 'function') {
+          this.showError('Brak konfiguracji szablonów (registry).');
+          return false;
+        }
+        const content = window.DFOPS_buildNewSiteContent();
+        const { error: insErr } = await repo.createPage({
+          slug,
+          theme: 'setup',
+          color_preset: content.pl.settings.color_preset,
+          content,
+          user_id: user.id,
+        });
+        if (insErr) {
+          const code = insErr.code || insErr?.code;
+          if (code === '23505') {
+            this.showError('Ten adres strony jest już zajęty. Skontaktuj się z pomocą.');
+          } else {
+            this.showError(insErr.message || 'Nie udało się utworzyć strony przy pierwszym logowaniu.');
+          }
+          return false;
+        }
+        return true;
+      },
+
       async loadData() {
         this.showNinjaChecklist = false;
         this.content = null;
-        const { data, error } = await repo.getCurrentUserPage(this.user.id);
-        if (error || !data) {
-          this.showError('Nie znaleziono Twojej strony.');
+        let { data, error } = await repo.getCurrentUserPage(this.user.id);
+        if (error) {
+          this.showError('Nie udało się wczytać strony.');
           return;
+        }
+        if (!data) {
+          const created = await this.ensurePageFromRegistrationMetadata();
+          if (!created) {
+            return;
+          }
+          const retry = await repo.getCurrentUserPage(this.user.id);
+          if (retry.error || !retry.data) {
+            this.showError('Nie znaleziono Twojej strony.');
+            return;
+          }
+          data = retry.data;
         }
         this.pageId = data.id;
         this.slug = data.slug;

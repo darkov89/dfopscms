@@ -6,6 +6,8 @@
       supabase: null,
       loading: false,
       success: false,
+      /** true gdy włączone potwierdzanie e-maila — brak sesji, strona powstaje w DB (trigger) lub przy pierwszym logowaniu do panelu */
+      pendingEmailConfirmation: false,
       errorMessage: '',
       slugStatus: 'idle',
       slugCheckTimer: null,
@@ -34,16 +36,12 @@
         this.slugStatus = available ? 'available' : 'taken';
         return available;
       },
-      buildInitialContent() {
-        const theme = 'setup';
-        const c = window.DFOPS_getTemplate(theme);
-        c.pl.settings.template_version = window.DFOPS_LATEST_TEMPLATE_VERSION || c.pl.settings.template_version || 3;
-        c.pl.settings.subscription = {
-          plan: 'trial',
-          trial_started_at: new Date().toISOString(),
-        };
-        return c;
-      },
+
+      /**
+       * Rejestracja: tylko signUp + slug w user_metadata.
+       * Przy potwierdzaniu e-maila nie ma JWT — insert z przeglądarki nie przejdzie RLS.
+       * Strona: trigger w bazie (migracja) albo pierwsze wejście do panelu (adminApp.ensurePageFromRegistrationMetadata).
+       */
       async createPage() {
         this.loading = true;
         this.errorMessage = '';
@@ -54,46 +52,29 @@
           const okSlug = await this.checkSlugUnique();
           if (!okSlug) throw new Error('Popraw slug (unikalny, format twoja-nazwa).');
 
+          const origin = typeof window !== 'undefined' ? window.location.origin : '';
           const { data: authData, error: authError } = await this.supabase.auth.signUp({
             email: this.form.email,
             password: this.form.password,
+            options: {
+              data: { slug: this.form.slug.trim() },
+              emailRedirectTo: origin ? `${origin}/admin.html` : undefined,
+            },
           });
           if (authError) throw authError;
           if (!authData?.user?.id) throw new Error('Nie udało się utworzyć użytkownika.');
 
-          let session = authData.session;
-          if (!session) {
-            const { data: signInData, error: signInError } = await this.supabase.auth.signInWithPassword({
-              email: this.form.email,
-              password: this.form.password,
-            });
-            if (signInError || !signInData.session) {
-              throw new Error(
-                'Konto może wymagać potwierdzenia e-maila — wtedy zaloguj się po kliknięciu w link z maila, albo w Supabase Auth wyłącz „Confirm email” dla testów. Bez sesji nie da się zapisać strony (RLS).'
-              );
-            }
-            session = signInData.session;
-          }
-
-          const content = this.buildInitialContent();
-          const colorPreset = content.pl.settings.color_preset;
-
-          const { error: dbError } = await repo.createPage({
-            slug: this.form.slug,
-            theme: 'setup',
-            color_preset: colorPreset,
-            content,
-            user_id: authData.user.id,
-          });
-          if (dbError) throw dbError;
-
+          this.pendingEmailConfirmation = !authData.session;
           this.success = true;
-          const delay = (cfg.timeouts?.redirectDelay ?? 800);
-          setTimeout(() => {
-            window.location.href = 'admin.html?site=' + encodeURIComponent(this.form.slug);
-          }, delay);
+
+          if (authData.session) {
+            const delay = (cfg.timeouts?.redirectDelay ?? 800);
+            setTimeout(() => {
+              window.location.href = 'admin.html?site=' + encodeURIComponent(this.form.slug);
+            }, delay);
+          }
         } catch (e) {
-          this.errorMessage = e?.message || 'Błąd tworzenia strony.';
+          this.errorMessage = e?.message || 'Błąd tworzenia konta.';
         } finally {
           this.loading = false;
         }
