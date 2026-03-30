@@ -91,9 +91,13 @@ html::after {
     mix-blend-mode: overlay;
 }
 
-/* Make sure theme background utilities don't hide our global background */
-html, body {
+/* html: gradient layer; body: dynamic chrome via --bg-main / --text-main (themeStyling.js) */
+html {
     background-color: transparent !important;
+}
+body {
+    background-color: var(--bg-main, transparent);
+    color: var(--text-main, inherit);
 }
 
 /* Consultant theme overrides */

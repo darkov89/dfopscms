@@ -88,6 +88,38 @@
       setCssVar('--font-sans', fonts.sans);
       setCssVar('--font-serif', fonts.serif);
     }
+
+    // Główne tło / tekst strony (body) — każdy preset musi je nadpisać, żeby nie „zapinać” się przy zmianie jasny ↔ ciemny
+    if (theme === 'beauty') {
+      const isDark = bgStyle === 'smoky' || bgStyle === 'glow';
+      setCssVar('--bg-main', isDark ? '#0b0b0f' : '#Fdfbf7');
+      setCssVar('--text-main', isDark ? '#E5E7EB' : '#2b2b2b');
+    } else if (theme === 'consultant') {
+      const presetPalette = (cfg.consultantPresetPalette || {})[s.color_preset];
+      if (presetPalette) {
+        setCssVar('--bg-main', presetPalette.bgA || '#0B132B');
+        setCssVar('--text-main', presetPalette.text || '#ffffff');
+      } else {
+        const isDark = !!s.darkMode;
+        setCssVar('--bg-main', isDark ? '#121212' : '#ffffff');
+        setCssVar('--text-main', isDark ? '#E5E7EB' : '#1f2937');
+      }
+    } else {
+      setCssVar('--bg-main', 'transparent');
+      setCssVar('--text-main', '#ffffff');
+    }
+
+    const root = document.documentElement;
+    const accentResolved = getComputedStyle(root).getPropertyValue('--accent').trim() || accent
+    const beautyTextResolved = getComputedStyle(root).getPropertyValue('--beauty-text').trim()
+    const accentContrastResolved = getComputedStyle(root).getPropertyValue('--accent-contrast').trim() || '#121212'
+    setCssVar('--color-primary', accentResolved)
+    setCssVar(
+      '--color-text-body',
+      beautyTextResolved ||
+        (theme === 'beauty' ? '#2b2b2b' : theme === 'consultant' ? '#171717' : '#E5E7EB')
+    )
+    setCssVar('--color-accent-text', accentContrastResolved)
   }
 
   window.DFOPS_applyThemeStyling = applyThemeStyling;
