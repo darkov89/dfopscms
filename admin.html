@@ -19,7 +19,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col" x-data="createAdminApp()">
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col" x-data="{ sidebarOpen: false, ...createAdminApp() }">
 
     <div x-show="showWizard" x-cloak class="fixed inset-0 z-[100] bg-gray-50 overflow-y-auto" x-transition.opacity>
         <div x-show="wizardStep === 0" class="min-h-screen flex flex-col items-center justify-center p-6 max-w-5xl mx-auto" x-transition>
@@ -286,43 +286,54 @@
             </div>
             <p class="text-xs text-amber-800 mb-3">Uzupełnij te elementy — wtedy strona będzie spójna i gotowa do gości.</p>
             <ul class="text-sm text-gray-700 space-y-2 mb-4 list-disc list-inside">
-                <li>Logo i nazwa w <button type="button" @click="activeTab = 'settings'; showNinjaChecklist = false" class="text-[#D4AF37] font-bold underline">Szablon i kolory</button></li>
-                <li>Sekcja <button type="button" @click="activeTab = 'hero'; showNinjaChecklist = false" class="text-[#D4AF37] font-bold underline">Hero</button> (nagłówek, zdjęcie)</li>
-                <li><button type="button" @click="activeTab = 'contact'; showNinjaChecklist = false" class="text-[#D4AF37] font-bold underline">Kontakt</button> (telefon / e-mail)</li>
-                <li>Opcjonalnie: <button type="button" @click="activeTab = 'seo'; showNinjaChecklist = false" class="text-[#D4AF37] font-bold underline">SEO</button></li>
+                <li>Logo i nazwa w <button type="button" @click="setTab('settings'); showNinjaChecklist = false" class="text-[#D4AF37] font-bold underline">Szablon i kolory</button></li>
+                <li>Sekcja <button type="button" @click="setTab('hero'); showNinjaChecklist = false" class="text-[#D4AF37] font-bold underline">Hero</button> (nagłówek, zdjęcie)</li>
+                <li><button type="button" @click="setTab('contact'); showNinjaChecklist = false" class="text-[#D4AF37] font-bold underline">Kontakt</button> (telefon / e-mail)</li>
+                <li>Opcjonalnie: <button type="button" @click="setTab('seo'); showNinjaChecklist = false" class="text-[#D4AF37] font-bold underline">SEO</button></li>
             </ul>
         </div>
 
-        <header class="bg-white shadow-sm border-b px-8 py-4 flex justify-between items-center sticky top-0 z-50">
-            <div>
+        <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false" class="fixed inset-0 z-40 bg-gray-900 bg-opacity-50 lg:hidden" x-transition.opacity></div>
+
+        <div class="lg:hidden flex items-center justify-between bg-white border-b px-4 py-3 sticky top-0 z-30">
+            <span class="font-black text-lg tracking-widest text-gray-900">DFOPS<span class="text-[#D4AF37]">CMS</span></span>
+            <button type="button" @click="sidebarOpen = true" class="text-gray-500 hover:text-gray-700 focus:outline-none p-2 -mr-2 rounded-md" aria-label="Otwórz menu">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+        </div>
+
+        <header class="bg-white shadow-sm border-b px-4 md:px-8 py-3 md:py-4 flex flex-col gap-4 lg:flex-row lg:justify-between lg:items-center sticky top-0 z-30 lg:z-50">
+            <div class="hidden lg:block shrink-0">
                 <h1 class="text-2xl font-black tracking-widest text-gray-900">DFOPS<span class="text-[#D4AF37]">CMS</span></h1>
                 <p class="text-xs text-gray-500 uppercase tracking-widest">Witaj, <span x-text="user?.email"></span></p>
             </div>
-            
-            <div class="flex items-center gap-4">
-                <div class="flex items-center bg-gray-100 rounded-md overflow-hidden border px-4 py-2">
-                    <span class="text-sm text-gray-500 mr-2">Motyw:<span class="ml-2 text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded uppercase tracking-widest" x-text="theme"></span></span>
-                    <span class="text-sm font-bold text-[#D4AF37] tracking-wider ml-2" x-text="slug"></span>
-                    <a :href="getPublicSiteUrl()" target="_blank" rel="noopener noreferrer" class="ml-4 text-xs font-bold text-blue-500 hover:text-blue-700 uppercase tracking-widest transition-colors">👀 Podgląd na żywo</a>
+            <div class="lg:hidden text-xs text-gray-500 uppercase tracking-widest truncate">Witaj, <span x-text="user?.email"></span></div>
+
+            <div class="flex flex-col gap-3 w-full lg:flex-row lg:items-center lg:justify-end lg:gap-4 lg:w-auto lg:flex-1">
+                <div class="flex overflow-x-auto whitespace-nowrap gap-2 pb-1 -mx-1 px-1 scrollbar-hide items-center bg-gray-100 rounded-md border px-3 py-2 lg:max-w-none">
+                    <span class="text-xs lg:text-sm text-gray-500 shrink-0">Motyw: <span class="ml-1 text-[10px] lg:text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded uppercase tracking-widest" x-text="theme"></span></span>
+                    <span class="text-xs lg:text-sm font-bold text-[#D4AF37] tracking-wider shrink-0" x-text="slug"></span>
+                    <a :href="getPublicSiteUrl()" target="_blank" rel="noopener noreferrer" class="ml-1 text-[10px] lg:text-xs font-bold text-blue-500 hover:text-blue-700 uppercase tracking-widest transition-colors shrink-0 px-2 py-1 rounded-sm bg-white/80 border border-gray-200">👀 Podgląd</a>
                 </div>
 
-                <button @click="saveData()" x-show="content" class="bg-[#121212] hover:bg-[#D4AF37] hover:text-[#121212] text-white px-8 py-2.5 rounded-sm text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-lg">
-                    <span x-show="!saving">Publikuj Zmiany</span>
-                    <span x-show="saving" class="animate-pulse">Zapisywanie...</span>
-                </button>
-                
-                <div class="flex flex-col items-end gap-1">
-                    <button type="button" @click="activeTab = 'subscription'; $nextTick(() => { const el = document.getElementById('dfops-platnosci-info'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); })" class="text-xs text-gray-400 hover:text-[#D4AF37] uppercase tracking-widest transition-colors">Warunki planów i płatności</button>
-                    <button type="button" @click="logout()" class="text-xs font-bold text-gray-400 hover:text-red-500 uppercase tracking-widest transition-colors">Wyloguj</button>
+                <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+                    <button @click="saveData()" x-show="content" type="button" class="w-full sm:flex-1 lg:w-auto lg:shrink-0 bg-[#121212] hover:bg-[#D4AF37] hover:text-[#121212] text-white px-6 md:px-8 py-3 rounded-sm text-xs md:text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-lg">
+                        <span x-show="!saving">Publikuj Zmiany</span>
+                        <span x-show="saving" class="animate-pulse">Zapisywanie...</span>
+                    </button>
+                    <div class="flex flex-row justify-between sm:justify-end items-center gap-3 sm:gap-4 lg:flex-col lg:items-end lg:gap-1">
+                        <button type="button" @click="setTab('subscription'); $nextTick(() => { const el = document.getElementById('dfops-platnosci-info'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); })" class="text-[10px] md:text-xs text-gray-400 hover:text-[#D4AF37] uppercase tracking-widest transition-colors">Warunki planów i płatności</button>
+                        <button type="button" @click="logout()" class="text-[10px] md:text-xs font-bold text-gray-400 hover:text-red-500 uppercase tracking-widest transition-colors">Wyloguj</button>
+                    </div>
                 </div>
             </div>
         </header>
 
         <template x-if="content">
-        <main class="max-w-6xl w-full mx-auto mt-8 px-6 pb-24" x-transition.opacity>
-            <div x-show="content?.pl?.settings?.subscription?.plan === 'trial'" class="mb-6 p-4 bg-amber-100 text-amber-900 border border-amber-300 rounded-sm shadow-sm flex items-center justify-between gap-4">
+        <main class="max-w-6xl w-full mx-auto mt-4 md:mt-8 px-4 md:px-6 pb-16 md:pb-24" x-transition.opacity>
+            <div x-show="content?.pl?.settings?.subscription?.plan === 'trial'" class="mb-6 p-4 bg-amber-100 text-amber-900 border border-amber-300 rounded-sm shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                 <span class="font-medium text-sm">⏳ Wersja testowa. Zostało: <strong x-text="trialDaysLeft"></strong> dni. Aktywuj pakiet, aby utrzymać stronę!</span>
-                <button @click="activeTab = 'subscription'" class="shrink-0 text-amber-800 font-bold text-xs uppercase tracking-widest hover:underline">Subskrypcja →</button>
+                <button type="button" @click="setTab('subscription')" class="w-full sm:w-auto text-center sm:text-left shrink-0 text-amber-800 font-bold text-xs uppercase tracking-widest hover:underline py-2 sm:py-0">Subskrypcja →</button>
             </div>
             <div x-show="errorMessage" class="mb-6 p-4 bg-red-100 text-red-800 border border-red-200 rounded-sm shadow-sm flex items-center gap-3">
                 <span x-text="errorMessage" class="font-medium text-sm"></span>
@@ -341,47 +352,50 @@
                     </div>
                     <div class="text-xs text-amber-700 mt-1">Aktualizacja doda brakujące pola/sekcje. Twoje istniejące wartości pozostaną bez zmian.</div>
                 </div>
-                <button @click="upgradeTemplate()" :disabled="upgrading"
-                        class="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-sm text-xs font-bold tracking-widest uppercase transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+                <button type="button" @click="upgradeTemplate()" :disabled="upgrading"
+                        class="w-full md:w-auto bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-sm text-xs font-bold tracking-widest uppercase transition-all disabled:opacity-60 disabled:cursor-not-allowed">
                     <span x-show="!upgrading">Upgrade do v<span x-text="latestTemplateVersion"></span></span>
                     <span x-show="upgrading" class="animate-pulse">Aktualizuję…</span>
                 </button>
             </div>
 
-            <div class="flex flex-col md:flex-row gap-8">
-                <div class="md:w-1/4">
-                    <div class="bg-white rounded-sm border shadow-sm flex flex-col overflow-hidden sticky top-28 py-2">
+            <div class="relative flex flex-col lg:flex-row gap-4 lg:gap-8">
+                <aside
+                    class="fixed inset-y-0 left-0 z-50 w-64 max-w-[min(100vw,18rem)] bg-white border-r border-gray-200 shadow-xl flex flex-col overflow-y-auto py-2 transform transition-transform duration-300 ease-in-out lg:!translate-x-0 lg:relative lg:inset-auto lg:z-auto lg:w-1/4 lg:max-w-none lg:border lg:rounded-sm lg:shadow-sm lg:flex-shrink-0"
+                    :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+                >
+                    <div class="flex flex-col overflow-hidden">
                         <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-2 px-5">Treść Strony</div>
-                        <button @click="activeTab = 'settings'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'settings', 'text-gray-600 hover:bg-gray-50': activeTab !== 'settings'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">Szablon i kolory</button>
-                        <button @click="activeTab = 'hero'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'hero', 'text-gray-600 hover:bg-gray-50': activeTab !== 'hero'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">Hero</button>
-                        <button @click="activeTab = 'services'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'services', 'text-gray-600 hover:bg-gray-50': activeTab !== 'services'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">Usługi</button>
-                        <button @click="activeTab = 'gallery'" x-show="theme === 'beauty'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'gallery', 'text-gray-600 hover:bg-gray-50': activeTab !== 'gallery'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider flex items-center gap-2">
+                        <button @click="setTab('settings')" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'settings', 'text-gray-600 hover:bg-gray-50': activeTab !== 'settings'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider">Szablon i kolory</button>
+                        <button @click="setTab('hero')" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'hero', 'text-gray-600 hover:bg-gray-50': activeTab !== 'hero'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider">Hero</button>
+                        <button @click="setTab('services')" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'services', 'text-gray-600 hover:bg-gray-50': activeTab !== 'services'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider">Usługi</button>
+                        <button @click="setTab('gallery')" x-show="theme === 'beauty'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'gallery', 'text-gray-600 hover:bg-gray-50': activeTab !== 'gallery'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider flex items-center gap-2">
                             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             Galeria
                         </button>
-                        <button @click="activeTab = 'contact'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'contact', 'text-gray-600 hover:bg-gray-50': activeTab !== 'contact'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">Kontakt</button>
-                        <button @click="activeTab = 'faq'" x-show="theme === 'consultant' || theme === 'beauty'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'faq', 'text-gray-600 hover:bg-gray-50': activeTab !== 'faq'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">FAQ</button>
+                        <button @click="setTab('contact')" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'contact', 'text-gray-600 hover:bg-gray-50': activeTab !== 'contact'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider">Kontakt</button>
+                        <button @click="setTab('faq')" x-show="theme === 'consultant' || theme === 'beauty'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'faq', 'text-gray-600 hover:bg-gray-50': activeTab !== 'faq'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider">FAQ</button>
 
                         <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6 px-5">Narzędzia & Rozwój</div>
-                        <button type="button" @click="reopenWizard()" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider text-[#D4AF37] font-bold flex items-center gap-2 hover:bg-amber-50">
+                        <button type="button" @click="reopenWizard(); sidebarOpen = false" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider text-[#D4AF37] font-bold flex items-center gap-2 hover:bg-amber-50">
                             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                             Uruchom Kreator
                         </button>
-                        <button @click="activeTab = 'google_reviews'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'google_reviews', 'text-gray-600 hover:bg-gray-50': activeTab !== 'google_reviews'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">Opinie Google</button>
-                        <button @click="activeTab = 'reviews'" x-show="theme === 'consultant'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'reviews', 'text-gray-600 hover:bg-gray-50': activeTab !== 'reviews'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">Opinie Klientów</button>
-                        <button @click="activeTab = 'leady'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'leady', 'text-gray-600 hover:bg-gray-50': activeTab !== 'leady'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">Wiadomości (Leady)</button>
+                        <button @click="setTab('google_reviews')" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'google_reviews', 'text-gray-600 hover:bg-gray-50': activeTab !== 'google_reviews'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider">Opinie Google</button>
+                        <button @click="setTab('reviews')" x-show="theme === 'consultant'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'reviews', 'text-gray-600 hover:bg-gray-50': activeTab !== 'reviews'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider">Opinie Klientów</button>
+                        <button @click="setTab('leady')" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'leady', 'text-gray-600 hover:bg-gray-50': activeTab !== 'leady'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider">Wiadomości (Leady)</button>
 
                         <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6 px-5">Ustawienia</div>
-                        <button @click="activeTab = 'seo'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'seo', 'text-gray-600 hover:bg-gray-50': activeTab !== 'seo'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider">SEO i Social Media</button>
-                        <button @click="activeTab = 'legal'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'legal', 'text-gray-600 hover:bg-gray-50': activeTab !== 'legal'}" class="px-5 py-3 text-left transition-colors text-sm uppercase tracking-wider flex items-center gap-2">
+                        <button @click="setTab('seo')" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'seo', 'text-gray-600 hover:bg-gray-50': activeTab !== 'seo'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider">SEO i Social Media</button>
+                        <button @click="setTab('legal')" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'legal', 'text-gray-600 hover:bg-gray-50': activeTab !== 'legal'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider flex items-center gap-2">
                             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                             Prawne / RODO
                         </button>
-                        <button @click="activeTab = 'subscription'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'subscription', 'text-gray-600 hover:bg-gray-50': activeTab !== 'subscription'}" class="px-5 py-3 text-left border-t border-gray-100 mt-2 transition-colors text-sm uppercase tracking-wider">Subskrypcja</button>
+                        <button @click="setTab('subscription')" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'subscription', 'text-gray-600 hover:bg-gray-50': activeTab !== 'subscription'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left border-t border-gray-100 mt-2 transition-colors text-xs lg:text-sm uppercase tracking-wider">Subskrypcja</button>
                     </div>
-                </div>
+                </aside>
 
-                <div class="md:w-3/4 bg-white rounded-sm border shadow-sm p-8">
+                <div class="w-full lg:w-3/4 bg-white rounded-sm border shadow-sm p-4 md:p-8 min-w-0">
                     
                     <div x-show="activeTab === 'settings'" x-transition.opacity>
                         <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
@@ -621,7 +635,7 @@
                                         </p>
                                     </div>
                                     <div x-show="domainError" x-cloak class="p-4 bg-red-50 text-red-800 border border-red-200 rounded-sm text-sm font-medium flex items-center gap-2"><span x-text="domainError"></span></div>
-                                    <p x-show="isCustomDomainLocked" class="text-xs text-amber-700">Własna domena od pakietu Pro (Tier 1) — <button type="button" @click="activeTab = 'subscription'" class="font-bold underline text-amber-900 hover:text-gray-900">Zobacz plany</button>.</p>
+                                    <p x-show="isCustomDomainLocked" class="text-xs text-amber-700">Własna domena od pakietu Pro (Tier 1) — <button type="button" @click="setTab('subscription')" class="font-bold underline text-amber-900 hover:text-gray-900">Zobacz plany</button>.</p>
                                     <p x-show="!isCustomDomainLocked" class="text-xs text-gray-500">Hostname (np. twojadomena.pl) — rekord CNAME u rejestratora.</p>
                                 </div>
                             </section>
@@ -867,7 +881,7 @@
                                 </label>
                                 <p x-show="uploadingImage" class="text-xs text-[#D4AF37] font-bold animate-pulse mb-4">Wysyłanie na serwer...</p>
                                 <p class="text-xs text-gray-500 mb-4">Po wgraniu zdjęcie pojawi się poniżej. Kliknij <strong>Publikuj Zmiany</strong>, aby zapisać.</p>
-                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" x-show="content.pl.gallery?.images?.length">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4" x-show="content.pl.gallery?.images?.length">
                                     <template x-for="(imgUrl, index) in content.pl.gallery.images" :key="index">
                                         <div class="relative group rounded-sm overflow-hidden border border-gray-200 bg-gray-50 aspect-square">
                                             <img :src="imgUrl" :alt="'Zdjęcie galerii ' + (index + 1)" class="w-full h-full object-cover">

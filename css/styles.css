@@ -165,3 +165,13 @@ html[data-dfops-scope="public"][data-theme="beauty"][data-bg-style="smoky"] .bg-
 html[data-dfops-scope="public"][data-theme="beauty"][data-bg-style="soft"] .bg-sattva-white {
     box-shadow: 0 12px 36px rgba(0, 0, 0, 0.08) !important;
 }
+
+/* Admin: ukryty pasek przewijania przy overflow-x-auto */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+

@@ -95,6 +95,11 @@
         setTimeout(() => { this.errorMessage = ''; }, ERROR_MESSAGE_TIMEOUT);
       },
 
+      setTab(tab) {
+        this.activeTab = tab;
+        this.sidebarOpen = false;
+      },
+
       init() {
         window.addEventListener('beforeunload', (e) => {
           if (this.hasUnsavedChanges) {
