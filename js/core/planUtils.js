@@ -21,6 +21,7 @@
     if (p === 'trial') return 'Trial (14 dni)';
     if (p === 'tier0') return 'Starter (Tier 0)';
     if (p === 'tier1') return 'Pro (Tier 1)';
+    if (p === 'tier2') return 'Premium (Tier 2)';
     if (p === 'tier_custom' || p === 'custom') return 'Custom';
     return p;
   }

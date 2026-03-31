@@ -9,6 +9,14 @@
      * Puste = bez zapisu do bazy. Nazwa musi zgadzać się z tabelą w projekcie.
      */
     analyticsTable: 'analytics_events',
+    /**
+     * ID cen Stripe (Price ID) — zgodne z Secrets STRIPE_PRICE_PRO / STRIPE_PRICE_PREMIUM
+     * w Edge Function create-checkout. Podmień na wartości ze Stripe Dashboard.
+     */
+    stripePrices: {
+      pro: 'price_TUTAJ_ID_PRO',
+      premium: 'price_TUTAJ_ID_PREMIUM',
+    },
     appDomain: 'dfcms.pl',
     systemDomains: ['dfcms.pl', 'localhost', '127.0.0.1'],
     localHosts: ['localhost', '127.0.0.1'],

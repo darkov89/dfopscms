@@ -39,6 +39,7 @@
       hasUnsavedChanges: false,
       _stopContentWatch: null,
       upgrading: false,
+      checkoutLoading: false,
       latestTemplateVersion: window.DFOPS_LATEST_TEMPLATE_VERSION || 3,
       currentTemplateVersion: 1,
       updateAvailable: false,
@@ -439,6 +440,50 @@
           window.DFOPS_trackEvent('onboarding_reopened', { slug: this.slug });
         }
       },
+      async subscribe(planType) {
+        const prices = cfg.stripePrices || {};
+        const priceId = prices[planType];
+        if (!priceId || String(priceId).includes('TUTAJ')) {
+          this.showError('Skonfiguruj ID cen Stripe w js/core/config.js (stripePrices) i Secrets w Supabase.');
+          return;
+        }
+        if (!this.user?.id) {
+          this.showError('Zaloguj się, aby wykupić subskrypcję.');
+          return;
+        }
+        this.checkoutLoading = true;
+        try {
+          const returnUrl = `${window.location.origin}${window.location.pathname}`;
+          const { data, error } = await this.supabase.functions.invoke(
+            'create-checkout',
+            {
+              body: {
+                plan: planType,
+                priceId,
+                returnUrl,
+                userEmail: this.user?.email || '',
+              },
+            },
+          );
+          if (error) throw error;
+          const url = data && typeof data.url === 'string' ? data.url : '';
+          if (url) {
+            window.location.href = url;
+          } else {
+            const errMsg =
+              data && typeof data.error === 'string'
+                ? data.error
+                : 'Brak adresu płatności.';
+            throw new Error(errMsg);
+          }
+        } catch (e) {
+          console.error(e);
+          alert('Błąd podczas łączenia z systemem płatności.');
+        } finally {
+          this.checkoutLoading = false;
+        }
+      },
+
       async activateTier0() {
         if (!confirm('Aktywacja pakietu Starter (Tier 0) spowoduje odpięcie Twojej własnej domeny. Czy na pewno chcesz kontynuować?')) {
           return;

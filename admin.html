@@ -1162,50 +1162,72 @@
                             <p class="text-lg font-bold text-gray-900" x-text="planDisplayLabel"></p>
                             <p class="text-sm text-gray-600 mt-1" x-text="planSummaryLine"></p>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div class="border border-gray-200 rounded-sm p-6 bg-gray-50">
-                                <h3 class="font-bold text-gray-900 text-lg mb-1">Tier 0 (Starter)</h3>
-                                <p class="text-2xl font-bold text-[#D4AF37] mb-1">0 zł / msc</p>
-                                <p class="text-xs text-gray-600 mb-1 font-medium">Zawsze darmowy w fazie Beta</p>
-                                <p class="text-xs text-gray-500 mb-4">Aktywacja w panelu — bez opłat w czasie beta.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                            <div class="border border-gray-200 rounded-lg p-6 bg-gray-50/80 shadow-sm">
+                                <h3 class="font-bold text-gray-900 text-lg mb-1">Starter</h3>
+                                <p class="text-xs text-gray-500 uppercase tracking-widest mb-2">Tier 0</p>
+                                <p class="text-2xl font-bold text-[#D4AF37] mb-1">0 zł <span class="text-sm font-normal text-gray-500">/ msc</span></p>
+                                <p class="text-xs text-gray-600 mb-4 font-medium">W fazie Beta — aktywacja w panelu</p>
                                 <ul class="text-sm text-gray-600 space-y-2 mb-6">
-                                    <li>• <strong class="text-gray-800">Publikacja na subdomenie</strong> (np. twojanazwa.dfcms.pl)</li>
-                                    <li>• <strong class="text-gray-800">Widoczny znak wodny DFCMS</strong></li>
+                                    <li>• <strong class="text-gray-800">Subdomena</strong> (np. twojanazwa.dfcms.pl)</li>
+                                    <li>• <strong class="text-gray-800">Znak wodny DFCMS</strong></li>
                                 </ul>
-                                <button type="button" @click="activateTier0()" x-show="content?.pl?.settings?.subscription?.plan !== 'tier0'" class="w-full bg-[#121212] text-white px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors">
-                                    Aktywuj ten pakiet
+                                <button type="button" @click="activateTier0()" x-show="content?.pl?.settings?.subscription?.plan !== 'tier0'" :disabled="checkoutLoading" class="w-full bg-[#121212] text-white px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors disabled:opacity-50">
+                                    Aktywuj Starter
                                 </button>
                                 <div x-show="content?.pl?.settings?.subscription?.plan === 'tier0'" class="w-full border-2 border-[#D4AF37] text-[#D4AF37] px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest text-center bg-amber-50">
                                     Aktualny plan
                                 </div>
                             </div>
-                            <div class="border-2 border-[#D4AF37] rounded-sm p-6 bg-white shadow-lg relative">
-                                <span class="absolute -top-2 left-4 bg-[#D4AF37] text-[#121212] text-xs font-bold px-2 py-0.5">PRO</span>
-                                <h3 class="font-bold text-gray-900 text-lg mb-1">Tier 1 (Pro)</h3>
+                            <div class="border-2 border-[#D4AF37] rounded-lg p-6 bg-gradient-to-b from-white to-amber-50/30 shadow-lg relative overflow-hidden">
+                                <span class="absolute -top-0 right-4 bg-[#D4AF37] text-[#121212] text-[10px] font-bold px-2 py-1 rounded-b-sm uppercase tracking-wider">Popularne</span>
+                                <h3 class="font-bold text-gray-900 text-lg mb-1 pt-2">Pro</h3>
+                                <p class="text-xs text-gray-500 uppercase tracking-widest mb-2">Tier 1</p>
                                 <p class="text-2xl font-bold text-[#D4AF37] mb-4">49 zł <span class="text-sm font-normal text-gray-500">/ msc</span></p>
                                 <ul class="text-sm text-gray-600 space-y-2 mb-6">
-                                    <li>• <strong class="text-gray-800">Możliwość podpięcia własnej domeny</strong> (.pl, .com)</li>
-                                    <li>• <strong class="text-gray-800">Brak znaku wodnego</strong></li>
+                                    <li>• <strong class="text-gray-800">Własna domena</strong></li>
+                                    <li>• <strong class="text-gray-800">Bez znaku wodnego</strong></li>
+                                    <li>• <strong class="text-gray-800">Subskrypcja Stripe</strong></li>
                                 </ul>
-                                <a href="mailto:kontakt@dfcms.pl?subject=DFCMS%20Tier%201%20Pro" class="block w-full text-center bg-[#D4AF37] text-[#121212] px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-[#c9a432] transition-colors">Integracja płatności wkrótce</a>
+                                <button type="button" @click="subscribe('pro')" :disabled="checkoutLoading" class="w-full text-center bg-[#D4AF37] text-[#121212] px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-[#c9a432] transition-colors shadow-md disabled:opacity-50">
+                                    <span x-show="!checkoutLoading">Przejdź do płatności</span>
+                                    <span x-show="checkoutLoading" x-cloak>Łączenie ze Stripe…</span>
+                                </button>
                             </div>
-                            <div class="border border-gray-200 rounded-sm p-6 bg-gray-50">
-                                <h3 class="font-bold text-gray-900 text-lg mb-1">Tier Custom</h3>
-                                <p class="text-2xl font-bold text-[#D4AF37] mb-4">od 1499 PLN</p>
+                            <div class="border border-gray-200 rounded-lg p-6 bg-white shadow-md relative">
+                                <span class="absolute -top-2 left-4 bg-[#121212] text-[#D4AF37] text-xs font-bold px-2 py-0.5 rounded-sm">PREMIUM</span>
+                                <h3 class="font-bold text-gray-900 text-lg mb-1 mt-2">Premium</h3>
+                                <p class="text-xs text-gray-500 uppercase tracking-widest mb-2">Tier 2</p>
+                                <p class="text-2xl font-bold text-[#D4AF37] mb-4">99 zł <span class="text-sm font-normal text-gray-500">/ msc</span></p>
+                                <ul class="text-sm text-gray-600 space-y-2 mb-6">
+                                    <li>• <strong class="text-gray-800">Wszystko z Pro</strong></li>
+                                    <li>• <strong class="text-gray-800">Priorytetowe wsparcie</strong></li>
+                                    <li>• <strong class="text-gray-800">Subskrypcja Stripe</strong></li>
+                                </ul>
+                                <button type="button" @click="subscribe('premium')" :disabled="checkoutLoading" class="w-full text-center border-2 border-[#D4AF37] text-[#121212] bg-white px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-[#D4AF37]/10 transition-colors disabled:opacity-50">
+                                    <span x-show="!checkoutLoading">Przejdź do płatności</span>
+                                    <span x-show="checkoutLoading" x-cloak>Łączenie ze Stripe…</span>
+                                </button>
+                            </div>
+                            <div class="border border-dashed border-gray-300 rounded-lg p-6 bg-gray-50">
+                                <h3 class="font-bold text-gray-900 text-lg mb-1">Custom</h3>
+                                <p class="text-xs text-gray-500 uppercase tracking-widest mb-2">Na zamówienie</p>
+                                <p class="text-2xl font-bold text-[#D4AF37] mb-1">od 149 zł</p>
+                                <p class="text-xs text-gray-500 mb-4">Wycena indywidualna</p>
                                 <ul class="text-sm text-gray-600 space-y-2 mb-6">
                                     <li>• Indywidualne wdrożenie</li>
-                                    <li>• Customowe rozwiązania</li>
-                                    <li>• Wycena indywidualna</li>
+                                    <li>• Rozszerzenia pod Twój proces</li>
+                                    <li>• Kontakt z zespołem</li>
                                 </ul>
-                                <a href="mailto:kontakt@dfcms.pl?subject=DFCMS%20Tier%20Custom" class="block w-full text-center border-2 border-gray-300 text-gray-700 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-gray-100 transition-colors">Integracja płatności wkrótce</a>
+                                <a href="zapytanie-custom.html" class="block w-full text-center border-2 border-gray-300 text-gray-800 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:border-[#D4AF37] hover:text-[#9a7b16] transition-colors">Formularz zapytania</a>
                             </div>
                         </div>
 
                         <div id="dfops-platnosci-info" class="mt-8 p-6 bg-white border border-gray-200 rounded-sm text-sm text-gray-700 leading-relaxed max-w-3xl">
-                            <h3 class="text-base font-bold text-gray-900 mb-2">Warunki planów i rozliczeń (szkic)</h3>
-                            <p class="mb-2">Ceny i zakres usług mogą ulec doprecyzowaniu do momentu uruchomienia płatności online. Aktywacja pakietu Starter w panelu jest bezpłatna i służy testom produktu.</p>
-                            <p class="mb-2">Po starcie płatności: faktura lub paragon zgodnie z obowiązującymi przepisami; rezygnacja — zgodnie z regulaminem obowiązującym w dniu zakupu.</p>
-                            <p class="text-xs text-gray-500">Pełny regulamin i polityka prywatności — w zakładkach Prawne oraz na stronie głównej serwisu.</p>
+                            <h3 class="text-base font-bold text-gray-900 mb-2">Płatności i plany</h3>
+                            <p class="mb-2">Pro i Premium są rozliczane przez <strong class="text-gray-900">Stripe Checkout</strong> (subskrypcja). Upewnij się, że w projekcie Supabase ustawione są sekrety: <code class="text-xs bg-gray-100 px-1 rounded">STRIPE_SECRET_KEY</code>, <code class="text-xs bg-gray-100 px-1 rounded">STRIPE_PRICE_PRO</code>, <code class="text-xs bg-gray-100 px-1 rounded">STRIPE_PRICE_PREMIUM</code> — oraz że ID w <code class="text-xs bg-gray-100 px-1 rounded">js/core/config.js</code> (stripePrices) są zgodne z tymi cenami.</p>
+                            <p class="mb-2">Pakiet Starter w panelu jest bezpłatny (beta). Faktura lub paragon — zgodnie z przepisami po zaksięgowaniu płatności Stripe.</p>
+                            <p class="text-xs text-gray-500">Pełny regulamin i polityka prywatności — w zakładce Prawne oraz na stronie głównej serwisu.</p>
                         </div>
                     </div>
 

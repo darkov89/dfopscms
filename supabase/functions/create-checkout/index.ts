@@ -1,0 +1,114 @@
+// @ts-ignore - remote Deno std module isn't resolvable by local TS linter.
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import Stripe from "https://esm.sh/stripe@12.0.0?target=deno";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+/** Deno global - available at runtime in Supabase Edge Functions. */
+declare const Deno: { env: { get: (k: string) => string | undefined } };
+
+const corsHeaders: Record<string, string> = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      throw new Error("Brak autoryzacji");
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const {
+      data: { user },
+      error: userErr,
+    } = await supabaseAuth.auth.getUser();
+    if (userErr || !user?.email) {
+      throw new Error("Wymagane zalogowanie.");
+    }
+
+    const stripeSecret = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
+    if (!stripeSecret) {
+      throw new Error("Brak STRIPE_SECRET_KEY na serwerze");
+    }
+
+    const pricePro = Deno.env.get("STRIPE_PRICE_PRO") ?? "";
+    const pricePremium = Deno.env.get("STRIPE_PRICE_PREMIUM") ?? "";
+    const allowed = new Set([pricePro, pricePremium].filter(Boolean));
+
+    const body = await req.json().catch(() => ({}));
+    const rawPrice =
+      typeof body?.priceId === "string" ? body.priceId.trim() : "";
+    const plan = typeof body?.plan === "string" ? body.plan.trim() : "";
+
+    let priceId = "";
+    if (plan === "pro" && pricePro) priceId = pricePro;
+    else if (plan === "premium" && pricePremium) priceId = pricePremium;
+    else if (rawPrice && allowed.has(rawPrice)) priceId = rawPrice;
+
+    if (!priceId) {
+      throw new Error(
+        "Nieprawidłowy plan lub cena. Ustaw STRIPE_PRICE_PRO i STRIPE_PRICE_PREMIUM (Secrets) oraz zgodne ID w panelu.",
+      );
+    }
+
+    const returnUrlRaw =
+      typeof body?.returnUrl === "string" ? body.returnUrl.trim() : "";
+    if (!returnUrlRaw || !/^https?:\/\//i.test(returnUrlRaw)) {
+      throw new Error("Brak lub nieprawidłowy returnUrl");
+    }
+    const returnUrl = returnUrlRaw.replace(/\/$/, "");
+
+    const emailFromBody =
+      typeof body?.userEmail === "string" ? body.userEmail.trim() : "";
+    const customerEmail =
+      user.email || (emailFromBody.includes("@") ? emailFromBody : "");
+
+    const stripe = new Stripe(stripeSecret, {
+      apiVersion: "2022-11-15",
+      httpClient: Stripe.createFetchHttpClient(),
+    });
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card", "blik"],
+      line_items: [{ price: priceId, quantity: 1 }],
+      mode: "subscription",
+      ...(customerEmail ? { customer_email: customerEmail } : {}),
+      success_url: `${returnUrl}?payment=success`,
+      cancel_url: `${returnUrl}?payment=cancelled`,
+      client_reference_id: user.id,
+      metadata: {
+        supabase_user_id: user.id,
+        plan: plan || (priceId === pricePro ? "pro" : "premium"),
+      },
+    });
+
+    return new Response(JSON.stringify({ url: session.url }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return new Response(JSON.stringify({ error: msg }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 400,
+    });
+  }
+});
