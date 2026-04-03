@@ -36,6 +36,8 @@
       uploadingImage: false,
       message: '',
       errorMessage: '',
+      toast: { show: false, message: '', type: 'success' },
+      _toastTimer: null,
       hasUnsavedChanges: false,
       _stopContentWatch: null,
       upgrading: false,
@@ -94,6 +96,15 @@
       showError(msg) {
         this.errorMessage = msg;
         setTimeout(() => { this.errorMessage = ''; }, ERROR_MESSAGE_TIMEOUT);
+      },
+
+      showToast(message, type = 'success') {
+        if (!this.toast) this.toast = { show: false, message: '', type: 'success' };
+        this.toast.message = String(message || '');
+        this.toast.type = type === 'error' ? 'error' : 'success';
+        this.toast.show = true;
+        if (this._toastTimer) clearTimeout(this._toastTimer);
+        this._toastTimer = setTimeout(() => { this.toast.show = false; }, 4000);
       },
 
       setTab(tab) {
@@ -478,7 +489,7 @@
           }
         } catch (e) {
           console.error(e);
-          alert('Błąd podczas łączenia z systemem płatności.');
+          this.showToast('Błąd podczas łączenia z systemem płatności.', 'error');
         } finally {
           this.checkoutLoading = false;
         }
@@ -496,7 +507,7 @@
         this.customDomain = '';
         const ok = await this.saveData();
         if (ok) {
-          this.message = 'Pakiet Starter (Tier 0) aktywny! Na stronie publicznej widać znak wodny DFOPSCMS, a własna domena została odpięta w bazie.';
+          this.message = 'Pakiet Starter (Tier 0) aktywny! Na stronie publicznej widać znak wodny DFCMS, a własna domena została odpięta w bazie.';
           setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
           if (typeof window.DFOPS_trackEvent === 'function') {
             window.DFOPS_trackEvent('tier0_activated', { slug: this.slug });
@@ -630,6 +641,7 @@
         } catch (e) {
           console.error(e);
           this.showError('Nie udało się zapisać zmian. Sprawdź połączenie i spróbuj ponownie. Jeśli błąd się powtarza, napisz do nas.');
+          this.showToast('Nie udało się zapisać zmian. Sprawdź połączenie i spróbuj ponownie.', 'error');
           return false;
         } finally {
           this.saving = false;

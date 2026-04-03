@@ -3,7 +3,7 @@
  * Zmienne: SUPABASE_URL, SUPABASE_ANON_KEY
  * Opcjonalnie: SEO_DEBUG=1 — wstrzyknie <meta name="dfops-debug" …> (tylko diagnostyka).
  *
- * Znak wodny DFOPSCMS (trial / tier0) jest doklejany po stronie klienta w publicSiteApp.js
+ * Znak wodny DFCMS (trial / tier0) jest doklejany po stronie klienta w publicSiteApp.js
  * (Shadow DOM), po załadowaniu treści — nie w tym middleware.
  */
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DFOPSCMS - Załóż Stronę</title>
+    <title>DFCMS — Załóż stronę</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script defer src="js/core/config.js"></script>
@@ -22,7 +22,7 @@
         <div class="absolute -top-20 -right-20 w-64 h-64 bg-[#D4AF37] opacity-20 blur-[80px] rounded-full pointer-events-none"></div>
 
         <div class="text-center mb-10 relative z-10">
-            <h1 class="text-3xl font-black tracking-widest text-white mb-2">DFOPS<span class="text-[#D4AF37]">CMS</span></h1>
+            <h1 class="text-3xl font-black tracking-widest text-white mb-2">DF<span class="text-[#D4AF37]">CMS</span></h1>
             <p class="text-sm text-gray-400 uppercase tracking-widest">Konto i adres strony</p>
         </div>
 
@@ -43,13 +43,19 @@
                 <div>
                     <label for="reg-slug" class="sr-only">Adres Twojej strony (slug)</label>
                     <div class="flex items-center bg-[#1e1e1e] border border-gray-700 rounded-sm overflow-hidden focus-within:ring-1 focus-within:ring-[#D4AF37] transition-colors">
-                        <span class="px-3 text-gray-500 text-sm border-r border-gray-700">dfcms.pl/?site=</span>
                         <input id="reg-slug" type="text"
                                x-model="form.slug"
                                @input="formatSlug(); scheduleSlugCheck()"
                                required
                                placeholder="twoja-nazwa"
                                class="w-full bg-transparent text-white px-3 py-3 outline-none">
+                        <span class="px-3 text-gray-500 text-sm border-l border-gray-700">.dfcms.pl</span>
+                    </div>
+                    <div class="mt-2 text-xs text-gray-300" x-show="form.slug">
+                        Twój adres: <span class="text-[#D4AF37] font-bold" x-text="form.slug"></span><span class="text-gray-200">.dfcms.pl</span>
+                    </div>
+                    <div class="mt-1 text-[11px] text-gray-400">
+                        (W pakiecie PRO możesz podpiąć własną domenę .pl/.com)
                     </div>
                     <div class="mt-2 text-xs" x-show="form.slug">
                         <span class="text-gray-500" x-show="slugStatus === 'idle'">Sprawdzę dostępność sluga…</span>
@@ -64,7 +70,7 @@
 
             <label class="flex items-start gap-3 cursor-pointer">
                 <input type="checkbox" x-model="accepted" class="mt-1 w-4 h-4 rounded border-gray-600 bg-[#1e1e1e] text-[#D4AF37] focus:ring-[#D4AF37]">
-                <span class="text-sm text-gray-600">Akceptuję <a href="/regulamin.html" class="text-[#D4AF37] underline hover:no-underline">Regulamin</a> oraz <a href="/polityka.html" class="text-[#D4AF37] underline hover:no-underline">Politykę Prywatności</a>.</span>
+                <span class="text-sm text-gray-300">Akceptuję <a href="/regulamin.html" class="text-white underline hover:text-[#D4AF37]">Regulamin</a> oraz <a href="/polityka.html" class="text-white underline hover:text-[#D4AF37]">Politykę Prywatności</a>.</span>
             </label>
 
             <div x-show="errorMessage" class="text-red-400 text-sm font-bold text-center bg-red-400/10 py-2 rounded-sm border border-red-400/20" x-text="errorMessage"></div>

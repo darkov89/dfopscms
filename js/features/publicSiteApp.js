@@ -30,7 +30,7 @@
                 }
                 .dfcms-badge:hover { background: #000 !important; transform: translateY(-2px) !important; }
             </style>
-            <a href="https://dfcms.pl?ref=watermark" target="_blank" rel="noopener noreferrer" class="dfcms-badge">⚡ Stworzono w DFOPSCMS</a>
+            <a href="https://dfcms.pl?ref=watermark" target="_blank" rel="noopener noreferrer" class="dfcms-badge">⚡ Stworzono w DFCMS</a>
         `;
       shadow.appendChild(wrapper);
     }
