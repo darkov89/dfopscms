@@ -35,7 +35,7 @@
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                     </div>
                     <h2 class="text-2xl font-bold text-gray-900 mb-3 uppercase tracking-widest">Stwórzmy to razem (Krok po kroku)</h2>
-                    <p class="text-gray-500 mb-6 leading-relaxed">Odpowiedz na kilka prostych pytań, a my ułożymy z nich fundamenty Twojej nowej strony. Zrób sobie kawę i zaczynamy!</p>
+                    <p class="text-gray-500 mb-6 leading-relaxed">Odpowiedz na kilka prostych pytań, a my ułożymy z nich piękną stronę. Zrób sobie ulubioną herbatę i zaczynamy!</p>
                     <span class="text-[#D4AF37] font-bold text-sm uppercase tracking-widest flex items-center gap-2 group-hover:translate-x-2 transition-transform">
                         Rozpocznij krok po kroku <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </span>
@@ -127,12 +127,15 @@
                     </div>
                     <div class="mt-6">
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Logo Twojej marki</label>
-                        <div class="flex items-center gap-4">
+                        <div class="flex flex-wrap items-center gap-4">
                             <div class="w-20 h-12 bg-gray-100 border-2 border-dashed border-gray-300 rounded flex items-center justify-center overflow-hidden">
                                 <template x-if="content.pl.nav.logoImage"><img :src="content.pl.nav.logoImage" class="h-full object-contain" alt=""></template>
                                 <template x-if="!content.pl.nav.logoImage"><span class="text-[10px] text-gray-400">BRAK</span></template>
                             </div>
-                            <input type="file" accept="image/*" @change="uploadImage($event, 'nav', 'logoImage')" class="text-xs">
+                            <label class="inline-flex cursor-pointer items-center gap-2 rounded-sm border border-[#D4AF37]/40 bg-amber-50/50 px-3 py-2 text-xs font-semibold text-[#b8941c] hover:bg-amber-50">
+                                Dodaj swoje piękne zdjęcie
+                                <input type="file" accept="image/*" class="sr-only" @change="uploadImage($event, 'nav', 'logoImage')">
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -152,13 +155,16 @@
                         </div>
                     </div>
                     <div class="mt-6">
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Główna wizytówka (Pierwsze wrażenie)</label>
-                        <div class="flex items-center gap-4">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Twoja główna wizytówka (Pierwsze wrażenie)</label>
+                        <div class="flex flex-wrap items-center gap-4">
                             <div class="w-20 h-20 bg-gray-100 border-2 border-dashed border-gray-300 rounded flex items-center justify-center overflow-hidden">
                                 <template x-if="content.pl.hero.image"><img :src="content.pl.hero.image" class="w-full h-full object-cover" alt=""></template>
                                 <template x-if="!content.pl.hero.image"><span class="text-[10px] text-gray-400">BRAK</span></template>
                             </div>
-                            <input type="file" accept="image/*" @change="uploadImage($event, 'hero', 'image')" class="text-xs">
+                            <label class="inline-flex cursor-pointer items-center gap-2 rounded-sm border border-[#D4AF37]/40 bg-amber-50/50 px-3 py-2 text-xs font-semibold text-[#b8941c] hover:bg-amber-50">
+                                Dodaj swoje piękne zdjęcie
+                                <input type="file" accept="image/*" class="sr-only" @change="uploadImage($event, 'hero', 'image')">
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -265,8 +271,8 @@
                     <label for="admin-password" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Hasło</label>
                     <input id="admin-password" type="password" x-model="password" required class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
                 </div>
-                <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" x-model="rememberMe" class="rounded text-[#D4AF37] focus:ring-[#D4AF37] border-gray-300">
+                <label class="flex items-center gap-2 mt-4 cursor-pointer">
+                    <input type="checkbox" x-model="rememberMe" class="rounded border-gray-300 text-[#D4AF37] focus:ring-[#D4AF37]">
                     <span class="text-sm text-gray-500">Zapamiętaj mnie na tym urządzeniu</span>
                 </label>
                 
@@ -787,9 +793,9 @@
                         </div>
 
                         <div class="mt-8 pt-6 border-t border-gray-100">
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Zdjęcie Główne (Hero)</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Twoja główna wizytówka (Pierwsze wrażenie)</label>
                             <p class="text-xs text-gray-500 mb-4 leading-relaxed max-w-2xl">Zdjęcie profilowe lub obrazek marki — najlepiej kwadrat lub pion w dobrej rozdzielczości (min. 800px).</p>
-                            <div class="flex items-start gap-6">
+                            <div class="flex flex-wrap items-start gap-6">
                                 <div class="flex flex-col items-center shrink-0">
                                     <div class="w-20 h-20 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
                                         <template x-if="content.pl.hero.image">
@@ -803,9 +809,12 @@
                                         <button @click="content.pl.hero.image = ''" type="button" class="mt-2 text-[10px] text-red-500 hover:text-red-700 font-bold uppercase tracking-widest">✖ Usuń grafikę</button>
                                     </template>
                                 </div>
-                                <div class="flex-grow">
-                                    <input type="file" accept="image/*" @change="uploadImage($event, 'hero', 'image')" class="text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-sm file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-widest file:bg-[#121212] file:text-[#D4AF37] hover:file:bg-gray-800 cursor-pointer transition-colors w-full">
-                                    <p x-show="uploadingImage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse">Wysyłanie na serwer...</p>
+                                <div class="flex-grow min-w-[200px]">
+                                    <label class="inline-flex cursor-pointer items-center gap-2 rounded-sm border border-[#D4AF37]/40 bg-amber-50/50 px-3 py-2 text-xs font-semibold text-[#b8941c] hover:bg-amber-50">
+                                        Dodaj swoje piękne zdjęcie
+                                        <input type="file" accept="image/*" class="sr-only" @change="uploadImage($event, 'hero', 'image')">
+                                    </label>
+                                    <p x-show="uploadingImage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse">Chwileczkę, zapisuję zdjęcie…</p>
                                 </div>
                             </div>
                         </div>
@@ -863,6 +872,10 @@
                                 </div>
                                 <span class="text-sm font-medium text-gray-900">Włącz sekcję Usługi</span>
                             </label>
+                            <div x-show="content.pl.settings.showServices && (!content.pl.services || content.pl.services.length === 0)" class="text-sm text-blue-700 bg-blue-50 border border-blue-100 p-4 rounded-xl mt-3 flex items-start gap-3">
+                                <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <p>✨ Świetnie, że włączyłaś cennik! Dodaj pierwszą usługę poniżej — wtedy klienci zobaczą Twoją ofertę na stronie.</p>
+                            </div>
                         </div>
                         <div class="space-y-6">
                             <template x-for="(service, index) in content.pl.services" :key="index">
@@ -896,7 +909,7 @@
                                 </div>
                             </template>
                             <button @click="content.pl.services.push({title: 'Nowa Usługa', desc: 'Opis...', price: '', duration: '', details: ''})" class="w-full border-2 border-dashed border-gray-300 text-gray-500 font-bold uppercase tracking-widest py-4 rounded-sm hover:bg-[#D4AF37] hover:text-white transition-all">
-                                + Dodaj usługę
+                                + Dodaj pozycję do cennika
                             </button>
                         </div>
                     </div>
@@ -905,6 +918,10 @@
                         <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
                             <h2 class="text-2xl font-serif text-gray-900 mb-2">Galeria</h2>
                             <p class="text-sm text-gray-600 leading-relaxed max-w-2xl">Zdjęcia portfolio wyświetlane na stronie. Sekcja pojawia się automatycznie, gdy dodasz zdjęcia.</p>
+                            <div x-show="!content.pl.gallery?.images?.length" class="text-sm text-blue-700 bg-blue-50 border border-blue-100 p-4 rounded-xl mt-3 flex items-start gap-3">
+                                <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <p>✨ Galeria czeka na Twoje zdjęcia! Dodaj pierwsze zdjęcie poniżej — wtedy goście zobaczą Twoje realizacje na stronie.</p>
+                            </div>
                         </div>
                         <div class="space-y-6">
                             <div>
@@ -915,7 +932,7 @@
                             <div class="pt-6 border-t border-gray-100">
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Zdjęcia w galerii</label>
                                 <label class="inline-block border-2 border-dashed border-gray-300 text-gray-500 font-bold uppercase tracking-widest py-3 px-6 rounded-sm hover:bg-[#D4AF37] hover:text-white hover:border-[#D4AF37] transition-all cursor-pointer mb-6">
-                                    Dodaj zdjęcie
+                                    Dodaj swoje piękne zdjęcie
                                     <input type="file" accept="image/*" @change="uploadImage($event, 'gallery', 'images')" class="hidden">
                                 </label>
                                 <p x-show="uploadingImage" class="text-xs text-[#D4AF37] font-bold animate-pulse mb-4">Wysyłanie na serwer...</p>
@@ -1052,6 +1069,10 @@
                                 </div>
                                 <span class="text-sm font-medium text-gray-900">Włącz sekcję FAQ</span>
                             </label>
+                            <div x-show="content.pl.settings.showFaq && (!content.pl.faq || content.pl.faq.length === 0)" class="text-sm text-blue-700 bg-blue-50 border border-blue-100 p-4 rounded-xl mt-3 flex items-start gap-3">
+                                <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <p>✨ Świetnie, że włączyłaś sekcję pytań! Aby pojawiła się na Twojej stronie, dodaj poniżej swoje pierwsze pytanie i odpowiedź.</p>
+                            </div>
                         </div>
                         <div class="space-y-6">
                             <template x-for="(item, index) in content.pl.faq" :key="index">

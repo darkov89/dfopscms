@@ -13,7 +13,7 @@
       loadingAuth: true,
       email: '',
       password: '',
-      rememberMe: typeof localStorage !== 'undefined' && localStorage.getItem('dfops_remember') === 'true',
+      rememberMe: false,
       authError: '',
       slug: new URLSearchParams(window.location.search).get('site') || '',
       lang: 'pl',
@@ -48,7 +48,9 @@
       updateAvailable: false,
       selectedStyleBundle: '',
       get availablePresets() {
-        const currentTheme = this.showWizard ? (this.wizardTheme || this.theme) : this.theme;
+        const currentTheme = this.showWizard
+          ? (this.wizardTheme || this.theme || 'beauty')
+          : (this.theme || 'beauty');
         return cfg.presetsByTheme[currentTheme] || [];
       },
       get accentColor() { return cfg.accentByPreset[this.content?.pl?.settings?.color_preset] || '#D4AF37'; },
@@ -143,6 +145,7 @@
         });
         if (error) this.authError = 'Błędny e-mail lub hasło.';
         else {
+          localStorage.setItem('dfops_login_time', String(Date.now()));
           this.user = data.user;
           await this.loadData();
         }
@@ -153,6 +156,9 @@
           this._stopContentWatch = null;
         }
         await this.supabase.auth.signOut();
+        try {
+          localStorage.removeItem('dfops_login_time');
+        } catch (e) { /* ignore */ }
         this.user = null;
         this.content = null;
         this.pageId = null;

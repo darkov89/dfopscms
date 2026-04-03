@@ -24,7 +24,7 @@
       slugStatus: 'idle',
       slugCheckTimer: null,
       accepted: false,
-      rememberMe: typeof localStorage !== 'undefined' && localStorage.getItem('dfops_remember') === 'true',
+      rememberMe: false,
       form: { email: '', password: '', slug: '' },
 
       init() {
@@ -87,6 +87,7 @@
           this.success = true;
 
           if (authData.session) {
+            localStorage.setItem('dfops_login_time', String(Date.now()));
             const delay = (cfg.timeouts?.redirectDelay ?? 800);
             setTimeout(() => {
               window.location.href = 'admin.html?site=' + encodeURIComponent(this.form.slug);

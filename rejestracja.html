@@ -41,7 +41,7 @@
             <div class="space-y-4">
                 <h3 class="text-[#D4AF37] text-xs font-bold uppercase tracking-widest border-b border-white/10 pb-2">2. Wybierz adres swojej strony</h3>
                 <div>
-                    <label for="reg-slug" class="sr-only">Wybierz unikalny adres dla swojej strony</label>
+                    <label for="reg-slug" class="sr-only">Wybierz unikalny adres dla swojej nowej strony</label>
                     <div class="flex items-center bg-[#1e1e1e] border border-gray-700 rounded-sm overflow-hidden focus-within:ring-1 focus-within:ring-[#D4AF37] transition-colors">
                         <input id="reg-slug" type="text"
                                x-model="form.slug"
@@ -75,8 +75,8 @@
 
             <div x-show="errorMessage" class="text-red-400 text-sm font-bold text-center bg-red-400/10 py-2 rounded-sm border border-red-400/20" x-text="errorMessage"></div>
 
-            <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" x-model="rememberMe" class="rounded text-[#D4AF37] focus:ring-[#D4AF37] border-gray-600 bg-[#1e1e1e]">
+            <label class="flex items-center gap-2 mt-4 cursor-pointer">
+                <input type="checkbox" x-model="rememberMe" class="rounded border-gray-600 bg-[#1e1e1e] text-[#D4AF37] focus:ring-[#D4AF37]">
                 <span class="text-sm text-gray-500">Zapamiętaj mnie na tym urządzeniu</span>
             </label>
 
