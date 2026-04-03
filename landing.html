@@ -83,61 +83,53 @@
                            class="inline-flex items-center justify-center rounded-2xl bg-[#D4AF37] px-8 py-4 text-center text-base font-bold text-zinc-900 shadow-soft shadow-[#D4AF37]/20 transition hover:bg-[#c9a432]">
                             Załóż stronę teraz
                         </a>
-                        <a href="#demo"
-                           class="inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/5 px-8 py-4 text-center text-base font-semibold text-white backdrop-blur-sm transition hover:border-[#D4AF37]/40 hover:bg-white/[0.08]">
-                            Zobacz Demo
-                        </a>
                     </div>
                 </div>
 
-                <!-- Wideo hero -->
-                <div class="mx-auto mt-14 max-w-4xl lg:mt-16">
-                    <figure class="relative">
-                        <div class="relative overflow-hidden rounded-2xl border border-[#D4AF37]/20 bg-black shadow-gold ring-1 ring-white/5 aspect-video">
-                            <video class="h-full w-full object-cover"
-                                   controls
-                                   playsinline
-                                   preload="metadata"
-                                   aria-label="DFCMS — krótkie wprowadzenie">
-                                <source src="img/beauty.mp4" type="video/mp4">
-                                Twoja przeglądarka nie obsługuje odtwarzania tego wideo.
-                            </video>
-                        </div>
-                        <figcaption class="mt-4 text-center text-sm font-medium text-zinc-500">
-                            Zobacz jak to działa w 60 sekund
-                        </figcaption>
-                    </figure>
-                </div>
-            </div>
-        </section>
-
-        <!-- Demo -->
-        <section id="demo" class="scroll-mt-24 border-t border-white/5 bg-zinc-950/50 px-4 py-20 sm:px-6 lg:px-8" aria-labelledby="demo-heading">
-            <div class="mx-auto max-w-7xl">
-                <div class="mx-auto max-w-2xl text-center">
-                    <h2 id="demo-heading" class="font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                        Zobacz to na własne oczy
-                    </h2>
-                    <p class="mt-4 text-lg text-zinc-400">
-                        Sprawdź, jak wyglądają gotowe szablony i jak banalnie prosta jest ich edycja.
-                    </p>
-                </div>
-                <div class="mx-auto mt-12 max-w-4xl">
-                    <figure class="relative">
-                        <div class="relative overflow-hidden rounded-2xl border border-[#D4AF37]/20 bg-black shadow-gold ring-1 ring-white/5 aspect-video">
-                            <video class="h-full w-full object-cover"
-                                   controls
-                                   playsinline
-                                   preload="metadata"
-                                   aria-label="DFCMS — przegląd panelu i edytora">
-                                <source src="img/profesional.mp4" type="video/mp4">
-                                Twoja przeglądarka nie obsługuje odtwarzania tego wideo.
-                            </video>
-                        </div>
-                        <figcaption class="mt-4 text-center text-sm font-medium text-zinc-500">
-                            Przegląd panelu i edytora
-                        </figcaption>
-                    </figure>
+                <!-- Klipy jak „gify”: MP4 w pętli (lepsza jakość niż GIF), wąskie karty -->
+                <div class="mx-auto mt-16 max-w-4xl border-t border-white/5 pt-14" aria-labelledby="clips-heading">
+                    <div class="mx-auto max-w-2xl text-center px-2">
+                        <h2 id="clips-heading" class="font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                            Zobacz to na własne oczy
+                        </h2>
+                        <p class="mt-3 text-sm sm:text-base text-zinc-400">
+                            Krótkie podglądy strony i panelu — pętla w tle (jak GIF), bez dźwięku.
+                        </p>
+                    </div>
+                    <div class="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-10 sm:max-w-none sm:grid-cols-2 sm:gap-8 justify-items-center">
+                        <figure class="w-full max-w-[260px]">
+                            <div class="relative overflow-hidden rounded-2xl border border-[#D4AF37]/25 bg-black shadow-gold ring-1 ring-white/10 aspect-[9/16] sm:max-h-[min(72vh,560px)] sm:aspect-[9/16]">
+                                <video class="h-full w-full object-cover"
+                                       autoplay
+                                       muted
+                                       loop
+                                       playsinline
+                                       preload="auto"
+                                       aria-label="DFCMS — szybki podgląd strony">
+                                    <source src="img/beauty.mp4" type="video/mp4">
+                                </video>
+                            </div>
+                            <figcaption class="mt-3 text-center text-xs font-medium text-zinc-500">
+                                Strona w kilka chwil
+                            </figcaption>
+                        </figure>
+                        <figure class="w-full max-w-[260px]">
+                            <div class="relative overflow-hidden rounded-2xl border border-[#D4AF37]/25 bg-black shadow-gold ring-1 ring-white/10 aspect-[9/16] sm:max-h-[min(72vh,560px)] sm:aspect-[9/16]">
+                                <video class="h-full w-full object-cover"
+                                       autoplay
+                                       muted
+                                       loop
+                                       playsinline
+                                       preload="auto"
+                                       aria-label="DFCMS — podgląd panelu">
+                                    <source src="img/profesional.mp4" type="video/mp4">
+                                </video>
+                            </div>
+                            <figcaption class="mt-3 text-center text-xs font-medium text-zinc-500">
+                                Panel i edycja
+                            </figcaption>
+                        </figure>
+                    </div>
                 </div>
             </div>
         </section>
