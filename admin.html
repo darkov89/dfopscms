@@ -246,17 +246,6 @@
             </div>
         </div>
 
-        <div x-show="showWizard && wizardStep === 5" class="min-h-screen p-6 max-w-lg mx-auto flex flex-col justify-center" x-transition.opacity>
-            <div class="bg-white p-10 rounded-xl shadow-2xl border border-gray-100 text-center">
-                <p class="text-xs font-bold text-[#D4AF37] uppercase tracking-widest mb-3">Gratulacje</p>
-                <h2 class="text-2xl font-black text-gray-900 mb-3">Twoja strona jest zapisana</h2>
-                <p class="text-sm text-gray-600 mb-6 leading-relaxed">Możesz ją dopracować w zakładkach po lewej. Zacznij od sekcji Hero albo zobacz podgląd na żywo.</p>
-                <a :href="getPublicSiteUrl()" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 w-full bg-gray-100 hover:bg-gray-200 text-gray-900 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest mb-4 transition-colors">Otwórz podgląd w nowej karcie</a>
-                <button type="button" @click="dismissWizardCompletion()" class="w-full bg-[#121212] hover:bg-[#D4AF37] hover:text-[#121212] text-white px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest transition-colors">
-                    Przejdź do zakładki Hero
-                </button>
-            </div>
-        </div>
     </div>
 
     <div x-show="!user && !loadingAuth" class="flex-grow flex items-center justify-center p-6" x-transition>
@@ -323,17 +312,27 @@
             <div class="lg:hidden text-xs text-gray-500 uppercase tracking-widest truncate">Witaj, <span x-text="user?.email"></span></div>
 
             <div class="flex flex-col gap-3 w-full lg:flex-row lg:items-center lg:justify-end lg:gap-4 lg:w-auto lg:flex-1">
-                <div class="flex overflow-x-auto whitespace-nowrap gap-2 pb-1 -mx-1 px-1 scrollbar-hide items-center bg-gray-100 rounded-md border px-3 py-2 lg:max-w-none">
-                    <span class="text-xs lg:text-sm text-gray-500 shrink-0">Motyw: <span class="ml-1 text-[10px] lg:text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded uppercase tracking-widest" x-text="theme"></span></span>
-                    <span class="text-xs lg:text-sm font-bold text-[#D4AF37] tracking-wider shrink-0" x-text="slug"></span>
-                    <a :href="getPublicSiteUrl()" target="_blank" rel="noopener noreferrer" class="ml-1 text-[10px] lg:text-xs font-bold text-blue-500 hover:text-blue-700 uppercase tracking-widest transition-colors shrink-0 px-2 py-1 rounded-sm bg-white/80 border border-gray-200">👀 Podgląd</a>
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-600">
+                    <span class="shrink-0">Motyw: <span class="font-semibold text-gray-900 uppercase tracking-widest" x-text="theme"></span></span>
+                    <span class="text-gray-300 hidden sm:inline">|</span>
+                    <span class="font-bold text-[#D4AF37] tracking-wide shrink-0" x-text="slug"></span>
+                    <a :href="getPublicSiteUrl()" target="_blank" rel="noopener noreferrer" class="text-[10px] lg:text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-widest transition-colors underline decoration-blue-200 underline-offset-2">Podgląd strony</a>
                 </div>
 
-                <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
-                    <button @click="saveData()" x-show="content" type="button" class="w-full sm:flex-1 lg:w-auto lg:shrink-0 bg-[#121212] hover:bg-[#D4AF37] hover:text-[#121212] text-white px-6 md:px-8 py-3 rounded-sm text-xs md:text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-lg">
-                        <span x-show="!saving">Publikuj Zmiany</span>
-                        <span x-show="saving" class="animate-pulse">Zapisywanie...</span>
-                    </button>
+                <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto sm:items-center">
+                    <div class="flex items-center gap-2 w-full sm:flex-1 lg:w-auto">
+                        <button @click="saveData()" x-show="content" type="button" class="flex-1 lg:flex-none bg-[#121212] hover:bg-[#D4AF37] hover:text-[#121212] text-white px-6 md:px-8 py-3 rounded-sm text-xs md:text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-lg">
+                            <span x-show="!saving">Publikuj Zmiany</span>
+                            <span x-show="saving" class="animate-pulse">Zapisywanie...</span>
+                        </button>
+                        <div class="relative group inline-flex shrink-0">
+                            <svg class="w-4 h-4 text-gray-400 hover:text-[#D4AF37] transition-colors cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
+                                Zapisanie zachowuje Twoją pracę w bezpiecznym miejscu. Publikacja wysyła ją w świat, by mogli zobaczyć ją Twoi klienci.
+                                <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="flex flex-row justify-between sm:justify-end items-center gap-3 sm:gap-4 lg:flex-col lg:items-end lg:gap-1">
                         <button type="button" @click="setTab('subscription'); $nextTick(() => { const el = document.getElementById('dfops-platnosci-info'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); })" class="text-[10px] md:text-xs text-gray-400 hover:text-[#D4AF37] uppercase tracking-widest transition-colors">Warunki planów i płatności</button>
                         <button type="button" @click="logout()" class="text-[10px] md:text-xs font-bold text-gray-400 hover:text-red-500 uppercase tracking-widest transition-colors">Wyloguj</button>
@@ -377,34 +376,32 @@
                     class="fixed inset-y-0 left-0 z-50 w-64 max-w-[min(100vw,18rem)] bg-white border-r border-gray-200 shadow-xl flex flex-col overflow-y-auto py-2 transform transition-transform duration-300 ease-in-out lg:!translate-x-0 lg:relative lg:inset-auto lg:z-auto lg:w-1/4 lg:max-w-none lg:border lg:rounded-sm lg:shadow-sm lg:flex-shrink-0"
                     :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
                 >
-                    <div class="flex flex-col overflow-hidden">
-                        <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-2 px-5">Treść Strony</div>
-                        <button @click="setTab('settings')" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'settings', 'text-gray-600 hover:bg-gray-50': activeTab !== 'settings'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider">Szablon i kolory</button>
-                        <button @click="setTab('hero')" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'hero', 'text-gray-600 hover:bg-gray-50': activeTab !== 'hero'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider">Hero</button>
-                        <button @click="setTab('services')" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'services', 'text-gray-600 hover:bg-gray-50': activeTab !== 'services'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider">Usługi</button>
-                        <button @click="setTab('gallery')" x-show="theme === 'beauty'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'gallery', 'text-gray-600 hover:bg-gray-50': activeTab !== 'gallery'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider flex items-center gap-2">
-                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <div class="flex flex-col overflow-hidden px-2 pt-3 pb-4">
+                        <button type="button" @click="openWizardFromStudio()" class="w-full text-left px-4 py-3 mb-4 bg-[#D4AF37]/10 text-[#D4AF37] font-bold rounded-xl hover:bg-[#D4AF37]/20 transition-colors flex items-center gap-3">
+                            <span class="text-xl" aria-hidden="true">🪄</span> Uruchom Kreator
+                        </button>
+
+                        <h3 class="px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 mt-1">Treść Twojej Strony</h3>
+                        <button type="button" @click="setTab('hero')" :class="activeTab === 'hero' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mb-0.5 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg">Hero</button>
+                        <button type="button" @click="setTab('services')" :class="activeTab === 'services' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mb-0.5 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg">Usługi</button>
+                        <button type="button" @click="setTab('gallery')" x-show="theme === 'beauty'" :class="activeTab === 'gallery' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mb-0.5 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg flex items-center gap-2">
+                            <svg class="w-4 h-4 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             Galeria
                         </button>
-                        <button @click="setTab('contact')" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'contact', 'text-gray-600 hover:bg-gray-50': activeTab !== 'contact'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider">Kontakt</button>
-                        <button @click="setTab('faq')" x-show="theme === 'consultant' || theme === 'beauty'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'faq', 'text-gray-600 hover:bg-gray-50': activeTab !== 'faq'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider">FAQ</button>
+                        <button type="button" @click="setTab('contact')" :class="activeTab === 'contact' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mb-0.5 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg">Kontakt</button>
+                        <button type="button" @click="setTab('faq')" x-show="theme === 'consultant' || theme === 'beauty'" :class="activeTab === 'faq' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mb-0.5 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg">FAQ</button>
+                        <button type="button" @click="setTab('google_reviews')" :class="activeTab === 'google_reviews' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mb-0.5 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg">Opinie Google</button>
+                        <button type="button" @click="setTab('reviews')" x-show="theme === 'consultant'" :class="activeTab === 'reviews' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mb-0.5 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg">Opinie Klientów</button>
+                        <button type="button" @click="setTab('leady')" :class="activeTab === 'leady' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mb-0.5 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg">Wiadomości (Leady)</button>
 
-                        <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6 px-5">Narzędzia & Rozwój</div>
-                        <button type="button" @click="reopenWizard(); sidebarOpen = false" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider text-[#D4AF37] font-bold flex items-center gap-2 hover:bg-amber-50">
-                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                            Uruchom Kreator
-                        </button>
-                        <button @click="setTab('google_reviews')" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'google_reviews', 'text-gray-600 hover:bg-gray-50': activeTab !== 'google_reviews'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider">Opinie Google</button>
-                        <button @click="setTab('reviews')" x-show="theme === 'consultant'" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'reviews', 'text-gray-600 hover:bg-gray-50': activeTab !== 'reviews'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider">Opinie Klientów</button>
-                        <button @click="setTab('leady')" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'leady', 'text-gray-600 hover:bg-gray-50': activeTab !== 'leady'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider">Wiadomości (Leady)</button>
-
-                        <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6 px-5">Ustawienia</div>
-                        <button @click="setTab('seo')" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'seo', 'text-gray-600 hover:bg-gray-50': activeTab !== 'seo'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider">SEO i Social Media</button>
-                        <button @click="setTab('legal')" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'legal', 'text-gray-600 hover:bg-gray-50': activeTab !== 'legal'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left transition-colors text-xs lg:text-sm uppercase tracking-wider flex items-center gap-2">
-                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                        <h3 class="px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 mt-6">Konfiguracja</h3>
+                        <button type="button" @click="setTab('settings')" :class="activeTab === 'settings' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mb-0.5 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg">Szablon i kolory</button>
+                        <button type="button" @click="setTab('seo')" :class="activeTab === 'seo' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mb-0.5 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg">SEO i Social Media</button>
+                        <button type="button" @click="setTab('legal')" :class="activeTab === 'legal' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mb-0.5 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg flex items-center gap-2">
+                            <svg class="w-4 h-4 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                             Prawne / RODO
                         </button>
-                        <button @click="setTab('subscription')" :class="{'bg-gray-50 border-l-4 border-[#D4AF37] font-bold text-gray-900': activeTab === 'subscription', 'text-gray-600 hover:bg-gray-50': activeTab !== 'subscription'}" class="px-3 py-2.5 lg:px-5 lg:py-3 text-left border-t border-gray-100 mt-2 transition-colors text-xs lg:text-sm uppercase tracking-wider">Subskrypcja</button>
+                        <button type="button" @click="setTab('subscription')" :class="activeTab === 'subscription' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mt-2 border-t border-gray-100 pt-3 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg">Subskrypcja</button>
                     </div>
                 </aside>
 
@@ -627,7 +624,16 @@
                             <section class="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
                                 <div class="px-5 py-3.5 bg-gray-50 border-b border-gray-100 flex flex-wrap items-baseline justify-between gap-2">
                                     <div>
-                                        <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest">Własna domena</h3>
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest">Własna domena</h3>
+                                            <div class="relative group inline-block cursor-pointer" aria-label="Podpowiedź o domenie">
+                                                <svg class="w-4 h-4 text-gray-400 hover:text-[#D4AF37] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
+                                                    To Twój unikalny adres w internecie. Pomyśl o nim jak o szyldzie nad drzwiami Twojego salonu.
+                                                    <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <p class="text-xs text-gray-500 mt-1">Dla planów z własną domeną — podłączenie przez DNS.</p>
                                     </div>
                                     <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Opcja Pro</span>
@@ -719,10 +725,21 @@
                                             <div class="relative"><input type="checkbox" x-model="content.pl.settings.showProof" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
                                             <span class="text-sm font-bold text-gray-700">Proof / statystyka</span>
                                         </label>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showFaq" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-gray-700">FAQ</span>
-                                        </label>
+                                        <div class="flex items-center gap-2">
+                                            <label class="flex items-center gap-3 cursor-pointer flex-1 min-w-0">
+                                                <div class="relative"><input type="checkbox" x-model="content.pl.settings.showFaq" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                                <span class="text-sm font-bold text-gray-700">FAQ</span>
+                                            </label>
+                                            <div class="relative group inline-block shrink-0" @click.stop>
+                                                <button type="button" class="p-0.5 rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-1" aria-label="Podpowiedź o włączaniu sekcji na stronie">
+                                                    <svg class="w-4 h-4 text-gray-400 hover:text-[#D4AF37] transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                </button>
+                                                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
+                                                    Możesz włączać i wyłączać tę sekcję w dowolnym momencie. Zniknie ze strony, ale Twoje teksty pozostaną bezpieczne w Studiu.
+                                                    <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <label class="flex items-center gap-3 cursor-pointer">
                                             <div class="relative"><input type="checkbox" x-model="content.pl.settings.showReviews" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
                                             <span class="text-sm font-bold text-gray-700">Opinie</span>
@@ -741,10 +758,21 @@
                                             <div class="relative"><input type="checkbox" x-model="content.pl.settings.showServices" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
                                             <span class="text-sm font-bold text-gray-700">Usługi (cennik)</span>
                                         </label>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showFaq" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-gray-700">FAQ</span>
-                                        </label>
+                                        <div class="flex items-center gap-2">
+                                            <label class="flex items-center gap-3 cursor-pointer flex-1 min-w-0">
+                                                <div class="relative"><input type="checkbox" x-model="content.pl.settings.showFaq" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                                <span class="text-sm font-bold text-gray-700">FAQ</span>
+                                            </label>
+                                            <div class="relative group inline-block shrink-0" @click.stop>
+                                                <button type="button" class="p-0.5 rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-1" aria-label="Podpowiedź o włączaniu sekcji na stronie">
+                                                    <svg class="w-4 h-4 text-gray-400 hover:text-[#D4AF37] transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                </button>
+                                                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
+                                                    Możesz włączać i wyłączać tę sekcję w dowolnym momencie. Zniknie ze strony, ale Twoje teksty pozostaną bezpieczne w Studiu.
+                                                    <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <label class="flex items-center gap-3 cursor-pointer">
                                             <div class="relative"><input type="checkbox" x-model="content.pl.settings.showContact" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
                                             <span class="text-sm font-bold text-gray-700">Kontakt / rezerwacja</span>
@@ -1064,14 +1092,25 @@
                         <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
                             <h2 class="text-2xl font-serif text-gray-900 mb-2">FAQ</h2>
                             <p class="text-sm text-gray-600 leading-relaxed max-w-2xl mb-6">Pytania i odpowiedzi w formie rozwijanych akordeonów.</p>
-                            <label class="flex items-center gap-4 cursor-pointer">
-                                <div class="relative">
-                                    <input type="checkbox" x-model="content.pl.settings.showFaq" class="sr-only peer">
-                                    <div class="w-11 h-6 rounded-full transition-colors peer-checked:bg-emerald-500 bg-gray-200"></div>
-                                    <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5 pointer-events-none"></div>
+                            <div class="flex items-center gap-3 flex-wrap">
+                                <label class="flex items-center gap-4 cursor-pointer">
+                                    <div class="relative">
+                                        <input type="checkbox" x-model="content.pl.settings.showFaq" class="sr-only peer">
+                                        <div class="w-11 h-6 rounded-full transition-colors peer-checked:bg-emerald-500 bg-gray-200"></div>
+                                        <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5 pointer-events-none"></div>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-900">Włącz sekcję FAQ</span>
+                                </label>
+                                <div class="relative group inline-block shrink-0" @click.stop>
+                                    <button type="button" class="p-0.5 rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-1" aria-label="Podpowiedź o włączaniu sekcji na stronie">
+                                        <svg class="w-4 h-4 text-gray-400 hover:text-[#D4AF37] transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    </button>
+                                    <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
+                                        Możesz włączać i wyłączać tę sekcję w dowolnym momencie. Zniknie ze strony, ale Twoje teksty pozostaną bezpieczne w Studiu.
+                                        <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
                                 </div>
-                                <span class="text-sm font-medium text-gray-900">Włącz sekcję FAQ</span>
-                            </label>
+                            </div>
                             <div x-show="content.pl.settings.showFaq && (!content.pl.faq || content.pl.faq.length === 0)" class="text-sm text-blue-700 bg-blue-50 border border-blue-100 p-4 rounded-xl mt-3 flex items-start gap-3">
                                 <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 <p>✨ Świetnie, że włączyłaś sekcję pytań! Aby pojawiła się na Twojej stronie, dodaj poniżej swoje pierwsze pytanie i odpowiedź.</p>
@@ -1372,6 +1411,31 @@
             </div>
         </main>
         </template>
+
+        <div x-show="showStudioWelcomeModal" x-cloak
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50"
+             @click.self="closeStudioWelcomeModal()"
+             role="presentation">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 md:p-10 text-center border border-gray-100 relative"
+                 @click.stop
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="studio-welcome-title">
+                <h2 id="studio-welcome-title" class="text-2xl font-black text-gray-900 mb-4">Witaj w swoim Studiu! ✨</h2>
+                <p class="text-sm text-gray-600 leading-relaxed mb-8">
+                    Skonstruowaliśmy fundamenty Twojej strony. Teraz możesz na spokojnie przejrzeć każdą zakładkę, dodać więcej zdjęć i doszlifować szczegóły. Nie martw się, niczego tu nie zepsujesz. W każdej chwili możesz też wrócić do Kreatora.
+                </p>
+                <button type="button" @click="closeStudioWelcomeModal()" class="w-full bg-[#D4AF37] hover:bg-[#c4a028] text-[#121212] font-bold py-4 px-6 rounded-xl text-sm tracking-widest uppercase transition-colors shadow-md">
+                    Zaczynamy eksplorację!
+                </button>
+            </div>
+        </div>
     </div>
 
     <div x-show="toast && toast.show"

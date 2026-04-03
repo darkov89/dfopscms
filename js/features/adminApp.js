@@ -35,6 +35,7 @@
       wizardTheme: '',
       wizardFieldWarning: '',
       showNinjaChecklist: false,
+      showStudioWelcomeModal: false,
       customDomain: '',
       customDomainStatus: '',
       pageId: null,
@@ -464,16 +465,28 @@
         this.content[this.lang].settings.onboarding_completed = true;
         const ok = await this.saveData({ silentSuccess: true });
         if (!ok) return;
-        this.wizardStep = 5;
+        this.showWizard = false;
+        this.wizardStep = 0;
+        this.wizardFieldWarning = '';
+        this.showStudioWelcomeModal = true;
         if (typeof window.DFOPS_trackEvent === 'function') {
           window.DFOPS_trackEvent('onboarding_finished', { slug: this.slug });
         }
       },
-      dismissWizardCompletion() {
-        this.showWizard = false;
-        this.wizardStep = 0;
-        this.wizardFieldWarning = '';
+      closeStudioWelcomeModal() {
+        this.showStudioWelcomeModal = false;
         this.activeTab = 'hero';
+      },
+      /** Pełny ekran startowy kreatora (wybór ścieżki). */
+      openWizardFromStudio() {
+        this.wizardStep = 0;
+        this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
+        this.wizardFieldWarning = '';
+        this.showWizard = true;
+        this.sidebarOpen = false;
+        if (typeof window.DFOPS_trackEvent === 'function') {
+          window.DFOPS_trackEvent('onboarding_reopened', { slug: this.slug });
+        }
       },
       reopenWizard() {
         this.wizardStep = 1;
