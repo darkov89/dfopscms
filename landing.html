@@ -86,49 +86,91 @@
                     </div>
                 </div>
 
-                <!-- Klipy jak „gify”: MP4 w pętli (lepsza jakość niż GIF), wąskie karty -->
-                <div class="mx-auto mt-16 max-w-4xl border-t border-white/5 pt-14" aria-labelledby="clips-heading">
-                    <div class="mx-auto max-w-2xl text-center px-2">
-                        <h2 id="clips-heading" class="font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">
-                            Zobacz to na własne oczy
+                <!-- Demo: poziome MP4 (gotowe strony) + placeholdery (kreator, admin) -->
+                <div class="mx-auto mt-16 max-w-5xl border-t border-white/5 pt-14 px-2 sm:px-0" aria-labelledby="clips-heading">
+                    <div class="mx-auto max-w-3xl text-center lg:text-left lg:mx-0">
+                        <p class="text-xs font-bold uppercase tracking-widest text-[#D4AF37]/90">Dlaczego DFCMS?</p>
+                        <h2 id="clips-heading" class="mt-3 font-display text-2xl font-bold tracking-tight text-white sm:text-3xl lg:text-4xl">
+                            Zanim klikniesz „Załóż stronę”, zobacz efekt końcowy
                         </h2>
-                        <p class="mt-3 text-sm sm:text-base text-zinc-400">
-                            Krótkie podglądy strony i panelu — pętla w tle (jak GIF), bez dźwięku.
+                        <p class="mt-4 text-base sm:text-lg leading-relaxed text-zinc-400">
+                            Poniżej — realne podglądy <strong class="font-semibold text-zinc-200">gotowych stron</strong> (tak je zobaczą Twoi klienci).
+                            Wkrótce dołożymy też krótkie nagrania <strong class="font-semibold text-zinc-200">kreatora</strong> (krok po kroku) oraz <strong class="font-semibold text-zinc-200">panelu admina</strong>, żeby było widać całą drogę od pomysłu do publikacji.
                         </p>
                     </div>
-                    <div class="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-10 sm:max-w-none sm:grid-cols-2 sm:gap-8 justify-items-center">
-                        <figure class="w-full max-w-[260px]">
-                            <div class="relative overflow-hidden rounded-2xl border border-[#D4AF37]/25 bg-black shadow-gold ring-1 ring-white/10 aspect-[9/16] sm:max-h-[min(72vh,560px)] sm:aspect-[9/16]">
-                                <video class="h-full w-full object-cover"
-                                       autoplay
-                                       muted
-                                       loop
-                                       playsinline
-                                       preload="auto"
-                                       aria-label="DFCMS — szybki podgląd strony">
-                                    <source src="img/beauty.mp4" type="video/mp4">
-                                </video>
+
+                    <p class="mt-12 text-center lg:text-left text-xs font-bold uppercase tracking-widest text-zinc-500">Demo</p>
+
+                    <!-- Gotowe strony — dwa poziome klipy -->
+                    <div class="mt-3">
+                        <h3 class="text-center lg:text-left font-display text-xl font-bold text-white sm:text-2xl">Gotowe strony</h3>
+                        <p class="mt-2 text-center lg:text-left text-sm text-zinc-500 max-w-2xl">
+                            Dwa przykłady witryn z szablonów — zapętlone, bez dźwięku (jak podgląd w pętli).
+                        </p>
+                        <div class="mt-6 grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-6">
+                            <figure class="w-full">
+                                <div class="relative overflow-hidden rounded-2xl border border-[#D4AF37]/25 bg-black shadow-gold ring-1 ring-white/10 aspect-video">
+                                    <video class="h-full w-full object-contain bg-black"
+                                           autoplay
+                                           muted
+                                           loop
+                                           playsinline
+                                           preload="auto"
+                                           aria-label="DFCMS — przykład gotowej strony (szablon 1)">
+                                        <source src="img/beauty.mp4" type="video/mp4">
+                                    </video>
+                                </div>
+                                <figcaption class="mt-3 text-center text-xs font-medium text-zinc-500 md:text-left">
+                                    Przykład strony — szablon beauty
+                                </figcaption>
+                            </figure>
+                            <figure class="w-full">
+                                <div class="relative overflow-hidden rounded-2xl border border-[#D4AF37]/25 bg-black shadow-gold ring-1 ring-white/10 aspect-video">
+                                    <video class="h-full w-full object-contain bg-black"
+                                           autoplay
+                                           muted
+                                           loop
+                                           playsinline
+                                           preload="auto"
+                                           aria-label="DFCMS — przykład gotowej strony (szablon 2)">
+                                        <source src="img/profesional.mp4" type="video/mp4">
+                                    </video>
+                                </div>
+                                <figcaption class="mt-3 text-center text-xs font-medium text-zinc-500 md:text-left">
+                                    Przykład strony — drugi styl
+                                </figcaption>
+                            </figure>
+                        </div>
+                    </div>
+
+                    <!-- Kreator — placeholder na przyszły MP4 (np. img/kreator.mp4) -->
+                    <div class="mt-14">
+                        <h3 class="text-center lg:text-left font-display text-xl font-bold text-white sm:text-2xl">Kreator</h3>
+                        <p class="mt-2 text-center lg:text-left text-sm text-zinc-500 max-w-2xl">
+                            Krótki film: pierwsze kroki w kreatorze (w przygotowaniu).
+                        </p>
+                        <div class="relative mt-6 overflow-hidden rounded-2xl border border-dashed border-white/20 bg-zinc-900/60 aspect-video flex flex-col items-center justify-center gap-3 px-6 text-center ring-1 ring-white/5">
+                            <div class="flex h-14 w-14 items-center justify-center rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#D4AF37]" aria-hidden="true">
+                                <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                             </div>
-                            <figcaption class="mt-3 text-center text-xs font-medium text-zinc-500">
-                                Strona w kilka chwil
-                            </figcaption>
-                        </figure>
-                        <figure class="w-full max-w-[260px]">
-                            <div class="relative overflow-hidden rounded-2xl border border-[#D4AF37]/25 bg-black shadow-gold ring-1 ring-white/10 aspect-[9/16] sm:max-h-[min(72vh,560px)] sm:aspect-[9/16]">
-                                <video class="h-full w-full object-cover"
-                                       autoplay
-                                       muted
-                                       loop
-                                       playsinline
-                                       preload="auto"
-                                       aria-label="DFCMS — podgląd panelu">
-                                    <source src="img/profesional.mp4" type="video/mp4">
-                                </video>
+                            <p class="text-sm font-semibold text-zinc-200">Film wkrótce</p>
+                            <p class="text-xs text-zinc-500 max-w-md">Gdy nagrasz materiał, wstaw go tak jak przy „Gotowe strony”: <code class="rounded bg-black/40 px-1.5 py-0.5 text-zinc-400">img/kreator.mp4</code></p>
+                        </div>
+                    </div>
+
+                    <!-- Admin — placeholder na przyszły MP4 (np. img/admin.mp4) -->
+                    <div class="mt-14">
+                        <h3 class="text-center lg:text-left font-display text-xl font-bold text-white sm:text-2xl">Admin</h3>
+                        <p class="mt-2 text-center lg:text-left text-sm text-zinc-500 max-w-2xl">
+                            Przegląd panelu: edycja treści, publikacja, ustawienia (w przygotowaniu).
+                        </p>
+                        <div class="relative mt-6 overflow-hidden rounded-2xl border border-dashed border-white/20 bg-zinc-900/60 aspect-video flex flex-col items-center justify-center gap-3 px-6 text-center ring-1 ring-white/5">
+                            <div class="flex h-14 w-14 items-center justify-center rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#D4AF37]" aria-hidden="true">
+                                <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             </div>
-                            <figcaption class="mt-3 text-center text-xs font-medium text-zinc-500">
-                                Panel i edycja
-                            </figcaption>
-                        </figure>
+                            <p class="text-sm font-semibold text-zinc-200">Film wkrótce</p>
+                            <p class="text-xs text-zinc-500 max-w-md">Docelowy plik: <code class="rounded bg-black/40 px-1.5 py-0.5 text-zinc-400">img/admin.mp4</code></p>
+                        </div>
                     </div>
                 </div>
             </div>
