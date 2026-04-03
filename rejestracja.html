@@ -23,7 +23,7 @@
 
         <div class="text-center mb-10 relative z-10">
             <h1 class="text-3xl font-black tracking-widest text-white mb-2">DF<span class="text-[#D4AF37]">CMS</span></h1>
-            <p class="text-sm text-gray-400 uppercase tracking-widest">Konto i adres strony</p>
+            <p class="text-sm text-gray-400 uppercase tracking-widest">Twoje konto i adres w sieci</p>
         </div>
 
         <form @submit.prevent="createPage" x-show="!success" class="space-y-8 relative z-10">
@@ -39,9 +39,9 @@
             </div>
 
             <div class="space-y-4">
-                <h3 class="text-[#D4AF37] text-xs font-bold uppercase tracking-widest border-b border-white/10 pb-2">2. Adres Twojej strony</h3>
+                <h3 class="text-[#D4AF37] text-xs font-bold uppercase tracking-widest border-b border-white/10 pb-2">2. Wybierz adres swojej strony</h3>
                 <div>
-                    <label for="reg-slug" class="sr-only">Adres Twojej strony (slug)</label>
+                    <label for="reg-slug" class="sr-only">Wybierz unikalny adres dla swojej strony</label>
                     <div class="flex items-center bg-[#1e1e1e] border border-gray-700 rounded-sm overflow-hidden focus-within:ring-1 focus-within:ring-[#D4AF37] transition-colors">
                         <input id="reg-slug" type="text"
                                x-model="form.slug"
@@ -58,12 +58,12 @@
                         (W pakiecie PRO możesz podpiąć własną domenę .pl/.com)
                     </div>
                     <div class="mt-2 text-xs" x-show="form.slug">
-                        <span class="text-gray-500" x-show="slugStatus === 'idle'">Sprawdzę dostępność sluga…</span>
+                        <span class="text-gray-500" x-show="slugStatus === 'idle'">Za chwilę sprawdzę, czy ten adres jest wolny…</span>
                         <span class="text-gray-500" x-show="slugStatus === 'checking'">Sprawdzam dostępność…</span>
-                        <span class="text-green-400 font-bold" x-show="slugStatus === 'available'">Slug dostępny</span>
-                        <span class="text-red-400 font-bold" x-show="slugStatus === 'taken'">Slug zajęty</span>
-                        <span class="text-red-400 font-bold" x-show="slugStatus === 'invalid'">Niepoprawny slug</span>
-                        <span class="text-red-400 font-bold" x-show="slugStatus === 'error'">Błąd sprawdzania sluga</span>
+                        <span class="text-green-400 font-bold" x-show="slugStatus === 'available'">Ten adres jest wolny — możesz z niego skorzystać</span>
+                        <span class="text-red-400 font-bold" x-show="slugStatus === 'taken'">Ten adres jest już zajęty — wybierz inny</span>
+                        <span class="text-red-400 font-bold" x-show="slugStatus === 'invalid'">Użyj litery, cyfr i myślników (np. moja-marka)</span>
+                        <span class="text-red-400 font-bold" x-show="slugStatus === 'error'">Nie udało się sprawdzić adresu — spróbuj za chwilę</span>
                     </div>
                 </div>
             </div>
@@ -74,6 +74,11 @@
             </label>
 
             <div x-show="errorMessage" class="text-red-400 text-sm font-bold text-center bg-red-400/10 py-2 rounded-sm border border-red-400/20" x-text="errorMessage"></div>
+
+            <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" x-model="rememberMe" class="rounded text-[#D4AF37] focus:ring-[#D4AF37] border-gray-600 bg-[#1e1e1e]">
+                <span class="text-sm text-gray-500">Zapamiętaj mnie na tym urządzeniu</span>
+            </label>
 
             <button type="submit" :disabled="!accepted || loading" class="w-full bg-[#D4AF37] hover:bg-white text-[#121212] px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-[0_0_20px_rgba(212,175,55,0.15)] mt-4 disabled:opacity-50 disabled:cursor-not-allowed">
                 <span x-show="!loading">Utwórz konto i stronę</span>

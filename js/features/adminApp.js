@@ -13,6 +13,7 @@
       loadingAuth: true,
       email: '',
       password: '',
+      rememberMe: typeof localStorage !== 'undefined' && localStorage.getItem('dfops_remember') === 'true',
       authError: '',
       slug: new URLSearchParams(window.location.search).get('site') || '',
       lang: 'pl',
@@ -46,7 +47,10 @@
       currentTemplateVersion: 1,
       updateAvailable: false,
       selectedStyleBundle: '',
-      get availablePresets() { return cfg.presetsByTheme[this.theme] || []; },
+      get availablePresets() {
+        const currentTheme = this.showWizard ? (this.wizardTheme || this.theme) : this.theme;
+        return cfg.presetsByTheme[currentTheme] || [];
+      },
       get accentColor() { return cfg.accentByPreset[this.content?.pl?.settings?.color_preset] || '#D4AF37'; },
       get styleBundles() { return cfg.bundlesByTheme[this.theme] || []; },
       get subscriptionPlan() { return this.content?.pl?.settings?.subscription?.plan || 'trial'; },
@@ -128,9 +132,20 @@
       },
       async login() {
         this.authError = '';
-        const { data, error } = await this.supabase.auth.signInWithPassword({ email: this.email, password: this.password });
+        localStorage.setItem('dfops_remember', String(!!this.rememberMe));
+        if (typeof window.DFOPS_resetSupabaseClient === 'function') {
+          window.DFOPS_resetSupabaseClient();
+        }
+        this.supabase = window.DFOPS_getSupabaseClient();
+        const { data, error } = await this.supabase.auth.signInWithPassword({
+          email: this.email,
+          password: this.password,
+        });
         if (error) this.authError = 'Błędny e-mail lub hasło.';
-        else { this.user = data.user; await this.loadData(); }
+        else {
+          this.user = data.user;
+          await this.loadData();
+        }
       },
       async logout() {
         if (typeof this._stopContentWatch === 'function') {

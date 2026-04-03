@@ -1,15 +1,40 @@
 ;(function () {
   let client = null;
+  /** Ostatnia wartość „Zapamiętaj mnie” użyta przy tworzeniu klienta — przy zmianie trzeba odświeżyć storage Auth. */
+  let cachedAuthRemember = null;
+
+  function readRememberFlag() {
+    try {
+      return window.localStorage.getItem('dfops_remember') === 'true';
+    } catch (e) {
+      return false;
+    }
+  }
 
   function getSupabaseClient() {
-    if (client) return client;
     const cfg = window.DFOPS_CONFIG;
     if (!cfg) throw new Error('Brak DFOPS_CONFIG');
     if (!window.supabase || !window.supabase.createClient) throw new Error('Brak supabase-js');
-    client = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const remember = readRememberFlag();
+    if (client && cachedAuthRemember === remember) return client;
+    client = null;
+    cachedAuthRemember = remember;
+    client = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
+      auth: {
+        storage: remember ? window.localStorage : window.sessionStorage,
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true,
+      },
+    });
     return client;
   }
 
-  window.DFOPS_getSupabaseClient = getSupabaseClient;
-})();
+  function resetSupabaseClient() {
+    client = null;
+    cachedAuthRemember = null;
+  }
 
+  window.DFOPS_getSupabaseClient = getSupabaseClient;
+  window.DFOPS_resetSupabaseClient = resetSupabaseClient;
+})();

@@ -24,6 +24,7 @@
       slugStatus: 'idle',
       slugCheckTimer: null,
       accepted: false,
+      rememberMe: typeof localStorage !== 'undefined' && localStorage.getItem('dfops_remember') === 'true',
       form: { email: '', password: '', slug: '' },
 
       init() {
@@ -63,6 +64,12 @@
           }
           const okSlug = await this.checkSlugUnique();
           if (!okSlug) throw new Error('Popraw slug (unikalny, format twoja-nazwa).');
+
+          localStorage.setItem('dfops_remember', String(!!this.rememberMe));
+          if (typeof window.DFOPS_resetSupabaseClient === 'function') {
+            window.DFOPS_resetSupabaseClient();
+          }
+          this.supabase = window.DFOPS_getSupabaseClient();
 
           const origin = typeof window !== 'undefined' ? window.location.origin : '';
           const { data: authData, error: authError } = await this.supabase.auth.signUp({

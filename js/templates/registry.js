@@ -17,7 +17,7 @@
           headline: 'Twoja strona jest już prawie gotowa!',
           subheadline: '',
           description:
-            'Właśnie trwają prace nad konfiguracją Twojego serwisu. Jeśli jesteś właścicielem, zaloguj się do panelu admina, aby uruchomić Kreator Magii.',
+            'Właśnie trwają prace nad konfiguracją Twojego serwisu. Jeśli jesteś właścicielem, zaloguj się do panelu — tam czeka na Ciebie prosty kreator krok po kroku.',
           button: '',
           image: '',
           qrText: '',
@@ -52,7 +52,12 @@
     },
     consultant: {
       pl: {
-        nav: { logo: "Ekspert", cta: "", logoImage: "" },
+        nav: {
+          logo: "Ekspert",
+          cta: "",
+          logoImage: "",
+          menu: { about: "O nas", pricing: "Usługi", faq: "FAQ", reviews: "Opinie", contact: "Kontakt" },
+        },
         hero: {
           name: "Witaj na pokładzie",
           headline: "Twoja przestrzeń <span class='text-brand-gold italic'>Ekspercka</span>.",
@@ -62,7 +67,7 @@
           image: ""
         },
         manifesto: { label: "", title: "", text: "" },
-        services: [{ title: "Konsultacje 1:1", desc: "Zarządzaj swoimi usługami." }],
+        services: [{ title: "Konsultacje 1:1", desc: "Krótki opis usługi — widoczny na stronie." }],
         proof: { label: "", title: "", text: "", statNumber: "", statLabel: "", statDesc: "" },
         faq: [],
         reviews: [],
@@ -116,7 +121,7 @@
           logo: "Twoja Marka",
           cta: "Rezerwuj",
           logoImage: "",
-          menu: { about: "O nas", pricing: "Cennik", gallery: "Galeria", faq: "Q&A", contact: "Kontakt" }
+          menu: { about: "O nas", pricing: "Cennik", gallery: "Galeria", faq: "Q&A", contact: "Kontakt", reviews: "Opinie" }
         },
         hero: { name: "Twoje miejsce", headline: "Odkryj <i>siebie</i> na nowo", description: "Krótki opis Twojej oferty i atmosfery.", button: "Umów wizytę", image: "", qrText: "", qrImage: "" },
         manifesto: { label: "O nas", title: "Kilka słów", text: "" },

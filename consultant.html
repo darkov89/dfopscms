@@ -112,19 +112,19 @@
 
                     <div class="hidden md:flex items-center gap-4 text-sm uppercase tracking-widest">
                         <template x-if="content[lang].settings?.showManifesto !== false">
-                            <a href="#manifesto" class="text-sattva-text/80 hover:text-sattva-brand transition-colors" x-text="content[lang].manifesto?.title || 'O nas'"></a>
+                            <a href="#manifesto" class="text-sattva-text/80 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.about || 'O nas'"></a>
                         </template>
                         <template x-if="content[lang].settings?.showServices !== false">
-                            <a href="#uslugi" class="text-sattva-text/80 hover:text-sattva-brand transition-colors">Usługi</a>
+                            <a href="#uslugi" class="text-sattva-text/80 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.pricing || 'Usługi'"></a>
                         </template>
                         <template x-if="content[lang].settings?.showFaq !== false && content[lang].faq?.length">
-                            <a href="#faq" class="text-sattva-text/80 hover:text-sattva-brand transition-colors">FAQ</a>
+                            <a href="#faq" class="text-sattva-text/80 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.faq || 'FAQ'"></a>
                         </template>
                         <template x-if="content[lang].settings?.showReviews !== false && content[lang].reviews?.length">
-                            <a href="#opinie" class="text-sattva-text/80 hover:text-sattva-brand transition-colors" x-text="content[lang].google_reviews?.title || 'Opinie'"></a>
+                            <a href="#opinie" class="text-sattva-text/80 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.reviews || 'Opinie'"></a>
                         </template>
                         <template x-if="content[lang].settings?.showContact !== false">
-                            <a href="#kontakt" class="text-sattva-brand hover:text-sattva-text transition-colors duration-300" x-text="content[lang].nav?.cta || 'Kontakt'"></a>
+                            <a href="#kontakt" class="text-sattva-brand hover:text-sattva-text transition-colors duration-300" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></a>
                         </template>
                     </div>
                 </div>

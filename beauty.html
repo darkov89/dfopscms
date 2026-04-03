@@ -80,16 +80,16 @@
                 </div>                
                 <div class="hidden md:flex items-center gap-8 font-medium">
                     <template x-if="content[lang].settings?.showManifesto !== false">
-                        <a href="#o-nas" class="hover:text-sattva-brand transition-colors" x-text="content[lang].manifesto?.title || content[lang].nav?.menu?.about || 'O nas'"></a>
+                        <a href="#o-nas" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.about || 'O nas'"></a>
                     </template>
                     <template x-if="content[lang].settings?.showServices !== false">
                         <a href="#cennik" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.pricing || 'Usługi'"></a>
                     </template>
                     <template x-if="content[lang].gallery?.images?.length > 0">
-                        <a href="#galeria" class="hover:text-sattva-brand transition-colors" x-text="content[lang].gallery?.title || content[lang].nav?.menu?.gallery || 'Galeria'"></a>
+                        <a href="#galeria" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.gallery || 'Galeria'"></a>
                     </template>
                     <template x-if="content[lang].google_reviews?.place_query">
-                        <a href="#opinie" class="hover:text-sattva-brand transition-colors" x-text="content[lang].google_reviews?.title || 'Opinie'"></a>
+                        <a href="#opinie" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.reviews || 'Opinie'"></a>
                     </template>
                     <template x-if="content[lang].settings?.showFaq !== false && content[lang].faq?.length">
                         <a href="#faq" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.faq || 'Q&A'"></a>
