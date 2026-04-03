@@ -1,4 +1,15 @@
 ;(function () {
+  /** Ciepły komunikat podczas dodawania zdjęć — zależnie od miejsca w panelu. */
+  function uploadingMessageFor(section, field) {
+    if (section === 'nav' && field === 'logoImage') return 'Chwileczkę, dodaję logo Twojej marki…';
+    if (section === 'hero' && field === 'image') return 'Chwileczkę, dodaję Twoje zdjęcie…';
+    if (section === 'hero' && field === 'qrImage') return 'Zapisuję ten detal — kod QR…';
+    if (section === 'gallery' && field === 'images') return 'Chwileczkę, dodaję zdjęcie do galerii…';
+    if (section === 'reviews' && field === 'logoImage') return 'Przetwarzam ikonkę przy tej opinii…';
+    if (section === 'seo' && field === 'ogImage') return 'Zapisuję obrazek do podglądu w mediach…';
+    return 'Chwileczkę, dodaję Twoje zdjęcie…';
+  }
+
   function createAdminApp() {
     const t = window.DFOPS_CONFIG?.timeouts || {};
     const MS_PER_DAY = t.msPerDay ?? 86400000;
@@ -35,6 +46,7 @@
       activeTab: 'hero',
       saving: false,
       uploadingImage: false,
+      uploadingMessage: '',
       message: '',
       errorMessage: '',
       toast: { show: false, message: '', type: 'success' },
@@ -673,6 +685,7 @@
         if (!file || !this.slug) return;
         const pl = this.content?.pl;
         if (!pl) return;
+        this.uploadingMessage = uploadingMessageFor(section, field);
         this.uploadingImage = true;
         try {
           const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -706,14 +719,15 @@
             pl[section][field] = publicUrlData.publicUrl;
           }
           this.message = this.showWizard
-            ? 'Plik jest w treści strony. Zapisze się na końcu kreatora (przycisk „Opublikuj moją stronę”) lub możesz opublikować później z panelu.'
-            : 'Plik załadowany. Kliknij „Publikuj Zmiany”.';
+            ? 'Zdjęcie jest już w Twojej stronie. Na końcu kreatora kliknij „Opublikuj moją stronę” — albo dopracujesz to później w panelu.'
+            : 'Gotowe! Kliknij „Publikuj zmiany”, żeby pokazać je na stronie.';
           setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
         } catch (e) {
           console.error(e);
-          this.showError('Nie udało się wgrać pliku.');
+          this.showError('Nie udało się dodać zdjęcia. Spróbuj jeszcze raz.');
         } finally {
           this.uploadingImage = false;
+          this.uploadingMessage = '';
           event.target.value = '';
         }
       },

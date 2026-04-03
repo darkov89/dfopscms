@@ -137,6 +137,7 @@
                                 <input type="file" accept="image/*" class="sr-only" @change="uploadImage($event, 'nav', 'logoImage')">
                             </label>
                         </div>
+                        <p x-show="uploadingImage" x-text="uploadingMessage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse"></p>
                     </div>
                 </div>
 
@@ -166,6 +167,7 @@
                                 <input type="file" accept="image/*" class="sr-only" @change="uploadImage($event, 'hero', 'image')">
                             </label>
                         </div>
+                        <p x-show="uploadingImage" x-text="uploadingMessage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse"></p>
                     </div>
                 </div>
 
@@ -449,7 +451,7 @@
                                             <div class="flex-1 min-w-0">
                                                 <input type="file" accept="image/*" @change="uploadImage($event, 'nav', 'logoImage')" class="text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-sm file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-widest file:bg-[#121212] file:text-[#D4AF37] hover:file:bg-gray-800 cursor-pointer transition-colors w-full">
                                                 <p class="text-xs text-gray-500 mt-2 leading-relaxed">PNG lub SVG z przezroczystym tłem. Po wgraniu kliknij <strong>Publikuj zmiany</strong>.</p>
-                                                <p x-show="uploadingImage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse">Wysyłanie…</p>
+                                                <p x-show="uploadingImage" x-text="uploadingMessage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse"></p>
                                             </div>
                                         </div>
                                     </div>
@@ -814,7 +816,7 @@
                                         Dodaj swoje piękne zdjęcie
                                         <input type="file" accept="image/*" class="sr-only" @change="uploadImage($event, 'hero', 'image')">
                                     </label>
-                                    <p x-show="uploadingImage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse">Chwileczkę, zapisuję zdjęcie…</p>
+                                    <p x-show="uploadingImage" x-text="uploadingMessage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse"></p>
                                 </div>
                             </div>
                         </div>
@@ -855,6 +857,7 @@
                                 </div>
                                 <div class="flex-grow">
                                     <input type="file" accept="image/*" @change="uploadImage($event, 'hero', 'qrImage')" class="text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-sm file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-widest file:bg-[#121212] file:text-[#D4AF37] hover:file:bg-gray-800 cursor-pointer">
+                                    <p x-show="uploadingImage" x-text="uploadingMessage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse"></p>
                                 </div>
                             </div>
                         </div>
@@ -935,7 +938,7 @@
                                     Dodaj swoje piękne zdjęcie
                                     <input type="file" accept="image/*" @change="uploadImage($event, 'gallery', 'images')" class="hidden">
                                 </label>
-                                <p x-show="uploadingImage" class="text-xs text-[#D4AF37] font-bold animate-pulse mb-4">Wysyłanie na serwer...</p>
+                                <p x-show="uploadingImage" x-text="uploadingMessage" class="text-xs text-[#D4AF37] font-bold animate-pulse mb-4"></p>
                                 <p class="text-xs text-gray-500 mb-4">Po wgraniu zdjęcie pojawi się poniżej. Kliknij <strong>Publikuj Zmiany</strong>, aby zapisać.</p>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4" x-show="content.pl.gallery?.images?.length">
                                     <template x-for="(imgUrl, index) in content.pl.gallery.images" :key="index">
@@ -1107,6 +1110,7 @@
                                 <span class="text-sm font-medium text-gray-900">Włącz sekcję Opinie</span>
                             </label>
                         </div>
+                        <p x-show="uploadingImage" x-text="uploadingMessage" class="text-xs text-[#D4AF37] mb-3 font-bold animate-pulse px-1"></p>
                         <div class="space-y-6">
                             <template x-for="(review, index) in content.pl.reviews" :key="index">
                                 <div class="bg-gray-50 p-6 rounded-sm border relative group mb-4">
@@ -1334,7 +1338,7 @@
                                         <input type="file" accept="image/*" @change="uploadImage($event, 'seo', 'ogImage')"
                                                class="text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-sm file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-widest file:bg-[#121212] file:text-[#D4AF37] hover:file:bg-gray-800 cursor-pointer transition-colors w-full">
                                         <p class="text-xs text-gray-500 mt-3 leading-relaxed">Zalecany format 1200×630 px lub zbliżony (JPG/PNG). Po wgraniu kliknij <strong>Publikuj Zmiany</strong>.</p>
-                                        <p x-show="uploadingImage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse">Wysyłanie na serwer...</p>
+                                        <p x-show="uploadingImage" x-text="uploadingMessage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse"></p>
                                     </div>
                                 </div>
                             </div>
