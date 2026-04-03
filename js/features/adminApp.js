@@ -642,6 +642,18 @@
         if (!pl) return;
         this.uploadingImage = true;
         try {
+          const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+          const mime = String(file.type || '').toLowerCase();
+          if (!allowedTypes.has(mime)) {
+            throw new Error('Nieprawidłowy typ pliku. Dozwolone: JPG, PNG, WEBP.');
+          }
+
+          // Dodatkowy bezpiecznik: blokuj svg/html nawet przy błędnym MIME od systemu.
+          const nameLower = String(file.name || '').toLowerCase();
+          if (/\.(svg|html?|xml)$/i.test(nameLower) || mime === 'image/svg+xml') {
+            throw new Error('Ten typ pliku jest zablokowany ze względów bezpieczeństwa.');
+          }
+
           const fileExt = file.name.split('.').pop() || 'png';
           const fileName = `${this.slug}-${section}-${field}-${Date.now()}.${fileExt}`;
           const { error } = await this.supabase.storage.from('images').upload(fileName, file);

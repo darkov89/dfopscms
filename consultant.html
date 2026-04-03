@@ -33,6 +33,7 @@
     </script>
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script defer src="js/core/config.js"></script>
     <script defer src="js/core/supabaseClient.js"></script>
@@ -81,7 +82,7 @@
                      </template>
     
                     <template x-if="!content[lang].nav?.logoImage">
-                        <div class="text-base md:text-lg font-sans font-semibold tracking-[0.12em] uppercase text-sattva-text" x-html="content[lang].nav.logo || 'MOJA <span class=\'text-sattva-brand\'>FIRMA</span>'"></div>
+                        <div class="text-base md:text-lg font-sans font-semibold tracking-[0.12em] uppercase text-sattva-text" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].nav.logo || 'MOJA <span class=\'text-sattva-brand\'>FIRMA</span>')"></div>
                     </template>
                 </div>                
                 <div class="flex items-center gap-5">
@@ -150,7 +151,7 @@
 
             <h3 class="font-serif text-lg md:text-xl text-sattva-brand tracking-[0.2em] uppercase mb-4 reveal delay-100" x-text="content[lang].hero.name"></h3>
 
-            <h1 class="font-serif text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-sattva-text max-w-3xl mb-5 reveal delay-200" x-html="content[lang].hero.headline"></h1>
+            <h1 class="font-serif text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-sattva-text max-w-3xl mb-5 reveal delay-200" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].hero.headline)"></h1>
             <p class="font-serif text-lg font-light leading-relaxed text-sattva-text/80 mb-3 max-w-2xl reveal delay-300" x-text="content[lang].hero.subheadline"></p>
             <p class="max-w-xl text-sm md:text-base text-sattva-text/75 mb-8 font-light leading-relaxed reveal delay-500" x-text="content[lang].hero.description"></p>
             
@@ -168,7 +169,7 @@
 
         <div class="px-2 md:px-6">
             <p class="text-base md:text-lg text-sattva-text/80 leading-relaxed text-left font-light" 
-               x-html="content && content[lang].manifesto?.text">
+               x-html="DFOPS_pageRepository.sanitizeHtml(content && content[lang].manifesto?.text)">
             </p>
         </div>
 
@@ -619,7 +620,7 @@
                 </button>
             </div>
             <div class="overflow-y-auto p-6 text-gray-700 leading-relaxed space-y-4 [&_h2]:text-xl [&_h2]:font-serif [&_h2]:text-sattva-brand [&_h2]:mt-6 [&_a]:text-sattva-brand [&_a]:underline"
-                 x-html="activeModal === 'privacy' ? (content[lang]?.legal?.privacy_policy || '') : (content[lang]?.legal?.terms || '')"></div>
+                 x-html="DFOPS_pageRepository.sanitizeHtml(activeModal === 'privacy' ? (content[lang]?.legal?.privacy_policy || '') : (content[lang]?.legal?.terms || ''))"></div>
         </div>
     </div>
 </body>

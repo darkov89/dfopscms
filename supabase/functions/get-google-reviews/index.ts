@@ -5,16 +5,42 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 declare const Deno: { env: { get: (k: string) => string | undefined } };
 
 export const corsHeaders: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  // Placeholder; wypełniane dynamicznie per-request.
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+function isAllowedOrigin(origin: string) {
+  const o = origin.trim();
+  if (o === "https://dfcms.pl") return true;
+  if (o === "http://localhost:5500") return true;
+  // allow any subdomain ending with .dfcms.pl
+  try {
+    const u = new URL(o);
+    if (u.protocol !== "https:" && u.protocol !== "http:") return false;
+    const h = u.hostname.toLowerCase();
+    return h.endsWith(".dfcms.pl");
+  } catch {
+    return false;
+  }
+}
+
+function buildCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") ?? "";
+  if (!origin || !isAllowedOrigin(origin)) return null;
+  return {
+    ...corsHeaders,
+    "Access-Control-Allow-Origin": origin,
+    Vary: "Origin",
+  } as Record<string, string>;
+}
+
 function jsonResponse(body: unknown, status = 200) {
+  // jsonResponse jest używane tylko po pozytywnej walidacji CORS w handlerze.
   return new Response(JSON.stringify(body), {
     status,
     headers: {
-      ...corsHeaders,
       "content-type": "application/json; charset=utf-8",
     },
   });
@@ -142,20 +168,34 @@ function normalizeReview(r: ReviewRaw | null) {
 }
 
 serve(async (req) => {
+  const cors = buildCorsHeaders(req);
+  if (!cors) {
+    return new Response(JSON.stringify({ ok: false, error: "CORS: origin not allowed" }), {
+      status: 403,
+      headers: { "content-type": "application/json; charset=utf-8" },
+    });
+  }
+
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: cors });
   }
 
   if (req.method !== "POST") {
-    return jsonResponse({ ok: false, error: "Metoda nieobsługiwana." }, 405);
+    return new Response(JSON.stringify({ ok: false, error: "Metoda nieobsługiwana." }), {
+      status: 405,
+      headers: { ...cors, "content-type": "application/json; charset=utf-8" },
+    });
   }
 
   const googleApiKey = Deno.env.get("GOOGLE_MAPS_API_KEY") || Deno.env.get("GOOGLE_API_KEY");
   if (!googleApiKey) {
-    return jsonResponse({
+    return new Response(
+      JSON.stringify({
       ok: false,
       error: "Brak GOOGLE_MAPS_API_KEY w środowisku Edge Function.",
-    }, 500);
+      }),
+      { status: 500, headers: { ...cors, "content-type": "application/json; charset=utf-8" } },
+    );
   }
 
   let payload: {
@@ -168,14 +208,20 @@ serve(async (req) => {
   try {
     payload = (await req.json()) as typeof payload;
   } catch {
-    return jsonResponse({ ok: false, error: "Nieprawidłowe JSON w body." }, 400);
+    return new Response(JSON.stringify({ ok: false, error: "Nieprawidłowe JSON w body." }), {
+      status: 400,
+      headers: { ...cors, "content-type": "application/json; charset=utf-8" },
+    });
   }
 
   /** Mapa: URL iframe (Maps Embed API). */
   if (typeof payload.embed_for_place_id === "string" && payload.embed_for_place_id.trim() !== "") {
     const placeId = sanitizePlaceIdForEmbed(payload.embed_for_place_id);
     if (!placeId) {
-      return jsonResponse({ ok: false, error: "Nieprawidłowe embed_for_place_id." }, 400);
+      return new Response(JSON.stringify({ ok: false, error: "Nieprawidłowe embed_for_place_id." }), {
+        status: 400,
+        headers: { ...cors, "content-type": "application/json; charset=utf-8" },
+      });
     }
     const q = `place_id:${placeId}`;
     const embedUrl =
@@ -185,7 +231,10 @@ serve(async (req) => {
         q,
         zoom: "15",
       }).toString();
-    return jsonResponse({ ok: true, embedUrl }, 200);
+    return new Response(JSON.stringify({ ok: true, embedUrl }), {
+      status: 200,
+      headers: { ...cors, "content-type": "application/json; charset=utf-8" },
+    });
   }
 
   /** Panel: lista miejsc do wyboru (Places searchText). */
@@ -193,7 +242,10 @@ serve(async (req) => {
     const listQuery = typeof payload.query === "string" ? payload.query.trim() : "";
     const maxResults = safePlacesListCount(payload?.maxResults, 8);
     if (!listQuery || listQuery.length < 2) {
-      return jsonResponse({ ok: false, error: "Podaj frazę (min. 2 znaki)." }, 400);
+      return new Response(JSON.stringify({ ok: false, error: "Podaj frazę (min. 2 znaki)." }), {
+        status: 400,
+        headers: { ...cors, "content-type": "application/json; charset=utf-8" },
+      });
     }
 
     const searchTextUrl = "https://places.googleapis.com/v1/places:searchText";
@@ -229,20 +281,20 @@ serve(async (req) => {
         ? (listSearchReq.json as typeof listJson)
         : (JSON.parse(listText) as typeof listJson);
     } catch {
-      return jsonResponse({
+      return new Response(JSON.stringify({
         ok: false,
         stage: "places_list_parse",
         errorText: listText.slice(0, 500),
-      }, 502);
+      }), { status: 502, headers: { ...cors, "content-type": "application/json; charset=utf-8" } });
     }
 
     if (!listSearchReq.ok) {
-      return jsonResponse({
+      return new Response(JSON.stringify({
         ok: false,
         stage: "places_list_searchText",
         httpStatus: listSearchReq.resp.status,
         errorText: listText.slice(0, 800),
-      }, 502);
+      }), { status: 502, headers: { ...cors, "content-type": "application/json; charset=utf-8" } });
     }
 
     const rawPlaces = Array.isArray(listJson?.places) ? listJson.places : [];
@@ -265,14 +317,20 @@ serve(async (req) => {
       });
     }
 
-    return jsonResponse({ ok: true, places }, 200);
+    return new Response(JSON.stringify({ ok: true, places }), {
+      status: 200,
+      headers: { ...cors, "content-type": "application/json; charset=utf-8" },
+    });
   }
 
   const query = typeof payload?.query === "string" ? payload.query.trim() : "";
   const maxReviews = safeToInt(payload?.maxReviews, 6);
 
   if (!query) {
-    return jsonResponse({ ok: false, error: "Brak parametru query." }, 400);
+    return new Response(JSON.stringify({ ok: false, error: "Brak parametru query." }), {
+      status: 400,
+      headers: { ...cors, "content-type": "application/json; charset=utf-8" },
+    });
   }
 
   const searchTextUrl = "https://places.googleapis.com/v1/places:searchText";
@@ -292,12 +350,12 @@ serve(async (req) => {
   );
 
   if (!searchReq.ok) {
-    return jsonResponse({
+    return new Response(JSON.stringify({
       ok: false,
       stage: "places_searchText",
       httpStatus: searchReq.resp.status,
       errorText: searchReq.text,
-    }, 502);
+    }), { status: 502, headers: { ...cors, "content-type": "application/json; charset=utf-8" } });
   }
 
   const searchJson = (searchReq.json ?? {}) as PlaceSearchResponse;
@@ -305,7 +363,7 @@ serve(async (req) => {
   const placeId = pickFirstPlaceIdFromSearchText(searchJson);
 
   if (!placeId) {
-    return jsonResponse({
+    return new Response(JSON.stringify({
       ok: true,
       placeId: null,
       reviews: [],
@@ -316,7 +374,7 @@ serve(async (req) => {
         query,
         httpStatus: searchReq.resp.status,
       },
-    }, 200);
+    }), { status: 200, headers: { ...cors, "content-type": "application/json; charset=utf-8" } });
   }
 
   const detailsUrl = `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`;
@@ -334,13 +392,13 @@ serve(async (req) => {
   );
 
   if (!detailsReq.ok) {
-    return jsonResponse({
+    return new Response(JSON.stringify({
       ok: false,
       stage: "place_details",
       placeId,
       httpStatus: detailsReq.resp.status,
       errorText: detailsReq.text,
-    }, 502);
+    }), { status: 502, headers: { ...cors, "content-type": "application/json; charset=utf-8" } });
   }
 
   const detailsJson = (detailsReq.json ?? {}) as PlaceDetailsResponse;
@@ -369,7 +427,7 @@ serve(async (req) => {
       ? Number(detailsJson.userRatingCount)
       : null;
 
-  return jsonResponse({
+  return new Response(JSON.stringify({
     ok: true,
     placeId,
     placeName: detailsJson?.displayName?.text ?? detailsJson?.displayName ?? "",
@@ -377,5 +435,5 @@ serve(async (req) => {
     userRatingCount: Number.isFinite(userRatingCount) ? userRatingCount : null,
     reviews: normalized,
     debug: detailsError ? { detailsError } : undefined,
-  }, 200);
+  }), { status: 200, headers: { ...cors, "content-type": "application/json; charset=utf-8" } });
 });

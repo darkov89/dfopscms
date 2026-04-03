@@ -5,7 +5,7 @@
 
   /**
    * Sanityzuje HTML, usuwając tagi i atrybuty niebezpieczne dla XSS.
-   * Używa DOMParser (bez zewnętrznych bibliotek).
+   * Używa DOMPurify (CDN) — polityka jest celowo restrykcyjna (SaaS).
    */
   /**
    * Wyciąga URL z wklejonego iframe lub zwraca goły https URL (jak publicSiteApp.extractEmbedUrl).
@@ -92,39 +92,172 @@
     return s;
   }
 
+  const DOMPURIFY_CONFIG = {
+    // Tagi dozwolone (wystarczające dla treści marketingowych / regulaminów).
+    ALLOWED_TAGS: [
+      'a',
+      'b',
+      'blockquote',
+      'br',
+      'code',
+      'div',
+      'em',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'hr',
+      'i',
+      'img',
+      'li',
+      'ol',
+      'p',
+      'pre',
+      'span',
+      'strong',
+      'u',
+      'ul',
+    ],
+    // Atrybuty ograniczone do bezpiecznego podzbioru.
+    ALLOWED_ATTR: [
+      'alt',
+      'class',
+      'decoding',
+      'height',
+      'href',
+      'id',
+      'loading',
+      'rel',
+      'role',
+      'src',
+      'target',
+      'title',
+      'width',
+      // Alpine/Tailwind: nie przepuszczamy x-* (to nie jest potrzebne w treści),
+      // ale wspieramy a11y i data-*.
+      'aria-label',
+      'aria-hidden',
+      'aria-describedby',
+      'aria-controls',
+      'aria-expanded',
+      'data-*',
+    ],
+    // Bezpieczne zachowanie linków.
+    ADD_ATTR: ['rel'],
+    // Twarde zakazy: SVG/MathML i wektory osadzeń.
+    FORBID_TAGS: [
+      'base',
+      'embed',
+      'form',
+      'iframe',
+      'input',
+      'link',
+      'math',
+      'meta',
+      'object',
+      'script',
+      'style',
+      'svg',
+      'textarea',
+    ],
+    FORBID_ATTR: [
+      'style',
+      'srcset',
+      'xlink:href',
+    ],
+    // Blokujemy data: i javascript: (wymóg bezpieczeństwa).
+    ALLOW_DATA_ATTR: true,
+    ALLOW_ARIA_ATTR: true,
+    ALLOW_UNKNOWN_PROTOCOLS: false,
+  };
+
+  function isSafeUrlForAttr(attrName, urlString) {
+    if (!urlString) return false;
+    const raw = String(urlString).trim();
+    if (!raw) return false;
+    // DOMPurify domyślnie blokuje javascript:, ale dodatkowo blokujemy data: oraz vbscript:.
+    if (/^\s*(?:javascript|data|vbscript):/i.test(raw)) return false;
+    // Dopuszczamy tylko https/http oraz względne ścieżki.
+    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(raw)) {
+      try {
+        const u = new URL(raw);
+        if (u.protocol !== 'https:' && u.protocol !== 'http:') return false;
+      } catch {
+        return false;
+      }
+    }
+    // Dodatkowo: dla img/src wymagamy https/http.
+    if (attrName === 'src') {
+      if (!/^https?:\/\//i.test(raw)) return false;
+    }
+    return true;
+  }
+
   function sanitizeHtml(htmlString) {
-    if (typeof htmlString !== 'string') return htmlString;
-    const trimmed = htmlString.trim();
+    if (htmlString == null) return '';
+    const input = typeof htmlString === 'string' ? htmlString : String(htmlString);
+    const trimmed = input.trim();
     if (!trimmed) return '';
+
     // Plain https URL (map embed, og:image, galeria…): nie parsuj jako HTML —
     // znak & w query jest wtedy traktowany jak encja i wartość jest obcinana lub niszczona.
     if (!/[<]/.test(trimmed) && /^https?:\/\//i.test(trimmed)) {
-      return trimmed;
+      // Blokujemy data:/javascript: niezależnie.
+      return isSafeUrlForAttr('src', trimmed) ? trimmed : '';
     }
-    try {
-      const doc = new DOMParser().parseFromString(htmlString, 'text/html');
-      const removeTags = ['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'FORM'];
-      const walk = (node) => {
-        if (!node || !node.nodeType) return;
-        if (node.nodeType === 1) {
-          const tag = (node.tagName || '').toUpperCase();
-          if (removeTags.includes(tag)) {
-            node.parentNode?.removeChild(node);
-            return;
-          }
-          const attrs = Array.from(node.attributes || []);
-          attrs.forEach((a) => {
-            if (/^on/i.test(a.name)) node.removeAttribute(a.name);
-          });
+
+    const purifier = window.DOMPurify;
+    if (!purifier || typeof purifier.sanitize !== 'function') {
+      // Fail-closed: bez DOMPurify nie renderujemy HTML (tylko pusty string),
+      // aby nie dopuścić do XSS przy brakującej bibliotece.
+      return '';
+    }
+
+    // Hooki są globalne, więc rejestrujemy je tylko raz.
+    if (!window.__DFOPS_DOMPURIFY_HOOKS__) {
+      window.__DFOPS_DOMPURIFY_HOOKS__ = true;
+
+      purifier.addHook('afterSanitizeAttributes', function (node) {
+        if (!node || !node.getAttribute) return;
+        // Href/src: usuń niebezpieczne protokoły.
+        const href = node.getAttribute('href');
+        if (href && !isSafeUrlForAttr('href', href)) node.removeAttribute('href');
+        const src = node.getAttribute('src');
+        if (src && !isSafeUrlForAttr('src', src)) node.removeAttribute('src');
+
+        // target=_blank => rel noopener noreferrer.
+        const target = node.getAttribute('target');
+        if (target && String(target).toLowerCase() === '_blank') {
+          const rel = (node.getAttribute('rel') || '').toLowerCase();
+          const needs = ['noopener', 'noreferrer'];
+          const relParts = rel ? rel.split(/\s+/).filter(Boolean) : [];
+          for (const n of needs) if (!relParts.includes(n)) relParts.push(n);
+          node.setAttribute('rel', relParts.join(' ').trim());
         }
-        const children = Array.from(node.childNodes || []);
-        children.forEach((c) => walk(c));
-      };
-      walk(doc.body);
-      return doc.body ? doc.body.innerHTML : '';
-    } catch {
-      return htmlString;
+      });
+
+      // Blokujemy CSS/JS w atrybutach (event handlers i style) nawet jeśli ktoś je przemyci.
+      purifier.addHook('uponSanitizeAttribute', function (node, data) {
+        if (!data || !data.attrName) return;
+        if (/^on/i.test(data.attrName)) {
+          data.keepAttr = false;
+          return;
+        }
+        if (data.attrName === 'style') {
+          data.keepAttr = false;
+          return;
+        }
+        if (data.attrName === 'href' || data.attrName === 'src' || data.attrName === 'xlink:href') {
+          if (!isSafeUrlForAttr(data.attrName === 'href' ? 'href' : 'src', data.attrValue)) {
+            data.keepAttr = false;
+          }
+        }
+      });
     }
+
+    return purifier.sanitize(input, DOMPURIFY_CONFIG);
   }
 
   function sanitizeContent(obj, keyHint) {

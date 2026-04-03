@@ -7,21 +7,52 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 declare const Deno: { env: { get: (k: string) => string | undefined } };
 
 const corsHeaders: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+function isAllowedOrigin(origin: string) {
+  const o = origin.trim();
+  if (o === "https://dfcms.pl") return true;
+  if (o === "http://localhost:5500") return true;
+  try {
+    const u = new URL(o);
+    if (u.protocol !== "https:" && u.protocol !== "http:") return false;
+    const h = u.hostname.toLowerCase();
+    return h.endsWith(".dfcms.pl");
+  } catch {
+    return false;
+  }
+}
+
+function buildCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") ?? "";
+  if (!origin || !isAllowedOrigin(origin)) return null;
+  return {
+    ...corsHeaders,
+    "Access-Control-Allow-Origin": origin,
+    Vary: "Origin",
+  } as Record<string, string>;
+}
+
 serve(async (req) => {
+  const cors = buildCorsHeaders(req);
+  if (!cors) {
+    return new Response(JSON.stringify({ error: "CORS: origin not allowed" }), {
+      status: 403,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: cors });
   }
 
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   }
 
@@ -101,13 +132,13 @@ serve(async (req) => {
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...cors, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     return new Response(JSON.stringify({ error: msg }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...cors, "Content-Type": "application/json" },
       status: 400,
     });
   }

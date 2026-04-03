@@ -9,6 +9,65 @@
 
 const STATIC_EXT = /\.(css|js|mjs|png|jpg|jpeg|gif|svg|ico|webp|woff2?|ttf|eot|map|json|xml|txt|pdf|webmanifest)$/i;
 
+function applySecurityHeaders(request, response) {
+  try {
+    const url = new URL(request.url);
+    const headers = new Headers(response.headers);
+
+    // Baseline hardening
+    headers.set('X-Content-Type-Options', 'nosniff');
+    headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+    headers.set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+
+    // Clickjacking protection (legacy + modern)
+    headers.set('X-Frame-Options', 'DENY');
+
+    // HSTS only on HTTPS
+    if (url.protocol === 'https:') {
+      headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+    }
+
+    // CSP: strong baseline compatible with current CDN-based build.
+    // Note: inline scripts are required because pages embed Tailwind config in <script>.
+    const csp = [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "object-src 'none'",
+      "frame-ancestors 'none'",
+      "form-action 'self'",
+      "upgrade-insecure-requests",
+      "block-all-mixed-content",
+
+      // Scripts: self + required CDNs. 'unsafe-inline' needed for Tailwind config blocks.
+      "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
+
+      // Styles: self + Google Fonts. 'unsafe-inline' needed for inline <style> blocks.
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+
+      // Fonts: Google Fonts
+      "font-src 'self' https://fonts.gstatic.com",
+
+      // Images: only https/self (no data:). Allow blob: for runtime-created previews if needed.
+      "img-src 'self' https: blob:",
+
+      // Network: Supabase + same origin
+      "connect-src 'self' https://*.supabase.co",
+
+      // Frames: allow Google Maps embed if used
+      "frame-src https://www.google.com",
+    ].join('; ');
+    headers.set('Content-Security-Policy', csp);
+
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
+  } catch {
+    return response;
+  }
+}
+
 function stripHtmlMarkup(s) {
   if (s == null || s === '') return '';
   return String(s)
@@ -50,12 +109,12 @@ export async function onRequest(context) {
 
   try {
     if (request.method === 'HEAD' || request.method === 'OPTIONS') {
-      return response;
+      return applySecurityHeaders(request, response);
     }
 
     const contentType = response.headers.get('content-type') || '';
     if (!contentType.includes('text/html') || !response.body) {
-      return response;
+      return applySecurityHeaders(request, response);
     }
 
     const supabaseUrl = typeof env.SUPABASE_URL === 'string' ? env.SUPABASE_URL.replace(/\/$/, '') : '';
@@ -142,8 +201,8 @@ export async function onRequest(context) {
       },
     });
 
-    return rewriter.transform(response);
+    return applySecurityHeaders(request, rewriter.transform(response));
   } catch {
-    return response;
+    return applySecurityHeaders(request, response);
   }
 }
