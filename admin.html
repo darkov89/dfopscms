@@ -297,7 +297,14 @@
         <p class="text-gray-500 tracking-widest text-sm animate-pulse">Weryfikacja tożsamości...</p>
     </div>
 
-    <div x-show="user" x-cloak class="flex-grow flex flex-col">
+        <div x-show="user" x-cloak class="flex-grow flex flex-col">
+        <div x-show="user && !isEmailVerified" x-cloak class="w-full bg-amber-900 text-amber-50 text-sm py-3 px-4 text-center flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 shrink-0 border-b border-amber-800/50" role="status">
+            <span class="max-w-3xl">Dokończ rejestrację: <strong class="text-white">potwierdź adres e-mail</strong> z wiadomości wysłanej przez DFCMS — bez tego kreator się nie uruchomi.</span>
+            <button type="button" @click="resendSignupConfirmation()" :disabled="resendConfirmLoading" class="shrink-0 rounded-sm bg-white/15 hover:bg-white/25 border border-white/25 text-white text-xs font-bold uppercase tracking-widest px-4 py-2 disabled:opacity-50 transition-colors">
+                <span x-show="!resendConfirmLoading">Wyślij link ponownie</span>
+                <span x-show="resendConfirmLoading" x-cloak>Wysyłam…</span>
+            </button>
+        </div>
         <div x-show="trialBlockedAt" class="w-full bg-red-900 text-white text-sm py-3 px-4 text-center flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 shrink-0" x-cloak role="alert">
             <span>Strona publiczna jest <strong>zablokowana</strong> (wygasły trial lub brak płatności po terminie). Goście widzą komunikat z wezwaniem dla administratora.</span>
             <button type="button" @click="setTab('subscription'); showTrialSuspendedModal = false" class="shrink-0 underline font-bold hover:no-underline text-white">Przejdź do subskrypcji</button>
@@ -1497,6 +1504,18 @@
                             <h2 class="text-2xl font-serif text-gray-900 mb-2">Subskrypcja</h2>
                             <p x-show="!hasActivePaidSubscription" class="text-sm text-gray-600 leading-relaxed max-w-2xl">Masz 14 dni na wybranie pakietu i pierwszą opłatę. Dopóki płatność nie zostanie zaksięgowana, konto pozostaje w okresie próbnym — z ograniczeniami i komunikatem w panelu.</p>
                             <p x-show="hasActivePaidSubscription" x-cloak class="text-sm text-gray-600 leading-relaxed max-w-2xl">Twoja subskrypcja jest aktywna. Poniżej status rozliczeń i skrót pakietu — w każdej chwili możesz przejść do porównania planów niżej.</p>
+                        </div>
+
+                        <div class="mb-6 p-4 sm:p-5 rounded-xl border border-sky-200/80 bg-sky-50/90 text-sm text-gray-800 shadow-sm">
+                            <p class="font-bold text-gray-900 mb-1">Opłata przeszła, a plan dalej wygląda jak trial?</p>
+                            <p class="text-gray-600 mb-4 leading-relaxed">Stripe czasem dopisuje dane z opóźnieniem. Możesz wymusić odczyt aktywnej subskrypcji w Stripe i zapis do bazy — bez ponownego wpisywania karty.</p>
+                            <button type="button"
+                                @click="syncStripeSubscription()"
+                                :disabled="stripeSyncLoading || saving || checkoutLoading"
+                                class="inline-flex items-center justify-center min-h-[2.75rem] bg-[#121212] text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#D4AF37] hover:text-[#121212] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span x-show="!stripeSyncLoading">Synchronizuj ze Stripe</span>
+                                <span x-show="stripeSyncLoading" x-cloak>Łączenie ze Stripe…</span>
+                            </button>
                         </div>
 
                         <div x-show="hasActivePaidSubscription" x-cloak class="mb-8 rounded-2xl border border-[#D4AF37]/35 bg-gradient-to-br from-white via-amber-50/30 to-white shadow-lg shadow-amber-900/5 ring-1 ring-black/5 overflow-hidden">

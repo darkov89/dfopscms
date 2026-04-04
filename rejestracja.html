@@ -90,12 +90,15 @@
             <div class="w-20 h-20 bg-[#D4AF37]/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#D4AF37]/50">
                 <svg class="w-10 h-10 text-[#D4AF37]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
             </div>
-            <h2 class="text-2xl font-serif text-white mb-2">Konto gotowe</h2>
-            <p class="text-gray-400 mb-8">
-                Adres strony: <span class="text-[#D4AF37] font-bold" x-text="form.slug"></span> — przekierowujemy Cię do panelu (włączone natychmiastowe logowanie bez potwierdzania e-maila).
+            <h2 class="text-2xl font-serif text-white mb-2">Konto założone</h2>
+            <p class="text-gray-400 mb-3 leading-relaxed">
+                Adres strony: <span class="text-[#D4AF37] font-bold" x-text="form.slug"></span><span class="text-gray-500">.dfcms.pl</span>
+            </p>
+            <p class="text-sm text-gray-500 mb-8 leading-relaxed max-w-md mx-auto">
+                Możesz przejść do panelu — <strong class="text-gray-300">kreator uruchomi się dopiero po potwierdzeniu e-maila</strong>, jeśli w projekcie jest włączone potwierdzanie adresu (zalecane). W przeciwnym razie od razu zobaczysz pełny panel.
             </p>
             <a :href="'admin.html?site=' + encodeURIComponent(form.slug)" class="block w-full bg-[#D4AF37] hover:bg-white text-[#121212] px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all text-center">
-                Przejdź do panelu edycji →
+                Przejdź do panelu →
             </a>
         </div>
 
@@ -105,13 +108,14 @@
             </div>
             <h2 class="text-2xl font-serif text-white mb-2">Sprawdź skrzynkę</h2>
             <p class="text-gray-400 mb-4 leading-relaxed">
-                Wysłaliśmy link na <span class="text-[#D4AF37] font-semibold" x-text="form.email"></span>. Po kliknięciu w niego konto zostanie aktywowane — strona zostanie utworzona automatycznie (albo przy pierwszym wejściu do panelu).
+                Wysłaliśmy wiadomość od <span class="text-[#D4AF37] font-semibold">DFCMS</span> na <span class="text-[#D4AF37] font-semibold" x-text="form.email"></span>. <strong class="text-gray-300">Kliknij link w mailu</strong> — wtedy zostaniesz zalogowany do panelu i <strong class="text-gray-300">uruchomisz kreator</strong> pierwszej strony.
             </p>
             <p class="text-sm text-gray-500 mb-8">
-                Adres Twojej strony: <span class="text-gray-300 font-mono" x-text="form.slug"></span>
+                Twój adres w sieci: <span class="text-gray-300 font-mono" x-text="form.slug"></span><span class="text-gray-500">.dfcms.pl</span> — strona powstanie w tle po utworzeniu konta.
             </p>
-            <a href="admin.html" class="inline-block w-full bg-white/10 hover:bg-white/15 border border-white/20 text-white px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all text-center">
-                Przejdź do logowania w panelu
+            <p class="text-xs text-gray-600 mb-6 leading-relaxed max-w-md mx-auto">Nie widzisz maila? Sprawdź folder spam i wpisy od nadawcy ustawionego w Supabase (Authentication → Email).</p>
+            <a :href="'admin.html?site=' + encodeURIComponent(form.slug)" class="inline-block w-full bg-white/10 hover:bg-white/15 border border-white/20 text-white px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all text-center">
+                Mam już konto — loguję się w panelu
             </a>
         </div>
 

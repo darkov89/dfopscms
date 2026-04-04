@@ -22,6 +22,15 @@
       if (!pl.settings.subscription.trial_started_at) pl.settings.subscription.trial_started_at = new Date().toISOString();
     }
     const sub = pl.settings.subscription;
+    if (sub.payment_completed === 'true' || sub.payment_completed === 1 || sub.payment_completed === '1') {
+      sub.payment_completed = true;
+    } else if (
+      sub.payment_completed === 'false' ||
+      sub.payment_completed === 0 ||
+      sub.payment_completed === '0'
+    ) {
+      sub.payment_completed = false;
+    }
     if (
       (sub.plan === 'tier1' || sub.plan === 'tier2') &&
       (sub.payment_completed === undefined || sub.payment_completed === null)

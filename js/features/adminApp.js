@@ -111,6 +111,7 @@
       _stopContentWatch: null,
       upgrading: false,
       checkoutLoading: false,
+      stripeSyncLoading: false,
       latestTemplateVersion: window.DFOPS_LATEST_TEMPLATE_VERSION || 3,
       currentTemplateVersion: 1,
       updateAvailable: false,
@@ -121,6 +122,7 @@
       /** Opcjonalny modal po płatności — główny flow opiera się na toastach + opóźnionym loadData. */
       showSuccessModal: false,
       _postPaymentRefreshTimer: null,
+      resendConfirmLoading: false,
       get availablePresets() {
         const currentTheme = this.showWizard
           ? (this.wizardTheme || this.theme || 'beauty')
@@ -130,6 +132,12 @@
       get accentColor() { return cfg.accentByPreset[this.content?.pl?.settings?.color_preset] || '#D4AF37'; },
       get styleBundles() { return cfg.bundlesByTheme[this.theme] || []; },
       get subscriptionPlan() { return this.content?.pl?.settings?.subscription?.plan || 'trial'; },
+      /** Kreator tylko po potwierdzeniu e-maila (Supabase Auth → Confirm email). */
+      get isEmailVerified() {
+        const u = this.user;
+        if (!u) return false;
+        return !!(u.email_confirmed_at || u.confirmed_at);
+      },
       /** Aktywna opłacona subskrypcja (tier w content, nie trial). */
       get hasActivePaidSubscription() {
         const p = this.subscriptionPlan;
@@ -290,6 +298,18 @@
             this._postPaymentRefreshTimer = null;
             try {
               await this.loadData();
+              if (!this.subscriptionPaymentActive()) {
+                await this.syncStripeSubscription({ silent: true });
+                await this.loadData();
+              }
+              if (!this.subscriptionPaymentActive()) {
+                this.showToast(
+                  'Nie widzimy jeszcze potwierdzenia w bazie. Otwórz Subskrypcja → „Synchronizuj ze Stripe” lub poczekaj minutę (webhook Stripe).',
+                  'error',
+                );
+              } else {
+                this.showToast('Gotowe! Twój plan jest aktywny.', 'success');
+              }
             } catch (e) {
               console.error(e);
             } finally {
@@ -303,12 +323,56 @@
                 clean.pathname + (qs ? `?${qs}` : '') + clean.hash,
               );
               this.showSuccessModal = false;
-              this.showToast('Gotowe! Twój plan jest aktywny.', 'success');
             }
-          }, 2500);
+          }, 4000);
           return true;
         } catch {
           return false;
+        }
+      },
+
+      /**
+       * Edge Function sync-stripe-subscription — naprawia opóźniony webhook.
+       * @param {{ silent?: boolean }} opts — `silent: true` bez toastów (retry po checkout).
+       */
+      async syncStripeSubscription(opts) {
+        const options = opts && typeof opts === 'object' ? opts : {};
+        const silent = options.silent === true;
+        if (!this.user?.id || !this.supabase) {
+          if (!silent) this.showToast('Zaloguj się, aby zsynchronizować płatności.', 'error');
+          return false;
+        }
+        const { data: sessionData } = await this.supabase.auth.getSession();
+        const token = sessionData?.session?.access_token;
+        if (!token) {
+          if (!silent) this.showToast('Błąd sesji. Wyloguj się i zaloguj ponownie.', 'error');
+          return false;
+        }
+        this.stripeSyncLoading = true;
+        try {
+          const { data, error } = await this.supabase.functions.invoke('sync-stripe-subscription', {
+            body: {},
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (error) throw error;
+          if (data && data.ok === false && typeof data.error === 'string') {
+            if (!silent) this.showToast(data.error, 'error');
+            return false;
+          }
+          await this.loadData();
+          if (!silent) this.showToast('Zsynchronizowano status subskrypcji ze Stripe.', 'success');
+          return true;
+        } catch (e) {
+          console.error(e);
+          const msg = e instanceof Error ? e.message : String(e);
+          if (!silent) {
+            this.showToast(msg || 'Nie udało się zsynchronizować. Sprawdź połączenie i czy funkcja jest wdrożona.', 'error');
+          }
+          return false;
+        } finally {
+          this.stripeSyncLoading = false;
         }
       },
 
@@ -373,6 +437,22 @@
           /* ignore */
         }
         this.supabase = window.DFOPS_getSupabaseClient();
+        this.supabase.auth.onAuthStateChange((_event, session) => {
+          if (session?.user) this.user = session.user;
+          else if (!session) this.user = null;
+          if (this.loadingAuth) return;
+          if (!this.isEmailVerified) {
+            this.showWizard = false;
+            return;
+          }
+          if (
+            this.pageId &&
+            this.content?.pl?.settings &&
+            this.content.pl.settings.onboarding_completed === false
+          ) {
+            this.showWizard = true;
+          }
+        });
         this.supabase.auth.getSession().then(({ data: { session } }) => {
           this.user = session?.user || null;
           this.loadingAuth = false;
@@ -383,6 +463,30 @@
             }
           }
         });
+      },
+
+      async resendSignupConfirmation() {
+        const email = this.user?.email;
+        if (!email) {
+          this.showToast('Brak adresu e-mail w sesji.', 'error');
+          return;
+        }
+        this.resendConfirmLoading = true;
+        try {
+          const origin = typeof window !== 'undefined' ? window.location.origin : '';
+          const { error } = await this.supabase.auth.resend({
+            type: 'signup',
+            email,
+            options: { emailRedirectTo: origin ? `${origin}/admin.html` : undefined },
+          });
+          if (error) throw error;
+          this.showToast('Wysłaliśmy ponownie link aktywacyjny — sprawdź skrzynkę (także spam).', 'success');
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          this.showToast(msg || 'Nie udało się wysłać maila.', 'error');
+        } finally {
+          this.resendConfirmLoading = false;
+        }
       },
       async login(evt) {
         if (evt && typeof evt.preventDefault === 'function') {
@@ -535,7 +639,9 @@
           this.applyThemeStylingFromContent();
           this.enforceColorPresetForStarter();
 
-          if (
+          if (!this.isEmailVerified) {
+            this.showWizard = false;
+          } else if (
             this.content &&
             this.content[this.lang] &&
             this.content[this.lang].settings &&
@@ -763,6 +869,10 @@
       },
       /** Pełny ekran startowy kreatora (wybór ścieżki). */
       openWizardFromStudio() {
+        if (!this.isEmailVerified) {
+          this.showToast('Potwierdź najpierw adres e-mail — link masz w wiadomości od DFCMS.', 'error');
+          return;
+        }
         this.wizardStep = 0;
         this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
         this.wizardFieldWarning = '';
@@ -773,6 +883,10 @@
         }
       },
       reopenWizard() {
+        if (!this.isEmailVerified) {
+          this.showToast('Potwierdź najpierw adres e-mail — link masz w wiadomości od DFCMS.', 'error');
+          return;
+        }
         this.wizardStep = 1;
         this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
         this.showWizard = true;

@@ -14,9 +14,15 @@ verify_jwt = false
 # Wywołanie wyłącznie z cron (Authorization: Bearer CRON_SECRET).
 # Opcjonalne sekrety powiadomień: OPS_NOTIFY_WEBHOOK_URL (Zapier → e-mail),
 # albo RESEND_API_KEY + OPS_NOTIFY_EMAIL + RESEND_FROM.
+# Harmonogram: Supabase Dashboard → Edge Functions → expire-trial-pages → Schedules
+# (np. codziennie 02:00 UTC) albo pg_cron — patrz komentarz w migracji expire_trial_pages.
 [functions.expire-trial-pages]
 verify_jwt = false
 
 # Stripe wysyła tylko stripe-signature (bez JWT użytkownika) — weryfikacja w kodzie (constructEvent).
 [functions.stripe-webhook]
+verify_jwt = false
+
+# Synchronizacja statusu subskrypcji ze Stripe (Authorization: user JWT, jak create-checkout).
+[functions.sync-stripe-subscription]
 verify_jwt = false

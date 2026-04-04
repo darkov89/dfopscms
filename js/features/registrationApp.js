@@ -88,10 +88,6 @@
 
           if (authData.session) {
             localStorage.setItem('dfops_login_time', String(Date.now()));
-            const delay = (cfg.timeouts?.redirectDelay ?? 800);
-            setTimeout(() => {
-              window.location.href = 'admin.html?site=' + encodeURIComponent(this.form.slug);
-            }, delay);
           }
         } catch (e) {
           this.errorMessage = formatRegistrationAuthError(e);
