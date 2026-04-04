@@ -38,8 +38,9 @@ function applySecurityHeaders(request, response) {
       "upgrade-insecure-requests",
       "block-all-mixed-content",
 
-      // Scripts: self + required CDNs. 'unsafe-inline' needed for Tailwind config blocks.
-      "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
+      // Scripts: Alpine CDN evaluates x-* expressions via new Function() → needs 'unsafe-eval'.
+      // 'unsafe-inline' — bloki konfiguracji Tailwind w <script>.
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
 
       // Styles: self + Google Fonts. 'unsafe-inline' needed for inline <style> blocks.
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
@@ -50,8 +51,8 @@ function applySecurityHeaders(request, response) {
       // Images: only https/self (no data:). Allow blob: for runtime-created previews if needed.
       "img-src 'self' https: blob:",
 
-      // Network: Supabase + same origin
-      "connect-src 'self' https://*.supabase.co",
+      // Network: Supabase + fetch map źródeł z CDN (DevTools; bez tego tylko szum w konsoli).
+      "connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
 
       // Frames: allow Google Maps embed if used
       "frame-src https://www.google.com",
