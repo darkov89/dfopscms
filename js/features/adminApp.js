@@ -683,6 +683,12 @@
         this.content.pl.settings.subscription.selected_plan = tier;
         const saved = await this.saveData({ silentSuccess: true });
         if (!saved) return;
+        const { data: sessionData } = await this.supabase.auth.getSession();
+        const token = sessionData?.session?.access_token;
+        if (!token) {
+          this.showToast('Błąd sesji. Wyloguj się i zaloguj ponownie.', 'error');
+          return;
+        }
         this.checkoutLoading = true;
         try {
           const returnUrl = `${window.location.origin}${window.location.pathname}`;
@@ -694,6 +700,9 @@
                 priceId,
                 returnUrl,
                 userEmail: this.user?.email || '',
+              },
+              headers: {
+                Authorization: `Bearer ${token}`,
               },
             },
           );
