@@ -21,6 +21,17 @@
       if (!pl.settings.subscription.plan) pl.settings.subscription.plan = 'trial';
       if (!pl.settings.subscription.trial_started_at) pl.settings.subscription.trial_started_at = new Date().toISOString();
     }
+    const sub = pl.settings.subscription;
+    if (
+      (sub.plan === 'tier1' || sub.plan === 'tier2') &&
+      (sub.payment_completed === undefined || sub.payment_completed === null)
+    ) {
+      sub.payment_completed = true;
+    }
+    if (sub.plan === 'tier0' && sub.payment_completed !== true) {
+      sub.selected_plan = sub.selected_plan || 'tier0';
+      sub.plan = 'trial';
+    }
 
     if (!pl.nav) pl.nav = {};
     if (theme === 'beauty') {

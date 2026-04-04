@@ -33,7 +33,20 @@
         <p class="text-zinc-400">Nie udało się wczytać strony.</p>
     </div>
 
-    <template x-if="dataLoaded && content && content.pl && theme === 'setup'">
+    <div x-show="trialBlocked && dataLoaded" x-cloak class="fixed inset-0 z-[250] flex flex-col items-center justify-center bg-[#0b0b0f]/98 px-6 text-center text-zinc-200">
+        <div class="max-w-lg rounded-xl border border-[#D4AF37]/40 bg-[#121212] p-8 shadow-2xl">
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-[#D4AF37] mb-3">DFCMS</p>
+            <h1 class="text-2xl font-bold text-white mb-4" x-text="trialBlockedTitle"></h1>
+            <p class="text-sm text-zinc-400 leading-relaxed mb-4" x-text="trialBlockedBody"></p>
+            <p class="text-sm text-zinc-200 font-medium leading-relaxed mb-8 border-l-4 border-[#D4AF37] pl-4 text-left" x-text="trialBlockedAdminHint"></p>
+            <div class="flex flex-col gap-3">
+                <a :href="subscriptionPanelUrl" class="inline-flex justify-center rounded-sm bg-[#D4AF37] px-6 py-3 text-sm font-bold uppercase tracking-widest text-[#121212] hover:opacity-90 transition-opacity">Zaloguj do panelu administratora</a>
+                <a :href="landingPricingUrl" class="inline-flex justify-center rounded-sm border-2 border-[#D4AF37] px-6 py-3 text-sm font-bold uppercase tracking-widest text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-colors">Zobacz cennik</a>
+            </div>
+        </div>
+    </div>
+
+    <template x-if="dataLoaded && !trialBlocked && content && content.pl && theme === 'setup'">
         <div class="min-h-screen flex flex-col items-center justify-center px-6 py-16 text-center">
             <p class="text-xs font-bold uppercase tracking-[0.25em] text-[#D4AF37]/90 mb-4">DFCMS</p>
             <h1 class="text-3xl md:text-4xl font-bold text-white mb-4 tracking-tight">Strona w budowie</h1>

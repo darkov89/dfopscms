@@ -202,6 +202,15 @@
       dataLoaded: false,
       content: createPublicContentShell(),
       bazaBlad: false,
+      /** Widok publiczny zablokowany (pages.trial_blocked_at) — wygasły trial / brak płatności po karencji. */
+      trialBlocked: false,
+      trialBlockedTitle: 'Strona chwilowo niedostępna',
+      trialBlockedBody:
+        'Nie możemy wyświetlić treści tej witryny. Zwykle oznacza to zakończony okres próbny bez opłaty albo nieuregulowaną subskrypcję po upływie terminu na zapłatę.',
+      trialBlockedAdminHint:
+        'Jeśli jesteś administratorem tej strony — zaloguj się do panelu DFCMS. Tam możesz opłacić subskrypcję lub uregulować należność i przywrócić publikację.',
+      subscriptionPanelUrl: '',
+      landingPricingUrl: '',
       theme: expectedTheme,
       slug: null,
       /** URL iframe z get-google-reviews (embed_for_place_id), gdy brak map_embed_url. */
@@ -258,6 +267,20 @@
         return hostname;
       },
       /** URL do właściwego pliku szablonu (zachowanie hosta: subdomena / custom / apex z ?site=). */
+      buildSubscriptionLinks(pageSlug) {
+        const slug = pageSlug || this.slug || '';
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        const isLocal = (cfg.localHosts || []).includes(window.location.hostname);
+        const panel = slug
+          ? `${origin}/admin.html?site=${encodeURIComponent(slug)}`
+          : `${origin}/admin.html`;
+        const appDomain = (cfg.appDomain || 'dfcms.pl').toLowerCase();
+        const landing =
+          isLocal || origin.includes('localhost')
+            ? `${origin}/landing.html`
+            : `https://${appDomain}/landing.html`;
+        return { panel, landingCennik: `${landing}#cennik` };
+      },
       buildThemePageUrl(page) {
         const baseDomain = (cfg.appDomain || 'dfcms.pl').toLowerCase();
         const host = window.location.hostname.replace(/^www\./, '').toLowerCase();
@@ -303,12 +326,23 @@
           }
 
           if (!page) throw new Error('Brak strony');
+
+          this.slug = page.slug;
+          if (page.trial_blocked_at) {
+            const links = this.buildSubscriptionLinks(page.slug);
+            this.subscriptionPanelUrl = links.panel;
+            this.landingPricingUrl = links.landingCennik;
+            this.trialBlocked = true;
+            this.dataLoaded = true;
+            document.title = 'Chwilowo niedostępna — DFCMS';
+            return;
+          }
+
           if (expectedTheme && page.theme && page.theme !== expectedTheme) {
             window.location.replace(this.buildThemePageUrl(page));
             return;
           }
 
-          this.slug = page.slug;
           this.theme = page.theme || expectedTheme;
           this.content = window.DFOPS_normalizeContent(page.content, this.theme);
           normalizeEmbedFields(this.content);

@@ -10,3 +10,9 @@ verify_jwt = false
 
 [functions.create-checkout]
 verify_jwt = true
+
+# Wywołanie wyłącznie z cron (Authorization: Bearer CRON_SECRET).
+# Opcjonalne sekrety powiadomień: OPS_NOTIFY_WEBHOOK_URL (Zapier → e-mail),
+# albo RESEND_API_KEY + OPS_NOTIFY_EMAIL + RESEND_FROM.
+[functions.expire-trial-pages]
+verify_jwt = false

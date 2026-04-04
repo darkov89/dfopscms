@@ -35,7 +35,7 @@
         settings: {
           template_version: 1,
           color_preset: 'beige',
-          subscription: { plan: 'trial', trial_started_at: new Date().toISOString() },
+          subscription: { plan: 'trial', trial_started_at: new Date().toISOString(), selected_plan: null },
           background_style: 'soft',
           font_preset: 'inter',
           darkMode: false,
@@ -115,6 +115,9 @@
       currentTemplateVersion: 1,
       updateAvailable: false,
       selectedStyleBundle: '',
+      /** Ustawiane z pages.trial_blocked_at — po trialu bez płatności strona publiczna jest zablokowana. */
+      trialBlockedAt: null,
+      showTrialSuspendedModal: true,
       get availablePresets() {
         const currentTheme = this.showWizard
           ? (this.wizardTheme || this.theme || 'beauty')
@@ -155,10 +158,28 @@
         return `https://${this.slug}.${base}`;
       },
       get planDisplayLabel() {
+        const sub = this.content?.pl?.settings?.subscription;
+        if (typeof window.DFOPS_subscriptionDisplayName === 'function') {
+          return window.DFOPS_subscriptionDisplayName(sub);
+        }
         if (typeof window.DFOPS_planDisplayName === 'function') {
           return window.DFOPS_planDisplayName(this.subscriptionPlan);
         }
         return this.subscriptionPlan;
+      },
+      get selectedPlanHumanLabel() {
+        const s = this.content?.pl?.settings?.subscription?.selected_plan;
+        if (s === 'tier0') return 'Starter';
+        if (s === 'tier1') return 'Pro';
+        if (s === 'tier2') return 'Premium';
+        return '';
+      },
+
+      subscriptionPaymentActive() {
+        const sub = this.content?.pl?.settings?.subscription;
+        if (!sub || sub.payment_completed !== true) return false;
+        const p = sub.plan;
+        return p === 'tier0' || p === 'tier1' || p === 'tier2';
       },
       get planSummaryLine() {
         if (typeof window.DFOPS_planCapabilitiesSummary === 'function') {
@@ -184,6 +205,24 @@
       setTab(tab) {
         this.activeTab = tab;
         this.sidebarOpen = false;
+      },
+
+      maybeShowPaymentReturnToast() {
+        try {
+          const url = new URL(window.location.href);
+          const p = url.searchParams.get('payment');
+          if (!p) return;
+          url.searchParams.delete('payment');
+          const clean = url.pathname + (url.search || '') + (url.hash || '');
+          window.history.replaceState({}, '', clean);
+          if (p === 'success') {
+            this.showToast('Dziękujemy! Potwierdzenie płatności może chwilę potrwać — za chwilę odśwież ten widok.', 'success');
+          } else if (p === 'cancelled') {
+            this.showToast('Płatność nie została dokończona — możesz spróbować ponownie w sekcji Subskrypcja.', 'error');
+          }
+        } catch (e) {
+          /* ignore */
+        }
       },
 
       syncUserPlanFromBilling() {
@@ -356,9 +395,23 @@
           this.pageId = data.id;
           this.slug = data.slug;
           this.theme = data.theme;
+          this.trialBlockedAt = data.trial_blocked_at ?? null;
+          this.showTrialSuspendedModal = !!this.trialBlockedAt;
           this.customDomain = data.custom_domain || '';
           this.customDomainStatus = data.custom_domain_status || '';
+          const subSig = (s) => {
+            if (!s || typeof s !== 'object') return '';
+            const p = s.plan || 'trial';
+            const sel = s.selected_plan == null ? '' : String(s.selected_plan);
+            const paid = s.payment_completed === true ? '1' : '0';
+            return `${p}|${sel}|${paid}`;
+          };
+          const prevSubSig = subSig(data.content?.pl?.settings?.subscription);
           this.content = window.DFOPS_normalizeContent(data.content, this.theme);
+          const nextSubSig = subSig(this.content.pl.settings.subscription);
+          if (prevSubSig !== nextSubSig) {
+            await this.saveData({ silentSuccess: true });
+          }
           this.currentTemplateVersion = Number(this.content.pl.settings.template_version || 1);
           this.updateAvailable = this.currentTemplateVersion < this.latestTemplateVersion;
           this.syncUserPlanFromBilling();
@@ -386,6 +439,7 @@
           });
         } finally {
           this.isLoading = false;
+          if (this.user) this.maybeShowPaymentReturnToast();
         }
       },
       applyThemeStylingFromContent() {
@@ -621,6 +675,14 @@
           this.showError('Zaloguj się, aby wykupić subskrypcję.');
           return;
         }
+        if (!this.content?.pl?.settings) return;
+        if (!this.content.pl.settings.subscription) {
+          this.content.pl.settings.subscription = { plan: 'trial', trial_started_at: new Date().toISOString() };
+        }
+        const tier = planType === 'pro' ? 'tier1' : 'tier2';
+        this.content.pl.settings.subscription.selected_plan = tier;
+        const saved = await this.saveData({ silentSuccess: true });
+        if (!saved) return;
         this.checkoutLoading = true;
         try {
           const returnUrl = `${window.location.origin}${window.location.pathname}`;
@@ -654,25 +716,34 @@
         }
       },
 
-      async activateTier0() {
-        if (!confirm('Aktywacja pakietu Starter (19 zł netto / msc + VAT) spowoduje odpięcie własnej domeny (.pl/.com). Czy na pewno chcesz kontynuować?')) {
+      async selectStarterPlan() {
+        if (this.subscriptionPlan !== 'trial') {
+          this.showError('Zmiana pakietu przy aktywnej subskrypcji wymaga kontaktu z obsługą (Concierge).');
+          return;
+        }
+        if (
+          !confirm(
+            'Wybierasz pakiet Starter (19 zł netto / msc + VAT). Do pierwszej opłaty korzystasz z 14-dniowego okresu próbnego na warunkach regulaminu. Kontynuować?'
+          )
+        ) {
           return;
         }
         if (!this.content?.pl?.settings) return;
         if (!this.content.pl.settings.subscription) {
           this.content.pl.settings.subscription = { plan: 'trial', trial_started_at: new Date().toISOString() };
         }
-        this.content.pl.settings.subscription.plan = 'tier0';
-        this.customDomain = '';
-        const ok = await this.saveData();
+        this.content.pl.settings.subscription.selected_plan = 'tier0';
+        this.content.pl.settings.subscription.plan = 'trial';
+        const ok = await this.saveData({
+          successMessage:
+            'Zapisano wybór Startera. Dopóki nie zaksięgujemy płatności, pozostajesz w okresie próbnym — dokończ opłatę przed jego końcem.',
+        });
         if (ok) {
           this.syncUserPlanFromBilling();
           this.enforceColorPresetForStarter();
           this.applyThemeStylingFromContent();
-          this.message = 'Pakiet Starter aktywny! Na stronie publicznej widać logo DFCMS w stopce, a własna domena została odpięta w bazie.';
-          setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
           if (typeof window.DFOPS_trackEvent === 'function') {
-            window.DFOPS_trackEvent('tier0_activated', { slug: this.slug });
+            window.DFOPS_trackEvent('starter_plan_selected', { slug: this.slug });
           }
         }
       },
@@ -794,9 +865,16 @@
             payload.custom_domain = null;
             payload.custom_domain_status = 'none';
           }
+          if (this.subscriptionPaymentActive()) {
+            payload.trial_blocked_at = null;
+            payload.billing_failed_at = null;
+          }
           const { error } = await repo.saveCurrentUserPage(this.user.id, payload);
           if (error) throw error;
           if (this.isCustomDomainLocked) this.customDomain = '';
+          if (this.subscriptionPaymentActive()) {
+            this.trialBlockedAt = null;
+          }
           this.hasUnsavedChanges = false;
           if (!silentSuccess) {
             this.message = successMessage || 'Zmiany zostały opublikowane!';

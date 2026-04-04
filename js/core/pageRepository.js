@@ -282,7 +282,7 @@
   async function getPageBySlug(slug) {
     const { data, error } = await supabase()
       .from('pages')
-      .select('slug, theme, content, color_preset, custom_domain, user_id')
+      .select('slug, theme, content, color_preset, custom_domain, user_id, trial_blocked_at')
       .eq('slug', slug)
       .maybeSingle();
     return { data, error };
@@ -314,7 +314,7 @@
   async function getCurrentUserPage(userId) {
     const { data, error } = await supabase()
       .from('pages')
-      .select('id, slug, theme, content, color_preset, custom_domain, custom_domain_status')
+      .select('id, slug, theme, content, color_preset, custom_domain, custom_domain_status, trial_blocked_at, billing_failed_at')
       .eq('user_id', userId)
       .maybeSingle();
     return { data: data || null, error };

@@ -72,7 +72,20 @@
         <p class="text-lg text-sattva-text/80">Nie znaleziono danych dla tej strony.</p>
     </div>
 
-    <template x-if="dataLoaded && content && content.pl">
+    <div x-show="trialBlocked && dataLoaded" x-cloak class="fixed inset-0 z-[250] flex flex-col items-center justify-center bg-brand-dark/95 px-6 text-center text-brand-text">
+        <div class="max-w-lg rounded-xl border-2 border-brand-gold/50 bg-[#121212] p-8 shadow-2xl">
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-brand-gold mb-3">DFCMS</p>
+            <h1 class="text-2xl font-serif font-bold text-white mb-4" x-text="trialBlockedTitle"></h1>
+            <p class="text-sm text-brand-text/90 leading-relaxed mb-4" x-text="trialBlockedBody"></p>
+            <p class="text-sm text-white/95 font-medium leading-relaxed mb-8 border-l-4 border-brand-gold pl-4 text-left" x-text="trialBlockedAdminHint"></p>
+            <div class="flex flex-col gap-3">
+                <a :href="subscriptionPanelUrl" class="inline-flex justify-center rounded-sm bg-brand-gold px-6 py-3 text-sm font-bold uppercase tracking-widest text-brand-dark hover:opacity-90 transition-opacity">Zaloguj do panelu administratora</a>
+                <a :href="landingPricingUrl" class="inline-flex justify-center rounded-sm border-2 border-brand-gold px-6 py-3 text-sm font-bold uppercase tracking-widest text-brand-gold hover:bg-brand-gold/10 transition-colors">Zobacz cennik</a>
+            </div>
+        </div>
+    </div>
+
+    <template x-if="dataLoaded && !trialBlocked && content && content.pl">
         <div x-transition.opacity.duration.700ms>
         
         <nav class="fixed w-full z-50 bg-sattva-accent backdrop-blur-md border-b border-sattva-brand/10 py-3 transition-all duration-300">

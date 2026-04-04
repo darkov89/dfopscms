@@ -298,6 +298,23 @@
     </div>
 
     <div x-show="user" x-cloak class="flex-grow flex flex-col">
+        <div x-show="trialBlockedAt" class="w-full bg-red-900 text-white text-sm py-3 px-4 text-center flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 shrink-0" x-cloak role="alert">
+            <span>Strona publiczna jest <strong>zablokowana</strong> (wygasły trial lub brak płatności po terminie). Goście widzą komunikat z wezwaniem dla administratora.</span>
+            <button type="button" @click="setTab('subscription'); showTrialSuspendedModal = false" class="shrink-0 underline font-bold hover:no-underline text-white">Przejdź do subskrypcji</button>
+        </div>
+
+        <div x-show="user && trialBlockedAt && showTrialSuspendedModal" x-cloak class="fixed inset-0 z-[260] flex items-center justify-center p-4 bg-black/60" @click.self="showTrialSuspendedModal = false">
+            <div class="bg-white max-w-lg w-full rounded-lg shadow-2xl p-8 relative border border-gray-100" @click.stop>
+                <button type="button" class="absolute top-3 right-3 text-gray-400 hover:text-gray-800 text-xl leading-none" @click="showTrialSuspendedModal = false" aria-label="Zamknij">×</button>
+                <h2 class="text-xl font-serif font-bold text-gray-900 mb-2 pr-8">Publikacja zablokowana</h2>
+                <p class="text-sm text-gray-600 leading-relaxed mb-6">Dla gości strona jest <strong>chwilowo niedostępna</strong> (wygasły trial albo minął termin na zapłatę po problemie z płatności subskrypcji). Jako administrator możesz nadal pracować w panelu — przejdź do subskrypcji, opłać lub ureguluj należność, aby przywrócić widok publiczny.</p>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button type="button" @click="setTab('subscription'); showTrialSuspendedModal = false" class="flex-1 bg-[#D4AF37] text-[#121212] px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-[#c9a432] transition-colors">Subskrypcja i płatność</button>
+                    <button type="button" @click="showTrialSuspendedModal = false" class="flex-1 border-2 border-gray-200 text-gray-800 px-4 py-3 rounded-sm text-sm font-semibold hover:border-gray-300 transition-colors">Pracuję w panelu</button>
+                </div>
+            </div>
+        </div>
+
         <div x-show="showNinjaChecklist" x-transition class="mx-4 md:mx-8 mt-4 p-4 bg-amber-50 border border-amber-200 rounded-sm shadow-sm">
             <div class="flex justify-between items-start gap-4 mb-3">
                 <h3 class="text-sm font-bold text-amber-900 uppercase tracking-widest">Twój pierwszy krok w Studio</h3>
@@ -370,9 +387,14 @@
 
         <template x-if="!isLoading && content && content.pl">
         <main class="max-w-6xl w-full mx-auto mt-4 md:mt-8 px-4 md:px-6 pb-16 md:pb-24" x-transition.opacity>
-            <div x-show="content?.pl?.settings?.subscription?.plan === 'trial'" class="mb-6 p-4 bg-amber-100 text-amber-900 border border-amber-300 rounded-sm shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-                <span class="font-medium text-sm">⏳ Wersja testowa. Zostało: <strong x-text="trialDaysLeft"></strong> dni. Aktywuj pakiet, aby utrzymać stronę!</span>
-                <button type="button" @click="setTab('subscription')" class="w-full sm:w-auto text-center sm:text-left shrink-0 text-amber-800 font-bold text-xs uppercase tracking-widest hover:underline py-2 sm:py-0">Subskrypcja →</button>
+            <div x-show="subscriptionPlan === 'trial'" class="mb-6 p-4 bg-amber-100 text-amber-900 border border-amber-300 rounded-sm shadow-sm flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+                <div class="font-medium text-sm space-y-1.5 flex-1">
+                    <p>⏳ <strong>Okres próbny (14 dni).</strong> Zostało: <strong x-text="trialDaysLeft"></strong> dni. Wybierz pakiet i dokończ płatność przed końcem próby — inaczej widok publiczny może zostać <strong>zablokowany</strong> (archiwizacja), zgodnie z regulaminem.</p>
+                    <p x-show="selectedPlanHumanLabel" class="text-xs font-normal text-amber-950/85 leading-relaxed" x-cloak>
+                        Zapisany wybór: <strong x-text="selectedPlanHumanLabel"></strong> — w sekcji Subskrypcja możesz dokończyć płatność (albo zmienić pakiet, dopóki trwa trial).
+                    </p>
+                </div>
+                <button type="button" @click="setTab('subscription')" class="w-full sm:w-auto shrink-0 text-center sm:text-left text-amber-800 font-bold text-xs uppercase tracking-widest hover:underline py-2 sm:py-0">Subskrypcja →</button>
             </div>
             <div x-show="errorMessage" class="mb-6 p-4 bg-red-100 text-red-800 border border-red-200 rounded-sm shadow-sm flex items-center gap-3">
                 <span x-text="errorMessage" class="font-medium text-sm"></span>
@@ -1456,7 +1478,7 @@
                     <div x-show="activeTab === 'subscription'" x-transition.opacity x-cloak>
                         <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
                             <h2 class="text-2xl font-serif text-gray-900 mb-2">Subskrypcja</h2>
-                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl">Wybierz plan i aktywuj usługę, aby utrzymać stronę online.</p>
+                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl">Masz 14 dni na wybranie pakietu i pierwszą opłatę. Dopóki płatność nie zostanie zaksięgowana, konto pozostaje w okresie próbnym — z ograniczeniami i komunikatem w panelu.</p>
                         </div>
                         <div class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-sm">
                             <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Twój aktualny plan</p>
@@ -1474,11 +1496,17 @@
                                     <li>• <strong class="text-gray-800">Podstawowy motyw</strong> (jedna paleta kolorów)</li>
                                     <li>• <strong class="text-gray-800">Logo DFCMS</strong> w stopce</li>
                                 </ul>
-                                <button type="button" @click="activateTier0()" x-show="content?.pl?.settings?.subscription?.plan !== 'tier0'" :disabled="checkoutLoading" class="w-full bg-[#121212] text-white px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors disabled:opacity-50">
-                                    Aktywuj Starter
+                                <button type="button" @click="selectStarterPlan()" x-show="subscriptionPlan === 'trial' && content?.pl?.settings?.subscription?.selected_plan !== 'tier0'" :disabled="checkoutLoading || saving" class="w-full bg-[#121212] text-white px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors disabled:opacity-50">
+                                    Wybierz Starter
                                 </button>
-                                <div x-show="content?.pl?.settings?.subscription?.plan === 'tier0'" class="w-full border-2 border-[#D4AF37] text-[#D4AF37] px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest text-center bg-amber-50">
-                                    Aktualny plan
+                                <div x-show="subscriptionPlan === 'trial' && content?.pl?.settings?.subscription?.selected_plan === 'tier0'" x-cloak class="space-y-3">
+                                    <p class="text-xs text-gray-600 leading-relaxed">Wybrałeś Starter — po uruchomieniu płatności online dokończysz ją tutaj. Do tego czasu nadal obowiązuje okres próbny i limit z trialu.</p>
+                                    <div class="w-full border border-amber-300 text-amber-900 px-4 py-3 rounded-sm text-xs font-bold uppercase tracking-widest text-center bg-amber-50/80">
+                                        Oczekiwanie na płatność
+                                    </div>
+                                </div>
+                                <div x-show="subscriptionPlan === 'tier0'" x-cloak class="w-full border-2 border-[#D4AF37] text-[#D4AF37] px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest text-center bg-amber-50">
+                                    Aktywna subskrypcja — Starter
                                 </div>
                             </div>
                             <div class="border-2 border-[#D4AF37] rounded-lg p-6 bg-gradient-to-b from-white to-amber-50/30 shadow-lg relative overflow-hidden">
@@ -1493,10 +1521,14 @@
                                     <li>• <strong class="text-gray-800">Bez logo DFCMS</strong></li>
                                     <li>• <strong class="text-gray-800">Asystent DFCMS</strong> — od 100 zł/h netto</li>
                                 </ul>
-                                <button type="button" @click="subscribe('pro')" :disabled="checkoutLoading" class="w-full text-center bg-[#D4AF37] text-[#121212] px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-[#c9a432] transition-colors shadow-md disabled:opacity-50">
+                                <p x-show="subscriptionPlan === 'trial' && content?.pl?.settings?.subscription?.selected_plan === 'tier1'" class="text-xs text-amber-800 mb-3 leading-relaxed" x-cloak>Wybrano Pro — dokończ płatność, aby po trialu nie stracić dostępu.</p>
+                                <button type="button" @click="subscribe('pro')" x-show="subscriptionPlan !== 'tier1'" :disabled="checkoutLoading || saving" class="w-full text-center bg-[#D4AF37] text-[#121212] px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-[#c9a432] transition-colors shadow-md disabled:opacity-50">
                                     <span x-show="!checkoutLoading">Przejdź do płatności</span>
                                     <span x-show="checkoutLoading" x-cloak>Łączenie ze Stripe…</span>
                                 </button>
+                                <div x-show="subscriptionPlan === 'tier1'" x-cloak class="w-full border-2 border-[#D4AF37] text-[#D4AF37] px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest text-center bg-amber-50">
+                                    Aktywna subskrypcja — Pro
+                                </div>
                             </div>
                             <div class="border border-gray-200 rounded-lg p-6 bg-white shadow-md relative">
                                 <span class="absolute -top-2 left-4 bg-[#121212] text-[#D4AF37] text-xs font-bold px-2 py-0.5 rounded-sm">PREMIUM</span>
@@ -1510,10 +1542,14 @@
                                     <li>• <strong class="text-gray-800">Priorytetowe wsparcie</strong></li>
                                     <li>• <strong class="text-gray-800">Kopia zapasowa</strong></li>
                                 </ul>
-                                <button type="button" @click="subscribe('premium')" :disabled="checkoutLoading" class="w-full text-center border-2 border-[#D4AF37] text-[#121212] bg-white px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-[#D4AF37]/10 transition-colors disabled:opacity-50">
+                                <p x-show="subscriptionPlan === 'trial' && content?.pl?.settings?.subscription?.selected_plan === 'tier2'" class="text-xs text-amber-800 mb-3 leading-relaxed" x-cloak>Wybrano Premium — dokończ płatność, aby po trialu nie stracić dostępu.</p>
+                                <button type="button" @click="subscribe('premium')" x-show="subscriptionPlan !== 'tier2'" :disabled="checkoutLoading || saving" class="w-full text-center border-2 border-[#D4AF37] text-[#121212] bg-white px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-[#D4AF37]/10 transition-colors disabled:opacity-50">
                                     <span x-show="!checkoutLoading">Przejdź do płatności</span>
                                     <span x-show="checkoutLoading" x-cloak>Łączenie ze Stripe…</span>
                                 </button>
+                                <div x-show="subscriptionPlan === 'tier2'" x-cloak class="w-full border-2 border-[#121212] text-[#121212] px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest text-center bg-gray-50">
+                                    Aktywna subskrypcja — Premium
+                                </div>
                             </div>
                             <div class="border border-dashed border-gray-300 rounded-lg p-6 bg-gray-50">
                                 <h3 class="font-bold text-gray-900 text-lg mb-1">Custom</h3>
@@ -1529,12 +1565,17 @@
                             </div>
                         </div>
 
-                        <div id="dfops-platnosci-info" class="mt-8 p-6 bg-white border border-gray-200 rounded-sm text-sm text-gray-700 leading-relaxed max-w-3xl">
-                            <h3 class="text-base font-bold text-gray-900 mb-2">Płatności i plany</h3>
-                            <p class="mb-2">Ceny na landing page i w tym panelu są <strong class="text-gray-900">netto</strong> (na fakturze doliczymy <strong class="text-gray-900">+23% VAT</strong>). Pro i Premium rozliczamy przez <strong class="text-gray-900">Stripe Checkout</strong> (subskrypcja). W Supabase projektu ustaw sekrety m.in.: <code class="text-xs bg-gray-100 px-1 rounded">STRIPE_SECRET_KEY</code>, <code class="text-xs bg-gray-100 px-1 rounded">STRIPE_PRICE_PRO</code>, <code class="text-xs bg-gray-100 px-1 rounded">STRIPE_PRICE_PREMIUM</code> — oraz w <code class="text-xs bg-gray-100 px-1 rounded">js/core/config.js</code> (<code class="text-xs bg-gray-100 px-1 rounded">stripePrices</code>) wpisz te same ID co w Stripe.</p>
-                            <p class="mb-2"><strong class="text-gray-900">Starter (19 zł netto / msc)</strong> — aktywacja w panelu (sposób płatności Startera możesz podłączyć pod ten sam przepływ, gdy będzie gotowy; do tego czasu przycisk ustawia plan techniczny <code class="text-xs bg-gray-100 px-1 rounded">tier0</code> w treści strony).</p>
-                            <p class="mb-2"><strong class="text-gray-900">Asystent DFCMS / Concierge</strong> — godzinowe wsparcie i wdrożenia; w Pro rozliczenie 100 zł/h netto, w Premium 1 godzina w cenie miesięcznej subskrypcji.</p>
-                            <p class="text-xs text-gray-500">Pełny regulamin i polityka prywatności — w zakładce Prawne oraz na stronie głównej serwisu.</p>
+                        <div id="dfops-platnosci-info" class="mt-10 pt-8 border-t border-gray-200 text-sm text-gray-700 leading-relaxed max-w-2xl">
+                            <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-4">Warunki rozliczeń</h3>
+                            <ul class="space-y-3 text-gray-600 list-disc pl-5">
+                                <li>Wszystkie kwoty w pakietach podajemy <strong class="text-gray-900">netto</strong>. Na dokumentach rozliczeniowych stosujemy VAT zgodnie z przepisami (obecnie 23%).</li>
+                                <li>Płatności cykliczne za pakiety wyższe realizujemy przez bezpieczną bramkę płatności (subskrypcja online).</li>
+                                <li><strong class="text-gray-900">Okres próbny trwa 14 dni.</strong> Możesz od razu wskazać preferowany pakiet (np. Starter 19 zł lub wyższy), ale pełne konto rozliczeniowe powstaje po zaksięgowaniu pierwszej opłaty. Do tego czasu obowiązują zasady i limity trialu.</li>
+                                <li>Przy <strong class="text-gray-900">aktywnej subskrypcji</strong>, jeśli płatność nie przejdzie, masz typowo <strong class="text-gray-900">14 dni</strong> na uregulowanie (od zarejestrowania problemu w systemie) — potem widok publiczny zostaje ukryty tak jak przy wygasłym trialu, do czasu opłaty.</li>
+                                <li>Brak opłaty po zakończeniu trialu lub po tym terminie może skutkować <strong class="text-gray-900">zablokowaniem widoku publicznego (archiwizacja)</strong> — dokładne konsekwencje opisuje regulamin.</li>
+                                <li><strong class="text-gray-900">Asystent DFCMS (Concierge)</strong> — wsparcie i wdrożenia godzinowe; w Pro od 100 zł/h netto, w Premium jedna godzina w cenie miesięcznej subskrypcji.</li>
+                            </ul>
+                            <p class="text-xs text-gray-500 mt-6">Regulamin i polityka prywatności: zakładka <strong>Prawne</strong> oraz strona główna serwisu.</p>
                         </div>
                     </div>
 

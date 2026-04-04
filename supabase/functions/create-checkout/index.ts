@@ -36,6 +36,15 @@ function buildCorsHeaders(req: Request) {
   } as Record<string, string>;
 }
 
+/**
+ * Po zakończeniu płatności webhook Stripe powinien w bazie:
+ * - `trial_blocked_at` = NULL, `billing_failed_at` = NULL (pełne odblokowanie publicznego widoku),
+ * - w `content.pl.settings.subscription`: plan + `payment_completed: true`, wyczyścić `selected_plan` gdzie trzeba.
+ *
+ * invoice.payment_failed / subscription past_due:
+ * - ustaw `billing_failed_at` = COALESCE(billing_failed_at, now()) (pierwsza nieudana próba),
+ * - po 14 dniach cron ustawi `trial_blocked_at` (ta sama blokada co przy wygasłym trialu).
+ */
 serve(async (req) => {
   const cors = buildCorsHeaders(req);
   if (!cors) {

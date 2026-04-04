@@ -173,6 +173,7 @@
     c.pl.settings.subscription = {
       plan: 'trial',
       trial_started_at: new Date().toISOString(),
+      selected_plan: null,
     };
     return c;
   }
