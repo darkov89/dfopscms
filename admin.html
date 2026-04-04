@@ -118,11 +118,28 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Główny kolor strony</label>
-                            <select x-model="content.pl.settings.color_preset" @change="applyThemeStylingFromContent()" class="w-full border border-gray-300 rounded-sm px-4 py-4 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white text-lg">
-                                <template x-for="p in availablePresets" :key="p.id">
-                                    <option :value="p.id" x-text="p.label"></option>
+                            <p x-show="userPlan === 'starter'" class="text-xs text-gray-500 mb-3" x-cloak>W pakiecie Starter dostępna jest pierwsza paleta; pozostałe odblokujesz w PRO.</p>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                <template x-for="(preset, index) in availablePresets" :key="preset.id">
+                                    <button type="button"
+                                            @click="selectColorPreset(preset, index)"
+                                            class="relative rounded-sm border-2 p-3 text-left transition-all focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                                            :class="{
+                                                'border-[#D4AF37] ring-1 ring-[#D4AF37]/30': content.pl.settings.color_preset === preset.id,
+                                                'border-gray-200': content.pl.settings.color_preset !== preset.id,
+                                                'opacity-50 cursor-not-allowed': isLocked(index),
+                                                'hover:border-gray-300': !isLocked(index)
+                                            }">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-8 h-8 rounded-sm border border-gray-300 shrink-0 shadow-inner" :style="'background:' + presetSwatchColor(preset.id)"></div>
+                                            <span class="text-xs font-semibold text-gray-800 leading-tight" x-text="preset.label"></span>
+                                        </div>
+                                        <div x-show="isLocked(index)" x-cloak class="absolute inset-0 flex items-center justify-center rounded-sm bg-white/50 pointer-events-none">
+                                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                        </div>
+                                    </button>
                                 </template>
-                            </select>
+                            </div>
                         </div>
                     </div>
                     <div class="mt-6">
@@ -687,16 +704,31 @@
                                 <div class="p-5 md:p-6 space-y-8">
                                     <div>
                                         <h4 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3">Paleta</h4>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:items-start">
                                             <div>
                                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Preset kolorystyczny</label>
-                                                <select x-model="content.pl.settings.color_preset"
-                                                        @change="applyThemeStylingFromContent()"
-                                                        class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white">
-                                                    <template x-for="p in availablePresets" :key="p.id">
-                                                        <option :value="p.id" x-text="p.label"></option>
+                                                <p x-show="userPlan === 'starter'" class="text-xs text-gray-500 mb-3" x-cloak>W Starterze pierwsza paleta jest w cenie; pełna paleta i zestawy ze zmiennymi kolorami — od PRO.</p>
+                                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                                    <template x-for="(preset, index) in availablePresets" :key="preset.id">
+                                                        <button type="button"
+                                                                @click="selectColorPreset(preset, index)"
+                                                                class="relative rounded-sm border-2 p-3 text-left transition-all focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                                                                :class="{
+                                                                    'border-[#D4AF37] ring-1 ring-[#D4AF37]/30': content.pl.settings.color_preset === preset.id,
+                                                                    'border-gray-200': content.pl.settings.color_preset !== preset.id,
+                                                                    'opacity-50 cursor-not-allowed': isLocked(index),
+                                                                    'hover:border-gray-300': !isLocked(index)
+                                                                }">
+                                                            <div class="flex items-center gap-2">
+                                                                <div class="w-8 h-8 rounded-sm border border-gray-300 shrink-0 shadow-inner" :style="'background:' + presetSwatchColor(preset.id)"></div>
+                                                                <span class="text-xs font-semibold text-gray-800 leading-tight" x-text="preset.label"></span>
+                                                            </div>
+                                                            <div x-show="isLocked(index)" x-cloak class="absolute inset-0 flex items-center justify-center rounded-sm bg-white/50 pointer-events-none">
+                                                                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                                            </div>
+                                                        </button>
                                                     </template>
-                                                </select>
+                                                </div>
                                             </div>
                                             <div class="flex items-center justify-between border border-gray-200 rounded-sm px-4 py-3 bg-gray-50">
                                                 <div class="text-xs uppercase tracking-widest text-gray-500">Akcent</div>
@@ -1434,12 +1466,13 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
                             <div class="border border-gray-200 rounded-lg p-6 bg-gray-50/80 shadow-sm">
                                 <h3 class="font-bold text-gray-900 text-lg mb-1">Starter</h3>
-                                <p class="text-xs text-gray-500 uppercase tracking-widest mb-2">Tier 0</p>
-                                <p class="text-2xl font-bold text-[#D4AF37] mb-1">0 zł <span class="text-sm font-normal text-gray-500">/ msc</span></p>
-                                <p class="text-xs text-gray-600 mb-4 font-medium">W fazie Beta — aktywacja w panelu</p>
+                                <p class="text-xs text-gray-500 uppercase tracking-widest mb-2">Wejście w CMS</p>
+                                <p class="text-2xl font-bold text-[#D4AF37] mb-0.5">19 zł <span class="text-sm font-normal text-gray-500">/ msc</span></p>
+                                <p class="text-xs text-gray-500 mb-4">netto / msc (+23% VAT)</p>
                                 <ul class="text-sm text-gray-600 space-y-2 mb-6">
-                                    <li>• <strong class="text-gray-800">Subdomena</strong> (np. twojanazwa.dfcms.pl)</li>
-                                    <li>• <strong class="text-gray-800">Znak wodny DFCMS</strong></li>
+                                    <li>• <strong class="text-gray-800">Domena</strong> .dfcms.pl</li>
+                                    <li>• <strong class="text-gray-800">Podstawowy motyw</strong> (jedna paleta kolorów)</li>
+                                    <li>• <strong class="text-gray-800">Logo DFCMS</strong> w stopce</li>
                                 </ul>
                                 <button type="button" @click="activateTier0()" x-show="content?.pl?.settings?.subscription?.plan !== 'tier0'" :disabled="checkoutLoading" class="w-full bg-[#121212] text-white px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors disabled:opacity-50">
                                     Aktywuj Starter
@@ -1451,12 +1484,14 @@
                             <div class="border-2 border-[#D4AF37] rounded-lg p-6 bg-gradient-to-b from-white to-amber-50/30 shadow-lg relative overflow-hidden">
                                 <span class="absolute -top-0 right-4 bg-[#D4AF37] text-[#121212] text-[10px] font-bold px-2 py-1 rounded-b-sm uppercase tracking-wider">Popularne</span>
                                 <h3 class="font-bold text-gray-900 text-lg mb-1 pt-2">Pro</h3>
-                                <p class="text-xs text-gray-500 uppercase tracking-widest mb-2">Tier 1</p>
-                                <p class="text-2xl font-bold text-[#D4AF37] mb-4">49 zł <span class="text-sm font-normal text-gray-500">/ msc</span></p>
+                                <p class="text-xs text-gray-500 uppercase tracking-widest mb-2">Rozwój marki</p>
+                                <p class="text-2xl font-bold text-[#D4AF37] mb-0.5">49 zł <span class="text-sm font-normal text-gray-500">/ msc</span></p>
+                                <p class="text-xs text-gray-500 mb-4">netto / msc (+23% VAT)</p>
                                 <ul class="text-sm text-gray-600 space-y-2 mb-6">
-                                    <li>• <strong class="text-gray-800">Własna domena</strong></li>
-                                    <li>• <strong class="text-gray-800">Bez znaku wodnego</strong></li>
-                                    <li>• <strong class="text-gray-800">Subskrypcja Stripe</strong></li>
+                                    <li>• <strong class="text-gray-800">Własna domena</strong> .pl / .com</li>
+                                    <li>• <strong class="text-gray-800">Wszystkie kolory i motywy</strong></li>
+                                    <li>• <strong class="text-gray-800">Bez logo DFCMS</strong></li>
+                                    <li>• <strong class="text-gray-800">Asystent DFCMS</strong> — od 100 zł/h netto</li>
                                 </ul>
                                 <button type="button" @click="subscribe('pro')" :disabled="checkoutLoading" class="w-full text-center bg-[#D4AF37] text-[#121212] px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-[#c9a432] transition-colors shadow-md disabled:opacity-50">
                                     <span x-show="!checkoutLoading">Przejdź do płatności</span>
@@ -1466,12 +1501,14 @@
                             <div class="border border-gray-200 rounded-lg p-6 bg-white shadow-md relative">
                                 <span class="absolute -top-2 left-4 bg-[#121212] text-[#D4AF37] text-xs font-bold px-2 py-0.5 rounded-sm">PREMIUM</span>
                                 <h3 class="font-bold text-gray-900 text-lg mb-1 mt-2">Premium</h3>
-                                <p class="text-xs text-gray-500 uppercase tracking-widest mb-2">Tier 2</p>
-                                <p class="text-2xl font-bold text-[#D4AF37] mb-4">99 zł <span class="text-sm font-normal text-gray-500">/ msc</span></p>
+                                <p class="text-xs text-gray-500 uppercase tracking-widest mb-2">Pełny serwis</p>
+                                <p class="text-2xl font-bold text-[#D4AF37] mb-0.5">99 zł <span class="text-sm font-normal text-gray-500">/ msc</span></p>
+                                <p class="text-xs text-gray-500 mb-4">netto / msc (+23% VAT)</p>
                                 <ul class="text-sm text-gray-600 space-y-2 mb-6">
                                     <li>• <strong class="text-gray-800">Wszystko z Pro</strong></li>
+                                    <li>• <strong class="text-gray-800">1 godz.</strong> Asystenta DFCMS w cenie / msc</li>
                                     <li>• <strong class="text-gray-800">Priorytetowe wsparcie</strong></li>
-                                    <li>• <strong class="text-gray-800">Subskrypcja Stripe</strong></li>
+                                    <li>• <strong class="text-gray-800">Kopia zapasowa</strong></li>
                                 </ul>
                                 <button type="button" @click="subscribe('premium')" :disabled="checkoutLoading" class="w-full text-center border-2 border-[#D4AF37] text-[#121212] bg-white px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-widest hover:bg-[#D4AF37]/10 transition-colors disabled:opacity-50">
                                     <span x-show="!checkoutLoading">Przejdź do płatności</span>
@@ -1494,8 +1531,9 @@
 
                         <div id="dfops-platnosci-info" class="mt-8 p-6 bg-white border border-gray-200 rounded-sm text-sm text-gray-700 leading-relaxed max-w-3xl">
                             <h3 class="text-base font-bold text-gray-900 mb-2">Płatności i plany</h3>
-                            <p class="mb-2">Pro i Premium są rozliczane przez <strong class="text-gray-900">Stripe Checkout</strong> (subskrypcja). Upewnij się, że w projekcie Supabase ustawione są sekrety: <code class="text-xs bg-gray-100 px-1 rounded">STRIPE_SECRET_KEY</code>, <code class="text-xs bg-gray-100 px-1 rounded">STRIPE_PRICE_PRO</code>, <code class="text-xs bg-gray-100 px-1 rounded">STRIPE_PRICE_PREMIUM</code> — oraz że ID w <code class="text-xs bg-gray-100 px-1 rounded">js/core/config.js</code> (stripePrices) są zgodne z tymi cenami.</p>
-                            <p class="mb-2">Pakiet Starter w panelu jest bezpłatny (beta). Faktura lub paragon — zgodnie z przepisami po zaksięgowaniu płatności Stripe.</p>
+                            <p class="mb-2">Ceny na landing page i w tym panelu są <strong class="text-gray-900">netto</strong> (na fakturze doliczymy <strong class="text-gray-900">+23% VAT</strong>). Pro i Premium rozliczamy przez <strong class="text-gray-900">Stripe Checkout</strong> (subskrypcja). W Supabase projektu ustaw sekrety m.in.: <code class="text-xs bg-gray-100 px-1 rounded">STRIPE_SECRET_KEY</code>, <code class="text-xs bg-gray-100 px-1 rounded">STRIPE_PRICE_PRO</code>, <code class="text-xs bg-gray-100 px-1 rounded">STRIPE_PRICE_PREMIUM</code> — oraz w <code class="text-xs bg-gray-100 px-1 rounded">js/core/config.js</code> (<code class="text-xs bg-gray-100 px-1 rounded">stripePrices</code>) wpisz te same ID co w Stripe.</p>
+                            <p class="mb-2"><strong class="text-gray-900">Starter (19 zł netto / msc)</strong> — aktywacja w panelu (sposób płatności Startera możesz podłączyć pod ten sam przepływ, gdy będzie gotowy; do tego czasu przycisk ustawia plan techniczny <code class="text-xs bg-gray-100 px-1 rounded">tier0</code> w treści strony).</p>
+                            <p class="mb-2"><strong class="text-gray-900">Asystent DFCMS / Concierge</strong> — godzinowe wsparcie i wdrożenia; w Pro rozliczenie 100 zł/h netto, w Premium 1 godzina w cenie miesięcznej subskrypcji.</p>
                             <p class="text-xs text-gray-500">Pełny regulamin i polityka prywatności — w zakładce Prawne oraz na stronie głównej serwisu.</p>
                         </div>
                     </div>

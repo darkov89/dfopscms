@@ -82,6 +82,8 @@
       lang: 'pl',
       theme: '',
       isLoading: false,
+      /** Pakiet do feature gating (kolory). Test lokalny: ustaw 'pro' | 'premium'; po loadData nadpisuje się z subskrypcji. */
+      userPlan: 'starter',
       content: createAdminContentShell(),
       showWizard: false,
       wizardStep: 0,
@@ -182,6 +184,42 @@
       setTab(tab) {
         this.activeTab = tab;
         this.sidebarOpen = false;
+      },
+
+      syncUserPlanFromBilling() {
+        const p = this.subscriptionPlan;
+        if (p === 'tier2') this.userPlan = 'premium';
+        else if (p === 'tier1') this.userPlan = 'pro';
+        else this.userPlan = 'starter';
+      },
+
+      isLocked(index) {
+        return this.userPlan === 'starter' && index > 0;
+      },
+
+      presetSwatchColor(presetId) {
+        return (cfg.accentByPreset && cfg.accentByPreset[presetId]) || '#a1a1aa';
+      },
+
+      selectColorPreset(preset, index) {
+        if (!preset?.id || !this.content?.pl?.settings) return;
+        if (this.isLocked(index)) {
+          this.showToast('Ten kolor wymaga pakietu PRO!', 'error');
+          return;
+        }
+        this.content.pl.settings.color_preset = preset.id;
+        this.applyThemeStylingFromContent();
+      },
+
+      enforceColorPresetForStarter() {
+        const presets = this.availablePresets;
+        if (!presets?.length || !this.content?.pl?.settings) return;
+        if (this.userPlan !== 'starter') return;
+        const idx = presets.findIndex((p) => p.id === this.content.pl.settings.color_preset);
+        if (idx > 0) {
+          this.content.pl.settings.color_preset = presets[0].id;
+          this.applyThemeStylingFromContent();
+        }
       },
 
       init() {
@@ -323,7 +361,9 @@
           this.content = window.DFOPS_normalizeContent(data.content, this.theme);
           this.currentTemplateVersion = Number(this.content.pl.settings.template_version || 1);
           this.updateAvailable = this.currentTemplateVersion < this.latestTemplateVersion;
+          this.syncUserPlanFromBilling();
           this.applyThemeStylingFromContent();
+          this.enforceColorPresetForStarter();
 
           if (
             this.content &&
@@ -395,6 +435,8 @@
           }
 
           this.selectedStyleBundle = '';
+          this.syncUserPlanFromBilling();
+          this.enforceColorPresetForStarter();
           this.applyThemeStylingFromContent();
 
           const ok = await this.saveData({ silentSuccess: true });
@@ -413,10 +455,17 @@
       applyStyleBundle() {
         const bundle = this.styleBundles.find((b) => b.id === this.selectedStyleBundle);
         if (!bundle || !this.content?.pl?.settings) return;
+        const presets = this.availablePresets;
+        const cIdx = presets.findIndex((p) => p.id === bundle.color_preset);
+        if (this.userPlan === 'starter' && cIdx > 0) {
+          this.showToast('Ten zestaw wymaga pakietu PRO (pełna paleta kolorów).', 'error');
+          return;
+        }
         this.content.pl.settings.color_preset = bundle.color_preset;
         this.content.pl.settings.background_style = bundle.background_style;
         this.content.pl.settings.font_preset = bundle.font_preset;
         this.applyThemeStylingFromContent();
+        this.enforceColorPresetForStarter();
       },
       validateWizardStep(step) {
         const pl = this.content?.pl;
@@ -502,6 +551,8 @@
             this.content.pl.settings.color_preset = presets[0].id;
           }
           this.selectedStyleBundle = '';
+          this.syncUserPlanFromBilling();
+          this.enforceColorPresetForStarter();
           this.applyThemeStylingFromContent();
         }
 
@@ -604,7 +655,7 @@
       },
 
       async activateTier0() {
-        if (!confirm('Aktywacja pakietu Starter (Tier 0) spowoduje odpięcie Twojej własnej domeny. Czy na pewno chcesz kontynuować?')) {
+        if (!confirm('Aktywacja pakietu Starter (19 zł netto / msc + VAT) spowoduje odpięcie własnej domeny (.pl/.com). Czy na pewno chcesz kontynuować?')) {
           return;
         }
         if (!this.content?.pl?.settings) return;
@@ -615,7 +666,10 @@
         this.customDomain = '';
         const ok = await this.saveData();
         if (ok) {
-          this.message = 'Pakiet Starter (Tier 0) aktywny! Na stronie publicznej widać znak wodny DFCMS, a własna domena została odpięta w bazie.';
+          this.syncUserPlanFromBilling();
+          this.enforceColorPresetForStarter();
+          this.applyThemeStylingFromContent();
+          this.message = 'Pakiet Starter aktywny! Na stronie publicznej widać logo DFCMS w stopce, a własna domena została odpięta w bazie.';
           setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
           if (typeof window.DFOPS_trackEvent === 'function') {
             window.DFOPS_trackEvent('tier0_activated', { slug: this.slug });
@@ -627,9 +681,12 @@
         this.upgrading = true;
         try {
           const upgraded = window.DFOPS_upgradeContent(this.theme, this.content, this.latestTemplateVersion);
-          const { error } = await repo.saveCurrentUserPage(this.user.id, { content: upgraded });
-          if (error) throw error;
           this.content = upgraded;
+          this.syncUserPlanFromBilling();
+          this.enforceColorPresetForStarter();
+          this.applyThemeStylingFromContent();
+          const { error } = await repo.saveCurrentUserPage(this.user.id, { content: this.content });
+          if (error) throw error;
           this.currentTemplateVersion = this.latestTemplateVersion;
           this.updateAvailable = false;
           this.hasUnsavedChanges = false;
