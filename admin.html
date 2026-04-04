@@ -300,7 +300,7 @@
         <div x-show="user" x-cloak class="flex-grow flex flex-col">
         <div x-show="user && !isEmailVerified" x-cloak class="w-full bg-amber-900 text-amber-50 text-sm py-3 px-4 text-center flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 shrink-0 border-b border-amber-800/50" role="status">
             <span class="max-w-3xl">Dokończ rejestrację: <strong class="text-white">potwierdź adres e-mail</strong> z wiadomości wysłanej przez DFCMS — bez tego kreator się nie uruchomi.</span>
-            <button type="button" @click="resendSignupConfirmation()" :disabled="resendConfirmLoading" class="shrink-0 rounded-sm bg-white/15 hover:bg-white/25 border border-white/25 text-white text-xs font-bold uppercase tracking-widest px-4 py-2 disabled:opacity-50 transition-colors">
+            <button type="button" @click.prevent.stop="resendSignupConfirmation()" :disabled="resendConfirmLoading" class="shrink-0 rounded-sm bg-white/15 hover:bg-white/25 border border-white/25 text-white text-xs font-bold uppercase tracking-widest px-4 py-2 disabled:opacity-50 transition-colors">
                 <span x-show="!resendConfirmLoading">Wyślij link ponownie</span>
                 <span x-show="resendConfirmLoading" x-cloak>Wysyłam…</span>
             </button>
@@ -1800,7 +1800,7 @@
          x-transition:leave="transition ease-in duration-200"
          x-transition:leave-start="opacity-100 translate-y-0"
          x-transition:leave-end="opacity-0 translate-y-4"
-         class="fixed bottom-4 right-4 z-50 px-6 py-3 rounded-lg shadow-2xl flex items-center gap-3"
+         class="fixed bottom-4 right-4 z-[400] px-6 py-3 rounded-lg shadow-2xl flex items-center gap-3"
          :class="toast.type === 'error' ? 'bg-red-600 text-white' : 'bg-gray-900 text-white'">
 
         <svg x-show="toast.type === 'error'" class="w-5 h-5 text-red-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">

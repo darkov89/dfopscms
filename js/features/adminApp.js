@@ -1,5 +1,18 @@
 ;(function () {
   /** Pusty szkielet `content` — Alpine nie wywołuje wtedy błędów typu `null.pl` przed `loadData`. */
+  function formatResendSignupError(err) {
+    if (!err) return 'Nie udało się wysłać maila.';
+    if (typeof err !== 'object') return String(err) || 'Nie udało się wysłać maila.';
+    const code = err.code || err.name;
+    const msg = String(err.message || err.msg || '');
+    if (code === 'over_email_send_rate_limit' || msg.includes('over_email_send_rate_limit')) {
+      const secMatch = msg.match(/(\d+)\s*seconds?/i);
+      const sec = secMatch ? secMatch[1] : 'kilka';
+      return `Wysłano już niedawno wiadomość na ten adres. Odczekaj ok. ${sec} s — albo sprawdź skrzynkę (spam).`;
+    }
+    return msg || 'Nie udało się wysłać maila.';
+  }
+
   function createAdminContentShell() {
     return {
       pl: {
@@ -437,6 +450,12 @@
           /* ignore */
         }
         this.supabase = window.DFOPS_getSupabaseClient();
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState !== 'visible' || this.loadingAuth) return;
+          if (this.user && !this.isEmailVerified) {
+            void this.syncAuthUserFromServer();
+          }
+        });
         this.supabase.auth.onAuthStateChange((_event, session) => {
           if (session?.user) this.user = session.user;
           else if (!session) this.user = null;
@@ -453,16 +472,59 @@
             this.showWizard = true;
           }
         });
-        this.supabase.auth.getSession().then(({ data: { session } }) => {
-          this.user = session?.user || null;
-          this.loadingAuth = false;
-          if (this.user) {
-            if (!this.schedulePostPaymentDataRefresh()) {
-              this.isLoading = true;
-              this.loadData();
-            }
+        void this.bootstrapAdminSession();
+      },
+
+      /** PKCE: link z maila zawiera ?code= — bez wymiany sesja pozostaje „sprzed” potwierdzenia. */
+      async consumeEmailConfirmParamsFromUrl() {
+        if (!this.supabase) return;
+        const url = new URL(window.location.href);
+        const code = url.searchParams.get('code');
+        if (!code) return;
+        const { error } = await this.supabase.auth.exchangeCodeForSession(code);
+        if (error) throw error;
+        ['code', 'code_challenge', 'code_challenge_method'].forEach((k) => url.searchParams.delete(k));
+        const qs = url.searchParams.toString();
+        window.history.replaceState({}, document.title, url.pathname + (qs ? `?${qs}` : '') + url.hash);
+      },
+
+      /** Świeży obiekt użytkownika z API (m.in. email_confirmed_at po kliknięciu linku). */
+      async syncAuthUserFromServer() {
+        if (!this.supabase) return;
+        try {
+          const { data, error } = await this.supabase.auth.getUser();
+          if (error || !data?.user) return;
+          this.user = data.user;
+          if (!this.loadingAuth && this.isEmailVerified && this.pageId && this.content?.pl?.settings?.onboarding_completed === false) {
+            this.showWizard = true;
           }
-        });
+        } catch {
+          /* ignore */
+        }
+      },
+
+      async bootstrapAdminSession() {
+        try {
+          await this.consumeEmailConfirmParamsFromUrl();
+        } catch (e) {
+          const raw = e && typeof e === 'object' && 'message' in e ? String(e.message) : String(e);
+          this.showToast(
+            /expired|invalid|already been used|flow state/i.test(raw)
+              ? 'Ten link wygasł lub został już użyty. Zaloguj się hasłem albo kliknij „Wyślij link ponownie”.'
+              : raw || 'Nie udało się dokończyć logowania z linku z maila.',
+            'error',
+          );
+        }
+        const { data: { session } } = await this.supabase.auth.getSession();
+        this.user = session?.user || null;
+        await this.syncAuthUserFromServer();
+        this.loadingAuth = false;
+        if (this.user) {
+          if (!this.schedulePostPaymentDataRefresh()) {
+            this.isLoading = true;
+            await this.loadData();
+          }
+        }
       },
 
       async resendSignupConfirmation() {
@@ -470,6 +532,9 @@
         if (!email) {
           this.showToast('Brak adresu e-mail w sesji.', 'error');
           return;
+        }
+        if (!this.supabase) {
+          this.supabase = window.DFOPS_getSupabaseClient();
         }
         this.resendConfirmLoading = true;
         try {
@@ -479,11 +544,13 @@
             email,
             options: { emailRedirectTo: origin ? `${origin}/admin.html` : undefined },
           });
-          if (error) throw error;
+          if (error) {
+            this.showToast(formatResendSignupError(error), 'error');
+            return;
+          }
           this.showToast('Wysłaliśmy ponownie link aktywacyjny — sprawdź skrzynkę (także spam).', 'success');
         } catch (e) {
-          const msg = e instanceof Error ? e.message : String(e);
-          this.showToast(msg || 'Nie udało się wysłać maila.', 'error');
+          this.showToast(formatResendSignupError(e), 'error');
         } finally {
           this.resendConfirmLoading = false;
         }
@@ -507,6 +574,7 @@
         else {
           localStorage.setItem('dfops_login_time', String(Date.now()));
           this.user = data.user;
+          await this.syncAuthUserFromServer();
           this.isLoading = true;
           if (!this.schedulePostPaymentDataRefresh()) {
             await this.loadData();
