@@ -25,22 +25,22 @@
     if (!pl.nav) pl.nav = {};
     if (theme === 'beauty') {
       if (!pl.nav.menu) {
-        pl.nav.menu = { about: 'O nas', pricing: 'Cennik', gallery: 'Galeria', faq: 'Q&A', contact: 'Kontakt', reviews: 'Opinie' };
+        pl.nav.menu = { about: 'O nas', pricing: 'Cennik', gallery: 'Galeria', faq: 'Pytania i odpowiedzi (Q&A)', contact: 'Kontakt', reviews: 'Opinie' };
       }
       if (pl.nav.menu.about === undefined) pl.nav.menu.about = 'O nas';
       if (pl.nav.menu.pricing === undefined) pl.nav.menu.pricing = 'Cennik';
       if (pl.nav.menu.gallery === undefined) pl.nav.menu.gallery = 'Galeria';
-      if (pl.nav.menu.faq === undefined) pl.nav.menu.faq = 'Q&A';
+      if (pl.nav.menu.faq === undefined) pl.nav.menu.faq = 'Pytania i odpowiedzi (Q&A)';
       if (pl.nav.menu.contact === undefined) pl.nav.menu.contact = 'Kontakt';
       if (pl.nav.menu.reviews === undefined) pl.nav.menu.reviews = 'Opinie';
     }
     if (theme === 'consultant') {
       if (!pl.nav.menu) {
-        pl.nav.menu = { about: 'O nas', pricing: 'Usługi', faq: 'FAQ', reviews: 'Opinie', contact: 'Kontakt' };
+        pl.nav.menu = { about: 'O nas', pricing: 'Usługi', faq: 'Pytania i odpowiedzi (Q&A)', reviews: 'Opinie', contact: 'Kontakt' };
       }
       if (pl.nav.menu.about === undefined) pl.nav.menu.about = 'O nas';
       if (pl.nav.menu.pricing === undefined) pl.nav.menu.pricing = 'Usługi';
-      if (pl.nav.menu.faq === undefined) pl.nav.menu.faq = 'FAQ';
+      if (pl.nav.menu.faq === undefined) pl.nav.menu.faq = 'Pytania i odpowiedzi (Q&A)';
       if (pl.nav.menu.reviews === undefined) pl.nav.menu.reviews = 'Opinie';
       if (pl.nav.menu.contact === undefined) pl.nav.menu.contact = 'Kontakt';
     }

@@ -92,7 +92,7 @@
                         <a href="#opinie" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.reviews || 'Opinie'"></a>
                     </template>
                     <template x-if="content[lang].settings?.showFaq !== false && content[lang].faq?.length">
-                        <a href="#faq" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.faq || 'Q&A'"></a>
+                        <a href="#faq" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.faq || 'Pytania i odpowiedzi (Q&amp;A)'"></a>
                     </template>
                     <template x-if="content[lang].settings?.showContact !== false">
                         <a href="#kontakt" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></a>
@@ -196,7 +196,7 @@
         <section id="faq" class="py-24 px-6 bg-sattva-accent" x-show="content[lang].settings?.showFaq !== false && content[lang].faq && content[lang].faq.length > 0">
             <div class="max-w-3xl mx-auto">
                 <div class="text-center mb-16 reveal">
-                    <h2 class="text-3xl md:text-4xl font-serif">Pytania i Odpowiedzi (Q&A)</h2>
+                    <h2 class="text-3xl md:text-4xl font-serif" x-text="content[lang].nav?.menu?.faq || 'Pytania i odpowiedzi (Q&amp;A)'"></h2>
                 </div>
                 
                 <div class="space-y-4">

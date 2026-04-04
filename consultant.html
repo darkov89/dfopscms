@@ -119,7 +119,7 @@
                             <a href="#uslugi" class="text-sattva-text/80 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.pricing || 'Usługi'"></a>
                         </template>
                         <template x-if="content[lang].settings?.showFaq !== false && content[lang].faq?.length">
-                            <a href="#faq" class="text-sattva-text/80 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.faq || 'FAQ'"></a>
+                            <a href="#faq" class="text-sattva-text/80 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.faq || 'Pytania i odpowiedzi (Q&amp;A)'"></a>
                         </template>
                         <template x-if="content[lang].settings?.showReviews !== false && content[lang].reviews?.length">
                             <a href="#opinie" class="text-sattva-text/80 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.reviews || 'Opinie'"></a>
@@ -215,7 +215,7 @@
             <div class="max-w-3xl mx-auto">
                 <div class="text-center mb-12 reveal">
                     <span class="text-[10px] uppercase tracking-[0.2em] text-sattva-brand mb-3 block">Częste pytania</span>
-                    <h2 class="text-3xl font-bold tracking-tight font-serif text-sattva-text">FAQ / Q&A</h2>
+                    <h2 class="text-3xl font-bold tracking-tight font-serif text-sattva-text" x-text="content[lang].nav?.menu?.faq || 'Pytania i odpowiedzi (Q&amp;A)'"></h2>
                 </div>
                 
                 <div class="space-y-3">

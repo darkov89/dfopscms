@@ -56,7 +56,7 @@
           logo: "Ekspert",
           cta: "",
           logoImage: "",
-          menu: { about: "O nas", pricing: "Usługi", faq: "FAQ", reviews: "Opinie", contact: "Kontakt" },
+          menu: { about: "O nas", pricing: "Usługi", faq: "Pytania i odpowiedzi (Q&A)", reviews: "Opinie", contact: "Kontakt" },
         },
         hero: {
           name: "Witaj na pokładzie",
@@ -121,7 +121,7 @@
           logo: "Twoja Marka",
           cta: "Rezerwuj",
           logoImage: "",
-          menu: { about: "O nas", pricing: "Cennik", gallery: "Galeria", faq: "Q&A", contact: "Kontakt", reviews: "Opinie" }
+          menu: { about: "O nas", pricing: "Cennik", gallery: "Galeria", faq: "Pytania i odpowiedzi (Q&A)", contact: "Kontakt", reviews: "Opinie" }
         },
         hero: { name: "Twoje miejsce", headline: "Odkryj <i>siebie</i> na nowo", description: "Krótki opis Twojej oferty i atmosfery.", button: "Umów wizytę", image: "", qrText: "", qrImage: "" },
         manifesto: { label: "O nas", title: "Kilka słów", text: "" },
