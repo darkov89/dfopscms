@@ -298,7 +298,7 @@
     </div>
 
         <div x-show="user" x-cloak class="flex-grow flex flex-col">
-        <div x-show="user && !isEmailVerified" x-cloak class="w-full bg-amber-900 text-amber-50 text-sm py-3 px-4 text-center flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 shrink-0 border-b border-amber-800/50" role="status">
+        <div x-show="user && needsEmailConfirmation" x-cloak class="w-full bg-amber-900 text-amber-50 text-sm py-3 px-4 text-center flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 shrink-0 border-b border-amber-800/50" role="status">
             <span class="max-w-3xl">Dokończ rejestrację: <strong class="text-white">potwierdź adres e-mail</strong> z wiadomości wysłanej przez DFCMS — bez tego kreator się nie uruchomi.</span>
             <button type="button" @click.prevent.stop="resendSignupConfirmation()" :disabled="resendConfirmLoading" class="shrink-0 rounded-sm bg-white/15 hover:bg-white/25 border border-white/25 text-white text-xs font-bold uppercase tracking-widest px-4 py-2 disabled:opacity-50 transition-colors">
                 <span x-show="!resendConfirmLoading">Wyślij link ponownie</span>

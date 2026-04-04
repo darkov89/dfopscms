@@ -156,6 +156,11 @@
       showSuccessModal: false,
       _postPaymentRefreshTimer: null,
       resendConfirmLoading: false,
+      /**
+       * Z serwera Auth (getUser), nie ze „stale” session.user w JWT.
+       * true = pokaż baner + blokuj kreator do czasu potwierdzenia maila.
+       */
+      needsEmailConfirmation: false,
       get availablePresets() {
         const currentTheme = this.showWizard
           ? (this.wizardTheme || this.theme || 'beauty')
@@ -165,9 +170,9 @@
       get accentColor() { return cfg.accentByPreset[this.content?.pl?.settings?.color_preset] || '#D4AF37'; },
       get styleBundles() { return cfg.bundlesByTheme[this.theme] || []; },
       get subscriptionPlan() { return this.content?.pl?.settings?.subscription?.plan || 'trial'; },
-      /** Kreator tylko po potwierdzeniu e-maila (Supabase Auth → Confirm email). */
+      /** Kreator tylko po potwierdzeniu e-maila — zgodny z needsEmailConfirmation ustawianym po getUser(). */
       get isEmailVerified() {
-        return userEmailLooksConfirmed(this.user);
+        return !!this.user && !this.needsEmailConfirmation;
       },
       /** Aktywna opłacona subskrypcja (tier w content, nie trial). */
       get hasActivePaidSubscription() {
@@ -470,13 +475,16 @@
         this.supabase = window.DFOPS_getSupabaseClient();
         document.addEventListener('visibilitychange', () => {
           if (document.visibilityState !== 'visible' || this.loadingAuth) return;
-          if (this.user && !this.isEmailVerified) {
+          if (this.user && this.needsEmailConfirmation) {
             void this.syncAuthUserFromServer();
           }
         });
-        this.supabase.auth.onAuthStateChange((_event, session) => {
-          if (session?.user) this.user = session.user;
-          else if (!session) this.user = null;
+        this.supabase.auth.onAuthStateChange((event, session) => {
+          if (session?.user) this.assignAuthUser(session.user);
+          else this.assignAuthUser(null);
+          if (!this.loadingAuth && (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED' || event === 'SIGNED_IN')) {
+            void this.syncAuthUserFromServer();
+          }
           if (this.loadingAuth) return;
           if (!this.isEmailVerified) {
             this.showWizard = false;
@@ -493,6 +501,19 @@
         void this.bootstrapAdminSession();
       },
 
+      /**
+       * Ustawia this.user i needsEmailConfirmation z jednego miejsca (sesja klienta lub odpowiedź getUser).
+       */
+      assignAuthUser(user) {
+        if (!user) {
+          this.user = null;
+          this.needsEmailConfirmation = false;
+          return;
+        }
+        this.user = { ...user };
+        this.needsEmailConfirmation = !userEmailLooksConfirmed(user);
+      },
+
       /** PKCE: link z maila zawiera ?code= — bez wymiany sesja pozostaje „sprzed” potwierdzenia. */
       async consumeEmailConfirmParamsFromUrl() {
         if (!this.supabase) return;
@@ -506,19 +527,23 @@
         window.history.replaceState({}, document.title, url.pathname + (qs ? `?${qs}` : '') + url.hash);
       },
 
-      /** Świeży użytkownik z Auth (sesja z przeglądarki często ma przestarzałe pola po potwierdzeniu maila). */
+      /**
+       * Zawsze preferuj getUser() (dane z serwera), nie tylko session.user z pamięci lokalnej / JWT.
+       */
       async syncAuthUserFromServer() {
         if (!this.supabase) return;
         try {
-          if (this.user && !userEmailLooksConfirmed(this.user)) {
-            const { data: refData, error: refErr } = await this.supabase.auth.refreshSession();
-            if (!refErr && refData?.session?.user) {
-              this.user = { ...refData.session.user };
-            }
+          const { data: sessWrap } = await this.supabase.auth.getSession();
+          if (sessWrap?.session?.user && !userEmailLooksConfirmed(sessWrap.session.user)) {
+            await this.supabase.auth.refreshSession();
           }
-          const { data, error } = await this.supabase.auth.getUser();
-          if (!error && data?.user) {
-            this.user = { ...data.user };
+          let { data: userData, error: userError } = await this.supabase.auth.getUser();
+          if ((userError || !userData?.user) && sessWrap?.session) {
+            await this.supabase.auth.refreshSession();
+            ({ data: userData, error: userError } = await this.supabase.auth.getUser());
+          }
+          if (!userError && userData?.user) {
+            this.assignAuthUser(userData.user);
           }
           if (!this.loadingAuth && this.isEmailVerified && this.pageId && this.content?.pl?.settings?.onboarding_completed === false) {
             this.showWizard = true;
@@ -541,7 +566,7 @@
           );
         }
         const { data: { session } } = await this.supabase.auth.getSession();
-        this.user = session?.user || null;
+        this.assignAuthUser(session?.user || null);
         await this.syncAuthUserFromServer();
         this.loadingAuth = false;
         if (this.user) {
@@ -567,26 +592,26 @@
           const { error } = await this.supabase.auth.resend({
             type: 'signup',
             email,
-            options: { emailRedirectTo: origin ? `${origin}/admin.html` : undefined },
+            options: {
+              emailRedirectTo: origin ? `${origin}/admin.html` : undefined,
+            },
           });
           if (error) {
             if (resendErrorMeansAlreadyConfirmed(error)) {
               await this.syncAuthUserFromServer();
-              this.showToast('Ten adres jest już potwierdzony w systemie — odświeżamy sesję. Za chwilę możesz uruchomić kreator.', 'success');
-              if (this.pageId) {
-                await this.loadData();
-              } else if (this.user) {
-                this.isLoading = true;
-                await this.loadData();
-              }
+              this.showToast(
+                'Ten adres jest już potwierdzony — zaktualizowaliśmy sesję z serwera. Możesz uruchomić kreator.',
+                'success',
+              );
+              this.isLoading = true;
+              await this.loadData();
               return;
             }
-            this.showToast(formatResendSignupError(error), 'error');
-            return;
+            throw error;
           }
-          this.showToast('Wysłaliśmy ponownie link aktywacyjny — sprawdź skrzynkę (także spam).', 'success');
-        } catch (e) {
-          this.showToast(formatResendSignupError(e), 'error');
+          this.showToast('E-mail z linkiem został wysłany ponownie — sprawdź skrzynkę (także spam).', 'success');
+        } catch (err) {
+          this.showToast(formatResendSignupError(err), 'error');
         } finally {
           this.resendConfirmLoading = false;
         }
@@ -609,7 +634,7 @@
         if (error) this.authError = 'Błędny e-mail lub hasło.';
         else {
           localStorage.setItem('dfops_login_time', String(Date.now()));
-          this.user = data.user;
+          this.assignAuthUser(data.user);
           await this.syncAuthUserFromServer();
           this.isLoading = true;
           if (!this.schedulePostPaymentDataRefresh()) {
@@ -626,7 +651,7 @@
         try {
           localStorage.removeItem('dfops_login_time');
         } catch (e) { /* ignore */ }
-        this.user = null;
+        this.assignAuthUser(null);
         this.content = createAdminContentShell();
         this.pageId = null;
         this.isLoading = false;
