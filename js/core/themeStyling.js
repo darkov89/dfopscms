@@ -5,8 +5,39 @@
 
   function applyThemeStyling(settings, theme, scope) {
     const cfg = window.DFOPS_CONFIG || {};
-    const s = settings || {};
     const resolvedScope = scope || 'public';
+
+    /** Panel admina: stały, neutralny chrome (gray + złoto DFOPS) — bez gradientu z kolorystyki strony klienta. */
+    if (resolvedScope === 'admin') {
+      document.documentElement.setAttribute('data-dfops-scope', 'admin');
+      document.documentElement.setAttribute('data-theme', '');
+      document.documentElement.setAttribute('data-bg-style', 'admin-shell');
+      setCssVar('--accent', '#D4AF37');
+      setCssVar('--accent-contrast', '#121212');
+      setCssVar('--bg-a', '#f9fafb');
+      setCssVar('--bg-b', '#f3f4f6');
+      setCssVar('--bg-c', 'transparent');
+      setCssVar('--bg-texture-opacity', '0');
+      setCssVar('--surface-bg', '#ffffff');
+      setCssVar('--surface-accent', '#f3f4f6');
+      setCssVar('--surface-card', '#ffffff');
+      setCssVar('--beauty-text', '#1f2937');
+      setCssVar('--beauty-text-muted', 'rgba(31, 41, 55, 0.72)');
+      setCssVar('--beauty-white', '#ffffff');
+      const inter = cfg.fontByPreset?.inter;
+      if (inter) {
+        setCssVar('--font-sans', inter.sans);
+        setCssVar('--font-serif', inter.serif);
+      }
+      setCssVar('--bg-main', '#f9fafb');
+      setCssVar('--text-main', '#1f2937');
+      setCssVar('--color-primary', '#D4AF37');
+      setCssVar('--color-text-body', '#1f2937');
+      setCssVar('--color-accent-text', '#121212');
+      return;
+    }
+
+    const s = settings || {};
     const bgStyle = s.background_style || (theme === 'beauty' ? 'soft' : 'glow');
 
     document.documentElement.setAttribute('data-dfops-scope', resolvedScope);

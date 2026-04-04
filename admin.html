@@ -270,7 +270,7 @@
             <h1 class="text-3xl font-black tracking-widest text-gray-900 text-center mb-2">DF<span class="text-[#D4AF37]">CMS</span></h1>
             <p class="text-xs text-gray-500 uppercase tracking-widest text-center mb-8">Witaj z powrotem!</p>
             
-            <form @submit.prevent="login" class="space-y-6">
+            <form @submit.prevent.stop="login($event)" class="space-y-6">
                 <div>
                     <label for="admin-email" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Adres E-mail</label>
                     <input id="admin-email" type="email" x-model="email" required class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">

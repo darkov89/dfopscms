@@ -262,6 +262,9 @@
       },
 
       init() {
+        if (typeof window.DFOPS_applyThemeStyling === 'function') {
+          window.DFOPS_applyThemeStyling(null, '', 'admin');
+        }
         window.addEventListener('beforeunload', (e) => {
           if (this.hasUnsavedChanges) {
             e.preventDefault();
@@ -278,7 +281,11 @@
           }
         });
       },
-      async login() {
+      async login(evt) {
+        if (evt && typeof evt.preventDefault === 'function') {
+          evt.preventDefault();
+          evt.stopPropagation();
+        }
         this.authError = '';
         localStorage.setItem('dfops_remember', String(!!this.rememberMe));
         if (typeof window.DFOPS_resetSupabaseClient === 'function') {
