@@ -16,3 +16,7 @@ verify_jwt = false
 # albo RESEND_API_KEY + OPS_NOTIFY_EMAIL + RESEND_FROM.
 [functions.expire-trial-pages]
 verify_jwt = false
+
+# Stripe wysyła tylko stripe-signature (bez JWT użytkownika) — weryfikacja w kodzie (constructEvent).
+[functions.stripe-webhook]
+verify_jwt = false

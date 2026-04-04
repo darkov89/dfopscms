@@ -165,7 +165,7 @@ serve(async (req) => {
     const resolvedPriceId = await resolveToPriceId(stripe, priceId);
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card", "blik"],
+      payment_method_types: ["card"],
       line_items: [{ price: resolvedPriceId, quantity: 1 }],
       mode: "subscription",
       ...(customerEmail ? { customer_email: customerEmail } : {}),
