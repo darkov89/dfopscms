@@ -118,9 +118,9 @@
       /** Ustawiane z pages.trial_blocked_at — po trialu bez płatności strona publiczna jest zablokowana. */
       trialBlockedAt: null,
       showTrialSuspendedModal: true,
-      /** Powrót z Stripe ?payment=success — modal gratulacyjny + toast po wczytaniu treści. */
+      /** Opcjonalny modal po płatności — główny flow opiera się na toastach + opóźnionym loadData. */
       showSuccessModal: false,
-      _pendingPaymentSuccessToast: false,
+      _postPaymentRefreshTimer: null,
       get availablePresets() {
         const currentTheme = this.showWizard
           ? (this.wizardTheme || this.theme || 'beauty')
@@ -272,17 +272,44 @@
         this.showToast('Zarządzanie płatnościami (Stripe Customer Portal) uruchomimy wkrótce.', 'success');
       },
 
-      flushPendingPaymentSuccessToast() {
-        if (!this._pendingPaymentSuccessToast || !this.user) return;
-        this._pendingPaymentSuccessToast = false;
-        const p = this.subscriptionPlan;
-        let planWord = 'PRO';
-        if (p === 'tier2') planWord = 'Premium';
-        else if (p === 'tier0') planWord = 'Starter';
-        this.showToast(
-          `Wspaniale! Twój plan ${planWord} jest już aktywny. Twoja strona znów lśni!`,
-          'success',
-        );
+      /**
+       * Po ?payment=success czekamy na webhook Stripe, potem ponownie loadData (świeży content + trial_blocked_at).
+       * Zwraca true, jeśli zaplanowano opóźnione odświeżenie (pierwsze loadData nie wołamy od razu).
+       */
+      schedulePostPaymentDataRefresh() {
+        try {
+          const u = new URL(window.location.href);
+          if (u.searchParams.get('payment') !== 'success' || !this.user) return false;
+          if (this._postPaymentRefreshTimer != null) {
+            clearTimeout(this._postPaymentRefreshTimer);
+            this._postPaymentRefreshTimer = null;
+          }
+          this.showToast('Przetwarzanie płatności... Odświeżam Twoje konto! ✨', 'success');
+          this.isLoading = true;
+          this._postPaymentRefreshTimer = setTimeout(async () => {
+            this._postPaymentRefreshTimer = null;
+            try {
+              await this.loadData();
+            } catch (e) {
+              console.error(e);
+            } finally {
+              this.showTrialSuspendedModal = false;
+              const clean = new URL(window.location.href);
+              clean.searchParams.delete('payment');
+              const qs = clean.searchParams.toString();
+              window.history.replaceState(
+                {},
+                document.title,
+                clean.pathname + (qs ? `?${qs}` : '') + clean.hash,
+              );
+              this.showSuccessModal = false;
+              this.showToast('Gotowe! Twój plan jest aktywny.', 'success');
+            }
+          }, 2500);
+          return true;
+        } catch {
+          return false;
+        }
       },
 
       syncUserPlanFromBilling() {
@@ -333,20 +360,14 @@
         });
         try {
           const url = new URL(window.location.href);
-          const pay = url.searchParams.get('payment');
-          if (pay === 'success' || pay === 'cancelled') {
+          if (url.searchParams.get('payment') === 'cancelled') {
             url.searchParams.delete('payment');
             const qs = url.searchParams.toString();
             window.history.replaceState({}, '', url.pathname + (qs ? `?${qs}` : '') + url.hash);
-            if (pay === 'success') {
-              this.showSuccessModal = true;
-              this._pendingPaymentSuccessToast = true;
-            } else {
-              this.showToast(
-                'Płatność nie została dokończona — możesz spróbować ponownie w sekcji Subskrypcja.',
-                'error',
-              );
-            }
+            this.showToast(
+              'Płatność nie została dokończona — możesz spróbować ponownie w sekcji Subskrypcja.',
+              'error',
+            );
           }
         } catch {
           /* ignore */
@@ -356,8 +377,10 @@
           this.user = session?.user || null;
           this.loadingAuth = false;
           if (this.user) {
-            this.isLoading = true;
-            this.loadData();
+            if (!this.schedulePostPaymentDataRefresh()) {
+              this.isLoading = true;
+              this.loadData();
+            }
           }
         });
       },
@@ -381,7 +404,9 @@
           localStorage.setItem('dfops_login_time', String(Date.now()));
           this.user = data.user;
           this.isLoading = true;
-          await this.loadData();
+          if (!this.schedulePostPaymentDataRefresh()) {
+            await this.loadData();
+          }
         }
       },
       async logout() {
@@ -406,7 +431,10 @@
         this.showNinjaChecklist = false;
         this.hasUnsavedChanges = false;
         this.showSuccessModal = false;
-        this._pendingPaymentSuccessToast = false;
+        if (this._postPaymentRefreshTimer != null) {
+          clearTimeout(this._postPaymentRefreshTimer);
+          this._postPaymentRefreshTimer = null;
+        }
       },
       async ensurePageFromRegistrationMetadata() {
         const { data: first } = await repo.getCurrentUserPage(this.user.id);
@@ -528,10 +556,7 @@
           });
         } finally {
           this.isLoading = false;
-          if (this.user) {
-            this.flushPendingPaymentSuccessToast();
-            this.maybeShowPaymentReturnToast();
-          }
+          if (this.user) this.maybeShowPaymentReturnToast();
         }
       },
       applyThemeStylingFromContent() {
