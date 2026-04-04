@@ -166,12 +166,41 @@
     }
   }
 
+  function createPublicContentShell() {
+    return {
+      pl: {
+        nav: { logo: '', cta: '', logoImage: '', menu: {} },
+        hero: { name: '', headline: '', description: '', button: '', image: '' },
+        manifesto: { label: '', title: '', text: '' },
+        services: [],
+        proof: { label: '', title: '', text: '', statNumber: '', statLabel: '', statDesc: '' },
+        gallery: { title: '', images: [] },
+        faq: [],
+        contact: { email: '', phone: '', address: '', booksyUrl: '', map_embed_url: '', map_place_id: '' },
+        social: { linkedin: '', facebook: '', instagram: '', tiktok: '' },
+        google_reviews: { embed_url: '', place_query: '', max_reviews: 6, title: 'Opinie z Google' },
+        reviews: [],
+        seo: { title: '', description: '', ogImage: '' },
+        legal: { enabled: false, privacy_policy: '', terms: '' },
+        settings: {
+          showManifesto: true,
+          showServices: true,
+          showProof: true,
+          showFaq: true,
+          showReviews: true,
+          showContact: true,
+        },
+      },
+    };
+  }
+
   function createPublicSiteApp(expectedTheme) {
     const cfg = window.DFOPS_CONFIG;
     const repo = window.DFOPS_pageRepository;
     return {
       lang: 'pl',
-      content: null,
+      dataLoaded: false,
+      content: createPublicContentShell(),
       bazaBlad: false,
       theme: expectedTheme,
       slug: null,
@@ -291,9 +320,11 @@
           applyDocumentSeo(this.content, this.lang);
           initWatermark(this.content?.pl?.settings?.subscription?.plan);
           await this.resolveMapIframeFromPlace();
+          this.dataLoaded = true;
         } catch (error) {
           console.error('Błąd krytyczny aplikacji:', error);
           this.bazaBlad = true;
+          this.dataLoaded = false;
         }
       },
 

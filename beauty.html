@@ -60,12 +60,12 @@
     x-data="createPublicSiteApp('beauty')"
 >
 
-    <div x-show="!content" class="fixed inset-0 bg-sattva-bg z-[100] flex flex-col items-center justify-center transition-opacity duration-500">
+    <div x-show="!dataLoaded && !bazaBlad" class="fixed inset-0 bg-sattva-bg z-[100] flex flex-col items-center justify-center transition-opacity duration-500">
         <div class="w-12 h-12 border-t-2 border-b-2 border-sattva-brand rounded-full animate-spin mb-4"></div>
         <p class="text-sattva-brand font-serif tracking-widest text-sm animate-pulse">Ładowanie harmonii...</p>
     </div>
 
-    <template x-if="content">
+    <template x-if="dataLoaded && content && content.pl">
         <div x-transition.opacity.duration.1000ms>
         
         <nav class="fixed w-full z-50 bg-sattva-white shadow-sm py-4 transition-all duration-300">

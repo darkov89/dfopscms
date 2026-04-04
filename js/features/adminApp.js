@@ -1,4 +1,56 @@
 ;(function () {
+  /** Pusty szkielet `content` — Alpine nie wywołuje wtedy błędów typu `null.pl` przed `loadData`. */
+  function createAdminContentShell() {
+    return {
+      pl: {
+        nav: { logo: '', cta: '', logoImage: '', menu: {} },
+        hero: { name: '', headline: '', subheadline: '', description: '', button: '', image: '', qrText: '', qrImage: '' },
+        manifesto: { label: '', title: '', text: '' },
+        services: [],
+        proof: { label: '', title: '', text: '', statNumber: '', statLabel: '', statDesc: '' },
+        gallery: { title: '', images: [] },
+        faq: [],
+        contact: {
+          email: '',
+          phone: '',
+          address: '',
+          booksyUrl: '',
+          map_embed_url: '',
+          map_place_id: '',
+          cta: {
+            enabled: false,
+            title: '',
+            description: '',
+            button_text: '',
+            button_url: '',
+          },
+        },
+        social: { linkedin: '', facebook: '', instagram: '', tiktok: '' },
+        google_reviews: { embed_url: '', place_query: '', max_reviews: 6, title: 'Opinie z Google' },
+        reviews: [],
+        seo: { title: '', description: '', ogImage: '' },
+        legal: { enabled: false, privacy_policy: '', terms: '' },
+        cookies: { text: '', accept: '' },
+        footer: { quote: '', copyright: '', privacy: '' },
+        settings: {
+          template_version: 1,
+          color_preset: 'beige',
+          subscription: { plan: 'trial', trial_started_at: new Date().toISOString() },
+          background_style: 'soft',
+          font_preset: 'inter',
+          darkMode: false,
+          showManifesto: true,
+          showServices: true,
+          showProof: true,
+          showFaq: true,
+          showReviews: true,
+          showContact: true,
+          onboarding_completed: false,
+        },
+      },
+    };
+  }
+
   /** Ciepły komunikat podczas dodawania zdjęć — zależnie od miejsca w panelu. */
   function uploadingMessageFor(section, field) {
     if (section === 'nav' && field === 'logoImage') return 'Chwileczkę, dodaję logo Twojej marki…';
@@ -29,7 +81,8 @@
       slug: new URLSearchParams(window.location.search).get('site') || '',
       lang: 'pl',
       theme: '',
-      content: null,
+      isLoading: false,
+      content: createAdminContentShell(),
       showWizard: false,
       wizardStep: 0,
       wizardTheme: '',
@@ -142,7 +195,10 @@
         this.supabase.auth.getSession().then(({ data: { session } }) => {
           this.user = session?.user || null;
           this.loadingAuth = false;
-          if (this.user) this.loadData();
+          if (this.user) {
+            this.isLoading = true;
+            this.loadData();
+          }
         });
       },
       async login() {
@@ -160,6 +216,7 @@
         else {
           localStorage.setItem('dfops_login_time', String(Date.now()));
           this.user = data.user;
+          this.isLoading = true;
           await this.loadData();
         }
       },
@@ -173,8 +230,9 @@
           localStorage.removeItem('dfops_login_time');
         } catch (e) { /* ignore */ }
         this.user = null;
-        this.content = null;
+        this.content = createAdminContentShell();
         this.pageId = null;
+        this.isLoading = false;
         this.customDomainStatus = '';
         this.showDnsInstructions = false;
         this.showWizard = false;
@@ -237,54 +295,58 @@
       },
 
       async loadData() {
+        this.isLoading = true;
         this.showNinjaChecklist = false;
-        this.content = null;
-        let { data, error } = await repo.getCurrentUserPage(this.user.id);
-        if (error) {
-          this.showError('Nie udało się wczytać strony.');
-          return;
-        }
-        if (!data) {
-          const created = await this.ensurePageFromRegistrationMetadata();
-          if (!created) {
+        try {
+          let { data, error } = await repo.getCurrentUserPage(this.user.id);
+          if (error) {
+            this.showError('Nie udało się wczytać strony.');
             return;
           }
-          const retry = await repo.getCurrentUserPage(this.user.id);
-          if (retry.error || !retry.data) {
-            this.showError('Nie znaleziono Twojej strony.');
-            return;
-          }
-          data = retry.data;
-        }
-        this.pageId = data.id;
-        this.slug = data.slug;
-        this.theme = data.theme;
-        this.customDomain = data.custom_domain || '';
-        this.customDomainStatus = data.custom_domain_status || '';
-        this.content = window.DFOPS_normalizeContent(data.content, this.theme);
-        this.currentTemplateVersion = Number(this.content.pl.settings.template_version || 1);
-        this.updateAvailable = this.currentTemplateVersion < this.latestTemplateVersion;
-        this.applyThemeStylingFromContent();
-
-        if (
-          this.content &&
-          this.content[this.lang] &&
-          this.content[this.lang].settings &&
-          this.content[this.lang].settings.onboarding_completed === false
-        ) {
-          this.showWizard = true;
-        }
-
-        this.$nextTick(() => {
-          setTimeout(() => {
-            if (typeof this._stopContentWatch === 'function') {
-              this._stopContentWatch();
-              this._stopContentWatch = null;
+          if (!data) {
+            const created = await this.ensurePageFromRegistrationMetadata();
+            if (!created) {
+              return;
             }
-            this.hasUnsavedChanges = false;
-            this._stopContentWatch = this.$watch('content', () => { this.hasUnsavedChanges = true; }, { deep: true });
-          }, 0);
-        });
+            const retry = await repo.getCurrentUserPage(this.user.id);
+            if (retry.error || !retry.data) {
+              this.showError('Nie znaleziono Twojej strony.');
+              return;
+            }
+            data = retry.data;
+          }
+          this.pageId = data.id;
+          this.slug = data.slug;
+          this.theme = data.theme;
+          this.customDomain = data.custom_domain || '';
+          this.customDomainStatus = data.custom_domain_status || '';
+          this.content = window.DFOPS_normalizeContent(data.content, this.theme);
+          this.currentTemplateVersion = Number(this.content.pl.settings.template_version || 1);
+          this.updateAvailable = this.currentTemplateVersion < this.latestTemplateVersion;
+          this.applyThemeStylingFromContent();
+
+          if (
+            this.content &&
+            this.content[this.lang] &&
+            this.content[this.lang].settings &&
+            this.content[this.lang].settings.onboarding_completed === false
+          ) {
+            this.showWizard = true;
+          }
+
+          this.$nextTick(() => {
+            setTimeout(() => {
+              if (typeof this._stopContentWatch === 'function') {
+                this._stopContentWatch();
+                this._stopContentWatch = null;
+              }
+              this.hasUnsavedChanges = false;
+              this._stopContentWatch = this.$watch('content', () => { this.hasUnsavedChanges = true; }, { deep: true });
+            }, 0);
+          });
+        } finally {
+          this.isLoading = false;
+        }
       },
       applyThemeStylingFromContent() {
         if (!this.content?.pl?.settings) return;
@@ -657,7 +719,7 @@
         const options = opts && typeof opts === 'object' ? opts : {};
         const silentSuccess = options.silentSuccess === true;
         const successMessage = typeof options.successMessage === 'string' ? options.successMessage : '';
-        if (!this.content) return false;
+        if (!this.content?.pl || this.isLoading || !this.pageId) return false;
         this.saving = true;
         try {
           if (Array.isArray(this.content.pl.services)) {
