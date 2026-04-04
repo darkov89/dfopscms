@@ -1393,17 +1393,16 @@
    */
   function buildAdminAlpineState() {
     const fromApp = createAdminApp();
-    const content =
+
+    // Mutujemy oryginalny obiekt, aby zachować gettery (spread niszczyłby je przy inicjalizacji).
+    fromApp.sidebarOpen = false;
+    fromApp.content =
       fromApp.content && typeof fromApp.content === 'object' && fromApp.content.pl
         ? fromApp.content
         : createAdminContentShell();
-    const isLoading = fromApp.isLoading === true || fromApp.isLoading === false ? fromApp.isLoading : false;
-    return {
-      sidebarOpen: false,
-      ...fromApp,
-      isLoading,
-      content,
-    };
+    fromApp.isLoading = fromApp.isLoading === true || fromApp.isLoading === false ? fromApp.isLoading : false;
+
+    return fromApp;
   }
 
   window.createAdminApp = createAdminApp;
