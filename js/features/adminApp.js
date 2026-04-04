@@ -880,5 +880,26 @@
     };
   }
 
+  /**
+   * Pełny stan pod `x-data` panelu: zawsze ma `isLoading` i `content.pl` (bez wyścigu z Kreatorem).
+   * Wywoływane w admin.html zamiast `{ ...createAdminApp() }`, żeby cache starego JS nie zostawiał `content: null`.
+   */
+  function buildAdminAlpineState() {
+    const fromApp = createAdminApp();
+    const content =
+      fromApp.content && typeof fromApp.content === 'object' && fromApp.content.pl
+        ? fromApp.content
+        : createAdminContentShell();
+    const isLoading = fromApp.isLoading === true || fromApp.isLoading === false ? fromApp.isLoading : false;
+    return {
+      sidebarOpen: false,
+      ...fromApp,
+      isLoading,
+      content,
+    };
+  }
+
   window.createAdminApp = createAdminApp;
+  window.DFOPS_adminAlpineState = buildAdminAlpineState;
+  window.DFOPS_createAdminContentShell = createAdminContentShell;
 })();

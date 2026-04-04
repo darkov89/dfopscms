@@ -20,7 +20,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col" x-data="{ sidebarOpen: false, ...createAdminApp() }">
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col" x-data="typeof DFOPS_adminAlpineState === 'function' ? DFOPS_adminAlpineState() : { sidebarOpen: false, isLoading: false, content: { pl: { nav: { menu: {} }, hero: {}, manifesto: {}, services: [], faq: [], contact: {}, settings: {} } } }">
 
     <div x-show="showWizard" x-cloak class="fixed inset-0 z-[100] bg-gray-50 overflow-y-auto" x-transition.opacity>
         <div x-show="wizardStep === 0" class="min-h-screen flex flex-col items-center justify-center p-6 max-w-5xl mx-auto" x-transition>
