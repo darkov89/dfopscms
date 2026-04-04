@@ -13,6 +13,26 @@
     return msg || 'Nie udało się wysłać maila.';
   }
 
+  /** Czy konto ma ustawione potwierdzenie e-mail (snake_case + camelCase — różne wersje klienta JWT). */
+  function userEmailLooksConfirmed(u) {
+    if (!u || typeof u !== 'object') return false;
+    const ok = (v) => v != null && String(v).trim() !== '' && String(v).toLowerCase() !== 'null';
+    return !!(
+      ok(u.email_confirmed_at) ||
+      ok(u.confirmed_at) ||
+      ok(u.emailConfirmedAt) ||
+      ok(u.confirmedAt)
+    );
+  }
+
+  function resendErrorMeansAlreadyConfirmed(err) {
+    if (!err || typeof err !== 'object') return false;
+    const code = String(err.code || '');
+    const msg = String(err.message || '').toLowerCase();
+    if (code === 'email_address_already_confirmed') return true;
+    return /already confirmed|already verified|already registered|email address is already confirmed/i.test(msg);
+  }
+
   function createAdminContentShell() {
     return {
       pl: {
@@ -147,9 +167,7 @@
       get subscriptionPlan() { return this.content?.pl?.settings?.subscription?.plan || 'trial'; },
       /** Kreator tylko po potwierdzeniu e-maila (Supabase Auth → Confirm email). */
       get isEmailVerified() {
-        const u = this.user;
-        if (!u) return false;
-        return !!(u.email_confirmed_at || u.confirmed_at);
+        return userEmailLooksConfirmed(this.user);
       },
       /** Aktywna opłacona subskrypcja (tier w content, nie trial). */
       get hasActivePaidSubscription() {
@@ -488,13 +506,20 @@
         window.history.replaceState({}, document.title, url.pathname + (qs ? `?${qs}` : '') + url.hash);
       },
 
-      /** Świeży obiekt użytkownika z API (m.in. email_confirmed_at po kliknięciu linku). */
+      /** Świeży użytkownik z Auth (sesja z przeglądarki często ma przestarzałe pola po potwierdzeniu maila). */
       async syncAuthUserFromServer() {
         if (!this.supabase) return;
         try {
+          if (this.user && !userEmailLooksConfirmed(this.user)) {
+            const { data: refData, error: refErr } = await this.supabase.auth.refreshSession();
+            if (!refErr && refData?.session?.user) {
+              this.user = { ...refData.session.user };
+            }
+          }
           const { data, error } = await this.supabase.auth.getUser();
-          if (error || !data?.user) return;
-          this.user = data.user;
+          if (!error && data?.user) {
+            this.user = { ...data.user };
+          }
           if (!this.loadingAuth && this.isEmailVerified && this.pageId && this.content?.pl?.settings?.onboarding_completed === false) {
             this.showWizard = true;
           }
@@ -545,6 +570,17 @@
             options: { emailRedirectTo: origin ? `${origin}/admin.html` : undefined },
           });
           if (error) {
+            if (resendErrorMeansAlreadyConfirmed(error)) {
+              await this.syncAuthUserFromServer();
+              this.showToast('Ten adres jest już potwierdzony w systemie — odświeżamy sesję. Za chwilę możesz uruchomić kreator.', 'success');
+              if (this.pageId) {
+                await this.loadData();
+              } else if (this.user) {
+                this.isLoading = true;
+                await this.loadData();
+              }
+              return;
+            }
             this.showToast(formatResendSignupError(error), 'error');
             return;
           }
@@ -664,6 +700,9 @@
         this.isLoading = true;
         this.showNinjaChecklist = false;
         try {
+          if (this.user) {
+            await this.syncAuthUserFromServer();
+          }
           let { data, error } = await repo.getCurrentUserPage(this.user.id);
           if (error) {
             this.showError('Nie udało się wczytać strony.');
