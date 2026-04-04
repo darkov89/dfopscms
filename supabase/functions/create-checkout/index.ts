@@ -20,10 +20,38 @@ function isAllowedOrigin(origin: string) {
     const u = new URL(o);
     if (u.protocol !== "https:" && u.protocol !== "http:") return false;
     const h = u.hostname.toLowerCase();
-    return h.endsWith(".dfcms.pl");
+    if (h.endsWith(".dfcms.pl")) return true;
+    /** Cloudflare Pages (staging / preview), np. *.pages.dev */
+    if (h.endsWith(".pages.dev")) return true;
+    if (h === "localhost" || h === "127.0.0.1") return true;
+    return false;
   } catch {
     return false;
   }
+}
+
+/** Checkout wymaga price_; prod_ → domyślna cena produktu. */
+async function resolveToPriceId(
+  stripe: Stripe,
+  id: string,
+): Promise<string> {
+  const t = id.trim();
+  if (!t) throw new Error("Pusty identyfikator Stripe");
+  if (t.startsWith("price_")) return t;
+  if (t.startsWith("prod_")) {
+    const product = await stripe.products.retrieve(t, {
+      expand: ["default_price"],
+    });
+    const dp = product.default_price;
+    if (typeof dp === "string") return dp;
+    if (dp && typeof dp === "object" && "id" in dp) {
+      return (dp as Stripe.Price).id;
+    }
+    throw new Error(
+      "Produkt Stripe nie ma default price — dodaj cenę (recurring) w Dashboard.",
+    );
+  }
+  throw new Error("Nieobsługiwany format ID (oczekiwano price_… lub prod_…).");
 }
 
 function buildCorsHeaders(req: Request) {
@@ -102,10 +130,18 @@ serve(async (req) => {
     if (plan === "pro" && pricePro) priceId = pricePro;
     else if (plan === "premium" && pricePremium) priceId = pricePremium;
     else if (rawPrice && allowed.has(rawPrice)) priceId = rawPrice;
+    else if (
+      (plan === "pro" || plan === "premium") &&
+      rawPrice &&
+      (rawPrice.startsWith("price_") || rawPrice.startsWith("prod_"))
+    ) {
+      /** Gdy Secrets nieustawione — body z config.js (staging). */
+      priceId = rawPrice;
+    }
 
     if (!priceId) {
       throw new Error(
-        "Nieprawidłowy plan lub cena. Ustaw STRIPE_PRICE_PRO i STRIPE_PRICE_PREMIUM (Secrets) oraz zgodne ID w panelu.",
+        "Nieprawidłowy plan lub cena. Ustaw STRIPE_PRICE_PRO i STRIPE_PRICE_PREMIUM (Secrets) albo stripePrices w js/core/config.js (price_ lub prod_).",
       );
     }
 
@@ -126,9 +162,11 @@ serve(async (req) => {
       httpClient: Stripe.createFetchHttpClient(),
     });
 
+    const resolvedPriceId = await resolveToPriceId(stripe, priceId);
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card", "blik"],
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: [{ price: resolvedPriceId, quantity: 1 }],
       mode: "subscription",
       ...(customerEmail ? { customer_email: customerEmail } : {}),
       success_url: `${returnUrl}?payment=success`,
@@ -136,7 +174,13 @@ serve(async (req) => {
       client_reference_id: user.id,
       metadata: {
         supabase_user_id: user.id,
-        plan: plan || (priceId === pricePro ? "pro" : "premium"),
+        plan:
+          plan ||
+          (resolvedPriceId === pricePro
+            ? "pro"
+            : resolvedPriceId === pricePremium
+              ? "premium"
+              : ""),
       },
     });
 

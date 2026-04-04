@@ -10,12 +10,14 @@
      */
     analyticsTable: 'analytics_events',
     /**
-     * ID cen Stripe (Price ID) — zgodne z Secrets STRIPE_PRICE_PRO / STRIPE_PRICE_PREMIUM
-     * w Edge Function create-checkout. Podmień na wartości ze Stripe Dashboard.
+     * Stripe: Price ID (price_…) lub Product ID (prod_…) — w Checkout produkt jest
+     * rozwijany do domyślnej ceny po stronie Edge Function.
+     * Sekrety STRIPE_PRICE_PRO / STRIPE_PRICE_PREMIUM mają pierwszeństwo, jeśli są ustawione.
      */
     stripePrices: {
-      pro: 'price_TUTAJ_ID_PRO',
-      premium: 'price_TUTAJ_ID_PREMIUM',
+      starter: 'prod_UH55Tk8hYyhzcs',
+      pro: 'prod_UFPYv9j5jTbNZd',
+      premium: 'prod_UFPccgmP3lMp9N',
     },
     appDomain: 'dfcms.pl',
     systemDomains: ['dfcms.pl', 'localhost', '127.0.0.1'],
