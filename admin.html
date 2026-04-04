@@ -289,9 +289,9 @@
             <p class="text-xs text-amber-800 mb-3">Uzupełnij te elementy — wtedy strona będzie spójna i gotowa do gości.</p>
             <ul class="text-sm text-gray-700 space-y-2 mb-4 list-disc list-inside">
                 <li>Logo i nazwa w <button type="button" @click="setTab('settings'); showNinjaChecklist = false" class="text-[#D4AF37] font-bold underline">Szablon i kolory</button></li>
-                <li>Sekcja <button type="button" @click="setTab('hero'); showNinjaChecklist = false" class="text-[#D4AF37] font-bold underline">Hero</button> (nagłówek, zdjęcie)</li>
+                <li>Sekcja <button type="button" @click="setTab('hero'); showNinjaChecklist = false" class="text-[#D4AF37] font-bold underline">Powitanie na stronie</button> (nagłówek, zdjęcie)</li>
                 <li><button type="button" @click="setTab('contact'); showNinjaChecklist = false" class="text-[#D4AF37] font-bold underline">Kontakt</button> (telefon / e-mail)</li>
-                <li>Opcjonalnie: <button type="button" @click="setTab('seo'); showNinjaChecklist = false" class="text-[#D4AF37] font-bold underline">SEO</button></li>
+                <li>Opcjonalnie: <button type="button" @click="setTab('seo'); showNinjaChecklist = false" class="text-[#D4AF37] font-bold underline">Google i social media</button></li>
             </ul>
         </div>
 
@@ -320,18 +320,23 @@
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto sm:items-center">
-                    <div class="flex items-center gap-2 w-full sm:flex-1 lg:w-auto">
-                        <button @click="saveData()" x-show="content" type="button" class="flex-1 lg:flex-none bg-[#121212] hover:bg-[#D4AF37] hover:text-[#121212] text-white px-6 md:px-8 py-3 rounded-sm text-xs md:text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-lg">
+                    <div class="flex flex-col gap-1.5 w-full sm:flex-1 lg:w-auto">
+                        <div class="flex items-center gap-2 px-0.5">
+                            <span class="text-[11px] font-semibold text-gray-600">Publikuj na żywo</span>
+                            <div class="relative group inline-flex shrink-0" @click.stop>
+                                <button type="button" class="p-0.5 rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-1" aria-label="Podpowiedź: zapis i publikacja">
+                                    <svg class="w-4 h-4 text-gray-400 hover:text-[#D4AF37] transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </button>
+                                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
+                                    Zapisanie zachowuje Twoją pracę w bezpiecznym miejscu. Publikacja wysyła ją w świat, by mogli zobaczyć ją Twoi klienci.
+                                    <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <button @click="saveData()" x-show="content" type="button" class="w-full lg:w-auto bg-[#121212] hover:bg-[#D4AF37] hover:text-[#121212] text-white px-6 md:px-8 py-3 rounded-sm text-xs md:text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-lg">
                             <span x-show="!saving">Publikuj Zmiany</span>
                             <span x-show="saving" class="animate-pulse">Zapisywanie...</span>
                         </button>
-                        <div class="relative group inline-flex shrink-0">
-                            <svg class="w-4 h-4 text-gray-400 hover:text-[#D4AF37] transition-colors cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
-                                Zapisanie zachowuje Twoją pracę w bezpiecznym miejscu. Publikacja wysyła ją w świat, by mogli zobaczyć ją Twoi klienci.
-                                <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                            </div>
-                        </div>
                     </div>
                     <div class="flex flex-row justify-between sm:justify-end items-center gap-3 sm:gap-4 lg:flex-col lg:items-end lg:gap-1">
                         <button type="button" @click="setTab('subscription'); $nextTick(() => { const el = document.getElementById('dfops-platnosci-info'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); })" class="text-[10px] md:text-xs text-gray-400 hover:text-[#D4AF37] uppercase tracking-widest transition-colors">Warunki planów i płatności</button>
@@ -382,26 +387,178 @@
                         </button>
 
                         <h3 class="px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 mt-1">Treść Twojej Strony</h3>
-                        <button type="button" @click="setTab('hero')" :class="activeTab === 'hero' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mb-0.5 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg">Hero</button>
-                        <button type="button" @click="setTab('services')" :class="activeTab === 'services' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mb-0.5 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg">Usługi</button>
-                        <button type="button" @click="setTab('gallery')" x-show="theme === 'beauty'" :class="activeTab === 'gallery' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mb-0.5 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg flex items-center gap-2">
-                            <svg class="w-4 h-4 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            Galeria
-                        </button>
-                        <button type="button" @click="setTab('contact')" :class="activeTab === 'contact' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mb-0.5 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg">Kontakt</button>
-                        <button type="button" @click="setTab('faq')" x-show="theme === 'consultant' || theme === 'beauty'" :class="activeTab === 'faq' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mb-0.5 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg">FAQ</button>
-                        <button type="button" @click="setTab('google_reviews')" :class="activeTab === 'google_reviews' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mb-0.5 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg">Opinie Google</button>
-                        <button type="button" @click="setTab('reviews')" x-show="theme === 'consultant'" :class="activeTab === 'reviews' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mb-0.5 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg">Opinie Klientów</button>
-                        <button type="button" @click="setTab('leady')" :class="activeTab === 'leady' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mb-0.5 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg">Wiadomości (Leady)</button>
+                        <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'hero' ? 'border-[#D4AF37] bg-amber-50/50' : 'border-transparent hover:bg-gray-50'">
+                            <button type="button" @click="setTab('hero')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/40">
+                                <span :class="activeTab === 'hero' ? 'text-sm font-bold text-gray-900' : 'text-sm text-gray-700'" class="leading-snug">Powitanie na stronie</span>
+                            </button>
+                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
+                                <button type="button" class="p-1 rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-1" aria-label="Podpowiedź: powitanie na stronie">
+                                    <svg class="w-4 h-4 text-gray-400 hover:text-[#D4AF37] transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </button>
+                                <div class="absolute bottom-full right-0 mr-1 mb-2 w-60 sm:w-64 p-3 bg-gray-900 text-white text-xs rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
+                                    Tu ustawiasz pierwszy ekran dla gości: duże zdjęcie, nagłówek i zaproszenie — jak witryna przy wejściu do salonu, tylko w internecie.
+                                    <div class="absolute top-full right-4 border-4 border-transparent border-t-gray-900"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'services' ? 'border-[#D4AF37] bg-amber-50/50' : 'border-transparent hover:bg-gray-50'">
+                            <button type="button" @click="setTab('services')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/40">
+                                <span :class="activeTab === 'services' ? 'text-sm font-bold text-gray-900' : 'text-sm text-gray-700'" class="leading-snug">Usługi i ceny</span>
+                            </button>
+                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
+                                <button type="button" class="p-1 rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-1" aria-label="Podpowiedź: usługi i ceny">
+                                    <svg class="w-4 h-4 text-gray-400 hover:text-[#D4AF37] transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </button>
+                                <div class="absolute bottom-full right-0 mr-1 mb-2 w-60 sm:w-64 p-3 bg-gray-900 text-white text-xs rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
+                                    Opisujesz, czym się zajmujesz i po jakiej cenie — podobnie jak cennik w gabinecie, tylko na stronie.
+                                    <div class="absolute top-full right-4 border-4 border-transparent border-t-gray-900"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div x-show="theme === 'beauty'" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'gallery' ? 'border-[#D4AF37] bg-amber-50/50' : 'border-transparent hover:bg-gray-50'">
+                            <button type="button" @click="setTab('gallery')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/40 flex items-center gap-2">
+                                <svg class="w-4 h-4 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                <span :class="activeTab === 'gallery' ? 'text-sm font-bold text-gray-900' : 'text-sm text-gray-700'" class="leading-snug">Galeria zdjęć</span>
+                            </button>
+                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
+                                <button type="button" class="p-1 rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-1" aria-label="Podpowiedź: galeria zdjęć">
+                                    <svg class="w-4 h-4 text-gray-400 hover:text-[#D4AF37] transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </button>
+                                <div class="absolute bottom-full right-0 mr-1 mb-2 w-60 sm:w-64 p-3 bg-gray-900 text-white text-xs rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
+                                    Zdjęcia efektów lub wnętrza — goście chętniej zostają, gdy widzą, czego się spodziewać.
+                                    <div class="absolute top-full right-4 border-4 border-transparent border-t-gray-900"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'contact' ? 'border-[#D4AF37] bg-amber-50/50' : 'border-transparent hover:bg-gray-50'">
+                            <button type="button" @click="setTab('contact')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/40">
+                                <span :class="activeTab === 'contact' ? 'text-sm font-bold text-gray-900' : 'text-sm text-gray-700'" class="leading-snug">Kontakt</span>
+                            </button>
+                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
+                                <button type="button" class="p-1 rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-1" aria-label="Podpowiedź: kontakt">
+                                    <svg class="w-4 h-4 text-gray-400 hover:text-[#D4AF37] transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </button>
+                                <div class="absolute bottom-full right-0 mr-1 mb-2 w-60 sm:w-64 p-3 bg-gray-900 text-white text-xs rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
+                                    Telefon, adres, mapa i formularz — żeby klient mógł się odezwać bez głowy.
+                                    <div class="absolute top-full right-4 border-4 border-transparent border-t-gray-900"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div x-show="theme === 'consultant' || theme === 'beauty'" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'faq' ? 'border-[#D4AF37] bg-amber-50/50' : 'border-transparent hover:bg-gray-50'">
+                            <button type="button" @click="setTab('faq')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/40">
+                                <span :class="activeTab === 'faq' ? 'text-sm font-bold text-gray-900' : 'text-sm text-gray-700'" class="leading-snug">Pytania i odpowiedzi</span>
+                            </button>
+                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
+                                <button type="button" class="p-1 rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-1" aria-label="Podpowiedź: pytania i odpowiedzi">
+                                    <svg class="w-4 h-4 text-gray-400 hover:text-[#D4AF37] transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </button>
+                                <div class="absolute bottom-full right-0 mr-1 mb-2 w-60 sm:w-64 p-3 bg-gray-900 text-white text-xs rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
+                                    Krótkie odpowiedzi na częste pytania. Sekcję możesz wyłączyć w dowolnej chwili — teksty zostają bezpieczne w Studiu.
+                                    <div class="absolute top-full right-4 border-4 border-transparent border-t-gray-900"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'google_reviews' ? 'border-[#D4AF37] bg-amber-50/50' : 'border-transparent hover:bg-gray-50'">
+                            <button type="button" @click="setTab('google_reviews')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/40">
+                                <span :class="activeTab === 'google_reviews' ? 'text-sm font-bold text-gray-900' : 'text-sm text-gray-700'" class="leading-snug">Opinie z Google</span>
+                            </button>
+                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
+                                <button type="button" class="p-1 rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-1" aria-label="Podpowiedź: opinie z Google">
+                                    <svg class="w-4 h-4 text-gray-400 hover:text-[#D4AF37] transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </button>
+                                <div class="absolute bottom-full right-0 mr-1 mb-2 w-60 sm:w-64 p-3 bg-gray-900 text-white text-xs rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
+                                    Wpinasz opinie z wizytówki Google — budują zaufanie u nowych gości.
+                                    <div class="absolute top-full right-4 border-4 border-transparent border-t-gray-900"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div x-show="theme === 'consultant'" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'reviews' ? 'border-[#D4AF37] bg-amber-50/50' : 'border-transparent hover:bg-gray-50'">
+                            <button type="button" @click="setTab('reviews')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/40">
+                                <span :class="activeTab === 'reviews' ? 'text-sm font-bold text-gray-900' : 'text-sm text-gray-700'" class="leading-snug">Opinie własne</span>
+                            </button>
+                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
+                                <button type="button" class="p-1 rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-1" aria-label="Podpowiedź: opinie własne">
+                                    <svg class="w-4 h-4 text-gray-400 hover:text-[#D4AF37] transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </button>
+                                <div class="absolute bottom-full right-0 mr-1 mb-2 w-60 sm:w-64 p-3 bg-gray-900 text-white text-xs rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
+                                    Cytaty od klientów wpisujesz sama — pełna kontrola nad treścią i wyglądem.
+                                    <div class="absolute top-full right-4 border-4 border-transparent border-t-gray-900"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'leady' ? 'border-[#D4AF37] bg-amber-50/50' : 'border-transparent hover:bg-gray-50'">
+                            <button type="button" @click="setTab('leady')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/40">
+                                <span :class="activeTab === 'leady' ? 'text-sm font-bold text-gray-900' : 'text-sm text-gray-700'" class="leading-snug">Wiadomości od gości</span>
+                            </button>
+                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
+                                <button type="button" class="p-1 rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-1" aria-label="Podpowiedź: wiadomości od gości">
+                                    <svg class="w-4 h-4 text-gray-400 hover:text-[#D4AF37] transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </button>
+                                <div class="absolute bottom-full right-0 mr-1 mb-2 w-60 sm:w-64 p-3 bg-gray-900 text-white text-xs rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
+                                    Tutaj kiedyś zbierzesz formularze i zapytania od osób, które weszły na stronę.
+                                    <div class="absolute top-full right-4 border-4 border-transparent border-t-gray-900"></div>
+                                </div>
+                            </div>
+                        </div>
 
                         <h3 class="px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 mt-6">Konfiguracja</h3>
-                        <button type="button" @click="setTab('settings')" :class="activeTab === 'settings' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mb-0.5 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg">Szablon i kolory</button>
-                        <button type="button" @click="setTab('seo')" :class="activeTab === 'seo' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mb-0.5 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg">SEO i Social Media</button>
-                        <button type="button" @click="setTab('legal')" :class="activeTab === 'legal' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mb-0.5 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg flex items-center gap-2">
-                            <svg class="w-4 h-4 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                            Prawne / RODO
-                        </button>
-                        <button type="button" @click="setTab('subscription')" :class="activeTab === 'subscription' ? 'border-[#D4AF37] bg-amber-50/50 text-sm font-bold text-gray-900' : 'border-transparent text-xs text-gray-600 hover:bg-gray-50'" class="w-full text-left px-4 py-3 mt-2 border-t border-gray-100 pt-3 border-l-4 transition-colors uppercase tracking-wider rounded-r-lg">Subskrypcja</button>
+                        <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'settings' ? 'border-[#D4AF37] bg-amber-50/50' : 'border-transparent hover:bg-gray-50'">
+                            <button type="button" @click="setTab('settings')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/40">
+                                <span :class="activeTab === 'settings' ? 'text-sm font-bold text-gray-900' : 'text-sm text-gray-700'" class="leading-snug">Szablon i kolory</span>
+                            </button>
+                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
+                                <button type="button" class="p-1 rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-1" aria-label="Podpowiedź: szablon i kolory">
+                                    <svg class="w-4 h-4 text-gray-400 hover:text-[#D4AF37] transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </button>
+                                <div class="absolute bottom-full right-0 mr-1 mb-2 w-60 sm:w-64 p-3 bg-gray-900 text-white text-xs rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
+                                    Logo, kolory, fonty oraz to, które sekcje są widoczne na stronie — wygląd całej witryny.
+                                    <div class="absolute top-full right-4 border-4 border-transparent border-t-gray-900"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'seo' ? 'border-[#D4AF37] bg-amber-50/50' : 'border-transparent hover:bg-gray-50'">
+                            <button type="button" @click="setTab('seo')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/40">
+                                <span :class="activeTab === 'seo' ? 'text-sm font-bold text-gray-900' : 'text-sm text-gray-700'" class="leading-snug">Google i social media</span>
+                            </button>
+                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
+                                <button type="button" class="p-1 rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-1" aria-label="Podpowiedź: Google i social media">
+                                    <svg class="w-4 h-4 text-gray-400 hover:text-[#D4AF37] transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </button>
+                                <div class="absolute bottom-full right-0 mr-1 mb-2 w-60 sm:w-64 p-3 bg-gray-900 text-white text-xs rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
+                                    Jak strona wygląda w wyszukiwarce oraz obrazek i opis przy udostępnianiu linku (np. na Facebooku).
+                                    <div class="absolute top-full right-4 border-4 border-transparent border-t-gray-900"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'legal' ? 'border-[#D4AF37] bg-amber-50/50' : 'border-transparent hover:bg-gray-50'">
+                            <button type="button" @click="setTab('legal')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/40 flex items-center gap-2">
+                                <svg class="w-4 h-4 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                <span :class="activeTab === 'legal' ? 'text-sm font-bold text-gray-900' : 'text-sm text-gray-700'" class="leading-snug">Prawne / RODO</span>
+                            </button>
+                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
+                                <button type="button" class="p-1 rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-1" aria-label="Podpowiedź: dokumenty prawne">
+                                    <svg class="w-4 h-4 text-gray-400 hover:text-[#D4AF37] transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </button>
+                                <div class="absolute bottom-full right-0 mr-1 mb-2 w-60 sm:w-64 p-3 bg-gray-900 text-white text-xs rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
+                                    Regulamin i polityka prywatności w stopce — spokój dla Ciebie i dla klientów.
+                                    <div class="absolute top-full right-4 border-4 border-transparent border-t-gray-900"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex w-full items-stretch mt-2 border-t border-gray-100 pt-3 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'subscription' ? 'border-[#D4AF37] bg-amber-50/50' : 'border-transparent hover:bg-gray-50'">
+                            <button type="button" @click="setTab('subscription')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/40">
+                                <span :class="activeTab === 'subscription' ? 'text-sm font-bold text-gray-900' : 'text-sm text-gray-700'" class="leading-snug">Subskrypcja</span>
+                            </button>
+                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
+                                <button type="button" class="p-1 rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-1" aria-label="Podpowiedź: subskrypcja">
+                                    <svg class="w-4 h-4 text-gray-400 hover:text-[#D4AF37] transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </button>
+                                <div class="absolute bottom-full right-0 mr-1 mb-2 w-60 sm:w-64 p-3 bg-gray-900 text-white text-xs rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
+                                    Pakiet, płatności i dostęp do funkcji — np. własna domena na wyższych planach.
+                                    <div class="absolute top-full right-4 border-4 border-transparent border-t-gray-900"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </aside>
 
@@ -472,7 +629,7 @@
                                                 <input type="text" x-model="content.pl.nav.menu.reviews" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
                                             </div>
                                             <div>
-                                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">FAQ</label>
+                                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Pozycja menu: pytania</label>
                                                 <input type="text" x-model="content.pl.nav.menu.faq" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
                                             </div>
                                             <div>
@@ -494,7 +651,7 @@
                                                 <input type="text" x-model="content.pl.nav.menu.pricing" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
                                             </div>
                                             <div>
-                                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">FAQ</label>
+                                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Pozycja menu: pytania</label>
                                                 <input type="text" x-model="content.pl.nav.menu.faq" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
                                             </div>
                                             <div>
@@ -626,8 +783,10 @@
                                     <div>
                                         <div class="flex flex-wrap items-center gap-2">
                                             <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest">Własna domena</h3>
-                                            <div class="relative group inline-block cursor-pointer" aria-label="Podpowiedź o domenie">
-                                                <svg class="w-4 h-4 text-gray-400 hover:text-[#D4AF37] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <div class="relative group inline-flex shrink-0" @click.stop>
+                                                <button type="button" class="p-0.5 rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-1" aria-label="Podpowiedź o własnej domenie">
+                                                    <svg class="w-4 h-4 text-gray-400 hover:text-[#D4AF37] transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                </button>
                                                 <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
                                                     To Twój unikalny adres w internecie. Pomyśl o nim jak o szyldzie nad drzwiami Twojego salonu.
                                                     <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
@@ -728,7 +887,7 @@
                                         <div class="flex items-center gap-2">
                                             <label class="flex items-center gap-3 cursor-pointer flex-1 min-w-0">
                                                 <div class="relative"><input type="checkbox" x-model="content.pl.settings.showFaq" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                                <span class="text-sm font-bold text-gray-700">FAQ</span>
+                                                <span class="text-sm font-bold text-gray-700">Pytania (FAQ)</span>
                                             </label>
                                             <div class="relative group inline-block shrink-0" @click.stop>
                                                 <button type="button" class="p-0.5 rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-1" aria-label="Podpowiedź o włączaniu sekcji na stronie">
@@ -761,7 +920,7 @@
                                         <div class="flex items-center gap-2">
                                             <label class="flex items-center gap-3 cursor-pointer flex-1 min-w-0">
                                                 <div class="relative"><input type="checkbox" x-model="content.pl.settings.showFaq" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                                <span class="text-sm font-bold text-gray-700">FAQ</span>
+                                                <span class="text-sm font-bold text-gray-700">Pytania (FAQ)</span>
                                             </label>
                                             <div class="relative group inline-block shrink-0" @click.stop>
                                                 <button type="button" class="p-0.5 rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-1" aria-label="Podpowiedź o włączaniu sekcji na stronie">
@@ -784,10 +943,10 @@
                         </div>
                     </div>
 
-                    <div x-show="activeTab === 'hero'" x-transition.opacity x-cloak>
+                        <div x-show="activeTab === 'hero'" x-transition.opacity x-cloak>
                         <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
-                            <h2 class="text-2xl font-serif text-gray-900 mb-2">Hero</h2>
-                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl mb-6">Główna sekcja strony — nagłówek, zdjęcie, opis. Poniżej edycja sekcji O nas (Manifesto).</p>
+                            <h2 class="text-2xl font-serif text-gray-900 mb-2">Powitanie na stronie</h2>
+                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl mb-6">To pierwszy ekran dla gości — duże zdjęcie, nagłówek i krótki opis. Poniżej możesz też dopracować sekcję „O nas”.</p>
                             <div x-show="theme === 'consultant' || theme === 'beauty'" class="flex items-center gap-4 pt-4 border-t border-gray-100">
                                 <label class="flex items-center gap-3 cursor-pointer">
                                     <div class="relative">
@@ -803,7 +962,7 @@
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Przedrostek / Mały tekst nad tytułem</label>
                                 <input type="text" x-model="content.pl.hero.name" class="w-full border border-gray-300 rounded-sm px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none">
-                                <p class="text-xs text-gray-500 mt-2 leading-relaxed max-w-2xl">Krótka etykieta nad hero (np. „Witaj”, nazwa usługi) — buduje kontekst przed głównym nagłówkiem.</p>
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed max-w-2xl">Krótka etykieta nad głównym zdjęciem (np. „Witaj”, nazwa usługi) — buduje kontekst przed dużym nagłówkiem.</p>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Główny Nagłówek</label>
@@ -813,7 +972,7 @@
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Opis pod nagłówkiem</label>
                                 <textarea x-model="content.pl.hero.description" rows="3" class="w-full border border-gray-300 rounded-sm px-4 py-3 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none bg-white"></textarea>
-                                <p class="text-xs text-gray-500 mt-2 leading-relaxed max-w-2xl">2–4 zdania: kim jesteś, dla kogo pracujesz, główna obietnica. Ten tekst często trafia też do podglądów SEO, jeśli nie ustawisz osobnego opisu.</p>
+                                <p class="text-xs text-gray-500 mt-2 leading-relaxed max-w-2xl">2–4 zdania: kim jesteś, dla kogo pracujesz, główna obietnica. Ten tekst często trafia też do podglądu w Google, jeśli nie ustawisz osobnego opisu w zakładce Google i social media.</p>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tekst na przycisku</label>
@@ -984,7 +1143,7 @@
                     <div x-show="activeTab === 'contact'" x-transition.opacity x-cloak>
                         <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
                             <h2 class="text-2xl font-serif text-gray-900 mb-2">Kontakt</h2>
-                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl mb-6">Dane kontaktowe, mapa i linki rezerwacyjne. Social media znajdziesz w zakładce SEO i Social Media.</p>
+                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl mb-6">Dane kontaktowe, mapa i linki rezerwacyjne. Linki do profili społecznościowych ustawisz w zakładce Google i social media.</p>
                             <label class="flex items-center gap-4 cursor-pointer">
                                 <div class="relative">
                                     <input type="checkbox" x-model="content.pl.settings.showContact" class="sr-only peer">
@@ -1090,8 +1249,8 @@
 
                     <div x-show="activeTab === 'faq'" x-transition.opacity x-cloak>
                         <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
-                            <h2 class="text-2xl font-serif text-gray-900 mb-2">FAQ</h2>
-                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl mb-6">Pytania i odpowiedzi w formie rozwijanych akordeonów.</p>
+                            <h2 class="text-2xl font-serif text-gray-900 mb-2">Pytania i odpowiedzi</h2>
+                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl mb-6">Częste pytania gości — każde rozwija się jak mała zakładka, żeby strona była czytelna.</p>
                             <div class="flex items-center gap-3 flex-wrap">
                                 <label class="flex items-center gap-4 cursor-pointer">
                                     <div class="relative">
@@ -1099,7 +1258,7 @@
                                         <div class="w-11 h-6 rounded-full transition-colors peer-checked:bg-emerald-500 bg-gray-200"></div>
                                         <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5 pointer-events-none"></div>
                                     </div>
-                                    <span class="text-sm font-medium text-gray-900">Włącz sekcję FAQ</span>
+                                    <span class="text-sm font-medium text-gray-900">Włącz sekcję pytań</span>
                                 </label>
                                 <div class="relative group inline-block shrink-0" @click.stop>
                                     <button type="button" class="p-0.5 rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-1" aria-label="Podpowiedź o włączaniu sekcji na stronie">
@@ -1219,7 +1378,7 @@
 
                     <div x-show="activeTab === 'leady'" x-transition.opacity x-cloak>
                         <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                            <h2 class="text-2xl font-serif text-gray-900 mb-2">Wiadomości (Leady)</h2>
+                            <h2 class="text-2xl font-serif text-gray-900 mb-2">Wiadomości od gości</h2>
                             <p class="text-sm text-gray-600 leading-relaxed max-w-2xl mb-6">Zarządzaj zapytaniami z formularza kontaktowego. Ta funkcja będzie dostępna w przyszłej wersji.</p>
                             <div class="py-12 text-center text-gray-400 border-2 border-dashed border-gray-200 rounded-lg">
                                 <span class="text-4xl block mb-2">📬</span>
@@ -1336,8 +1495,8 @@
 
                     <div x-show="activeTab === 'seo'" x-transition.opacity x-cloak>
                         <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
-                            <h2 class="text-2xl font-serif text-gray-900 mb-2">SEO i Social Media</h2>
-                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl">Meta tytuł, opis, grafika udostępnień oraz linki do profili social media.</p>
+                            <h2 class="text-2xl font-serif text-gray-900 mb-2">Google i social&nbsp;media</h2>
+                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl">Jak strona wygląda w wyszukiwarce (tytuł i opis), obrazek przy udostępnianiu linku oraz profile społecznościowe.</p>
                         </div>
 
                         <div class="space-y-6">
