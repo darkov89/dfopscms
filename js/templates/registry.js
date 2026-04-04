@@ -11,7 +11,19 @@
   const templatesV3 = {
     setup: {
       pl: {
-        nav: { logo: 'DFCMS', cta: '', logoImage: '' },
+        nav: {
+          logo: 'DFCMS',
+          cta: '',
+          logoImage: '',
+          menu: {
+            about: 'O nas',
+            pricing: 'Cennik',
+            gallery: 'Galeria',
+            faq: 'Pytania i odpowiedzi (Q&A)',
+            contact: 'Kontakt',
+            reviews: 'Opinie',
+          },
+        },
         hero: {
           name: '',
           headline: 'Twoja strona jest już prawie gotowa!',

@@ -43,6 +43,27 @@
     }
 
     if (!pl.nav) pl.nav = {};
+    /*
+     * Motyw `setup`: panel ma pola menu pod x-show dla beauty/consultant, ale Alpine i tak
+     * inicjalizuje x-model — bez pełnego obiektu menu leci TypeError (reading 'about').
+     */
+    if (!pl.nav.menu || typeof pl.nav.menu !== 'object' || Array.isArray(pl.nav.menu)) {
+      pl.nav.menu = {};
+    }
+    const pricingDefault = theme === 'consultant' ? 'Usługi' : 'Cennik';
+    const menuDefaults = {
+      about: 'O nas',
+      pricing: pricingDefault,
+      gallery: 'Galeria',
+      faq: 'Pytania i odpowiedzi (Q&A)',
+      contact: 'Kontakt',
+      reviews: 'Opinie',
+    };
+    for (const k of Object.keys(menuDefaults)) {
+      if (pl.nav.menu[k] === undefined || pl.nav.menu[k] === null) {
+        pl.nav.menu[k] = menuDefaults[k];
+      }
+    }
     if (theme === 'beauty') {
       if (!pl.nav.menu) {
         pl.nav.menu = { about: 'O nas', pricing: 'Cennik', gallery: 'Galeria', faq: 'Pytania i odpowiedzi (Q&A)', contact: 'Kontakt', reviews: 'Opinie' };
