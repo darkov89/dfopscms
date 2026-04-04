@@ -118,6 +118,9 @@
       /** Ustawiane z pages.trial_blocked_at — po trialu bez płatności strona publiczna jest zablokowana. */
       trialBlockedAt: null,
       showTrialSuspendedModal: true,
+      /** Powrót z Stripe ?payment=success — modal gratulacyjny + toast po wczytaniu treści. */
+      showSuccessModal: false,
+      _pendingPaymentSuccessToast: false,
       get availablePresets() {
         const currentTheme = this.showWizard
           ? (this.wizardTheme || this.theme || 'beauty')
@@ -127,6 +130,25 @@
       get accentColor() { return cfg.accentByPreset[this.content?.pl?.settings?.color_preset] || '#D4AF37'; },
       get styleBundles() { return cfg.bundlesByTheme[this.theme] || []; },
       get subscriptionPlan() { return this.content?.pl?.settings?.subscription?.plan || 'trial'; },
+      /** Aktywna opłacona subskrypcja (tier w content, nie trial). */
+      get hasActivePaidSubscription() {
+        const p = this.subscriptionPlan;
+        return p === 'tier0' || p === 'tier1' || p === 'tier2';
+      },
+      get activeSubscriptionBrandLabel() {
+        const p = this.subscriptionPlan;
+        if (p === 'tier2') return 'PREMIUM';
+        if (p === 'tier1') return 'PRO';
+        if (p === 'tier0') return 'STARTER';
+        return '';
+      },
+      get activeSubscriptionPriceLine() {
+        const p = this.subscriptionPlan;
+        if (p === 'tier2') return '99 PLN netto / msc';
+        if (p === 'tier1') return '49 PLN netto / msc';
+        if (p === 'tier0') return '19 PLN netto / msc';
+        return '';
+      },
       get trialDaysLeft() {
         const sub = this.content?.pl?.settings?.subscription;
         if (!sub || sub.plan !== 'trial' || !sub.trial_started_at) return 14;
@@ -208,21 +230,59 @@
       },
 
       maybeShowPaymentReturnToast() {
+        /** Parametr `payment` jest czyszczony w init() — tu tylko zapas na starsze sesje. */
         try {
           const url = new URL(window.location.href);
           const p = url.searchParams.get('payment');
           if (!p) return;
           url.searchParams.delete('payment');
-          const clean = url.pathname + (url.search || '') + (url.hash || '');
-          window.history.replaceState({}, '', clean);
-          if (p === 'success') {
-            this.showToast('Dziękujemy! Potwierdzenie płatności może chwilę potrwać — za chwilę odśwież ten widok.', 'success');
-          } else if (p === 'cancelled') {
+          const qs = url.searchParams.toString();
+          window.history.replaceState({}, '', url.pathname + (qs ? `?${qs}` : '') + url.hash);
+          if (p === 'cancelled') {
             this.showToast('Płatność nie została dokończona — możesz spróbować ponownie w sekcji Subskrypcja.', 'error');
           }
         } catch (e) {
           /* ignore */
         }
+      },
+
+      /** Polska data z ISO w subscription.current_period_end (webhook Stripe). */
+      get subscriptionRenewalDateFormatted() {
+        const raw = this.content?.pl?.settings?.subscription?.current_period_end;
+        if (raw == null || raw === '') return '—';
+        try {
+          const d = new Date(typeof raw === 'number' ? raw * 1000 : String(raw));
+          if (Number.isNaN(d.getTime())) return '—';
+          return d.toLocaleDateString('pl-PL', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          });
+        } catch {
+          return '—';
+        }
+      },
+
+      closeSuccessModal() {
+        this.showSuccessModal = false;
+      },
+
+      /** Stripe Customer Portal — docelowo redirect; na razie komunikat. */
+      openStripeCustomerPortal() {
+        this.showToast('Zarządzanie płatnościami (Stripe Customer Portal) uruchomimy wkrótce.', 'success');
+      },
+
+      flushPendingPaymentSuccessToast() {
+        if (!this._pendingPaymentSuccessToast || !this.user) return;
+        this._pendingPaymentSuccessToast = false;
+        const p = this.subscriptionPlan;
+        let planWord = 'PRO';
+        if (p === 'tier2') planWord = 'Premium';
+        else if (p === 'tier0') planWord = 'Starter';
+        this.showToast(
+          `Wspaniale! Twój plan ${planWord} jest już aktywny. Twoja strona znów lśni!`,
+          'success',
+        );
       },
 
       syncUserPlanFromBilling() {
@@ -271,6 +331,26 @@
             e.returnValue = 'Masz niezapisane zmiany!';
           }
         });
+        try {
+          const url = new URL(window.location.href);
+          const pay = url.searchParams.get('payment');
+          if (pay === 'success' || pay === 'cancelled') {
+            url.searchParams.delete('payment');
+            const qs = url.searchParams.toString();
+            window.history.replaceState({}, '', url.pathname + (qs ? `?${qs}` : '') + url.hash);
+            if (pay === 'success') {
+              this.showSuccessModal = true;
+              this._pendingPaymentSuccessToast = true;
+            } else {
+              this.showToast(
+                'Płatność nie została dokończona — możesz spróbować ponownie w sekcji Subskrypcja.',
+                'error',
+              );
+            }
+          }
+        } catch {
+          /* ignore */
+        }
         this.supabase = window.DFOPS_getSupabaseClient();
         this.supabase.auth.getSession().then(({ data: { session } }) => {
           this.user = session?.user || null;
@@ -325,6 +405,8 @@
         this.wizardFieldWarning = '';
         this.showNinjaChecklist = false;
         this.hasUnsavedChanges = false;
+        this.showSuccessModal = false;
+        this._pendingPaymentSuccessToast = false;
       },
       async ensurePageFromRegistrationMetadata() {
         const { data: first } = await repo.getCurrentUserPage(this.user.id);
@@ -446,7 +528,10 @@
           });
         } finally {
           this.isLoading = false;
-          if (this.user) this.maybeShowPaymentReturnToast();
+          if (this.user) {
+            this.flushPendingPaymentSuccessToast();
+            this.maybeShowPaymentReturnToast();
+          }
         }
       },
       applyThemeStylingFromContent() {

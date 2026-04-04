@@ -315,6 +315,23 @@
             </div>
         </div>
 
+        <div x-show="showSuccessModal" x-cloak class="fixed inset-0 z-[265] flex items-center justify-center p-4 bg-black/55 backdrop-blur-[2px]" @click.self="closeSuccessModal()" role="dialog" aria-modal="true" aria-labelledby="dfops-payment-success-title">
+            <div class="bg-white max-w-md w-full rounded-2xl shadow-2xl relative border border-amber-100/80 overflow-hidden" @click.stop>
+                <div class="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#D4AF37] via-amber-200 to-[#D4AF37]"></div>
+                <button type="button" class="absolute top-3 right-3 text-gray-400 hover:text-gray-800 text-xl leading-none z-10" @click="closeSuccessModal()" aria-label="Zamknij">×</button>
+                <div class="p-8 pt-10 text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-emerald-50 to-teal-50 text-emerald-600 mb-5 shadow-inner ring-1 ring-emerald-100">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+                    <h2 id="dfops-payment-success-title" class="text-xl font-serif font-bold text-gray-900 mb-2 tracking-tight">Świetna robota</h2>
+                    <p class="text-sm text-gray-600 leading-relaxed">Płatność została przyjęta. Twój pakiet aktywuje się na bieżąco — możesz od razu wrócić do dopracowywania strony.</p>
+                    <button type="button" @click="closeSuccessModal(); setTab('subscription')" class="mt-7 w-full bg-[#121212] text-white px-6 py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#D4AF37] hover:text-[#121212] transition-all duration-300 shadow-md">
+                        Przejdź do subskrypcji
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div x-show="showNinjaChecklist" x-transition class="mx-4 md:mx-8 mt-4 p-4 bg-amber-50 border border-amber-200 rounded-sm shadow-sm">
             <div class="flex justify-between items-start gap-4 mb-3">
                 <h3 class="text-sm font-bold text-amber-900 uppercase tracking-widest">Twój pierwszy krok w Studio</h3>
@@ -1478,9 +1495,43 @@
                     <div x-show="activeTab === 'subscription'" x-transition.opacity x-cloak>
                         <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
                             <h2 class="text-2xl font-serif text-gray-900 mb-2">Subskrypcja</h2>
-                            <p class="text-sm text-gray-600 leading-relaxed max-w-2xl">Masz 14 dni na wybranie pakietu i pierwszą opłatę. Dopóki płatność nie zostanie zaksięgowana, konto pozostaje w okresie próbnym — z ograniczeniami i komunikatem w panelu.</p>
+                            <p x-show="!hasActivePaidSubscription" class="text-sm text-gray-600 leading-relaxed max-w-2xl">Masz 14 dni na wybranie pakietu i pierwszą opłatę. Dopóki płatność nie zostanie zaksięgowana, konto pozostaje w okresie próbnym — z ograniczeniami i komunikatem w panelu.</p>
+                            <p x-show="hasActivePaidSubscription" x-cloak class="text-sm text-gray-600 leading-relaxed max-w-2xl">Twoja subskrypcja jest aktywna. Poniżej status rozliczeń i skrót pakietu — w każdej chwili możesz przejść do porównania planów niżej.</p>
                         </div>
-                        <div class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-sm">
+
+                        <div x-show="hasActivePaidSubscription" x-cloak class="mb-8 rounded-2xl border border-[#D4AF37]/35 bg-gradient-to-br from-white via-amber-50/30 to-white shadow-lg shadow-amber-900/5 ring-1 ring-black/5 overflow-hidden">
+                            <div class="p-6 sm:p-8">
+                                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
+                                    <div class="min-w-0">
+                                        <p class="text-[10px] font-bold text-[#9a7b16] uppercase tracking-[0.2em] mb-2">Twój plan</p>
+                                        <p class="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight" x-text="activeSubscriptionBrandLabel"></p>
+                                        <div class="mt-4 flex flex-wrap items-center gap-2">
+                                            <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold px-3 py-1 border border-emerald-200/80">
+                                                <span>Status:</span> Aktywny <span aria-hidden="true">✨</span>
+                                            </span>
+                                            <span class="text-xs text-gray-500" x-show="content?.pl?.settings?.subscription?.status === 'active'" x-cloak>Płatność cykliczna</span>
+                                        </div>
+                                    </div>
+                                    <div class="shrink-0 text-left sm:text-right">
+                                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Następna płatność</p>
+                                        <p class="text-lg font-semibold text-gray-900 tabular-nums" x-text="subscriptionRenewalDateFormatted"></p>
+                                        <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-wider">wg ustawień rozliczeń Stripe</p>
+                                    </div>
+                                </div>
+                                <div class="mt-6 pt-6 border-t border-amber-100/80 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                                    <div>
+                                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Kwota</p>
+                                        <p class="text-base font-bold text-[#121212]" x-text="activeSubscriptionPriceLine"></p>
+                                        <p class="text-xs text-gray-500 mt-1">+ 23% VAT · rozliczenie miesięczne</p>
+                                    </div>
+                                    <button type="button" @click="openStripeCustomerPortal()" class="w-full sm:w-auto shrink-0 bg-[#121212] text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#D4AF37] hover:text-[#121212] transition-all duration-300 shadow-md text-center">
+                                        Zarządzaj płatnościami
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div x-show="!hasActivePaidSubscription" class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-sm">
                             <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Twój aktualny plan</p>
                             <p class="text-lg font-bold text-gray-900" x-text="planDisplayLabel"></p>
                             <p class="text-sm text-gray-600 mt-1" x-text="planSummaryLine"></p>
