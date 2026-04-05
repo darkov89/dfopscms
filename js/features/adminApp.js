@@ -145,6 +145,9 @@
       upgrading: false,
       checkoutLoading: false,
       stripeSyncLoading: false,
+      newPassword: '',
+      isPasswordUpdating: false,
+      isPortalLoading: false,
       latestTemplateVersion: window.DFOPS_LATEST_TEMPLATE_VERSION || 3,
       currentTemplateVersion: 1,
       updateAvailable: false,
@@ -262,10 +265,12 @@
       showToast(message, type = 'success') {
         if (!this.toast) this.toast = { show: false, message: '', type: 'success' };
         this.toast.message = String(message || '');
-        this.toast.type = type === 'error' ? 'error' : 'success';
+        const t = type === 'error' ? 'error' : type === 'info' ? 'info' : 'success';
+        this.toast.type = t;
         this.toast.show = true;
         if (this._toastTimer) clearTimeout(this._toastTimer);
-        this._toastTimer = setTimeout(() => { this.toast.show = false; }, 4000);
+        const ms = t === 'info' ? 5000 : 4000;
+        this._toastTimer = setTimeout(() => { this.toast.show = false; }, ms);
       },
 
       setTab(tab) {
@@ -311,9 +316,82 @@
         this.showSuccessModal = false;
       },
 
-      /** Stripe Customer Portal — docelowo redirect; na razie komunikat. */
+      /** Stripe Customer Portal (anulacja / metoda płatności) — Edge Function `create-portal-session`. */
       openStripeCustomerPortal() {
-        this.showToast('Zarządzanie płatnościami (Stripe Customer Portal) uruchomimy wkrótce.', 'success');
+        return this.openCustomerPortal();
+      },
+
+      async updatePassword() {
+        if (!this.supabase) {
+          this.showToast('Brak połączenia z serwisem. Odśwież stronę.', 'error');
+          return;
+        }
+        if (String(this.newPassword || '').length < 6) {
+          this.showToast('Hasło musi mieć co najmniej 6 znaków.', 'error');
+          return;
+        }
+        this.isPasswordUpdating = true;
+        try {
+          const { error } = await this.supabase.auth.updateUser({
+            password: this.newPassword,
+          });
+          if (error) throw error;
+          this.showToast('Hasło zostało pomyślnie zmienione!', 'success');
+          this.newPassword = '';
+        } catch (err) {
+          const msg = err && typeof err === 'object' && 'message' in err ? String((err).message) : String(err);
+          this.showToast(msg || 'Nie udało się zmienić hasła.', 'error');
+        } finally {
+          this.isPasswordUpdating = false;
+        }
+      },
+
+      async openCustomerPortal() {
+        if (!this.supabase) {
+          this.showToast('Brak połączenia z serwisem. Odśwież stronę.', 'error');
+          return;
+        }
+        this.isPortalLoading = true;
+        try {
+          const { data: sessionData } = await this.supabase.auth.getSession();
+          const token = sessionData?.session?.access_token;
+          if (!token) throw new Error('Brak autoryzacji');
+          const returnUrl = `${window.location.origin}${window.location.pathname}${window.location.search || ''}`;
+          const { data, error } = await this.supabase.functions.invoke('create-portal-session', {
+            body: { returnUrl },
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (error) throw error;
+          const url = data && typeof data.url === 'string' ? data.url : '';
+          if (url) {
+            window.location.href = url;
+            return;
+          }
+          const errMsg =
+            data && typeof data.error === 'string' ? data.error : 'Brak adresu portalu płatności.';
+          throw new Error(errMsg);
+        } catch (err) {
+          console.error(err);
+          this.showToast('Nie udało się otworzyć portalu płatności. Skontaktuj się z pomocą.', 'error');
+        } finally {
+          this.isPortalLoading = false;
+        }
+      },
+
+      deleteAccount() {
+        const confirmed = confirm(
+          'Czy na pewno chcesz bezpowrotnie usunąć swoje konto i stronę? Tej operacji nie można cofnąć.',
+        );
+        if (!confirmed) return;
+        const support =
+          (cfg && typeof cfg.supportEmail === 'string' && cfg.supportEmail.includes('@')
+            ? cfg.supportEmail.trim()
+            : 'pomoc@dfcms.pl');
+        const subj = this.user?.email
+          ? `Usunięcie konta: ${this.user.email}`
+          : 'Usunięcie konta';
+        window.location.href = `mailto:${support}?subject=${encodeURIComponent(subj)}`;
+        this.showToast('Otwarto okno wiadomości. Wyślij prośbę o usunięcie konta.', 'info');
       },
 
       /**

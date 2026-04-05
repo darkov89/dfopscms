@@ -20,6 +20,8 @@
       premium: 'prod_UFPccgmP3lMp9N',
     },
     appDomain: 'dfcms.pl',
+    /** Adres do wiadomości „usuń konto” (mailto) z panelu administracyjnego. */
+    supportEmail: 'pomoc@dfcms.pl',
     systemDomains: ['dfcms.pl', 'localhost', '127.0.0.1'],
     localHosts: ['localhost', '127.0.0.1'],
     accentByPreset: {

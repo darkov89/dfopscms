@@ -1025,6 +1025,30 @@
                                 </div>
                             </section>
 
+                            <!-- Strefa konta -->
+                            <section class="rounded-xl border border-[#D4AF37]/35 bg-gradient-to-b from-[#1a1816] via-[#141210] to-[#0f0e0c] shadow-xl shadow-black/30 ring-1 ring-[#D4AF37]/20 overflow-hidden max-w-4xl">
+                                <div class="px-5 py-3.5 border-b border-[#D4AF37]/25 bg-black/20">
+                                    <h3 class="text-sm font-bold text-[#D4AF37] uppercase tracking-[0.18em]">Strefa Niebezpieczna i Zarządzanie Kontem</h3>
+                                    <p class="text-xs text-stone-400 mt-1.5 leading-relaxed">Hasło logowania do tego panelu. Usunięcie konta wymaga wiadomości do obsługi — bez automatycznego kasowania danych.</p>
+                                </div>
+                                <div class="p-5 md:p-6 space-y-8">
+                                    <div>
+                                        <label for="settings-new-password" class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2">Nowe hasło</label>
+                                        <input id="settings-new-password" type="password" autocomplete="new-password" x-model="newPassword" class="w-full max-w-md border border-stone-600 bg-stone-900/80 text-stone-100 rounded-sm px-4 py-3 text-sm placeholder:text-stone-600 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="Minimum 6 znaków">
+                                        <button type="button" @click="updatePassword" :disabled="isPasswordUpdating || saving" class="mt-3 inline-flex items-center justify-center gap-2 min-h-[2.75rem] bg-[#121212] text-[#D4AF37] px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest border border-[#D4AF37]/40 hover:bg-[#D4AF37] hover:text-[#121212] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                            <span x-show="!isPasswordUpdating">Zmień hasło</span>
+                                            <span x-show="isPasswordUpdating" x-cloak>Zapisywanie…</span>
+                                        </button>
+                                    </div>
+                                    <div class="pt-2 border-t border-stone-700/80">
+                                        <button type="button" @click="deleteAccount" class="w-full sm:w-auto inline-flex items-center justify-center min-h-[2.75rem] rounded-xl px-6 py-3 text-xs font-bold uppercase tracking-widest bg-red-950/80 text-red-100 border border-red-700/80 hover:bg-red-900 hover:border-red-500 transition-colors shadow-lg shadow-red-950/40">
+                                            Usuń konto
+                                        </button>
+                                        <p class="text-[11px] text-stone-500 mt-3 leading-relaxed max-w-xl">Otworzymy szkic e-maila do zespołu — potwierdź wysyłkę w swojej poczcie.</p>
+                                    </div>
+                                </div>
+                            </section>
+
                         </div>
                     </div>
 
@@ -1518,6 +1542,19 @@
                             </button>
                         </div>
 
+                        <div class="mb-6 rounded-xl border border-[#D4AF37]/35 bg-gradient-to-br from-[#1a1816] via-[#141210] to-[#0f0e0c] p-5 sm:p-6 shadow-lg ring-1 ring-[#D4AF37]/20">
+                            <p class="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.2em] mb-2">Portal rozliczeń Stripe</p>
+                            <p class="text-xs text-stone-400 mb-4 leading-relaxed max-w-2xl">Zmiana karty, anulowanie subskrypcji, faktury i historia płatności — w jednym bezpiecznym miejscu.</p>
+                            <button type="button" @click="openCustomerPortal" :disabled="isPortalLoading || saving" class="inline-flex items-center justify-center gap-2.5 min-h-[2.75rem] w-full sm:w-auto bg-[#D4AF37] text-[#121212] px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#c9a432] transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed border border-[#D4AF37]/60">
+                                <svg x-show="isPortalLoading" x-cloak class="animate-spin h-5 w-5 shrink-0 text-[#121212]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span x-show="!isPortalLoading">Zarządzaj subskrypcją i fakturami</span>
+                                <span x-show="isPortalLoading" x-cloak>Łączenie…</span>
+                            </button>
+                        </div>
+
                         <div x-show="hasActivePaidSubscription" x-cloak class="mb-8 rounded-2xl border border-[#D4AF37]/35 bg-gradient-to-br from-white via-amber-50/30 to-white shadow-lg shadow-amber-900/5 ring-1 ring-black/5 overflow-hidden">
                             <div class="p-6 sm:p-8">
                                 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
@@ -1537,15 +1574,13 @@
                                         <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-wider">wg ustawień rozliczeń Stripe</p>
                                     </div>
                                 </div>
-                                <div class="mt-6 pt-6 border-t border-amber-100/80 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                                <div class="mt-6 pt-6 border-t border-amber-100/80">
                                     <div>
                                         <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Kwota</p>
                                         <p class="text-base font-bold text-[#121212]" x-text="activeSubscriptionPriceLine"></p>
                                         <p class="text-xs text-gray-500 mt-1">+ 23% VAT · rozliczenie miesięczne</p>
                                     </div>
-                                    <button type="button" @click="openStripeCustomerPortal()" class="w-full sm:w-auto shrink-0 bg-[#121212] text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#D4AF37] hover:text-[#121212] transition-all duration-300 shadow-md text-center">
-                                        Zarządzaj płatnościami
-                                    </button>
+                                    <p class="text-xs text-gray-600 mt-4 leading-relaxed">Rozliczenia i faktury — przycisk <strong class="text-gray-900">Zarządzaj subskrypcją i fakturami</strong> powyżej.</p>
                                 </div>
                             </div>
                         </div>
@@ -1801,10 +1836,14 @@
          x-transition:leave-start="opacity-100 translate-y-0"
          x-transition:leave-end="opacity-0 translate-y-4"
          class="fixed bottom-4 right-4 z-[400] px-6 py-3 rounded-lg shadow-2xl flex items-center gap-3"
-         :class="toast.type === 'error' ? 'bg-red-600 text-white' : 'bg-gray-900 text-white'">
+         :class="toast.type === 'error' ? 'bg-red-600 text-white' : toast.type === 'info' ? 'bg-sky-800 text-white' : 'bg-gray-900 text-white'">
 
         <svg x-show="toast.type === 'error'" class="w-5 h-5 text-red-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+
+        <svg x-show="toast.type === 'info'" x-cloak class="w-5 h-5 text-sky-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
 
         <svg x-show="toast.type === 'success'" class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

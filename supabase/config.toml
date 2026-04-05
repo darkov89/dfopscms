@@ -26,3 +26,7 @@ verify_jwt = false
 # Synchronizacja statusu subskrypcji ze Stripe (Authorization: user JWT, jak create-checkout).
 [functions.sync-stripe-subscription]
 verify_jwt = false
+
+# Stripe Customer Portal (Bearer JWT jak create-checkout).
+[functions.create-portal-session]
+verify_jwt = false
