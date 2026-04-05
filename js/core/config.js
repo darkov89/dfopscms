@@ -24,7 +24,7 @@
     },
     appDomain: 'dfcms.pl',
     /** Adres do wiadomości „usuń konto” (mailto) z panelu administracyjnego. */
-    supportEmail: 'pomoc@dfcms.pl',
+    supportEmail: 'kontakt@dfops.eu',
     systemDomains: ['dfcms.pl', 'localhost', '127.0.0.1'],
     localHosts: ['localhost', '127.0.0.1'],
     accentByPreset: {
