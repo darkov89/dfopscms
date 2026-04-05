@@ -692,12 +692,13 @@
         const { data: { session } } = await this.supabase.auth.getSession();
         this.assignAuthUser(session?.user || null);
         await this.syncAuthUserFromServer();
+        const paymentRefreshScheduled = !!this.user && this.schedulePostPaymentDataRefresh();
+        if (this.user && !paymentRefreshScheduled) {
+          this.isLoading = true;
+        }
         this.loadingAuth = false;
-        if (this.user) {
-          if (!this.schedulePostPaymentDataRefresh()) {
-            this.isLoading = true;
-            await this.loadData();
-          }
+        if (this.user && !paymentRefreshScheduled) {
+          await this.loadData();
         }
       },
 
@@ -758,9 +759,9 @@
         if (error) this.authError = 'Błędny e-mail lub hasło.';
         else {
           localStorage.setItem('dfops_login_time', String(Date.now()));
+          this.isLoading = true;
           this.assignAuthUser(data.user);
           await this.syncAuthUserFromServer();
-          this.isLoading = true;
           if (!this.schedulePostPaymentDataRefresh()) {
             await this.loadData();
           }

@@ -47,6 +47,18 @@
     --beauty-white: #ffffff;
 }
 
+/*
+ * Panel admin.html: przed uruchomieniem JS `DFOPS_applyThemeStyling(..., 'admin')`
+ * domyślne :root ma ciemny gradient (strony publiczne). Klasa na <body> + :has()
+ * daje od pierwszego paintu te same jasne tokeny co admin-shell w themeStyling.js.
+ */
+html:has(body.dfops-admin-app) {
+    --bg-a: #f9fafb;
+    --bg-b: #f3f4f6;
+    --bg-c: transparent;
+    --bg-texture-opacity: 0;
+}
+
 ::selection {
     background: var(--accent);
     color: var(--accent-contrast);
