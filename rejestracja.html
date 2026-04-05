@@ -113,7 +113,7 @@
             <p class="text-sm text-gray-500 mb-8">
                 Twój adres w sieci: <span class="text-gray-300 font-mono" x-text="form.slug"></span><span class="text-gray-500">.dfcms.pl</span> — strona powstanie w tle po utworzeniu konta.
             </p>
-            <p class="text-xs text-gray-600 mb-6 leading-relaxed max-w-md mx-auto">Nie widzisz maila? Sprawdź folder spam i wpisy od nadawcy ustawionego w Supabase (Authentication → Email).</p>
+            <p class="text-xs text-gray-600 mb-6 leading-relaxed max-w-md mx-auto">Nie widzisz maila? Sprawdź folder spam — powiadomienia wysyłamy z <strong class="text-gray-400">notifications@dfops.eu</strong> (nadawcę ustaw w Supabase → Authentication → SMTP / szablony e-mail).</p>
             <a :href="'admin.html?site=' + encodeURIComponent(form.slug)" class="inline-block w-full bg-white/10 hover:bg-white/15 border border-white/20 text-white px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all text-center">
                 Mam już konto — loguję się w panelu
             </a>

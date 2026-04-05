@@ -13,7 +13,7 @@ verify_jwt = false
 
 # Wywołanie wyłącznie z cron (Authorization: Bearer CRON_SECRET).
 # Opcjonalne sekrety powiadomień: OPS_NOTIFY_WEBHOOK_URL (Zapier → e-mail),
-# albo RESEND_API_KEY + OPS_NOTIFY_EMAIL + RESEND_FROM.
+# albo RESEND_API_KEY + OPS_NOTIFY_EMAIL + RESEND_FROM (np. DFCMS <notifications@dfops.eu>).
 # Harmonogram: Supabase Dashboard → Edge Functions → expire-trial-pages → Schedules
 # (np. codziennie 02:00 UTC) albo pg_cron — patrz komentarz w migracji expire_trial_pages.
 [functions.expire-trial-pages]

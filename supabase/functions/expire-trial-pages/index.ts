@@ -29,7 +29,7 @@ function parseRpcPayload(data: unknown): RpcResult {
  *
  * Powiadomienia operacyjne (opcjonalnie, jedna z dróg):
  * - OPS_NOTIFY_WEBHOOK_URL — POST JSON { count, slugs, ts } (np. Zapier → e-mail na dariusz.rink@gmail.com)
- * - RESEND_API_KEY + OPS_NOTIFY_EMAIL + RESEND_FROM — e-mail przez Resend
+ * - RESEND_API_KEY + OPS_NOTIFY_EMAIL + RESEND_FROM — e-mail przez Resend (typowo RESEND_FROM=DFCMS <notifications@dfops.eu>)
  */
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -98,7 +98,7 @@ serve(async (req) => {
 
   const notifyTo = Deno.env.get("OPS_NOTIFY_EMAIL")?.trim();
   const resendKey = Deno.env.get("RESEND_API_KEY")?.trim();
-  const fromAddr = Deno.env.get("RESEND_FROM")?.trim() ?? "DFCMS <onboarding@resend.dev>";
+  const fromAddr = Deno.env.get("RESEND_FROM")?.trim() ?? "DFCMS <notifications@dfops.eu>";
   if (notifyTo && resendKey && count > 0) {
     try {
       const slugList = slugs.length ? slugs.join(", ") : "—";

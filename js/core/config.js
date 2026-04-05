@@ -25,6 +25,8 @@
     appDomain: 'dfcms.pl',
     /** Adres do wiadomości „usuń konto” (mailto) z panelu administracyjnego. */
     supportEmail: 'kontakt@dfops.eu',
+    /** Nadawca wiadomości automatycznych (auth Supabase, powiadomienia systemowe) — ustaw w SMTP/Resend zgodnie z wdrożeniem. */
+    notificationsEmail: 'notifications@dfops.eu',
     systemDomains: ['dfcms.pl', 'localhost', '127.0.0.1'],
     localHosts: ['localhost', '127.0.0.1'],
     accentByPreset: {
