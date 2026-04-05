@@ -26,18 +26,18 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
-    <script defer src="js/core/config.js?v=20260405e"></script>
-    <script defer src="js/core/supabaseClient.js?v=20260405e"></script>
-    <script defer src="js/templates/registry.js?v=20260405e"></script>
-    <script defer src="js/core/contentSchema.js?v=20260405e"></script>
-    <script defer src="js/core/contentUpgrader.js?v=20260405e"></script>
-    <script defer src="js/core/themeStyling.js?v=20260405e"></script>
-    <script defer src="js/core/pageRepository.js?v=20260405e"></script>
-    <script defer src="js/core/planUtils.js?v=20260405e"></script>
-    <script defer src="js/core/analytics.js?v=20260405e"></script>
-    <script defer src="js/features/adminApp.js?v=20260405e"></script>
+    <script defer src="js/core/config.js?v=20260405f"></script>
+    <script defer src="js/core/supabaseClient.js?v=20260405f"></script>
+    <script defer src="js/templates/registry.js?v=20260405f"></script>
+    <script defer src="js/core/contentSchema.js?v=20260405f"></script>
+    <script defer src="js/core/contentUpgrader.js?v=20260405f"></script>
+    <script defer src="js/core/themeStyling.js?v=20260405f"></script>
+    <script defer src="js/core/pageRepository.js?v=20260405f"></script>
+    <script defer src="js/core/planUtils.js?v=20260405f"></script>
+    <script defer src="js/core/analytics.js?v=20260405f"></script>
+    <script defer src="js/features/adminApp.js?v=20260405f"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
-    <link rel="stylesheet" href="css/styles.css?v=20260405e">
+    <link rel="stylesheet" href="css/styles.css?v=20260405f">
 </head>
 <body class="flex min-h-screen flex-col bg-slate-50 font-sans text-slate-800 antialiased" x-data="typeof DFOPS_adminAlpineState === 'function' ? DFOPS_adminAlpineState() : { sidebarOpen: false, isLoading: false, content: { pl: { nav: { menu: {} }, hero: {}, manifesto: {}, services: [], faq: [], contact: {}, settings: {} } } }">
 
@@ -404,9 +404,9 @@
                                 <button type="button" class="rounded-md p-0.5 transition-colors hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: zapis i publikacja">
                                     <svg class="pointer-events-none h-4 w-4 text-slate-400 transition-colors group-hover:text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 </button>
-                                <div class="pointer-events-none invisible absolute bottom-full left-1/2 z-50 mb-2 w-64 -translate-x-1/2 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md transition-all group-hover:visible group-hover:opacity-100">
+                                <div class="pointer-events-none invisible absolute left-1/2 top-full z-[70] mt-2 w-64 -translate-x-1/2 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md transition-all group-hover:visible group-hover:opacity-100">
                                     Zapisanie zachowuje Twoją pracę w bezpiecznym miejscu. Publikacja wysyła ją w świat, by mogli zobaczyć ją Twoi klienci.
-                                    <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900"></div>
+                                    <div class="absolute -top-2 left-1/2 h-0 w-0 -translate-x-1/2 border-x-[7px] border-x-transparent border-b-[8px] border-b-slate-900" aria-hidden="true"></div>
                                 </div>
                             </div>
                         </div>
@@ -1647,13 +1647,18 @@
                             <p class="text-lg font-bold text-slate-900" x-text="planDisplayLabel"></p>
                             <p class="text-sm text-slate-600 mt-1" x-text="planSummaryLine"></p>
                         </div>
-                        <p class="text-xs text-slate-500 mb-3 lg:hidden flex items-center gap-2">
-                            <span class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-200 text-slate-600" aria-hidden="true">↔</span>
-                            Przesuń palcem lub myszką, aby zobaczyć wszystkie plany.
+                        <p class="mb-3 flex items-center gap-2 text-xs text-slate-500 2xl:hidden">
+                            <span class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-200 text-slate-600" aria-hidden="true">↔</span>
+                            <span>Przewiń plansze albo użyj strzałek — pełna siatka 5 pakietów od bardzo szerokiego ekranu.</span>
                         </p>
-                        <div class="-mx-1 flex snap-x snap-mandatory scroll-smooth gap-4 px-1 py-3 pb-4 [scrollbar-width:thin] sm:gap-5 lg:grid lg:grid-cols-5 lg:snap-none lg:gap-5 lg:overflow-visible lg:pb-0 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300/80 overflow-x-auto overflow-y-visible">
+                        <div class="relative" x-data="{ scrollPlans(dir) { const el = this.$refs.planStrip; if (!el) return; const step = Math.min(el.clientWidth * 0.88, 360); el.scrollBy({ left: dir * step, behavior: 'smooth' }); } }">
+                            <div class="pointer-events-none absolute inset-y-0 left-0 z-10 hidden w-10 bg-gradient-to-r from-white via-white/95 to-transparent 2xl:hidden md:block" aria-hidden="true"></div>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 z-10 hidden w-10 bg-gradient-to-l from-white via-white/95 to-transparent 2xl:hidden md:block" aria-hidden="true"></div>
+                            <button type="button" @click="scrollPlans(-1)" class="absolute left-0 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200/80 bg-white text-lg font-bold text-slate-700 shadow-panel transition-colors hover:border-accent hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 2xl:hidden md:flex" aria-label="Poprzedni pakiet">‹</button>
+                            <button type="button" @click="scrollPlans(1)" class="absolute right-0 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200/80 bg-white text-lg font-bold text-slate-700 shadow-panel transition-colors hover:border-accent hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 2xl:hidden md:flex" aria-label="Następny pakiet">›</button>
+                            <div x-ref="planStrip" class="-mx-1 flex snap-x snap-mandatory scroll-smooth items-stretch gap-4 overflow-x-auto overflow-y-visible px-1 py-3 pb-4 [scrollbar-width:thin] sm:gap-5 md:px-12 2xl:grid 2xl:grid-cols-5 2xl:items-stretch 2xl:gap-4 2xl:overflow-visible 2xl:px-0 2xl:pb-0 2xl:snap-none [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300/80">
                             <!-- Starter -->
-                            <article class="flex h-full min-w-[min(100%,19rem)] w-[85vw] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border border-slate-200/80 bg-gradient-to-b from-slate-50/90 to-white shadow-panel ring-1 ring-slate-900/5 sm:min-w-[20.5rem] sm:w-auto lg:min-w-0 lg:flex-shrink">
+                            <article class="flex h-full min-w-[min(100%,18rem)] w-[85vw] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border border-slate-200/80 bg-gradient-to-b from-slate-50/90 to-white shadow-panel ring-1 ring-slate-900/5 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] 2xl:min-w-0 2xl:w-auto 2xl:flex-shrink">
                                 <div class="flex min-h-0 flex-1 flex-col p-6">
                                     <div class="mb-4">
                                         <h3 class="text-lg font-bold tracking-tight text-slate-900">Starter</h3>
@@ -1685,7 +1690,7 @@
                                 </div>
                             </article>
                             <!-- Pro -->
-                            <article class="relative flex h-full min-w-[min(100%,19rem)] w-[85vw] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border-2 border-accent bg-gradient-to-b from-white via-amber-50/45 to-amber-50/80 shadow-panel-md ring-1 ring-accent/20 sm:min-w-[20.5rem] sm:w-auto lg:min-w-0 lg:flex-shrink">
+                            <article class="relative flex h-full min-w-[min(100%,18rem)] w-[85vw] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border-2 border-accent bg-gradient-to-b from-white via-amber-50/45 to-amber-50/80 shadow-panel-md ring-1 ring-accent/20 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] 2xl:min-w-0 2xl:w-auto 2xl:flex-shrink">
                                 <div class="flex min-h-0 flex-1 flex-col p-6">
                                     <div class="mb-3 flex justify-end">
                                         <span class="inline-flex rounded-full bg-accent px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-accent-fg shadow-panel">Polecane</span>
@@ -1717,7 +1722,7 @@
                                 </div>
                             </article>
                             <!-- Premium -->
-                            <article class="flex h-full min-w-[min(100%,19rem)] w-[85vw] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border border-slate-200/80 bg-white shadow-panel-md ring-1 ring-slate-900/5 sm:min-w-[20.5rem] sm:w-auto lg:min-w-0 lg:flex-shrink">
+                            <article class="flex h-full min-w-[min(100%,18rem)] w-[85vw] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border border-slate-200/80 bg-white shadow-panel-md ring-1 ring-slate-900/5 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] 2xl:min-w-0 2xl:w-auto 2xl:flex-shrink">
                                 <div class="flex min-h-0 flex-1 flex-col p-6">
                                     <div class="mb-3">
                                         <span class="inline-flex rounded-full bg-accent-fg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-accent shadow-panel">Premium</span>
@@ -1749,7 +1754,7 @@
                                 </div>
                             </article>
                             <!-- Test dzienny (Stripe) — np. szybkie odnowienia; w CMS jak Pro -->
-                            <article class="flex h-full min-w-[min(100%,19rem)] w-[85vw] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border border-violet-200/90 bg-gradient-to-b from-violet-50/90 to-white shadow-panel ring-1 ring-violet-200/50 sm:min-w-[20.5rem] sm:w-auto lg:min-w-0 lg:flex-shrink">
+                            <article class="flex h-full min-w-[min(100%,18rem)] w-[85vw] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border border-violet-200/90 bg-gradient-to-b from-violet-50/90 to-white shadow-panel ring-1 ring-violet-200/50 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] 2xl:min-w-0 2xl:w-auto 2xl:flex-shrink">
                                 <div class="flex min-h-0 flex-1 flex-col p-6">
                                     <div class="mb-3">
                                         <span class="inline-flex rounded-full bg-violet-700 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-panel">Test</span>
@@ -1760,7 +1765,7 @@
                                     </div>
                                     <div class="mb-5 border-b border-violet-100 pb-5">
                                         <p class="text-sm font-semibold leading-snug text-slate-800">Produkty cenowe Stripe</p>
-                                        <p class="mt-2 text-[11px] leading-relaxed text-slate-500">W panelu widzisz ten sam poziom co <strong class="text-slate-800">Pro</strong> (tier1). Cykl rozliczeń ustawiasz przy produkcie w Stripe.</p>
+                                        <p class="mt-2 text-[11px] leading-relaxed text-slate-500">Jak <strong class="text-slate-800">Pro</strong> w panelu; cykl ustawiasz w Stripe przy produkcie.</p>
                                     </div>
                                     <ul class="flex-1 space-y-2 text-sm text-slate-600">
                                         <li class="flex gap-2"><span class="shrink-0 font-bold text-violet-600">↻</span><span>Test odnowień subskrypcji</span></li>
@@ -1776,7 +1781,7 @@
                                 </div>
                             </article>
                             <!-- Custom -->
-                            <article class="flex h-full min-w-[min(100%,19rem)] w-[85vw] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border-2 border-dashed border-slate-300/90 bg-gradient-to-b from-slate-50 to-slate-100/70 shadow-panel ring-1 ring-slate-900/5 sm:min-w-[20.5rem] sm:w-auto lg:min-w-0 lg:flex-shrink">
+                            <article class="flex h-full min-w-[min(100%,18rem)] w-[85vw] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border-2 border-dashed border-slate-300/90 bg-gradient-to-b from-slate-50 to-slate-100/70 shadow-panel ring-1 ring-slate-900/5 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] 2xl:min-w-0 2xl:w-auto 2xl:flex-shrink">
                                 <div class="flex min-h-0 flex-1 flex-col p-6">
                                     <div class="mb-4">
                                         <h3 class="text-lg font-bold tracking-tight text-slate-900">Custom</h3>
@@ -1796,6 +1801,7 @@
                                     </div>
                                 </div>
                             </article>
+                            </div>
                         </div>
 
                         <div id="dfops-platnosci-info" class="mt-10 pt-8 border-t border-gray-200 text-sm text-slate-700 leading-relaxed max-w-2xl">
