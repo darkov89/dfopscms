@@ -173,27 +173,45 @@
       get accentColor() { return cfg.accentByPreset[this.content?.pl?.settings?.color_preset] || '#D4AF37'; },
       get styleBundles() { return cfg.bundlesByTheme[this.theme] || []; },
       get subscriptionPlan() { return this.content?.pl?.settings?.subscription?.plan || 'trial'; },
+      /** Tier zapisany w CMS albo wybrany przed pełnym merge z webhookiem. */
+      get activePaidTierForUi() {
+        const p = this.subscriptionPlan;
+        if (p === 'tier0' || p === 'tier1' || p === 'tier2') return p;
+        const sel = this.content?.pl?.settings?.subscription?.selected_plan;
+        if (sel === 'tier0' || sel === 'tier1' || sel === 'tier2') return sel;
+        return null;
+      },
       /** Kreator tylko po potwierdzeniu e-maila — zgodny z needsEmailConfirmation ustawianym po getUser(). */
       get isEmailVerified() {
         return !!this.user && !this.needsEmailConfirmation;
       },
-      /** Aktywna opłacona subskrypcja (tier w content, nie trial). */
+      /**
+       * Aktywny plan płatny w CMS lub subskrypcja Stripe ze statusem active/trialing
+       * (np. gdy webhook nie nadpisał jeszcze pola `plan`).
+       */
       get hasActivePaidSubscription() {
         const p = this.subscriptionPlan;
-        return p === 'tier0' || p === 'tier1' || p === 'tier2';
+        if (p === 'tier0' || p === 'tier1' || p === 'tier2') return true;
+        const sub = this.content?.pl?.settings?.subscription;
+        const st = typeof sub?.status === 'string' ? sub.status : '';
+        const sid = typeof sub?.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
+        if (sid && (st === 'active' || st === 'trialing')) return true;
+        return false;
       },
       get activeSubscriptionBrandLabel() {
-        const p = this.subscriptionPlan;
-        if (p === 'tier2') return 'PREMIUM';
-        if (p === 'tier1') return 'PRO';
-        if (p === 'tier0') return 'STARTER';
+        const t = this.activePaidTierForUi;
+        if (t === 'tier2') return 'PREMIUM';
+        if (t === 'tier1') return 'PRO';
+        if (t === 'tier0') return 'STARTER';
+        if (this.hasActivePaidSubscription) return 'SUBSKRYPCJA STRIPE';
         return '';
       },
       get activeSubscriptionPriceLine() {
-        const p = this.subscriptionPlan;
-        if (p === 'tier2') return '99 PLN netto / msc';
-        if (p === 'tier1') return '49 PLN netto / msc';
-        if (p === 'tier0') return '19 PLN netto / msc';
+        const t = this.activePaidTierForUi;
+        if (t === 'tier2') return '99 PLN netto / msc';
+        if (t === 'tier1') return '49 PLN netto / msc';
+        if (t === 'tier0') return '19 PLN netto / msc';
+        if (this.hasActivePaidSubscription) return 'Kwota zgodnie z aktywnym pakietem w Stripe';
         return '';
       },
       get trialDaysLeft() {
@@ -276,20 +294,6 @@
       setTab(tab) {
         this.activeTab = tab;
         this.sidebarOpen = false;
-      },
-
-      scrollToAccountInSettings() {
-        this.setTab('settings');
-        window.setTimeout(() => {
-          document.getElementById('dfops-zarzadzanie-konto')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 400);
-      },
-
-      scrollToStripePortalBlock() {
-        this.setTab('subscription');
-        window.setTimeout(() => {
-          document.getElementById('dfops-portal-stripe')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 400);
       },
 
       maybeShowPaymentReturnToast() {
@@ -1131,12 +1135,14 @@
           return;
         }
         if (!this.content?.pl?.settings) return;
-        const tier = planType === 'pro' ? 'tier1' : 'tier2';
+        const tier =
+          planType === 'premium' ? 'tier2' : planType === 'starter' ? 'tier0' : 'tier1';
         const sub = this.content.pl.settings.subscription || {};
         const existingStripeSubId =
           typeof sub.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
         const changePlanInStripe =
-          !!existingStripeSubId && (planType === 'pro' || planType === 'premium');
+          !!existingStripeSubId &&
+          (planType === 'pro' || planType === 'premium' || planType === 'test_daily');
 
         if (!changePlanInStripe) {
           if (!this.content.pl.settings.subscription) {

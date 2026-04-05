@@ -12,12 +12,15 @@
     /**
      * Stripe: Price ID (price_…) lub Product ID (prod_…) — w Checkout produkt jest
      * rozwijany do domyślnej ceny po stronie Edge Function.
-     * Sekrety STRIPE_PRICE_PRO / STRIPE_PRICE_PREMIUM mają pierwszeństwo, jeśli są ustawione.
+     * Sekrety STRIPE_PRICE_* w Supabase mają pierwszeństwo; wartość to price_… lub prod_… z Stripe.
+     * test_daily — produkt w Stripe (krótki cykl); checkout używa tego ID z panelu — secret
+     * STRIPE_PRICE_TEST_DAILY w Supabase nie jest wymagany. W CMS uprawnienia jak Pro (tier1).
      */
     stripePrices: {
       starter: 'prod_UH55Tk8hYyhzcs',
-      pro: 'prod_UHISaxhpCZiewg',
+      pro: 'prod_UFPYv9j5jTbNZd',
       premium: 'prod_UFPccgmP3lMp9N',
+      test_daily: 'prod_UHISaxhpCZiewg',
     },
     appDomain: 'dfcms.pl',
     /** Adres do wiadomości „usuń konto” (mailto) z panelu administracyjnego. */

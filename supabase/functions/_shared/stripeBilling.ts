@@ -46,26 +46,36 @@ export function firstRecurringPriceId(sub: Stripe.Subscription): string {
   return typeof p === "string" ? p : p?.id ?? "";
 }
 
-/** Mapowanie price_id z Secrets → tier (Checkout używa tylko Pro/Premium). */
+export type StripePaidTier = "tier0" | "tier1" | "tier2";
+
+/** Mapowanie price_id z Secrets → tier (Starter / Pro / Premium / test_daily → jak Pro). */
 export function tierFromStripePrice(
   priceId: string,
+  priceStarter: string,
   pricePro: string,
   pricePremium: string,
-  fallbackTier: "tier1" | "tier2",
-): "tier1" | "tier2" {
+  priceTestDaily: string,
+  fallbackTier: StripePaidTier,
+): StripePaidTier {
   if (pricePremium && priceId === pricePremium) return "tier2";
   if (pricePro && priceId === pricePro) return "tier1";
+  if (priceTestDaily && priceId === priceTestDaily) return "tier1";
+  if (priceStarter && priceId === priceStarter) return "tier0";
   return fallbackTier;
 }
 
-/** Wykrywanie upgrade / downgrade Pro vs Premium wg ID cen z Secrets. */
+/** Wykrywanie rangi planu wg ID cen (0 = Starter / nieznany, 1 = Pro lub test_daily, 2 = Premium). */
 export function priceTierRank(
   priceId: string,
+  priceStarter: string,
   pricePro: string,
   pricePremium: string,
+  priceTestDaily: string,
 ): number {
   if (pricePremium && priceId === pricePremium) return 2;
   if (pricePro && priceId === pricePro) return 1;
+  if (priceTestDaily && priceId === priceTestDaily) return 1;
+  if (priceStarter && priceId === priceStarter) return 0;
   return 0;
 }
 
@@ -96,7 +106,7 @@ function periodEndIso(sub: Stripe.Subscription): string {
  */
 export function subscriptionContentPatch(
   sub: Stripe.Subscription,
-  tier: "tier1" | "tier2",
+  tier: StripePaidTier,
 ): Record<string, unknown> {
   const cid = customerIdString(sub.customer);
   const st = sub.status;
@@ -205,12 +215,16 @@ export async function resolvePageForStripeSubscription(
 }
 
 type ApplyOpts = {
+  /** Opcjonalny Secret STRIPE_PRICE_STARTER — bez niego Starter z checkoutu mapuje się z metadata / fallback. */
+  priceStarter?: string;
+  /** Opcjonalny Secret STRIPE_PRICE_TEST_DAILY — krótki cykl testowy, w CMS jak Pro (tier1). */
+  priceTestDaily?: string;
   pricePro: string;
   pricePremium: string;
   /** Gdy brak price match (np. zmiana cennika) — ostatnia znana wartość z content / checkout. */
-  tierFallback?: "tier1" | "tier2";
+  tierFallback?: StripePaidTier;
   /** Nadpisanie tieru (np. świeży checkout — metadata ma pierwszeństwo przed price_id). */
-  tierOverride?: "tier1" | "tier2";
+  tierOverride?: StripePaidTier;
 };
 
 /**
@@ -234,12 +248,24 @@ export async function applyStripeSubscriptionToPage(
           unknown
         > | undefined)?.subscription as Record<string, unknown> | undefined
       : undefined;
-  let fallback: "tier1" | "tier2" = "tier1";
+  let fallback: StripePaidTier = "tier1";
   if (existingTier?.plan === "tier2" || existingTier?.selected_plan === "tier2") fallback = "tier2";
+  else if (existingTier?.plan === "tier0" || existingTier?.selected_plan === "tier0") fallback = "tier0";
   if (opts.tierFallback === "tier2") fallback = "tier2";
+  if (opts.tierFallback === "tier0") fallback = "tier0";
+  if (opts.tierFallback === "tier1") fallback = "tier1";
+  const priceStarter = opts.priceStarter ?? "";
+  const priceTestDaily = opts.priceTestDaily ?? "";
   const tier =
     opts.tierOverride ??
-    tierFromStripePrice(priceId, opts.pricePro, opts.pricePremium, fallback);
+    tierFromStripePrice(
+      priceId,
+      priceStarter,
+      opts.pricePro,
+      opts.pricePremium,
+      priceTestDaily,
+      fallback,
+    );
   const patch = subscriptionContentPatch(sub, tier);
 
   const prevContent =

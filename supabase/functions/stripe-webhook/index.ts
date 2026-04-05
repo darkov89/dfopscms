@@ -19,15 +19,18 @@ import {
   findPageByUserId,
   resolvePageForInvoice,
   resolvePageForStripeSubscription,
+  type StripePaidTier,
 } from "../_shared/stripeBilling.ts";
 
 declare const Deno: { env: { get: (k: string) => string | undefined } };
 
-function tierPlanFromMetadata(planMeta: string | undefined | null): "tier1" | "tier2" {
+function tierPlanFromMetadata(planMeta: string | undefined | null): StripePaidTier | undefined {
   const p = String(planMeta || "").toLowerCase().trim();
+  if (!p) return undefined;
   if (p === "premium" || p === "tier2") return "tier2";
-  if (p === "pro" || p === "tier1") return "tier1";
-  return "tier1";
+  if (p === "pro" || p === "tier1" || p === "test_daily") return "tier1";
+  if (p === "starter" || p === "tier0") return "tier0";
+  return undefined;
 }
 
 /**
@@ -37,8 +40,10 @@ async function handleInvoicePaymentSuccess(
   supabase: ReturnType<typeof createClient>,
   stripe: Stripe,
   invoice: Stripe.Invoice,
+  priceStarter: string,
   pricePro: string,
   pricePremium: string,
+  priceTestDaily: string,
 ): Promise<{ errorResponse?: Response }> {
   const page = await resolvePageForInvoice(supabase, stripe, invoice);
   if (!page?.id) {
@@ -51,6 +56,8 @@ async function handleInvoicePaymentSuccess(
     try {
       const subscription = await stripe.subscriptions.retrieve(subId);
       const result = await applyStripeSubscriptionToPage(supabase, page, subscription, {
+        priceStarter,
+        priceTestDaily,
         pricePro,
         pricePremium,
       });
@@ -91,6 +98,8 @@ serve(async (req) => {
   const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET") ?? "";
   const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
   const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const priceStarter = Deno.env.get("STRIPE_PRICE_STARTER") ?? "";
+  const priceTestDaily = Deno.env.get("STRIPE_PRICE_TEST_DAILY") ?? "";
   const pricePro = Deno.env.get("STRIPE_PRICE_PRO") ?? "";
   const pricePremium = Deno.env.get("STRIPE_PRICE_PREMIUM") ?? "";
 
@@ -151,8 +160,7 @@ serve(async (req) => {
           return jsonOk({ received: true, skipped: "no_user" });
         }
 
-        const metadataPlan = session.metadata?.plan;
-        const tierOverride = tierPlanFromMetadata(metadataPlan);
+        const tierFromMeta = tierPlanFromMetadata(session.metadata?.plan);
 
         const subId =
           typeof session.subscription === "string"
@@ -189,9 +197,11 @@ serve(async (req) => {
         }
 
         const result = await applyStripeSubscriptionToPage(supabase, page, subscription, {
+          priceStarter,
+          priceTestDaily,
           pricePro,
           pricePremium,
-          tierOverride,
+          ...(tierFromMeta ? { tierOverride: tierFromMeta } : {}),
         });
         if (!result.ok) {
           return new Response(JSON.stringify({ error: result.error }), {
@@ -210,6 +220,8 @@ serve(async (req) => {
           return jsonOk({ received: true, skipped: "no_page" });
         }
         const result = await applyStripeSubscriptionToPage(supabase, page, subscription, {
+          priceStarter,
+          priceTestDaily,
           pricePro,
           pricePremium,
         });
@@ -246,8 +258,10 @@ serve(async (req) => {
           supabase,
           stripe,
           invoice,
+          priceStarter,
           pricePro,
           pricePremium,
+          priceTestDaily,
         );
         if (errorResponse) return errorResponse;
         break;

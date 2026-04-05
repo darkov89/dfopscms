@@ -99,6 +99,8 @@ serve(async (req) => {
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
     const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     const stripeSecret = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
+    const priceStarter = Deno.env.get("STRIPE_PRICE_STARTER") ?? "";
+    const priceTestDaily = Deno.env.get("STRIPE_PRICE_TEST_DAILY") ?? "";
     const pricePro = Deno.env.get("STRIPE_PRICE_PRO") ?? "";
     const pricePremium = Deno.env.get("STRIPE_PRICE_PREMIUM") ?? "";
 
@@ -119,26 +121,27 @@ serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const plan = typeof body?.plan === "string" ? body.plan.trim().toLowerCase() : "";
-    if (plan !== "pro" && plan !== "premium") {
-      throw new Error('Podaj plan: "pro" lub "premium".');
+    if (plan !== "pro" && plan !== "premium" && plan !== "test_daily") {
+      throw new Error('Podaj plan: "pro", "premium" lub "test_daily".');
     }
 
-    let targetPriceId = plan === "premium" ? pricePremium : pricePro;
+    let targetPriceId =
+      plan === "premium" ? pricePremium : plan === "test_daily" ? priceTestDaily : pricePro;
     const rawPrice =
       typeof body?.priceId === "string" ? body.priceId.trim() : "";
-    const allowed = new Set([pricePro, pricePremium].filter(Boolean));
+    const allowed = new Set([pricePro, pricePremium, priceTestDaily].filter(Boolean));
     if (rawPrice && allowed.has(rawPrice)) targetPriceId = rawPrice;
     else if (
       rawPrice &&
       (rawPrice.startsWith("price_") || rawPrice.startsWith("prod_")) &&
-      (plan === "pro" || plan === "premium")
+      (plan === "pro" || plan === "premium" || plan === "test_daily")
     ) {
       targetPriceId = rawPrice;
     }
 
     if (!targetPriceId) {
       throw new Error(
-        "Brak STRIPE_PRICE_PRO / STRIPE_PRICE_PREMIUM (Secrets) lub priceId w żądaniu.",
+        "Brak STRIPE_PRICE_PRO / PREMIUM / TEST_DAILY (Secrets) lub priceId w żądaniu.",
       );
     }
 
@@ -192,8 +195,8 @@ serve(async (req) => {
       });
     }
 
-    const curRank = priceTierRank(currentPriceId, pricePro, pricePremium);
-    const newRank = priceTierRank(resolvedNewPriceId, pricePro, pricePremium);
+    const curRank = priceTierRank(currentPriceId, priceStarter, pricePro, pricePremium, priceTestDaily);
+    const newRank = priceTierRank(resolvedNewPriceId, priceStarter, pricePro, pricePremium, priceTestDaily);
 
     /** Oba rozpoznane jako Pro/Premium i downgrade po cenniku → portal (następny okres + kredyt wg Stripe). */
     if (curRank >= 1 && newRank >= 1 && newRank < curRank) {

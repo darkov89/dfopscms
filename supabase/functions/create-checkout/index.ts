@@ -149,21 +149,25 @@ serve(async (req) => {
       throw new Error("Brak STRIPE_SECRET_KEY na serwerze");
     }
 
+    const priceStarter = Deno.env.get("STRIPE_PRICE_STARTER") ?? "";
+    const priceTestDaily = Deno.env.get("STRIPE_PRICE_TEST_DAILY") ?? "";
     const pricePro = Deno.env.get("STRIPE_PRICE_PRO") ?? "";
     const pricePremium = Deno.env.get("STRIPE_PRICE_PREMIUM") ?? "";
-    const allowed = new Set([pricePro, pricePremium].filter(Boolean));
+    const allowed = new Set([priceStarter, priceTestDaily, pricePro, pricePremium].filter(Boolean));
 
     const body = await req.json().catch(() => ({}));
     const rawPrice =
       typeof body?.priceId === "string" ? body.priceId.trim() : "";
-    const plan = typeof body?.plan === "string" ? body.plan.trim() : "";
+    const plan = typeof body?.plan === "string" ? body.plan.trim().toLowerCase() : "";
 
     let priceId = "";
-    if (plan === "pro" && pricePro) priceId = pricePro;
+    if (plan === "starter" && priceStarter) priceId = priceStarter;
+    else if (plan === "test_daily" && priceTestDaily) priceId = priceTestDaily;
+    else if (plan === "pro" && pricePro) priceId = pricePro;
     else if (plan === "premium" && pricePremium) priceId = pricePremium;
     else if (rawPrice && allowed.has(rawPrice)) priceId = rawPrice;
     else if (
-      (plan === "pro" || plan === "premium") &&
+      (plan === "pro" || plan === "premium" || plan === "starter" || plan === "test_daily") &&
       rawPrice &&
       (rawPrice.startsWith("price_") || rawPrice.startsWith("prod_"))
     ) {
@@ -173,7 +177,7 @@ serve(async (req) => {
 
     if (!priceId) {
       throw new Error(
-        "Nieprawidłowy plan lub cena. Ustaw STRIPE_PRICE_PRO i STRIPE_PRICE_PREMIUM (Secrets) albo stripePrices w js/core/config.js (price_ lub prod_).",
+        "Nieprawidłowy plan lub cena. Ustaw Secrets (STRIPE_PRICE_PRO, PREMIUM, opcjonalnie STARTER / TEST_DAILY) albo stripePrices w config.js.",
       );
     }
 
@@ -207,11 +211,15 @@ serve(async (req) => {
         supabase_user_id: user.id,
         plan:
           plan ||
-          (resolvedPriceId === pricePro
-            ? "pro"
-            : resolvedPriceId === pricePremium
-              ? "premium"
-              : ""),
+          (resolvedPriceId === priceStarter
+            ? "starter"
+            : resolvedPriceId === priceTestDaily
+              ? "test_daily"
+              : resolvedPriceId === pricePro
+                ? "pro"
+                : resolvedPriceId === pricePremium
+                  ? "premium"
+                  : ""),
       },
     };
     if (existingCustomerId) {
