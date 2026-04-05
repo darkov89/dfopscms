@@ -26,75 +26,75 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
-    <script defer src="js/core/config.js?v=20260405c"></script>
-    <script defer src="js/core/supabaseClient.js?v=20260405c"></script>
-    <script defer src="js/templates/registry.js?v=20260405c"></script>
-    <script defer src="js/core/contentSchema.js?v=20260405c"></script>
-    <script defer src="js/core/contentUpgrader.js?v=20260405c"></script>
-    <script defer src="js/core/themeStyling.js?v=20260405c"></script>
-    <script defer src="js/core/pageRepository.js?v=20260405c"></script>
-    <script defer src="js/core/planUtils.js?v=20260405c"></script>
-    <script defer src="js/core/analytics.js?v=20260405c"></script>
-    <script defer src="js/features/adminApp.js?v=20260405c"></script>
+    <script defer src="js/core/config.js?v=20260405d"></script>
+    <script defer src="js/core/supabaseClient.js?v=20260405d"></script>
+    <script defer src="js/templates/registry.js?v=20260405d"></script>
+    <script defer src="js/core/contentSchema.js?v=20260405d"></script>
+    <script defer src="js/core/contentUpgrader.js?v=20260405d"></script>
+    <script defer src="js/core/themeStyling.js?v=20260405d"></script>
+    <script defer src="js/core/pageRepository.js?v=20260405d"></script>
+    <script defer src="js/core/planUtils.js?v=20260405d"></script>
+    <script defer src="js/core/analytics.js?v=20260405d"></script>
+    <script defer src="js/features/adminApp.js?v=20260405d"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
-    <link rel="stylesheet" href="css/styles.css?v=20260405c">
+    <link rel="stylesheet" href="css/styles.css?v=20260405d">
 </head>
 <body class="flex min-h-screen flex-col bg-slate-50 font-sans text-slate-800 antialiased" x-data="typeof DFOPS_adminAlpineState === 'function' ? DFOPS_adminAlpineState() : { sidebarOpen: false, isLoading: false, content: { pl: { nav: { menu: {} }, hero: {}, manifesto: {}, services: [], faq: [], contact: {}, settings: {} } } }">
 
     <div x-show="showWizard" x-cloak class="fixed inset-0 z-[100] overflow-y-auto bg-slate-50" x-transition.opacity>
         <div x-show="wizardStep === 0" class="min-h-screen flex flex-col items-center justify-center p-6 max-w-5xl mx-auto" x-transition>
             <div class="text-center mb-12">
-                <h1 class="text-4xl font-black tracking-widest text-slate-900 mb-4">WITAJ W DF<span class="text-[#D4AF37]">CMS</span></h1>
-                <p class="text-slate-500 max-w-xl mx-auto text-lg">Jak chcesz stworzyć swoją nową stronę? Wybierz ścieżkę, która najbardziej Ci odpowiada.</p>
+                <h1 class="mb-4 text-4xl font-black tracking-widest text-slate-900">WITAJ W DF<span class="text-accent">CMS</span></h1>
+                <p class="mx-auto max-w-xl text-lg leading-relaxed text-slate-500">Jak chcesz stworzyć swoją nową stronę? Wybierz ścieżkę, która najbardziej Ci odpowiada.</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
-                <button type="button" @click="startWizard()" class="group text-left bg-white p-10 rounded-xl shadow-xl border-2 border-transparent hover:border-[#D4AF37] transition-all duration-300 transform hover:-translate-y-1">
-                    <div class="w-16 h-16 bg-amber-50 text-[#D4AF37] rounded-full flex items-center justify-center mb-6">
+            <div class="grid w-full grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
+                <button type="button" @click="startWizard()" class="group relative transform rounded-2xl border-2 border-transparent bg-white p-8 text-left shadow-panel-md ring-1 ring-slate-900/5 transition-all duration-300 hover:-translate-y-0.5 hover:border-accent hover:shadow-panel-md md:p-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2">
+                    <div class="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 text-accent">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                     </div>
                     <h2 class="text-2xl font-bold text-slate-900 mb-3 uppercase tracking-widest">Stwórzmy to razem (Krok po kroku)</h2>
                     <p class="text-slate-500 mb-6 leading-relaxed">Odpowiedz na kilka prostych pytań, a my ułożymy z nich piękną stronę. Zrób sobie ulubioną herbatę i zaczynamy!</p>
-                    <span class="text-[#D4AF37] font-bold text-sm uppercase tracking-widest flex items-center gap-2 group-hover:translate-x-2 transition-transform">
-                        Rozpocznij krok po kroku <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    <span class="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-accent transition-transform group-hover:translate-x-2">
+                        Rozpocznij krok po kroku <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </span>
                 </button>
 
-                <button type="button" @click="skipWizard()" class="group text-left bg-white p-10 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300">
-                    <div class="w-16 h-16 bg-gray-100 text-slate-600 rounded-full flex items-center justify-center mb-6">
+                <button type="button" @click="skipWizard()" class="group rounded-2xl border border-slate-200/80 bg-white p-8 text-left shadow-panel ring-1 ring-slate-900/5 transition-all duration-300 hover:border-slate-300 hover:shadow-panel-md md:p-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/30 focus-visible:ring-offset-2">
+                    <div class="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-600">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     </div>
                     <h2 class="text-2xl font-bold text-slate-900 mb-3 uppercase tracking-widest">Przejdź do Studia (Dla odkrywców)</h2>
                     <p class="text-slate-500 mb-6 leading-relaxed">Wolisz pełną swobodę? Przejdź od razu do swojego Studia i dopracuj każdy detal samodzielnie.</p>
-                    <span class="text-slate-900 font-bold text-sm uppercase tracking-widest flex items-center gap-2 group-hover:translate-x-2 transition-transform">
-                        Przejdź do Studia <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    <span class="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-slate-900 transition-transform group-hover:translate-x-2">
+                        Przejdź do Studia <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </span>
                 </button>
             </div>
         </div>
 
-        <div x-show="wizardStep >= 1 && wizardStep <= 4" class="min-h-screen p-6 max-w-2xl mx-auto flex flex-col justify-center" x-transition.opacity>
+        <div x-show="wizardStep >= 1 && wizardStep <= 4" class="mx-auto flex min-h-screen max-w-2xl flex-col justify-center p-4 sm:p-6" x-transition.opacity>
             <div class="mb-8">
-                <div class="flex justify-between text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+                <div class="mb-2 flex justify-between text-xs font-bold uppercase tracking-widest text-slate-400">
                     <span>Krok <span x-text="wizardStep"></span> z 4</span>
-                    <button type="button" @click="skipWizard()" class="hover:text-slate-900 transition-colors">Pomiń Kreator ✕</button>
+                    <button type="button" @click="skipWizard()" class="rounded-md px-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">Pomiń Kreator ✕</button>
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-1.5">
-                    <div class="bg-[#D4AF37] h-1.5 rounded-full transition-all duration-500" :style="'width: ' + ((wizardStep / 4) * 100) + '%'"></div>
+                <div class="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                    <div class="h-full rounded-full bg-accent transition-all duration-500 ease-out" :style="'width: ' + ((wizardStep / 4) * 100) + '%'"></div>
                 </div>
             </div>
 
-            <div x-show="wizardFieldWarning" class="mb-4 p-3 rounded-sm bg-amber-50 border border-amber-200 text-amber-900 text-sm" x-text="wizardFieldWarning"></div>
+            <div x-show="wizardFieldWarning" class="mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 p-3 text-sm text-amber-950 shadow-panel ring-1 ring-amber-900/5" x-text="wizardFieldWarning"></div>
 
-            <div class="bg-white p-10 rounded-xl shadow-2xl border border-gray-100">
+            <div class="rounded-2xl border border-slate-200/70 bg-white p-6 shadow-panel-md ring-1 ring-slate-900/5 sm:p-8 md:p-10">
                 <div x-show="wizardStep === 1" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
                     <h2 class="text-3xl font-black text-slate-900 mb-2">Wybierz swój styl 🎨</h2>
                     <p class="text-sm text-slate-500 mb-8">Od tego zaczniemy. Nie martw się — zmienisz to później w ustawieniach.</p>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <label class="relative block cursor-pointer group">
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <label class="group relative block cursor-pointer">
                             <input type="radio" x-model="wizardTheme" value="beauty" class="peer sr-only">
-                            <div class="border-2 border-gray-200 rounded-xl overflow-hidden peer-checked:border-[#D4AF37] peer-checked:ring-2 peer-checked:ring-[#D4AF37] transition-all">
+                            <div class="overflow-hidden rounded-xl border-2 border-slate-200/80 transition-all peer-checked:border-accent peer-checked:ring-2 peer-checked:ring-accent/35">
                                 <div class="h-32 bg-pink-50 relative flex items-center justify-center">
                                     <span class="text-pink-300 font-bold text-xl uppercase tracking-widest">BEAUTY</span>
                                 </div>
@@ -103,14 +103,14 @@
                                     <p class="text-xs text-slate-500 mt-1">Dla kosmetyczek, spa i fryzjerów.</p>
                                 </div>
                             </div>
-                            <div class="absolute top-2 right-2 w-6 h-6 bg-[#D4AF37] text-white rounded-full flex items-center justify-center opacity-0 peer-checked:opacity-100 transition-opacity shadow-md pointer-events-none">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                            <div class="pointer-events-none absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-accent text-white opacity-0 shadow-panel transition-opacity peer-checked:opacity-100">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                             </div>
                         </label>
 
-                        <label class="relative block cursor-pointer group">
+                        <label class="group relative block cursor-pointer">
                             <input type="radio" x-model="wizardTheme" value="consultant" class="peer sr-only">
-                            <div class="border-2 border-gray-200 rounded-xl overflow-hidden peer-checked:border-[#D4AF37] peer-checked:ring-2 peer-checked:ring-[#D4AF37] transition-all">
+                            <div class="overflow-hidden rounded-xl border-2 border-slate-200/80 transition-all peer-checked:border-accent peer-checked:ring-2 peer-checked:ring-accent/35">
                                 <div class="h-32 bg-blue-50 relative flex items-center justify-center">
                                     <span class="text-blue-300 font-bold text-xl uppercase tracking-widest">BIZNES</span>
                                 </div>
@@ -119,8 +119,8 @@
                                     <p class="text-xs text-slate-500 mt-1">Dla doradców, prawników i freelancerów.</p>
                                 </div>
                             </div>
-                            <div class="absolute top-2 right-2 w-6 h-6 bg-[#D4AF37] text-white rounded-full flex items-center justify-center opacity-0 peer-checked:opacity-100 transition-opacity shadow-md pointer-events-none">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                            <div class="pointer-events-none absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-accent text-white opacity-0 shadow-panel transition-opacity peer-checked:opacity-100">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                             </div>
                         </label>
                     </div>
@@ -138,22 +138,22 @@
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Główny kolor strony</label>
                             <p x-show="userPlan === 'starter'" class="text-xs text-slate-500 mb-3" x-cloak>W pakiecie Starter dostępna jest pierwsza paleta; pozostałe odblokujesz w PRO.</p>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
                                 <template x-for="(preset, index) in availablePresets" :key="preset.id">
                                     <button type="button"
                                             @click="selectColorPreset(preset, index)"
-                                            class="relative rounded-sm border-2 p-3 text-left transition-all focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                                            class="relative rounded-lg border-2 p-3 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2"
                                             :class="{
-                                                'border-[#D4AF37] ring-1 ring-[#D4AF37]/30': content.pl.settings.color_preset === preset.id,
-                                                'border-gray-200': content.pl.settings.color_preset !== preset.id,
-                                                'opacity-50 cursor-not-allowed': isLocked(index),
-                                                'hover:border-gray-300': !isLocked(index)
+                                                'border-accent ring-1 ring-accent/25': content.pl.settings.color_preset === preset.id,
+                                                'border-slate-200/80': content.pl.settings.color_preset !== preset.id,
+                                                'cursor-not-allowed opacity-50': isLocked(index),
+                                                'hover:border-slate-300': !isLocked(index)
                                             }">
                                         <div class="flex items-center gap-2">
-                                            <div class="w-8 h-8 rounded-sm border border-gray-300 shrink-0 shadow-inner" :style="'background:' + presetSwatchColor(preset.id)"></div>
-                                            <span class="text-xs font-semibold text-slate-800 leading-tight" x-text="preset.label"></span>
+                                            <div class="h-8 w-8 shrink-0 rounded-md border border-slate-200 shadow-inner" :style="'background:' + presetSwatchColor(preset.id)"></div>
+                                            <span class="text-xs font-semibold leading-tight text-slate-800" x-text="preset.label"></span>
                                         </div>
-                                        <div x-show="isLocked(index)" x-cloak class="absolute inset-0 flex items-center justify-center rounded-sm bg-white/50 pointer-events-none">
+                                        <div x-show="isLocked(index)" x-cloak class="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg bg-white/60">
                                             <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                                         </div>
                                     </button>
@@ -164,16 +164,16 @@
                     <div class="mt-6">
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Logo Twojej marki</label>
                         <div class="flex flex-wrap items-center gap-4">
-                            <div class="w-20 h-12 bg-gray-100 border-2 border-dashed border-gray-300 rounded flex items-center justify-center overflow-hidden">
+                            <div class="flex h-12 w-20 items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-slate-200 bg-slate-50">
                                 <template x-if="content.pl.nav.logoImage"><img :src="content.pl.nav.logoImage" class="h-full object-contain" alt=""></template>
                                 <template x-if="!content.pl.nav.logoImage"><span class="text-[10px] text-slate-400">BRAK</span></template>
                             </div>
-                            <label class="inline-flex cursor-pointer items-center gap-2 rounded-sm border border-[#D4AF37]/40 bg-amber-50/50 px-3 py-2 text-xs font-semibold text-[#b8941c] hover:bg-amber-50">
+                            <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-accent/35 bg-amber-50/80 px-3 py-2 text-xs font-semibold text-accent-soft transition-colors hover:bg-amber-50 focus-within:ring-2 focus-within:ring-accent/30">
                                 Dodaj swoje piękne zdjęcie
                                 <input type="file" accept="image/*" class="sr-only" @change="uploadImage($event, 'nav', 'logoImage')">
                             </label>
                         </div>
-                        <p x-show="uploadingImage" x-text="uploadingMessage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse"></p>
+                        <p x-show="uploadingImage" x-text="uploadingMessage" class="mt-2 animate-pulse text-xs font-bold text-accent"></p>
                     </div>
                 </div>
 
@@ -194,16 +194,16 @@
                     <div class="mt-6">
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Twoja główna wizytówka (Pierwsze wrażenie)</label>
                         <div class="flex flex-wrap items-center gap-4">
-                            <div class="w-20 h-20 bg-gray-100 border-2 border-dashed border-gray-300 rounded flex items-center justify-center overflow-hidden">
-                                <template x-if="content.pl.hero.image"><img :src="content.pl.hero.image" class="w-full h-full object-cover" alt=""></template>
+                            <div class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-slate-200 bg-slate-50">
+                                <template x-if="content.pl.hero.image"><img :src="content.pl.hero.image" class="h-full w-full object-cover" alt=""></template>
                                 <template x-if="!content.pl.hero.image"><span class="text-[10px] text-slate-400">BRAK</span></template>
                             </div>
-                            <label class="inline-flex cursor-pointer items-center gap-2 rounded-sm border border-[#D4AF37]/40 bg-amber-50/50 px-3 py-2 text-xs font-semibold text-[#b8941c] hover:bg-amber-50">
+                            <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-accent/35 bg-amber-50/80 px-3 py-2 text-xs font-semibold text-accent-soft transition-colors hover:bg-amber-50 focus-within:ring-2 focus-within:ring-accent/30">
                                 Dodaj swoje piękne zdjęcie
                                 <input type="file" accept="image/*" class="sr-only" @change="uploadImage($event, 'hero', 'image')">
                             </label>
                         </div>
-                        <p x-show="uploadingImage" x-text="uploadingMessage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse"></p>
+                        <p x-show="uploadingImage" x-text="uploadingMessage" class="mt-2 animate-pulse text-xs font-bold text-accent"></p>
                     </div>
                 </div>
 
@@ -227,18 +227,18 @@
                                 <div class="mt-6 space-y-4">
                                     <div>
                                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Adres stacjonarny</label>
-                                        <input type="text" x-model="content.pl.contact.address" placeholder="ul. Piękna 12, Warszawa" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:ring-2 focus:ring-[#D4AF37] outline-none">
+                                        <input type="text" x-model="content.pl.contact.address" placeholder="ul. Piękna 12, Warszawa" class="w-full rounded-lg border border-slate-200 px-4 py-3 outline-none focus:border-transparent focus:ring-2 focus:ring-accent/30">
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Mapa Google</label>
                                         <p class="text-xs text-slate-500 mb-3">Wpisz nazwę firmy lub adres, kliknij Szukaj, wybierz wynik i zatwierdź.</p>
                                         <div class="flex gap-2 mb-3">
-                                            <input type="text" x-model="mapPlaceQuery" @keydown.enter.prevent="searchPlacesForMap()" placeholder="np. Przychodnia, Wrocław" class="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#D4AF37]">
-                                            <button type="button" @click="searchPlacesForMap()" :disabled="mapPlaceLoading" class="shrink-0 px-4 py-2 bg-[#121212] text-white text-xs font-bold uppercase rounded-sm disabled:opacity-50">Szukaj</button>
+                                            <input type="text" x-model="mapPlaceQuery" @keydown.enter.prevent="searchPlacesForMap()" placeholder="np. Przychodnia, Wrocław" class="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-accent/30">
+                                            <button type="button" @click="searchPlacesForMap()" :disabled="mapPlaceLoading" class="shrink-0 rounded-lg bg-accent-fg px-4 py-2 text-xs font-bold uppercase text-white shadow-panel transition-colors hover:bg-accent hover:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:opacity-50">Szukaj</button>
                                         </div>
                                         <p x-show="mapPlaceError" class="text-xs text-red-600 mb-2" x-text="mapPlaceError"></p>
                                         <div x-show="mapPlaceLoading" class="text-xs text-slate-500 mb-2">Szukam…</div>
-                                        <ul x-show="mapPlaceResults.length" class="border border-gray-200 rounded-sm divide-y divide-gray-100 max-h-48 overflow-y-auto mb-3">
+                                        <ul x-show="mapPlaceResults.length" class="mb-3 max-h-48 divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-200/80 shadow-panel ring-1 ring-slate-900/5">
                                             <template x-for="p in mapPlaceResults" :key="p.id">
                                                 <li class="flex items-start gap-2 p-2 hover:bg-slate-50/90 cursor-pointer" @click="mapPlaceSelectedId = p.id">
                                                     <input type="radio" :value="p.id" x-model="mapPlaceSelectedId" class="mt-1">
@@ -250,13 +250,13 @@
                                             </template>
                                         </ul>
                                         <div class="flex flex-wrap gap-2 mb-3">
-                                            <button type="button" x-show="mapPlaceSelectedId" @click="confirmMapPlaceSelection()" class="px-4 py-2 bg-emerald-600 text-white text-xs font-bold uppercase rounded-sm">Użyj wybranej lokalizacji</button>
-                                            <button type="button" x-show="content.pl.contact?.map_place_id" @click="clearMapPlaceSelection()" class="px-4 py-2 border border-gray-300 text-xs font-bold uppercase rounded-sm">Usuń mapę z wyszukiwarki</button>
+                                            <button type="button" x-show="mapPlaceSelectedId" @click="confirmMapPlaceSelection()" class="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold uppercase text-white shadow-panel transition-colors hover:bg-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 focus-visible:ring-offset-2">Użyj wybranej lokalizacji</button>
+                                            <button type="button" x-show="content.pl.contact?.map_place_id" @click="clearMapPlaceSelection()" class="rounded-lg border border-slate-200 px-4 py-2 text-xs font-bold uppercase text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/50">Usuń mapę z wyszukiwarki</button>
                                         </div>
                                         <p x-show="content.pl.contact?.map_place_id" class="text-xs text-emerald-800 mb-3">Lokalizacja zapisana — opublikuj stronę. W Google Cloud włącz <strong>Maps Embed API</strong> (ten sam projekt co Places).</p>
-                                        <details class="text-xs text-slate-600 border-t border-gray-100 pt-3">
-                                            <summary class="cursor-pointer font-bold text-slate-700 mb-2">Zaawansowane: własny URL / iframe</summary>
-                                            <input type="text" x-model="content.pl.contact.map_embed_url" placeholder="https://www.google.com/maps/embed?..." class="w-full rounded-lg border border-slate-200 px-3 py-2 outline-none focus:ring-2 focus:ring-[#D4AF37]">
+                                        <details class="border-t border-slate-100 pt-3 text-xs text-slate-600">
+                                            <summary class="mb-2 cursor-pointer font-bold text-slate-700 hover:text-slate-900">Zaawansowane: własny URL / iframe</summary>
+                                            <input type="text" x-model="content.pl.contact.map_embed_url" placeholder="https://www.google.com/maps/embed?..." class="w-full rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-transparent focus:ring-2 focus:ring-accent/30">
                                             <p class="mt-2 text-slate-500">Jeśli to pole jest wypełnione, ma pierwszeństwo przed wyszukiwarką.</p>
                                         </details>
                                     </div>
@@ -266,15 +266,15 @@
                     </div>
                 </div>
 
-                <div class="mt-10 pt-6 border-t border-gray-100 flex items-center justify-between gap-4">
-                    <div class="min-h-[44px] flex items-center">
-                        <button type="button" @click="prevWizardStep()" x-show="wizardStep > 1" class="text-xs font-bold text-slate-500 hover:text-slate-900 uppercase tracking-widest px-4 py-2 transition-colors">← Wróć</button>
+                <div class="mt-8 flex items-center justify-between gap-4 border-t border-slate-200/70 pt-6 sm:mt-10">
+                    <div class="flex min-h-[44px] items-center">
+                        <button type="button" @click="prevWizardStep()" x-show="wizardStep > 1" class="rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40">← Wróć</button>
                     </div>
-                    <div class="flex items-center justify-end gap-3 flex-1">
-                        <button type="button" @click="nextWizardStep()" x-show="wizardStep < 4" class="bg-[#121212] hover:bg-[#D4AF37] hover:text-[#121212] text-white px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-md">
+                    <div class="flex flex-1 items-center justify-end gap-3">
+                        <button type="button" @click="nextWizardStep()" x-show="wizardStep < 4" class="rounded-lg bg-accent-fg px-6 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-panel transition-all duration-200 hover:bg-accent hover:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 sm:px-8 sm:py-4">
                             Dalej →
                         </button>
-                        <button type="button" @click="finishWizard()" x-show="wizardStep === 4" class="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-xl shadow-emerald-500/20 animate-pulse">
+                        <button type="button" @click="finishWizard()" x-show="wizardStep === 4" class="rounded-lg bg-emerald-600 px-6 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-panel-md shadow-emerald-600/25 transition-all duration-200 animate-pulse hover:bg-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/45 focus-visible:ring-offset-2 sm:px-8 sm:py-4">
                             ✨ Opublikuj moją stronę
                         </button>
                     </div>
@@ -284,9 +284,9 @@
 
     </div>
 
-    <div x-show="!user && !loadingAuth" class="flex-grow flex items-center justify-center p-6" x-transition>
-        <div class="bg-white p-10 rounded-sm shadow-xl border w-full max-w-md">
-            <h1 class="text-3xl font-black tracking-widest text-slate-900 text-center mb-2">DF<span class="text-[#D4AF37]">CMS</span></h1>
+    <div x-show="!user && !loadingAuth" class="flex flex-grow items-center justify-center p-4 sm:p-6" x-transition>
+        <div class="w-full max-w-md rounded-2xl border border-slate-200/70 bg-white p-8 shadow-panel-md ring-1 ring-slate-900/5 sm:p-10">
+            <h1 class="mb-2 text-center text-3xl font-black tracking-widest text-slate-900">DF<span class="text-accent">CMS</span></h1>
             <p class="text-xs text-slate-500 uppercase tracking-widest text-center mb-8">Witaj z powrotem!</p>
             
             <form @submit.prevent.stop="login($event)" class="space-y-6">
@@ -299,7 +299,7 @@
                     <input id="admin-password" type="password" x-model="password" required class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
                 </div>
                 <label class="flex items-center gap-2 mt-4 cursor-pointer">
-                    <input type="checkbox" x-model="rememberMe" class="rounded border-gray-300 text-[#D4AF37] focus:ring-[#D4AF37]">
+                    <input type="checkbox" x-model="rememberMe" class="rounded border-slate-300 text-accent focus:ring-accent/40">
                     <span class="text-sm text-slate-500">Zapamiętaj mnie na tym urządzeniu</span>
                 </label>
                 
