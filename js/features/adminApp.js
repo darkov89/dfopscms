@@ -147,6 +147,8 @@
       stripeSyncLoading: false,
       newPassword: '',
       newPasswordConfirm: '',
+      /** Podgląd znaków przy zmianie hasła (Konto). */
+      showAccountPassword: false,
       isPasswordUpdating: false,
       isPortalLoading: false,
       latestTemplateVersion: window.DFOPS_LATEST_TEMPLATE_VERSION || 3,
@@ -328,6 +330,29 @@
       },
 
       /** Polska data z ISO w subscription.current_period_end (webhook Stripe). */
+      /** Zmiana hasła: dopiero po 6+ znakach i zgodności obu pól (po trim). */
+      get accountPasswordFieldsTrimmed() {
+        return {
+          a: String(this.newPassword ?? '').trim(),
+          b: String(this.newPasswordConfirm ?? '').trim(),
+        };
+      },
+      get canUpdatePassword() {
+        if (this.isPasswordUpdating) return false;
+        const { a, b } = this.accountPasswordFieldsTrimmed;
+        return a.length >= 6 && a === b;
+      },
+      get accountPasswordHint() {
+        const { a, b } = this.accountPasswordFieldsTrimmed;
+        if (!a && !b) return '';
+        if (a.length < 6) return `Za krótkie — minimum 6 znaków (${a.length}/6).`;
+        if (!b) return 'Wpisz to samo hasło w polu „Potwierdź”.';
+        if (a !== b) return 'Hasła się różnią.';
+        return 'Hasła są zgodne — możesz zapisać.';
+      },
+      get accountPasswordHintClass() {
+        return this.canUpdatePassword ? 'text-emerald-700' : 'text-amber-800';
+      },
       get subscriptionRenewalDateFormatted() {
         const raw = this.content?.pl?.settings?.subscription?.current_period_end;
         if (raw == null || raw === '') return '—';
@@ -358,8 +383,8 @@
           this.showToast('Brak połączenia z serwisem. Odśwież stronę.', 'error');
           return;
         }
-        const pw = String(this.newPassword || '');
-        const pw2 = String(this.newPasswordConfirm || '');
+        const pw = String(this.newPassword ?? '').trim();
+        const pw2 = String(this.newPasswordConfirm ?? '').trim();
         if (pw.length < 6) {
           this.showToast('Hasło musi mieć co najmniej 6 znaków.', 'error');
           return;
@@ -371,7 +396,7 @@
         this.isPasswordUpdating = true;
         try {
           const { error } = await this.supabase.auth.updateUser({
-            password: this.newPassword,
+            password: pw,
           });
           if (error) throw error;
           this.showToast('Hasło zostało pomyślnie zmienione!', 'success');
