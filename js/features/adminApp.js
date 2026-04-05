@@ -146,6 +146,7 @@
       checkoutLoading: false,
       stripeSyncLoading: false,
       newPassword: '',
+      newPasswordConfirm: '',
       isPasswordUpdating: false,
       isPortalLoading: false,
       latestTemplateVersion: window.DFOPS_LATEST_TEMPLATE_VERSION || 3,
@@ -197,6 +198,19 @@
         const sid = typeof sub?.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
         if (sid && (st === 'active' || st === 'trialing')) return true;
         return false;
+      },
+      /**
+       * True gdy w Stripe wisi jeszcze subskrypcja — wtedy nie udostępniamy prośby o usunięcie konta
+       * (najpierw anulowanie w portalu Stripe).
+       */
+      get subscriptionBlocksAccountDeletion() {
+        const sub = this.content?.pl?.settings?.subscription;
+        const sid = typeof sub?.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
+        if (!sid) return false;
+        const stRaw = typeof sub?.status === 'string' ? sub.status.trim().toLowerCase() : '';
+        if (stRaw === 'canceled' || stRaw === 'cancelled' || stRaw === 'incomplete_expired') return false;
+        if (!stRaw) return true;
+        return ['active', 'trialing', 'past_due', 'unpaid', 'paused'].includes(stRaw);
       },
       get activeSubscriptionBrandLabel() {
         const t = this.activePaidTierForUi;
@@ -344,8 +358,14 @@
           this.showToast('Brak połączenia z serwisem. Odśwież stronę.', 'error');
           return;
         }
-        if (String(this.newPassword || '').length < 6) {
+        const pw = String(this.newPassword || '');
+        const pw2 = String(this.newPasswordConfirm || '');
+        if (pw.length < 6) {
           this.showToast('Hasło musi mieć co najmniej 6 znaków.', 'error');
+          return;
+        }
+        if (pw !== pw2) {
+          this.showToast('Hasła nie są takie same — wpisz to samo hasło w obu polach.', 'error');
           return;
         }
         this.isPasswordUpdating = true;
@@ -356,6 +376,7 @@
           if (error) throw error;
           this.showToast('Hasło zostało pomyślnie zmienione!', 'success');
           this.newPassword = '';
+          this.newPasswordConfirm = '';
         } catch (err) {
           const msg = err && typeof err === 'object' && 'message' in err ? String((err).message) : String(err);
           this.showToast(msg || 'Nie udało się zmienić hasła.', 'error');
@@ -397,6 +418,13 @@
       },
 
       deleteAccount() {
+        if (this.subscriptionBlocksAccountDeletion) {
+          this.showToast(
+            'Najpierw anuluj subskrypcję w Stripe: zakładka Subskrypcja → „Zarządzaj subskrypcją i fakturami”. Gdy subskrypcja w Stripe będzie anulowana, wróć tu i wyślij prośbę o usunięcie konta.',
+            'error',
+          );
+          return;
+        }
         const confirmed = confirm(
           'Czy na pewno chcesz bezpowrotnie usunąć swoje konto i stronę? Tej operacji nie można cofnąć.',
         );

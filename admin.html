@@ -10,18 +10,18 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
-    <script defer src="js/core/config.js?v=20260405a"></script>
-    <script defer src="js/core/supabaseClient.js?v=20260405a"></script>
-    <script defer src="js/templates/registry.js?v=20260405a"></script>
-    <script defer src="js/core/contentSchema.js?v=20260405a"></script>
-    <script defer src="js/core/contentUpgrader.js?v=20260405a"></script>
-    <script defer src="js/core/themeStyling.js?v=20260405a"></script>
-    <script defer src="js/core/pageRepository.js?v=20260405a"></script>
-    <script defer src="js/core/planUtils.js?v=20260405a"></script>
-    <script defer src="js/core/analytics.js?v=20260405a"></script>
-    <script defer src="js/features/adminApp.js?v=20260405a"></script>
+    <script defer src="js/core/config.js?v=20260405b"></script>
+    <script defer src="js/core/supabaseClient.js?v=20260405b"></script>
+    <script defer src="js/templates/registry.js?v=20260405b"></script>
+    <script defer src="js/core/contentSchema.js?v=20260405b"></script>
+    <script defer src="js/core/contentUpgrader.js?v=20260405b"></script>
+    <script defer src="js/core/themeStyling.js?v=20260405b"></script>
+    <script defer src="js/core/pageRepository.js?v=20260405b"></script>
+    <script defer src="js/core/planUtils.js?v=20260405b"></script>
+    <script defer src="js/core/analytics.js?v=20260405b"></script>
+    <script defer src="js/features/adminApp.js?v=20260405b"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
-    <link rel="stylesheet" href="css/styles.css?v=20260405a">
+    <link rel="stylesheet" href="css/styles.css?v=20260405b">
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col" x-data="typeof DFOPS_adminAlpineState === 'function' ? DFOPS_adminAlpineState() : { sidebarOpen: false, isLoading: false, content: { pl: { nav: { menu: {} }, hero: {}, manifesto: {}, services: [], faq: [], contact: {}, settings: {} } } }">
 
@@ -1527,20 +1527,29 @@
                             <div class="space-y-6">
                                 <div class="bg-white p-6 border border-gray-200 rounded-sm shadow-sm">
                                     <h4 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-4">Zmień hasło</h4>
-                                    <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                                        <div class="w-full sm:w-64 relative">
-                                            <label for="settings-account-password" class="sr-only">Nowe hasło</label>
+                                    <div class="flex flex-col gap-4 max-w-md">
+                                        <div>
+                                            <label for="settings-account-password" class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Nowe hasło</label>
                                             <input id="settings-account-password"
                                                    type="password"
                                                    autocomplete="new-password"
                                                    x-model="newPassword"
-                                                   placeholder="Nowe hasło (min. 6 znaków)"
+                                                   placeholder="Min. 6 znaków"
+                                                   class="w-full border border-gray-300 rounded-sm px-4 py-2 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all">
+                                        </div>
+                                        <div>
+                                            <label for="settings-account-password-confirm" class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Potwierdź hasło</label>
+                                            <input id="settings-account-password-confirm"
+                                                   type="password"
+                                                   autocomplete="new-password"
+                                                   x-model="newPasswordConfirm"
+                                                   placeholder="Powtórz to samo hasło"
                                                    class="w-full border border-gray-300 rounded-sm px-4 py-2 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all">
                                         </div>
                                         <button type="button"
                                                 @click="updatePassword()"
-                                                :disabled="isPasswordUpdating || saving || (newPassword || '').length < 6"
-                                                class="bg-[#121212] hover:bg-[#D4AF37] text-white px-6 py-2 rounded-sm text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                                                :disabled="isPasswordUpdating || saving || (newPassword || '').length < 6 || (newPassword || '') !== (newPasswordConfirm || '')"
+                                                class="self-start bg-[#121212] hover:bg-[#D4AF37] text-white px-6 py-2 rounded-sm text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                                             <span x-show="!isPasswordUpdating">Aktualizuj hasło</span>
                                             <span x-show="isPasswordUpdating" x-cloak class="animate-pulse">Zapisywanie...</span>
                                         </button>
@@ -1548,10 +1557,18 @@
                                 </div>
                                 <div class="bg-red-50 p-6 border border-red-100 rounded-sm">
                                     <h4 class="text-xs font-bold text-red-800 uppercase tracking-widest mb-2">Strefa niebezpieczna</h4>
+                                    <div x-show="subscriptionBlocksAccountDeletion" x-cloak class="mb-4 rounded-lg border border-amber-200 bg-amber-50/90 p-4 text-sm text-amber-950">
+                                        <p class="font-bold text-amber-900 mb-2">Najpierw zrezygnuj z subskrypcji w Stripe</p>
+                                        <p class="text-amber-900/90 leading-relaxed mb-3">Masz aktywną subskrypcję rozliczaną przez Stripe. Anuluj ją w portalu płatności (faktury, anulowanie). Gdy status subskrypcji w Stripe będzie <strong>anulowany</strong>, możesz poprosić o usunięcie konta.</p>
+                                        <button type="button" @click="setTab('subscription')" class="text-xs font-bold uppercase tracking-widest text-[#9a7b16] underline hover:text-[#121212] mr-4">Przejdź do subskrypcji</button>
+                                        <button type="button" @click="openCustomerPortal()" :disabled="isPortalLoading" class="text-xs font-bold uppercase tracking-widest text-[#9a7b16] underline hover:text-[#121212] disabled:opacity-50">Otwórz portal Stripe</button>
+                                    </div>
                                     <p class="text-sm text-red-600 mb-4">Usunięcie konta jest nieodwracalne. Utracisz dostęp do swojej strony i wszystkich danych. Otworzymy szkic wiadomości e-mail do obsługi.</p>
                                     <button type="button"
                                             @click="deleteAccount()"
-                                            class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-sm text-xs font-bold uppercase tracking-widest transition-colors shadow-sm">
+                                            :disabled="subscriptionBlocksAccountDeletion"
+                                            :class="subscriptionBlocksAccountDeletion ? 'opacity-40 cursor-not-allowed' : 'hover:bg-red-700'"
+                                            class="bg-red-600 text-white px-6 py-2 rounded-sm text-xs font-bold uppercase tracking-widest transition-colors shadow-sm">
                                         Usuń moje konto
                                     </button>
                                 </div>
