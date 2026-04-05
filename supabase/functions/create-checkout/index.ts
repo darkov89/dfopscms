@@ -2,6 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@12.0.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { findPageByUserId, subscriptionObjFromContent } from "../_shared/stripeBilling.ts";
 
 /** Deno global - available at runtime in Supabase Edge Functions. */
 declare const Deno: { env: { get: (k: string) => string | undefined } };
@@ -101,6 +102,7 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -110,6 +112,36 @@ serve(async (req) => {
     } = await supabaseAuth.auth.getUser();
     if (userErr || !user?.email) {
       throw new Error("Wymagane zalogowanie.");
+    }
+
+    let existingCustomerId = "";
+    if (serviceRole) {
+      const supabaseAdmin = createClient(supabaseUrl, serviceRole, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const page = await findPageByUserId(supabaseAdmin, user.id);
+      const subObj = page?.content ? subscriptionObjFromContent(page.content) : undefined;
+      const existingSubId =
+        typeof subObj?.stripe_subscription_id === "string"
+          ? subObj.stripe_subscription_id.trim()
+          : "";
+      if (existingSubId) {
+        return new Response(
+          JSON.stringify({
+            error:
+              "Masz już subskrypcję Stripe. Upgrade wykonasz w panelu (zmiana planu); downgrade i faktury — w portalu klienta zgodnie z regulaminem.",
+            code: "HAS_STRIPE_SUBSCRIPTION",
+          }),
+          {
+            status: 409,
+            headers: { ...cors, "Content-Type": "application/json" },
+          },
+        );
+      }
+      existingCustomerId =
+        typeof subObj?.stripe_customer_id === "string"
+          ? subObj.stripe_customer_id.trim()
+          : "";
     }
 
     const stripeSecret = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
@@ -164,11 +196,10 @@ serve(async (req) => {
 
     const resolvedPriceId = await resolveToPriceId(stripe, priceId);
 
-    const session = await stripe.checkout.sessions.create({
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
       payment_method_types: ["card"],
       line_items: [{ price: resolvedPriceId, quantity: 1 }],
       mode: "subscription",
-      ...(customerEmail ? { customer_email: customerEmail } : {}),
       success_url: `${returnUrl}?payment=success`,
       cancel_url: `${returnUrl}?payment=cancelled`,
       client_reference_id: user.id,
@@ -182,7 +213,14 @@ serve(async (req) => {
               ? "premium"
               : ""),
       },
-    });
+    };
+    if (existingCustomerId) {
+      sessionParams.customer = existingCustomerId;
+    } else if (customerEmail) {
+      sessionParams.customer_email = customerEmail;
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...cors, "Content-Type": "application/json" },

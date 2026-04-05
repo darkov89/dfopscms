@@ -30,3 +30,7 @@ verify_jwt = false
 # Stripe Customer Portal (Bearer JWT jak create-checkout).
 [functions.create-portal-session]
 verify_jwt = false
+
+# Zmiana planu Pro ↔ Premium na istniejącej subskrypcji (upgrade z proratą; downgrade → portal).
+[functions.change-subscription-plan]
+verify_jwt = false

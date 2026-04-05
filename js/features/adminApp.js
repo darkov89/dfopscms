@@ -1117,13 +1117,22 @@
           return;
         }
         if (!this.content?.pl?.settings) return;
-        if (!this.content.pl.settings.subscription) {
-          this.content.pl.settings.subscription = { plan: 'trial', trial_started_at: new Date().toISOString() };
-        }
         const tier = planType === 'pro' ? 'tier1' : 'tier2';
-        this.content.pl.settings.subscription.selected_plan = tier;
-        const saved = await this.saveData({ silentSuccess: true });
-        if (!saved) return;
+        const sub = this.content.pl.settings.subscription || {};
+        const existingStripeSubId =
+          typeof sub.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
+        const changePlanInStripe =
+          !!existingStripeSubId && (planType === 'pro' || planType === 'premium');
+
+        if (!changePlanInStripe) {
+          if (!this.content.pl.settings.subscription) {
+            this.content.pl.settings.subscription = { plan: 'trial', trial_started_at: new Date().toISOString() };
+          }
+          this.content.pl.settings.subscription.selected_plan = tier;
+          const saved = await this.saveData({ silentSuccess: true });
+          if (!saved) return;
+        }
+
         const { data: sessionData } = await this.supabase.auth.getSession();
         const token = sessionData?.session?.access_token;
         if (!token) {
@@ -1132,7 +1141,38 @@
         }
         this.checkoutLoading = true;
         try {
-          const returnUrl = `${window.location.origin}${window.location.pathname}`;
+          const returnUrl = `${window.location.origin}${window.location.pathname}${window.location.search || ''}`;
+          if (changePlanInStripe) {
+            const { data, error } = await this.supabase.functions.invoke('change-subscription-plan', {
+              body: { plan: planType, priceId, returnUrl },
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            if (error) throw error;
+            if (data && data.action === 'use_portal') {
+              this.showToast(
+                typeof data.message === 'string'
+                  ? data.message
+                  : 'Zmianę na niższy pakiet wykonasz w portalu Stripe (od następnego okresu).',
+                'info',
+              );
+              await this.openCustomerPortal();
+              return;
+            }
+            if (data && data.unchanged === true) {
+              this.showToast('Masz już wybrany ten plan rozliczeniowy.', 'success');
+              return;
+            }
+            if (data && typeof data.error === 'string') {
+              throw new Error(data.error);
+            }
+            await this.syncStripeSubscription({ silent: true });
+            this.showToast(
+              'Plan został zaktualizowany. Stripe może wystawić dopłatę proratą — sprawdź e-mail lub portal płatności.',
+              'success',
+            );
+            return;
+          }
+
           const { data, error } = await this.supabase.functions.invoke(
             'create-checkout',
             {
@@ -1160,7 +1200,15 @@
           }
         } catch (e) {
           console.error(e);
-          this.showToast('Błąd podczas łączenia z systemem płatności.', 'error');
+          const msg = e && typeof e === 'object' && 'message' in e ? String(e.message) : '';
+          if (msg.includes('HAS_STRIPE_SUBSCRIPTION') || /subskrypcję Stripe/i.test(msg)) {
+            this.showToast(
+              'Masz już subskrypcję — użyj zmiany planu w panelu albo portalu płatności.',
+              'error',
+            );
+          } else {
+            this.showToast(msg || 'Błąd podczas łączenia z systemem płatności.', 'error');
+          }
         } finally {
           this.checkoutLoading = false;
         }

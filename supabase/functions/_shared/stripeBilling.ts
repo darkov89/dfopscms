@@ -58,6 +58,33 @@ export function tierFromStripePrice(
   return fallbackTier;
 }
 
+/** Wykrywanie upgrade / downgrade Pro vs Premium wg ID cen z Secrets. */
+export function priceTierRank(
+  priceId: string,
+  pricePro: string,
+  pricePremium: string,
+): number {
+  if (pricePremium && priceId === pricePremium) return 2;
+  if (pricePro && priceId === pricePro) return 1;
+  return 0;
+}
+
+/** `content.pl.settings.subscription` z JSON strony (bez pełnego typowania content). */
+export function subscriptionObjFromContent(
+  content: unknown,
+): Record<string, unknown> | undefined {
+  if (!content || typeof content !== "object" || Array.isArray(content)) {
+    return undefined;
+  }
+  const pl = (content as Record<string, unknown>).pl;
+  if (!pl || typeof pl !== "object") return undefined;
+  const settings = (pl as Record<string, unknown>).settings;
+  if (!settings || typeof settings !== "object") return undefined;
+  const sub = (settings as Record<string, unknown>).subscription;
+  if (!sub || typeof sub !== "object") return undefined;
+  return sub as Record<string, unknown>;
+}
+
 function periodEndIso(sub: Stripe.Subscription): string {
   const periodEnd = sub.current_period_end;
   if (typeof periodEnd === "number") return new Date(periodEnd * 1000).toISOString();
@@ -74,12 +101,14 @@ export function subscriptionContentPatch(
   const cid = customerIdString(sub.customer);
   const st = sub.status;
   const period = periodEndIso(sub);
+  const cancelAtPeriodEnd = sub.cancel_at_period_end === true;
 
   const base: Record<string, unknown> = {
     ...(cid ? { stripe_customer_id: cid } : {}),
     stripe_subscription_id: sub.id,
     status: st,
     current_period_end: period,
+    cancel_at_period_end: cancelAtPeriodEnd,
   };
 
   if (st === "active" || st === "trialing") {
@@ -104,6 +133,7 @@ export function subscriptionContentPatch(
     plan: "trial",
     payment_completed: false,
     selected_plan: null,
+    cancel_at_period_end: false,
   };
 }
 
@@ -405,6 +435,7 @@ export async function applySubscriptionCanceledToPage(
     payment_completed: false,
     selected_plan: null,
     current_period_end: periodEndIso(sub),
+    cancel_at_period_end: false,
   };
 
   const prevContent =

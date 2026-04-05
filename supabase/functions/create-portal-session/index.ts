@@ -2,7 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@12.0.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { findPageByUserId } from "../_shared/stripeBilling.ts";
+import { findPageByUserId, subscriptionObjFromContent } from "../_shared/stripeBilling.ts";
 
 declare const Deno: { env: { get: (k: string) => string | undefined } };
 
@@ -37,21 +37,6 @@ function buildCorsHeaders(req: Request) {
     "Access-Control-Allow-Origin": origin,
     Vary: "Origin",
   } as Record<string, string>;
-}
-
-function subscriptionFromContent(
-  content: unknown,
-): Record<string, unknown> | undefined {
-  if (!content || typeof content !== "object" || Array.isArray(content)) {
-    return undefined;
-  }
-  const pl = (content as Record<string, unknown>).pl;
-  if (!pl || typeof pl !== "object") return undefined;
-  const settings = (pl as Record<string, unknown>).settings;
-  if (!settings || typeof settings !== "object") return undefined;
-  const sub = (settings as Record<string, unknown>).subscription;
-  if (!sub || typeof sub !== "object") return undefined;
-  return sub as Record<string, unknown>;
 }
 
 serve(async (req) => {
@@ -113,7 +98,7 @@ serve(async (req) => {
     });
 
     const page = await findPageByUserId(supabase, user.id);
-    const subObj = page?.content ? subscriptionFromContent(page.content) : undefined;
+    const subObj = page?.content ? subscriptionObjFromContent(page.content) : undefined;
     let customerId =
       typeof subObj?.stripe_customer_id === "string"
         ? subObj.stripe_customer_id.trim()
@@ -135,9 +120,11 @@ serve(async (req) => {
       );
     }
 
+    const portalConfigurationId = Deno.env.get("STRIPE_BILLING_PORTAL_CONFIGURATION_ID") ?? "";
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url: returnUrl,
+      ...(portalConfigurationId ? { configuration: portalConfigurationId } : {}),
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
