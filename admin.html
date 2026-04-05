@@ -3,22 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Wymuszaj świeże JS/CSS na preview/staging (CDN) — podbij ?v= przy większych zmianach panelu. -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
     <title>DFCMS — Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
-    <script defer src="js/core/config.js"></script>
-    <script defer src="js/core/supabaseClient.js"></script>
-    <script defer src="js/templates/registry.js"></script>
-    <script defer src="js/core/contentSchema.js"></script>
-    <script defer src="js/core/contentUpgrader.js"></script>
-    <script defer src="js/core/themeStyling.js"></script>
-    <script defer src="js/core/pageRepository.js"></script>
-    <script defer src="js/core/planUtils.js"></script>
-    <script defer src="js/core/analytics.js"></script>
-    <script defer src="js/features/adminApp.js"></script>
+    <script defer src="js/core/config.js?v=20260404b"></script>
+    <script defer src="js/core/supabaseClient.js?v=20260404b"></script>
+    <script defer src="js/templates/registry.js?v=20260404b"></script>
+    <script defer src="js/core/contentSchema.js?v=20260404b"></script>
+    <script defer src="js/core/contentUpgrader.js?v=20260404b"></script>
+    <script defer src="js/core/themeStyling.js?v=20260404b"></script>
+    <script defer src="js/core/pageRepository.js?v=20260404b"></script>
+    <script defer src="js/core/planUtils.js?v=20260404b"></script>
+    <script defer src="js/core/analytics.js?v=20260404b"></script>
+    <script defer src="js/features/adminApp.js?v=20260404b"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles.css?v=20260404b">
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col" x-data="typeof DFOPS_adminAlpineState === 'function' ? DFOPS_adminAlpineState() : { sidebarOpen: false, isLoading: false, content: { pl: { nav: { menu: {} }, hero: {}, manifesto: {}, services: [], faq: [], contact: {}, settings: {} } } }">
 
@@ -573,6 +576,7 @@
                         <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'settings' ? 'border-[#D4AF37] bg-amber-50/50' : 'border-transparent hover:bg-gray-50'">
                             <button type="button" @click="setTab('settings')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/40">
                                 <span :class="activeTab === 'settings' ? 'text-sm font-bold text-gray-900' : 'text-sm text-gray-700'" class="leading-snug">Szablon i kolory</span>
+                                <span class="mt-0.5 block text-[10px] font-bold text-[#9a7b16] uppercase tracking-wider">↓ Hasło i konto na dole</span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
                                 <button type="button" class="p-1 rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-1" aria-label="Podpowiedź: szablon i kolory">
@@ -616,6 +620,7 @@
                         <div class="flex w-full items-stretch mt-2 border-t border-gray-100 pt-3 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'subscription' ? 'border-[#D4AF37] bg-amber-50/50' : 'border-transparent hover:bg-gray-50'">
                             <button type="button" @click="setTab('subscription')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/40">
                                 <span :class="activeTab === 'subscription' ? 'text-sm font-bold text-gray-900' : 'text-sm text-gray-700'" class="leading-snug">Subskrypcja</span>
+                                <span class="mt-0.5 block text-[10px] font-bold text-[#9a7b16] uppercase tracking-wider">↓ Portal Stripe w środku</span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
                                 <button type="button" class="p-1 rounded focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-1" aria-label="Podpowiedź: subskrypcja">
@@ -636,6 +641,11 @@
                         <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
                             <h2 class="text-2xl font-serif text-gray-900 mb-2">Szablon i kolory</h2>
                             <p class="text-sm text-gray-600 leading-relaxed max-w-2xl">Najpierw marka w menu, potem wygląd (kolory, tło, fonty), na końcu — jeśli potrzebujesz — zmiana branżowego szablonu, domena i to, które sekcje są widoczne.</p>
+                            <p class="text-xs text-gray-500 mt-3 max-w-2xl">
+                                <strong class="text-gray-800">Konto:</strong> zmiana hasła i prośba o usunięcie konta —
+                                <button type="button" @click="scrollToAccountInSettings()" class="font-bold text-[#D4AF37] underline hover:text-[#9a7b16]">przewiń do „Zarządzanie Kontem”</button>
+                                (na samym dole tej zakładki).
+                            </p>
                         </div>
 
                         <div class="space-y-8 max-w-4xl">
@@ -1025,7 +1035,7 @@
                                 </div>
                             </section>
 
-                            <div class="mt-8 pt-8 border-t border-gray-200">
+                            <div id="dfops-zarzadzanie-konto" class="mt-8 pt-8 border-t border-gray-200 scroll-mt-24">
                                 <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-6">Zarządzanie Kontem</h3>
 
                                 <div class="space-y-6">
@@ -1542,6 +1552,11 @@
                             <h2 class="text-2xl font-serif text-gray-900 mb-2">Subskrypcja</h2>
                             <p x-show="!hasActivePaidSubscription" class="text-sm text-gray-600 leading-relaxed max-w-2xl">Masz 14 dni na wybranie pakietu i pierwszą opłatę. Dopóki płatność nie zostanie zaksięgowana, konto pozostaje w okresie próbnym — z ograniczeniami i komunikatem w panelu.</p>
                             <p x-show="hasActivePaidSubscription" x-cloak class="text-sm text-gray-600 leading-relaxed max-w-2xl">Twoja subskrypcja jest aktywna. Poniżej status rozliczeń i skrót pakietu — w każdej chwili możesz przejść do porównania planów niżej.</p>
+                            <p class="text-xs text-gray-500 mt-3 max-w-2xl">
+                                <strong class="text-gray-800">Portal Stripe</strong> (faktury, karta, anulowanie) —
+                                <button type="button" @click="scrollToStripePortalBlock()" class="font-bold text-[#D4AF37] underline hover:text-[#9a7b16]">przewiń do złotego bloku</button>
+                                lub przewiń w dół po synchronizacji.
+                            </p>
                         </div>
 
                         <div class="mb-6 p-4 sm:p-5 rounded-xl border border-sky-200/80 bg-sky-50/90 text-sm text-gray-800 shadow-sm">
@@ -1556,7 +1571,7 @@
                             </button>
                         </div>
 
-                        <div class="mb-6 rounded-xl border border-[#D4AF37]/35 bg-gradient-to-br from-[#1a1816] via-[#141210] to-[#0f0e0c] p-5 sm:p-6 shadow-lg ring-1 ring-[#D4AF37]/20">
+                        <div id="dfops-portal-stripe" class="mb-6 rounded-xl border border-[#D4AF37]/35 bg-gradient-to-br from-[#1a1816] via-[#141210] to-[#0f0e0c] p-5 sm:p-6 shadow-lg ring-1 ring-[#D4AF37]/20 scroll-mt-24">
                             <p class="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.2em] mb-2">Portal rozliczeń Stripe</p>
                             <p class="text-xs text-stone-400 mb-4 leading-relaxed max-w-2xl">Zmiana karty, anulowanie subskrypcji, faktury i historia płatności — w jednym bezpiecznym miejscu.</p>
                             <button type="button" @click="openCustomerPortal" :disabled="isPortalLoading || saving" class="inline-flex items-center justify-center gap-2.5 min-h-[2.75rem] w-full sm:w-auto bg-[#D4AF37] text-[#121212] px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#c9a432] transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed border border-[#D4AF37]/60">

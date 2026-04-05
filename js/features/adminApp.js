@@ -278,6 +278,20 @@
         this.sidebarOpen = false;
       },
 
+      scrollToAccountInSettings() {
+        this.setTab('settings');
+        window.setTimeout(() => {
+          document.getElementById('dfops-zarzadzanie-konto')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 400);
+      },
+
+      scrollToStripePortalBlock() {
+        this.setTab('subscription');
+        window.setTimeout(() => {
+          document.getElementById('dfops-portal-stripe')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 400);
+      },
+
       maybeShowPaymentReturnToast() {
         /** Parametr `payment` jest czyszczony w init() — tu tylko zapas na starsze sesje. */
         try {
