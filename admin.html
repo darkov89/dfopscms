@@ -1025,29 +1025,43 @@
                                 </div>
                             </section>
 
-                            <!-- Strefa konta -->
-                            <section class="rounded-xl border border-[#D4AF37]/35 bg-gradient-to-b from-[#1a1816] via-[#141210] to-[#0f0e0c] shadow-xl shadow-black/30 ring-1 ring-[#D4AF37]/20 overflow-hidden max-w-4xl">
-                                <div class="px-5 py-3.5 border-b border-[#D4AF37]/25 bg-black/20">
-                                    <h3 class="text-sm font-bold text-[#D4AF37] uppercase tracking-[0.18em]">Strefa Niebezpieczna i Zarządzanie Kontem</h3>
-                                    <p class="text-xs text-stone-400 mt-1.5 leading-relaxed">Hasło logowania do tego panelu. Usunięcie konta wymaga wiadomości do obsługi — bez automatycznego kasowania danych.</p>
-                                </div>
-                                <div class="p-5 md:p-6 space-y-8">
-                                    <div>
-                                        <label for="settings-new-password" class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2">Nowe hasło</label>
-                                        <input id="settings-new-password" type="password" autocomplete="new-password" x-model="newPassword" class="w-full max-w-md border border-stone-600 bg-stone-900/80 text-stone-100 rounded-sm px-4 py-3 text-sm placeholder:text-stone-600 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all outline-none" placeholder="Minimum 6 znaków">
-                                        <button type="button" @click="updatePassword" :disabled="isPasswordUpdating || saving" class="mt-3 inline-flex items-center justify-center gap-2 min-h-[2.75rem] bg-[#121212] text-[#D4AF37] px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest border border-[#D4AF37]/40 hover:bg-[#D4AF37] hover:text-[#121212] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                                            <span x-show="!isPasswordUpdating">Zmień hasło</span>
-                                            <span x-show="isPasswordUpdating" x-cloak>Zapisywanie…</span>
+                            <div class="mt-8 pt-8 border-t border-gray-200">
+                                <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-6">Zarządzanie Kontem</h3>
+
+                                <div class="space-y-6">
+                                    <div class="bg-white p-6 border border-gray-200 rounded-sm shadow-sm">
+                                        <h4 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-4">Zmień Hasło</h4>
+                                        <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                                            <div class="w-full sm:w-64 relative">
+                                                <label for="settings-account-password" class="sr-only">Nowe hasło</label>
+                                                <input id="settings-account-password"
+                                                       type="password"
+                                                       autocomplete="new-password"
+                                                       x-model="newPassword"
+                                                       placeholder="Nowe hasło (min. 6 znaków)"
+                                                       class="w-full border border-gray-300 rounded-sm px-4 py-2 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all">
+                                            </div>
+                                            <button type="button"
+                                                    @click="updatePassword()"
+                                                    :disabled="isPasswordUpdating || saving || (newPassword || '').length < 6"
+                                                    class="bg-[#121212] hover:bg-[#D4AF37] text-white px-6 py-2 rounded-sm text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                                                <span x-show="!isPasswordUpdating">Aktualizuj Hasło</span>
+                                                <span x-show="isPasswordUpdating" x-cloak class="animate-pulse">Zapisywanie...</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-red-50 p-6 border border-red-100 rounded-sm">
+                                        <h4 class="text-xs font-bold text-red-800 uppercase tracking-widest mb-2">Strefa Niebezpieczna</h4>
+                                        <p class="text-sm text-red-600 mb-4">Usunięcie konta jest nieodwracalne. Utracisz dostęp do swojej strony i wszystkich danych. Otworzymy szkic wiadomości e-mail do obsługi.</p>
+                                        <button type="button"
+                                                @click="deleteAccount()"
+                                                class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-sm text-xs font-bold uppercase tracking-widest transition-colors shadow-sm">
+                                            Usuń Moje Konto
                                         </button>
                                     </div>
-                                    <div class="pt-2 border-t border-stone-700/80">
-                                        <button type="button" @click="deleteAccount" class="w-full sm:w-auto inline-flex items-center justify-center min-h-[2.75rem] rounded-xl px-6 py-3 text-xs font-bold uppercase tracking-widest bg-red-950/80 text-red-100 border border-red-700/80 hover:bg-red-900 hover:border-red-500 transition-colors shadow-lg shadow-red-950/40">
-                                            Usuń konto
-                                        </button>
-                                        <p class="text-[11px] text-stone-500 mt-3 leading-relaxed max-w-xl">Otworzymy szkic e-maila do zespołu — potwierdź wysyłkę w swojej poczcie.</p>
-                                    </div>
                                 </div>
-                            </section>
+                            </div>
 
                         </div>
                     </div>
