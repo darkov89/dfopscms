@@ -130,7 +130,7 @@ serve(async (req) => {
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+    event = await stripe.webhooks.constructEventAsync(payload, signature, webhookSecret, undefined);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     console.warn("stripe-webhook: podpis", msg);
