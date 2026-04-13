@@ -11,7 +11,6 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@12.0.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
-  applyInvoicePaymentSucceededPatch,
   applyInvoiceRenewalPaymentFailed,
   applyStripeSubscriptionToPage,
   applySubscriptionCanceledToPage,
@@ -34,7 +33,8 @@ function tierPlanFromMetadata(planMeta: string | undefined | null): StripePaidTi
 }
 
 /**
- * Udana opłata faktury (odnowienie lub pierwsza): odblokowanie + aktualny okres z subskrypcji lub z faktury.
+ * Udana opłata faktury (odnowienie lub pierwsza): odblokowanie + harmonogram wyłącznie z
+ * `Stripe.Subscription.current_period_end` (brak `invoice.period_end` / lokalnych przybliżeń).
  */
 async function handleInvoicePaymentSuccess(
   supabase: ReturnType<typeof createClient>,
@@ -45,42 +45,46 @@ async function handleInvoicePaymentSuccess(
   pricePremium: string,
   priceTestDaily: string,
 ): Promise<{ errorResponse?: Response }> {
-  const page = await resolvePageForInvoice(supabase, stripe, invoice);
+  const subscriptionId = extractInvoiceSubscriptionId(invoice);
+  if (!subscriptionId) {
+    console.warn(
+      "handleInvoicePaymentSuccess: brak invoice.subscription — pomijam aktualizację okresu (wymagane API Subscription)",
+      invoice.id,
+    );
+    return {};
+  }
+
+  let subscription: Stripe.Subscription;
+  try {
+    subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  } catch (e) {
+    console.error("handleInvoicePaymentSuccess: subscriptions.retrieve", subscriptionId, e);
+    return {
+      errorResponse: new Response(JSON.stringify({ error: "Stripe subscription retrieve failed" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }),
+    };
+  }
+
+  let page = await resolvePageForStripeSubscription(supabase, subscription);
+  if (!page?.id) {
+    page = (await resolvePageForInvoice(supabase, stripe, invoice)) ?? null;
+  }
   if (!page?.id) {
     console.warn("handleInvoicePaymentSuccess: brak pages dla faktury", invoice.id);
     return {};
   }
 
-  const subId = extractInvoiceSubscriptionId(invoice);
-  if (subId) {
-    try {
-      const subscription = await stripe.subscriptions.retrieve(subId);
-      const result = await applyStripeSubscriptionToPage(supabase, page, subscription, {
-        priceStarter,
-        priceTestDaily,
-        pricePro,
-        pricePremium,
-      });
-      if (!result.ok) {
-        return {
-          errorResponse: new Response(JSON.stringify({ error: result.error }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          }),
-        };
-      }
-      return {};
-    } catch (e) {
-      console.error("handleInvoicePaymentSuccess retrieve subscription", e);
-    }
-  }
-
-  const pe = invoice.period_end;
-  const iso = typeof pe === "number" ? new Date(pe * 1000).toISOString() : new Date().toISOString();
-  const lite = await applyInvoicePaymentSucceededPatch(supabase, page, iso);
-  if (!lite.ok) {
+  const result = await applyStripeSubscriptionToPage(supabase, page, subscription, {
+    priceStarter,
+    priceTestDaily,
+    pricePro,
+    pricePremium,
+  });
+  if (!result.ok) {
     return {
-      errorResponse: new Response(JSON.stringify({ error: lite.error }), {
+      errorResponse: new Response(JSON.stringify({ error: result.error }), {
         status: 500,
         headers: { "Content-Type": "application/json" },
       }),

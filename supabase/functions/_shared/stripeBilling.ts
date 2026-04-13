@@ -95,6 +95,7 @@ export function subscriptionObjFromContent(
   return sub as Record<string, unknown>;
 }
 
+/** Koniec bieżącego okresu rozliczeniowego — wyłącznie z obiektu Subscription API (źródło prawdy Stripe). */
 function periodEndIso(sub: Stripe.Subscription): string {
   const periodEnd = sub.current_period_end;
   if (typeof periodEnd === "number") return new Date(periodEnd * 1000).toISOString();
@@ -397,35 +398,6 @@ export async function resolvePageForInvoice(
     return await findPageByAuthUserEmail(supabase, invoice.customer_email);
   }
   return null;
-}
-
-/**
- * Odnowienie opłacone: odblokowanie + `current_period_end` bez pełnego obiektu Subscription (fallback).
- */
-export async function applyInvoicePaymentSucceededPatch(
-  supabase: SupabaseClient,
-  page: PageRowMini,
-  currentPeriodEndIso: string,
-): Promise<{ ok: boolean; error?: string }> {
-  const prevContent =
-    page.content && typeof page.content === "object" && !Array.isArray(page.content)
-      ? (page.content as Record<string, unknown>)
-      : {};
-  const patch: Record<string, unknown> = { current_period_end: currentPeriodEndIso };
-  const newContent = mergeSubscriptionIntoContent(prevContent, patch);
-  const { error: updErr } = await supabase
-    .from("pages")
-    .update({
-      content: newContent,
-      billing_failed_at: null,
-      trial_blocked_at: null,
-    })
-    .eq("id", page.id);
-  if (updErr) {
-    console.error("applyInvoicePaymentSucceededPatch", updErr);
-    return { ok: false, error: updErr.message };
-  }
-  return { ok: true };
 }
 
 /** Nieudana opłata przy odnowieniu / zmianie cyklu — ustawia billing_failed_at (karencja przed cronem). */
