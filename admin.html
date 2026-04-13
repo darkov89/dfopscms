@@ -26,18 +26,18 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
-    <script defer src="js/core/config.js?v=20260403h"></script>
-    <script defer src="js/core/supabaseClient.js?v=20260403h"></script>
-    <script defer src="js/templates/registry.js?v=20260403h"></script>
-    <script defer src="js/core/contentSchema.js?v=20260403h"></script>
-    <script defer src="js/core/contentUpgrader.js?v=20260403h"></script>
-    <script defer src="js/core/themeStyling.js?v=20260403h"></script>
-    <script defer src="js/core/pageRepository.js?v=20260403h"></script>
-    <script defer src="js/core/planUtils.js?v=20260403h"></script>
-    <script defer src="js/core/analytics.js?v=20260403h"></script>
-    <script defer src="js/features/adminApp.js?v=20260403h"></script>
+    <script defer src="js/core/config.js?v=20260403i"></script>
+    <script defer src="js/core/supabaseClient.js?v=20260403i"></script>
+    <script defer src="js/templates/registry.js?v=20260403i"></script>
+    <script defer src="js/core/contentSchema.js?v=20260403i"></script>
+    <script defer src="js/core/contentUpgrader.js?v=20260403i"></script>
+    <script defer src="js/core/themeStyling.js?v=20260403i"></script>
+    <script defer src="js/core/pageRepository.js?v=20260403i"></script>
+    <script defer src="js/core/planUtils.js?v=20260403i"></script>
+    <script defer src="js/core/analytics.js?v=20260403i"></script>
+    <script defer src="js/features/adminApp.js?v=20260403i"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
-    <link rel="stylesheet" href="css/styles.css?v=20260403h">
+    <link rel="stylesheet" href="css/styles.css?v=20260403i">
 </head>
 <body class="dfops-admin-app flex min-h-screen flex-col bg-slate-50 font-sans text-slate-800 antialiased" x-data="typeof DFOPS_adminAlpineState === 'function' ? DFOPS_adminAlpineState() : { sidebarOpen: false, isLoading: false, content: { pl: { nav: { menu: {} }, hero: {}, manifesto: {}, services: [], faq: [], contact: {}, settings: {} } } }">
 
@@ -335,6 +335,10 @@
                     </div>
                 </form>
             </div>
+            <p class="text-center text-xs text-slate-500 mt-8 pt-6 border-t border-slate-200/80 leading-relaxed">
+                Pomoc / support:
+                <a :href="supportMailtoHref()" class="font-semibold text-accent-soft underline decoration-accent/30 underline-offset-2 hover:text-accent" x-text="supportEmailDisplay()"></a>
+            </p>
         </div>
     </div>
 
@@ -1562,7 +1566,9 @@
                     <div x-show="activeTab === 'account'" x-transition.opacity x-cloak>
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
                             <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Konto i bezpieczeństwo</h2>
-                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl">Zmiana hasła oraz prośba o usunięcie konta i danych w DFCMS.</p>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl">Zmiana hasła oraz prośba o usunięcie konta i danych w DFCMS. Wsparcie:
+                                <a :href="supportMailtoHref()" class="font-semibold text-accent-soft underline decoration-accent/35 underline-offset-2 hover:text-accent" x-text="supportEmailDisplay()"></a>
+                            </p>
                         </div>
                         <div id="dfops-zarzadzanie-konto" class="max-w-4xl scroll-mt-24">
                             <h3 class="text-sm font-bold text-slate-900 uppercase tracking-widest mb-6">Zarządzanie kontem</h3>
@@ -1991,26 +1997,42 @@
                 <svg class="w-12 h-12 text-[#D4AF37]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
             </div>
             <h2 class="text-xl font-bold text-gray-900 uppercase tracking-widest mb-2">Bezpieczeństwo konta</h2>
-            <p class="text-sm text-gray-500 mb-8">Zalogowano przez link odzyskiwania. Zanim przejdziesz do panelu, musisz ustawić nowe, bezpieczne hasło dla swojego konta.</p>
+            <p class="text-sm text-gray-500 mb-6">Otwarto sesję z linku odzyskiwania hasła. Ustaw nowe hasło — potem wylogujemy Cię i poprosimy o ponowne zalogowanie do panelu.</p>
+            <p class="text-xs text-gray-400 mb-6 text-left leading-relaxed">Wymagania: min. <strong class="text-gray-600">8 znaków</strong>, co najmniej <strong class="text-gray-600">jedna litera</strong> i <strong class="text-gray-600">jedna cyfra</strong>.</p>
 
             <div class="space-y-4 text-left">
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-1" for="dfops-forced-password">Nowe hasło</label>
                     <input id="dfops-forced-password" type="password"
                            x-model="newPassword"
-                           placeholder="Min. 6 znaków"
+                           placeholder="Min. 8 znaków, litera i cyfra"
                            autocomplete="new-password"
                            class="w-full border border-gray-300 rounded-sm px-4 py-3 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all">
                 </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-1" for="dfops-forced-password-2">Potwierdź hasło</label>
+                    <input id="dfops-forced-password-2" type="password"
+                           x-model="newPasswordConfirm"
+                           placeholder="Powtórz to samo hasło"
+                           autocomplete="new-password"
+                           class="w-full border border-gray-300 rounded-sm px-4 py-3 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all">
+                </div>
+                <p x-show="forcedResetPasswordHint" x-cloak class="text-xs font-medium leading-snug"
+                   :class="forcedResetPasswordHintClass"
+                   x-text="forcedResetPasswordHint"></p>
 
                 <button type="button" @click="updatePassword()"
-                        :disabled="isPasswordUpdating || (newPassword || '').trim().length < 6"
+                        :disabled="isPasswordUpdating || !canSubmitForcedPasswordReset"
                         class="w-full bg-[#121212] hover:bg-[#D4AF37] text-white px-6 py-3 rounded-sm text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                    <span x-show="!isPasswordUpdating">Zapisz hasło i wejdź</span>
+                    <span x-show="!isPasswordUpdating">Zapisz hasło</span>
                     <span x-show="isPasswordUpdating" x-cloak class="animate-pulse">Zapisywanie...</span>
                 </button>
             </div>
-            <div class="mt-6">
+            <div class="mt-6 space-y-3">
+                <p class="text-xs text-gray-500">
+                    Pomoc:
+                    <a :href="supportMailtoHref()" class="font-semibold text-[#9a7b16] underline hover:text-gray-900" x-text="supportEmailDisplay()"></a>
+                </p>
                 <button type="button" @click="logout()" class="text-xs text-gray-500 hover:text-gray-900 underline">Anuluj i wyloguj mnie</button>
             </div>
         </div>

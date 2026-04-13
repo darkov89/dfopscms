@@ -117,6 +117,15 @@
     return origin ? `${origin.replace(/\/$/, '')}/admin.html` : undefined;
   }
 
+  /** Polityka hasła wyłącznie przy wymuszonym resecie (izolatka). */
+  function passwordPolicyErrorForRecovery(pw) {
+    const s = String(pw || '').trim();
+    if (s.length < 8) return 'Hasło musi mieć co najmniej 8 znaków.';
+    if (!/[\p{L}]/u.test(s)) return 'Hasło musi zawierać co najmniej jedną literę.';
+    if (!/\d/u.test(s)) return 'Hasło musi zawierać co najmniej jedną cyfrę.';
+    return null;
+  }
+
   function createAdminApp() {
     const t = window.DFOPS_CONFIG?.timeouts || {};
     const MS_PER_DAY = t.msPerDay ?? 86400000;
@@ -385,6 +394,36 @@
       get accountPasswordHintClass() {
         return this.canUpdatePassword ? 'text-emerald-700' : 'text-amber-800';
       },
+
+      supportEmailDisplay() {
+        return (cfg && typeof cfg.supportEmail === 'string' && cfg.supportEmail.includes('@')
+          ? cfg.supportEmail.trim()
+          : 'kontakt@dfops.eu');
+      },
+      supportMailtoHref() {
+        return `mailto:${encodeURIComponent(this.supportEmailDisplay())}`;
+      },
+
+      get canSubmitForcedPasswordReset() {
+        if (this.isPasswordUpdating) return false;
+        const a = String(this.newPassword ?? '').trim();
+        const b = String(this.newPasswordConfirm ?? '').trim();
+        if (a !== b || !a) return false;
+        return passwordPolicyErrorForRecovery(a) === null;
+      },
+      get forcedResetPasswordHint() {
+        const a = String(this.newPassword ?? '').trim();
+        const b = String(this.newPasswordConfirm ?? '').trim();
+        if (!a && !b) return '';
+        const pol = passwordPolicyErrorForRecovery(a);
+        if (pol) return pol;
+        if (!b) return 'Potwierdź hasło w drugim polu.';
+        if (a !== b) return 'Hasła muszą być identyczne.';
+        return 'Hasło spełnia wymagania.';
+      },
+      get forcedResetPasswordHintClass() {
+        return this.canSubmitForcedPasswordReset ? 'text-emerald-700' : 'text-amber-800';
+      },
       get subscriptionRenewalDateFormatted() {
         const raw = this.content?.pl?.settings?.subscription?.current_period_end;
         if (raw == null || raw === '') return '—';
@@ -416,18 +455,33 @@
           return;
         }
         const pw = String(this.newPassword ?? '').trim();
-        let pw2 = String(this.newPasswordConfirm ?? '').trim();
-        if (this.isForcedPasswordReset && !pw2) {
-          pw2 = pw;
+        const pw2 = String(this.newPasswordConfirm ?? '').trim();
+
+        if (this.isForcedPasswordReset) {
+          const polErr = passwordPolicyErrorForRecovery(pw);
+          if (polErr) {
+            this.showToast(polErr, 'error');
+            return;
+          }
+          if (!pw2) {
+            this.showToast('Wpisz ponownie hasło w polu „Potwierdź”.', 'error');
+            return;
+          }
+          if (pw !== pw2) {
+            this.showToast('Hasła nie są takie same.', 'error');
+            return;
+          }
+        } else {
+          if (pw.length < 6) {
+            this.showToast('Hasło musi mieć co najmniej 6 znaków.', 'error');
+            return;
+          }
+          if (pw !== pw2) {
+            this.showToast('Hasła nie są takie same — wpisz to samo hasło w obu polach.', 'error');
+            return;
+          }
         }
-        if (pw.length < 6) {
-          this.showToast('Hasło musi mieć co najmniej 6 znaków.', 'error');
-          return;
-        }
-        if (pw !== pw2) {
-          this.showToast('Hasła nie są takie same — wpisz to samo hasło w obu polach.', 'error');
-          return;
-        }
+
         this.isPasswordUpdating = true;
         try {
           const { error } = await this.supabase.auth.updateUser({
@@ -435,7 +489,6 @@
           });
           if (error) throw error;
           const exitForced = this.isForcedPasswordReset;
-          this.showToast('Hasło zostało pomyślnie zmienione!', 'success');
           this.newPassword = '';
           this.newPasswordConfirm = '';
           if (exitForced) {
@@ -445,9 +498,10 @@
             } catch {
               /* ignore */
             }
-            if (this.user) {
-              await this.loadData();
-            }
+            this.showToast('Hasło zostało ustawione. Zaloguj się ponownie.', 'success');
+            await this.logout();
+          } else {
+            this.showToast('Hasło zostało pomyślnie zmienione!', 'success');
           }
         } catch (err) {
           const msg = err && typeof err === 'object' && 'message' in err ? String((err).message) : String(err);
