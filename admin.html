@@ -26,18 +26,18 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
-    <script defer src="js/core/config.js?v=20260403g"></script>
-    <script defer src="js/core/supabaseClient.js?v=20260403g"></script>
-    <script defer src="js/templates/registry.js?v=20260403g"></script>
-    <script defer src="js/core/contentSchema.js?v=20260403g"></script>
-    <script defer src="js/core/contentUpgrader.js?v=20260403g"></script>
-    <script defer src="js/core/themeStyling.js?v=20260403g"></script>
-    <script defer src="js/core/pageRepository.js?v=20260403g"></script>
-    <script defer src="js/core/planUtils.js?v=20260403g"></script>
-    <script defer src="js/core/analytics.js?v=20260403g"></script>
-    <script defer src="js/features/adminApp.js?v=20260403g"></script>
+    <script defer src="js/core/config.js?v=20260403h"></script>
+    <script defer src="js/core/supabaseClient.js?v=20260403h"></script>
+    <script defer src="js/templates/registry.js?v=20260403h"></script>
+    <script defer src="js/core/contentSchema.js?v=20260403h"></script>
+    <script defer src="js/core/contentUpgrader.js?v=20260403h"></script>
+    <script defer src="js/core/themeStyling.js?v=20260403h"></script>
+    <script defer src="js/core/pageRepository.js?v=20260403h"></script>
+    <script defer src="js/core/planUtils.js?v=20260403h"></script>
+    <script defer src="js/core/analytics.js?v=20260403h"></script>
+    <script defer src="js/features/adminApp.js?v=20260403h"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
-    <link rel="stylesheet" href="css/styles.css?v=20260403g">
+    <link rel="stylesheet" href="css/styles.css?v=20260403h">
 </head>
 <body class="dfops-admin-app flex min-h-screen flex-col bg-slate-50 font-sans text-slate-800 antialiased" x-data="typeof DFOPS_adminAlpineState === 'function' ? DFOPS_adminAlpineState() : { sidebarOpen: false, isLoading: false, content: { pl: { nav: { menu: {} }, hero: {}, manifesto: {}, services: [], faq: [], contact: {}, settings: {} } } }">
 
@@ -342,7 +342,7 @@
         <p class="text-slate-500 tracking-widest text-sm animate-pulse">Weryfikacja tożsamości...</p>
     </div>
 
-        <div x-show="user" x-cloak class="flex-grow flex flex-col">
+        <div x-show="user && !isForcedPasswordReset" x-cloak class="flex-grow flex flex-col">
         <div x-show="user && needsEmailConfirmation" x-cloak class="w-full bg-amber-900 text-amber-50 text-sm py-3 px-4 text-center flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 shrink-0 border-b border-amber-800/50" role="status">
             <span class="max-w-3xl">Dokończ rejestrację: <strong class="text-white">potwierdź adres e-mail</strong> z wiadomości wysłanej przez DFCMS (nadawca: <strong class="text-white">notifications@dfops.eu</strong>) — bez tego kreator się nie uruchomi.</span>
             <button type="button" @click.prevent.stop="resendSignupConfirmation()" :disabled="resendConfirmLoading" class="shrink-0 rounded-sm bg-white/15 hover:bg-white/25 border border-white/25 text-white text-xs font-bold uppercase tracking-widest px-4 py-2 disabled:opacity-50 transition-colors">
@@ -1981,6 +1981,37 @@
                 <button type="button" @click="closeStudioWelcomeModal()" class="w-full bg-[#D4AF37] hover:bg-[#c4a028] text-[#121212] font-bold py-4 px-6 rounded-xl text-sm tracking-widest uppercase transition-colors shadow-md">
                     Zaczynamy eksplorację!
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="user && isForcedPasswordReset" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center bg-[#f8f9fa] p-4">
+        <div class="bg-white p-8 max-w-md w-full border border-gray-200 rounded-sm shadow-xl text-center">
+            <div class="mb-6 flex justify-center">
+                <svg class="w-12 h-12 text-[#D4AF37]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            </div>
+            <h2 class="text-xl font-bold text-gray-900 uppercase tracking-widest mb-2">Bezpieczeństwo konta</h2>
+            <p class="text-sm text-gray-500 mb-8">Zalogowano przez link odzyskiwania. Zanim przejdziesz do panelu, musisz ustawić nowe, bezpieczne hasło dla swojego konta.</p>
+
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-1" for="dfops-forced-password">Nowe hasło</label>
+                    <input id="dfops-forced-password" type="password"
+                           x-model="newPassword"
+                           placeholder="Min. 6 znaków"
+                           autocomplete="new-password"
+                           class="w-full border border-gray-300 rounded-sm px-4 py-3 text-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all">
+                </div>
+
+                <button type="button" @click="updatePassword()"
+                        :disabled="isPasswordUpdating || (newPassword || '').trim().length < 6"
+                        class="w-full bg-[#121212] hover:bg-[#D4AF37] text-white px-6 py-3 rounded-sm text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                    <span x-show="!isPasswordUpdating">Zapisz hasło i wejdź</span>
+                    <span x-show="isPasswordUpdating" x-cloak class="animate-pulse">Zapisywanie...</span>
+                </button>
+            </div>
+            <div class="mt-6">
+                <button type="button" @click="logout()" class="text-xs text-gray-500 hover:text-gray-900 underline">Anuluj i wyloguj mnie</button>
             </div>
         </div>
     </div>

@@ -138,9 +138,11 @@
       forgotPasswordEmail: '',
       forgotPasswordSending: false,
       forgotPasswordInfo: '',
-      /** Link resetujący hasło (Supabase) — po loadData: zakładka Konto + toast. */
+      /** Link resetujący hasło (Supabase) — po loadData: izolatka wymuszonego resetu. */
       _passwordRecoveryPendingUi: false,
       _passwordRecoveryUiHandled: false,
+      /** Sesja z linku recovery — pełny panel ukryty do ustawienia nowego hasła. */
+      isForcedPasswordReset: false,
       slug: new URLSearchParams(window.location.search).get('site') || '',
       lang: 'pl',
       theme: '',
@@ -414,7 +416,10 @@
           return;
         }
         const pw = String(this.newPassword ?? '').trim();
-        const pw2 = String(this.newPasswordConfirm ?? '').trim();
+        let pw2 = String(this.newPasswordConfirm ?? '').trim();
+        if (this.isForcedPasswordReset && !pw2) {
+          pw2 = pw;
+        }
         if (pw.length < 6) {
           this.showToast('Hasło musi mieć co najmniej 6 znaków.', 'error');
           return;
@@ -429,9 +434,21 @@
             password: pw,
           });
           if (error) throw error;
+          const exitForced = this.isForcedPasswordReset;
           this.showToast('Hasło zostało pomyślnie zmienione!', 'success');
           this.newPassword = '';
           this.newPasswordConfirm = '';
+          if (exitForced) {
+            this.isForcedPasswordReset = false;
+            try {
+              window.history.replaceState({}, document.title, window.location.pathname);
+            } catch {
+              /* ignore */
+            }
+            if (this.user) {
+              await this.loadData();
+            }
+          }
         } catch (err) {
           const msg = err && typeof err === 'object' && 'message' in err ? String((err).message) : String(err);
           this.showToast(msg || 'Nie udało się zmienić hasła.', 'error');
@@ -668,6 +685,7 @@
             void this.syncAuthUserFromServer();
           }
           if (event === 'PASSWORD_RECOVERY' && !this.loadingAuth && this.user) {
+            this.isForcedPasswordReset = true;
             this.applyPasswordRecoveryUi();
           }
           if (this.loadingAuth) return;
@@ -694,6 +712,7 @@
         if (!user) {
           this.user = null;
           this.needsEmailConfirmation = false;
+          this.isForcedPasswordReset = false;
           return;
         }
         this.user = { ...user };
@@ -706,31 +725,33 @@
         const url = new URL(window.location.href);
         const code = url.searchParams.get('code');
         if (!code) return;
-        const flowType = (url.searchParams.get('type') || '').toLowerCase();
+        let flowType = (url.searchParams.get('type') || '').toLowerCase();
+        if (!flowType && url.hash && url.hash.length > 1) {
+          try {
+            const hp = new URLSearchParams(url.hash.replace(/^#/, ''));
+            flowType = (hp.get('type') || '').toLowerCase();
+          } catch {
+            /* ignore */
+          }
+        }
         const { error } = await this.supabase.auth.exchangeCodeForSession(code);
         if (error) throw error;
         if (flowType === 'recovery') {
           this._passwordRecoveryPendingUi = true;
+          this.isForcedPasswordReset = true;
         }
         ['code', 'code_challenge', 'code_challenge_method', 'type'].forEach((k) => url.searchParams.delete(k));
         const qs = url.searchParams.toString();
         window.history.replaceState({}, document.title, url.pathname + (qs ? `?${qs}` : '') + url.hash);
       },
 
-      /** Po wejściu z linku resetu hasła: Konto + toast; wykorzystuje istniejące pola `updatePassword`. */
+      /** Po wejściu z linku resetu: izolatka UI — brak dostępu do panelu do ustawienia hasła. */
       applyPasswordRecoveryUi() {
         if (this._passwordRecoveryUiHandled || !this.user) return;
         this._passwordRecoveryUiHandled = true;
         this._passwordRecoveryPendingUi = false;
         this.showWizard = false;
-        this.setTab('account');
-        setTimeout(() => {
-          document.getElementById('dfops-zarzadzanie-konto')?.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start',
-          });
-        }, 200);
-        this.showToast('Zalogowano poprawnie. Teraz ustaw nowe hasło poniżej.', 'success');
+        this.isForcedPasswordReset = true;
       },
 
       async requestPasswordReset(evt) {
@@ -841,8 +862,10 @@
           this.isLoading = true;
         }
         this.loadingAuth = false;
-        if (this.user && !paymentRefreshScheduled) {
+        if (this.user && !paymentRefreshScheduled && !this.isForcedPasswordReset) {
           await this.loadData();
+        } else if (this.user && this.isForcedPasswordReset) {
+          this.isLoading = false;
         }
         if (this._passwordRecoveryPendingUi && this.user) {
           this.applyPasswordRecoveryUi();
@@ -928,6 +951,7 @@
         this.forgotPasswordInfo = '';
         this._passwordRecoveryPendingUi = false;
         this._passwordRecoveryUiHandled = false;
+        this.isForcedPasswordReset = false;
         this.assignAuthUser(null);
         this.content = createAdminContentShell();
         this.pageId = null;
