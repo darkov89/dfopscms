@@ -23,6 +23,11 @@
       test_daily: 'prod_UHISaxhpCZiewg',
     },
     appDomain: 'dfcms.pl',
+    /**
+     * Opcjonalnie nadpisz URL w resetPasswordForEmail (musi być w Supabase → Authentication → Redirect URLs).
+     * Puste = automatycznie: na localhost origin/admin.html; na domenie produkcyjnej https://{appDomain}/admin.html.
+     */
+    passwordResetRedirectUrl: '',
     /** Adres do wiadomości „usuń konto” (mailto) z panelu administracyjnego. */
     supportEmail: 'kontakt@dfops.eu',
     /** Nadawca wiadomości automatycznych (auth Supabase, powiadomienia systemowe) — ustaw w SMTP/Resend zgodnie z wdrożeniem. */

@@ -95,6 +95,28 @@
     return 'Chwileczkę, dodaję Twoje zdjęcie…';
   }
 
+  /**
+   * URL powrotu z maila resetującego — musi być na liście Redirect URLs w Supabase (dokładnie lub wildcard).
+   * Produkcja: kanonicznie https://{appDomain}/admin.html, żeby www / bez www nie psuły walidacji.
+   */
+  function resolvePasswordResetRedirectUrl() {
+    const cfg = window.DFOPS_CONFIG || {};
+    const explicit = typeof cfg.passwordResetRedirectUrl === 'string' ? cfg.passwordResetRedirectUrl.trim() : '';
+    if (explicit) return explicit;
+    if (typeof window === 'undefined' || !window.location) return undefined;
+    const origin = window.location.origin;
+    const host = (window.location.hostname || '').toLowerCase();
+    const isLocal =
+      host === 'localhost' || host === '127.0.0.1' || host.endsWith('.local') || host.endsWith('.localhost');
+    const ad = typeof cfg.appDomain === 'string' ? cfg.appDomain.trim().toLowerCase() : '';
+    const matchesProd =
+      ad && (host === ad || host === `www.${ad}`);
+    if (!isLocal && matchesProd && ad) {
+      return `https://${ad}/admin.html`;
+    }
+    return origin ? `${origin.replace(/\/$/, '')}/admin.html` : undefined;
+  }
+
   function createAdminApp() {
     const t = window.DFOPS_CONFIG?.timeouts || {};
     const MS_PER_DAY = t.msPerDay ?? 86400000;
@@ -728,16 +750,40 @@
         }
         this.forgotPasswordSending = true;
         try {
-          const origin = typeof window !== 'undefined' ? window.location.origin : '';
+          const redirectTo = resolvePasswordResetRedirectUrl();
+          if (!redirectTo) {
+            this.authError = 'Nie można ustalić adresu powrotu (redirect). Odśwież stronę i spróbuj ponownie.';
+            return;
+          }
+          if (typeof console !== 'undefined' && console.debug) {
+            console.debug('[DFCMS] resetPasswordForEmail redirectTo', redirectTo);
+          }
           const { error } = await this.supabase.auth.resetPasswordForEmail(em, {
-            redirectTo: origin ? `${origin}/admin.html` : undefined,
+            redirectTo,
           });
           if (error) throw error;
           this.forgotPasswordInfo =
-            'Jeśli konto istnieje, wysłaliśmy wiadomość z linkiem do ustawienia hasła. Sprawdź skrzynkę (także spam).';
+            'Na podany adres — jeśli jest zarejestrowany w DFCMS — wysłaliśmy wiadomość z linkiem. Sprawdź skrzynkę i spam. Gdy nic nie dojdzie w kilka minut: upewnij się, że to ten sam e-mail co przy rejestracji, albo skontaktuj się z pomocą.';
+          this.showToast(
+            'Jeśli konto istnieje, mail z linkiem został wysłany — sprawdź skrzynkę i folder spam.',
+            'success',
+          );
         } catch (err) {
-          const msg = err && typeof err === 'object' && 'message' in err ? String(err.message) : String(err);
-          this.authError = msg || 'Nie udało się wysłać wiadomości.';
+          const raw =
+            err && typeof err === 'object'
+              ? String(err.message || err.msg || err.error_description || err)
+              : String(err);
+          if (typeof console !== 'undefined' && console.error) {
+            console.error('[DFCMS] resetPasswordForEmail', err);
+          }
+          const lower = raw.toLowerCase();
+          if (lower.includes('redirect') && (lower.includes('url') || lower.includes('invalid'))) {
+            this.authError =
+              'Serwer odrzucił adres powrotu. W Supabase: Authentication → URL Configuration → Redirect URLs — dodaj dokładnie ten adres (lub wildcard): ' +
+              String(resolvePasswordResetRedirectUrl() || '…/admin.html');
+          } else {
+            this.authError = raw || 'Nie udało się wysłać wiadomości.';
+          }
         } finally {
           this.forgotPasswordSending = false;
         }
