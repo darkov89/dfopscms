@@ -26,18 +26,18 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
-    <script defer src="js/core/config.js?v=20260413d"></script>
-    <script defer src="js/core/supabaseClient.js?v=20260413d"></script>
-    <script defer src="js/templates/registry.js?v=20260413d"></script>
-    <script defer src="js/core/contentSchema.js?v=20260413d"></script>
-    <script defer src="js/core/contentUpgrader.js?v=20260413d"></script>
-    <script defer src="js/core/themeStyling.js?v=20260413d"></script>
-    <script defer src="js/core/pageRepository.js?v=20260413d"></script>
-    <script defer src="js/core/planUtils.js?v=20260413d"></script>
-    <script defer src="js/core/analytics.js?v=20260413d"></script>
-    <script defer src="js/features/adminApp.js?v=20260413d"></script>
+    <script defer src="js/core/config.js?v=20260403f"></script>
+    <script defer src="js/core/supabaseClient.js?v=20260403f"></script>
+    <script defer src="js/templates/registry.js?v=20260403f"></script>
+    <script defer src="js/core/contentSchema.js?v=20260403f"></script>
+    <script defer src="js/core/contentUpgrader.js?v=20260403f"></script>
+    <script defer src="js/core/themeStyling.js?v=20260403f"></script>
+    <script defer src="js/core/pageRepository.js?v=20260403f"></script>
+    <script defer src="js/core/planUtils.js?v=20260403f"></script>
+    <script defer src="js/core/analytics.js?v=20260403f"></script>
+    <script defer src="js/features/adminApp.js?v=20260403f"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
-    <link rel="stylesheet" href="css/styles.css?v=20260413d">
+    <link rel="stylesheet" href="css/styles.css?v=20260403f">
 </head>
 <body class="dfops-admin-app flex min-h-screen flex-col bg-slate-50 font-sans text-slate-800 antialiased" x-data="typeof DFOPS_adminAlpineState === 'function' ? DFOPS_adminAlpineState() : { sidebarOpen: false, isLoading: false, content: { pl: { nav: { menu: {} }, hero: {}, manifesto: {}, services: [], faq: [], contact: {}, settings: {} } } }">
 
@@ -288,8 +288,8 @@
         <div class="w-full max-w-md rounded-2xl border border-slate-200/70 bg-white p-8 shadow-panel-md ring-1 ring-slate-900/5 sm:p-10">
             <h1 class="mb-2 text-center text-3xl font-black tracking-widest text-slate-900">DF<span class="text-accent">CMS</span></h1>
             <p class="text-xs text-slate-500 uppercase tracking-widest text-center mb-8">Witaj z powrotem!</p>
-            
-            <form @submit.prevent.stop="login($event)" class="space-y-6">
+
+            <form x-show="!showLoginForgotPassword" @submit.prevent.stop="login($event)" class="space-y-6">
                 <div>
                     <label for="admin-email" class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Adres E-mail</label>
                     <input id="admin-email" type="email" x-model="email" required class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
@@ -298,17 +298,43 @@
                     <label for="admin-password" class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Hasło</label>
                     <input id="admin-password" type="password" x-model="password" required class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
                 </div>
-                <label class="flex items-center gap-2 mt-4 cursor-pointer">
-                    <input type="checkbox" x-model="rememberMe" class="rounded border-slate-300 text-accent focus:ring-accent/40">
-                    <span class="text-sm text-slate-500">Zapamiętaj mnie na tym urządzeniu</span>
-                </label>
-                
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" x-model="rememberMe" class="rounded border-slate-300 text-accent focus:ring-accent/40">
+                        <span class="text-sm text-slate-500">Zapamiętaj mnie na tym urządzeniu</span>
+                    </label>
+                    <button type="button" @click="showLoginForgotPassword = true; forgotPasswordEmail = email; authError = ''; forgotPasswordInfo = ''" class="text-sm font-semibold text-accent-soft underline decoration-accent/30 underline-offset-2 hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 rounded">
+                        Nie pamiętam hasła
+                    </button>
+                </div>
+
                 <div x-show="authError" class="text-red-500 text-sm font-bold text-center" x-text="authError"></div>
 
                 <button type="submit" class="w-full rounded-lg bg-accent-fg px-8 py-4 text-sm font-bold uppercase tracking-widest text-white shadow-panel transition-all duration-200 hover:bg-accent hover:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2">
                     Zaloguj się
                 </button>
             </form>
+
+            <div x-show="showLoginForgotPassword" x-cloak class="space-y-6">
+                <p class="text-sm text-slate-600 leading-relaxed">Podaj adres konta — wyślemy link do ustawienia nowego hasła (sprawdź także folder spam).</p>
+                <form @submit.prevent.stop="requestPasswordReset($event)" class="space-y-4">
+                    <div>
+                        <label for="admin-forgot-email" class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Adres e-mail</label>
+                        <input id="admin-forgot-email" type="email" x-model="forgotPasswordEmail" required autocomplete="email" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                    </div>
+                    <div x-show="forgotPasswordInfo" class="text-sm text-emerald-700 font-medium leading-relaxed" x-text="forgotPasswordInfo"></div>
+                    <div x-show="authError && showLoginForgotPassword" class="text-red-500 text-sm font-bold text-center" x-text="authError"></div>
+                    <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <button type="button" @click="showLoginForgotPassword = false; authError = ''; forgotPasswordInfo = ''" class="text-sm font-semibold text-slate-500 hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 rounded px-1">
+                            ← Wróć do logowania
+                        </button>
+                        <button type="submit" :disabled="forgotPasswordSending" class="w-full sm:w-auto rounded-lg bg-accent-fg px-6 py-3.5 text-xs font-bold uppercase tracking-widest text-white shadow-panel transition-colors hover:bg-accent hover:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span x-show="!forgotPasswordSending">Wyślij link resetujący</span>
+                            <span x-show="forgotPasswordSending" x-cloak>Wysyłam…</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -463,12 +489,12 @@
                 </button>
             </div>
 
-            <div class="relative flex flex-col gap-6 lg:flex-row lg:gap-8">
+            <div class="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
                 <aside
-                    class="fixed inset-y-0 left-0 z-50 flex w-64 max-w-[min(100vw,18rem)] transform flex-col overflow-y-auto overflow-x-hidden border-r border-slate-200/80 bg-white py-2 shadow-panel-md transition-transform duration-300 ease-out lg:relative lg:inset-auto lg:z-auto lg:w-1/4 lg:max-w-none lg:translate-x-0 lg:flex-shrink-0 lg:rounded-xl lg:border lg:border-slate-200/70 lg:shadow-panel lg:ring-1 lg:ring-slate-900/5"
+                    class="fixed inset-y-0 left-0 z-50 flex w-64 max-w-[min(100vw,18rem)] transform flex-col overflow-y-auto overflow-x-hidden border-r border-slate-200/80 bg-white py-2 shadow-panel-md transition-transform duration-300 ease-out lg:relative lg:inset-auto lg:z-auto lg:w-1/4 lg:max-w-none lg:translate-x-0 lg:flex-shrink-0 lg:overflow-visible lg:rounded-xl lg:border lg:border-slate-200/70 lg:shadow-panel lg:ring-1 lg:ring-slate-900/5 lg:sticky lg:top-4 lg:self-start"
                     :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
                 >
-                    <div class="flex flex-col overflow-x-hidden px-2 pb-4 pt-3">
+                    <div class="flex flex-col overflow-x-hidden px-2 pb-4 pt-3 lg:overflow-visible">
                         <button type="button" @click="openWizardFromStudio()" class="mb-4 flex w-full items-center gap-3 rounded-xl bg-accent/10 px-4 py-3 text-left font-bold text-accent transition-colors hover:bg-accent/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2">
                             <span class="text-xl" aria-hidden="true">🪄</span> Uruchom Kreator
                         </button>
@@ -1611,7 +1637,8 @@
                         <div id="dfops-portal-stripe" class="mb-6 rounded-xl border border-[#D4AF37]/35 bg-gradient-to-br from-[#1a1816] via-[#141210] to-[#0f0e0c] p-5 sm:p-6 shadow-lg ring-1 ring-[#D4AF37]/20 scroll-mt-24">
                             <p class="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.2em] mb-2">Portal rozliczeń Stripe</p>
                             <p class="text-xs text-stone-400 mb-4 leading-relaxed max-w-2xl">Zmiana karty, anulowanie subskrypcji, faktury i historia płatności — w jednym bezpiecznym miejscu.</p>
-                            <button type="button" @click="openCustomerPortal" :disabled="isPortalLoading || saving" class="inline-flex items-center justify-center gap-2.5 min-h-[2.75rem] w-full sm:w-auto bg-[#D4AF37] text-[#121212] px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#c9a432] transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed border border-[#D4AF37]/60">
+                            <div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-stretch">
+                        <button type="button" @click="openCustomerPortal" :disabled="isPortalLoading || saving" class="inline-flex items-center justify-center gap-2.5 min-h-[2.75rem] w-full sm:w-auto bg-[#D4AF37] text-[#121212] px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#c9a432] transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed border border-[#D4AF37]/60">
                                 <svg x-show="isPortalLoading" x-cloak class="animate-spin h-5 w-5 shrink-0 text-[#121212]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -1619,6 +1646,16 @@
                                 <span x-show="!isPortalLoading">Zarządzaj subskrypcją i fakturami</span>
                                 <span x-show="isPortalLoading" x-cloak>Łączenie…</span>
                             </button>
+                                <div class="flex min-w-0 flex-1 flex-col gap-2 sm:min-w-[14rem] sm:max-w-md">
+                                    <p class="text-[11px] leading-relaxed text-amber-100/90">
+                                        <strong class="text-amber-50">Anuluj subskrypcję:</strong> zostaniesz przeniesiony do bezpiecznego portalu Stripe (ankiety wyjścia, faktury, ewentualna retencja).
+                                    </p>
+                                    <button type="button" @click="openCustomerPortal" :disabled="isPortalLoading || saving" class="inline-flex items-center justify-center gap-2 min-h-[2.75rem] w-full rounded-xl border-2 border-red-400/70 bg-transparent px-5 py-3 text-xs font-bold uppercase tracking-widest text-red-200 transition-colors hover:border-red-300 hover:bg-red-950/40 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400/50 disabled:cursor-not-allowed disabled:opacity-50">
+                                        <span x-show="!isPortalLoading">Anuluj subskrypcję</span>
+                                        <span x-show="isPortalLoading" x-cloak>Łączenie…</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <div x-show="hasActivePaidSubscription" x-cloak class="mb-8 rounded-2xl border border-[#D4AF37]/35 bg-gradient-to-br from-white via-amber-50/30 to-white shadow-lg shadow-amber-900/5 ring-1 ring-black/5 overflow-hidden">

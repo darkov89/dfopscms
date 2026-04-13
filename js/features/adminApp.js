@@ -111,6 +111,14 @@
       password: '',
       rememberMe: false,
       authError: '',
+      /** Logowanie: widok „Nie pamiętam hasła” (ten sam admin.html). */
+      showLoginForgotPassword: false,
+      forgotPasswordEmail: '',
+      forgotPasswordSending: false,
+      forgotPasswordInfo: '',
+      /** Link resetujący hasło (Supabase) — po loadData: zakładka Konto + toast. */
+      _passwordRecoveryPendingUi: false,
+      _passwordRecoveryUiHandled: false,
       slug: new URLSearchParams(window.location.search).get('site') || '',
       lang: 'pl',
       theme: '',
@@ -629,10 +637,16 @@
           }
         });
         this.supabase.auth.onAuthStateChange((event, session) => {
+          if (event === 'PASSWORD_RECOVERY') {
+            this._passwordRecoveryPendingUi = true;
+          }
           if (session?.user) this.assignAuthUser(session.user);
           else this.assignAuthUser(null);
           if (!this.loadingAuth && (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED' || event === 'SIGNED_IN')) {
             void this.syncAuthUserFromServer();
+          }
+          if (event === 'PASSWORD_RECOVERY' && !this.loadingAuth && this.user) {
+            this.applyPasswordRecoveryUi();
           }
           if (this.loadingAuth) return;
           if (!this.isEmailVerified) {
@@ -640,6 +654,7 @@
             return;
           }
           if (
+            !this._passwordRecoveryUiHandled &&
             this.pageId &&
             this.content?.pl?.settings &&
             this.content.pl.settings.onboarding_completed === false
@@ -663,17 +678,69 @@
         this.needsEmailConfirmation = !userEmailLooksConfirmed(user);
       },
 
-      /** PKCE: link z maila zawiera ?code= — bez wymiany sesja pozostaje „sprzed” potwierdzenia. */
+      /** PKCE: link z maila zawiera ?code= — bez wymiany sesja pozostaje „sprzed” potwierdzenia. `type=recovery` = reset hasła. */
       async consumeEmailConfirmParamsFromUrl() {
         if (!this.supabase) return;
         const url = new URL(window.location.href);
         const code = url.searchParams.get('code');
         if (!code) return;
+        const flowType = (url.searchParams.get('type') || '').toLowerCase();
         const { error } = await this.supabase.auth.exchangeCodeForSession(code);
         if (error) throw error;
-        ['code', 'code_challenge', 'code_challenge_method'].forEach((k) => url.searchParams.delete(k));
+        if (flowType === 'recovery') {
+          this._passwordRecoveryPendingUi = true;
+        }
+        ['code', 'code_challenge', 'code_challenge_method', 'type'].forEach((k) => url.searchParams.delete(k));
         const qs = url.searchParams.toString();
         window.history.replaceState({}, document.title, url.pathname + (qs ? `?${qs}` : '') + url.hash);
+      },
+
+      /** Po wejściu z linku resetu hasła: Konto + toast; wykorzystuje istniejące pola `updatePassword`. */
+      applyPasswordRecoveryUi() {
+        if (this._passwordRecoveryUiHandled || !this.user) return;
+        this._passwordRecoveryUiHandled = true;
+        this._passwordRecoveryPendingUi = false;
+        this.showWizard = false;
+        this.setTab('account');
+        setTimeout(() => {
+          document.getElementById('dfops-zarzadzanie-konto')?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+          });
+        }, 200);
+        this.showToast('Zalogowano poprawnie. Teraz ustaw nowe hasło poniżej.', 'success');
+      },
+
+      async requestPasswordReset(evt) {
+        if (evt && typeof evt.preventDefault === 'function') {
+          evt.preventDefault();
+          evt.stopPropagation();
+        }
+        this.authError = '';
+        this.forgotPasswordInfo = '';
+        const em = String(this.forgotPasswordEmail || '').trim();
+        if (!em) {
+          this.authError = 'Podaj adres e-mail.';
+          return;
+        }
+        if (!this.supabase) {
+          this.supabase = window.DFOPS_getSupabaseClient();
+        }
+        this.forgotPasswordSending = true;
+        try {
+          const origin = typeof window !== 'undefined' ? window.location.origin : '';
+          const { error } = await this.supabase.auth.resetPasswordForEmail(em, {
+            redirectTo: origin ? `${origin}/admin.html` : undefined,
+          });
+          if (error) throw error;
+          this.forgotPasswordInfo =
+            'Jeśli konto istnieje, wysłaliśmy wiadomość z linkiem do ustawienia hasła. Sprawdź skrzynkę (także spam).';
+        } catch (err) {
+          const msg = err && typeof err === 'object' && 'message' in err ? String(err.message) : String(err);
+          this.authError = msg || 'Nie udało się wysłać wiadomości.';
+        } finally {
+          this.forgotPasswordSending = false;
+        }
       },
 
       /**
@@ -694,7 +761,13 @@
           if (!userError && userData?.user) {
             this.assignAuthUser(userData.user);
           }
-          if (!this.loadingAuth && this.isEmailVerified && this.pageId && this.content?.pl?.settings?.onboarding_completed === false) {
+          if (
+            !this._passwordRecoveryUiHandled &&
+            !this.loadingAuth &&
+            this.isEmailVerified &&
+            this.pageId &&
+            this.content?.pl?.settings?.onboarding_completed === false
+          ) {
             this.showWizard = true;
           }
         } catch {
@@ -724,6 +797,9 @@
         this.loadingAuth = false;
         if (this.user && !paymentRefreshScheduled) {
           await this.loadData();
+        }
+        if (this._passwordRecoveryPendingUi && this.user) {
+          this.applyPasswordRecoveryUi();
         }
       },
 
@@ -801,6 +877,11 @@
         try {
           localStorage.removeItem('dfops_login_time');
         } catch (e) { /* ignore */ }
+        this.showLoginForgotPassword = false;
+        this.forgotPasswordEmail = '';
+        this.forgotPasswordInfo = '';
+        this._passwordRecoveryPendingUi = false;
+        this._passwordRecoveryUiHandled = false;
         this.assignAuthUser(null);
         this.content = createAdminContentShell();
         this.pageId = null;
