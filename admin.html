@@ -26,20 +26,20 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
-    <script defer src="js/core/config.js?v=20260403n"></script>
-    <script defer src="js/core/supabaseClient.js?v=20260403n"></script>
-    <script defer src="js/templates/registry.js?v=20260403n"></script>
-    <script defer src="js/core/contentSchema.js?v=20260403n"></script>
-    <script defer src="js/core/contentUpgrader.js?v=20260403n"></script>
-    <script defer src="js/core/themeStyling.js?v=20260403n"></script>
-    <script defer src="js/core/pageRepository.js?v=20260403n"></script>
-    <script defer src="js/core/planUtils.js?v=20260403n"></script>
-    <script defer src="js/core/analytics.js?v=20260403n"></script>
+    <script defer src="js/core/config.js?v=20260403q"></script>
+    <script defer src="js/core/supabaseClient.js?v=20260403q"></script>
+    <script defer src="js/templates/registry.js?v=20260403q"></script>
+    <script defer src="js/core/contentSchema.js?v=20260403q"></script>
+    <script defer src="js/core/contentUpgrader.js?v=20260403q"></script>
+    <script defer src="js/core/themeStyling.js?v=20260403q"></script>
+    <script defer src="js/core/pageRepository.js?v=20260403q"></script>
+    <script defer src="js/core/planUtils.js?v=20260403q"></script>
+    <script defer src="js/core/analytics.js?v=20260403q"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260403n"></script>
+    <script defer src="js/features/adminApp.js?v=20260403q"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
-    <link rel="stylesheet" href="css/styles.css?v=20260403n">
+    <link rel="stylesheet" href="css/styles.css?v=20260403q">
 </head>
 <body class="dfops-admin-app flex min-h-screen flex-col bg-slate-50 font-sans text-slate-800 antialiased" x-data="typeof DFOPS_adminAlpineState === 'function' ? DFOPS_adminAlpineState() : { sidebarOpen: false, isLoading: false, content: { pl: { nav: { menu: {} }, hero: {}, manifesto: {}, services: [], faq: [], contact: {}, settings: {} } } }">
 
@@ -403,7 +403,7 @@
                 <div class="mb-6 h-px w-12 bg-gradient-to-r from-transparent via-[#C9A227] to-transparent opacity-90"></div>
                 <p class="text-[10px] font-bold uppercase tracking-[0.35em] text-stone-400">Powitanie</p>
                 <h2 id="dfcms-welcome-title" class="mt-2 font-serif text-2xl font-semibold tracking-tight text-stone-900 sm:text-[1.65rem]">Witaj w DFCMS!</h2>
-                <p class="mt-4 text-sm leading-relaxed text-stone-600 sm:text-[0.9375rem]">Uzupełnisz podstawowe informacje o swojej firmie i przejdziesz przez najważniejsze miejsca w panelu — krótko, spokojnie i bez presji. Potem krótkie oprowadzenie po kreatorze.</p>
+                <p class="mt-4 text-sm leading-relaxed text-stone-600 sm:text-[0.9375rem]">Uzupełnisz podstawowe informacje o swojej firmie — krótko i bez presji. Zaraz pokażemy kilka najważniejszych miejsc w panelu (m.in. nazwa marki, logo, podgląd strony). Pełny kreator krok po kroku uruchomisz z menu, gdy będziesz gotów.</p>
                 <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
                     <button type="button"
                             @click="dismissWelcomeModalAndStartOnboarding()"
@@ -414,18 +414,21 @@
             </div>
         </div>
 
-        <div x-show="showNinjaChecklist" x-transition class="mx-4 mt-4 rounded-xl border border-amber-200/80 bg-amber-50/90 p-4 shadow-panel ring-1 ring-amber-900/5 md:mx-8">
-            <div class="flex justify-between items-start gap-4 mb-3">
-                <h3 class="text-sm font-bold text-amber-900 uppercase tracking-widest">Twój pierwszy krok w Studio</h3>
-                <button type="button" @click="showNinjaChecklist = false" class="text-amber-800 hover:text-slate-900 text-lg leading-none" aria-label="Zamknij">✕</button>
+        <div x-show="showWizardDismissModal"
+             x-cloak
+             x-transition.opacity
+             class="fixed inset-0 z-[267] flex items-center justify-center p-4 bg-slate-900/45 backdrop-blur-[1px]"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="dfcms-wizard-dismiss-title"
+             @click.self="closeWizardDismissModal()">
+            <div class="relative w-full max-w-md rounded-2xl border border-stone-200/90 bg-white p-6 shadow-xl ring-1 ring-slate-900/5 sm:p-8" @click.stop>
+                <h2 id="dfcms-wizard-dismiss-title" class="font-serif text-lg font-semibold text-slate-900">Kreator zamknięty</h2>
+                <p class="mt-3 text-sm leading-relaxed text-slate-600">Uzupełnij brakujące informacje w swoim tempie — lista pokaże się w obszarze edycji. W każdej chwili możesz wrócić do pełnego kreatora przyciskiem <span class="font-semibold text-slate-800">„Uruchom Kreator”</span> w menu po lewej.</p>
+                <button type="button" @click="closeWizardDismissModal()" class="mt-6 w-full rounded-lg bg-slate-900 px-4 py-3 text-xs font-bold uppercase tracking-widest text-white transition-colors hover:bg-accent hover:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2">
+                    Rozumiem
+                </button>
             </div>
-            <p class="text-xs text-amber-800 mb-3">Uzupełnij te elementy — wtedy strona będzie spójna i gotowa do gości.</p>
-            <ul class="text-sm text-slate-700 space-y-2 mb-4 list-disc list-inside">
-                <li>Logo i nazwa w <button type="button" @click="setTab('settings'); showNinjaChecklist = false" class="font-bold text-accent underline decoration-accent/40 underline-offset-2 transition-colors hover:decoration-accent">Szablon i kolory</button></li>
-                <li>Sekcja <button type="button" @click="setTab('hero'); showNinjaChecklist = false" class="font-bold text-accent underline decoration-accent/40 underline-offset-2 transition-colors hover:decoration-accent">Powitanie na stronie</button> (nagłówek, zdjęcie)</li>
-                <li><button type="button" @click="setTab('contact'); showNinjaChecklist = false" class="font-bold text-accent underline decoration-accent/40 underline-offset-2 transition-colors hover:decoration-accent">Kontakt</button> (telefon / e-mail)</li>
-                <li>Opcjonalnie: <button type="button" @click="setTab('seo'); showNinjaChecklist = false" class="font-bold text-accent underline decoration-accent/40 underline-offset-2 transition-colors hover:decoration-accent">Google i social media</button></li>
-            </ul>
         </div>
 
         <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false" class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-[2px] transition-opacity lg:hidden" x-transition.opacity></div>
@@ -526,13 +529,15 @@
                 >
                     <div class="flex flex-col overflow-x-hidden px-2 pb-4 pt-3 lg:overflow-visible">
                         <button type="button" @click="openWizardFromStudio()" class="mb-4 flex w-full items-center gap-3 rounded-xl bg-accent/10 px-4 py-3 text-left font-bold text-accent transition-colors hover:bg-accent/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2">
-                            <span class="text-xl" aria-hidden="true">🪄</span> Uruchom Kreator
+                            <span class="text-xl shrink-0" aria-hidden="true">🪄</span>
+                            <span class="min-w-0 flex-1 leading-snug">Uruchom Kreator</span>
+                            <span x-show="incompleteOnboardingChecks.length && !showWizard" x-cloak class="inline-flex h-6 min-w-[1.5rem] shrink-0 items-center justify-center rounded-full bg-amber-200/90 px-1.5 text-[11px] font-bold tabular-nums text-amber-950" x-text="incompleteOnboardingChecks.length"></span>
                         </button>
 
                         <h3 class="mb-2 mt-1 px-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Treść Twojej Strony</h3>
                         <div class="mb-0.5 flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'hero' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
                             <button type="button" @click="setTab('hero')" class="min-w-0 flex-1 rounded-r-lg py-3 pl-4 pr-1 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-0">
-                                <span :class="activeTab === 'hero' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Powitanie na stronie</span>
+                                <span :class="activeTab === 'hero' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="inline-flex items-center gap-1.5 leading-snug">Powitanie na stronie<span x-show="sidebarTabNeedsAttention('hero')" class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[10px] font-bold leading-none text-amber-800" title="Wymaga uwagi">!</span></span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
                                 <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: powitanie na stronie">
@@ -575,7 +580,7 @@
                         </div>
                         <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'contact' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
                             <button type="button" @click="setTab('contact')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
-                                <span :class="activeTab === 'contact' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Kontakt</span>
+                                <span :class="activeTab === 'contact' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="inline-flex items-center gap-1.5 leading-snug">Kontakt<span x-show="sidebarTabNeedsAttention('contact')" class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[10px] font-bold leading-none text-amber-800" title="Wymaga uwagi">!</span></span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
                                 <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: kontakt">
@@ -647,7 +652,7 @@
                         <h3 class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 mt-6">Konfiguracja</h3>
                         <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'settings' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
                             <button type="button" @click="setTab('settings')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
-                                <span :class="activeTab === 'settings' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Szablon i kolory</span>
+                                <span :class="activeTab === 'settings' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="inline-flex items-center gap-1.5 leading-snug">Szablon i kolory<span x-show="sidebarTabNeedsAttention('settings')" class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[10px] font-bold leading-none text-amber-800" title="Wymaga uwagi">!</span></span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
                                 <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: szablon i kolory">
@@ -721,6 +726,28 @@
                 </aside>
 
                 <div class="w-full min-w-0 overflow-hidden rounded-xl border border-slate-200/70 bg-white p-4 shadow-panel ring-1 ring-slate-900/5 md:p-8 lg:w-3/4">
+
+                    <div x-show="!showWizard && isEmailVerified && content?.pl?.settings?.onboarding_completed === false && incompleteOnboardingChecks.length > 0"
+                         x-transition
+                         class="mb-6 rounded-xl border border-amber-200/70 bg-gradient-to-b from-amber-50/80 to-white p-4 ring-1 ring-amber-900/[0.06] md:p-5">
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-900">Co warto jeszcze dopracować</h3>
+                                <p class="mt-1 max-w-xl text-xs text-slate-600">Poniżej tylko to, czego brakuje — bez osobnych okienek. Kliknij pozycję lub użyj kreatora po lewej.</p>
+                            </div>
+                            <button type="button" @click="openWizardFromStudio(); sidebarOpen = false" class="shrink-0 self-start rounded-lg border border-accent/30 bg-white px-3 py-2 text-xs font-bold uppercase tracking-widest text-accent transition-colors hover:bg-accent/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                Pełny kreator
+                            </button>
+                        </div>
+                        <ul class="mt-4 space-y-2 border-t border-amber-200/50 pt-4">
+                            <template x-for="item in incompleteOnboardingChecks" :key="item.id">
+                                <li class="flex items-start gap-3 text-sm text-slate-800">
+                                    <span class="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[11px] font-bold text-amber-900" aria-hidden="true">!</span>
+                                    <button type="button" class="text-left font-medium text-accent underline decoration-accent/35 underline-offset-2 transition-colors hover:decoration-accent" @click="goToOnboardingItem(item)" x-text="item.label"></button>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
                     
                     <div x-show="activeTab === 'settings'" x-transition.opacity>
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
@@ -2013,7 +2040,7 @@
                  aria-labelledby="studio-welcome-title">
                 <h2 id="studio-welcome-title" class="text-2xl font-black text-slate-900 mb-4">Witaj w swoim Studiu! ✨</h2>
                 <p class="text-sm text-slate-600 leading-relaxed mb-8">
-                    Skonstruowaliśmy fundamenty Twojej strony. Teraz możesz na spokojnie przejrzeć każdą zakładkę, dodać więcej zdjęć i doszlifować szczegóły. Nie martw się, niczego tu nie zepsujesz. W każdej chwili możesz też wrócić do Kreatora.
+                    Fundamenty strony są gotowe — możesz teraz przejść przez zakładki we własnym tempie. W każdej chwili wrócisz do pełnego kreatora przyciskiem „Uruchom Kreator” w menu po lewej.
                 </p>
                 <button type="button" @click="closeStudioWelcomeModal()" class="w-full bg-[#D4AF37] hover:bg-[#c4a028] text-[#121212] font-bold py-4 px-6 rounded-xl text-sm tracking-widest uppercase transition-colors shadow-md">
                     Zaczynamy eksplorację!

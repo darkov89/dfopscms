@@ -167,7 +167,8 @@
       wizardStep: 0,
       wizardTheme: '',
       wizardFieldWarning: '',
-      showNinjaChecklist: false,
+      /** Jednorazowy komunikat po „Pomiń kreator” — bez listy „ninja” u góry. */
+      showWizardDismissModal: false,
       /** Pierwsza konfiguracja: treść bez `business_name` (po normalize — zob. loadData). */
       showWelcomeModal: false,
       showStudioWelcomeModal: false,
@@ -234,6 +235,31 @@
       /** Kreator tylko po potwierdzeniu e-maila — zgodny z needsEmailConfirmation ustawianym po getUser(). */
       get isEmailVerified() {
         return !!this.user && !this.needsEmailConfirmation;
+      },
+      /**
+       * Checklista „co jeszcze dołożyć” dopóki `onboarding_completed` jest false — bez pełnoekranowego kreatora.
+       * Kolejność zgodna z walidacją kreatora (szablon → marka → nagłówek → kontakt).
+       */
+      get incompleteOnboardingChecks() {
+        if (!this.content?.pl?.settings || this.content.pl.settings.onboarding_completed === true) return [];
+        const pl = this.content.pl;
+        if (!pl) return [];
+        const items = [];
+        if (this.theme === 'setup') {
+          items.push({ id: 'setup', label: 'Wybierz szablon Salon lub Konsultant', tab: null, openWizard: true });
+        }
+        if (!String(pl.nav?.logo || '').trim()) {
+          items.push({ id: 'navlogo', label: 'Podaj nazwę marki w menu strony', tab: 'settings', openWizard: false });
+        }
+        if (!String(pl.hero?.headline || '').trim()) {
+          items.push({ id: 'hero', label: 'Uzupełnij główny nagłówek w sekcji powitalnej', tab: 'hero', openWizard: false });
+        }
+        const phone = String(pl.contact?.phone || '').trim();
+        const email = String(pl.contact?.email || '').trim();
+        if (!phone && !email) {
+          items.push({ id: 'contact', label: 'Dodaj telefon lub e-mail do kontaktu', tab: 'contact', openWizard: false });
+        }
+        return items;
       },
       /**
        * Aktywny plan płatny w CMS lub subskrypcja Stripe ze statusem active/trialing
@@ -753,14 +779,6 @@
             this.showWizard = false;
             return;
           }
-          if (
-            !this._passwordRecoveryUiHandled &&
-            this.pageId &&
-            this.content?.pl?.settings &&
-            this.content.pl.settings.onboarding_completed === false
-          ) {
-            this.showWizard = true;
-          }
         });
         void this.bootstrapAdminSession();
       },
@@ -888,15 +906,6 @@
           if (!userError && userData?.user) {
             this.assignAuthUser(userData.user);
           }
-          if (
-            !this._passwordRecoveryUiHandled &&
-            !this.loadingAuth &&
-            this.isEmailVerified &&
-            this.pageId &&
-            this.content?.pl?.settings?.onboarding_completed === false
-          ) {
-            this.showWizard = true;
-          }
         } catch {
           /* ignore */
         }
@@ -1022,7 +1031,7 @@
         this.wizardStep = 0;
         this.wizardTheme = '';
         this.wizardFieldWarning = '';
-        this.showNinjaChecklist = false;
+        this.showWizardDismissModal = false;
         this.showWelcomeModal = false;
         this.hasUnsavedChanges = false;
         this.showSuccessModal = false;
@@ -1085,7 +1094,7 @@
 
       async loadData() {
         this.isLoading = true;
-        this.showNinjaChecklist = false;
+        this.showWizardDismissModal = false;
         try {
           if (this.user) {
             await this.syncAuthUserFromServer();
@@ -1136,12 +1145,11 @@
           if (!this.isEmailVerified) {
             this.showWizard = false;
           } else if (
-            this.content &&
-            this.content[this.lang] &&
-            this.content[this.lang].settings &&
-            this.content[this.lang].settings.onboarding_completed === false
+            this.content?.pl?.settings?.onboarding_completed === false &&
+            this.incompleteOnboardingChecks.length === 0
           ) {
-            this.showWizard = true;
+            this.content.pl.settings.onboarding_completed = true;
+            await this.saveData({ silentSuccess: true });
           }
 
           this.showWelcomeModal =
@@ -1282,9 +1290,7 @@
         this.showWizard = false;
         this.wizardStep = 0;
         this.wizardFieldWarning = '';
-        this.showNinjaChecklist = true;
-        this.message = 'Kreator pominięty. Poniżej masz krótką listę — uzupełnij stronę, gdy będziesz gotów.';
-        setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
+        this.showWizardDismissModal = true;
         if (typeof window.DFOPS_trackEvent === 'function') {
           window.DFOPS_trackEvent('onboarding_skipped', { slug: this.slug });
         }
@@ -1497,6 +1503,30 @@
         if (typeof window.DFOPS_trackEvent === 'function') {
           window.DFOPS_trackEvent('onboarding_reopened', { slug: this.slug });
         }
+      },
+      sidebarTabNeedsAttention(tab) {
+        if (!this.content?.pl?.settings || this.content.pl.settings.onboarding_completed === true) return false;
+        const pl = this.content.pl;
+        if (!pl) return false;
+        if (tab === 'settings') {
+          return this.theme === 'setup' || !String(pl.nav?.logo || '').trim();
+        }
+        if (tab === 'hero') return !String(pl.hero?.headline || '').trim();
+        if (tab === 'contact') {
+          const phone = String(pl.contact?.phone || '').trim();
+          const email = String(pl.contact?.email || '').trim();
+          return !phone && !email;
+        }
+        return false;
+      },
+      goToOnboardingItem(item) {
+        if (!item) return;
+        if (item.openWizard) this.openWizardFromStudio();
+        else if (item.tab) this.setTab(item.tab);
+        this.sidebarOpen = false;
+      },
+      closeWizardDismissModal() {
+        this.showWizardDismissModal = false;
       },
       async subscribe(planType) {
         const prices = cfg.stripePrices || {};
