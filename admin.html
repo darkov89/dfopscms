@@ -26,18 +26,20 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
-    <script defer src="js/core/config.js?v=20260403m"></script>
-    <script defer src="js/core/supabaseClient.js?v=20260403m"></script>
-    <script defer src="js/templates/registry.js?v=20260403m"></script>
-    <script defer src="js/core/contentSchema.js?v=20260403m"></script>
-    <script defer src="js/core/contentUpgrader.js?v=20260403m"></script>
-    <script defer src="js/core/themeStyling.js?v=20260403m"></script>
-    <script defer src="js/core/pageRepository.js?v=20260403m"></script>
-    <script defer src="js/core/planUtils.js?v=20260403m"></script>
-    <script defer src="js/core/analytics.js?v=20260403m"></script>
-    <script defer src="js/features/adminApp.js?v=20260403m"></script>
+    <script defer src="js/core/config.js?v=20260403n"></script>
+    <script defer src="js/core/supabaseClient.js?v=20260403n"></script>
+    <script defer src="js/templates/registry.js?v=20260403n"></script>
+    <script defer src="js/core/contentSchema.js?v=20260403n"></script>
+    <script defer src="js/core/contentUpgrader.js?v=20260403n"></script>
+    <script defer src="js/core/themeStyling.js?v=20260403n"></script>
+    <script defer src="js/core/pageRepository.js?v=20260403n"></script>
+    <script defer src="js/core/planUtils.js?v=20260403n"></script>
+    <script defer src="js/core/analytics.js?v=20260403n"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
+    <script defer src="js/features/adminApp.js?v=20260403n"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
-    <link rel="stylesheet" href="css/styles.css?v=20260403m">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
+    <link rel="stylesheet" href="css/styles.css?v=20260403n">
 </head>
 <body class="dfops-admin-app flex min-h-screen flex-col bg-slate-50 font-sans text-slate-800 antialiased" x-data="typeof DFOPS_adminAlpineState === 'function' ? DFOPS_adminAlpineState() : { sidebarOpen: false, isLoading: false, content: { pl: { nav: { menu: {} }, hero: {}, manifesto: {}, services: [], faq: [], contact: {}, settings: {} } } }">
 
@@ -395,16 +397,16 @@
              role="dialog"
              aria-modal="true"
              aria-labelledby="dfcms-welcome-title"
-             @keydown.escape.window="showWelcomeModal && dismissWelcomeModalAndFocusContent()">
+             @keydown.escape.window="showWelcomeModal && dismissWelcomeModalAndStartOnboarding()">
             <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(212,175,55,0.07),transparent_55%)]"></div>
             <div class="relative w-full max-w-md rounded-2xl border border-stone-200/90 bg-white px-6 py-9 shadow-[0_24px_64px_-12px_rgba(15,23,42,0.12)] ring-1 ring-stone-900/[0.04] sm:px-10 sm:py-11">
                 <div class="mb-6 h-px w-12 bg-gradient-to-r from-transparent via-[#C9A227] to-transparent opacity-90"></div>
                 <p class="text-[10px] font-bold uppercase tracking-[0.35em] text-stone-400">Powitanie</p>
                 <h2 id="dfcms-welcome-title" class="mt-2 font-serif text-2xl font-semibold tracking-tight text-stone-900 sm:text-[1.65rem]">Witaj w DFCMS!</h2>
-                <p class="mt-4 text-sm leading-relaxed text-stone-600 sm:text-[0.9375rem]">Skonfigurujesz treść strony w kilku prostych krokach — zaczynamy od sekcji <span class="font-semibold text-stone-800">Treść</span>. To zajmie tylko chwilę.</p>
+                <p class="mt-4 text-sm leading-relaxed text-stone-600 sm:text-[0.9375rem]">Uzupełnisz podstawowe informacje o swojej firmie i przejdziesz przez najważniejsze miejsca w panelu — krótko, spokojnie i bez presji. Potem krótkie oprowadzenie po kreatorze.</p>
                 <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
                     <button type="button"
-                            @click="dismissWelcomeModalAndFocusContent()"
+                            @click="dismissWelcomeModalAndStartOnboarding()"
                             class="w-full rounded-lg border border-stone-200/80 bg-stone-50/80 px-5 py-3.5 text-xs font-semibold uppercase tracking-[0.2em] text-stone-700 shadow-sm transition-colors hover:bg-stone-100/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227]/35 focus-visible:ring-offset-2 sm:w-auto sm:min-w-[11rem]">
                         Zaczynamy
                     </button>
@@ -447,7 +449,7 @@
                     <span class="shrink-0">Motyw: <span class="font-semibold uppercase tracking-widest text-slate-900" x-text="theme"></span></span>
                     <span class="hidden text-slate-200 sm:inline">|</span>
                     <span class="shrink-0 font-bold tracking-wide text-accent" x-text="slug"></span>
-                    <a :href="getPublicSiteUrl()" target="_blank" rel="noopener noreferrer" class="text-[10px] font-bold uppercase tracking-widest text-blue-600 underline decoration-blue-200/80 underline-offset-4 transition-colors hover:text-blue-700 lg:text-xs">Podgląd strony</a>
+                    <a id="dfcms-onboarding-site-preview" :href="getPublicSiteUrl()" target="_blank" rel="noopener noreferrer" class="text-[10px] font-bold uppercase tracking-widest text-blue-600 underline decoration-blue-200/80 underline-offset-4 transition-colors hover:text-blue-700 lg:text-xs">Podgląd strony</a>
                 </div>
 
                 <div class="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto">
@@ -742,7 +744,7 @@
                                         <input type="text" x-model="content.pl.nav.logo" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
                                         <p class="text-xs text-slate-500 mt-2 leading-relaxed">Krótka nazwa marki lub podpis — obok grafiki jako „tekstowe logo”.</p>
                                     </div>
-                                    <div>
+                                    <div id="dfcms-onboarding-logo">
                                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Logo graficzne</label>
                                         <div class="flex flex-col sm:flex-row items-start gap-6">
                                             <div class="flex flex-col items-center shrink-0">

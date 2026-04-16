@@ -81,6 +81,8 @@
           onboarding_completed: false,
           /** Pusta po pierwszym logowaniu — włącza powitalny modal (Treść → pierwsze pola). */
           business_name: '',
+          /** Zapis w Supabase po powicie / zakończeniu touru (Driver.js) — nie pokazuj modala ponownie. */
+          welcome_onboarding_completed: false,
         },
       },
     };
@@ -1142,12 +1144,11 @@
             this.showWizard = true;
           }
 
-          const bnWelcome = String(this.content?.pl?.settings?.business_name ?? '').trim();
           this.showWelcomeModal =
             !!this.user &&
             this.isEmailVerified &&
             !this.isForcedPasswordReset &&
-            !bnWelcome;
+            !this.content?.pl?.settings?.welcome_onboarding_completed;
 
           this.$nextTick(() => {
             setTimeout(() => {
@@ -1367,24 +1368,107 @@
         this.activeTab = 'hero';
       },
 
-      /** Powitanie pierwszego logowania — Treść → pierwsze pole tekstowe (hero). */
-      dismissWelcomeModalAndFocusContent() {
-        this.showWelcomeModal = false;
-        if (this.showWizard) return;
+      resolveDriverFactory() {
+        const pkg = typeof window !== 'undefined' && window.driver && window.driver.js;
+        if (pkg && typeof pkg.driver === 'function') return pkg.driver;
+        return null;
+      },
+
+      /** Zapis w `content` (Supabase): ukończono powitanie / tour — modal nie wraca przy kolejnych logowaniach. */
+      async markWelcomeOnboardingSeen() {
+        if (!this.content?.pl?.settings) return;
+        if (this.content.pl.settings.welcome_onboarding_completed === true) return;
+        this.content.pl.settings.welcome_onboarding_completed = true;
+        await this.saveData({ silentSuccess: true });
+      },
+
+      /**
+       * Oprowadzenie po panelu (driver.js): marka → logo → podgląd strony.
+       * Wywoływane po zamknięciu modala powitalnego (gdy nie ma pełnoekranowego kreatora).
+       */
+      async startOnboardingTour() {
+        const driverFactory = this.resolveDriverFactory();
+        if (!driverFactory) {
+          await this.markWelcomeOnboardingSeen();
+          return;
+        }
+
+        const self = this;
+        const d = driverFactory({
+          showProgress: true,
+          progressText: 'Krok {{current}} z {{total}}',
+          nextBtnText: 'Dalej',
+          prevBtnText: 'Wstecz',
+          doneBtnText: 'Zakończ',
+          smoothScroll: true,
+          allowClose: true,
+          overlayOpacity: 0.55,
+          overlayColor: '#0f172a',
+          onDestroyed: () => {
+            void self.markWelcomeOnboardingSeen();
+          },
+          steps: [
+            {
+              element: '#dfcms-first-content-input',
+              popover: {
+                title: 'Twoja marka',
+                description: 'Zacznij od wpisania nazwy swojej firmy lub salonu.',
+                side: 'bottom',
+                align: 'start',
+              },
+            },
+            {
+              element: '#dfcms-onboarding-logo',
+              popover: {
+                title: 'Wyróżnij się',
+                description: 'Dodaj swoje logo, aby strona wyglądała profesjonalnie.',
+                side: 'bottom',
+                align: 'start',
+              },
+              onHighlightStarted: (element, step, { driver }) => {
+                self.setTab('settings');
+                self.$nextTick(() => {
+                  requestAnimationFrame(() => {
+                    if (driver && typeof driver.refresh === 'function') driver.refresh();
+                  });
+                });
+              },
+            },
+            {
+              element: '#dfcms-onboarding-site-preview',
+              popover: {
+                title: 'Magia na żywo',
+                description:
+                  'W każdym momencie możesz kliknąć tutaj, aby zobaczyć, jak Twoja strona będzie wyglądać w internecie.',
+                side: 'bottom',
+                align: 'center',
+              },
+              onHighlightStarted: () => {
+                self.setTab('hero');
+              },
+            },
+          ],
+        });
+
         this.setTab('hero');
         this.sidebarOpen = false;
-        this.$nextTick(() => {
-          requestAnimationFrame(() => {
-            const el = document.getElementById('dfcms-first-content-input');
-            if (el && typeof el.focus === 'function') {
-              try {
-                el.focus({ preventScroll: false });
-              } catch {
-                el.focus();
-              }
-            }
-          });
+        await new Promise((resolve) => this.$nextTick(resolve));
+        requestAnimationFrame(() => {
+          d.drive();
         });
+      },
+
+      /** Zamknięcie modala powitalnego; przy otwartym kreatorze tylko zapis „widziane”, bez touru pod spodem. */
+      async dismissWelcomeModalAndStartOnboarding() {
+        this.showWelcomeModal = false;
+        if (this.showWizard) {
+          await this.markWelcomeOnboardingSeen();
+          return;
+        }
+        this.sidebarOpen = false;
+        this.setTab('hero');
+        await new Promise((resolve) => this.$nextTick(resolve));
+        await this.startOnboardingTour();
       },
       /** Pełny ekran startowy kreatora (wybór ścieżki). */
       openWizardFromStudio() {

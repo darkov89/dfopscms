@@ -22,6 +22,15 @@
       }
     }
 
+    if (
+      pl.settings.welcome_onboarding_completed === undefined ||
+      pl.settings.welcome_onboarding_completed === null
+    ) {
+      const bnM = String(pl.settings.business_name || '').trim();
+      pl.settings.welcome_onboarding_completed =
+        pl.settings.onboarding_completed === true || bnM.length > 0;
+    }
+
     if (!pl.settings.color_preset) {
       pl.settings.color_preset = theme === 'beauty' ? 'beige' : theme === 'consultant' ? 'dfops-tech' : 'gold';
     }
