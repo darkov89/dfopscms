@@ -1,5 +1,7 @@
 # DFOPS CMS (dfopscms)
 
+**Żywa wiedza (decyzje, auth, Stripe, mapa plików):** zobacz [`docs/LIVING_CONTEXT.md`](docs/LIVING_CONTEXT.md) — aktualizować po istotnych zmianach (reguła w `.cursor/rules/living-context.mdc`).
+
 Lekki CMS pod strony wizytówkowe: statyczny front (HTML + JavaScript), treść i ustawienia w **Supabase** (PostgreSQL, Auth, Storage), publikacja pod własną domeną z obsługą **Cloudflare** (Pages + Custom Hostnames).
 
 ## Stos technologiczny

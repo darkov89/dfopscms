@@ -26,18 +26,18 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
-    <script defer src="js/core/config.js?v=20260403i"></script>
-    <script defer src="js/core/supabaseClient.js?v=20260403i"></script>
-    <script defer src="js/templates/registry.js?v=20260403i"></script>
-    <script defer src="js/core/contentSchema.js?v=20260403i"></script>
-    <script defer src="js/core/contentUpgrader.js?v=20260403i"></script>
-    <script defer src="js/core/themeStyling.js?v=20260403i"></script>
-    <script defer src="js/core/pageRepository.js?v=20260403i"></script>
-    <script defer src="js/core/planUtils.js?v=20260403i"></script>
-    <script defer src="js/core/analytics.js?v=20260403i"></script>
-    <script defer src="js/features/adminApp.js?v=20260403i"></script>
+    <script defer src="js/core/config.js?v=20260403m"></script>
+    <script defer src="js/core/supabaseClient.js?v=20260403m"></script>
+    <script defer src="js/templates/registry.js?v=20260403m"></script>
+    <script defer src="js/core/contentSchema.js?v=20260403m"></script>
+    <script defer src="js/core/contentUpgrader.js?v=20260403m"></script>
+    <script defer src="js/core/themeStyling.js?v=20260403m"></script>
+    <script defer src="js/core/pageRepository.js?v=20260403m"></script>
+    <script defer src="js/core/planUtils.js?v=20260403m"></script>
+    <script defer src="js/core/analytics.js?v=20260403m"></script>
+    <script defer src="js/features/adminApp.js?v=20260403m"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
-    <link rel="stylesheet" href="css/styles.css?v=20260403i">
+    <link rel="stylesheet" href="css/styles.css?v=20260403m">
 </head>
 <body class="dfops-admin-app flex min-h-screen flex-col bg-slate-50 font-sans text-slate-800 antialiased" x-data="typeof DFOPS_adminAlpineState === 'function' ? DFOPS_adminAlpineState() : { sidebarOpen: false, isLoading: false, content: { pl: { nav: { menu: {} }, hero: {}, manifesto: {}, services: [], faq: [], contact: {}, settings: {} } } }">
 
@@ -383,6 +383,30 @@
                     <p class="text-sm text-slate-600 leading-relaxed">Płatność została przyjęta. Twój pakiet aktywuje się na bieżąco — możesz od razu wrócić do dopracowywania strony.</p>
                     <button type="button" @click="closeSuccessModal(); setTab('subscription')" class="mt-7 w-full bg-[#121212] text-white px-6 py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#D4AF37] hover:text-[#121212] transition-all duration-300 shadow-md">
                         Przejdź do subskrypcji
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div x-show="showWelcomeModal"
+             x-cloak
+             x-transition.opacity
+             class="fixed inset-0 z-[272] flex flex-col items-center justify-center overflow-y-auto overscroll-contain bg-[#f7f6f4] px-4 py-10 sm:px-8"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="dfcms-welcome-title"
+             @keydown.escape.window="showWelcomeModal && dismissWelcomeModalAndFocusContent()">
+            <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(212,175,55,0.07),transparent_55%)]"></div>
+            <div class="relative w-full max-w-md rounded-2xl border border-stone-200/90 bg-white px-6 py-9 shadow-[0_24px_64px_-12px_rgba(15,23,42,0.12)] ring-1 ring-stone-900/[0.04] sm:px-10 sm:py-11">
+                <div class="mb-6 h-px w-12 bg-gradient-to-r from-transparent via-[#C9A227] to-transparent opacity-90"></div>
+                <p class="text-[10px] font-bold uppercase tracking-[0.35em] text-stone-400">Powitanie</p>
+                <h2 id="dfcms-welcome-title" class="mt-2 font-serif text-2xl font-semibold tracking-tight text-stone-900 sm:text-[1.65rem]">Witaj w DFCMS!</h2>
+                <p class="mt-4 text-sm leading-relaxed text-stone-600 sm:text-[0.9375rem]">Skonfigurujesz treść strony w kilku prostych krokach — zaczynamy od sekcji <span class="font-semibold text-stone-800">Treść</span>. To zajmie tylko chwilę.</p>
+                <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
+                    <button type="button"
+                            @click="dismissWelcomeModalAndFocusContent()"
+                            class="w-full rounded-lg border border-stone-200/80 bg-stone-50/80 px-5 py-3.5 text-xs font-semibold uppercase tracking-[0.2em] text-stone-700 shadow-sm transition-colors hover:bg-stone-100/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227]/35 focus-visible:ring-offset-2 sm:w-auto sm:min-w-[11rem]">
+                        Zaczynamy
                     </button>
                 </div>
             </div>
@@ -1108,6 +1132,11 @@
                             </div>
                         </div>
                         <div class="space-y-6">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Nazwa marki lub firmy</label>
+                                <input type="text" id="dfcms-first-content-input" x-model="content.pl.settings.business_name" autocomplete="organization" placeholder="np. Twoja marka" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                <p class="text-xs text-slate-500 mt-2 leading-relaxed max-w-2xl">Ułatwia orientację w panelu; poniżej ustawisz teksty widoczne na stronie dla gości.</p>
+                            </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Przedrostek / Mały tekst nad tytułem</label>
                                 <input type="text" x-model="content.pl.hero.name" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">

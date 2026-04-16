@@ -79,6 +79,8 @@
           showReviews: true,
           showContact: true,
           onboarding_completed: false,
+          /** Pusta po pierwszym logowaniu — włącza powitalny modal (Treść → pierwsze pola). */
+          business_name: '',
         },
       },
     };
@@ -164,6 +166,8 @@
       wizardTheme: '',
       wizardFieldWarning: '',
       showNinjaChecklist: false,
+      /** Pierwsza konfiguracja: treść bez `business_name` (po normalize — zob. loadData). */
+      showWelcomeModal: false,
       showStudioWelcomeModal: false,
       customDomain: '',
       customDomainStatus: '',
@@ -1017,6 +1021,7 @@
         this.wizardTheme = '';
         this.wizardFieldWarning = '';
         this.showNinjaChecklist = false;
+        this.showWelcomeModal = false;
         this.hasUnsavedChanges = false;
         this.showSuccessModal = false;
         if (this._postPaymentRefreshTimer != null) {
@@ -1136,6 +1141,13 @@
           ) {
             this.showWizard = true;
           }
+
+          const bnWelcome = String(this.content?.pl?.settings?.business_name ?? '').trim();
+          this.showWelcomeModal =
+            !!this.user &&
+            this.isEmailVerified &&
+            !this.isForcedPasswordReset &&
+            !bnWelcome;
 
           this.$nextTick(() => {
             setTimeout(() => {
@@ -1353,6 +1365,26 @@
       closeStudioWelcomeModal() {
         this.showStudioWelcomeModal = false;
         this.activeTab = 'hero';
+      },
+
+      /** Powitanie pierwszego logowania — Treść → pierwsze pole tekstowe (hero). */
+      dismissWelcomeModalAndFocusContent() {
+        this.showWelcomeModal = false;
+        if (this.showWizard) return;
+        this.setTab('hero');
+        this.sidebarOpen = false;
+        this.$nextTick(() => {
+          requestAnimationFrame(() => {
+            const el = document.getElementById('dfcms-first-content-input');
+            if (el && typeof el.focus === 'function') {
+              try {
+                el.focus({ preventScroll: false });
+              } catch {
+                el.focus();
+              }
+            }
+          });
+        });
       },
       /** Pełny ekran startowy kreatora (wybór ścieżki). */
       openWizardFromStudio() {

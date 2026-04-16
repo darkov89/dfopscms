@@ -10,6 +10,18 @@
     if (!pl) merged.pl = {};
     if (!pl.settings) pl.settings = {};
 
+    /**
+     * Nazwa marki w panelu (onboarding). Puste = pierwsza konfiguracja (powitalny modal).
+     * Treści zapisane przed tym polem: jeśli kreator już był ukończony, wstawiamy z logo nawigacji.
+     */
+    if (pl.settings.business_name === undefined || pl.settings.business_name === null) {
+      if (pl.settings.onboarding_completed === true) {
+        pl.settings.business_name = String(pl.nav?.logo || '').trim();
+      } else {
+        pl.settings.business_name = '';
+      }
+    }
+
     if (!pl.settings.color_preset) {
       pl.settings.color_preset = theme === 'beauty' ? 'beige' : theme === 'consultant' ? 'dfops-tech' : 'gold';
     }
