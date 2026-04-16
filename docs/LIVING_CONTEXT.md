@@ -57,9 +57,10 @@
 |------|-----|
 | 2026-04-03 | Żywa dokumentacja + reguła Cursor; opis auth recovery (logout), walidacji hasła, Stripe SoT, plików kluczowych |
 | 2026-04-03 | Onboarding: `content.pl.settings.business_name` + powitalny modal (pusty `business_name`); migracja w `normalizeContent` dla treści sprzed pola (logo przy ukończonym kreatorze) |
-| 2026-04-03 | Powitanie: po modalu tour **driver.js** (3 kroki); `welcome_onboarding_completed` w `content.pl.settings` + zapis przez `saveData`; CDN driver `1.4.0` w `admin.html` |
+| 2026-04-03 | Powitanie: po modalu tour **driver.js** (kroki m.in. marka, logo, podgląd, przycisk kreatora); `welcome_onboarding_completed` w `content.pl.settings` + zapis przez `saveData`; CDN driver `1.4.0` w `admin.html` |
 | 2026-04-03 | Onboarding: **nie** auto-otwieranie pełnoekranowego kreatora; checklista w treści + „!” przy zakładkach; po „Pomiń kreator” modal zamiast paska „ninja”; auto `onboarding_completed` gdy lista braków pusta |
 | 2026-04-03 | Modal powitalny: copy bez zapowiedzi „oprowadzenia po kreatorze” — zgodnie z toursem Driver + opcjonalnym kreatorem z menu |
+| 2026-04-03 | Driver: krok przy przycisku „Uruchom Kreator”; **Pomiń kreator** nie zeruje checklisty (`onboarding_completed` tylko po ukończeniu kreatora / auto gdy podstawy OK); walidacja podstaw bez nagłówka hero |
 
 ---
 

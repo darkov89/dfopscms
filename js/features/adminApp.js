@@ -237,8 +237,9 @@
         return !!this.user && !this.needsEmailConfirmation;
       },
       /**
-       * Checklista „co jeszcze dołożyć” dopóki `onboarding_completed` jest false — bez pełnoekranowego kreatora.
-       * Kolejność zgodna z walidacją kreatora (szablon → marka → nagłówek → kontakt).
+       * Checklista „co jeszcze dołożyć” dopóki `onboarding_completed` jest false — tylko podstawy:
+       * szablon (dopóki motyw `setup`), nazwa w menu, minimum kontaktu (tel. lub e-mail).
+       * Nagłówek hero nie jest wymuszany — uzupełnisz go w kreatorze lub w zakładce powitalnej.
        */
       get incompleteOnboardingChecks() {
         if (!this.content?.pl?.settings || this.content.pl.settings.onboarding_completed === true) return [];
@@ -250,9 +251,6 @@
         }
         if (!String(pl.nav?.logo || '').trim()) {
           items.push({ id: 'navlogo', label: 'Podaj nazwę marki w menu strony', tab: 'settings', openWizard: false });
-        }
-        if (!String(pl.hero?.headline || '').trim()) {
-          items.push({ id: 'hero', label: 'Uzupełnij główny nagłówek w sekcji powitalnej', tab: 'hero', openWizard: false });
         }
         const phone = String(pl.contact?.phone || '').trim();
         const email = String(pl.contact?.email || '').trim();
@@ -1284,7 +1282,6 @@
       },
       async skipWizard() {
         if (!this.content?.[this.lang]?.settings) return;
-        this.content[this.lang].settings.onboarding_completed = true;
         const ok = await this.saveData({ silentSuccess: true });
         if (!ok) return;
         this.showWizard = false;
@@ -1389,7 +1386,7 @@
       },
 
       /**
-       * Oprowadzenie po panelu (driver.js): marka → logo → podgląd strony.
+       * Oprowadzenie po panelu (driver.js): marka → logo → podgląd → przycisk pełnego kreatora.
        * Wywoływane po zamknięciu modala powitalnego (gdy nie ma pełnoekranowego kreatora).
        */
       async startOnboardingTour() {
@@ -1453,6 +1450,24 @@
                 self.setTab('hero');
               },
             },
+            {
+              element: '#dfcms-onboarding-wizard-btn',
+              popover: {
+                title: 'Pełny kreator krok po kroku',
+                description:
+                  'Ten przycisk otwiera prowadzony kreator (szablon, kolory, treści, kontakt). Możesz też uzupełniać panel samodzielnie — lista „Co warto jeszcze dopracować” pokaże tylko podstawy (szablon, nazwa, kontakt), dopóki ich nie uzupełnisz.',
+                side: 'right',
+                align: 'center',
+              },
+              onHighlightStarted: (element, step, { driver }) => {
+                self.sidebarOpen = true;
+                self.$nextTick(() => {
+                  requestAnimationFrame(() => {
+                    if (driver && typeof driver.refresh === 'function') driver.refresh();
+                  });
+                });
+              },
+            },
           ],
         });
 
@@ -1511,7 +1526,6 @@
         if (tab === 'settings') {
           return this.theme === 'setup' || !String(pl.nav?.logo || '').trim();
         }
-        if (tab === 'hero') return !String(pl.hero?.headline || '').trim();
         if (tab === 'contact') {
           const phone = String(pl.contact?.phone || '').trim();
           const email = String(pl.contact?.email || '').trim();

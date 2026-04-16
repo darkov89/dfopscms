@@ -26,20 +26,20 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
-    <script defer src="js/core/config.js?v=20260403q"></script>
-    <script defer src="js/core/supabaseClient.js?v=20260403q"></script>
-    <script defer src="js/templates/registry.js?v=20260403q"></script>
-    <script defer src="js/core/contentSchema.js?v=20260403q"></script>
-    <script defer src="js/core/contentUpgrader.js?v=20260403q"></script>
-    <script defer src="js/core/themeStyling.js?v=20260403q"></script>
-    <script defer src="js/core/pageRepository.js?v=20260403q"></script>
-    <script defer src="js/core/planUtils.js?v=20260403q"></script>
-    <script defer src="js/core/analytics.js?v=20260403q"></script>
+    <script defer src="js/core/config.js?v=20260403r"></script>
+    <script defer src="js/core/supabaseClient.js?v=20260403r"></script>
+    <script defer src="js/templates/registry.js?v=20260403r"></script>
+    <script defer src="js/core/contentSchema.js?v=20260403r"></script>
+    <script defer src="js/core/contentUpgrader.js?v=20260403r"></script>
+    <script defer src="js/core/themeStyling.js?v=20260403r"></script>
+    <script defer src="js/core/pageRepository.js?v=20260403r"></script>
+    <script defer src="js/core/planUtils.js?v=20260403r"></script>
+    <script defer src="js/core/analytics.js?v=20260403r"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260403q"></script>
+    <script defer src="js/features/adminApp.js?v=20260403r"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
-    <link rel="stylesheet" href="css/styles.css?v=20260403q">
+    <link rel="stylesheet" href="css/styles.css?v=20260403r">
 </head>
 <body class="dfops-admin-app flex min-h-screen flex-col bg-slate-50 font-sans text-slate-800 antialiased" x-data="typeof DFOPS_adminAlpineState === 'function' ? DFOPS_adminAlpineState() : { sidebarOpen: false, isLoading: false, content: { pl: { nav: { menu: {} }, hero: {}, manifesto: {}, services: [], faq: [], contact: {}, settings: {} } } }">
 
@@ -528,7 +528,7 @@
                     :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
                 >
                     <div class="flex flex-col overflow-x-hidden px-2 pb-4 pt-3 lg:overflow-visible">
-                        <button type="button" @click="openWizardFromStudio()" class="mb-4 flex w-full items-center gap-3 rounded-xl bg-accent/10 px-4 py-3 text-left font-bold text-accent transition-colors hover:bg-accent/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2">
+                        <button type="button" id="dfcms-onboarding-wizard-btn" @click="openWizardFromStudio()" class="mb-4 flex w-full items-center gap-3 rounded-xl bg-accent/10 px-4 py-3 text-left font-bold text-accent transition-colors hover:bg-accent/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2">
                             <span class="text-xl shrink-0" aria-hidden="true">🪄</span>
                             <span class="min-w-0 flex-1 leading-snug">Uruchom Kreator</span>
                             <span x-show="incompleteOnboardingChecks.length && !showWizard" x-cloak class="inline-flex h-6 min-w-[1.5rem] shrink-0 items-center justify-center rounded-full bg-amber-200/90 px-1.5 text-[11px] font-bold tabular-nums text-amber-950" x-text="incompleteOnboardingChecks.length"></span>
@@ -537,7 +537,7 @@
                         <h3 class="mb-2 mt-1 px-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Treść Twojej Strony</h3>
                         <div class="mb-0.5 flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'hero' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
                             <button type="button" @click="setTab('hero')" class="min-w-0 flex-1 rounded-r-lg py-3 pl-4 pr-1 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-0">
-                                <span :class="activeTab === 'hero' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="inline-flex items-center gap-1.5 leading-snug">Powitanie na stronie<span x-show="sidebarTabNeedsAttention('hero')" class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[10px] font-bold leading-none text-amber-800" title="Wymaga uwagi">!</span></span>
+                                <span :class="activeTab === 'hero' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Powitanie na stronie</span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
                                 <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: powitanie na stronie">
@@ -733,7 +733,7 @@
                         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div>
                                 <h3 class="text-sm font-bold text-slate-900">Co warto jeszcze dopracować</h3>
-                                <p class="mt-1 max-w-xl text-xs text-slate-600">Poniżej tylko to, czego brakuje — bez osobnych okienek. Kliknij pozycję lub użyj kreatora po lewej.</p>
+                                <p class="mt-1 max-w-xl text-xs text-slate-600">Lista dotyczy podstaw: szablon, nazwa w menu, kontakt. Kliknij pozycję albo otwórz pełny kreator — resztę dopracujesz później w zakładkach.</p>
                             </div>
                             <button type="button" @click="openWizardFromStudio(); sidebarOpen = false" class="shrink-0 self-start rounded-lg border border-accent/30 bg-white px-3 py-2 text-xs font-bold uppercase tracking-widest text-accent transition-colors hover:bg-accent/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
                                 Pełny kreator
