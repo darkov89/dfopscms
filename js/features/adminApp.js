@@ -1386,7 +1386,7 @@
       },
 
       /**
-       * Oprowadzenie po panelu (driver.js): marka → logo → podgląd → przycisk pełnego kreatora.
+       * Oprowadzenie po panelu (driver.js): pola → podgląd → kreator → kategorie menu (treść, konfiguracja, subskrypcja).
        * Wywoływane po zamknięciu modala powitalnego (gdy nie ma pełnoekranowego kreatora).
        */
       async startOnboardingTour() {
@@ -1397,6 +1397,14 @@
         }
 
         const self = this;
+        const ensureSidebarForTour = (driver) => {
+          self.sidebarOpen = true;
+          self.$nextTick(() => {
+            requestAnimationFrame(() => {
+              if (driver && typeof driver.refresh === 'function') driver.refresh();
+            });
+          });
+        };
         const d = driverFactory({
           showProgress: true,
           progressText: 'Krok {{current}} z {{total}}',
@@ -1460,12 +1468,46 @@
                 align: 'center',
               },
               onHighlightStarted: (element, step, { driver }) => {
-                self.sidebarOpen = true;
-                self.$nextTick(() => {
-                  requestAnimationFrame(() => {
-                    if (driver && typeof driver.refresh === 'function') driver.refresh();
-                  });
-                });
+                ensureSidebarForTour(driver);
+              },
+            },
+            {
+              element: '#dfcms-onboarding-category-tresc',
+              popover: {
+                title: 'Treść strony',
+                description:
+                  'Ta część menu to wszystko, co widzą goście: powitanie, usługi i ceny, galeria, kontakt, FAQ, opinie… Wybierz zakładkę, edytuj treść na środku ekranu, na końcu opublikuj zmiany w nagłówku.',
+                side: 'right',
+                align: 'start',
+              },
+              onHighlightStarted: (element, step, { driver }) => {
+                ensureSidebarForTour(driver);
+              },
+            },
+            {
+              element: '#dfcms-onboarding-category-konfiguracja',
+              popover: {
+                title: 'Konfiguracja',
+                description:
+                  'Szablon i kolory, Google i social media, dokumenty prawne, konto — ustawiasz tu „ramy” witryny, wygląd i formalia, niezależnie od pojedynczych sekcji treści.',
+                side: 'right',
+                align: 'start',
+              },
+              onHighlightStarted: (element, step, { driver }) => {
+                ensureSidebarForTour(driver);
+              },
+            },
+            {
+              element: '#dfcms-onboarding-nav-subscription',
+              popover: {
+                title: 'Subskrypcja',
+                description:
+                  'Pakiet, płatność i dostęp do funkcji (np. własna domena na wyższych planach). Tutaj też wrócisz do płatności w Stripe, gdy będzie potrzeba.',
+                side: 'right',
+                align: 'center',
+              },
+              onHighlightStarted: (element, step, { driver }) => {
+                ensureSidebarForTour(driver);
               },
             },
           ],
