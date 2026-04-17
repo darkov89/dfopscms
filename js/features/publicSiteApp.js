@@ -277,8 +277,8 @@
         const appDomain = (cfg.appDomain || 'dfcms.pl').toLowerCase();
         const landing =
           isLocal || origin.includes('localhost')
-            ? `${origin}/landing.html`
-            : `https://${appDomain}/landing.html`;
+            ? `${origin}/index.html`
+            : `https://${appDomain}/index.html`;
         return { panel, landingCennik: `${landing}#cennik` };
       },
       buildThemePageUrl(page) {

@@ -6,7 +6,7 @@
 
   /**
    * Router przekierowuje na consultant.html / beauty.html.
-   * Na domenach systemowych bez ?site= → landing.html.
+   * Na domenach systemowych bez ?site= → index.html (landing marketingowy).
    * Na niestandardowej domenie (np. mojsalon.pl) → getPageByCustomDomain.
    */
   function show404() {
@@ -73,7 +73,7 @@
       }
 
       if (isSystemRootHost(hostname) && (!params.has('site') || !params.get('site')?.trim())) {
-        window.location.replace('landing.html');
+        window.location.replace('index.html');
         return;
       }
 
@@ -85,7 +85,7 @@
           slug = extractSubdomainAsSlug(hostname, baseDomains);
         }
         if (!slug) {
-          window.location.replace('landing.html');
+          window.location.replace('index.html');
           return;
         }
         const res = await repo.getPageBySlug(slug);

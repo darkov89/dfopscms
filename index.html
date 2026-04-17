@@ -1,37 +1,291 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="pl" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DFCMS — Ładowanie…</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/core/config.js"></script>
-    <script src="js/core/supabaseClient.js"></script>
-    <script src="js/core/pageRepository.js"></script>
-    <script src="js/features/routerApp.js"></script>
+    <title>DFCMS — Profesjonalna strona firmy w 5 minut</title>
+    <meta name="description" content="DFCMS: strona wizytówkowa dla beauty, doradztwa i usług. Załóż konto, uzupełnij profil — Twój biznes jest online. 14 dni za darmo.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"DM Sans"', 'system-ui', 'sans-serif'],
+                        display: ['Outfit', '"DM Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            gold: '#D4AF37',
+                            ink: '#121212',
+                        },
+                    },
+                    boxShadow: {
+                        lift: '0 20px 50px -15px rgba(0, 0, 0, 0.35)',
+                        gold: '0 0 0 1px rgba(212, 175, 55, 0.25), 0 24px 48px -12px rgba(0, 0, 0, 0.4)',
+                    },
+                },
+            },
+        };
+    </script>
     <style>
-        /* Prosty, elegancki styl na ułamek sekundy, gdy router myśli */
-        body {
-            background-color: #121212;
-            color: #D4AF37;
-            font-family: sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-            letter-spacing: 0.2em;
-            font-size: 14px;
-        }
-        .pulse { animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        [x-cloak] { display: none !important; }
+        body { font-feature-settings: "cv02", "cv03", "cv04", "cv11"; }
     </style>
 </head>
-<body>
+<body class="min-h-screen bg-white font-sans text-brand-ink antialiased selection:bg-brand-gold/25 selection:text-brand-ink">
 
-    <div id="status" class="pulse">DISTILLING ESSENCE...</div>
+    <!-- Marketing tylko na „gołej” domenie platformy; ?site= i subdomeny → router.html (jak stary index + routerApp) -->
+    <script>
+        (function () {
+            try {
+                var u = new URL(window.location.href);
+                var site = u.searchParams.get('site');
+                if (site && String(site).trim()) {
+                    window.location.replace('router.html' + u.search + u.hash);
+                    return;
+                }
+                var h = (u.hostname || '').replace(/^www\./i, '').toLowerCase();
+                var bareRoots = { 'dfcms.pl': 1, localhost: 1, '127.0.0.1': 1 };
+                if (!bareRoots[h]) {
+                    window.location.replace('router.html' + u.search + u.hash);
+                }
+            } catch (e) { /* ignore */ }
+        })();
+    </script>
 
-    <script>window.DFOPS_routeByThemeAndDomain();</script>
+    <a href="#main" class="sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:inline-block focus:rounded-lg focus:bg-brand-gold focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-brand-ink focus:outline-none focus:ring-2 focus:ring-brand-ink/20">Przejdź do treści</a>
+
+    <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-white">
+        <div class="absolute -top-32 right-0 h-72 w-72 rounded-full bg-brand-gold/[0.07] blur-3xl sm:h-96 sm:w-96"></div>
+        <div class="absolute bottom-0 left-0 h-64 w-64 rounded-full bg-zinc-200/40 blur-3xl"></div>
+    </div>
+
+    <header
+        class="sticky top-0 z-50 border-b border-zinc-200/80 bg-white/90 backdrop-blur-md"
+        x-data="{ mobileOpen: false }"
+        @keydown.escape.window="mobileOpen = false"
+    >
+        <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6 lg:px-8">
+            <a href="index.html" class="font-display text-lg font-bold tracking-tight text-brand-ink sm:text-xl">
+                <span class="text-brand-gold">DF</span>CMS
+            </a>
+
+            <nav class="hidden items-center gap-8 text-sm font-medium text-zinc-600 md:flex" aria-label="Nawigacja główna">
+                <a href="#jak" class="transition hover:text-brand-ink">Jak to działa</a>
+                <a href="#cennik" class="transition hover:text-brand-ink">Cennik</a>
+                <a href="#faq" class="transition hover:text-brand-ink">FAQ</a>
+                <a href="admin.html" class="transition hover:text-brand-ink">Zaloguj się</a>
+            </nav>
+
+            <div class="flex items-center gap-2 sm:gap-3">
+                <a
+                    href="rejestracja.html"
+                    class="hidden rounded-xl bg-brand-ink px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-white shadow-md transition hover:bg-zinc-800 sm:inline-flex sm:px-5"
+                >
+                    Zacznij za darmo
+                </a>
+                <button
+                    type="button"
+                    class="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-zinc-200 text-brand-ink md:hidden"
+                    @click="mobileOpen = !mobileOpen"
+                    :aria-expanded="mobileOpen"
+                    aria-controls="mobile-menu"
+                    aria-label="Otwórz menu"
+                >
+                    <svg x-show="!mobileOpen" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    <svg x-cloak x-show="mobileOpen" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <div
+            id="mobile-menu"
+            x-cloak
+            x-show="mobileOpen"
+            x-transition.opacity
+            class="border-t border-zinc-100 bg-white px-4 py-4 md:hidden"
+        >
+            <nav class="flex flex-col gap-1 text-sm font-medium text-zinc-700" aria-label="Menu mobilne">
+                <a href="#jak" class="rounded-lg px-3 py-3 hover:bg-zinc-50" @click="mobileOpen = false">Jak to działa</a>
+                <a href="#cennik" class="rounded-lg px-3 py-3 hover:bg-zinc-50" @click="mobileOpen = false">Cennik</a>
+                <a href="#faq" class="rounded-lg px-3 py-3 hover:bg-zinc-50" @click="mobileOpen = false">FAQ</a>
+                <a href="admin.html" class="rounded-lg px-3 py-3 hover:bg-zinc-50">Zaloguj się</a>
+                <a href="rejestracja.html" class="mt-2 rounded-xl bg-brand-gold px-4 py-3.5 text-center text-xs font-bold uppercase tracking-widest text-brand-ink shadow-sm" @click="mobileOpen = false">Zacznij za darmo (14 dni)</a>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main">
+        <!-- Hero -->
+        <section class="relative mx-auto max-w-6xl px-4 pb-16 pt-12 sm:px-6 sm:pb-24 sm:pt-16 lg:px-8 lg:pb-28 lg:pt-20">
+            <div class="mx-auto max-w-3xl text-center">
+                <p class="mb-4 text-[11px] font-bold uppercase tracking-[0.35em] text-brand-gold sm:text-xs">Strona w 5 minut</p>
+                <h1 class="font-display text-3xl font-extrabold leading-[1.15] tracking-tight text-brand-ink sm:text-4xl lg:text-5xl">
+                    Profesjonalna strona Twojej firmy w 5 minut. Bez programisty, bez stresu.
+                </h1>
+                <p class="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-zinc-600 sm:text-lg">
+                    DFCMS to najprostszy sposób, by Twój biznes zaistniał w sieci. Skup się na swoich klientach, my zajmiemy się technologią.
+                </p>
+                <div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
+                    <a
+                        href="rejestracja.html"
+                        class="inline-flex w-full max-w-sm items-center justify-center rounded-2xl bg-brand-gold px-8 py-4 text-sm font-bold uppercase tracking-widest text-brand-ink shadow-gold transition hover:brightness-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 sm:w-auto sm:min-w-[280px]"
+                    >
+                        Zacznij za darmo (14 dni próby)
+                    </a>
+                    <a href="#jak" class="text-sm font-semibold text-zinc-500 underline decoration-zinc-300 underline-offset-4 transition hover:text-brand-ink">
+                        Zobacz, jak to działa
+                    </a>
+                </div>
+                <p class="mt-8 text-xs text-zinc-400">Salony beauty, doradztwo, usługi lokalne — szablon dopasowany do Twojej branży.</p>
+            </div>
+        </section>
+
+        <!-- Jak to działa -->
+        <section id="jak" class="border-t border-zinc-100 bg-zinc-50/80 py-16 sm:py-20">
+            <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+                <h2 class="font-display text-center text-2xl font-bold tracking-tight text-brand-ink sm:text-3xl">Jak to działa</h2>
+                <p class="mx-auto mt-3 max-w-xl text-center text-sm text-zinc-600">Trzy krótkie kroki — od pomysłu do strony online.</p>
+                <div class="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 lg:gap-10">
+                    <article class="rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-sm ring-1 ring-zinc-900/5 sm:p-8">
+                        <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-gold/15 text-lg font-bold text-brand-ink">1</div>
+                        <h3 class="font-display text-lg font-bold text-brand-ink">Załóż konto</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-zinc-600">Szybka rejestracja w ok. 30 sekund — e-mail, hasło i adres Twojej przyszłej strony.</p>
+                    </article>
+                    <article class="rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-sm ring-1 ring-zinc-900/5 sm:p-8">
+                        <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-gold/15 text-lg font-bold text-brand-ink">2</div>
+                        <h3 class="font-display text-lg font-bold text-brand-ink">Uzupełnij profil</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-zinc-600">Wpisz nazwę, dodaj zdjęcia i opis usług — prowadzimy Cię przez prosty kreator krok po kroku.</p>
+                    </article>
+                    <article class="rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-sm ring-1 ring-zinc-900/5 sm:col-span-2 sm:p-8 lg:col-span-1">
+                        <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-gold/15 text-lg font-bold text-brand-ink">3</div>
+                        <h3 class="font-display text-lg font-bold text-brand-ink">Strona gotowa!</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-zinc-600">Twój biznes jest online pod własnym adresem — edytujesz treści w panelu, kiedy chcesz.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cennik -->
+        <section id="cennik" class="py-16 sm:py-20">
+            <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+                <h2 class="font-display text-center text-2xl font-bold tracking-tight text-brand-ink sm:text-3xl">Prosty cennik</h2>
+                <p class="mx-auto mt-3 max-w-lg text-center text-sm text-zinc-600">Wybierz start za darmo albo rozwiń biznes z własną domeną.</p>
+
+                <div class="mt-12 grid gap-8 lg:grid-cols-2 lg:gap-10">
+                    <!-- STARTER -->
+                    <div class="flex flex-col rounded-2xl border border-zinc-200 bg-white p-8 shadow-lift ring-1 ring-zinc-900/5 sm:p-10">
+                        <p class="text-xs font-bold uppercase tracking-widest text-zinc-500">Pakiet STARTER</p>
+                        <p class="mt-4 font-display text-4xl font-bold text-brand-ink">0 zł</p>
+                        <p class="mt-1 text-sm text-zinc-500">14 dni testów</p>
+                        <ul class="mt-8 flex-1 space-y-3 text-sm text-zinc-600">
+                            <li class="flex gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Wszystkie funkcje kreatora</li>
+                            <li class="flex gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Szablony pod beauty i doradztwo</li>
+                            <li class="flex gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Hosting i certyfikat SSL</li>
+                            <li class="flex gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Panel do edycji treści</li>
+                        </ul>
+                        <a href="rejestracja.html" class="mt-10 inline-flex justify-center rounded-xl border-2 border-brand-ink bg-transparent px-6 py-3.5 text-xs font-bold uppercase tracking-widest text-brand-ink transition hover:bg-brand-ink hover:text-white">
+                            Wybierz STARTER
+                        </a>
+                    </div>
+
+                    <!-- PRO -->
+                    <div class="relative flex flex-col overflow-hidden rounded-2xl border-2 border-brand-gold bg-brand-ink p-8 text-white shadow-gold sm:p-10">
+                        <div class="absolute right-4 top-4 rounded-full bg-brand-gold/20 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-brand-gold">Polecany</div>
+                        <p class="text-xs font-bold uppercase tracking-widest text-zinc-400">Pakiet PRO</p>
+                        <p class="mt-4 font-display text-4xl font-bold text-white">49 zł <span class="text-lg font-semibold text-zinc-400">/ mies.</span></p>
+                        <p class="mt-1 text-sm text-zinc-400">Pełna swoboda dla rosnącego biznesu</p>
+                        <ul class="mt-8 flex-1 space-y-3 text-sm text-zinc-300">
+                            <li class="flex gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Własna domena (.pl / .com)</li>
+                            <li class="flex gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Brak widocznych reklam DFCMS</li>
+                            <li class="flex gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Priorytetowe wsparcie</li>
+                            <li class="flex gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Wszystko ze STARTER</li>
+                        </ul>
+                        <a href="rejestracja.html" class="mt-10 inline-flex justify-center rounded-xl bg-brand-gold px-6 py-3.5 text-xs font-bold uppercase tracking-widest text-brand-ink transition hover:brightness-110">
+                            Wybierz PRO
+                        </a>
+                    </div>
+                </div>
+                <p class="mt-8 text-center text-xs text-zinc-500">Ceny netto. Szczegóły planów w panelu po rejestracji.</p>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section id="faq" class="border-t border-zinc-100 bg-zinc-50/80 py-16 sm:py-20" x-data="{ open: null }">
+            <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+                <h2 class="font-display text-center text-2xl font-bold tracking-tight text-brand-ink sm:text-3xl">Często zadawane pytania</h2>
+                <div class="mt-10 space-y-3">
+                    <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+                        <button
+                            type="button"
+                            class="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-sm font-semibold text-brand-ink sm:text-base"
+                            @click="open = open === 1 ? null : 1"
+                            :aria-expanded="open === 1"
+                        >
+                            Czy muszę podać kartę przy rejestracji?
+                            <span class="text-brand-gold" x-text="open === 1 ? '−' : '+'" aria-hidden="true"></span>
+                        </button>
+                        <div x-show="open === 1" x-transition class="border-t border-zinc-100">
+                            <p class="px-5 py-4 text-sm leading-relaxed text-zinc-600">Nie, okres próbny jest całkowicie darmowy i nie wymaga karty.</p>
+                        </div>
+                    </div>
+                    <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+                        <button
+                            type="button"
+                            class="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-sm font-semibold text-brand-ink sm:text-base"
+                            @click="open = open === 2 ? null : 2"
+                            :aria-expanded="open === 2"
+                        >
+                            Czy mogę podpiąć własną domenę?
+                            <span class="text-brand-gold" x-text="open === 2 ? '−' : '+'" aria-hidden="true"></span>
+                        </button>
+                        <div x-show="open === 2" x-transition class="border-t border-zinc-100">
+                            <p class="px-5 py-4 text-sm leading-relaxed text-zinc-600">Tak, w pakiecie PRO pomożemy Ci podpiąć Twoją własną domenę .pl lub .com.</p>
+                        </div>
+                    </div>
+                    <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+                        <button
+                            type="button"
+                            class="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-sm font-semibold text-brand-ink sm:text-base"
+                            @click="open = open === 3 ? null : 3"
+                            :aria-expanded="open === 3"
+                        >
+                            Kto jest właścicielem treści?
+                            <span class="text-brand-gold" x-text="open === 3 ? '−' : '+'" aria-hidden="true"></span>
+                        </button>
+                        <div x-show="open === 3" x-transition class="border-t border-zinc-100">
+                            <p class="px-5 py-4 text-sm leading-relaxed text-zinc-600">Ty. Twoje dane i treści należą do Ciebie, możesz je wyeksportować w każdej chwili.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="border-t border-zinc-200 bg-brand-ink text-zinc-400">
+        <div class="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+            <div class="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <p class="font-display text-lg font-bold text-white"><span class="text-brand-gold">DF</span>CMS</p>
+                    <p class="mt-3 text-sm leading-relaxed">Dragonfly Operations</p>
+                </div>
+                <nav class="flex flex-col gap-3 text-sm sm:items-end" aria-label="Stopka">
+                    <a href="regulamin.html" class="transition hover:text-brand-gold">Regulamin</a>
+                    <a href="polityka.html" class="transition hover:text-brand-gold">Polityka prywatności</a>
+                    <a href="mailto:kontakt@dfops.eu" class="transition hover:text-brand-gold">Kontakt</a>
+                </nav>
+            </div>
+            <p class="mt-10 border-t border-white/10 pt-8 text-center text-xs text-zinc-500">© <span id="y"></span> Dragonfly Operations. Wszystkie prawa zastrzeżone.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('y').textContent = new Date().getFullYear();
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 </body>
 </html>
