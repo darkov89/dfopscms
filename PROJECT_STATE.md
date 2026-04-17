@@ -56,8 +56,8 @@ Użytkownik → Auth (Supabase) → pages.content (JSON) → front (szablon + me
 
 - **Modal powitalny** (`showWelcomeModal`): pełnoekranowy, styl „quiet luxury”; warunek pokazania oparty o `content.pl.settings` (`welcome_onboarding_completed` + migracja w `normalizeContent` dla starych treści).
 - **Pole „nazwa marki”** (`content.pl.settings.business_name`) + pierwsze pole w zakładce powitalnej.
-- **Driver.js** (CDN `1.4.0`): tour po zamknięciu modala — m.in. nazwa marki, logo, podgląd, przycisk **„Uruchom Kreator”**, potem **kategorie menu** (nagłówek „Treść Twojej Strony”, „Konfiguracja”, wiersz **Subskrypcja**).
-- **Pełny kreator** (wizard): **nie** uruchamia się automatycznie po wejściu; dostęp z menu. **„Pomiń kreator”** nie ustawia `onboarding_completed` — użytkownik widzi checklistę podstaw (szablon jeśli `setup`, nazwa w menu, kontakt) z **!** przy zakładkach do czasu uzupełnienia lub ukończenia kreatora / auto-zapisu gdy lista pusta.
+- **Driver.js** (CDN `1.4.0`): tour po zamknięciu modala — **najpierw pełnoekranowy start kreatora** (krok 0: ścieżki), potem podgląd w nagłówku, **kategorie menu** (Treść, Konfiguracja, Subskrypcja); `disableActiveInteraction` — bez wypełniania pól w trakcie touru; pola hero/logo w Studiu nie są już krokiem (sens po wyborze szablonu).
+- **Pełny kreator** (wizard): na czas samouczeka otwierany z modala (**krok 0**); poza tym **nie** uruchamia się automatycznie po wejściu; dostęp z menu. **„Pomiń kreator”** nie ustawia `onboarding_completed` — użytkownik widzi checklistę podstaw (szablon jeśli `setup`, nazwa w menu, kontakt) z **!** przy zakładkach do czasu uzupełnienia lub ukończenia kreatora / auto-zapisu gdy lista pusta.
 - **Treść utrwalona w DB:** m.in. `welcome_onboarding_completed`, `business_name`, `onboarding_completed` w `pages.content`.
 
 ---
@@ -77,7 +77,7 @@ Użytkownik → Auth (Supabase) → pages.content (JSON) → front (szablon + me
 | Priorytet | Zadanie |
 |-----------|---------|
 | Wysoki | **Landing page** marketingowa — spójna z produktem, CTA do rejestracji. |
-| Wysoki | **Tour Driver.js** — dopracowanie na mobile (pozycja popovera przy przycisku kreatora, scroll). |
+| Wysoki | **Tour Driver.js** — dopracowanie na mobile (popover przy ekranie startu kreatora, scroll sidebara). |
 | Średni | **Inline validation** — spójne komunikaty przy polach (obok wykrzykników w menu). |
 | Średni | **Testy** — smoke dla webhooka Stripe (mock) i krytycznej ścieżki `saveData` / auth. |
 | Niższy | **CI** — automatyczny deploy Edge przy tagu / gałęzi. |
@@ -92,7 +92,7 @@ Użytkownik → Auth (Supabase) → pages.content (JSON) → front (szablon + me
 1. **Wejście marketingowe** — użytkownik trafia na stronę oferty (landing; w rozwoju — patrz sekcja 5).  
 2. **Rejestracja** — formularz (`rejestracja.html`) → Supabase Auth; metadata ze **slugiem** strony; trigger / logika tworzy rekord `pages` (szablon startowy `setup`).  
 3. **Potwierdzenie e-maila** — bez potwierdzenia panel pokazuje baner; kreator i pełny onboarding nie startują.  
-4. **Pierwsze logowanie do panelu** — `admin.html` → `loadData` → ewentualnie **modal powitalny** → **Driver.js** (kilka kroków: pola, podgląd, kreator, kategorie menu) → zapis `welcome_onboarding_completed`.  
+4. **Pierwsze logowanie do panelu** — `admin.html` → `loadData` (ekran „Weryfikacja…” trwa do końca pierwszego wczytania, mniej migania) → ewentualnie **modal powitalny** → **Driver.js** (start kreatora → podgląd → menu) → zapis `welcome_onboarding_completed`.  
 5. **Konfiguracja treści** — edycja zakładek (hero, szablon, kontakt, …); opcjonalnie **pełny kreator** krok po kroku; checklista podstaw z **!** dopóki brakuje szablonu / nazwy / kontaktu.  
 6. **Podgląd strony publicznej** — link w nagłówku panelu → domena `{slug}.{appDomain}` lub custom domain po aktywacji.  
 7. **Subskrypcja** — zakładka Subskrypcja → Stripe Checkout / Portal → webhook aktualizuje `content.pl.settings.subscription` i ewentualnie `trial_blocked_at` / blokady publikacji.  

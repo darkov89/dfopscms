@@ -26,31 +26,31 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
-    <script defer src="js/core/config.js?v=20260403s"></script>
-    <script defer src="js/core/supabaseClient.js?v=20260403s"></script>
-    <script defer src="js/templates/registry.js?v=20260403s"></script>
-    <script defer src="js/core/contentSchema.js?v=20260403s"></script>
-    <script defer src="js/core/contentUpgrader.js?v=20260403s"></script>
-    <script defer src="js/core/themeStyling.js?v=20260403s"></script>
-    <script defer src="js/core/pageRepository.js?v=20260403s"></script>
-    <script defer src="js/core/planUtils.js?v=20260403s"></script>
-    <script defer src="js/core/analytics.js?v=20260403s"></script>
+    <script defer src="js/core/config.js?v=20260403t"></script>
+    <script defer src="js/core/supabaseClient.js?v=20260403t"></script>
+    <script defer src="js/templates/registry.js?v=20260403t"></script>
+    <script defer src="js/core/contentSchema.js?v=20260403t"></script>
+    <script defer src="js/core/contentUpgrader.js?v=20260403t"></script>
+    <script defer src="js/core/themeStyling.js?v=20260403t"></script>
+    <script defer src="js/core/pageRepository.js?v=20260403t"></script>
+    <script defer src="js/core/planUtils.js?v=20260403t"></script>
+    <script defer src="js/core/analytics.js?v=20260403t"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260403s"></script>
+    <script defer src="js/features/adminApp.js?v=20260403u"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
-    <link rel="stylesheet" href="css/styles.css?v=20260403s">
+    <link rel="stylesheet" href="css/styles.css?v=20260403u">
 </head>
 <body class="dfops-admin-app flex min-h-screen flex-col bg-slate-50 font-sans text-slate-800 antialiased" x-data="typeof DFOPS_adminAlpineState === 'function' ? DFOPS_adminAlpineState() : { sidebarOpen: false, isLoading: false, content: { pl: { nav: { menu: {} }, hero: {}, manifesto: {}, services: [], faq: [], contact: {}, settings: {} } } }">
 
     <div x-show="showWizard" x-cloak class="fixed inset-0 z-[100] overflow-y-auto bg-slate-50" x-transition.opacity>
-        <div x-show="wizardStep === 0" class="min-h-screen flex flex-col items-center justify-center p-6 max-w-5xl mx-auto" x-transition>
+        <div x-show="wizardStep === 0" id="dfcms-onboarding-wizard-step0" class="min-h-screen flex flex-col items-center justify-center p-6 max-w-5xl mx-auto" x-transition>
             <div class="text-center mb-12">
                 <h1 class="mb-4 text-4xl font-black tracking-widest text-slate-900">WITAJ W DF<span class="text-accent">CMS</span></h1>
                 <p class="mx-auto max-w-xl text-lg leading-relaxed text-slate-500">Jak chcesz stworzyć swoją nową stronę? Wybierz ścieżkę, która najbardziej Ci odpowiada.</p>
             </div>
 
-            <div class="grid w-full grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
+            <div id="dfcms-onboarding-wizard-paths" class="grid w-full grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
                 <button type="button" @click="startWizard()" class="group relative transform rounded-2xl border-2 border-transparent bg-white p-8 text-left shadow-panel-md ring-1 ring-slate-900/5 transition-all duration-300 hover:-translate-y-0.5 hover:border-accent hover:shadow-panel-md md:p-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2">
                     <div class="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 text-accent">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
@@ -403,7 +403,7 @@
                 <div class="mb-6 h-px w-12 bg-gradient-to-r from-transparent via-[#C9A227] to-transparent opacity-90"></div>
                 <p class="text-[10px] font-bold uppercase tracking-[0.35em] text-stone-400">Powitanie</p>
                 <h2 id="dfcms-welcome-title" class="mt-2 font-serif text-2xl font-semibold tracking-tight text-stone-900 sm:text-[1.65rem]">Witaj w DFCMS!</h2>
-                <p class="mt-4 text-sm leading-relaxed text-stone-600 sm:text-[0.9375rem]">Uzupełnisz podstawowe informacje o swojej firmie — krótko i bez presji. Zaraz pokażemy kilka najważniejszych miejsc w panelu (m.in. nazwa marki, logo, podgląd strony). Pełny kreator krok po kroku uruchomisz z menu, gdy będziesz gotów.</p>
+                <p class="mt-4 text-sm leading-relaxed text-stone-600 sm:text-[0.9375rem]">Zaraz przejdziemy przez <strong class="font-semibold text-stone-800">start kreatora</strong> (najpierw wybór szablonu — potem ma sens edycja treści), podgląd na żywo oraz główne sekcje menu. Samouczek tylko pokazuje miejsca — bez wypełniania pól.</p>
                 <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
                     <button type="button"
                             @click="dismissWelcomeModalAndStartOnboarding()"
@@ -533,6 +533,32 @@
                             <span class="min-w-0 flex-1 leading-snug">Uruchom Kreator</span>
                             <span x-show="incompleteOnboardingChecks.length && !showWizard" x-cloak class="inline-flex h-6 min-w-[1.5rem] shrink-0 items-center justify-center rounded-full bg-amber-200/90 px-1.5 text-[11px] font-bold tabular-nums text-amber-950" x-text="incompleteOnboardingChecks.length"></span>
                         </button>
+
+                        <div class="mb-4 rounded-xl bg-slate-900 px-3 py-3 shadow-inner ring-1 ring-slate-800/90" role="region" aria-label="Postęp ukończenia strony">
+                            <div class="mb-2 flex items-center justify-between gap-2">
+                                <p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Twój postęp</p>
+                                <span x-show="calculateProgress() === 100" x-cloak class="inline-flex shrink-0 items-center text-emerald-400" title="Profil kompletny" aria-hidden="true">
+                                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16.8 5.6 21l2.4-7.2-6-4.8h7.6L12 2z"/></svg>
+                                </span>
+                            </div>
+                            <p class="mb-2.5 text-xs text-slate-300">
+                                Ukończenie profilu: <span class="font-bold tabular-nums text-white" x-text="calculateProgress()"></span>%
+                            </p>
+                            <div
+                                class="h-1.5 w-full overflow-hidden rounded-full bg-slate-800"
+                                role="progressbar"
+                                :aria-valuenow="calculateProgress()"
+                                aria-valuemin="0"
+                                aria-valuemax="100"
+                                :aria-label="'Ukończenie profilu: ' + calculateProgress() + '%'"
+                            >
+                                <div
+                                    class="h-full rounded-full transition-[width] duration-500 ease-out"
+                                    :class="calculateProgress() === 100 ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.45)]' : 'bg-[#D4AF37]'"
+                                    :style="'width: ' + calculateProgress() + '%'"
+                                ></div>
+                            </div>
+                        </div>
 
                         <h3 id="dfcms-onboarding-category-tresc" class="mb-2 mt-1 px-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Treść Twojej Strony</h3>
                         <div class="mb-0.5 flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'hero' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">

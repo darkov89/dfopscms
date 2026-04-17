@@ -33,6 +33,10 @@
     return /already confirmed|already verified|already registered|email address is already confirmed/i.test(msg);
   }
 
+  function isNonEmptyContentString(v) {
+    return typeof v === 'string' && String(v).trim().length > 0;
+  }
+
   function createAdminContentShell() {
     return {
       pl: {
@@ -258,6 +262,46 @@
           items.push({ id: 'contact', label: 'Dodaj telefon lub e-mail do kontaktu', tab: 'contact', openWizard: false });
         }
         return items;
+      },
+      /**
+       * Ukończenie profilu strony (0–100). Wagi sumują się do 100% — pola z `content.pl` + motyw strony (`theme` z rekordu `pages`, nie `setup`).
+       * Aktualizuje się na żywo z Alpine (deep watch na `content`).
+       */
+      calculateProgress() {
+        const pl = this.content?.pl;
+        if (!pl?.settings) return 0;
+        const weights = [
+          { w: 12, ok: () => isNonEmptyContentString(pl.settings.business_name) },
+          { w: 14, ok: () => !!this.theme && this.theme !== 'setup' },
+          { w: 13, ok: () => isNonEmptyContentString(pl.hero?.headline) },
+          { w: 12, ok: () => isNonEmptyContentString(pl.contact?.phone) },
+          { w: 12, ok: () => isNonEmptyContentString(pl.nav?.logo) },
+          {
+            w: 12,
+            ok: () =>
+              isNonEmptyContentString(pl.nav?.logoImage) || isNonEmptyContentString(pl.hero?.image),
+          },
+          {
+            w: 13,
+            ok: () =>
+              Array.isArray(pl.services) &&
+              pl.services.some((s) => s && isNonEmptyContentString(s.title)),
+          },
+          {
+            w: 12,
+            ok: () =>
+              isNonEmptyContentString(pl.seo?.title) || isNonEmptyContentString(pl.seo?.description),
+          },
+        ];
+        let sum = 0;
+        for (const { w, ok } of weights) {
+          try {
+            if (ok()) sum += w;
+          } catch {
+            /* ignore */
+          }
+        }
+        return Math.min(100, Math.round(sum));
       },
       /**
        * Aktywny plan płatny w CMS lub subskrypcja Stripe ze statusem active/trialing
@@ -928,12 +972,13 @@
         if (this.user && !paymentRefreshScheduled) {
           this.isLoading = true;
         }
-        this.loadingAuth = false;
         if (this.user && !paymentRefreshScheduled && !this.isForcedPasswordReset) {
           await this.loadData();
         } else if (this.user && this.isForcedPasswordReset) {
           this.isLoading = false;
         }
+        /** Dopiero po pierwszym loadData nie pokazujemy „pustego” panelu (mniej migania przy pierwszym logowaniu). */
+        this.loadingAuth = false;
         if (this._passwordRecoveryPendingUi && this.user) {
           this.applyPasswordRecoveryUi();
         }
@@ -1386,12 +1431,13 @@
       },
 
       /**
-       * Oprowadzenie po panelu (driver.js): pola → podgląd → kreator → kategorie menu (treść, konfiguracja, subskrypcja).
-       * Wywoływane po zamknięciu modala powitalnego (gdy nie ma pełnoekranowego kreatora).
+       * Oprowadzenie (driver.js): najpierw ekran startowy kreatora (wybór ścieżki), potem podgląd i menu.
+       * Pola treści (nazwa, logo w Studiu) pomijamy — sens mają dopiero po wyborze szablonu w kreatorze.
        */
       async startOnboardingTour() {
         const driverFactory = this.resolveDriverFactory();
         if (!driverFactory) {
+          this.showWizard = false;
           await this.markWelcomeOnboardingSeen();
           return;
         }
@@ -1399,6 +1445,25 @@
         const self = this;
         const ensureSidebarForTour = (driver) => {
           self.sidebarOpen = true;
+          self.$nextTick(() => {
+            requestAnimationFrame(() => {
+              if (driver && typeof driver.refresh === 'function') driver.refresh();
+            });
+          });
+        };
+        const openWizardStep0ForTour = (driver) => {
+          self.showWizard = true;
+          self.wizardStep = 0;
+          self.wizardFieldWarning = '';
+          self.$nextTick(() => {
+            requestAnimationFrame(() => {
+              if (driver && typeof driver.refresh === 'function') driver.refresh();
+            });
+          });
+        };
+        const closeWizardForTour = (driver) => {
+          self.showWizard = false;
+          self.setTab('hero');
           self.$nextTick(() => {
             requestAnimationFrame(() => {
               if (driver && typeof driver.refresh === 'function') driver.refresh();
@@ -1413,62 +1478,51 @@
           doneBtnText: 'Zakończ',
           smoothScroll: true,
           allowClose: true,
+          disableActiveInteraction: true,
           overlayOpacity: 0.55,
           overlayColor: '#0f172a',
           onDestroyed: () => {
+            self.showWizard = false;
             void self.markWelcomeOnboardingSeen();
           },
           steps: [
             {
-              element: '#dfcms-first-content-input',
+              element: '#dfcms-onboarding-wizard-step0',
               popover: {
-                title: 'Twoja marka',
-                description: 'Zacznij od wpisania nazwy swojej firmy lub salonu.',
+                title: 'Najpierw kreator',
+                description:
+                  'Zanim uzupełnisz treści w Studiu, wybierz szablon i przejdź przez krótki kreator — wtedy pola (nazwa, kolory, logo) mają sens. Ten krok jest tylko podglądem: nie musisz teraz nic klikać.',
                 side: 'bottom',
-                align: 'start',
+                align: 'center',
+              },
+              onHighlightStarted: (element, step, { driver }) => {
+                openWizardStep0ForTour(driver);
               },
             },
             {
-              element: '#dfcms-onboarding-logo',
+              element: '#dfcms-onboarding-wizard-paths',
               popover: {
-                title: 'Wyróżnij się',
-                description: 'Dodaj swoje logo, aby strona wyglądała profesjonalnie.',
-                side: 'bottom',
-                align: 'start',
+                title: 'Dwie ścieżki',
+                description:
+                  '„Krok po kroku” prowadzi przez wybór szablonu i podstawy. „Studio” to od razu pełny panel — też OK, ale wtedy sam wybierzesz szablon w kreatorze z menu.',
+                side: 'top',
+                align: 'center',
               },
               onHighlightStarted: (element, step, { driver }) => {
-                self.setTab('settings');
-                self.$nextTick(() => {
-                  requestAnimationFrame(() => {
-                    if (driver && typeof driver.refresh === 'function') driver.refresh();
-                  });
-                });
+                openWizardStep0ForTour(driver);
               },
             },
             {
               element: '#dfcms-onboarding-site-preview',
               popover: {
-                title: 'Magia na żywo',
+                title: 'Podgląd na żywo',
                 description:
-                  'W każdym momencie możesz kliknąć tutaj, aby zobaczyć, jak Twoja strona będzie wyglądać w internecie.',
+                  'Gdy już masz szablon, link „Podgląd strony” pokaże witrynę tak, jak zobaczą ją goście.',
                 side: 'bottom',
                 align: 'center',
               },
-              onHighlightStarted: () => {
-                self.setTab('hero');
-              },
-            },
-            {
-              element: '#dfcms-onboarding-wizard-btn',
-              popover: {
-                title: 'Pełny kreator krok po kroku',
-                description:
-                  'Ten przycisk otwiera prowadzony kreator (szablon, kolory, treści, kontakt). Możesz też uzupełniać panel samodzielnie — lista „Co warto jeszcze dopracować” pokaże tylko podstawy (szablon, nazwa, kontakt), dopóki ich nie uzupełnisz.',
-                side: 'right',
-                align: 'center',
-              },
               onHighlightStarted: (element, step, { driver }) => {
-                ensureSidebarForTour(driver);
+                closeWizardForTour(driver);
               },
             },
             {
@@ -1476,7 +1530,7 @@
               popover: {
                 title: 'Treść strony',
                 description:
-                  'Ta część menu to wszystko, co widzą goście: powitanie, usługi i ceny, galeria, kontakt, FAQ, opinie… Wybierz zakładkę, edytuj treść na środku ekranu, na końcu opublikuj zmiany w nagłówku.',
+                  'Tu edytujesz to, co widzą goście: powitanie, usługi, galeria, kontakt, FAQ… Na końcu opublikuj zmiany w nagłówku.',
                 side: 'right',
                 align: 'start',
               },
@@ -1489,7 +1543,7 @@
               popover: {
                 title: 'Konfiguracja',
                 description:
-                  'Szablon i kolory, Google i social media, dokumenty prawne, konto — ustawiasz tu „ramy” witryny, wygląd i formalia, niezależnie od pojedynczych sekcji treści.',
+                  'Szablon, kolory, integracje, dokumenty, konto — „rama” witryny obok pojedynczych sekcji treści.',
                 side: 'right',
                 align: 'start',
               },
@@ -1502,7 +1556,7 @@
               popover: {
                 title: 'Subskrypcja',
                 description:
-                  'Pakiet, płatność i dostęp do funkcji (np. własna domena na wyższych planach). Tutaj też wrócisz do płatności w Stripe, gdy będzie potrzeba.',
+                  'Pakiet, płatność i dostęp do funkcji (np. własna domena). Tu też wrócisz do płatności w Stripe, gdy będzie potrzeba.',
                 side: 'right',
                 align: 'center',
               },
@@ -1513,8 +1567,6 @@
           ],
         });
 
-        this.setTab('hero');
-        this.sidebarOpen = false;
         await new Promise((resolve) => this.$nextTick(resolve));
         requestAnimationFrame(() => {
           d.drive();
@@ -1528,8 +1580,15 @@
           await this.markWelcomeOnboardingSeen();
           return;
         }
+        if (!this.resolveDriverFactory()) {
+          await this.markWelcomeOnboardingSeen();
+          return;
+        }
+        this.wizardStep = 0;
+        this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
+        this.wizardFieldWarning = '';
+        this.showWizard = true;
         this.sidebarOpen = false;
-        this.setTab('hero');
         await new Promise((resolve) => this.$nextTick(resolve));
         await this.startOnboardingTour();
       },
