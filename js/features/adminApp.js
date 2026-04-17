@@ -37,6 +37,62 @@
     return typeof v === 'string' && String(v).trim().length > 0;
   }
 
+  const WIZARD_STATE_STORAGE_PREFIX = 'dfops_wizard_state_v1:';
+
+  function readWizardStateFromStorage(slug) {
+    try {
+      if (!slug || typeof localStorage === 'undefined') return null;
+      const raw = localStorage.getItem(WIZARD_STATE_STORAGE_PREFIX + slug);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      if (!data || typeof data !== 'object') return null;
+      const step = Number(data.step);
+      const theme = typeof data.theme === 'string' ? data.theme : '';
+      if (!Number.isFinite(step) || step < 0 || step > 4) return null;
+      if (theme && theme !== 'beauty' && theme !== 'consultant') return null;
+      return { step, theme: theme === 'consultant' ? 'consultant' : 'beauty' };
+    } catch {
+      return null;
+    }
+  }
+
+  function writeWizardStateToStorage(slug, step, theme) {
+    try {
+      if (!slug || typeof localStorage === 'undefined') return;
+      localStorage.setItem(
+        WIZARD_STATE_STORAGE_PREFIX + slug,
+        JSON.stringify({
+          step,
+          theme: theme === 'consultant' ? 'consultant' : 'beauty',
+          ts: Date.now(),
+        }),
+      );
+    } catch {
+      /* quota / tryb prywatny */
+    }
+  }
+
+  function clearWizardStateFromStorage(slug) {
+    try {
+      if (!slug || typeof localStorage === 'undefined') return;
+      localStorage.removeItem(WIZARD_STATE_STORAGE_PREFIX + slug);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  /** Przywrócony krok musi być spójny z `pages.theme` (np. nie krok 3–4, gdy szablon w DB wciąż `setup`). */
+  function normalizeWizardRestore(step, wizardTheme, pageTheme) {
+    let s = step;
+    if (pageTheme === 'setup' && s >= 2) {
+      s = 1;
+    }
+    if (s < 0) s = 0;
+    if (s > 4) s = 4;
+    const wt = wizardTheme === 'consultant' ? 'consultant' : 'beauty';
+    return { step: s, theme: wt };
+  }
+
   function createAdminContentShell() {
     return {
       pl: {
@@ -302,6 +358,26 @@
           }
         }
         return Math.min(100, Math.round(sum));
+      },
+      /** Zapisuje krok i motyw kreatora lokalnie (per slug), żeby po ponownym otwarciu nie zaczynać od zera. */
+      persistWizardUiState() {
+        if (!this.slug || !this.showWizard) return;
+        writeWizardStateToStorage(this.slug, this.wizardStep, this.wizardTheme);
+      },
+      /**
+       * @param {0|1} defaultStepWhenNoSave — gdy brak zapisanego stanu: 0 = ekran wyboru ścieżki, 1 = od razu krok 1 (np. „Uruchom kreator” z checklisty).
+       */
+      restoreWizardUiFromStorage(defaultStepWhenNoSave) {
+        const pageTheme = this.theme || '';
+        const saved = readWizardStateFromStorage(this.slug);
+        if (!saved) {
+          this.wizardStep = defaultStepWhenNoSave === 1 ? 1 : 0;
+          this.wizardTheme = pageTheme === 'setup' ? 'beauty' : pageTheme || 'beauty';
+          return;
+        }
+        const norm = normalizeWizardRestore(saved.step, saved.theme, pageTheme);
+        this.wizardStep = norm.step;
+        this.wizardTheme = norm.theme;
       },
       /**
        * Aktywny plan płatny w CMS lub subskrypcja Stripe ze statusem active/trialing
@@ -1321,6 +1397,7 @@
         this.wizardStep = 1;
         this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
         this.wizardFieldWarning = '';
+        this.persistWizardUiState();
         if (typeof window.DFOPS_trackEvent === 'function') {
           window.DFOPS_trackEvent('onboarding_started', { slug: this.slug });
         }
@@ -1332,12 +1409,13 @@
         this.showWizard = false;
         this.wizardStep = 0;
         this.wizardFieldWarning = '';
+        clearWizardStateFromStorage(this.slug);
         this.showWizardDismissModal = true;
         if (typeof window.DFOPS_trackEvent === 'function') {
           window.DFOPS_trackEvent('onboarding_skipped', { slug: this.slug });
         }
       },
-      nextWizardStep() {
+      async nextWizardStep() {
         const err = this.validateWizardStep(this.wizardStep);
         if (err) {
           this.wizardFieldWarning = err;
@@ -1381,16 +1459,26 @@
           this.applyThemeStylingFromContent();
         }
 
+        /** Zapis do bazy przed przejściem dalej — w tym wartości domyślne z szablonu po merge (krok 1). */
+        const savedOk = await this.saveData({ silentSuccess: true });
+        if (!savedOk) {
+          this.wizardFieldWarning =
+            'Nie udało się zapisać na serwerze. Sprawdź połączenie i spróbuj ponownie — albo użyj „Publikuj zmiany” w nagłówku panelu.';
+          return;
+        }
+
         if (this.wizardStep < 4) {
           if (typeof window.DFOPS_trackEvent === 'function') {
             window.DFOPS_trackEvent('onboarding_step_completed', { step: this.wizardStep });
           }
           this.wizardStep++;
         }
+        this.persistWizardUiState();
       },
       prevWizardStep() {
         this.wizardFieldWarning = '';
         if (this.wizardStep > 1) this.wizardStep--;
+        this.persistWizardUiState();
       },
       async finishWizard() {
         if (!this.content?.[this.lang]?.settings) return;
@@ -1406,6 +1494,7 @@
         this.showWizard = false;
         this.wizardStep = 0;
         this.wizardFieldWarning = '';
+        clearWizardStateFromStorage(this.slug);
         this.showStudioWelcomeModal = true;
         if (typeof window.DFOPS_trackEvent === 'function') {
           window.DFOPS_trackEvent('onboarding_finished', { slug: this.slug });
@@ -1598,11 +1687,11 @@
           this.showToast('Potwierdź najpierw adres e-mail — link masz w wiadomości od DFCMS.', 'error');
           return;
         }
-        this.wizardStep = 0;
-        this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
+        this.restoreWizardUiFromStorage(0);
         this.wizardFieldWarning = '';
         this.showWizard = true;
         this.sidebarOpen = false;
+        this.persistWizardUiState();
         if (typeof window.DFOPS_trackEvent === 'function') {
           window.DFOPS_trackEvent('onboarding_reopened', { slug: this.slug });
         }
@@ -1612,10 +1701,10 @@
           this.showToast('Potwierdź najpierw adres e-mail — link masz w wiadomości od DFCMS.', 'error');
           return;
         }
-        this.wizardStep = 1;
-        this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
+        this.restoreWizardUiFromStorage(1);
         this.showWizard = true;
         this.wizardFieldWarning = '';
+        this.persistWizardUiState();
         if (typeof window.DFOPS_trackEvent === 'function') {
           window.DFOPS_trackEvent('onboarding_reopened', { slug: this.slug });
         }
@@ -1967,7 +2056,7 @@
             pl[section][field] = publicUrlData.publicUrl;
           }
           this.message = this.showWizard
-            ? 'Zdjęcie jest już w Twojej stronie. Na końcu kreatora kliknij „Opublikuj moją stronę” — albo dopracujesz to później w panelu.'
+            ? 'Zdjęcie jest zapisane w treści strony. Przy „Dalej” i na końcu kreatora wszystko trafia do bazy — możesz też użyć „Publikuj zmiany” w nagłówku.'
             : 'Gotowe! Kliknij „Publikuj zmiany”, żeby pokazać je na stronie.';
           setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
         } catch (e) {
