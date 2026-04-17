@@ -1402,14 +1402,15 @@
           window.DFOPS_trackEvent('onboarding_started', { slug: this.slug });
         }
       },
+      /** Zamknięcie kreatora bez kończenia — zapis treści + stan kroku w localStorage (wznowienie w „Uruchom Kreator”). */
       async skipWizard() {
         if (!this.content?.[this.lang]?.settings) return;
         const ok = await this.saveData({ silentSuccess: true });
         if (!ok) return;
+        this.persistWizardUiState();
         this.showWizard = false;
         this.wizardStep = 0;
         this.wizardFieldWarning = '';
-        clearWizardStateFromStorage(this.slug);
         this.showWizardDismissModal = true;
         if (typeof window.DFOPS_trackEvent === 'function') {
           window.DFOPS_trackEvent('onboarding_skipped', { slug: this.slug });
