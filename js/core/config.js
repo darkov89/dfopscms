@@ -49,6 +49,26 @@
       'neon-lime': '#a3e635',
       'neon-cyan': '#22d3ee',
       'neon-orange': '#fb923c',
+      /** Usługi lokalne (granat + biel + pomarańcz) */
+      'trades-navy': '#f97316',
+    },
+    /**
+     * Paleta publiczna dla motywu `services` (jak consultantPresetPalette).
+     */
+    servicesPresetPalette: {
+      'trades-navy': {
+        accent: '#f97316',
+        accentContrast: '#ffffff',
+        bgA: '#0f172a',
+        bgB: '#1e293b',
+        bgC: 'rgba(249, 115, 22, 0.12)',
+        bgTextureOpacity: 0.04,
+        surfaceBg: '#ffffff',
+        surfaceAccent: '#f1f5f9',
+        surfaceCard: '#ffffff',
+        text: '#0f172a',
+        textMuted: '#64748b',
+      },
     },
     /**
      * Pełna paleta powierzchni/tła dla consultant przy wybranym color_preset (poza samym akcentem).
@@ -89,6 +109,7 @@
         { id: 'neon-cyan', label: 'Electric blue' },
         { id: 'neon-orange', label: 'Energy orange' },
       ],
+      services: [{ id: 'trades-navy', label: 'Granat + pomarańcz (rzemiosło)' }],
     },
     backgroundByStyle: {
       clean: { a: '#ffffff', b: '#ffffff', c: 'rgba(0,0,0,0)', texture: 0 },
@@ -135,6 +156,15 @@
         { id: 'fit-lime', label: 'Neon Lime Power', color_preset: 'neon-lime', background_style: 'glow', font_preset: 'inter' },
         { id: 'fit-cyan', label: 'Electric Night', color_preset: 'neon-cyan', background_style: 'glow', font_preset: 'inter' },
         { id: 'fit-orange', label: 'Metabolic Fire', color_preset: 'neon-orange', background_style: 'smoky', font_preset: 'inter' },
+      ],
+      services: [
+        {
+          id: 'svc-trades',
+          label: 'Rzemiosło (navy + pomarańcz)',
+          color_preset: 'trades-navy',
+          background_style: 'clean',
+          font_preset: 'inter',
+        },
       ],
     },
   };

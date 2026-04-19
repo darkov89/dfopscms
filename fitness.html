@@ -67,7 +67,7 @@
             <p class="text-xs font-bold uppercase tracking-[0.2em] text-lime-400 mb-3">DFCMS</p>
             <h1 class="text-2xl font-display font-bold text-zinc-100 mb-4 uppercase tracking-wide" x-text="trialBlockedTitle"></h1>
             <p class="text-sm text-gray-400 leading-relaxed mb-4" x-text="trialBlockedBody"></p>
-            <p class="text-sm text-zinc-100 font-medium leading-relaxed mb-8 border-l-4 border-lime-400 pl-4 text-left" x-text="trialBlockedAdminHint"></p>
+            <p x-show="trialBlockedAdminHint" x-cloak class="text-sm text-zinc-100 font-medium leading-relaxed mb-8 border-l-4 border-lime-400 pl-4 text-left" x-text="trialBlockedAdminHint"></p>
             <div class="flex flex-col gap-3">
                 <a :href="subscriptionPanelUrl" class="inline-flex justify-center rounded-sm bg-lime-400 px-6 py-3 text-sm font-bold uppercase tracking-widest text-zinc-950 hover:opacity-90 transition-opacity">Zaloguj do panelu administratora</a>
                 <a :href="landingPricingUrl" class="inline-flex justify-center rounded-sm border-2 border-lime-400 px-6 py-3 text-sm font-bold uppercase tracking-widest text-lime-400 hover:bg-lime-400/10 transition-colors">Zobacz cennik</a>

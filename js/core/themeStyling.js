@@ -124,6 +124,32 @@
       setCssVar('--accent-contrast', '#0c0a09');
     }
 
+    if (theme === 'services') {
+      const presetPalette = (cfg.servicesPresetPalette || {})[s.color_preset];
+      if (presetPalette) {
+        setCssVar('--accent', presetPalette.accent);
+        setCssVar('--accent-contrast', presetPalette.accentContrast || '#ffffff');
+        setCssVar('--bg-a', presetPalette.bgA);
+        setCssVar('--bg-b', presetPalette.bgB);
+        setCssVar('--bg-c', presetPalette.bgC);
+        if (presetPalette.bgTextureOpacity != null) {
+          setCssVar('--bg-texture-opacity', String(presetPalette.bgTextureOpacity));
+        }
+        setCssVar('--surface-bg', presetPalette.surfaceBg);
+        setCssVar('--surface-accent', presetPalette.surfaceAccent);
+        setCssVar('--surface-card', presetPalette.surfaceCard);
+        setCssVar('--beauty-text', presetPalette.text);
+        setCssVar('--beauty-text-muted', presetPalette.textMuted);
+        setCssVar('--beauty-white', '#ffffff');
+      } else {
+        setCssVar('--accent', '#f97316');
+        setCssVar('--accent-contrast', '#ffffff');
+        setCssVar('--beauty-text', '#0f172a');
+        setCssVar('--beauty-text-muted', '#64748b');
+        setCssVar('--beauty-white', '#ffffff');
+      }
+    }
+
     const fonts = (cfg.fontByPreset || {})[(s.font_preset || (theme === 'beauty' ? 'poppins' : 'inter'))] || cfg.fontByPreset?.inter;
     if (fonts) {
       setCssVar('--font-sans', fonts.sans);
@@ -148,6 +174,10 @@
     } else if (theme === 'fitness') {
       setCssVar('--bg-main', '#09090b');
       setCssVar('--text-main', '#fafafa');
+    } else if (theme === 'services') {
+      const presetPalette = (cfg.servicesPresetPalette || {})[s.color_preset];
+      setCssVar('--bg-main', '#ffffff');
+      setCssVar('--text-main', presetPalette?.text || '#0f172a');
     } else {
       setCssVar('--bg-main', 'transparent');
       setCssVar('--text-main', '#ffffff');
@@ -161,7 +191,15 @@
     setCssVar(
       '--color-text-body',
       beautyTextResolved ||
-        (theme === 'beauty' ? '#2b2b2b' : theme === 'consultant' ? '#171717' : theme === 'fitness' ? darkBodyText : darkBodyText)
+        (theme === 'beauty'
+          ? '#2b2b2b'
+          : theme === 'consultant'
+            ? '#171717'
+            : theme === 'fitness'
+              ? darkBodyText
+              : theme === 'services'
+                ? '#0f172a'
+                : darkBodyText)
     );
     setCssVar('--color-accent-text', accentContrastResolved);
   }

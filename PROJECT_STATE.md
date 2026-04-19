@@ -3,7 +3,7 @@
 > **Przeznaczenie:** jeden plik w korzeniu repozytorium do aktualizacji **na koniec sesji** (ludzie + agenci), żeby zachować ciągłość decyzji architektonicznych, produktowych i operacyjnych.  
 > **Nie zastępuje** `README.md` (start, deploy, struktura katalogów), ale je **uzupełnia** o „co wiemy o systemie teraz”.
 
-**Ostatnia aktualizacja treści:** 2026-04-04
+**Ostatnia aktualizacja treści:** 2026-04-03
 
 ---
 
@@ -59,9 +59,10 @@ Użytkownik → Auth (Supabase) → pages.content (JSON) → front (szablon + me
 ### 2.1 Wygasły trial — widok publiczny i retencja
 
 - **Kolumna `pages.trial_blocked_at`:** ustawiana przez cron (`expire_trial_pages()` → Edge `expire-trial-pages` + `CRON_SECRET`). Bez działającego cronu strona mogła pozostawać widoczna mimo „0 dni” w panelu.
-- **Front publiczny (`publicSiteApp.js`):** dodatkowo **`shouldBlockPublicPageView(page)`** — ta sama logika co SQL (14 dni od `trial_started_at`, brak `payment_completed`, plan `trial` lub `tier0`; oraz 14 dni po `billing_failed_at`). Ukrywa treść **od razu** po wejściu, bez czekania na cron. Nadal obowiązuje: **brak treści w HTML** (ekran „Strona chwilowo niedostępna”); pełne zamknięcie dostępu do JSON po stronie API wymagałoby zaostrzenia RLS (TODO).
+- **Front publiczny (`publicSiteApp.js`):** dodatkowo **`shouldBlockPublicPageView(page)`** — ta sama logika co SQL (14 dni od `trial_started_at`, brak `payment_completed`, plan `trial` lub `tier0`; oraz 14 dni po `billing_failed_at`). Ukrywa treść **od razu** po wejściu, bez czekania na cron. Dla odwiedzających komunikat blokady jest **neutralny** (prace techniczna / aktualizacja), bez wzmianki o płatnościach; opcjonalny trzeci akapit (`trialBlockedAdminHint`) domyślnie pusty. Pełne zamknięcie dostępu do JSON po stronie API wymagałoby zaostrzenia RLS (TODO).
 - **`getPageBySlug`** zwraca też **`billing_failed_at`** do powyższej walidacji.
 - **Usuwanie po 30 dniach:** funkcja **`purge_trial_blocked_pages_after_grace()`** — `DELETE` z `pages`, gdzie `trial_blocked_at` ≤ teraz − 30 dni. Wywoływana z tego samego Edge co `expire_trial_pages` (odpowiedź JSON zawiera `purged_after_grace_days_30`). **Migracja:** `20260404120000_purge_trial_blocked_pages_after_grace.sql`.
+- **Wdrożenie na produkcję (Supabase):** migracja zastosowana przez **`supabase db push`**; funkcja Edge **`expire-trial-pages`** wdrożona przez **`supabase functions deploy expire-trial-pages`** (stan na 2026-04-03).
 
 ---
 

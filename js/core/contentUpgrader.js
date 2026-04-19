@@ -36,11 +36,21 @@
 
     if (!pl.settings.color_preset) {
       pl.settings.color_preset =
-        theme === 'beauty' ? 'beige' : theme === 'consultant' ? 'dfops-tech' : theme === 'fitness' ? 'neon-lime' : 'gold';
+        theme === 'beauty'
+          ? 'beige'
+          : theme === 'consultant'
+            ? 'dfops-tech'
+            : theme === 'fitness'
+              ? 'neon-lime'
+              : theme === 'services'
+                ? 'trades-navy'
+                : 'gold';
     }
-    if (!pl.settings.background_style) pl.settings.background_style = theme === 'beauty' ? 'soft' : 'glow';
+    if (!pl.settings.background_style) {
+      pl.settings.background_style = theme === 'beauty' ? 'soft' : theme === 'services' ? 'clean' : 'glow';
+    }
     if (!pl.settings.font_preset) {
-      pl.settings.font_preset = theme === 'beauty' ? 'poppins' : theme === 'fitness' ? 'inter' : 'inter';
+      pl.settings.font_preset = theme === 'beauty' ? 'poppins' : 'inter';
     }
     if (!pl.settings.subscription) {
       pl.settings.subscription = { plan: 'trial', trial_started_at: new Date().toISOString() };
@@ -77,7 +87,7 @@
     if (!pl.nav.menu || typeof pl.nav.menu !== 'object' || Array.isArray(pl.nav.menu)) {
       pl.nav.menu = {};
     }
-    const pricingDefault = theme === 'consultant' ? 'Usługi' : 'Cennik';
+    const pricingDefault = theme === 'consultant' ? 'Usługi' : theme === 'services' ? 'Zakres usług' : 'Cennik';
     const menuDefaults = {
       about: 'O nas',
       pricing: pricingDefault,
@@ -131,6 +141,37 @@
       if (pl.nav.menu.faq === undefined) pl.nav.menu.faq = 'FAQ';
       if (pl.nav.menu.contact === undefined) pl.nav.menu.contact = 'Kontakt';
       if (pl.nav.menu.reviews === undefined) pl.nav.menu.reviews = 'Opinie';
+    }
+    if (theme === 'services') {
+      if (!pl.nav.menu) {
+        pl.nav.menu = {
+          about: 'O nas',
+          pricing: 'Zakres usług',
+          gallery: 'Realizacje',
+          faq: 'FAQ',
+          contact: 'Kontakt',
+          reviews: 'Opinie',
+        };
+      }
+      if (pl.nav.menu.about === undefined) pl.nav.menu.about = 'O nas';
+      if (pl.nav.menu.pricing === undefined) pl.nav.menu.pricing = 'Zakres usług';
+      if (pl.nav.menu.gallery === undefined) pl.nav.menu.gallery = 'Realizacje';
+      if (pl.nav.menu.faq === undefined) pl.nav.menu.faq = 'FAQ';
+      if (pl.nav.menu.contact === undefined) pl.nav.menu.contact = 'Kontakt';
+      if (pl.nav.menu.reviews === undefined) pl.nav.menu.reviews = 'Opinie';
+    }
+
+    if (!pl.trust || typeof pl.trust !== 'object' || Array.isArray(pl.trust)) {
+      pl.trust = { title: '', quote: '', author: '', subtitle: '', stars: 5 };
+    } else {
+      if (pl.trust.title === undefined) pl.trust.title = '';
+      if (pl.trust.quote === undefined) pl.trust.quote = '';
+      if (pl.trust.author === undefined) pl.trust.author = '';
+      if (pl.trust.subtitle === undefined) pl.trust.subtitle = '';
+      if (pl.trust.stars === undefined || pl.trust.stars === null) pl.trust.stars = 5;
+    }
+    if (theme === 'services' && (pl.settings.showTrust === undefined || pl.settings.showTrust === null)) {
+      pl.settings.showTrust = true;
     }
 
     if (!Array.isArray(pl.schedule)) pl.schedule = [];

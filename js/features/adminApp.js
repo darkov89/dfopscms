@@ -49,10 +49,17 @@
       const step = Number(data.step);
       const theme = typeof data.theme === 'string' ? data.theme : '';
       if (!Number.isFinite(step) || step < 0 || step > 4) return null;
-      if (theme && theme !== 'beauty' && theme !== 'consultant' && theme !== 'fitness') return null;
+      if (theme && theme !== 'beauty' && theme !== 'consultant' && theme !== 'fitness' && theme !== 'services') return null;
       return {
         step,
-        theme: theme === 'consultant' ? 'consultant' : theme === 'fitness' ? 'fitness' : 'beauty',
+        theme:
+          theme === 'consultant'
+            ? 'consultant'
+            : theme === 'fitness'
+              ? 'fitness'
+              : theme === 'services'
+                ? 'services'
+                : 'beauty',
       };
     } catch {
       return null;
@@ -66,7 +73,14 @@
         WIZARD_STATE_STORAGE_PREFIX + slug,
         JSON.stringify({
           step,
-          theme: theme === 'consultant' ? 'consultant' : theme === 'fitness' ? 'fitness' : 'beauty',
+          theme:
+            theme === 'consultant'
+              ? 'consultant'
+              : theme === 'fitness'
+                ? 'fitness'
+                : theme === 'services'
+                  ? 'services'
+                  : 'beauty',
           ts: Date.now(),
         }),
       );
@@ -85,7 +99,7 @@
   }
 
   /** Przywrócony krok musi być spójny z `pages.theme` (np. nie krok 3–4, gdy szablon w DB wciąż `setup`). */
-  const WIZARD_TEMPLATE_IDS = ['beauty', 'consultant', 'fitness'];
+  const WIZARD_TEMPLATE_IDS = ['beauty', 'consultant', 'fitness', 'services'];
 
   function normalizeWizardRestore(step, wizardTheme, pageTheme) {
     let s = step;
@@ -452,13 +466,13 @@
       /** Na localhost podgląd wskazuje plik .html — brak pliku = proxy (Epik 3). */
       get previewHtmlBasename() {
         const t = String(this.theme || 'beauty').trim().toLowerCase();
-        if (t === 'beauty' || t === 'consultant' || t === 'setup' || t === 'fitness') return t;
+        if (t === 'beauty' || t === 'consultant' || t === 'setup' || t === 'fitness' || t === 'services') return t;
         return 'beauty';
       },
       get previewUsesHtmlFallback() {
         const t = String(this.theme || '').trim().toLowerCase();
         if (!t) return false;
-        return !(t === 'beauty' || t === 'consultant' || t === 'setup' || t === 'fitness');
+        return !(t === 'beauty' || t === 'consultant' || t === 'setup' || t === 'fitness' || t === 'services');
       },
       get templateCatalog() {
         if (typeof window.DFOPS_getTemplateCatalog === 'function') {
@@ -467,6 +481,8 @@
         return [
           { id: 'beauty', name: 'Beauty', desc: 'Salon, spa, usługi lokalne', available: true },
           { id: 'consultant', name: 'Konsultant', desc: 'Ekspert, freelancer, B2B', available: true },
+          { id: 'fitness', name: 'Fitness', desc: 'Studio, trening, sport', available: true },
+          { id: 'services', name: 'Usługi', desc: 'Rzemiosło, naprawy, lokalnie', available: true },
         ];
       },
       onTemplateTileClick(entry) {
@@ -1340,7 +1356,13 @@
       },
 
       async switchTemplate(newTemplateId) {
-        if (newTemplateId !== 'beauty' && newTemplateId !== 'consultant' && newTemplateId !== 'fitness') return;
+        if (
+          newTemplateId !== 'beauty' &&
+          newTemplateId !== 'consultant' &&
+          newTemplateId !== 'fitness' &&
+          newTemplateId !== 'services'
+        )
+          return;
         if (this.theme === newTemplateId) return;
         if (
           !confirm(
@@ -1423,7 +1445,7 @@
         if (!pl) return '';
         if (step === 1) {
           if (!WIZARD_TEMPLATE_IDS.includes(this.wizardTheme)) {
-            return 'Wybierz szablon (Salon, Konsultant lub Fitness).';
+            return 'Wybierz szablon (Salon, Konsultant, Fitness lub Usługi).';
           }
         }
         if (step === 2) {

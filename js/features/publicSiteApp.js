@@ -245,13 +245,13 @@
       dataLoaded: false,
       content: createPublicContentShell(),
       bazaBlad: false,
-      /** Widok publiczny zablokowany (pages.trial_blocked_at) — wygasły trial / brak płatności po karencji. */
+      /** Widok publiczny zablokowany (cron trial_blocked_at lub logika shouldBlockPublicPageView). */
       trialBlocked: false,
-      trialBlockedTitle: 'Strona chwilowo niedostępna',
+      trialBlockedTitle: 'Ta strona jest chwilowo niedostępna',
       trialBlockedBody:
-        'Nie możemy wyświetlić treści tej witryny. Zwykle oznacza to zakończony okres próbny bez opłaty albo nieuregulowaną subskrypcję po upływie terminu na zapłatę.',
-      trialBlockedAdminHint:
-        'Jeśli jesteś administratorem tej strony — zaloguj się do panelu DFCMS. Tam możesz opłacić subskrypcję lub uregulować należność i przywrócić publikację.',
+        'Trwają prace techniczne albo witryna jest w aktualizacji. Spróbuj ponownie później — przepraszamy za utrudnienia.',
+      /** Opcjonalny drugi akapit (np. podpowiedź dla właściciela). Publicznie zwykle puste — bez wzmianki o płatnościach. */
+      trialBlockedAdminHint: '',
       subscriptionPanelUrl: '',
       landingPricingUrl: '',
       theme: expectedTheme,
@@ -377,7 +377,7 @@
             this.landingPricingUrl = links.landingCennik;
             this.trialBlocked = true;
             this.dataLoaded = true;
-            document.title = 'Chwilowo niedostępna — DFCMS';
+            document.title = 'Strona chwilowo niedostępna';
             return;
           }
 

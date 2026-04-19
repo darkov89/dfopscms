@@ -4,7 +4,7 @@
 
 Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **changelog** jednoliniowy, żeby nie dublować długich sekcji.
 
-**Ostatnia aktualizacja treści:** 2026-04-04
+**Ostatnia aktualizacja treści:** 2026-04-03
 
 ---
 
@@ -16,7 +16,7 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 | Stan architektury, Stripe, onboarding, security, user journey | [`PROJECT_STATE.md`](../PROJECT_STATE.md) |
 | Konfiguracja klienta | `js/core/config.js` |
 | Landing marketingowy | `index.html` · routing `?site=` / subdomeny → `router.html` |
-| Szablony publiczne | `beauty.html`, `consultant.html`, `fitness.html`, … · `routerApp.js` → `{pages.theme}.html` |
+| Szablony publiczne | `beauty.html`, `consultant.html`, `fitness.html`, `services.html`, … · `routerApp.js` → `{pages.theme}.html` |
 | Panel | `admin.html`, `js/features/adminApp.js` (motywy, kreator, `switchTemplate`) |
 | Rejestr szablonów / merge | `js/templates/registry.js` · `contentSchema` / `contentUpgrader` |
 | Edge Stripe | `supabase/functions/stripe-webhook/`, `_shared/stripeBilling.ts` |
@@ -27,6 +27,7 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 
 | Data | Co |
 |------|-----|
+| 2026-04-03 | **Public blokada:** neutralny komunikat dla odwiedzających (prace techniczne / aktualizacja), bez wzmianki o płatnościach; `trialBlockedAdminHint` domyślnie pusty (ukryty w szablonach). **Szablon `services.html`** (usługi lokalne, granat + pomarańcz) + rejestr, `config` / `themeStyling` / `contentUpgrader`, panel, kreator. |
 | 2026-04-04 | **Trial / public:** `shouldBlockPublicPageView` w `publicSiteApp.js` (blok jak `expire_trial_pages`, bez czekania na cron); `billing_failed_at` w `getPageBySlug`; RPC `purge_trial_blocked_pages_after_grace` + wywołanie w Edge `expire-trial-pages` (kasowanie `pages` 30 dni po `trial_blocked_at`). |
 | 2026-04-04 | **Szablony / Epik 3:** `fitness.html` (dark neon, grafik `schedule[]`); `pages.theme` + `content.pl.settings.theme`; merge fallback (`DFOPS_resolveTemplateKeyForMerge`); panel — kafelki szablonów (w tym roadmap), `switchTemplate` dla beauty/consultant/fitness; **fix:** po zmianie szablonu zachowanie `welcome`/`onboarding`, czyszczenie LS kreatora, **Fitness w kroku 1 kreatora** (`admin.html` + `adminApp`). Presety `neon-*` / `bundlesByTheme.fitness` w `config.js`. |
 | 2026-04-03 | **Marketing:** `index.html` (CRO: hero, jak to działa, cennik STARTER/PRO, FAQ Alpine, footer); **`router.html`** + przekierowania z `index` dla `?site=` / subdomen; `routerApp` / `publicSiteApp` → linki na `index.html`; `landing.html` / `zapytanie-custom.html` zsynchronizowane. |

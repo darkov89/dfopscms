@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="pl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usługi lokalne — DFCMS</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Roboto', 'var(--font-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        svc: {
+                            navy: '#0f172a',
+                            navyLight: '#1e293b',
+                            accent: '#f97316',
+                            accentAlt: '#facc15',
+                        },
+                    },
+                },
+            },
+        };
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="js/core/config.js"></script>
+    <script defer src="js/core/supabaseClient.js"></script>
+    <script defer src="js/templates/registry.js"></script>
+    <script defer src="js/core/contentSchema.js"></script>
+    <script defer src="js/core/contentUpgrader.js"></script>
+    <script defer src="js/core/themeStyling.js"></script>
+    <script defer src="js/core/pageRepository.js"></script>
+    <script defer src="js/core/planUtils.js"></script>
+    <script defer src="js/features/publicSiteApp.js"></script>
+    <script defer src="js/features/googleReviewsApp.js"></script>
+    <script defer src="js/features/cookieConsentApp.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    <script src="js/ui/reveal.js" defer></script>
+</head>
+
+<body
+    class="font-sans antialiased selection:bg-amber-500 selection:text-slate-900"
+    style="background-color: var(--bg-main, #ffffff); color: var(--text-main, #0f172a);"
+    x-data="createPublicSiteApp('services')"
+>
+
+    <div x-show="!dataLoaded && !bazaBlad" class="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="w-12 h-12 border-t-2 border-b-2 border-svc-navy rounded-full animate-spin mb-4"></div>
+        <p class="text-svc-navy font-semibold tracking-wide text-sm animate-pulse">Ładowanie…</p>
+    </div>
+
+    <div x-show="trialBlocked && dataLoaded" x-cloak class="fixed inset-0 z-[250] flex flex-col items-center justify-center bg-white/95 px-6 text-center">
+        <div class="max-w-lg rounded-xl border-2 border-slate-200 bg-slate-50 p-8 shadow-xl">
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-svc-accent mb-3">DFCMS</p>
+            <h1 class="text-2xl font-bold text-svc-navy mb-4" x-text="trialBlockedTitle"></h1>
+            <p class="text-sm text-slate-600 leading-relaxed mb-4" x-text="trialBlockedBody"></p>
+            <p x-show="trialBlockedAdminHint" x-cloak class="text-sm text-svc-navy font-medium leading-relaxed mb-8 border-l-4 border-amber-500 pl-4 text-left" x-text="trialBlockedAdminHint"></p>
+            <div class="flex flex-col gap-3">
+                <a :href="subscriptionPanelUrl" class="inline-flex justify-center rounded-md bg-svc-navy px-6 py-3 text-sm font-bold text-white hover:bg-slate-800 transition-colors">Zaloguj do panelu administratora</a>
+                <a :href="landingPricingUrl" class="inline-flex justify-center rounded-md border-2 border-svc-navy px-6 py-3 text-sm font-bold text-svc-navy hover:bg-slate-100 transition-colors">Zobacz cennik</a>
+            </div>
+        </div>
+    </div>
+
+    <template x-if="dataLoaded && !trialBlocked && content && content.pl">
+        <div x-transition.opacity.duration.1000ms>
+
+        <nav class="fixed w-full z-50 bg-svc-navy text-white shadow-lg border-b border-white/10">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center min-w-0 flex-1 md:flex-none">
+                    <template x-if="content[lang].nav?.logoImage">
+                        <img :src="content[lang].nav.logoImage" alt="Logo" class="h-11 md:h-12 object-contain max-w-[200px]">
+                    </template>
+                    <template x-if="!content[lang].nav?.logoImage">
+                        <div class="text-lg sm:text-xl font-extrabold tracking-tight text-white truncate" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].nav.logo)"></div>
+                    </template>
+                </div>
+
+                <div class="flex items-center gap-2 sm:gap-4 order-3 w-full md:w-auto md:order-none md:flex-1 md:justify-end">
+                    <template x-if="content[lang].contact?.phone">
+                        <a
+                            :href="'tel:' + content[lang].contact.phone.replace(/\s/g, '')"
+                            class="text-xl sm:text-2xl md:text-3xl font-black text-amber-400 tabular-nums tracking-tight hover:text-amber-300 transition-colors shrink-0"
+                            x-text="content[lang].contact.phone"
+                        ></a>
+                    </template>
+                    <template x-if="!content[lang].contact?.phone">
+                        <a href="#kontakt" class="text-sm font-bold uppercase tracking-widest text-amber-400 hover:text-amber-300">Kontakt</a>
+                    </template>
+                </div>
+
+                <div class="hidden lg:flex flex-wrap items-center justify-end gap-x-6 gap-y-1 text-sm font-semibold text-slate-200">
+                    <template x-if="content[lang].settings?.showManifesto !== false">
+                        <a href="#o-nas" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.about || 'O nas'"></a>
+                    </template>
+                    <template x-if="content[lang].settings?.showServices !== false">
+                        <a href="#zakres" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.pricing || 'Zakres usług'"></a>
+                    </template>
+                    <template x-if="content[lang].gallery?.images?.length > 0">
+                        <a href="#galeria" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.gallery || 'Realizacje'"></a>
+                    </template>
+                    <template x-if="content[lang].settings?.showTrust !== false && content[lang].trust?.quote">
+                        <a href="#zaufanie" class="hover:text-amber-400 transition-colors">Zaufanie</a>
+                    </template>
+                    <template x-if="content[lang].google_reviews?.place_query">
+                        <a href="#opinie" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.reviews || 'Opinie'"></a>
+                    </template>
+                    <template x-if="content[lang].settings?.showFaq !== false && content[lang].faq?.length">
+                        <a href="#faq" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.faq || 'FAQ'"></a>
+                    </template>
+                    <template x-if="content[lang].settings?.showContact !== false">
+                        <a href="#kontakt" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></a>
+                    </template>
+                </div>
+            </div>
+        </nav>
+
+        <header class="relative min-h-[88vh] flex flex-col justify-center pt-28 pb-16 md:pb-24 px-6 overflow-hidden">
+            <div class="absolute inset-0 z-0 bg-svc-navy">
+                <template x-if="content[lang].hero?.image">
+                    <img
+                        :src="content[lang].hero.image"
+                        :alt="content[lang].hero?.name || 'Realizacja'"
+                        class="absolute inset-0 w-full h-full object-cover"
+                        loading="eager"
+                        decoding="async"
+                    >
+                </template>
+                <div class="absolute inset-0 bg-gradient-to-br from-svc-navy/95 via-svc-navy/88 to-slate-900/90"></div>
+                <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.03\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-40"></div>
+            </div>
+            <div class="relative z-10 max-w-5xl mx-auto w-full reveal">
+                <p class="text-amber-400 font-bold uppercase tracking-[0.25em] text-xs mb-4" x-text="content[lang].manifesto?.label || 'Usługi'"></p>
+                <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white leading-tight mb-4" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].hero.headline)"></h1>
+                <h2 class="text-xl md:text-2xl font-semibold text-slate-200 mb-6 max-w-2xl" x-text="content[lang].hero.name"></h2>
+                <p class="text-base md:text-lg text-slate-300 mb-10 leading-relaxed max-w-2xl" x-text="content[lang].hero.description"></p>
+
+                <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-4">
+                    <template x-if="content[lang].contact?.phone">
+                        <a
+                            :href="'tel:' + content[lang].contact.phone.replace(/\s/g, '')"
+                            class="inline-flex justify-center items-center bg-amber-500 text-svc-navy px-10 py-4 rounded-md font-black text-lg uppercase tracking-wide shadow-lg shadow-amber-500/25 hover:bg-amber-400 hover:-translate-y-0.5 transition-all duration-300"
+                        >
+                            <span x-text="content[lang].hero.button || 'Zadzwoń teraz'"></span>
+                        </a>
+                    </template>
+                    <template x-if="!content[lang].contact?.phone">
+                        <a
+                            href="#kontakt"
+                            class="inline-flex justify-center items-center bg-amber-500 text-svc-navy px-10 py-4 rounded-md font-black text-lg uppercase tracking-wide shadow-lg hover:bg-amber-400 transition-all"
+                        >
+                            <span x-text="content[lang].hero.button || 'Kontakt'"></span>
+                        </a>
+                    </template>
+                    <template x-if="content[lang].contact?.booksyUrl">
+                        <a
+                            :href="content[lang].contact.booksyUrl"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="inline-flex justify-center items-center border-2 border-white/40 text-white px-8 py-4 rounded-md font-bold uppercase tracking-widest text-sm hover:bg-white/10 transition-colors"
+                        >Rezerwacja online</a>
+                    </template>
+                </div>
+
+                <template x-if="content[lang].hero.qrImage">
+                    <div class="mt-10">
+                        <p class="text-xs uppercase tracking-widest text-slate-400 mb-2" x-text="content[lang].hero.qrText"></p>
+                        <img :src="content[lang].hero.qrImage" alt="QR" class="max-w-[120px] rounded-lg border border-white/20 shadow-md">
+                    </div>
+                </template>
+            </div>
+        </header>
+
+        <section id="o-nas" class="py-20 md:py-24 px-6 bg-white border-t border-slate-100" x-show="content[lang].settings?.showManifesto !== false">
+            <div class="max-w-3xl mx-auto text-center reveal">
+                <h2 class="text-3xl md:text-4xl font-bold text-svc-navy mb-6" x-text="content[lang].manifesto?.title"></h2>
+                <p class="text-lg leading-relaxed text-slate-600" x-text="content[lang].manifesto?.text"></p>
+            </div>
+        </section>
+
+        <section
+            id="zakres"
+            class="py-20 md:py-24 px-6 bg-slate-50"
+            x-show="content[lang].settings?.showServices !== false"
+            x-data="{
+                pickIcon(svc, i) {
+                    const d = ['wrench', 'bolt', 'droplet', 'cog', 'pipe'];
+                    const raw = (svc && svc.icon) ? String(svc.icon).toLowerCase() : d[i % d.length];
+                    return d.includes(raw) ? raw : d[i % d.length];
+                }
+            }"
+        >
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-14 reveal">
+                    <p class="text-amber-600 text-xs font-bold uppercase tracking-[0.3em] mb-3">Oferta</p>
+                    <h2 class="text-3xl md:text-4xl font-bold text-svc-navy" x-text="content[lang].nav?.menu?.pricing || 'Zakres usług'"></h2>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <template x-for="(service, index) in content[lang].services" :key="index">
+                        <div
+                            class="reveal group relative rounded-xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm hover:shadow-md hover:border-amber-400/50 transition-all duration-300 cursor-pointer"
+                            x-data="{ expanded: false }"
+                            @click="expanded = !expanded"
+                        >
+                            <div class="flex gap-4">
+                                <div class="shrink-0 w-14 h-14 rounded-lg bg-svc-navy flex items-center justify-center text-amber-400 shadow-inner">
+                                    <template x-if="pickIcon(service, index) === 'wrench'">
+                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655-5.653a2.548 2.548 0 010-3.586a2.548 2.548 0 013.586 0l5.653 4.655m0 0l2.503 2.504a2.548 2.548 0 010 3.586l-2.503 2.503"/></svg>
+                                    </template>
+                                    <template x-if="pickIcon(service, index) === 'bolt'">
+                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+                                    </template>
+                                    <template x-if="pickIcon(service, index) === 'droplet'">
+                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 3c-4.5 4.5-6 8.25-6 11.25a6 6 0 1012 0c0-3-1.5-6.75-6-11.25z"/></svg>
+                                    </template>
+                                    <template x-if="pickIcon(service, index) === 'cog'">
+                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    </template>
+                                    <template x-if="pickIcon(service, index) === 'pipe'">
+                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-5.029 5.912l-1.844 1.844M9.75 5.25a3 3 0 00-3 3m-3 0a6 6 0 015.029 5.912l1.844 1.844M9.75 5.25L12 3m0 0l2.25 2.25M12 18.75l-2.25 2.25M12 18.75l2.25-2.25M12 18.75l-2.25-2.25"/></svg>
+                                    </template>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex flex-wrap items-start justify-between gap-2">
+                                        <h3 class="font-bold text-lg md:text-xl text-svc-navy pr-2" x-text="service.title"></h3>
+                                        <span class="shrink-0 text-xs font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-2 py-1 rounded" x-text="service.duration"></span>
+                                    </div>
+                                    <p class="text-2xl font-black text-svc-navy mt-2 tabular-nums" x-text="service.price"></p>
+                                    <p class="text-slate-600 text-sm mt-2 leading-relaxed" x-text="service.desc"></p>
+                                    <div x-show="expanded" x-collapse x-cloak class="border-t border-slate-100 pt-4 mt-4 text-sm text-slate-500">
+                                        <span x-text="service.details"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </section>
+
+        <section
+            id="zaufanie"
+            class="py-20 md:py-24 px-6 bg-svc-navy text-white relative overflow-hidden"
+            x-show="content[lang].settings?.showTrust !== false && content[lang].trust?.quote"
+        >
+            <div class="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="max-w-3xl mx-auto text-center reveal relative z-10">
+                <p class="text-amber-400 text-xs font-bold uppercase tracking-[0.3em] mb-4" x-text="content[lang].trust?.title || 'Zaufanie'"></p>
+                <div class="flex justify-center gap-1 text-amber-400 text-2xl mb-6" aria-hidden="true">
+                    <template x-for="si in [1,2,3,4,5]" :key="'star'+si">
+                        <span x-text="si <= (Number(content[lang].trust?.stars) || 5) ? '★' : '☆'"></span>
+                    </template>
+                </div>
+                <blockquote class="text-xl md:text-2xl font-medium leading-relaxed text-slate-100 mb-6" x-text="content[lang].trust.quote"></blockquote>
+                <p class="text-amber-400 font-bold" x-text="content[lang].trust.author"></p>
+                <p class="text-slate-400 text-sm mt-2" x-text="content[lang].trust.subtitle"></p>
+            </div>
+        </section>
+
+        <section id="galeria" class="py-20 md:py-24 px-6 bg-white" x-show="content[lang].gallery?.images?.length > 0"
+                 x-data="{ scrollNext() { $refs.slider.scrollBy({ left: 300, behavior: 'smooth' }) }, scrollPrev() { $refs.slider.scrollBy({ left: -300, behavior: 'smooth' }) } }">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-10 reveal">
+                    <h2 class="text-3xl md:text-4xl font-bold text-svc-navy" x-text="content[lang].gallery?.title || 'Realizacje'"></h2>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button type="button" @click="scrollPrev()" aria-label="Poprzednie"
+                                class="w-12 h-12 flex items-center justify-center rounded-full border-2 border-svc-navy/30 text-svc-navy hover:bg-svc-navy hover:text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        <button type="button" @click="scrollNext()" aria-label="Następne"
+                                class="w-12 h-12 flex items-center justify-center rounded-full border-2 border-svc-navy/30 text-svc-navy hover:bg-svc-navy hover:text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div x-ref="slider" class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-8 hide-scrollbar reveal">
+                    <template x-for="(imgUrl, index) in content[lang].gallery.images" :key="index">
+                        <div class="min-w-[85%] md:min-w-[45%] lg:min-w-[30%] snap-center shrink-0">
+                            <img :src="imgUrl" :alt="(content[lang].gallery?.title || 'Galeria') + ' — ' + (index + 1)" class="w-full h-[360px] object-cover rounded-xl shadow-md border border-slate-100" loading="lazy" decoding="async">
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </section>
+
+        <section id="faq" class="py-20 md:py-24 px-6 bg-slate-50" x-show="content[lang].settings?.showFaq !== false && content[lang].faq && content[lang].faq.length > 0">
+            <div class="max-w-3xl mx-auto">
+                <div class="text-center mb-12 reveal">
+                    <h2 class="text-3xl md:text-4xl font-bold text-svc-navy" x-text="content[lang].nav?.menu?.faq || 'FAQ'"></h2>
+                </div>
+                <div class="space-y-3">
+                    <template x-for="(item, index) in content[lang].faq" :key="index">
+                        <div class="reveal bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden" x-data="{ expanded: false }">
+                            <button type="button" @click="expanded = !expanded" class="w-full px-5 py-4 flex justify-between items-center text-left font-semibold text-svc-navy hover:bg-slate-50 transition-colors">
+                                <span x-text="item.question"></span>
+                                <span class="text-amber-500 text-xl" x-text="expanded ? '−' : '+'"></span>
+                            </button>
+                            <div x-show="expanded" x-collapse x-cloak class="px-5 pb-4 text-slate-600 text-sm leading-relaxed border-t border-slate-100 pt-3" x-text="item.answer"></div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </section>
+
+        <template x-if="content[lang].google_reviews?.place_query">
+            <section id="opinie" class="py-20 md:py-24 px-4 sm:px-6 bg-white overflow-hidden border-t border-slate-100">
+                <div class="max-w-6xl mx-auto">
+                    <div class="text-center mb-10 reveal">
+                        <h2 class="text-3xl md:text-4xl font-bold text-svc-navy" x-text="content[lang].google_reviews?.title || 'Opinie z Google'"></h2>
+                    </div>
+
+                    <div x-data="googleReviews()">
+                        <template x-if="loading">
+                            <div class="bg-slate-50 rounded-2xl border border-slate-200 p-10 text-center">
+                                <div class="text-slate-600 text-sm font-medium">Ładowanie opinii z Google…</div>
+                            </div>
+                        </template>
+
+                        <template x-if="!loading && reviews.length">
+                            <div class="space-y-8">
+                                <div class="reveal flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-5 sm:px-8 py-4 rounded-xl border border-slate-200 bg-slate-50 shadow-sm">
+                                    <div class="flex flex-wrap items-center gap-3 sm:gap-4 justify-center sm:justify-start">
+                                        <svg class="h-7 w-7 shrink-0" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.666 32.657 29.234 36 24 36c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.222 0-9.673-3.453-11.284-8.091l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>
+                                        <span class="text-sm font-semibold text-svc-navy tracking-wide" x-text="labelExcellent($root.lang)"></span>
+                                        <div class="flex items-center gap-1 text-amber-500 text-base leading-none" aria-hidden="true">
+                                            <template x-for="si in [1,2,3,4,5]" :key="si">
+                                                <span x-text="si <= Math.round(headerRating() || 0) ? '★' : '☆'"></span>
+                                            </template>
+                                        </div>
+                                        <span class="text-sm font-bold text-svc-navy tabular-nums" x-text="headerRating() != null ? Number(headerRating()).toFixed(1) : '—'"></span>
+                                        <span class="text-slate-300">|</span>
+                                        <span class="text-sm text-slate-600" x-text="displayCount() + ' ' + ($root.lang === 'en' ? 'reviews' : 'opinii')"></span>
+                                    </div>
+                                    <a :href="writeReviewUrl()" target="_blank" rel="noopener noreferrer"
+                                       class="shrink-0 self-center rounded-md border border-svc-navy/30 px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-svc-navy hover:bg-slate-100 transition-colors text-center"
+                                       x-text="t('writeReview', $root.lang)"></a>
+                                </div>
+
+                                <div class="relative flex items-stretch gap-2 md:gap-4">
+                                    <button type="button" @click="prevSlide()"
+                                            class="hidden sm:flex shrink-0 w-11 h-11 rounded-full border border-slate-200 bg-white items-center justify-center text-svc-navy hover:bg-slate-50 transition-colors self-center shadow-sm"
+                                            :class="slide === 0 ? 'opacity-40 pointer-events-none' : ''"
+                                            aria-label="Poprzednia opinia">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                    </button>
+
+                                    <div class="flex-1 min-w-0 overflow-hidden rounded-2xl">
+                                        <div class="flex transition-transform duration-500 ease-out"
+                                             :style="'transform: translateX(-' + (slide * 100) + '%)'">
+                                            <template x-for="(r, i) in reviews" :key="i">
+                                                <div class="w-full shrink-0 px-1 sm:px-2 box-border">
+                                                    <div x-data="{ expanded: false }"
+                                                         class="relative h-full bg-slate-50 border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm flex flex-col min-h-[260px]">
+                                                        <div class="flex items-start justify-between gap-3 mb-4">
+                                                            <div class="flex items-center gap-3 min-w-0">
+                                                                <template x-if="r.profile_photo_url">
+                                                                    <img :src="r.profile_photo_url" :alt="(r.author_name || 'Klient') + ' — zdjęcie'" class="w-12 h-12 rounded-full object-cover shrink-0 ring-2 ring-amber-400/30" loading="lazy">
+                                                                </template>
+                                                                <template x-if="!r.profile_photo_url">
+                                                                    <div class="w-12 h-12 rounded-full bg-svc-navy flex items-center justify-center text-amber-400 font-bold text-lg shrink-0"
+                                                                         x-text="(r.author_name || '?').charAt(0).toUpperCase()"></div>
+                                                                </template>
+                                                                <div class="min-w-0">
+                                                                    <div class="font-bold text-svc-navy truncate" x-text="r.author_name || 'Klient'"></div>
+                                                                    <div class="text-xs text-slate-500" x-text="formatRel(r.publishTime, $root.lang) || 'Google'"></div>
+                                                                </div>
+                                                            </div>
+                                                            <svg class="w-7 h-7 shrink-0 opacity-90" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M24 22h-4v-4h4v4zm0 8h-4v-4h4v4z"/><path fill="#EA4335" d="M24 12v4h8c0-2.21-1.79-4-4-4h-4z"/><path fill="#FBBC05" d="M12 24c0-2.21.55-4.28 1.52-6.08L8.11 15.5A15.97 15.97 0 004 24h8z"/><path fill="#34A853" d="M24 36c4.97 0 9.19-3.25 10.69-7.73l-3.9-2.97C29.72 27.52 27.05 29 24 29c-3.51 0-6.49-2.24-7.58-5.38l-3.96 3.05C14.45 32.81 18.77 36 24 36z"/></svg>
+                                                        </div>
+                                                        <div class="flex items-center gap-2 mb-4">
+                                                            <div class="flex text-amber-500 text-sm leading-none gap-0.5">
+                                                                <template x-for="si in [1,2,3,4,5]" :key="'s'+si">
+                                                                    <span x-text="si <= Math.round(Number(r.rating) || 0) ? '★' : '☆'"></span>
+                                                                </template>
+                                                            </div>
+                                                        </div>
+                                                        <p class="text-slate-700 text-sm leading-relaxed flex-grow"
+                                                           :class="expanded ? '' : 'line-clamp-4'"
+                                                           x-text="r.text"></p>
+                                                        <div class="flex items-end justify-between mt-4 pt-2">
+                                                            <button type="button" class="text-xs font-semibold uppercase tracking-widest text-slate-500 hover:text-amber-600 transition-colors"
+                                                                    @click="expanded = !expanded"
+                                                                    x-show="r.text && r.text.length > 160"
+                                                                    x-text="expanded ? t('readLess', $root.lang) : t('readMore', $root.lang)"></button>
+                                                            <span class="text-5xl font-serif text-amber-500/30 leading-none select-none pointer-events-none" aria-hidden="true">“</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <button type="button" @click="nextSlide()"
+                                            class="hidden sm:flex shrink-0 w-11 h-11 rounded-full border border-slate-200 bg-white items-center justify-center text-svc-navy hover:bg-slate-50 transition-colors self-center shadow-sm"
+                                            :class="slide >= reviews.length - 1 ? 'opacity-40 pointer-events-none' : ''"
+                                            aria-label="Następna opinia">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                    </button>
+                                </div>
+
+                                <div class="flex sm:hidden justify-center gap-2 mt-2">
+                                    <button type="button" @click="prevSlide()" class="px-4 py-2 rounded-full border border-slate-200 text-xs font-bold uppercase tracking-widest text-slate-600" :disabled="slide === 0">←</button>
+                                    <button type="button" @click="nextSlide()" class="px-4 py-2 rounded-full border border-slate-200 text-xs font-bold uppercase tracking-widest text-slate-600" :disabled="slide >= reviews.length - 1">→</button>
+                                </div>
+
+                                <div class="flex justify-center gap-2 mt-4" x-show="reviews.length > 1">
+                                    <template x-for="(dot, di) in reviews" :key="'d'+di">
+                                        <button type="button" class="h-2 rounded-full transition-all"
+                                                :class="slide === di ? 'w-8 bg-amber-500' : 'w-2 bg-slate-300'"
+                                                @click="slide = di" :aria-label="'Opinia ' + (di+1)"></button>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+
+                        <template x-if="!loading && !reviews.length">
+                            <div class="bg-slate-50 rounded-2xl border border-slate-200 p-10 text-center">
+                                <div class="text-slate-600 text-sm font-medium" x-text="error || 'Brak opinii w tym miejscu.'"></div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </section>
+        </template>
+
+        <footer id="kontakt" class="bg-svc-navy text-white pt-16 pb-8 px-6 border-t border-white/10" x-show="content[lang].settings?.showContact !== false">
+            <div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between gap-10 mb-10 reveal">
+                <div class="md:w-1/2 space-y-3">
+                    <h2 class="text-3xl font-bold mb-6">Kontakt</h2>
+                    <p class="font-semibold text-lg text-slate-100" x-text="content[lang].hero.name"></p>
+                    <template x-if="content[lang].contact">
+                        <div>
+                            <div class="flex flex-col md:flex-row gap-6 items-start">
+                                <template x-if="content[lang].contact?.map_embed_url || mapIframeSrc">
+                                    <div class="w-full md:w-[320px] max-w-full rounded-xl overflow-hidden border border-white/10 shadow-sm aspect-[4/3]">
+                                        <iframe
+                                            class="w-full h-full"
+                                            loading="lazy"
+                                            referrerpolicy="no-referrer-when-downgrade"
+                                            :src="content[lang].contact.map_embed_url || mapIframeSrc">
+                                        </iframe>
+                                    </div>
+                                </template>
+                                <div class="flex-1 min-w-0 space-y-2">
+                                    <p class="text-slate-300" x-text="content[lang].contact.address"></p>
+                                    <p class="text-slate-300" x-show="content[lang].contact.phone">Tel: <a :href="'tel:' + (content[lang].contact.phone || '').replace(/\s/g, '')" class="text-amber-400 font-bold hover:underline" x-text="content[lang].contact.phone"></a></p>
+                                    <p class="text-slate-300">Email: <a :href="'mailto:' + content[lang].contact.email" class="text-amber-400 hover:underline" x-text="content[lang].contact.email"></a></p>
+                                    <div class="flex flex-wrap gap-4 mt-4" x-show="content[lang].social?.facebook || content[lang].social?.instagram || content[lang].social?.tiktok">
+                                        <a x-show="content[lang].social?.facebook" :href="content[lang].social.facebook" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-amber-400 transition-colors" aria-label="Facebook">
+                                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                                        </a>
+                                        <a x-show="content[lang].social?.instagram" :href="content[lang].social.instagram" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-amber-400 transition-colors" aria-label="Instagram">
+                                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                                        </a>
+                                        <a x-show="content[lang].social?.tiktok" :href="content[lang].social.tiktok" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-amber-400 transition-colors" aria-label="TikTok">
+                                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <div class="md:w-1/2 text-left md:text-center">
+                    <h3 class="text-xl font-bold mb-6 text-slate-100">Szybki kontakt</h3>
+                    <template x-if="content[lang].contact?.phone">
+                        <a
+                            :href="'tel:' + content[lang].contact.phone.replace(/\s/g, '')"
+                            class="inline-block bg-amber-500 text-svc-navy px-8 py-4 rounded-md font-black uppercase tracking-widest text-sm hover:bg-amber-400 transition-colors shadow-lg"
+                            x-text="content[lang].nav?.cta || 'Zadzwoń'"
+                        ></a>
+                    </template>
+                    <template x-if="content[lang].contact?.booksyUrl">
+                        <a :href="content[lang].contact.booksyUrl" target="_blank" rel="noopener noreferrer" class="inline-block mt-4 md:mt-0 md:ml-4 border-2 border-white/40 text-white px-8 py-4 rounded-md font-bold uppercase tracking-widest text-xs hover:bg-white/10 transition-colors">Booksy</a>
+                    </template>
+                </div>
+            </div>
+            <div class="max-w-5xl mx-auto border-t border-white/10 pt-6 text-center text-sm text-slate-400 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
+                <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.privacy_policy">
+                    <a href="#" @click.prevent="openModal('privacy')" class="underline hover:text-amber-400 transition-colors">Polityka prywatności</a>
+                </template>
+                <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.terms">
+                    <a href="#" @click.prevent="openModal('terms')" class="underline hover:text-amber-400 transition-colors">Regulamin</a>
+                </template>
+                <p>&copy; <span x-text="new Date().getFullYear()"></span> <span x-text="content[lang].hero.name"></span>. Wszelkie prawa zastrzeżone.</p>
+            </div>
+        </footer>
+
+        </div>
+    </template>
+
+    <div x-show="content" x-cloak>
+        <div x-data="cookieConsent"
+             x-show="showBanner"
+             x-transition.opacity.duration.500ms
+             style="z-index: 2147483647 !important;"
+             class="fixed bottom-0 left-0 right-0 w-full bg-svc-navy shadow-2xl border-t border-white/10">
+            <div class="max-w-5xl mx-auto px-4 py-4 md:px-6 md:py-5">
+                <div class="text-sm text-slate-200 mb-4">Ta strona korzysta z plików cookies w celach funkcjonalnych oraz (opcjonalnie) analityki i marketingu. Możesz wybrać, które kategorie akceptujesz.</div>
+                <div class="flex flex-wrap items-center gap-3 mb-4" x-show="!showDetails">
+                    <button @click.prevent="acceptAll()" class="px-4 py-2 bg-amber-500 text-svc-navy text-sm font-bold rounded-md hover:opacity-90 transition-colors">Akceptuję wszystkie</button>
+                    <button @click.prevent="rejectAll()" class="px-4 py-2 bg-slate-700 text-slate-100 text-sm font-medium rounded-md hover:bg-slate-600 transition-colors">Tylko niezbędne</button>
+                    <button @click.prevent="showDetails = true" class="px-4 py-2 border border-white/30 text-slate-100 text-sm font-medium rounded-md hover:bg-white/5 transition-colors">Dostosuj</button>
+                </div>
+                <div x-show="showDetails" x-transition class="space-y-4 pt-4 border-t border-white/10 relative">
+                    <div class="flex items-center justify-between gap-4">
+                        <span class="text-sm font-medium text-slate-100">Niezbędne</span>
+                        <label class="relative inline-flex cursor-not-allowed opacity-75">
+                            <input type="checkbox" checked disabled class="sr-only peer">
+                            <span class="w-11 h-6 bg-amber-500 rounded-full"></span>
+                            <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></span>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between gap-4">
+                        <span class="text-sm font-medium text-slate-100">Analityczne</span>
+                        <label class="relative inline-flex cursor-pointer select-none">
+                            <input type="checkbox" x-model="consents.analytics" class="sr-only peer">
+                            <span class="w-11 h-6 bg-slate-700 rounded-full peer-checked:bg-amber-500 transition-colors"></span>
+                            <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform pointer-events-none peer-checked:translate-x-5"></span>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between gap-4">
+                        <span class="text-sm font-medium text-slate-100">Marketingowe</span>
+                        <label class="relative inline-flex cursor-pointer select-none">
+                            <input type="checkbox" x-model="consents.marketing" class="sr-only peer">
+                            <span class="w-11 h-6 bg-slate-700 rounded-full peer-checked:bg-amber-500 transition-colors"></span>
+                            <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform pointer-events-none peer-checked:translate-x-5"></span>
+                        </label>
+                    </div>
+                    <button type="button" @click.prevent="acceptSelected()" class="px-4 py-2 bg-amber-500 text-svc-navy text-sm font-bold rounded-md hover:opacity-90 transition-colors">Zapisz ustawienia</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a x-show="content && (content[lang].settings?.subscription?.plan === 'trial' || content[lang].settings?.subscription?.plan === 'tier0')"
+       href="https://dfcms.pl" target="_blank"
+       class="fixed bottom-4 right-4 z-[100] bg-black/80 text-white text-xs font-sans px-4 py-2 rounded-full shadow-2xl backdrop-blur-md hover:bg-black transition-colors border border-white/10 flex items-center gap-2">
+        <span>⚡ Zbudowano w DFCMS</span>
+    </a>
+
+    <div x-show="activeModal" x-cloak x-transition.opacity
+         class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+         role="dialog" aria-modal="true" :aria-label="activeModal === 'privacy' ? 'Polityka prywatności' : 'Regulamin'">
+        <div @click.self="closeModal()" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div class="relative bg-white text-gray-900 rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between p-4 border-b border-gray-200 shrink-0">
+                <h2 class="text-xl font-bold" x-text="activeModal === 'privacy' ? 'Polityka prywatności' : 'Regulamin'"></h2>
+                <button @click="closeModal()" class="p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors" aria-label="Zamknij">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="overflow-y-auto p-6 text-gray-700 leading-relaxed space-y-4 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-amber-600 [&_h2]:mt-6 [&_a]:text-amber-600 [&_a]:underline"
+                 x-html="DFOPS_pageRepository.sanitizeHtml(activeModal === 'privacy' ? (content[lang]?.legal?.privacy_policy || '') : (content[lang]?.legal?.terms || ''))"></div>
+        </div>
+    </div>
+</body>
+</html>
