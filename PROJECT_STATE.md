@@ -13,8 +13,8 @@
 
 | Warstwa | Technologie / artefakty |
 |--------|-------------------------|
-| **Front publiczny** | Statyczne HTML (`index.html`, `beauty.html`, `consultant.html`, …), JS (`js/features/publicSiteApp.js`, `routerApp.js`), style (`css/`). Routing wielodomenowy: **Cloudflare Pages** + `functions/_middleware.js` (SEO, host → treść z API). |
-| **Panel CMS** | `admin.html`, **Alpine.js** (stan UI), **Tailwind** (CDN w panelu), logika w `js/features/adminApp.js`. Szablony treści: `js/templates/registry.js`, normalizacja: `js/core/contentSchema.js`, `js/core/contentUpgrader.js`. |
+| **Front publiczny** | Statyczne HTML: **`index.html`** — landing marketingowy (Tailwind + Alpine); **`router.html`** — wejście do routingu wielodomenowego (jak wcześniej `index` + `routerApp`); szablony `beauty.html`, `consultant.html`, …; JS (`publicSiteApp.js`, `routerApp.js`). Na „gołej” domenie platformy (`dfcms.pl`, localhost) użytkownik widzi **landing**; **`?site=`** i **subdomeny** `slug.dfcms.pl` → przekierowanie do `router.html`. **Cloudflare Pages** + `functions/_middleware.js` (SEO). |
+| **Panel CMS** | `admin.html`, **Alpine.js** (stan UI), **Tailwind** (CDN w panelu), logika w `js/features/adminApp.js`. **Pasek „Twój postęp”** w sidebarze — `calculateProgress()` z wagami pól `content.pl` + motyw strony. Szablony treści: `js/templates/registry.js`, normalizacja: `js/core/contentSchema.js`, `js/core/contentUpgrader.js`. |
 | **Backend danych** | **Supabase**: PostgreSQL (`pages` + treść JSON), **Auth** (JWT), **Storage** (obrazy), RLS na tabelach. Klient w przeglądarce: `js/core/supabaseClient.js`, repozytorium: `js/core/pageRepository.js`. |
 | **Backend logiki płatności / domen** | **Supabase Edge Functions** (Deno): webhook Stripe, Checkout, Portal, sync subskrypcji, domeny (Cloudflare), Google Reviews, cron trial. Współdzielona logika: `supabase/functions/_shared/stripeBilling.ts`. |
 | **Płatności** | **Stripe** (Checkout, Customer Portal, webhooks → Edge). Identyfikatory cen w `js/core/config.js` (`stripePrices`). |
@@ -57,7 +57,7 @@ Użytkownik → Auth (Supabase) → pages.content (JSON) → front (szablon + me
 - **Modal powitalny** (`showWelcomeModal`): pełnoekranowy, styl „quiet luxury”; warunek pokazania oparty o `content.pl.settings` (`welcome_onboarding_completed` + migracja w `normalizeContent` dla starych treści).
 - **Pole „nazwa marki”** (`content.pl.settings.business_name`) + pierwsze pole w zakładce powitalnej.
 - **Driver.js** (CDN `1.4.0`): tour po zamknięciu modala — **najpierw pełnoekranowy start kreatora** (krok 0: ścieżki), potem podgląd w nagłówku, **kategorie menu** (Treść, Konfiguracja, Subskrypcja); `disableActiveInteraction` — bez wypełniania pól w trakcie touru; pola hero/logo w Studiu nie są już krokiem (sens po wyborze szablonu).
-- **Pełny kreator** (wizard): na czas samouczeka otwierany z modala (**krok 0**); poza tym **nie** uruchamia się automatycznie po wejściu; dostęp z menu. **„Pomiń kreator”** nie ustawia `onboarding_completed` — użytkownik widzi checklistę podstaw (szablon jeśli `setup`, nazwa w menu, kontakt) z **!** przy zakładkach do czasu uzupełnienia lub ukończenia kreatora / auto-zapisu gdy lista pusta.
+- **Pełny kreator** (wizard): na czas samouczeka otwierany z modala (**krok 0**); poza tym **nie** uruchamia się automatycznie po wejściu; dostęp z menu. **Stan UI** (`wizardStep`, `wizardTheme`) w **`localStorage`** (`dfops_wizard_state_v1:{slug}`); **czyszczenie** po `finishWizard`; **„Wrócę później”** zamyka kreator **bez** kasowania tego stanu (wznowienie od ostatniego kroku). **„Dalej”** → walidacja → **`saveData`** → następny krok. Zamknięcie bez ukończenia kreatora **nie** ustawia `onboarding_completed` — checklista podstaw z **!** jak wcześniej.
 - **Treść utrwalona w DB:** m.in. `welcome_onboarding_completed`, `business_name`, `onboarding_completed` w `pages.content`.
 
 ---
@@ -76,7 +76,7 @@ Użytkownik → Auth (Supabase) → pages.content (JSON) → front (szablon + me
 
 | Priorytet | Zadanie |
 |-----------|---------|
-| Wysoki | **Landing page** marketingowa — spójna z produktem, CTA do rejestracji. |
+| Wysoki | **Landing** — iteracje copy/visual nad `index.html`; ewent. A/B vs `landing.html` (legacy). |
 | Wysoki | **Tour Driver.js** — dopracowanie na mobile (popover przy ekranie startu kreatora, scroll sidebara). |
 | Średni | **Inline validation** — spójne komunikaty przy polach (obok wykrzykników w menu). |
 | Średni | **Testy** — smoke dla webhooka Stripe (mock) i krytycznej ścieżki `saveData` / auth. |
@@ -89,7 +89,7 @@ Użytkownik → Auth (Supabase) → pages.content (JSON) → front (szablon + me
 
 *Na podstawie plików (`rejestracja.html`, `registrationApp.js`, `admin.html`, `adminApp.js`, szablony, Stripe) i dotychczasowych wdrożeń.*
 
-1. **Wejście marketingowe** — użytkownik trafia na stronę oferty (landing; w rozwoju — patrz sekcja 5).  
+1. **Wejście marketingowe** — **`index.html`** (CTA do `rejestracja.html`); linki z panelu publicznego / stopki kierują na `index.html`. Stary długi plik **`landing.html`** pozostaje w repo (linki zaktualizowane).  
 2. **Rejestracja** — formularz (`rejestracja.html`) → Supabase Auth; metadata ze **slugiem** strony; trigger / logika tworzy rekord `pages` (szablon startowy `setup`).  
 3. **Potwierdzenie e-maila** — bez potwierdzenia panel pokazuje baner; kreator i pełny onboarding nie startują.  
 4. **Pierwsze logowanie do panelu** — `admin.html` → `loadData` (ekran „Weryfikacja…” trwa do końca pierwszego wczytania, mniej migania) → ewentualnie **modal powitalny** → **Driver.js** (start kreatora → podgląd → menu) → zapis `welcome_onboarding_completed`.  

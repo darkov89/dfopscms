@@ -49,8 +49,11 @@
       const step = Number(data.step);
       const theme = typeof data.theme === 'string' ? data.theme : '';
       if (!Number.isFinite(step) || step < 0 || step > 4) return null;
-      if (theme && theme !== 'beauty' && theme !== 'consultant') return null;
-      return { step, theme: theme === 'consultant' ? 'consultant' : 'beauty' };
+      if (theme && theme !== 'beauty' && theme !== 'consultant' && theme !== 'fitness') return null;
+      return {
+        step,
+        theme: theme === 'consultant' ? 'consultant' : theme === 'fitness' ? 'fitness' : 'beauty',
+      };
     } catch {
       return null;
     }
@@ -63,7 +66,7 @@
         WIZARD_STATE_STORAGE_PREFIX + slug,
         JSON.stringify({
           step,
-          theme: theme === 'consultant' ? 'consultant' : 'beauty',
+          theme: theme === 'consultant' ? 'consultant' : theme === 'fitness' ? 'fitness' : 'beauty',
           ts: Date.now(),
         }),
       );
@@ -143,6 +146,8 @@
           business_name: '',
           /** Zapis w Supabase po powicie / zakończeniu touru (Driver.js) — nie pokazuj modala ponownie. */
           welcome_onboarding_completed: false,
+          /** Lustrzane odbicie aktywnego motywu strony (`pages.theme`); ustawiane w normalizeContent / saveData. */
+          theme: '',
         },
       },
     };
@@ -436,6 +441,35 @@
         const p = this.subscriptionPlan;
         return p === 'trial' || p === 'tier0';
       },
+      /** Na localhost podgląd wskazuje plik .html — brak pliku = proxy (Epik 3). */
+      get previewHtmlBasename() {
+        const t = String(this.theme || 'beauty').trim().toLowerCase();
+        if (t === 'beauty' || t === 'consultant' || t === 'setup' || t === 'fitness') return t;
+        return 'beauty';
+      },
+      get previewUsesHtmlFallback() {
+        const t = String(this.theme || '').trim().toLowerCase();
+        if (!t) return false;
+        return !(t === 'beauty' || t === 'consultant' || t === 'setup' || t === 'fitness');
+      },
+      get templateCatalog() {
+        if (typeof window.DFOPS_getTemplateCatalog === 'function') {
+          return window.DFOPS_getTemplateCatalog();
+        }
+        return [
+          { id: 'beauty', name: 'Beauty', desc: 'Salon, spa, usługi lokalne', available: true },
+          { id: 'consultant', name: 'Konsultant', desc: 'Ekspert, freelancer, B2B', available: true },
+        ];
+      },
+      onTemplateTileClick(entry) {
+        if (!entry || this.saving) return;
+        if (!entry.available) {
+          this.showToast('Ten szablon jest w przygotowaniu (Epik 3).', 'info');
+          return;
+        }
+        if (this.theme === entry.id) return;
+        this.switchTemplate(entry.id);
+      },
       getPublicSiteUrl() {
         const hostCustom = typeof this.customDomain === 'string' ? this.customDomain.trim() : '';
         if (hostCustom && this.customDomainStatus === 'active') {
@@ -445,7 +479,7 @@
         const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         if (isLocalhost) {
           if (!this.slug || !this.theme) return '#';
-          return `/${this.theme}.html?site=${encodeURIComponent(this.slug)}`;
+          return `/${this.previewHtmlBasename}.html?site=${encodeURIComponent(this.slug)}`;
         }
         if (!this.slug) return '#';
         const base = (cfg.appDomain || 'dfcms.pl').toLowerCase();
@@ -1298,7 +1332,7 @@
       },
 
       async switchTemplate(newTemplateId) {
-        if (newTemplateId !== 'beauty' && newTemplateId !== 'consultant') return;
+        if (newTemplateId !== 'beauty' && newTemplateId !== 'consultant' && newTemplateId !== 'fitness') return;
         if (this.theme === newTemplateId) return;
         if (
           !confirm(
@@ -1982,6 +2016,7 @@
             this.content.pl.services = this.content.pl.services.filter((s) => s.title && String(s.title).trim() !== '');
           }
           this.content.pl.settings.template_version = this.latestTemplateVersion;
+          this.content.pl.settings.theme = this.theme;
           const payload = {
             content: this.content,
             color_preset: this.content.pl.settings.color_preset,

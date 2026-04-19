@@ -45,6 +45,10 @@
       'forest-mint': '#4FBDAA',
       /** Consultant — Modern Cloud / DevOps (slate + niebieski) */
       'dfops-tech': '#3b82f6',
+      /** Fitness / dark public templates */
+      'neon-lime': '#a3e635',
+      'neon-cyan': '#22d3ee',
+      'neon-orange': '#fb923c',
     },
     /**
      * Pełna paleta powierzchni/tła dla consultant przy wybranym color_preset (poza samym akcentem).
@@ -79,6 +83,11 @@
         { id: 'rosewood', label: 'Rosewood (elegancja)' },
         { id: 'black-gold', label: 'Black & Gold (barber/luxe)' },
         { id: 'forest-mint', label: 'Forest Mint (świeżość)' },
+      ],
+      fitness: [
+        { id: 'neon-lime', label: 'Neon lime' },
+        { id: 'neon-cyan', label: 'Electric blue' },
+        { id: 'neon-orange', label: 'Energy orange' },
       ],
     },
     backgroundByStyle: {
@@ -121,6 +130,11 @@
         { id: 'beauty-soft', label: 'Beauty Soft', color_preset: 'beige', background_style: 'soft', font_preset: 'poppins' },
         { id: 'beauty-rosewood', label: 'Rosewood Elegant', color_preset: 'rosewood', background_style: 'clean', font_preset: 'elegant' },
         { id: 'barber-luxe', label: 'Barber Luxe', color_preset: 'black-gold', background_style: 'smoky', font_preset: 'barber' },
+      ],
+      fitness: [
+        { id: 'fit-lime', label: 'Neon Lime Power', color_preset: 'neon-lime', background_style: 'glow', font_preset: 'inter' },
+        { id: 'fit-cyan', label: 'Electric Night', color_preset: 'neon-cyan', background_style: 'glow', font_preset: 'inter' },
+        { id: 'fit-orange', label: 'Metabolic Fire', color_preset: 'neon-orange', background_style: 'smoky', font_preset: 'inter' },
       ],
     },
   };

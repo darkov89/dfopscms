@@ -10,6 +10,9 @@
     if (!pl) merged.pl = {};
     if (!pl.settings) pl.settings = {};
 
+    /** Spójne z kolumną `pages.theme` i panelem — zapis w Supabase w `saveData`. */
+    pl.settings.theme = typeof theme === 'string' ? theme : '';
+
     /**
      * Nazwa marki w panelu (onboarding). Puste = pierwsza konfiguracja (powitalny modal).
      * Treści zapisane przed tym polem: jeśli kreator już był ukończony, wstawiamy z logo nawigacji.
@@ -32,10 +35,13 @@
     }
 
     if (!pl.settings.color_preset) {
-      pl.settings.color_preset = theme === 'beauty' ? 'beige' : theme === 'consultant' ? 'dfops-tech' : 'gold';
+      pl.settings.color_preset =
+        theme === 'beauty' ? 'beige' : theme === 'consultant' ? 'dfops-tech' : theme === 'fitness' ? 'neon-lime' : 'gold';
     }
     if (!pl.settings.background_style) pl.settings.background_style = theme === 'beauty' ? 'soft' : 'glow';
-    if (!pl.settings.font_preset) pl.settings.font_preset = theme === 'beauty' ? 'poppins' : 'inter';
+    if (!pl.settings.font_preset) {
+      pl.settings.font_preset = theme === 'beauty' ? 'poppins' : theme === 'fitness' ? 'inter' : 'inter';
+    }
     if (!pl.settings.subscription) {
       pl.settings.subscription = { plan: 'trial', trial_started_at: new Date().toISOString() };
     } else {
@@ -106,6 +112,28 @@
       if (pl.nav.menu.reviews === undefined) pl.nav.menu.reviews = 'Opinie';
       if (pl.nav.menu.contact === undefined) pl.nav.menu.contact = 'Kontakt';
     }
+    if (theme === 'fitness') {
+      if (!pl.nav.menu) {
+        pl.nav.menu = {
+          about: 'O mnie',
+          pricing: 'Treningi',
+          schedule: 'Grafik',
+          gallery: 'Galeria',
+          faq: 'FAQ',
+          contact: 'Kontakt',
+          reviews: 'Opinie',
+        };
+      }
+      if (pl.nav.menu.about === undefined) pl.nav.menu.about = 'O mnie';
+      if (pl.nav.menu.pricing === undefined) pl.nav.menu.pricing = 'Treningi';
+      if (pl.nav.menu.schedule === undefined) pl.nav.menu.schedule = 'Grafik';
+      if (pl.nav.menu.gallery === undefined) pl.nav.menu.gallery = 'Galeria';
+      if (pl.nav.menu.faq === undefined) pl.nav.menu.faq = 'FAQ';
+      if (pl.nav.menu.contact === undefined) pl.nav.menu.contact = 'Kontakt';
+      if (pl.nav.menu.reviews === undefined) pl.nav.menu.reviews = 'Opinie';
+    }
+
+    if (!Array.isArray(pl.schedule)) pl.schedule = [];
 
     if (!pl.contact) pl.contact = {};
     if (!pl.contact.map_embed_url) pl.contact.map_embed_url = '';

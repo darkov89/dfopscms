@@ -5,7 +5,7 @@
   const BASE_DOMAINS = ['dfcms.pl', 'localhost', '127.0.0.1'];
 
   /**
-   * Router przekierowuje na consultant.html / beauty.html.
+   * Router przekierowuje na plik `{theme}.html` (np. beauty, consultant, fitness).
    * Na domenach systemowych bez ?site= → index.html (landing marketingowy).
    * Na niestandardowej domenie (np. mojsalon.pl) → getPageByCustomDomain.
    */

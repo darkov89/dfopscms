@@ -21,7 +21,13 @@
   function mergeContentWithTemplate(theme, content) {
     const getT = window.DFOPS_getTemplate;
     if (typeof getT !== 'function') throw new Error('Brak DFOPS_getTemplate');
-    const base = getT(theme);
+    const resolve =
+      typeof window.DFOPS_resolveTemplateKeyForMerge === 'function'
+        ? window.DFOPS_resolveTemplateKeyForMerge
+        : function (t) {
+            return t;
+          };
+    const base = getT(resolve(theme));
     const normalized = fillDefaults(content ? deepClone(content) : {}, base);
     if (!normalized.pl) normalized.pl = {};
     if (!normalized.pl.settings) normalized.pl.settings = {};

@@ -174,6 +174,8 @@
         manifesto: { label: '', title: '', text: '' },
         services: [],
         proof: { label: '', title: '', text: '', statNumber: '', statLabel: '', statDesc: '' },
+        /** Opcjonalny grafik (fitness.html): { day, time, note }[] */
+        schedule: [],
         gallery: { title: '', images: [] },
         faq: [],
         contact: { email: '', phone: '', address: '', booksyUrl: '', map_embed_url: '', map_place_id: '' },

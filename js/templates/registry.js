@@ -5,8 +5,32 @@
   const TEMPLATE_LABELS = {
     setup: { name: 'Konfiguracja', desc: 'Widok startowy do czasu ukończenia kreatora' },
     beauty: { name: 'Beauty & Wellness', desc: 'Idealny dla salonów, spa, fizjoterapii i branży usługowej' },
-    consultant: { name: 'Coaching & Biznes', desc: 'Stworzony dla trenerów, konsultantów, agencji i freelancerów' }
+    consultant: { name: 'Coaching & Biznes', desc: 'Stworzony dla trenerów, konsultantów, agencji i freelancerów' },
+    fitness: { name: 'Fitness', desc: 'Studio, trening personalny, grafik zajęć' },
+    services: { name: 'Usługi profesjonalne', desc: 'B2B, usługi lokalne (w przygotowaniu)' },
+    gastro: { name: 'Gastro', desc: 'Restauracja, kawiarnia (w przygotowaniu)' },
   };
+
+  /**
+   * Merge treści z szablonem w DFOPS_mergeContentWithTemplate: dopóki nie ma pełnego JSON szablonu,
+   * spadamy na `beauty`, żeby nie rzucać „Unknown theme” przy odczycie z bazy (Epik 3).
+   */
+  function resolveTemplateKeyForMerge(theme) {
+    const id = typeof theme === 'string' ? theme.trim() : '';
+    if (id && templatesV3[id]) return id;
+    return 'beauty';
+  }
+
+  /** Kafelki w panelu: Wygląd → motyw branżowy (available = możliwa zmiana już teraz). */
+  function getTemplateCatalog() {
+    return [
+      { id: 'beauty', name: 'Beauty', desc: 'Salon, spa, usługi lokalne', available: true },
+      { id: 'consultant', name: 'Konsultant', desc: 'Ekspert, freelancer, B2B', available: true },
+      { id: 'fitness', name: 'Fitness', desc: 'Studio, trening, sport', available: true },
+      { id: 'services', name: 'Usługi', desc: 'Profesjonalne usługi, B2B', available: false },
+      { id: 'gastro', name: 'Gastro', desc: 'Restauracja, kawiarnia', available: false },
+    ];
+  }
 
   const templatesV3 = {
     setup: {
@@ -163,7 +187,91 @@
           onboarding_completed: false
         }
       }
-    }
+    },
+    fitness: {
+      pl: {
+        nav: {
+          logo: "TWOJE STUDIO",
+          cta: "Zapisz się",
+          logoImage: "",
+          menu: {
+            about: "O mnie",
+            pricing: "Treningi",
+            schedule: "Grafik",
+            gallery: "Galeria",
+            faq: "FAQ",
+            contact: "Kontakt",
+            reviews: "Opinie",
+          },
+        },
+        hero: {
+          name: "Trener personalny",
+          headline: "SILNIEJ. SZYBCIEJ.<br />BEZ WYMÓWEK.",
+          subheadline: "",
+          description: "Treningi personalne i małe grupy. Cel: Twoja forma — mierzalnie, bezpiecznie, bez chaosu.",
+          button: "Umów trening",
+          image: "",
+          qrText: "",
+          qrImage: "",
+        },
+        manifesto: {
+          label: "Podejście",
+          title: "Technika + progres",
+          text: "Nie zgadujemy — trenujemy plan. Powtórzenia, objętość i regeneracja pod Twoje cele.",
+        },
+        services: [
+          {
+            title: "Trening personalny 1:1",
+            desc: "Indywidualny plan i stała kontrola techniki.",
+            details: "45–60 min · dopasowanie do poziomu",
+            duration: "60 min",
+            price: "od 120 zł",
+          },
+          {
+            title: "Small group HIIT",
+            desc: "Mała grupa, duża dynamika.",
+            details: "Max 6 osób · muzyka i motywacja",
+            duration: "45 min",
+            price: "40 zł",
+          },
+        ],
+        schedule: [
+          { day: "Poniedziałek — Piątek", time: "6:00 — 22:00", note: "Studio i treningi personalne" },
+          { day: "Sobota", time: "8:00 — 14:00", note: "Grupy otwarte · zapisy" },
+          { day: "Niedziela", time: "—", note: "Regeneracja / zamknięte — ustal indywidualnie" },
+        ],
+        faq: [],
+        contact: {
+          email: "",
+          phone: "",
+          address: "",
+          booksyUrl: "",
+          map_embed_url: "",
+          map_place_id: "",
+        },
+        social: { facebook: "", instagram: "", tiktok: "" },
+        google_reviews: { embed_url: "", place_query: "", max_reviews: 6, title: "Opinie klientów" },
+        gallery: { title: "Z studia", images: [] },
+        seo: {
+          title: "Trening personalny i studio fitness",
+          description: "Treningi personalne, grafik zajęć i zapisy online. Sprawdź ofertę i zacznij dziś.",
+          ogImage: "",
+        },
+        legal: { enabled: true, privacy_policy: "", terms: "" },
+        settings: {
+          subscription: { plan: "trial", trial_started_at: new Date().toISOString() },
+          template_version: 3,
+          color_preset: "neon-lime",
+          background_style: "glow",
+          font_preset: "inter",
+          showManifesto: true,
+          showServices: true,
+          showFaq: true,
+          showContact: true,
+          onboarding_completed: false,
+        },
+      },
+    },
   };
 
   function deepClone(obj) { return JSON.parse(JSON.stringify(obj)); }
@@ -194,5 +302,7 @@
   window.DFOPS_getTemplate = getTemplate;
   window.DFOPS_getTemplateLabel = getTemplateLabel;
   window.DFOPS_buildNewSiteContent = buildNewSiteContent;
+  window.DFOPS_resolveTemplateKeyForMerge = resolveTemplateKeyForMerge;
+  window.DFOPS_getTemplateCatalog = getTemplateCatalog;
 })();
 

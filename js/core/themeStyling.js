@@ -117,6 +117,13 @@
       }
     }
 
+    if (theme === 'fitness') {
+      setCssVar('--beauty-text', darkBodyText);
+      setCssVar('--beauty-text-muted', '#a1a1aa');
+      setCssVar('--beauty-white', '#fafafa');
+      setCssVar('--accent-contrast', '#0c0a09');
+    }
+
     const fonts = (cfg.fontByPreset || {})[(s.font_preset || (theme === 'beauty' ? 'poppins' : 'inter'))] || cfg.fontByPreset?.inter;
     if (fonts) {
       setCssVar('--font-sans', fonts.sans);
@@ -138,6 +145,9 @@
         setCssVar('--bg-main', isDark ? '#121212' : '#ffffff');
         setCssVar('--text-main', isDark ? darkBodyText : '#1f2937');
       }
+    } else if (theme === 'fitness') {
+      setCssVar('--bg-main', '#09090b');
+      setCssVar('--text-main', '#fafafa');
     } else {
       setCssVar('--bg-main', 'transparent');
       setCssVar('--text-main', '#ffffff');
@@ -151,7 +161,7 @@
     setCssVar(
       '--color-text-body',
       beautyTextResolved ||
-        (theme === 'beauty' ? '#2b2b2b' : theme === 'consultant' ? '#171717' : darkBodyText)
+        (theme === 'beauty' ? '#2b2b2b' : theme === 'consultant' ? '#171717' : theme === 'fitness' ? darkBodyText : darkBodyText)
     );
     setCssVar('--color-accent-text', accentContrastResolved);
   }
