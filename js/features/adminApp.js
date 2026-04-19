@@ -85,6 +85,8 @@
   }
 
   /** Przywrócony krok musi być spójny z `pages.theme` (np. nie krok 3–4, gdy szablon w DB wciąż `setup`). */
+  const WIZARD_TEMPLATE_IDS = ['beauty', 'consultant', 'fitness'];
+
   function normalizeWizardRestore(step, wizardTheme, pageTheme) {
     let s = step;
     if (pageTheme === 'setup' && s >= 2) {
@@ -92,7 +94,13 @@
     }
     if (s < 0) s = 0;
     if (s > 4) s = 4;
-    const wt = wizardTheme === 'consultant' ? 'consultant' : 'beauty';
+    const allowed = new Set(WIZARD_TEMPLATE_IDS);
+    let wt = 'beauty';
+    if (pageTheme && allowed.has(pageTheme)) {
+      wt = pageTheme;
+    } else if (wizardTheme && allowed.has(wizardTheme)) {
+      wt = wizardTheme;
+    }
     return { step: s, theme: wt };
   }
 
@@ -312,7 +320,7 @@
         if (!pl) return [];
         const items = [];
         if (this.theme === 'setup') {
-          items.push({ id: 'setup', label: 'Wybierz szablon Salon lub Konsultant', tab: null, openWizard: true });
+          items.push({ id: 'setup', label: 'Wybierz szablon (Beauty, Konsultant, Fitness…)', tab: null, openWizard: true });
         }
         if (!String(pl.nav?.logo || '').trim()) {
           items.push({ id: 'navlogo', label: 'Podaj nazwę marki w menu strony', tab: 'settings', openWizard: false });
@@ -1350,6 +1358,8 @@
           const savedLogo = this.content?.pl?.nav?.logo ?? '';
           const savedLogoImage = this.content?.pl?.nav?.logoImage ?? '';
           const savedSubscription = JSON.parse(JSON.stringify(this.content?.pl?.settings?.subscription || {}));
+          const savedWelcomeDone = this.content?.pl?.settings?.welcome_onboarding_completed === true;
+          const savedOnboardingDone = this.content?.pl?.settings?.onboarding_completed === true;
 
           const merged = window.DFOPS_mergeContentWithTemplate(newTemplateId, {});
           merged.pl.contact = savedContact;
@@ -1361,6 +1371,8 @@
               ...(merged.pl.settings.subscription || {}),
               ...savedSubscription,
             };
+            if (savedWelcomeDone) merged.pl.settings.welcome_onboarding_completed = true;
+            if (savedOnboardingDone) merged.pl.settings.onboarding_completed = true;
           }
 
           this.theme = newTemplateId;
@@ -1382,6 +1394,7 @@
 
           this.showTemplateSwitcher = false;
           this.message = 'Szablon zmieniony. Odświeżam panel…';
+          clearWizardStateFromStorage(this.slug);
           setTimeout(() => {
             window.location.reload();
           }, 900);
@@ -1409,8 +1422,8 @@
         const pl = this.content?.pl;
         if (!pl) return '';
         if (step === 1) {
-          if (this.wizardTheme !== 'beauty' && this.wizardTheme !== 'consultant') {
-            return 'Wybierz szablon (Salon lub Konsultant).';
+          if (!WIZARD_TEMPLATE_IDS.includes(this.wizardTheme)) {
+            return 'Wybierz szablon (Salon, Konsultant lub Fitness).';
           }
         }
         if (step === 2) {

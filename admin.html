@@ -36,7 +36,7 @@
     <script defer src="js/core/planUtils.js?v=20260403t"></script>
     <script defer src="js/core/analytics.js?v=20260403t"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260404c"></script>
+    <script defer src="js/features/adminApp.js?v=20260404d"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260404a">
@@ -96,7 +96,7 @@
                     <h2 class="text-3xl font-black text-slate-900 mb-2">Wybierz swój styl 🎨</h2>
                     <p class="text-sm text-slate-500 mb-8">Od tego zaczniemy. Nie martw się — zmienisz to później w ustawieniach.</p>
 
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                         <label class="group relative block cursor-pointer">
                             <input type="radio" x-model="wizardTheme" value="beauty" @change="persistWizardUiState()" class="peer sr-only">
                             <div class="overflow-hidden rounded-xl border-2 border-slate-200/80 transition-all peer-checked:border-accent peer-checked:ring-2 peer-checked:ring-accent/35">
@@ -122,6 +122,22 @@
                                 <div class="p-4 bg-white">
                                     <h3 class="font-bold text-slate-900">Konsultant</h3>
                                     <p class="text-xs text-slate-500 mt-1">Dla doradców, prawników i freelancerów.</p>
+                                </div>
+                            </div>
+                            <div class="pointer-events-none absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-accent text-white opacity-0 shadow-panel transition-opacity peer-checked:opacity-100">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                        </label>
+
+                        <label class="group relative block cursor-pointer md:col-span-1">
+                            <input type="radio" x-model="wizardTheme" value="fitness" @change="persistWizardUiState()" class="peer sr-only">
+                            <div class="overflow-hidden rounded-xl border-2 border-slate-200/80 transition-all peer-checked:border-accent peer-checked:ring-2 peer-checked:ring-accent/35">
+                                <div class="h-32 bg-zinc-900 relative flex items-center justify-center">
+                                    <span class="text-lime-400 font-bold text-xl uppercase tracking-widest">FIT</span>
+                                </div>
+                                <div class="p-4 bg-white">
+                                    <h3 class="font-bold text-slate-900">Fitness</h3>
+                                    <p class="text-xs text-slate-500 mt-1">Trener, studio, siłownia — ciemny neon.</p>
                                 </div>
                             </div>
                             <div class="pointer-events-none absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-accent text-white opacity-0 shadow-panel transition-opacity peer-checked:opacity-100">
