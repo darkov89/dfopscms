@@ -282,7 +282,7 @@
   async function getPageBySlug(slug) {
     const { data, error } = await supabase()
       .from('pages')
-      .select('slug, theme, content, color_preset, custom_domain, user_id, trial_blocked_at')
+      .select('slug, theme, content, color_preset, custom_domain, user_id, trial_blocked_at, billing_failed_at')
       .eq('slug', slug)
       .maybeSingle();
     return { data, error };

@@ -1,4 +1,45 @@
 ;(function () {
+  const MS_PER_DAY = 86400000;
+  /** Zgodnie z public.expire_trial_pages() — blok po 14 dniach od trial_started_at bez płatności. */
+  const TRIAL_PUBLIC_BLOCK_AFTER_DAYS = 14;
+  /** Zgodnie z billing_targets w expire_trial_pages — 14 dni po billing_failed_at. */
+  const BILLING_FAILED_BLOCK_AFTER_DAYS = 14;
+
+  function paymentCompletedTrue(sub) {
+    if (!sub || typeof sub !== 'object') return false;
+    const v = sub.payment_completed;
+    if (v === true || v === 1 || v === '1' || v === 'true') return true;
+    return false;
+  }
+
+  /**
+   * Czy ukryć treść strony publicznej (bez czekania na cron ustawiający trial_blocked_at).
+   * Logika zsynchronizowana z SQL: expire_trial_pages (trial + billing_failed).
+   */
+  function shouldBlockPublicPageView(page) {
+    if (!page || typeof page !== 'object') return true;
+    if (page.trial_blocked_at) return true;
+    const bf = page.billing_failed_at;
+    if (bf) {
+      const bt = new Date(bf).getTime();
+      if (Number.isFinite(bt) && Date.now() - bt >= BILLING_FAILED_BLOCK_AFTER_DAYS * MS_PER_DAY) {
+        return true;
+      }
+    }
+    const sub = page.content?.pl?.settings?.subscription;
+    if (!sub || typeof sub !== 'object') return false;
+    const ts = sub.trial_started_at;
+    if (ts == null || String(ts).trim() === '') return false;
+    const start = new Date(ts).getTime();
+    if (!Number.isFinite(start)) return false;
+    if (Date.now() - start < TRIAL_PUBLIC_BLOCK_AFTER_DAYS * MS_PER_DAY) return false;
+    if (paymentCompletedTrue(sub)) return false;
+    const plan = String(sub.plan || 'trial');
+    if (plan === 'trial') return true;
+    if (plan === 'tier0' && !paymentCompletedTrue(sub)) return true;
+    return false;
+  }
+
   class DFCMSWatermark extends HTMLElement {
     constructor() {
       super();
@@ -330,7 +371,7 @@
           if (!page) throw new Error('Brak strony');
 
           this.slug = page.slug;
-          if (page.trial_blocked_at) {
+          if (page.trial_blocked_at || shouldBlockPublicPageView(page)) {
             const links = this.buildSubscriptionLinks(page.slug);
             this.subscriptionPanelUrl = links.panel;
             this.landingPricingUrl = links.landingCennik;

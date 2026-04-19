@@ -80,6 +80,17 @@ serve(async (req) => {
   const ts = new Date().toISOString();
   console.log(`expire_trial_pages: blocked ${count} page(s)`, slugs.length ? slugs : "");
 
+  let purgeDeleted = 0;
+  const { data: purgeData, error: purgeError } = await supabase.rpc("purge_trial_blocked_pages_after_grace");
+  if (purgeError) {
+    console.error("purge_trial_blocked_pages_after_grace RPC error:", purgeError);
+  } else if (purgeData && typeof purgeData === "object" && "deleted_count" in (purgeData as Record<string, unknown>)) {
+    purgeDeleted = Number((purgeData as { deleted_count?: number }).deleted_count) || 0;
+    if (purgeDeleted > 0) {
+      console.log(`purge_trial_blocked_pages_after_grace: deleted ${purgeDeleted} page(s)`);
+    }
+  }
+
   const payload = { count, slugs, ts, reason: "trial_expired_or_billing_grace_elapsed" };
 
   const hook = Deno.env.get("OPS_NOTIFY_WEBHOOK_URL")?.trim();
@@ -124,8 +135,16 @@ serve(async (req) => {
     }
   }
 
-  return new Response(JSON.stringify({ ok: true, newly_blocked_pages: count, slugs }), {
-    status: 200,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
+  return new Response(
+    JSON.stringify({
+      ok: true,
+      newly_blocked_pages: count,
+      slugs,
+      purged_after_grace_days_30: purgeDeleted,
+    }),
+    {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    },
+  );
 });
