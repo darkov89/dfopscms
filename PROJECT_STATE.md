@@ -103,7 +103,7 @@ Użytkownik → Auth (Supabase) → pages.content (JSON) → front (szablon + me
 
 *Na podstawie plików (`rejestracja.html`, `registrationApp.js`, `admin.html`, `adminApp.js`, szablony, Stripe) i dotychczasowych wdrożeń.*
 
-1. **Wejście marketingowe** — **`index.html`** (CTA do `rejestracja.html`); linki z panelu publicznego / stopki kierują na `index.html`. Stary długi plik **`landing.html`** pozostaje w repo (linki zaktualizowane).  
+1. **Wejście marketingowe** — **`index.html`** (CTA do `rejestracja.html`); linki z panelu publicznego / stopki kierują na `index.html`. Legacy `landing.html` usunięty z repo; CTA „Zobacz cennik” w szablonach publicznych wskazuje `index.html#cennik`.  
 2. **Rejestracja** — formularz (`rejestracja.html`) → Supabase Auth; metadata ze **slugiem** strony; trigger / logika tworzy rekord `pages` (szablon startowy `setup`).  
 3. **Potwierdzenie e-maila** — bez potwierdzenia panel pokazuje baner; kreator i pełny onboarding nie startują.  
 4. **Pierwsze logowanie do panelu** — `admin.html` → `loadData` (ekran „Weryfikacja…” trwa do końca pierwszego wczytania, mniej migania) → ewentualnie **modal powitalny** → **Driver.js** (start kreatora → podgląd → menu) → zapis `welcome_onboarding_completed`.  

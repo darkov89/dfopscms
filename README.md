@@ -58,6 +58,26 @@ W projekcie Pages ustaw zmienne środowiskowe:
 
 Szczegóły w nagłówku `functions/_middleware.js`.
 
+## Supabase — migracje i strony demo (`demo-beauty`, `demo-fitness`, `demo-services`)
+
+1. Treść JSON: [`docs/demo_seeds.json`](docs/demo_seeds.json).
+2. Migracje:
+   - `supabase/migrations/20260503135500_pages_slug_unique.sql` — unikalny `slug` (wymagane do `ON CONFLICT`).
+   - `supabase/migrations/20260503140000_seed_demo_catalog_pages.sql` — UPSERT trzech rekordów w `public.pages` (`user_id` = NULL, subskrypcja w treści: `tier2` + `payment_completed`, żeby cron trial nie blokował dem).
+3. Regeneracja SQL z JSON (po edycji seedów):
+
+   ```bash
+   node scripts/generate-demo-pages-migration.mjs 20260503140000
+   ```
+
+4. Wdrożenie na projekt (Supabase CLI zalogowany, `supabase link`):
+
+   ```bash
+   supabase db push
+   ```
+
+   Edge Functions **nie** wymagają deployu wyłącznie przez te seede. Jeśli zmieniasz kod w `supabase/functions/`, wtedy: `supabase functions deploy <nazwa>`.
+
 ## Rozwój lokalny
 
 Front to pliki statyczne — wystarczy serwer HTTP (np. Live Server, `python3 -m http.server`, `npx serve`).

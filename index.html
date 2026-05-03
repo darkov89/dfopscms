@@ -76,6 +76,7 @@
 
             <nav class="hidden items-center gap-8 text-sm font-medium text-zinc-600 md:flex" aria-label="Nawigacja główna">
                 <a href="#jak" class="transition hover:text-brand-ink">Jak to działa</a>
+                <a href="#demo" class="transition hover:text-brand-ink">Demo na żywo</a>
                 <a href="#cennik" class="transition hover:text-brand-ink">Cennik</a>
                 <a href="#faq" class="transition hover:text-brand-ink">FAQ</a>
                 <a href="admin.html" class="transition hover:text-brand-ink">Zaloguj się</a>
@@ -111,6 +112,7 @@
         >
             <nav class="flex flex-col gap-1 text-sm font-medium text-zinc-700" aria-label="Menu mobilne">
                 <a href="#jak" class="rounded-lg px-3 py-3 hover:bg-zinc-50" @click="mobileOpen = false">Jak to działa</a>
+                <a href="#demo" class="rounded-lg px-3 py-3 hover:bg-zinc-50" @click="mobileOpen = false">Demo na żywo</a>
                 <a href="#cennik" class="rounded-lg px-3 py-3 hover:bg-zinc-50" @click="mobileOpen = false">Cennik</a>
                 <a href="#faq" class="rounded-lg px-3 py-3 hover:bg-zinc-50" @click="mobileOpen = false">FAQ</a>
                 <a href="admin.html" class="rounded-lg px-3 py-3 hover:bg-zinc-50">Zaloguj się</a>
@@ -167,6 +169,121 @@
                         <p class="mt-2 text-sm leading-relaxed text-zinc-600">Twój biznes jest online pod własnym adresem — edytujesz treści w panelu, kiedy chcesz.</p>
                     </article>
                 </div>
+            </div>
+        </section>
+
+        <!-- Demo na żywo -->
+        <section id="demo" class="border-t border-zinc-100 bg-white py-16 sm:py-20 scroll-mt-24">
+            <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+                <p class="text-center text-[11px] font-bold uppercase tracking-[0.3em] text-brand-gold sm:text-xs">
+                    Wybierz branżę i zobacz magię na żywo
+                </p>
+                <h2 class="mt-4 text-center font-display text-2xl font-bold tracking-tight text-brand-ink sm:text-3xl lg:text-4xl">
+                    Gotowe szablony, które sprzedają za Ciebie.
+                </h2>
+                <p class="mx-auto mt-4 max-w-2xl text-center text-sm leading-relaxed text-zinc-600 sm:text-base">
+                    Kliknij i zobacz, jak może wyglądać Twoja strona w kilka sekund. Wszystko, co widzisz, wygenerowaliśmy w DFCMS.
+                </p>
+
+                <div class="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+                    <!-- Beauty -->
+                    <article class="group flex flex-col overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm ring-1 ring-zinc-900/5 transition-shadow duration-300 hover:shadow-lift">
+                        <div class="relative aspect-video w-full overflow-hidden">
+                            <div
+                                class="absolute inset-0 bg-gradient-to-br from-rose-100 via-fuchsia-50 to-amber-50/80"
+                                aria-hidden="true"
+                            ></div>
+                            <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.55),transparent_55%)] opacity-90" aria-hidden="true"></div>
+                            <div class="absolute bottom-3 left-4 text-[10px] font-bold uppercase tracking-[0.28em] text-rose-950/35">
+                                Beauty
+                            </div>
+                        </div>
+                        <div class="flex flex-1 flex-col p-6 sm:p-7">
+                            <h3 class="font-display text-lg font-bold text-brand-ink">Salon Urody / SPA</h3>
+                            <p class="mt-2 flex-1 text-sm leading-relaxed text-zinc-600">
+                                Delikatny design, cennik i galeria zdjęć.
+                            </p>
+                            <a
+                                href="?site=demo-beauty"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-brand-ink px-5 py-3.5 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2"
+                            >
+                                Zobacz stronę na żywo
+                            </a>
+                        </div>
+                    </article>
+
+                    <!-- Fitness -->
+                    <article class="group flex flex-col overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm ring-1 ring-zinc-900/5 transition-shadow duration-300 hover:shadow-lift">
+                        <div class="relative aspect-video w-full overflow-hidden">
+                            <div
+                                class="absolute inset-0 bg-gradient-to-br from-zinc-900 via-emerald-950/90 to-lime-950/80"
+                                aria-hidden="true"
+                            ></div>
+                            <div
+                                class="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-lime-400/25 blur-2xl"
+                                aria-hidden="true"
+                            ></div>
+                            <div
+                                class="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-cyan-500/15 to-transparent"
+                                aria-hidden="true"
+                            ></div>
+                            <div class="absolute bottom-3 left-4 text-[10px] font-bold uppercase tracking-[0.28em] text-lime-300/65">
+                                Fitness
+                            </div>
+                        </div>
+                        <div class="flex flex-1 flex-col p-6 sm:p-7">
+                            <h3 class="font-display text-lg font-bold text-brand-ink">Trener Personalny</h3>
+                            <p class="mt-2 flex-1 text-sm leading-relaxed text-zinc-600">
+                                Mocny neon, grafik zajęć i sekcja dla klientów.
+                            </p>
+                            <a
+                                href="?site=demo-fitness"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-brand-ink px-5 py-3.5 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2"
+                            >
+                                Zobacz stronę na żywo
+                            </a>
+                        </div>
+                    </article>
+
+                    <!-- Usługi / Złota rączka -->
+                    <article class="group flex flex-col overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm ring-1 ring-zinc-900/5 transition-shadow duration-300 hover:shadow-lift md:col-span-2 lg:col-span-1">
+                        <div class="relative aspect-video w-full overflow-hidden">
+                            <div
+                                class="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-amber-950/50"
+                                aria-hidden="true"
+                            ></div>
+                            <div
+                                class="absolute right-0 top-0 h-full w-2/3 bg-gradient-to-l from-amber-500/30 to-transparent"
+                                aria-hidden="true"
+                            ></div>
+                            <div class="absolute bottom-3 left-4 text-[10px] font-bold uppercase tracking-[0.28em] text-amber-200/55">
+                                Usługi
+                            </div>
+                        </div>
+                        <div class="flex flex-1 flex-col p-6 sm:p-7">
+                            <h3 class="font-display text-lg font-bold text-brand-ink">Złota Rączka</h3>
+                            <p class="mt-2 flex-1 text-sm leading-relaxed text-zinc-600">
+                                Zaufanie klientów, realizacje i FAQ pod lokalny biznes.
+                            </p>
+                            <a
+                                href="?site=demo-services"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-brand-ink px-5 py-3.5 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2"
+                            >
+                                Zobacz stronę na żywo
+                            </a>
+                        </div>
+                    </article>
+                </div>
+
+                <p class="mx-auto mt-10 max-w-2xl text-center text-xs leading-relaxed text-zinc-400 sm:text-sm">
+                    I wiele więcej w przygotowaniu (Gastronomia, Konsultacje, Nieruchomości)…
+                </p>
             </div>
         </section>
 

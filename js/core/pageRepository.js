@@ -279,12 +279,63 @@
     return obj;
   }
 
+  /** Lokalnie (VS Code Live Server itd.) — bez wierszy w Supabase dla demo-* nadal pokazujemy treść z docs/demo_seeds.json. */
+  const DEMO_SEED_SLUG_RE = /^demo-(beauty|fitness|services)$/;
+
+  function isLocalDemoSeedHost() {
+    if (typeof window === 'undefined' || !window.location) return false;
+    const h = window.location.hostname;
+    const locals = window.DFOPS_CONFIG?.localHosts || ['localhost', '127.0.0.1'];
+    return locals.indexOf(h) !== -1;
+  }
+
+  async function loadDemoSeedAsPageRow(slugTrimmed) {
+    if (!DEMO_SEED_SLUG_RE.test(slugTrimmed) || typeof window === 'undefined') return null;
+    try {
+      if (!window.__DFOPS_demoSeedsJsonPromise) {
+        const jsonUrl = new URL('./docs/demo_seeds.json', window.location.href);
+        window.__DFOPS_demoSeedsJsonPromise = fetch(jsonUrl.toString())
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null);
+      }
+      const doc = await window.__DFOPS_demoSeedsJsonPromise;
+      if (!doc || !Array.isArray(doc.seeds)) return null;
+      const seed = doc.seeds.find(function (s) {
+        return s.slug === slugTrimmed;
+      });
+      if (!seed || !seed.theme || !seed.content) return null;
+      const preset =
+        seed.content.pl?.settings?.color_preset != null && seed.content.pl.settings.color_preset !== ''
+          ? seed.content.pl.settings.color_preset
+          : null;
+      return {
+        slug: seed.slug,
+        theme: seed.theme,
+        content: seed.content,
+        color_preset: preset,
+        custom_domain: null,
+        user_id: null,
+        trial_blocked_at: null,
+        billing_failed_at: null,
+      };
+    } catch {
+      return null;
+    }
+  }
+
   async function getPageBySlug(slug) {
+    const slugTrimmed = typeof slug === 'string' ? slug.trim() : '';
     const { data, error } = await supabase()
       .from('pages')
       .select('slug, theme, content, color_preset, custom_domain, user_id, trial_blocked_at, billing_failed_at')
-      .eq('slug', slug)
+      .eq('slug', slugTrimmed)
       .maybeSingle();
+
+    if (!data && isLocalDemoSeedHost() && DEMO_SEED_SLUG_RE.test(slugTrimmed)) {
+      const demo = await loadDemoSeedAsPageRow(slugTrimmed);
+      if (demo) return { data: demo, error: null };
+    }
+
     return { data, error };
   }
 
