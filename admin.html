@@ -356,6 +356,18 @@
                 </button>
             </form>
 
+            <nav x-show="!showLoginForgotPassword" aria-label="Powiązane strony" class="mt-10 flex flex-col items-center gap-3 text-center sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-8 sm:gap-y-2">
+                <a href="rejestracja.html" class="text-sm text-slate-500 transition-colors duration-200 hover:text-[#D4AF37] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 rounded-sm">
+                    Nie masz jeszcze konta? Załóż je za darmo
+                </a>
+                <a href="index.html" class="inline-flex items-center justify-center gap-1.5 text-sm text-slate-500 transition-colors duration-200 hover:text-[#D4AF37] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 rounded-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4 shrink-0 opacity-90" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                    </svg>
+                    Wróć na stronę główną
+                </a>
+            </nav>
+
             <div x-show="showLoginForgotPassword" x-cloak class="space-y-6">
                 <p class="text-sm text-slate-600 leading-relaxed">Podaj adres konta — wyślemy link do ustawienia nowego hasła (sprawdź także folder spam).</p>
                 <form @submit.prevent.stop="requestPasswordReset($event)" class="space-y-4">
@@ -375,6 +387,18 @@
                         </button>
                     </div>
                 </form>
+
+                <nav aria-label="Powiązane strony" class="mt-10 flex flex-col items-center gap-3 text-center sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-8 sm:gap-y-2">
+                    <a href="rejestracja.html" class="text-sm text-slate-500 transition-colors duration-200 hover:text-[#D4AF37] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 rounded-sm">
+                        Nie masz jeszcze konta? Załóż je za darmo
+                    </a>
+                    <a href="index.html" class="inline-flex items-center justify-center gap-1.5 text-sm text-slate-500 transition-colors duration-200 hover:text-[#D4AF37] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 rounded-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4 shrink-0 opacity-90" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                        </svg>
+                        Wróć na stronę główną
+                    </a>
+                </nav>
             </div>
             <p class="text-center text-xs text-slate-500 mt-8 pt-6 border-t border-slate-200/80 leading-relaxed">
                 Pomoc / support:
