@@ -2031,7 +2031,9 @@
                             <p x-show="hasActivePaidSubscription" x-cloak class="text-sm text-slate-600 leading-relaxed max-w-2xl">Twoja subskrypcja jest aktywna. Poniżej status rozliczeń i skrót pakietu — w każdej chwili możesz przejść do porównania planów niżej.</p>
                         </div>
 
-                        <div id="dfops-portal-stripe" class="mb-6 rounded-xl border border-[#D4AF37]/35 bg-gradient-to-br from-[#1a1816] via-[#141210] to-[#0f0e0c] p-5 sm:p-6 shadow-lg ring-1 ring-[#D4AF37]/20 scroll-mt-24">
+                        <p x-show="!showStripeBillingPortal" class="mb-4 text-xs text-slate-500 leading-relaxed max-w-2xl">Portal Stripe (karta, faktury, anulowanie) pojawi się po pierwszej zaksięgowanej płatności — wtedy odblokujesz też pełne rozliczenia w jednym miejscu.</p>
+
+                        <div x-show="showStripeBillingPortal" x-cloak id="dfops-portal-stripe" class="mb-6 rounded-xl border border-[#D4AF37]/35 bg-gradient-to-br from-[#1a1816] via-[#141210] to-[#0f0e0c] p-5 sm:p-6 shadow-lg ring-1 ring-[#D4AF37]/20 scroll-mt-24">
                             <p class="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.2em] mb-2">Portal rozliczeń Stripe</p>
                             <p class="text-xs text-stone-400 mb-4 leading-relaxed max-w-2xl">Zmiana karty, anulowanie subskrypcji, faktury i historia płatności — w jednym bezpiecznym miejscu.</p>
                             <div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-stretch">
@@ -2090,19 +2092,20 @@
                             <p class="text-lg font-bold text-slate-900" x-text="planDisplayLabel"></p>
                             <p class="text-sm text-slate-600 mt-1" x-text="planSummaryLine"></p>
                         </div>
-                        <p class="mb-3 flex items-center gap-2 text-xs text-slate-500 2xl:hidden">
+                        <p class="mb-3 flex items-center gap-2 text-xs text-slate-500 xl:hidden">
                             <span class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-200 text-slate-600" aria-hidden="true">↔</span>
-                            <span>Przewiń plansze albo użyj strzałek — pełna siatka 5 pakietów od bardzo szerokiego ekranu.</span>
+                            <span>Przewiń plansze albo użyj strzałek — od szerokiego laptopa wszystkie pakiety są w jednej siatce.</span>
                         </p>
                         <div class="relative" x-data="{ scrollPlans(dir) { const el = this.$refs.planStrip; if (!el) return; const step = Math.min(el.clientWidth * 0.88, 360); el.scrollBy({ left: dir * step, behavior: 'smooth' }); } }">
-                            <div class="pointer-events-none absolute inset-y-0 left-0 z-10 hidden w-10 bg-gradient-to-r from-white via-white/95 to-transparent 2xl:hidden md:block" aria-hidden="true"></div>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 z-10 hidden w-10 bg-gradient-to-l from-white via-white/95 to-transparent 2xl:hidden md:block" aria-hidden="true"></div>
-                            <button type="button" @click="scrollPlans(-1)" class="absolute left-0 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200/80 bg-white text-lg font-bold text-slate-700 shadow-panel transition-colors hover:border-accent hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 2xl:hidden md:flex" aria-label="Poprzedni pakiet">‹</button>
-                            <button type="button" @click="scrollPlans(1)" class="absolute right-0 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200/80 bg-white text-lg font-bold text-slate-700 shadow-panel transition-colors hover:border-accent hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 2xl:hidden md:flex" aria-label="Następny pakiet">›</button>
-                            <div x-ref="planStrip" class="-mx-1 flex snap-x snap-mandatory scroll-smooth items-stretch gap-4 overflow-x-auto overflow-y-visible px-1 py-3 pb-4 [scrollbar-width:thin] sm:gap-5 md:px-12 2xl:grid 2xl:grid-cols-5 2xl:items-stretch 2xl:gap-4 2xl:overflow-visible 2xl:px-0 2xl:pb-0 2xl:snap-none [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300/80">
+                            <div class="pointer-events-none absolute inset-y-0 left-0 z-10 hidden w-10 bg-gradient-to-r from-white via-white/95 to-transparent xl:hidden md:block" aria-hidden="true"></div>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 z-10 hidden w-10 bg-gradient-to-l from-white via-white/95 to-transparent xl:hidden md:block" aria-hidden="true"></div>
+                            <button type="button" @click="scrollPlans(-1)" class="absolute left-0 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200/80 bg-white text-lg font-bold text-slate-700 shadow-panel transition-colors hover:border-accent hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 xl:hidden md:flex" aria-label="Poprzedni pakiet">‹</button>
+                            <button type="button" @click="scrollPlans(1)" class="absolute right-0 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200/80 bg-white text-lg font-bold text-slate-700 shadow-panel transition-colors hover:border-accent hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 xl:hidden md:flex" aria-label="Następny pakiet">›</button>
+                            <div x-ref="planStrip" class="-mx-1 flex min-w-0 snap-x snap-mandatory scroll-smooth items-stretch gap-4 overflow-x-auto overflow-y-visible px-1 py-3 pb-4 [scrollbar-width:thin] sm:gap-5 md:px-12 xl:grid xl:grid-cols-5 xl:items-stretch xl:gap-4 xl:[grid-auto-rows:minmax(0,1fr)] xl:overflow-visible xl:px-0 xl:pb-0 xl:snap-none [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300/80">
                             <!-- Starter -->
-                            <article class="flex h-full min-w-[min(100%,18rem)] w-[85vw] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border border-slate-200/80 bg-gradient-to-b from-slate-50/90 to-white shadow-panel ring-1 ring-slate-900/5 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] 2xl:min-w-0 2xl:w-auto 2xl:flex-shrink">
+                            <article class="flex min-h-0 min-w-[min(100%,18rem)] w-[85vw] max-w-[100%] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border border-slate-200/80 bg-gradient-to-b from-slate-50/90 to-white shadow-panel ring-1 ring-slate-900/5 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] xl:h-full xl:min-h-0 xl:min-w-0 xl:w-full xl:max-w-none xl:flex-shrink xl:self-stretch">
                                 <div class="flex min-h-0 flex-1 flex-col p-6">
+                                    <div class="mb-3 flex min-h-[1.75rem] shrink-0 items-center justify-end" aria-hidden="true"></div>
                                     <div class="mb-4">
                                         <h3 class="text-lg font-bold tracking-tight text-slate-900">Starter</h3>
                                         <p class="mt-1 text-[11px] font-semibold uppercase tracking-widest text-slate-500">Wejście w CMS</p>
@@ -2111,13 +2114,13 @@
                                         <p class="text-3xl font-bold tabular-nums text-accent">19 zł<span class="text-base font-semibold text-slate-500"> / msc</span></p>
                                         <p class="mt-1 text-[11px] text-slate-500">netto · +23% VAT</p>
                                     </div>
-                                    <ul class="flex-1 space-y-2.5 text-sm text-slate-600">
+                                    <ul class="min-h-0 flex-1 space-y-2.5 text-sm text-slate-600">
                                         <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Domena</strong> .dfcms.pl</span></li>
                                         <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Podstawowy motyw</strong> (jedna paleta)</span></li>
                                         <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Logo DFCMS</strong> w stopce</span></li>
                                     </ul>
-                                    <div class="mt-auto space-y-3 pt-6">
-                                        <button type="button" @click="selectStarterPlan()" x-show="subscriptionPlan === 'trial' && content?.pl?.settings?.subscription?.selected_plan !== 'tier0'" :disabled="checkoutLoading || saving" class="w-full rounded-xl bg-accent-fg px-4 py-3.5 text-xs font-bold uppercase tracking-widest text-white shadow-panel transition-colors hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 disabled:opacity-50">
+                                    <div class="mt-auto w-full shrink-0 space-y-3 pt-6">
+                                        <button type="button" @click="selectStarterPlan()" x-show="subscriptionPlan === 'trial' && content?.pl?.settings?.subscription?.selected_plan !== 'tier0'" :disabled="checkoutLoading || saving" class="inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-xl bg-accent-fg px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-white shadow-panel transition-colors hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 disabled:opacity-50 xl:text-[11px]">
                                             Wybierz Starter
                                         </button>
                                         <div x-show="subscriptionPlan === 'trial' && content?.pl?.settings?.subscription?.selected_plan === 'tier0'" x-cloak class="space-y-3">
@@ -2126,17 +2129,17 @@
                                                 Oczekiwanie na płatność
                                             </div>
                                         </div>
-                                        <div x-show="subscriptionPlan === 'tier0'" x-cloak class="w-full rounded-xl border-2 border-accent bg-amber-50/90 px-4 py-3.5 text-center text-xs font-bold uppercase tracking-widest text-accent-soft">
+                                        <div x-show="subscriptionPlan === 'tier0'" x-cloak class="flex min-h-[3.25rem] w-full items-center justify-center rounded-xl border-2 border-accent bg-amber-50/90 px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-accent-soft xl:text-[11px]">
                                             Aktywna subskrypcja
                                         </div>
                                     </div>
                                 </div>
                             </article>
                             <!-- Pro -->
-                            <article class="relative flex h-full min-w-[min(100%,18rem)] w-[85vw] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border-2 border-accent bg-gradient-to-b from-white via-amber-50/45 to-amber-50/80 shadow-panel-md ring-1 ring-accent/20 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] 2xl:min-w-0 2xl:w-auto 2xl:flex-shrink">
+                            <article class="relative flex min-h-0 min-w-[min(100%,18rem)] w-[85vw] max-w-[100%] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border-2 border-accent bg-gradient-to-b from-white via-amber-50/45 to-amber-50/80 shadow-panel-md ring-1 ring-accent/20 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] xl:h-full xl:min-h-0 xl:min-w-0 xl:w-full xl:max-w-none xl:flex-shrink xl:self-stretch">
                                 <div class="flex min-h-0 flex-1 flex-col p-6">
-                                    <div class="mb-3 flex justify-end">
-                                        <span class="inline-flex rounded-full bg-accent px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-accent-fg shadow-panel">Polecane</span>
+                                    <div class="mb-3 flex min-h-[1.75rem] shrink-0 justify-end">
+                                        <span class="inline-flex shrink-0 self-center rounded-full bg-accent px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-accent-fg shadow-panel">Polecane</span>
                                     </div>
                                     <div class="mb-4">
                                         <h3 class="text-lg font-bold tracking-tight text-slate-900">Pro</h3>
@@ -2146,29 +2149,29 @@
                                         <p class="text-3xl font-bold tabular-nums text-accent">49 zł<span class="text-base font-semibold text-slate-500"> / msc</span></p>
                                         <p class="mt-1 text-[11px] text-slate-500">netto · +23% VAT</p>
                                     </div>
-                                    <ul class="flex-1 space-y-2.5 text-sm text-slate-600">
+                                    <ul class="min-h-0 flex-1 space-y-2.5 text-sm text-slate-600">
                                         <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Własna domena</strong> .pl / .com</span></li>
                                         <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Pełna paleta</strong> kolorów i motywów</span></li>
                                         <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Bez logo DFCMS</strong></span></li>
                                         <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Asystent</strong> od 100 zł/h netto</span></li>
                                     </ul>
-                                    <div class="mt-auto space-y-3 pt-6">
-                                        <p x-show="subscriptionPlan === 'trial' && content?.pl?.settings?.subscription?.selected_plan === 'tier1'" class="text-xs font-medium leading-relaxed text-amber-900/90" x-cloak>Dokończ płatność Pro, aby utrzymać dostęp po trialu.</p>
-                                        <button type="button" @click="subscribe('pro')" x-show="subscriptionPlan !== 'tier1'" :disabled="checkoutLoading || saving" class="w-full rounded-xl bg-accent px-4 py-3.5 text-center text-xs font-bold uppercase tracking-widest text-accent-fg shadow-panel transition-colors hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 disabled:opacity-50">
+                                    <div class="mt-auto w-full shrink-0 space-y-3 pt-6">
+                                        <p x-show="subscriptionPlan === 'trial' && content?.pl?.settings?.subscription?.selected_plan === 'tier1'" class="min-h-0 text-xs font-medium leading-relaxed text-amber-900/90" x-cloak>Dokończ płatność Pro, aby utrzymać dostęp po trialu.</p>
+                                        <button type="button" @click="subscribe('pro')" x-show="subscriptionPlan !== 'tier1'" :disabled="checkoutLoading || saving" class="inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-xl bg-accent px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-accent-fg shadow-panel transition-colors hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 disabled:opacity-50 xl:text-[11px]">
                                             <span x-show="!checkoutLoading">Przejdź do płatności</span>
                                             <span x-show="checkoutLoading" x-cloak>Łączenie ze Stripe…</span>
                                         </button>
-                                        <div x-show="subscriptionPlan === 'tier1'" x-cloak class="w-full rounded-xl border-2 border-accent bg-white/90 px-4 py-3.5 text-center text-xs font-bold uppercase tracking-widest text-accent-soft">
+                                        <div x-show="subscriptionPlan === 'tier1'" x-cloak class="flex min-h-[3.25rem] w-full items-center justify-center rounded-xl border-2 border-accent bg-white/90 px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-accent-soft xl:text-[11px]">
                                             Aktywna subskrypcja
                                         </div>
                                     </div>
                                 </div>
                             </article>
                             <!-- Premium -->
-                            <article class="flex h-full min-w-[min(100%,18rem)] w-[85vw] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border border-slate-200/80 bg-white shadow-panel-md ring-1 ring-slate-900/5 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] 2xl:min-w-0 2xl:w-auto 2xl:flex-shrink">
+                            <article class="flex min-h-0 min-w-[min(100%,18rem)] w-[85vw] max-w-[100%] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border border-slate-200/80 bg-white shadow-panel-md ring-1 ring-slate-900/5 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] xl:h-full xl:min-h-0 xl:min-w-0 xl:w-full xl:max-w-none xl:flex-shrink xl:self-stretch">
                                 <div class="flex min-h-0 flex-1 flex-col p-6">
-                                    <div class="mb-3">
-                                        <span class="inline-flex rounded-full bg-accent-fg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-accent shadow-panel">Premium</span>
+                                    <div class="mb-3 flex min-h-[1.75rem] shrink-0 items-center justify-start">
+                                        <span class="inline-flex shrink-0 rounded-full bg-accent-fg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-accent shadow-panel">Premium</span>
                                     </div>
                                     <div class="mb-4">
                                         <h3 class="text-lg font-bold tracking-tight text-slate-900">Premium</h3>
@@ -2178,29 +2181,29 @@
                                         <p class="text-3xl font-bold tabular-nums text-accent">99 zł<span class="text-base font-semibold text-slate-500"> / msc</span></p>
                                         <p class="mt-1 text-[11px] text-slate-500">netto · +23% VAT</p>
                                     </div>
-                                    <ul class="flex-1 space-y-2.5 text-sm text-slate-600">
+                                    <ul class="min-h-0 flex-1 space-y-2.5 text-sm text-slate-600">
                                         <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Wszystko z Pro</strong></span></li>
                                         <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">1 h Asystenta</strong> w cenie / msc</span></li>
                                         <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Priorytet</strong> wsparcia</span></li>
                                         <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Kopia zapasowa</strong></span></li>
                                     </ul>
-                                    <div class="mt-auto space-y-3 pt-6">
-                                        <p x-show="subscriptionPlan === 'trial' && content?.pl?.settings?.subscription?.selected_plan === 'tier2'" class="text-xs font-medium leading-relaxed text-amber-900/90" x-cloak>Dokończ płatność Premium po trialu.</p>
-                                        <button type="button" @click="subscribe('premium')" x-show="subscriptionPlan !== 'tier2'" :disabled="checkoutLoading || saving" class="w-full rounded-xl border-2 border-accent bg-white px-4 py-3.5 text-center text-xs font-bold uppercase tracking-widest text-accent-fg transition-colors hover:bg-amber-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 disabled:opacity-50">
+                                    <div class="mt-auto w-full shrink-0 space-y-3 pt-6">
+                                        <p x-show="subscriptionPlan === 'trial' && content?.pl?.settings?.subscription?.selected_plan === 'tier2'" class="min-h-0 text-xs font-medium leading-relaxed text-amber-900/90" x-cloak>Dokończ płatność Premium po trialu.</p>
+                                        <button type="button" @click="subscribe('premium')" x-show="subscriptionPlan !== 'tier2'" :disabled="checkoutLoading || saving" class="inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-xl border-2 border-accent bg-white px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-accent-fg transition-colors hover:bg-amber-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 disabled:opacity-50 xl:text-[11px]">
                                             <span x-show="!checkoutLoading">Przejdź do płatności</span>
                                             <span x-show="checkoutLoading" x-cloak>Łączenie ze Stripe…</span>
                                         </button>
-                                        <div x-show="subscriptionPlan === 'tier2'" x-cloak class="w-full rounded-xl border-2 border-accent-fg bg-slate-50 px-4 py-3.5 text-center text-xs font-bold uppercase tracking-widest text-slate-900">
+                                        <div x-show="subscriptionPlan === 'tier2'" x-cloak class="flex min-h-[3.25rem] w-full items-center justify-center rounded-xl border-2 border-accent-fg bg-slate-50 px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-slate-900 xl:text-[11px]">
                                             Aktywna subskrypcja
                                         </div>
                                     </div>
                                 </div>
                             </article>
                             <!-- Test dzienny (Stripe) — np. szybkie odnowienia; w CMS jak Pro -->
-                            <article class="flex h-full min-w-[min(100%,18rem)] w-[85vw] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border border-violet-200/90 bg-gradient-to-b from-violet-50/90 to-white shadow-panel ring-1 ring-violet-200/50 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] 2xl:min-w-0 2xl:w-auto 2xl:flex-shrink">
+                            <article class="flex min-h-0 min-w-[min(100%,18rem)] w-[85vw] max-w-[100%] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border border-violet-200/90 bg-gradient-to-b from-violet-50/90 to-white shadow-panel ring-1 ring-violet-200/50 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] xl:h-full xl:min-h-0 xl:min-w-0 xl:w-full xl:max-w-none xl:flex-shrink xl:self-stretch">
                                 <div class="flex min-h-0 flex-1 flex-col p-6">
-                                    <div class="mb-3">
-                                        <span class="inline-flex rounded-full bg-violet-700 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-panel">Test</span>
+                                    <div class="mb-3 flex min-h-[1.75rem] shrink-0 justify-end">
+                                        <span class="inline-flex shrink-0 self-center rounded-full bg-violet-700 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-panel">Test</span>
                                     </div>
                                     <div class="mb-4">
                                         <h3 class="text-lg font-bold tracking-tight text-slate-900">Dzienny (test)</h3>
@@ -2210,22 +2213,23 @@
                                         <p class="text-sm font-semibold leading-snug text-slate-800">Produkty cenowe Stripe</p>
                                         <p class="mt-2 text-[11px] leading-relaxed text-slate-500">Jak <strong class="text-slate-800">Pro</strong> w panelu; cykl ustawiasz w Stripe przy produkcie.</p>
                                     </div>
-                                    <ul class="flex-1 space-y-2 text-sm text-slate-600">
+                                    <ul class="min-h-0 flex-1 space-y-2 text-sm text-slate-600">
                                         <li class="flex gap-2"><span class="shrink-0 font-bold text-violet-600">↻</span><span>Test odnowień subskrypcji</span></li>
                                         <li class="flex gap-2"><span class="shrink-0 font-bold text-violet-600">≡</span><span>Uprawnienia jak pakiet Pro</span></li>
                                     </ul>
-                                    <div class="mt-auto pt-6">
-                                        <button type="button" @click="subscribe('test_daily')" x-show="subscriptionPlan !== 'tier1' && subscriptionPlan !== 'tier2'" :disabled="checkoutLoading || saving" class="w-full rounded-xl border-2 border-violet-600 bg-white px-4 py-3.5 text-center text-xs font-bold uppercase tracking-widest text-violet-900 shadow-panel transition-colors hover:bg-violet-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/35 focus-visible:ring-offset-2 disabled:opacity-50">
-                                            <span x-show="!checkoutLoading">Checkout (test_daily)</span>
+                                    <div class="mt-auto w-full shrink-0 space-y-3 pt-6">
+                                        <button type="button" @click="subscribe('test_daily')" x-show="subscriptionPlan !== 'tier1' && subscriptionPlan !== 'tier2'" :disabled="checkoutLoading || saving" class="inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-xl border-2 border-violet-600 bg-white px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-violet-900 shadow-panel transition-colors hover:bg-violet-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/35 focus-visible:ring-offset-2 disabled:opacity-50 xl:text-[11px]">
+                                            <span x-show="!checkoutLoading">Checkout · test_daily</span>
                                             <span x-show="checkoutLoading" x-cloak>Łączenie ze Stripe…</span>
                                         </button>
-                                        <p x-show="subscriptionPlan === 'tier1' || subscriptionPlan === 'tier2'" class="text-center text-[11px] leading-relaxed text-slate-500" x-cloak>Zmianę produktu zrobisz przez <strong class="text-slate-800">zmianę planu</strong> / portal Stripe.</p>
+                                        <p x-show="subscriptionPlan === 'tier1' || subscriptionPlan === 'tier2'" class="min-h-[3.25rem] text-center text-[11px] leading-relaxed text-slate-500 xl:flex xl:items-center xl:justify-center" x-cloak>Zmianę produktu zrobisz przez <strong class="text-slate-800">zmianę planu</strong> / portal Stripe.</p>
                                     </div>
                                 </div>
                             </article>
                             <!-- Custom -->
-                            <article class="flex h-full min-w-[min(100%,18rem)] w-[85vw] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border-2 border-dashed border-slate-300/90 bg-gradient-to-b from-slate-50 to-slate-100/70 shadow-panel ring-1 ring-slate-900/5 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] 2xl:min-w-0 2xl:w-auto 2xl:flex-shrink">
+                            <article class="flex min-h-0 min-w-[min(100%,18rem)] w-[85vw] max-w-[100%] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border-2 border-dashed border-slate-300/90 bg-gradient-to-b from-slate-50 to-slate-100/70 shadow-panel ring-1 ring-slate-900/5 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] xl:h-full xl:min-h-0 xl:min-w-0 xl:w-full xl:max-w-none xl:flex-shrink xl:self-stretch">
                                 <div class="flex min-h-0 flex-1 flex-col p-6">
+                                    <div class="mb-3 flex min-h-[1.75rem] shrink-0 items-center justify-end" aria-hidden="true"></div>
                                     <div class="mb-4">
                                         <h3 class="text-lg font-bold tracking-tight text-slate-900">Custom</h3>
                                         <p class="mt-1 text-[11px] font-semibold uppercase tracking-widest text-slate-500">Na zamówienie</p>
@@ -2234,13 +2238,13 @@
                                         <p class="text-3xl font-bold tabular-nums text-accent">od 149 zł</p>
                                         <p class="mt-1 text-[11px] text-slate-500">wycena indywidualna · netto</p>
                                     </div>
-                                    <ul class="flex-1 space-y-2.5 text-sm text-slate-600">
+                                    <ul class="min-h-0 flex-1 space-y-2.5 text-sm text-slate-600">
                                         <li class="flex gap-2"><span class="shrink-0 font-bold text-slate-400">◇</span><span>Indywidualne wdrożenie</span></li>
                                         <li class="flex gap-2"><span class="shrink-0 font-bold text-slate-400">◇</span><span>Rozszerzenia pod proces</span></li>
                                         <li class="flex gap-2"><span class="shrink-0 font-bold text-slate-400">◇</span><span>Kontakt z zespołem</span></li>
                                     </ul>
-                                    <div class="mt-auto pt-6">
-                                        <a href="zapytanie-custom.html" class="block w-full rounded-xl border-2 border-slate-300 bg-white/90 px-4 py-3.5 text-center text-xs font-bold uppercase tracking-widest text-slate-800 shadow-panel transition-colors hover:border-accent hover:text-accent-soft">Formularz zapytania</a>
+                                    <div class="mt-auto w-full shrink-0 pt-6">
+                                        <a href="zapytanie-custom.html" class="inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-xl border-2 border-slate-300 bg-white/90 px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-slate-800 shadow-panel transition-colors hover:border-accent hover:text-accent-soft xl:text-[11px]">Formularz zapytania</a>
                                     </div>
                                 </div>
                             </article>

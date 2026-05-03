@@ -41,7 +41,10 @@
       const h = u.hostname.toLowerCase();
       const path = u.pathname || '';
       if (h === 'google.com' || h.endsWith('.google.com')) {
-        return path.includes('/maps/embed');
+        if (path.includes('/maps/embed')) return true;
+        const mapsPath = path === '/maps' || path.startsWith('/maps/');
+        if (mapsPath && u.searchParams.get('output') === 'embed') return true;
+        return false;
       }
       if (h === 'maps.googleapis.com' || h.endsWith('.googleapis.com')) {
         return path.includes('maps') || path.includes('embed');

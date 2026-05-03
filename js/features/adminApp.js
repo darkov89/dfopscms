@@ -422,6 +422,17 @@
         return false;
       },
       /**
+       * Portal Stripe — aktywny pakiet lub anulowana subskrypcja z nadal istniejącym klientem (faktury, karta).
+       */
+      get showStripeBillingPortal() {
+        if (this.hasActivePaidSubscription) return true;
+        const sub = this.content?.pl?.settings?.subscription;
+        const cid = typeof sub?.stripe_customer_id === 'string' ? sub.stripe_customer_id.trim() : '';
+        if (!cid) return false;
+        const st = typeof sub.status === 'string' ? sub.status.trim().toLowerCase() : '';
+        return st === 'canceled' || st === 'cancelled';
+      },
+      /**
        * True gdy w Stripe wisi jeszcze subskrypcja — wtedy nie udostępniamy prośby o usunięcie konta
        * (najpierw anulowanie w portalu Stripe).
        */

@@ -4,7 +4,7 @@
 
 Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **changelog** jednoliniowy, żeby nie dublować długich sekcji.
 
-**Ostatnia aktualizacja treści:** 2026-05-03
+**Ostatnia aktualizacja treści:** 2026-05-03 (aktualizacja changelog + `PROJECT_STATE`)
 
 ---
 
@@ -16,9 +16,9 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 | Stan architektury, Stripe, onboarding, security, user journey | [`PROJECT_STATE.md`](../PROJECT_STATE.md) |
 | Konfiguracja klienta | `js/core/config.js` |
 | Landing marketingowy | `index.html` (m.in. **Demo na żywo** → `?site=demo-*`) · routing `?site=` / subdomeny → `router.html` |
-| Demo / seed treści | [`docs/demo_seeds.json`](demo_seeds.json) · migracja `supabase/migrations/*_seed_demo_catalog_pages.sql` · lokalnie: `getPageBySlug` fallback z JSON (`pageRepository.js`) |
+| Demo / seed treści | [`docs/demo_seeds.json`](demo_seeds.json) (**`map_embed_url`**, **`reviews[]`**, **`is_demo_catalog`**) · migracja `supabase/migrations/*_seed_demo_catalog_pages.sql` · lokalnie: `getPageBySlug` fallback z JSON (`pageRepository.js`) |
 | Szablony publiczne | `beauty.html`, `consultant.html`, `fitness.html`, `services.html`, … · `routerApp.js` → `{pages.theme}.html` |
-| Panel | `admin.html`, `js/features/adminApp.js` (motywy, kreator, `switchTemplate`) |
+| Panel | `admin.html`, `js/features/adminApp.js` (**`showStripeBillingPortal`**, layout planów **xl** grid) |
 | Rejestr szablonów / merge | `js/templates/registry.js` · `contentSchema` / `contentUpgrader` |
 | Edge Stripe | `supabase/functions/stripe-webhook/`, `_shared/stripeBilling.ts` |
 
@@ -28,6 +28,7 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 
 | Data | Co |
 |------|-----|
+| 2026-05-03 | **Demo public + sanityzacja:** przy **`is_demo_catalog`** i bez **`google_reviews.place_query`** opinie z **`content.pl.reviews`** w karuzeli (**`googleReviewsApp.js`**); sekcje/link w **beauty / fitness / services**. **`contact.map_embed_url`** w seedach (Korzecznik 16 / Kłodawa); **`pageRepository`** — HTTPS Google Maps: **`/maps/embed`** lub **`/maps?…&output=embed`**. **Panel Subskrypcja:** portal Stripe pod **`showStripeBillingPortal`** (+ komunikat dla trialu); siatka planów od **`xl`**, równe wysokości kart i CTA (**`admin.html`**). |
 | 2026-05-03 | **Landing / demo:** sekcja **„Gotowe szablony…”** (3 karty → `demo-beauty` / `demo-fitness` / `demo-services`), nav **Demo na żywo** · **`docs/demo_seeds.json`** + migracje Supabase (**`pages_slug_unique`**, UPSERT demo) · **`tier2` + payment_completed** w seedach (ominięcie bloku trial w cronie) · **localhost:** `pageRepository.getPageBySlug` czyta JSON gdy brak wiersza w `pages`. **Legacy `landing.html` usunięty.** **`README`** — `supabase db push`, regeneracja migracji (`scripts/generate-demo-pages-migration.mjs`). |
 | 2026-05-03 | **Auth / UX:** Pod formularzem na **`rejestracja.html`** i **`admin.html`** (logowanie + reset hasła): linki do drugiego widoku oraz **`index.html`** (Quiet Luxury hover złoty). |
 | 2026-05-03 | **Panel / szablony:** Zakładki **Grafik** (Fitness) i **Zaufanie** (services), etykiety menu + CTA dla Usługi w **Szablon i kolory**; link „Zaufanie” na `services.html` z `nav.menu.trust`; domyślne `trust`/`cta` w `contentUpgrader`; `ensureActiveTabForTheme` przy przełączaniu motywu. |

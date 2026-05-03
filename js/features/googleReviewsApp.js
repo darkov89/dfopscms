@@ -9,6 +9,42 @@
       placeRating: null,
       userRatingCount: null,
       _lastFetchedQuery: null,
+      _demoReviewsKey: null,
+
+      demoStaggerIso(i) {
+        const msPerDay = window.DFOPS_CONFIG?.timeouts?.msPerDay ?? 86400000;
+        const d = new Date(Date.now() - (Number(i) + 1) * 4 * msPerDay);
+        return d.toISOString();
+      },
+
+      hydrateDemoReviewsFromContent() {
+        const c = this.content;
+        const l = this.lang || 'pl';
+        const rows = Array.isArray(c[l]?.reviews) ? c[l].reviews : [];
+        const gr = c[l]?.settings?.google_reviews || c[l]?.google_reviews;
+        const key = `${l}:${rows.map((x) => (x?.author || '') + '|' + String(x?.content || '').slice(0, 48)).join(';')}`;
+        if (this._demoReviewsKey === key) return;
+        this._demoReviewsKey = key;
+        this._lastFetchedQuery = null;
+        this.loading = false;
+        this.error = '';
+        this.slide = 0;
+        this.placeId = '';
+        this.reviews = rows.map((row, i) => ({
+          author_name: typeof row.author === 'string' && row.author.trim() ? row.author.trim() : 'Klient',
+          text: typeof row.content === 'string' ? row.content : '',
+          rating: Number(row.stars) > 0 ? Number(row.stars) : 5,
+          publishTime: typeof row.publishTime === 'string' && row.publishTime.trim() ? row.publishTime.trim() : this.demoStaggerIso(i)
+        }));
+        const ratings = this.reviews.map((r) => Number(r.rating) || 0).filter((n) => n > 0);
+        if (ratings.length) {
+          const avg = ratings.reduce((a, n) => a + n, 0) / ratings.length;
+          this.placeRating = Math.round(avg * 10) / 10;
+        } else {
+          this.placeRating = 5;
+        }
+        this.userRatingCount = this.reviews.length;
+      },
 
       init() {
         const tryLoad = () => {
@@ -22,11 +58,17 @@
           // Pobieramy konfigurację niezależnie od tego, czy jest w 'settings' czy bezpośrednio
           const gr = c[l]?.settings?.google_reviews || c[l]?.google_reviews;
           const query = gr?.place_query?.trim();
+          const isDemoCatalog = !!c[l]?.settings?.is_demo_catalog;
+          const ownReviews = Array.isArray(c[l]?.reviews) ? c[l].reviews : [];
 
           if (query && query !== this._lastFetchedQuery) {
+            this._demoReviewsKey = null;
             this.loadReviews();
+          } else if (!query && isDemoCatalog && ownReviews.length) {
+            this.hydrateDemoReviewsFromContent();
           } else if (query === '' || (gr && !query)) {
             this.loading = false;
+            this._demoReviewsKey = null;
             this.error = 'Brak konfiguracji place_query.';
           }
         };
