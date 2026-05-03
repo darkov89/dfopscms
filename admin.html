@@ -632,7 +632,35 @@
                                 </div>
                             </div>
                         </div>
-                        <div x-show="theme === 'beauty'" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'gallery' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                        <div x-show="theme === 'services'" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'trust' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                            <button type="button" @click="setTab('trust')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                <span :class="activeTab === 'trust' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Zaufanie</span>
+                            </button>
+                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
+                                <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: zaufanie">
+                                    <svg class="w-4 h-4 text-slate-400 hover:text-accent transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </button>
+                                <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
+                                    Cytat i gwiazdki — budują wiarygodność przed opiniami z Google.
+                                    <div class="absolute -top-2 right-4 h-0 w-0 border-x-[7px] border-x-transparent border-b-[8px] border-b-slate-900" aria-hidden="true"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div x-show="theme === 'fitness'" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'schedule' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                            <button type="button" @click="setTab('schedule')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                <span :class="activeTab === 'schedule' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Grafik zajęć</span>
+                            </button>
+                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
+                                <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: grafik">
+                                    <svg class="w-4 h-4 text-slate-400 hover:text-accent transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </button>
+                                <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
+                                    Dni, godziny i krótkie notatki — jak w szablonie Fitness na stronie.
+                                    <div class="absolute -top-2 right-4 h-0 w-0 border-x-[7px] border-x-transparent border-b-[8px] border-b-slate-900" aria-hidden="true"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div x-show="['beauty','fitness','services'].includes(theme)" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'gallery' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
                             <button type="button" @click="setTab('gallery')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 flex items-center gap-2">
                                 <svg class="w-4 h-4 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                 <span :class="activeTab === 'gallery' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Galeria zdjęć</span>
@@ -661,7 +689,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div x-show="theme === 'consultant' || theme === 'beauty'" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'faq' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                        <div x-show="['beauty','consultant','fitness','services'].includes(theme)" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'faq' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
                             <button type="button" @click="setTab('faq')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
                                 <span :class="activeTab === 'faq' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Pytania i odpowiedzi</span>
                             </button>
@@ -920,6 +948,80 @@
                                             </div>
                                         </div>
                                         <p class="text-xs text-slate-500 mt-2">Tylko tekst linków w górnym menu — spójny z sekcjami na stronie.</p>
+                                    </div>
+                                    <div x-show="theme === 'fitness'" class="pt-2 border-t border-gray-100">
+                                        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Etykiety w menu (Fitness)</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">O mnie / O nas</label>
+                                                <input type="text" x-model="content.pl.nav.menu.about" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Treningi / oferta</label>
+                                                <input type="text" x-model="content.pl.nav.menu.pricing" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Grafik</label>
+                                                <input type="text" x-model="content.pl.nav.menu.schedule" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Galeria</label>
+                                                <input type="text" x-model="content.pl.nav.menu.gallery" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Opinie</label>
+                                                <input type="text" x-model="content.pl.nav.menu.reviews" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">FAQ</label>
+                                                <input type="text" x-model="content.pl.nav.menu.faq" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                            </div>
+                                            <div class="md:col-span-2">
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Kontakt</label>
+                                                <input type="text" x-model="content.pl.nav.menu.contact" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                            </div>
+                                        </div>
+                                        <p class="text-xs text-slate-500 mt-2">Kolejność sekcji wynika z szablonu Fitness — edytujesz tylko napisy linków.</p>
+                                    </div>
+                                    <div x-show="theme === 'services'" class="pt-2 border-t border-gray-100">
+                                        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Etykiety w menu (Usługi)</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">O nas</label>
+                                                <input type="text" x-model="content.pl.nav.menu.about" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Zakres usług</label>
+                                                <input type="text" x-model="content.pl.nav.menu.pricing" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Realizacje / galeria</label>
+                                                <input type="text" x-model="content.pl.nav.menu.gallery" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Zaufanie</label>
+                                                <input type="text" x-model="content.pl.nav.menu.trust" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="np. Zaufanie">
+                                                <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">Widoczny, gdy sekcja Zaufanie jest włączona i jest cytat.</p>
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Opinie (Google)</label>
+                                                <input type="text" x-model="content.pl.nav.menu.reviews" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                            </div>
+                                            <div class="md:col-span-2">
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Pytania i odpowiedzi (FAQ)</label>
+                                                <input type="text" x-model="content.pl.nav.menu.faq" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="np. FAQ">
+                                            </div>
+                                            <div class="md:col-span-2">
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Kontakt</label>
+                                                <input type="text" x-model="content.pl.nav.menu.contact" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                            </div>
+                                            <div class="md:col-span-2">
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Przycisk w stopce (CTA)</label>
+                                                <input type="text" x-model="content.pl.nav.cta" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="np. Zadzwoń">
+                                                <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">Ten sam tekst na głównym przycisku w stopce szablonu Usługi.</p>
+                                            </div>
+                                        </div>
+                                        <p class="text-xs text-slate-500 mt-2">Tylko teksty linków i przycisku — kolejność sekcji wynika z szablonu.</p>
                                     </div>
                                 </div>
                             </section>
@@ -1218,6 +1320,48 @@
                                             <span class="text-sm font-bold text-slate-700">Kontakt / rezerwacja</span>
                                         </label>
                                     </div>
+                                    <div x-show="theme === 'fitness'" class="space-y-4 pt-2 border-t border-gray-100">
+                                        <p class="text-xs text-slate-600">Widoczność sekcji na stronie (szablon Fitness) — te same treści edytujesz w zakładkach po lewej.</p>
+                                        <label class="flex items-center gap-3 cursor-pointer">
+                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showManifesto" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                            <span class="text-sm font-bold text-slate-700">O nas / manifesto</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 cursor-pointer">
+                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showServices" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                            <span class="text-sm font-bold text-slate-700">Usługi / treningi</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 cursor-pointer">
+                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showFaq" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                            <span class="text-sm font-bold text-slate-700">FAQ</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 cursor-pointer">
+                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showContact" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                            <span class="text-sm font-bold text-slate-700">Kontakt</span>
+                                        </label>
+                                    </div>
+                                    <div x-show="theme === 'services'" class="space-y-4 pt-2 border-t border-gray-100">
+                                        <p class="text-xs text-slate-600">Widoczność sekcji (szablon Usługi lokalne).</p>
+                                        <label class="flex items-center gap-3 cursor-pointer">
+                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showManifesto" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                            <span class="text-sm font-bold text-slate-700">O nas</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 cursor-pointer">
+                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showServices" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                            <span class="text-sm font-bold text-slate-700">Zakres usług</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 cursor-pointer">
+                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showTrust" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                            <span class="text-sm font-bold text-slate-700">Sekcja Zaufanie (cytat)</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 cursor-pointer">
+                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showFaq" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                            <span class="text-sm font-bold text-slate-700">FAQ</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 cursor-pointer">
+                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showContact" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
+                                            <span class="text-sm font-bold text-slate-700">Kontakt</span>
+                                        </label>
+                                    </div>
                                 </div>
                             </section>
 
@@ -1228,7 +1372,7 @@
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
                             <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Powitanie na stronie</h2>
                             <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">To pierwszy ekran dla gości — duże zdjęcie, nagłówek i krótki opis. Poniżej możesz też dopracować sekcję „O nas”.</p>
-                            <div x-show="theme === 'consultant' || theme === 'beauty'" class="flex items-center gap-4 pt-4 border-t border-gray-100">
+                            <div x-show="['beauty','consultant','fitness','services'].includes(theme)" class="flex items-center gap-4 pt-4 border-t border-gray-100">
                                 <label class="flex items-center gap-3 cursor-pointer">
                                     <div class="relative">
                                         <input type="checkbox" x-model="content.pl.settings.showManifesto" class="sr-only peer">
@@ -1294,8 +1438,13 @@
                             </div>
                         </div>
 
-                        <div class="mt-8 pt-6 border-t border-gray-100" x-show="theme === 'beauty' || theme === 'consultant'">
+                        <div class="mt-8 pt-6 border-t border-gray-100" x-show="['beauty','consultant','fitness','services'].includes(theme)">
                             <h3 class="text-sm font-bold text-slate-900 mb-4 uppercase tracking-widest">Sekcja O nas (Manifesto)</h3>
+                            <div class="mb-4" x-show="['fitness','services'].includes(theme)">
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Mała etykieta nad tytułem (np. nad hero)</label>
+                                <input type="text" x-model="content.pl.manifesto.label" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="np. Dlaczego my">
+                                <p class="text-xs text-slate-500 mt-1.5">W szablonach Fitness i Usługi pojawia się jako subtelny tekst nad głównym nagłówkiem.</p>
+                            </div>
                             <div class="mb-2">
                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tytuł sekcji</label>
                                 <input type="text" x-model="content.pl.manifesto.title" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="np. Kilka słów">
@@ -1363,9 +1512,9 @@
                                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Nazwa</label>
                                             <input type="text" x-model="service.title" class="w-full rounded-lg border border-slate-200 px-4 py-2 font-bold focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white">
                                         </div>
-                                        <div x-show="theme === 'beauty'">
-                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Czas trwania</label>
-                                            <input type="text" x-model="service.duration" placeholder="np. 1h 30min" class="w-full rounded-lg border border-slate-200 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white">
+                                        <div x-show="['beauty','fitness','services'].includes(theme)">
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Czas / zakres</label>
+                                            <input type="text" x-model="service.duration" placeholder="np. 1h 30min · do 24h" class="w-full rounded-lg border border-slate-200 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white">
                                         </div>
                                         <div>
                                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Cena</label>
@@ -1378,15 +1527,96 @@
                                         <input type="text" x-model="service.desc" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white">
                                     </div>
                                     
-                                    <div x-show="theme === 'beauty'">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Szczegóły (Rozwijane w akordeonie)</label>
-                                        <textarea x-model="service.details" rows="2" placeholder="Przeciwwskazania, szczegóły zabiegu..." class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white resize-y"></textarea>
+                                    <div x-show="['beauty','fitness','services'].includes(theme)">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Szczegóły (rozwijane na stronie)</label>
+                                        <textarea x-model="service.details" rows="2" placeholder="Dodatkowe informacje po rozwinięciu kafelka…" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white resize-y"></textarea>
+                                    </div>
+                                    <div x-show="theme === 'services'" class="mt-4">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Ikona kafelka</label>
+                                        <select x-model="service.icon" class="w-full max-w-xs rounded-lg border border-slate-200 px-4 py-2 text-sm bg-white focus:border-transparent focus:ring-2 focus:ring-accent/30 outline-none">
+                                            <option value="wrench">Klucz / narzędzia</option>
+                                            <option value="bolt">Błyskawica (elektryka)</option>
+                                            <option value="droplet">Kropla (hydraulika)</option>
+                                            <option value="cog">Zębatka (mechanika)</option>
+                                            <option value="pipe">Łączenie / instalacje</option>
+                                        </select>
+                                        <p class="text-xs text-slate-500 mt-1.5">Jeśli puste, zapisze się pierwsza z listy — możesz dopasować do każdej usługi.</p>
                                     </div>
                                 </div>
                             </template>
-                            <button @click="content.pl.services.push({title: 'Nowa Usługa', desc: 'Opis...', price: '', duration: '', details: ''})" class="w-full border-2 border-dashed border-gray-300 text-slate-500 font-bold uppercase tracking-widest py-4 rounded-sm hover:bg-[#D4AF37] hover:text-white transition-all">
+                            <button type="button" @click="content.pl.services.push({ title: 'Nowa usługa', desc: '', price: '', duration: '', details: '', icon: 'wrench' })" class="w-full border-2 border-dashed border-gray-300 text-slate-500 font-bold uppercase tracking-widest py-4 rounded-sm hover:bg-[#D4AF37] hover:text-white transition-all">
                                 + Dodaj pozycję do cennika
                             </button>
+                        </div>
+                    </div>
+
+                    <div x-show="activeTab === 'schedule' && theme === 'fitness'" x-transition.opacity x-cloak>
+                        <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
+                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Grafik zajęć</h2>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Wiersze wyświetlane w sekcji „Grafik” na stronie (szablon Fitness). Możesz dodać np. dni tygodnia, godziny otwarcia i krótką notatkę.</p>
+                        </div>
+                        <div class="space-y-4">
+                            <template x-for="(row, index) in (content.pl.schedule || [])" :key="'sched'+index">
+                                <div class="bg-gray-50 p-6 rounded-lg border border-slate-200 relative group">
+                                    <button type="button" @click="content.pl.schedule.splice(index, 1)" class="absolute top-4 right-4 text-red-400 hover:text-red-600 text-xs font-bold uppercase">Usuń</button>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pr-16">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Dzień / okres</label>
+                                            <input type="text" x-model="row.day" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm bg-white focus:ring-2 focus:ring-accent/30 outline-none" placeholder="np. Poniedziałek — Piątek">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Godziny</label>
+                                            <input type="text" x-model="row.time" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm bg-white focus:ring-2 focus:ring-accent/30 outline-none" placeholder="np. 9:00 — 18:00">
+                                        </div>
+                                        <div class="md:col-span-1">
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Notatka</label>
+                                            <input type="text" x-model="row.note" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm bg-white focus:ring-2 focus:ring-accent/30 outline-none" placeholder="Krótki opis">
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                            <button type="button" @click="(content.pl.schedule = content.pl.schedule || []).push({ day: '', time: '', note: '' })" class="w-full border-2 border-dashed border-gray-300 text-slate-500 font-bold uppercase tracking-widest py-4 rounded-sm hover:bg-[#D4AF37] hover:text-white transition-all">
+                                + Dodaj wiersz grafiku
+                            </button>
+                        </div>
+                    </div>
+
+                    <div x-show="activeTab === 'trust' && theme === 'services'" x-transition.opacity x-cloak>
+                        <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
+                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Zaufanie</h2>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Krótki cytat i ocena — budują wiarygodność przed blokiem z Google. Sekcję możesz wyłączyć w <strong>Szablon i kolory → Co widnieje na stronie</strong>.</p>
+                            <label class="flex items-center gap-4 cursor-pointer">
+                                <div class="relative">
+                                    <input type="checkbox" x-model="content.pl.settings.showTrust" class="sr-only peer">
+                                    <div class="w-11 h-6 rounded-full transition-colors peer-checked:bg-emerald-500 bg-gray-200"></div>
+                                    <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5 pointer-events-none"></div>
+                                </div>
+                                <span class="text-sm font-medium text-slate-900">Włącz sekcję Zaufanie</span>
+                            </label>
+                        </div>
+                        <div class="space-y-6 max-w-2xl">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Nagłówek sekcji</label>
+                                <input type="text" x-model="content.pl.trust.title" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:ring-2 focus:ring-accent/30 outline-none" placeholder="np. Polecają nas klienci">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Cytat</label>
+                                <textarea x-model="content.pl.trust.quote" rows="4" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm focus:ring-2 focus:ring-accent/30 outline-none resize-y" placeholder="Treść rekomendacji…"></textarea>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Podpis (np. imię)</label>
+                                    <input type="text" x-model="content.pl.trust.author" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:ring-2 focus:ring-accent/30 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Podtytuł (np. usługa · rok)</label>
+                                    <input type="text" x-model="content.pl.trust.subtitle" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:ring-2 focus:ring-accent/30 outline-none">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Liczba gwiazdek (1–5)</label>
+                                <input type="number" min="1" max="5" x-model.number="content.pl.trust.stars" class="w-28 rounded-lg border border-slate-200 px-4 py-3 focus:ring-2 focus:ring-accent/30 outline-none">
+                            </div>
                         </div>
                     </div>
 
@@ -1455,7 +1685,7 @@
                                         <input type="text" x-model="content.pl.contact.address" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
                                     </div>
 
-                                    <div class="pt-6 border-t border-gray-100" x-show="theme === 'consultant' || theme === 'beauty'">
+                                    <div class="pt-6 border-t border-gray-100" x-show="['beauty','consultant','fitness','services'].includes(theme)">
                                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Mapa Google</label>
                                         <p class="text-xs text-slate-500 mb-3">Wpisz nazwę lub adres, wybierz wynik z listy i zatwierdź — mapa wstawi się na stronie po publikacji.</p>
                                         <div class="flex gap-2 mb-3">
@@ -1523,7 +1753,7 @@
                                         </div>
                                     </div>
                                     
-                                    <div class="pt-6 border-t border-gray-100" x-show="theme === 'beauty'">
+                                    <div class="pt-6 border-t border-gray-100" x-show="theme === 'beauty' || theme === 'services'">
                                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Link do rezerwacji (Booksy itp.)</label>
                                         <input type="url" x-model="content.pl.contact.booksyUrl" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="https://booksy.com/...">
                                     </div>

@@ -148,6 +148,7 @@
           about: 'O nas',
           pricing: 'Zakres usług',
           gallery: 'Realizacje',
+          trust: 'Zaufanie',
           faq: 'FAQ',
           contact: 'Kontakt',
           reviews: 'Opinie',
@@ -156,9 +157,13 @@
       if (pl.nav.menu.about === undefined) pl.nav.menu.about = 'O nas';
       if (pl.nav.menu.pricing === undefined) pl.nav.menu.pricing = 'Zakres usług';
       if (pl.nav.menu.gallery === undefined) pl.nav.menu.gallery = 'Realizacje';
+      if (pl.nav.menu.trust === undefined) pl.nav.menu.trust = 'Zaufanie';
       if (pl.nav.menu.faq === undefined) pl.nav.menu.faq = 'FAQ';
       if (pl.nav.menu.contact === undefined) pl.nav.menu.contact = 'Kontakt';
       if (pl.nav.menu.reviews === undefined) pl.nav.menu.reviews = 'Opinie';
+    }
+    if (theme === 'services' && (pl.nav.cta === undefined || pl.nav.cta === null)) {
+      pl.nav.cta = 'Zadzwoń';
     }
 
     if (!pl.trust || typeof pl.trust !== 'object' || Array.isArray(pl.trust)) {

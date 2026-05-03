@@ -282,6 +282,7 @@
             about: "O nas",
             pricing: "Zakres usług",
             gallery: "Realizacje",
+            trust: "Zaufanie",
             faq: "FAQ",
             contact: "Kontakt",
             reviews: "Opinie",

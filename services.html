@@ -114,7 +114,7 @@
                         <a href="#galeria" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.gallery || 'Realizacje'"></a>
                     </template>
                     <template x-if="content[lang].settings?.showTrust !== false && content[lang].trust?.quote">
-                        <a href="#zaufanie" class="hover:text-amber-400 transition-colors">Zaufanie</a>
+                        <a href="#zaufanie" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.trust || 'Zaufanie'"></a>
                     </template>
                     <template x-if="content[lang].google_reviews?.place_query">
                         <a href="#opinie" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.reviews || 'Opinie'"></a>

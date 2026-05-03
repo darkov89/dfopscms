@@ -146,6 +146,8 @@
         social: { linkedin: '', facebook: '', instagram: '', tiktok: '' },
         google_reviews: { embed_url: '', place_query: '', max_reviews: 6, title: 'Opinie z Google' },
         reviews: [],
+        schedule: [],
+        trust: { title: '', quote: '', author: '', subtitle: '', stars: 5 },
         seo: { title: '', description: '', ogImage: '' },
         legal: { enabled: false, privacy_policy: '', terms: '' },
         cookies: { text: '', accept: '' },
@@ -559,6 +561,19 @@
       setTab(tab) {
         this.activeTab = tab;
         this.sidebarOpen = false;
+      },
+
+      /** Gdy zmieni się motyw (lub wczytano stronę), ukryte zakładki nie zostawiają pustego widoku. */
+      ensureActiveTabForTheme() {
+        const t = String(this.theme || '').trim();
+        const tab = this.activeTab;
+        const galleryOk = ['beauty', 'fitness', 'services'].includes(t);
+        const faqOk = ['beauty', 'consultant', 'fitness', 'services'].includes(t);
+        if (tab === 'gallery' && !galleryOk) this.setTab('hero');
+        else if (tab === 'faq' && !faqOk) this.setTab('hero');
+        else if (tab === 'schedule' && t !== 'fitness') this.setTab('hero');
+        else if (tab === 'trust' && t !== 'services') this.setTab('hero');
+        else if (tab === 'reviews' && t !== 'consultant') this.setTab('hero');
       },
 
       maybeShowPaymentReturnToast() {
@@ -1318,6 +1333,7 @@
           this.syncUserPlanFromBilling();
           this.applyThemeStylingFromContent();
           this.enforceColorPresetForStarter();
+          this.ensureActiveTabForTheme();
 
           if (!this.isEmailVerified) {
             this.showWizard = false;

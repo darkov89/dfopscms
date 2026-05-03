@@ -3,7 +3,7 @@
 > **Przeznaczenie:** jeden plik w korzeniu repozytorium do aktualizacji **na koniec sesji** (ludzie + agenci), żeby zachować ciągłość decyzji architektonicznych, produktowych i operacyjnych.  
 > **Nie zastępuje** `README.md` (start, deploy, struktura katalogów), ale je **uzupełnia** o „co wiemy o systemie teraz”.
 
-**Ostatnia aktualizacja treści:** 2026-04-03
+**Ostatnia aktualizacja treści:** 2026-05-03
 
 ---
 
@@ -13,8 +13,8 @@
 
 | Warstwa | Technologie / artefakty |
 |--------|-------------------------|
-| **Front publiczny** | Statyczne HTML: **`index.html`** — landing marketingowy (Tailwind + Alpine); **`router.html`** — wejście do routingu wielodomenowego; szablony publiczne m.in. **`beauty.html`**, **`consultant.html`**, **`fitness.html`** (dark / neon — trener, studio); planowane: `services`, `gastro` (kafelki w panelu „w przygotowaniu”). **`routerApp.js`:** po załadowaniu strony z bazy → redirect do **`{pages.theme}.html`** (localhost: `?site=`). JS: `publicSiteApp.js` (`createPublicSiteApp('motyw')`), `routerApp.js`. Na „gołej” domenie platformy — **landing**; **`?site=`** i subdomeny → `router.html`. **Cloudflare Pages** + `functions/_middleware.js` (SEO). |
-| **Panel CMS** | `admin.html`, **Alpine.js**, **Tailwind** (CDN), `js/features/adminApp.js`. **Motyw strony** — kolumna `pages.theme` + lustrzanie `content.pl.settings.theme` (normalizacja + zapis). **Wygląd → Zmiana motywu branżowego:** kafelki szablonów (`DFOPS_getTemplateCatalog` w `registry.js`), `switchTemplate` (beauty / consultant / fitness); merge treści: `DFOPS_mergeContentWithTemplate` + **`DFOPS_resolveTemplateKeyForMerge`** (brak pełnego JSON szablonu → baza z `beauty`, bez crasha przy odczycie). **Pasek postępu:** `calculateProgress()`. Szablony: `js/templates/registry.js`; normalizacja: `js/core/contentSchema.js`, `js/core/contentUpgrader.js`; style publiczne: `js/core/themeStyling.js` + `config.js` (`presetsByTheme`, `accentByPreset`). |
+| **Front publiczny** | Statyczne HTML: **`index.html`** — landing marketingowy (Tailwind + Alpine); **`router.html`** — wejście do routingu wielodomenowego; szablony publiczne m.in. **`beauty.html`**, **`consultant.html`**, **`fitness.html`**, **`services.html`** (usługi lokalne); roadmap: **`gastro`** i ewent. kolejne (kafelki „w przygotowaniu” w panelu). **`routerApp.js`:** po załadowaniu strony z bazy → redirect do **`{pages.theme}.html`** (localhost: `?site=`). JS: `publicSiteApp.js` (`createPublicSiteApp('motyw')`), `routerApp.js`. Na „gołej” domenie platformy — **landing**; **`?site=`** i subdomeny → `router.html`. **Cloudflare Pages** + `functions/_middleware.js` (SEO). |
+| **Panel CMS** | `admin.html`, **Alpine.js**, **Tailwind** (CDN), `js/features/adminApp.js`. **Motyw strony** — kolumna `pages.theme` + lustrzanie `content.pl.settings.theme` (normalizacja + zapis). **Wygląd → Zmiana motywu branżowego:** kafelki szablonów (`DFOPS_getTemplateCatalog` w `registry.js`), `switchTemplate` (beauty / consultant / fitness / services); merge treści: `DFOPS_mergeContentWithTemplate` + **`DFOPS_resolveTemplateKeyForMerge`**. **Sidebar zależny od motywu:** m.in. **Grafik zajęć** (`schedule[]`, tylko fitness), **Zaufanie** (`trust` + `showTrust`, tylko services); **`ensureActiveTabForTheme()`** — po zmianie motywu nie zostaje otwarta ukryta zakładka. **Etykiety menu** — bloki Beauty / Konsultant / Fitness / Usługi w **Szablon i kolory → Marka**. **Pasek postępu:** `calculateProgress()`. Szablony: `js/templates/registry.js`; normalizacja: `js/core/contentSchema.js`, `js/core/contentUpgrader.js`; style publiczne: `js/core/themeStyling.js` + `config.js` (`presetsByTheme`, `accentByPreset`). |
 | **Backend danych** | **Supabase**: PostgreSQL (`pages` + treść JSON), **Auth** (JWT), **Storage** (obrazy), RLS na tabelach. Klient w przeglądarce: `js/core/supabaseClient.js`, repozytorium: `js/core/pageRepository.js`. |
 | **Backend logiki płatności / domen** | **Supabase Edge Functions** (Deno): webhook Stripe, Checkout, Portal, sync subskrypcji, domeny (Cloudflare), Google Reviews, cron trial. Współdzielona logika: `supabase/functions/_shared/stripeBilling.ts`. |
 | **Płatności** | **Stripe** (Checkout, Customer Portal, webhooks → Edge). Identyfikatory cen w `js/core/config.js` (`stripePrices`). |
@@ -32,8 +32,8 @@ Użytkownik → Auth (Supabase) → pages.content (JSON) → front (szablon + me
 ### 1.3 Szablony branżowe (skalowanie)
 
 - **Źródło prawdy motywu:** `pages.theme` (Supabase); JSON: `content.pl.settings.theme` synchronizowany przy `normalizeContent` / `saveData`.
-- **Gotowe publiczne HTML + szablon w `registry`:** `setup`, `beauty`, `consultant`, **`fitness`** (m.in. `content.pl.schedule[]` dla grafiku).
-- **Roadmap UI:** kafelki `fitness` / `services` / `gastro` — niedostępne szablony bez pełnej definicji → toast „w przygotowaniu”, podgląd localhost dla brakującego `.html` może używać proxy (`beauty.html`), aż do dodania pliku.
+- **Gotowe publiczne HTML + szablon w `registry`:** `setup`, `beauty`, `consultant`, **`fitness`** (`content.pl.schedule[]`), **`services`** (m.in. `trust`, galeria, FAQ, Google Reviews).
+- **Roadmap UI:** kafelek **`gastro`** (i ewent. kolejne) bez pełnej definicji → toast „w przygotowaniu”; dla brakującego `.html` podgląd localhost może używać proxy (`beauty.html`), aż do dodania pliku.
 
 ### 1.4 Luki i obszary do domknięcia (audyt)
 
