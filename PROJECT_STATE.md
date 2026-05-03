@@ -13,9 +13,9 @@
 
 | Warstwa | Technologie / artefakty |
 |--------|-------------------------|
-| **Front publiczny** | Statyczne HTML: **`index.html`** — landing marketingowy (Tailwind + Alpine); **`router.html`** — wejście do routingu wielodomenowego; szablony publiczne m.in. **`beauty.html`**, **`consultant.html`**, **`fitness.html`**, **`services.html`** (usługi lokalne); roadmap: **`gastro`** i ewent. kolejne (kafelki „w przygotowaniu” w panelu). **`routerApp.js`:** po załadowaniu strony z bazy → redirect do **`{pages.theme}.html`** (localhost: `?site=`). JS: `publicSiteApp.js` (`createPublicSiteApp('motyw')`), `routerApp.js`. Na „gołej” domenie platformy — **landing**; **`?site=`** i subdomeny → `router.html`. **Cloudflare Pages** + `functions/_middleware.js` (SEO). |
+| **Front publiczny** | Statyczne HTML: **`index.html`** — landing (Tailwind + Alpine), m.in. sekcja **Demo na żywo** (linki `?site=demo-beauty|demo-fitness|demo-services` → `router.html`); **`router.html`** — wejście do routingu wielodomenowego; szablony publiczne m.in. **`beauty.html`**, **`consultant.html`**, **`fitness.html`**, **`services.html`**. **Lokalny dev (localhost / 127.0.0.1):** gdy w `pages` nie ma wiersza dla tych slugów, **`pageRepository.getPageBySlug`** zwraca treść z **`docs/demo_seeds.json`** (bez Supabase). **`routerApp.js`:** po załadowaniu strony z bazy → redirect do **`{pages.theme}.html`** (`?site=` na hoście systemowym). JS: `publicSiteApp.js`, `routerApp.js`. Legacy **`landing.html` usunięty**. Roadmap szablonów: **`gastro`**. **Cloudflare Pages** + `functions/_middleware.js` (SEO). |
 | **Panel CMS** | `admin.html`, **Alpine.js**, **Tailwind** (CDN), `js/features/adminApp.js`. **Motyw strony** — kolumna `pages.theme` + lustrzanie `content.pl.settings.theme` (normalizacja + zapis). **Wygląd → Zmiana motywu branżowego:** kafelki szablonów (`DFOPS_getTemplateCatalog` w `registry.js`), `switchTemplate` (beauty / consultant / fitness / services); merge treści: `DFOPS_mergeContentWithTemplate` + **`DFOPS_resolveTemplateKeyForMerge`**. **Sidebar zależny od motywu:** m.in. **Grafik zajęć** (`schedule[]`, tylko fitness), **Zaufanie** (`trust` + `showTrust`, tylko services); **`ensureActiveTabForTheme()`** — po zmianie motywu nie zostaje otwarta ukryta zakładka. **Etykiety menu** — bloki Beauty / Konsultant / Fitness / Usługi w **Szablon i kolory → Marka**. **Pasek postępu:** `calculateProgress()`. Szablony: `js/templates/registry.js`; normalizacja: `js/core/contentSchema.js`, `js/core/contentUpgrader.js`; style publiczne: `js/core/themeStyling.js` + `config.js` (`presetsByTheme`, `accentByPreset`). |
-| **Backend danych** | **Supabase**: PostgreSQL (`pages` + treść JSON), **Auth** (JWT), **Storage** (obrazy), RLS na tabelach. Klient w przeglądarce: `js/core/supabaseClient.js`, repozytorium: `js/core/pageRepository.js`. |
+| **Backend danych** | **Supabase**: PostgreSQL (`pages` + treść JSON), **Auth** (JWT), **Storage** (obrazy), RLS na tabelach. **Strony katalogowe demo:** migracje **`20260503135500_pages_slug_unique`** + **`20260503140000_seed_demo_catalog_pages`** — UPSERT `demo-beauty` / `demo-fitness` / `demo-services` (`user_id` NULL; w treści **`subscription`** jak opłacony PRO omijający blok trial w `expire_trial_pages`). Źródło JSON zsynchronizowane: **`docs/demo_seeds.json`**; regeneracja SQL: **`node scripts/generate-demo-pages-migration.mjs`**. Deploy DB: **`supabase db push`** (opis w `README.md`). Klient: `supabaseClient.js`, **`pageRepository.js`**. |
 | **Backend logiki płatności / domen** | **Supabase Edge Functions** (Deno): webhook Stripe, Checkout, Portal, sync subskrypcji, domeny (Cloudflare), Google Reviews, cron trial. Współdzielona logika: `supabase/functions/_shared/stripeBilling.ts`. |
 | **Płatności** | **Stripe** (Checkout, Customer Portal, webhooks → Edge). Identyfikatory cen w `js/core/config.js` (`stripePrices`). |
 
@@ -43,6 +43,7 @@ Użytkownik → Auth (Supabase) → pages.content (JSON) → front (szablon + me
 | **CI/CD** | Deploy funkcji przez Supabase CLI (dokumentacja w `README`); brak jednego opisanego pipeline’u w repozytorium (np. GitHub Actions) — do ustalenia z infrastrukturą. |
 | **Observability** | Logi Edge/Deno + Stripe Dashboard; brak scentralizowanego opisu alertów (np. failed webhooks). |
 | **i18n** | Panel i treści głównie **PL**; szablony pod wielojęzyczność w modelu `content.pl` — pełne i18n nie są domknięte w UI. |
+| **RLS / anon read** | Wiersze demo mają **`user_id` NULL**. Upewnij się, że polityka **`SELECT`** na `public.pages` dla roli `anon` (lub publiczny odczyt po `slug`) pozwala gościom wczytać te rekordy — inaczej podgląd z landingu zwróci pustkę mimo migracji. |
 | **Wersjonowanie treści / audit** | Pojedynczy JSON `content` na stronę — brak historii wersji w produkcie. |
 | **API poza Supabase** | Brak osobnego BFF; cała logika „biznesowa” w JS klienta + Edge Functions. |
 | **Bezpieczeństwo treści** | Sanityzacja przy zapisie strony (`pageRepository.sanitizeContent` + DOMPurify w panelu) — patrz sekcja SECURITY. |
@@ -90,7 +91,7 @@ Użytkownik → Auth (Supabase) → pages.content (JSON) → front (szablon + me
 
 | Priorytet | Zadanie |
 |-----------|---------|
-| Wysoki | **Landing** — iteracje copy/visual nad `index.html`; ewent. A/B vs `landing.html` (legacy). |
+| Wysoki | **Landing (`index.html`)** — dalsze iteracje copy/visual i CRO (sekcja demo już wdrożona; osobnego `landing.html` nie ma). |
 | Wysoki | **Tour Driver.js** — dopracowanie na mobile (popover przy ekranie startu kreatora, scroll sidebara). |
 | Średni | **Inline validation** — spójne komunikaty przy polach (obok wykrzykników w menu). |
 | Średni | **Testy** — smoke dla webhooka Stripe (mock) i krytycznej ścieżki `saveData` / auth. |
@@ -103,12 +104,12 @@ Użytkownik → Auth (Supabase) → pages.content (JSON) → front (szablon + me
 
 *Na podstawie plików (`rejestracja.html`, `registrationApp.js`, `admin.html`, `adminApp.js`, szablony, Stripe) i dotychczasowych wdrożeń.*
 
-1. **Wejście marketingowe** — **`index.html`** (CTA do `rejestracja.html`); linki z panelu publicznego / stopki kierują na `index.html`. Legacy `landing.html` usunięty z repo; CTA „Zobacz cennik” w szablonach publicznych wskazuje `index.html#cennik`.  
+1. **Wejście marketingowe** — **`index.html`** (CTA do `rejestracja.html`; sekcja **Demo na żywo** → `?site=demo-*` → `router.html` → rekord `pages` / lokalnie JSON fallback); przy logowaniu i rejestracji linki wtórne na **`admin.html`** / **`rejestracja.html`** oraz powrót na **`index.html`**. Legacy `landing.html` usunięty; CTA „Zobacz cennik” w szablonach publicznych wskazuje `index.html#cennik`.  
 2. **Rejestracja** — formularz (`rejestracja.html`) → Supabase Auth; metadata ze **slugiem** strony; trigger / logika tworzy rekord `pages` (szablon startowy `setup`).  
 3. **Potwierdzenie e-maila** — bez potwierdzenia panel pokazuje baner; kreator i pełny onboarding nie startują.  
 4. **Pierwsze logowanie do panelu** — `admin.html` → `loadData` (ekran „Weryfikacja…” trwa do końca pierwszego wczytania, mniej migania) → ewentualnie **modal powitalny** → **Driver.js** (start kreatora → podgląd → menu) → zapis `welcome_onboarding_completed`.  
 5. **Konfiguracja treści** — edycja zakładek (hero, szablon, kontakt, …); **Konfiguracja → Wygląd** — zmiana motywu branżowego (`switchTemplate`) z potwierdzeniem, zapis i przeładowanie panelu; opcjonalnie **pełny kreator** (także trzy szablony w kroku 1); checklista podstaw z **!** dopóki brakuje szablonu (nie `setup`) / nazwy / kontaktu.  
-6. **Podgląd strony publicznej** — link w nagłówku panelu → plik **`{motyw}.html`** na localhost z `?site=`, lub domena `{slug}.{appDomain}` / custom domain po aktywacji.  
+6. **Podgląd strony publicznej** — link w nagłówku panelu → plik **`{motyw}.html`** na localhost z `?site=`, lub domena `{slug}.{appDomain}` / custom domain po aktywacji. Demo katalogowe: **`demo-beauty`**, **`demo-fitness`**, **`demo-services`** (treść jak w **`docs/demo_seeds.json`**; na produkcji po **`supabase db push`** migracji seed).  
 7. **Subskrypcja** — zakładka Subskrypcja → Stripe Checkout / Portal → webhook aktualizuje `content.pl.settings.subscription` i ewentualnie `trial_blocked_at` / blokady publikacji.  
 8. **Własna domena** (opcjonalnie, wyższe plany) — `add-custom-domain` + instrukcje DNS w panelu.  
 9. **Sesja i bezpieczeństwo** — reset hasła z maila; recovery wymusza zmianę hasła przed pełnym dostępem.
