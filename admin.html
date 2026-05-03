@@ -787,14 +787,14 @@
                         </div>
                         <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'seo' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
                             <button type="button" @click="setTab('seo')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
-                                <span :class="activeTab === 'seo' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Google i social media</span>
+                                <span :class="activeTab === 'seo' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">SEO i&nbsp;Analityka</span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: Google i social media">
+                                <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: SEO i Analityka">
                                     <svg class="w-4 h-4 text-slate-400 hover:text-accent transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 </button>
                                 <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
-                                    Jak strona wygląda w wyszukiwarce oraz obrazek i opis przy udostępnianiu linku (np. na Facebooku).
+                                    Wyniki Google, udostępnianie w mediach oraz opcjonalnie GTM / Meta&nbsp;Pixel.
                                     <div class="absolute -top-2 right-4 h-0 w-0 border-x-[7px] border-x-transparent border-b-[8px] border-b-slate-900" aria-hidden="true"></div>
                                 </div>
                             </div>
@@ -1426,7 +1426,7 @@
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Opis pod nagłówkiem</label>
                                 <textarea x-model="content.pl.hero.description" rows="3" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white"></textarea>
-                                <p class="text-xs text-slate-500 mt-2 leading-relaxed max-w-2xl">2–4 zdania: kim jesteś, dla kogo pracujesz, główna obietnica. Ten tekst często trafia też do podglądu w Google, jeśli nie ustawisz osobnego opisu w zakładce Google i social media.</p>
+                                <p class="text-xs text-slate-500 mt-2 leading-relaxed max-w-2xl">2–4 zdania: kim jesteś, dla kogo pracujesz, główna obietnica. Ten tekst często trafia też do podglądu w Google, jeśli nie ustawisz osobnego opisu w zakładce SEO i&nbsp;Analityka.</p>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tekst na przycisku</label>
@@ -1683,7 +1683,7 @@
                     <div x-show="activeTab === 'contact'" x-transition.opacity x-cloak>
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
                             <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Kontakt</h2>
-                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Dane kontaktowe, mapa i linki rezerwacyjne. Linki do profili społecznościowych ustawisz w zakładce Google i social media.</p>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Dane kontaktowe, mapa i linki rezerwacyjne. Profile społecznościowe — w zakładce SEO i&nbsp;Analityka.</p>
                             <label class="flex items-center gap-4 cursor-pointer">
                                 <div class="relative">
                                     <input type="checkbox" x-model="content.pl.settings.showContact" class="sr-only peer">
@@ -2284,8 +2284,8 @@
 
                     <div x-show="activeTab === 'seo'" x-transition.opacity x-cloak>
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
-                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Google i social&nbsp;media</h2>
-                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl">Jak strona wygląda w wyszukiwarce (tytuł i opis), obrazek przy udostępnianiu linku oraz profile społecznościowe.</p>
+                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">SEO i&nbsp;Analityka</h2>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl">Wyszukiwarka i udostępnianie linku (Open Graph), profile społecznościowe oraz — jeśli chcesz — Google Tag Manager i Meta&nbsp;Pixel. Wartości zapisujesz przyciskiem <strong>Publikuj Zmiany</strong>.</p>
                         </div>
 
                         <div class="space-y-6">
@@ -2326,6 +2326,27 @@
                                                class="text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-sm file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-widest file:bg-[#121212] file:text-[#D4AF37] hover:file:bg-gray-800 cursor-pointer transition-colors w-full">
                                         <p class="text-xs text-slate-500 mt-3 leading-relaxed">Zalecany format 1200×630 px lub zbliżony (JPG/PNG). Po wgraniu kliknij <strong>Publikuj Zmiany</strong>.</p>
                                         <p x-show="uploadingImage" x-text="uploadingMessage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+                                <h3 class="text-sm font-bold text-slate-900 mb-2 uppercase tracking-widest">Analityka i śledzenie (opcjonalne)</h3>
+                                <p class="text-xs text-slate-500 mb-5 leading-relaxed max-w-2xl">Podaj wyłącznie <strong>identyfikator</strong> z Google Tag Manager lub z Meta Events Manager — <strong>nie wklejaj całego kodu ani tagu &lt;script&gt;</strong>. Snippet wstrzykniemy na stronie dla gości (nie w podglądzie z&nbsp;panelu), <strong>po zgodzie</strong>: GTM przy kategorii <em>Analityczne</em>, Pixel przy <em>Marketingowe</em> — zgodnie z banerem cookies.</p>
+                                <div class="space-y-4 max-w-2xl">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Google Tag Manager ID</label>
+                                        <input type="text" x-model="content.pl.settings.analytics.gtm_id" maxlength="24" autocomplete="off" spellcheck="false"
+                                               class="w-full rounded-lg border border-slate-200 px-4 py-3 font-mono text-sm focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none"
+                                               placeholder="GTM-XXXXXXX">
+                                        <p class="text-[11px] text-slate-500 mt-1.5">Format: GTM- i krótki kod alfanumeryczny.</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Facebook / Meta Pixel ID</label>
+                                        <input type="text" inputmode="numeric" x-model="content.pl.settings.analytics.fb_pixel_id" maxlength="24" autocomplete="off" spellcheck="false"
+                                               class="w-full rounded-lg border border-slate-200 px-4 py-3 font-mono text-sm focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none"
+                                               placeholder="np. 123456789012345">
+                                        <p class="text-[11px] text-slate-500 mt-1.5">Wyłącznie cyfry (ID piksela z Meta).</p>
                                     </div>
                                 </div>
                             </div>

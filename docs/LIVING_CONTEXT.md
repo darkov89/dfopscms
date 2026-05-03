@@ -4,7 +4,7 @@
 
 Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **changelog** jednoliniowy, żeby nie dublować długich sekcji.
 
-**Ostatnia aktualizacja treści:** 2026-05-03 (aktualizacja changelog + `PROJECT_STATE`)
+**Ostatnia aktualizacja treści:** 2026-05-06 (changelog + `PROJECT_STATE` — analityka i zgody)
 
 ---
 
@@ -17,9 +17,9 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 | Konfiguracja klienta | `js/core/config.js` |
 | Landing marketingowy | `index.html` (m.in. **Demo na żywo** → `?site=demo-*`) · routing `?site=` / subdomeny → `router.html` |
 | Demo / seed treści | [`docs/demo_seeds.json`](demo_seeds.json) (**`map_embed_url`**, **`reviews[]`**, **`is_demo_catalog`**) · migracja `supabase/migrations/*_seed_demo_catalog_pages.sql` · lokalnie: `getPageBySlug` fallback z JSON (`pageRepository.js`) |
-| Szablony publiczne | `beauty.html`, `consultant.html`, `fitness.html`, `services.html`, … · `routerApp.js` → `{pages.theme}.html` |
-| Panel | `admin.html`, `js/features/adminApp.js` (**`showStripeBillingPortal`**, layout planów **xl** grid) |
-| Rejestr szablonów / merge | `js/templates/registry.js` · `contentSchema` / `contentUpgrader` |
+| Szablony publiczne | **`beauty` / `consultant` / `fitness` / `services`** + **`cookieConsentApp.js`** (zgody → **`consent-updated`**) · `publicSiteApp.js` (**`DFOPS_getStoredCookieConsent`**, **`DFOPS_injectClientAnalytics`**) · `routerApp.js` → `{pages.theme}.html` |
+| Panel | `admin.html` — zakładka **SEO i Analityka** (`analytics.gtm_id` / `fb_pixel_id`), **`getPublicSiteUrl`** → `dfcms_preview=1` · `adminApp.js` (**`showStripeBillingPortal`**, grid planów **xl**) |
+| Rejestr szablonów / merge | `js/templates/registry.js` (**`settings.analytics`**) · `contentSchema.js` / `contentUpgrader.js` · `pageRepository` (**sanityzacja `gtm_id` / `fb_pixel_id`**) |
 | Edge Stripe | `supabase/functions/stripe-webhook/`, `_shared/stripeBilling.ts` |
 
 ---
@@ -28,6 +28,7 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 
 | Data | Co |
 |------|-----|
+| 2026-05-06 | **Analityka + RODO UX:** **`content.pl.settings.analytics`** (`gtm_id`, `fb_pixel_id`) — **`contentSchema`** / **`contentUpgrader`** / **`registry`**, sanitacja przy zapisie **`pageRepository`**. Panel zakładka **SEO i Analityka** + podgląd z **`dfcms_preview=1`**. Public: **`injectClientAnalytics`** — GTM po zgodzie **Analityczne**, Pixel po **Marketingowe**; **`DFOPS_getStoredCookieConsent`**; kopie banerów (**beauty/consultant/fitness/services**) doprecyzowane. |
 | 2026-05-03 | **Demo public + sanityzacja:** przy **`is_demo_catalog`** i bez **`google_reviews.place_query`** opinie z **`content.pl.reviews`** w karuzeli (**`googleReviewsApp.js`**); sekcje/link w **beauty / fitness / services**. **`contact.map_embed_url`** w seedach (Korzecznik 16 / Kłodawa); **`pageRepository`** — HTTPS Google Maps: **`/maps/embed`** lub **`/maps?…&output=embed`**. **Panel Subskrypcja:** portal Stripe pod **`showStripeBillingPortal`** (+ komunikat dla trialu); siatka planów od **`xl`**, równe wysokości kart i CTA (**`admin.html`**). |
 | 2026-05-03 | **Landing / demo:** sekcja **„Gotowe szablony…”** (3 karty → `demo-beauty` / `demo-fitness` / `demo-services`), nav **Demo na żywo** · **`docs/demo_seeds.json`** + migracje Supabase (**`pages_slug_unique`**, UPSERT demo) · **`tier2` + payment_completed** w seedach (ominięcie bloku trial w cronie) · **localhost:** `pageRepository.getPageBySlug` czyta JSON gdy brak wiersza w `pages`. **Legacy `landing.html` usunięty.** **`README`** — `supabase db push`, regeneracja migracji (`scripts/generate-demo-pages-migration.mjs`). |
 | 2026-05-03 | **Auth / UX:** Pod formularzem na **`rejestracja.html`** i **`admin.html`** (logowanie + reset hasła): linki do drugiego widoku oraz **`index.html`** (Quiet Luxury hover złoty). |

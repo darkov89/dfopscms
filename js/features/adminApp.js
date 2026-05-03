@@ -155,6 +155,7 @@
         settings: {
           template_version: 1,
           color_preset: 'beige',
+          analytics: { gtm_id: '', fb_pixel_id: '' },
           subscription: { plan: 'trial', trial_started_at: new Date().toISOString(), selected_plan: null },
           background_style: 'soft',
           font_preset: 'inter',
@@ -508,19 +509,20 @@
         this.switchTemplate(entry.id);
       },
       getPublicSiteUrl() {
+        const preview = 'dfcms_preview=1';
         const hostCustom = typeof this.customDomain === 'string' ? this.customDomain.trim() : '';
         if (hostCustom && this.customDomainStatus === 'active') {
           const h = hostCustom.replace(/^https?:\/\//i, '').split('/')[0];
-          return `https://${h}`;
+          return `https://${h}/?${preview}`;
         }
         const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         if (isLocalhost) {
           if (!this.slug || !this.theme) return '#';
-          return `/${this.previewHtmlBasename}.html?site=${encodeURIComponent(this.slug)}`;
+          return `/${this.previewHtmlBasename}.html?site=${encodeURIComponent(this.slug)}&${preview}`;
         }
         if (!this.slug) return '#';
         const base = (cfg.appDomain || 'dfcms.pl').toLowerCase();
-        return `https://${this.slug}.${base}`;
+        return `https://${this.slug}.${base}/?${preview}`;
       },
       get planDisplayLabel() {
         const sub = this.content?.pl?.settings?.subscription;

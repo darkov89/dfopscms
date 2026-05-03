@@ -174,6 +174,86 @@
   /**
    * Aktualizacja SEO / Open Graph po stronie klienta (title, description, obraz udostępnień).
    */
+  function parseGtmIdForInject(raw) {
+    const s = String(raw || '').trim().toUpperCase();
+    if (!/^GTM-[A-Z0-9]{4,}$/.test(s)) return '';
+    return s;
+  }
+
+  function parseFbPixelIdForInject(raw) {
+    const s = String(raw || '').trim().replace(/\s+/g, '');
+    if (!/^\d{5,24}$/.test(s)) return '';
+    return s;
+  }
+
+  /**
+   * Śledzenie tylko na prawdziwym widoku publicznym — nie w iframe, nie z podglądu panelu (?dfcms_preview=1).
+   */
+  function isPublicAnalyticsSurface() {
+    try {
+      if (typeof window === 'undefined' || typeof document === 'undefined') return false;
+      if (window.self !== window.top) return false;
+      const p = new URLSearchParams(window.location.search || '');
+      if (p.get('dfcms_preview') === '1') return false;
+    } catch (_) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Wstrzyknięcie GTM / Meta Pixel wyłącznie po ID (walidacja jak w pageRepository przy zapisie).
+   * consentOpts: analytics → Google Tag Manager; marketing → Meta Pixel (zgodnie z banerem cookies).
+   */
+  function injectClientAnalytics(content, lang, consentOpts) {
+    if (!isPublicAnalyticsSurface()) return;
+    if (!content || typeof content !== 'object') return;
+    const allowAnalytics = !!(consentOpts && consentOpts.analytics === true);
+    const allowMarketing = !!(consentOpts && consentOpts.marketing === true);
+    const L = typeof lang === 'string' && content[lang] ? lang : Object.keys(content)[0] || 'pl';
+    const analytics = content[L]?.settings?.analytics;
+    if (!analytics || typeof analytics !== 'object') return;
+
+    const gtmId = allowAnalytics ? parseGtmIdForInject(analytics.gtm_id) : '';
+    const fbId = allowMarketing ? parseFbPixelIdForInject(analytics.fb_pixel_id) : '';
+    if (!gtmId && !fbId) return;
+    if (!document.head) return;
+
+    if (gtmId && !document.getElementById('dfcms-gtm')) {
+      const scr = document.createElement('script');
+      scr.id = 'dfcms-gtm';
+      scr.textContent =
+        "(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','" +
+        gtmId +
+        "');";
+      document.head.appendChild(scr);
+
+      if (document.body) {
+        const ns = document.createElement('noscript');
+        ns.id = 'dfcms-gtm-ns';
+        const ifr = document.createElement('iframe');
+        ifr.src = 'https://www.googletagmanager.com/ns.html?id=' + encodeURIComponent(gtmId);
+        ifr.height = '0';
+        ifr.width = '0';
+        ifr.style.display = 'none';
+        ifr.style.visibility = 'hidden';
+        ifr.setAttribute('title', 'Google Tag Manager');
+        ns.appendChild(ifr);
+        document.body.insertBefore(ns, document.body.firstChild);
+      }
+    }
+
+    if (fbId && !document.getElementById('dfcms-fbq')) {
+      const scr = document.createElement('script');
+      scr.id = 'dfcms-fbq';
+      scr.textContent =
+        "!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','" +
+        fbId +
+        "');fbq('track','PageView');";
+      document.head.appendChild(scr);
+    }
+  }
+
   function applyDocumentSeo(content, lang) {
     const seoData = content?.[lang]?.seo;
     if (!seoData) return;
@@ -226,6 +306,7 @@
         seo: { title: '', description: '', ogImage: '' },
         legal: { enabled: false, privacy_policy: '', terms: '' },
         settings: {
+          analytics: { gtm_id: '', fb_pixel_id: '' },
           showManifesto: true,
           showServices: true,
           showProof: true,
@@ -264,6 +345,24 @@
       },
       closeModal() {
         this.activeModal = null;
+      },
+      injectAnalyticsTracking() {
+        try {
+          const self = this;
+          window.DFOPS__applyAnalyticsConsentNow = function applyAnalyticsConsent() {
+            const stored =
+              typeof window.DFOPS_getStoredCookieConsent === 'function'
+                ? window.DFOPS_getStoredCookieConsent()
+                : null;
+            const flags = stored
+              ? { analytics: !!stored.analytics, marketing: !!stored.marketing }
+              : { analytics: false, marketing: false };
+            injectClientAnalytics(self.content, self.lang, flags);
+          };
+          window.DFOPS__applyAnalyticsConsentNow();
+        } catch (e) {
+          console.warn('DFOPS analytics:', e);
+        }
       },
       async resolveMapIframeFromPlace() {
         this.mapIframeSrc = '';
@@ -372,6 +471,7 @@
 
           this.slug = page.slug;
           if (page.trial_blocked_at || shouldBlockPublicPageView(page)) {
+            window.DFOPS__applyAnalyticsConsentNow = function noopAnalyticsConsent() {};
             const links = this.buildSubscriptionLinks(page.slug);
             this.subscriptionPanelUrl = links.panel;
             this.landingPricingUrl = links.landingCennik;
@@ -397,6 +497,7 @@
           applyDocumentSeo(this.content, this.lang);
           initWatermark(this.content?.pl?.settings?.subscription?.plan);
           await this.resolveMapIframeFromPlace();
+          this.injectAnalyticsTracking();
           this.dataLoaded = true;
         } catch (error) {
           console.error('Błąd krytyczny aplikacji:', error);
@@ -410,5 +511,17 @@
 
   window.createPublicSiteApp = createPublicSiteApp;
   window.DFOPS_applyDocumentSeo = applyDocumentSeo;
+  window.DFOPS_isPublicAnalyticsSurface = isPublicAnalyticsSurface;
+  window.DFOPS_injectClientAnalytics = injectClientAnalytics;
+
+  window.addEventListener(
+    'consent-updated',
+    () => {
+      if (typeof window.DFOPS__applyAnalyticsConsentNow === 'function') {
+        window.DFOPS__applyAnalyticsConsentNow();
+      }
+    },
+    false
+  );
 })();
 

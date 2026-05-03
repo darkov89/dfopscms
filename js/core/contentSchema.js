@@ -37,6 +37,19 @@
     if (normalized.pl.settings.onboarding_completed === undefined) {
       normalized.pl.settings.onboarding_completed = false;
     }
+    if (!normalized.pl.settings.analytics || typeof normalized.pl.settings.analytics !== 'object') {
+      normalized.pl.settings.analytics = { gtm_id: '', fb_pixel_id: '' };
+    } else {
+      if (normalized.pl.settings.analytics.gtm_id === undefined || normalized.pl.settings.analytics.gtm_id === null) {
+        normalized.pl.settings.analytics.gtm_id = '';
+      }
+      if (
+        normalized.pl.settings.analytics.fb_pixel_id === undefined ||
+        normalized.pl.settings.analytics.fb_pixel_id === null
+      ) {
+        normalized.pl.settings.analytics.fb_pixel_id = '';
+      }
+    }
     return normalized;
   }
 

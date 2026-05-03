@@ -72,6 +72,20 @@
     }
   }
 
+  /** Tylko identyfikator kontenera GTM — bez snippetów ani HTML. */
+  function sanitizeGtmContainerId(raw) {
+    const s = String(raw || '').trim().toUpperCase();
+    if (!s || !/^GTM-[A-Z0-9]{4,}$/.test(s)) return '';
+    return s;
+  }
+
+  /** Meta (Facebook) Pixel ID — wyłącznie cyfry w rozsądnym zakresie. */
+  function sanitizeFbPixelIdField(raw) {
+    const s = String(raw || '').trim().replace(/\s+/g, '');
+    if (!s || !/^\d{5,24}$/.test(s)) return '';
+    return s;
+  }
+
   function sanitizeGoogleMapEmbedField(raw) {
     const extracted = extractEmbedSrcOrUrl(raw);
     if (!extracted) return '';
@@ -269,6 +283,8 @@
       if (keyHint === 'map_embed_url') return sanitizeGoogleMapEmbedField(obj);
       if (keyHint === 'map_place_id') return sanitizeMapPlaceId(obj);
       if (keyHint === 'embed_url') return sanitizeGoogleReviewsEmbedField(obj);
+      if (keyHint === 'gtm_id') return sanitizeGtmContainerId(obj);
+      if (keyHint === 'fb_pixel_id') return sanitizeFbPixelIdField(obj);
       return sanitizeHtml(obj);
     }
     if (Array.isArray(obj)) return obj.map((x) => sanitizeContent(x));

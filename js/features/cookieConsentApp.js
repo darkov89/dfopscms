@@ -13,6 +13,11 @@
     }
   }
 
+  /** Odczyt zapisanych ustawień zgód (np. żeby wstrzyknąć GTM / Pixel dopiero jeśli dozwolone). */
+  function getStoredCookieConsent() {
+    return parseStored();
+  }
+
   function emitConsentEvents(consents) {
     if (consents.analytics) {
       window.dispatchEvent(new CustomEvent('consent-analytics'));
@@ -22,6 +27,8 @@
     }
     window.dispatchEvent(new CustomEvent('consent-updated', { detail: consents }));
   }
+
+  window.DFOPS_getStoredCookieConsent = getStoredCookieConsent;
 
   document.addEventListener('alpine:init', () => {
     Alpine.data('cookieConsent', () => ({

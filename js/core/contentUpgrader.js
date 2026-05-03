@@ -58,6 +58,17 @@
       if (!pl.settings.subscription.plan) pl.settings.subscription.plan = 'trial';
       if (!pl.settings.subscription.trial_started_at) pl.settings.subscription.trial_started_at = new Date().toISOString();
     }
+    if (!pl.settings.analytics || typeof pl.settings.analytics !== 'object') {
+      pl.settings.analytics = { gtm_id: '', fb_pixel_id: '' };
+    } else {
+      if (pl.settings.analytics.gtm_id === undefined || pl.settings.analytics.gtm_id === null) {
+        pl.settings.analytics.gtm_id = '';
+      }
+      if (pl.settings.analytics.fb_pixel_id === undefined || pl.settings.analytics.fb_pixel_id === null) {
+        pl.settings.analytics.fb_pixel_id = '';
+      }
+    }
+
     const sub = pl.settings.subscription;
     if (sub.payment_completed === 'true' || sub.payment_completed === 1 || sub.payment_completed === '1') {
       sub.payment_completed = true;
