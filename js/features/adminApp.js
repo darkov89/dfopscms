@@ -1335,8 +1335,14 @@
             const paid = s.payment_completed === true ? '1' : '0';
             return `${p}|${sel}|${paid}`;
           };
+          /** Z Supabase bez normalizacji — jeśli true, pomijamy modal i Driver.js także przy pustym localStorage kreatora. */
+          const serverWelcomeOnboardingDone =
+            data?.content?.pl?.settings?.welcome_onboarding_completed === true;
           const prevSubSig = subSig(data.content?.pl?.settings?.subscription);
           this.content = window.DFOPS_normalizeContent(data.content, this.theme);
+          if (serverWelcomeOnboardingDone && this.content?.pl?.settings) {
+            this.content.pl.settings.welcome_onboarding_completed = true;
+          }
           const nextSubSig = subSig(this.content.pl.settings.subscription);
           if (prevSubSig !== nextSubSig) {
             await this.saveData({ silentSuccess: true });
@@ -1355,6 +1361,7 @@
             this.incompleteOnboardingChecks.length === 0
           ) {
             this.content.pl.settings.onboarding_completed = true;
+            this.content.pl.settings.welcome_onboarding_completed = true;
             await this.saveData({ silentSuccess: true });
           }
 
@@ -1363,6 +1370,11 @@
             this.isEmailVerified &&
             !this.isForcedPasswordReset &&
             !this.content?.pl?.settings?.welcome_onboarding_completed;
+
+          if (this.content?.pl?.settings?.welcome_onboarding_completed === true) {
+            this.showWizard = false;
+            if (this.slug) clearWizardStateFromStorage(this.slug);
+          }
 
           this.$nextTick(() => {
             setTimeout(() => {
@@ -1623,6 +1635,7 @@
        * Pola treści (nazwa, logo w Studiu) pomijamy — sens mają dopiero po wyborze szablonu w kreatorze.
        */
       async startOnboardingTour() {
+        if (this.content?.pl?.settings?.welcome_onboarding_completed === true) return;
         const driverFactory = this.resolveDriverFactory();
         if (!driverFactory) {
           this.showWizard = false;
@@ -1764,6 +1777,9 @@
       /** Zamknięcie modala powitalnego; przy otwartym kreatorze tylko zapis „widziane”, bez touru pod spodem. */
       async dismissWelcomeModalAndStartOnboarding() {
         this.showWelcomeModal = false;
+        if (this.content?.pl?.settings?.welcome_onboarding_completed === true) {
+          return;
+        }
         if (this.showWizard) {
           await this.markWelcomeOnboardingSeen();
           return;
@@ -1850,7 +1866,7 @@
           typeof sub.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
         const changePlanInStripe =
           !!existingStripeSubId &&
-          (planType === 'pro' || planType === 'premium' || planType === 'test_daily');
+          (planType === 'pro' || planType === 'premium');
 
         if (!changePlanInStripe) {
           if (!this.content.pl.settings.subscription) {
@@ -1918,6 +1934,9 @@
           if (error) throw error;
           const url = data && typeof data.url === 'string' ? data.url : '';
           if (url) {
+            if (planType === 'starter' && typeof window.DFOPS_trackEvent === 'function') {
+              window.DFOPS_trackEvent('starter_checkout_started', { slug: this.slug });
+            }
             window.location.href = url;
           } else {
             const errMsg =
@@ -1939,38 +1958,6 @@
           }
         } finally {
           this.checkoutLoading = false;
-        }
-      },
-
-      async selectStarterPlan() {
-        if (this.subscriptionPlan !== 'trial') {
-          this.showError('Zmiana pakietu przy aktywnej subskrypcji wymaga kontaktu z obsługą (Concierge).');
-          return;
-        }
-        if (
-          !confirm(
-            'Wybierasz pakiet Starter (19 zł netto / msc + VAT). Do pierwszej opłaty korzystasz z 14-dniowego okresu próbnego na warunkach regulaminu. Kontynuować?'
-          )
-        ) {
-          return;
-        }
-        if (!this.content?.pl?.settings) return;
-        if (!this.content.pl.settings.subscription) {
-          this.content.pl.settings.subscription = { plan: 'trial', trial_started_at: new Date().toISOString() };
-        }
-        this.content.pl.settings.subscription.selected_plan = 'tier0';
-        this.content.pl.settings.subscription.plan = 'trial';
-        const ok = await this.saveData({
-          successMessage:
-            'Zapisano wybór Startera. Dopóki nie zaksięgujemy płatności, pozostajesz w okresie próbnym — dokończ opłatę przed jego końcem.',
-        });
-        if (ok) {
-          this.syncUserPlanFromBilling();
-          this.enforceColorPresetForStarter();
-          this.applyThemeStylingFromContent();
-          if (typeof window.DFOPS_trackEvent === 'function') {
-            window.DFOPS_trackEvent('starter_plan_selected', { slug: this.slug });
-          }
         }
       },
       async upgradeTemplate() {

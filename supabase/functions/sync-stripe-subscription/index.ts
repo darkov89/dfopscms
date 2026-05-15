@@ -96,7 +96,6 @@ serve(async (req) => {
     const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     const stripeSecret = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
     const priceStarter = Deno.env.get("STRIPE_PRICE_STARTER") ?? "";
-    const priceTestDaily = Deno.env.get("STRIPE_PRICE_TEST_DAILY") ?? "";
     const pricePro = Deno.env.get("STRIPE_PRICE_PRO") ?? "";
     const pricePremium = Deno.env.get("STRIPE_PRICE_PREMIUM") ?? "";
 
@@ -184,12 +183,10 @@ serve(async (req) => {
     let tierOverride: StripePaidTier | undefined;
     if (pricePremium && priceId === pricePremium) tierOverride = "tier2";
     else if (pricePro && priceId === pricePro) tierOverride = "tier1";
-    else if (priceTestDaily && priceId === priceTestDaily) tierOverride = "tier1";
     else if (priceStarter && priceId === priceStarter) tierOverride = "tier0";
 
     const result = await applyStripeSubscriptionToPage(supabase, page, subscription, {
       priceStarter,
-      priceTestDaily,
       pricePro,
       pricePremium,
       ...(tierOverride ? { tierOverride } : {}),

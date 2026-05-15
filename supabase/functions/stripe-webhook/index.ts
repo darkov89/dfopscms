@@ -27,7 +27,7 @@ function tierPlanFromMetadata(planMeta: string | undefined | null): StripePaidTi
   const p = String(planMeta || "").toLowerCase().trim();
   if (!p) return undefined;
   if (p === "premium" || p === "tier2") return "tier2";
-  if (p === "pro" || p === "tier1" || p === "test_daily") return "tier1";
+  if (p === "pro" || p === "tier1") return "tier1";
   if (p === "starter" || p === "tier0") return "tier0";
   return undefined;
 }
@@ -43,7 +43,6 @@ async function handleInvoicePaymentSuccess(
   priceStarter: string,
   pricePro: string,
   pricePremium: string,
-  priceTestDaily: string,
 ): Promise<{ errorResponse?: Response }> {
   const subscriptionId = extractInvoiceSubscriptionId(invoice);
   if (!subscriptionId) {
@@ -78,7 +77,6 @@ async function handleInvoicePaymentSuccess(
 
   const result = await applyStripeSubscriptionToPage(supabase, page, subscription, {
     priceStarter,
-    priceTestDaily,
     pricePro,
     pricePremium,
   });
@@ -103,7 +101,6 @@ serve(async (req) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
   const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
   const priceStarter = Deno.env.get("STRIPE_PRICE_STARTER") ?? "";
-  const priceTestDaily = Deno.env.get("STRIPE_PRICE_TEST_DAILY") ?? "";
   const pricePro = Deno.env.get("STRIPE_PRICE_PRO") ?? "";
   const pricePremium = Deno.env.get("STRIPE_PRICE_PREMIUM") ?? "";
 
@@ -202,7 +199,6 @@ serve(async (req) => {
 
         const result = await applyStripeSubscriptionToPage(supabase, page, subscription, {
           priceStarter,
-          priceTestDaily,
           pricePro,
           pricePremium,
           ...(tierFromMeta ? { tierOverride: tierFromMeta } : {}),
@@ -225,7 +221,6 @@ serve(async (req) => {
         }
         const result = await applyStripeSubscriptionToPage(supabase, page, subscription, {
           priceStarter,
-          priceTestDaily,
           pricePro,
           pricePremium,
         });
@@ -265,7 +260,6 @@ serve(async (req) => {
           priceStarter,
           pricePro,
           pricePremium,
-          priceTestDaily,
         );
         if (errorResponse) return errorResponse;
         break;

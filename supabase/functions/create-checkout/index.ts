@@ -150,10 +150,9 @@ serve(async (req) => {
     }
 
     const priceStarter = Deno.env.get("STRIPE_PRICE_STARTER") ?? "";
-    const priceTestDaily = Deno.env.get("STRIPE_PRICE_TEST_DAILY") ?? "";
     const pricePro = Deno.env.get("STRIPE_PRICE_PRO") ?? "";
     const pricePremium = Deno.env.get("STRIPE_PRICE_PREMIUM") ?? "";
-    const allowed = new Set([priceStarter, priceTestDaily, pricePro, pricePremium].filter(Boolean));
+    const allowed = new Set([priceStarter, pricePro, pricePremium].filter(Boolean));
 
     const body = await req.json().catch(() => ({}));
     const rawPrice =
@@ -162,12 +161,11 @@ serve(async (req) => {
 
     let priceId = "";
     if (plan === "starter" && priceStarter) priceId = priceStarter;
-    else if (plan === "test_daily" && priceTestDaily) priceId = priceTestDaily;
     else if (plan === "pro" && pricePro) priceId = pricePro;
     else if (plan === "premium" && pricePremium) priceId = pricePremium;
     else if (rawPrice && allowed.has(rawPrice)) priceId = rawPrice;
     else if (
-      (plan === "pro" || plan === "premium" || plan === "starter" || plan === "test_daily") &&
+      (plan === "pro" || plan === "premium" || plan === "starter") &&
       rawPrice &&
       (rawPrice.startsWith("price_") || rawPrice.startsWith("prod_"))
     ) {
@@ -177,7 +175,7 @@ serve(async (req) => {
 
     if (!priceId) {
       throw new Error(
-        "Nieprawidłowy plan lub cena. Ustaw Secrets (STRIPE_PRICE_PRO, PREMIUM, opcjonalnie STARTER / TEST_DAILY) albo stripePrices w config.js.",
+        "Nieprawidłowy plan lub cena. Ustaw Secrets (STRIPE_PRICE_PRO, PREMIUM, opcjonalnie STARTER) albo stripePrices w config.js.",
       );
     }
 
@@ -213,13 +211,11 @@ serve(async (req) => {
           plan ||
           (resolvedPriceId === priceStarter
             ? "starter"
-            : resolvedPriceId === priceTestDaily
-              ? "test_daily"
-              : resolvedPriceId === pricePro
-                ? "pro"
-                : resolvedPriceId === pricePremium
-                  ? "premium"
-                  : ""),
+            : resolvedPriceId === pricePro
+              ? "pro"
+              : resolvedPriceId === pricePremium
+                ? "premium"
+                : ""),
       },
     };
     if (existingCustomerId) {
