@@ -4,7 +4,7 @@
 
 Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **changelog** jednoliniowy, żeby nie dublować długich sekcji.
 
-**Ostatnia aktualizacja treści:** 2026-05-15 (changelog — usunięty test_daily)
+**Ostatnia aktualizacja treści:** 2026-05-15 (changelog — zakładka w `#hash`, nagłówek, ikony menu, subskrypcja UI)
 
 ---
 
@@ -28,6 +28,9 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 
 | Data | Co |
 |------|-----|
+| 2026-05-15 | **Panel:** aktywna zakładka synchronizowana z **`admin.html#tab`** (`replaceState`), po odświeżeniu zostajesz na tej samej karcie; `hashchange` obsługa. |
+| 2026-05-15 | **Panel:** nagłówek, ikony podpowiedzi w menu, separator treści; **Subskrypcja** — badge „Wygasa …”, kwota miesięczna, przycisk „Wznów w Stripe”. |
+| 2026-05-15 | **Subskrypcja „wygasająca”:** **`cancel_at_period_end`** + `active`/`trialing` → **`isSubscriptionCanceledButValid`** (`planUtils.js`, `adminApp.js`); publikacja publiczna **nie** zależy od tej flagi (`PROJECT_STATE` §2, komentarz w **`publicSiteApp.js`**). |
 | 2026-05-15 | **Subskrypcja:** usunięty plan **Dzienny (test)** / `test_daily` z **`admin.html`** i **`stripePrices`**; Edge (`create-checkout`, `change-subscription-plan`, `sync-stripe-subscription`, `stripe-webhook`, **`stripeBilling.ts`**) bez **`STRIPE_PRICE_TEST_DAILY`**. |
 | 2026-05-15 | **Panel:** **`welcome_onboarding_completed`** z Supabase nadrzędne wobec localStorage kreatora — brak modala/Driver.js gdy `true` w bazie; auto-domknięcie checklisty ustawia `welcome` + zapis. **Starter:** jeden przycisk → **`subscribe('starter')`** / **`create-checkout`** (usunięty `confirm` i blok „Oczekiwanie na płatność”). |
 | 2026-05-06 | **Analityka + RODO UX:** **`content.pl.settings.analytics`** (`gtm_id`, `fb_pixel_id`) — **`contentSchema`** / **`contentUpgrader`** / **`registry`**, sanitacja przy zapisie **`pageRepository`**. Panel zakładka **SEO i Analityka** + podgląd z **`dfcms_preview=1`**. Public: **`injectClientAnalytics`** — GTM po zgodzie **Analityczne**, Pixel po **Marketingowe**; **`DFOPS_getStoredCookieConsent`**; kopie banerów (**beauty/consultant/fitness/services**) doprecyzowane. |

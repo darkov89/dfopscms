@@ -15,6 +15,8 @@
   /**
    * Czy ukryć treść strony publicznej (bez czekania na cron ustawiający trial_blocked_at).
    * Logika zsynchronizowana z SQL: expire_trial_pages (trial + billing_failed).
+   * Uwaga: rezygnacja na koniec okresu w Stripe (`cancel_at_period_end` w JSON) sama w sobie
+   * NIE blokuje publikacji — do tego służą trial, billing_failed i trial_blocked_at.
    */
   function shouldBlockPublicPageView(page) {
     if (!page || typeof page !== 'object') return true;

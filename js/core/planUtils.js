@@ -57,9 +57,49 @@
     return `${domain} · ${wm} · ${colors} · ${assistant}`;
   }
 
+  /**
+   * Anulowanie na koniec okresu w Stripe (`cancel_at_period_end`) — w JSON czasem boolean, czasem string.
+   */
+  function subscriptionCancelAtPeriodEndTrue(sub) {
+    if (!sub || typeof sub !== 'object') return false;
+    const v = sub.cancel_at_period_end;
+    return v === true || v === 'true' || v === 1 || v === '1';
+  }
+
+  /**
+   * Subskrypcja nadal rozliczona (active/trialing), ale użytkownik zgłosił rezygnację — dostęp do `current_period_end`.
+   */
+  function isSubscriptionCanceledButValid(sub) {
+    if (!sub || typeof sub !== 'object') return false;
+    const st = String(sub.status || '')
+      .trim()
+      .toLowerCase();
+    if (st !== 'active' && st !== 'trialing') return false;
+    return subscriptionCancelAtPeriodEndTrue(sub);
+  }
+
+  /** Data końca bieżącego okresu rozliczeniowego (ISO / timestamp z Stripe) — do UI. */
+  function formatSubscriptionPeriodEndPl(raw) {
+    if (raw == null || raw === '') return '—';
+    try {
+      const d = new Date(typeof raw === 'number' ? raw * 1000 : String(raw));
+      if (Number.isNaN(d.getTime())) return '—';
+      return d.toLocaleDateString('pl-PL', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+    } catch {
+      return '—';
+    }
+  }
+
   window.DFOPS_planAllowsCustomDomain = planAllowsCustomDomain;
   window.DFOPS_planShowsWatermark = planShowsWatermark;
   window.DFOPS_planDisplayName = planDisplayName;
   window.DFOPS_subscriptionDisplayName = subscriptionDisplayName;
   window.DFOPS_planCapabilitiesSummary = planCapabilitiesSummary;
+  window.DFOPS_subscriptionCancelAtPeriodEndTrue = subscriptionCancelAtPeriodEndTrue;
+  window.DFOPS_isSubscriptionCanceledButValid = isSubscriptionCanceledButValid;
+  window.DFOPS_formatSubscriptionPeriodEndPl = formatSubscriptionPeriodEndPl;
 })();

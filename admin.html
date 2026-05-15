@@ -33,10 +33,10 @@
     <script defer src="js/core/contentUpgrader.js?v=20260404c"></script>
     <script defer src="js/core/themeStyling.js?v=20260404c"></script>
     <script defer src="js/core/pageRepository.js?v=20260403t"></script>
-    <script defer src="js/core/planUtils.js?v=20260403t"></script>
+    <script defer src="js/core/planUtils.js?v=20260515a"></script>
     <script defer src="js/core/analytics.js?v=20260403t"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260404d"></script>
+    <script defer src="js/features/adminApp.js?v=20260515d"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260404a">
@@ -496,54 +496,65 @@
 
         <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false" class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-[2px] transition-opacity lg:hidden" x-transition.opacity></div>
 
-        <div class="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200/80 bg-white/90 px-4 py-3 backdrop-blur-md lg:hidden">
+        <div class="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-slate-200/80 bg-white/90 px-6 backdrop-blur-md lg:hidden">
             <span class="text-lg font-black tracking-widest text-slate-900">DF<span class="text-accent">CMS</span></span>
             <button type="button" @click="sidebarOpen = true" class="-mr-2 rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Otwórz menu">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
         </div>
 
-        <header class="sticky top-0 z-30 flex flex-col gap-4 border-b border-slate-200/80 bg-white/90 px-4 py-3 shadow-sm backdrop-blur-md md:px-8 md:py-4 lg:z-50 lg:flex-row lg:items-center lg:justify-between">
-            <div class="hidden shrink-0 lg:block">
-                <h1 class="text-2xl font-black tracking-widest text-slate-900">DF<span class="text-accent">CMS</span></h1>
-                <p class="text-xs font-medium uppercase tracking-widest text-slate-500">Witaj, <span x-text="user?.email"></span></p>
-            </div>
-            <div class="truncate text-xs font-medium uppercase tracking-widest text-slate-500 lg:hidden">Witaj, <span x-text="user?.email"></span></div>
-
-            <div class="flex w-full flex-col gap-3 lg:flex-1 lg:w-auto lg:flex-row lg:items-center lg:justify-end lg:gap-4">
-                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
-                    <span class="shrink-0">Motyw: <span class="font-semibold uppercase tracking-widest text-slate-900" x-text="theme"></span></span>
-                    <span class="hidden text-slate-200 sm:inline">|</span>
-                    <span class="shrink-0 font-bold tracking-wide text-accent" x-text="slug"></span>
-                    <a id="dfcms-onboarding-site-preview"
-                       :href="getPublicSiteUrl()"
-                       :title="previewUsesHtmlFallback ? 'Motyw bez dedykowanego pliku HTML — podgląd używa beauty.html (localhost).' : ''"
-                       target="_blank" rel="noopener noreferrer"
-                       class="text-[10px] font-bold uppercase tracking-widest text-blue-600 underline decoration-blue-200/80 underline-offset-4 transition-colors hover:text-blue-700 lg:text-xs">Podgląd strony</a>
+        <header class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 shadow-sm backdrop-blur-md lg:z-50">
+            <div class="mx-auto flex min-h-16 w-full max-w-[1600px] flex-col gap-3 px-6 py-3 sm:px-8 lg:h-16 lg:flex-row lg:flex-nowrap lg:items-center lg:justify-between lg:gap-8 lg:py-0 xl:px-10">
+                <div class="flex min-w-0 flex-1 items-center gap-3 text-sm text-slate-700 sm:gap-4 lg:gap-5">
+                    <div class="hidden h-8 shrink-0 items-center border-r border-slate-200/90 pr-5 lg:flex" aria-hidden="false">
+                        <span class="text-sm font-semibold tracking-[0.18em] text-slate-900">DF<span class="text-accent">CMS</span></span>
+                    </div>
+                    <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1.5 leading-none lg:flex-nowrap lg:items-center">
+                        <span class="w-full text-xs font-medium uppercase tracking-wider text-slate-400 lg:hidden">Witaj, <span x-text="user?.email"></span></span>
+                        <div class="flex min-w-0 items-baseline gap-2">
+                            <span class="shrink-0 text-slate-500">Motyw</span>
+                            <span class="truncate font-medium uppercase tracking-wide text-slate-900" x-text="theme"></span>
+                        </div>
+                        <span class="hidden h-3.5 w-px shrink-0 self-center bg-slate-200 sm:block" aria-hidden="true"></span>
+                        <span class="min-w-0 truncate font-medium tabular-nums text-slate-900" x-text="slug" title="Twój slug strony"></span>
+                    </div>
                 </div>
 
-                <div class="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto">
-                    <div class="flex w-full flex-col gap-1.5 sm:flex-1 lg:w-auto">
-                        <div class="flex items-center gap-2 px-0.5">
-                            <span class="text-[11px] font-semibold text-slate-600">Publikuj na żywo</span>
-                            <div class="relative group inline-flex shrink-0" @click.stop>
-                                <button type="button" class="rounded-md p-0.5 transition-colors hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: zapis i publikacja">
-                                    <svg class="pointer-events-none h-4 w-4 text-slate-400 transition-colors group-hover:text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <p class="hidden max-w-[min(100%,13rem)] shrink-0 truncate text-sm font-medium text-slate-500 lg:block xl:max-w-[16rem]" title="Zalogowany użytkownik">Witaj, <span x-text="user?.email"></span></p>
+
+                <div class="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-end lg:w-auto lg:max-w-none lg:shrink-0 lg:pl-3">
+                    <div class="flex flex-wrap items-center justify-end gap-x-5 gap-y-2 sm:gap-x-6 lg:pr-1">
+                        <a id="dfcms-onboarding-site-preview"
+                           :href="getPublicSiteUrl()"
+                           :title="previewUsesHtmlFallback ? 'Motyw bez dedykowanego pliku HTML — podgląd używa beauty.html (localhost).' : ''"
+                           target="_blank" rel="noopener noreferrer"
+                           class="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">Podgląd strony</a>
+
+                        <div class="flex items-center gap-2">
+                            <span class="hidden text-sm font-medium text-gray-600 hover:text-gray-900 sm:inline">Publikuj na żywo</span>
+                            <div class="group relative inline-flex shrink-0 items-center" @click.stop>
+                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35" aria-describedby="dfops-publish-tip" aria-label="Czym jest publikacja?">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 </button>
-                                <div class="pointer-events-none invisible absolute left-1/2 top-full z-[70] mt-2 w-64 -translate-x-1/2 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md transition-all group-hover:visible group-hover:opacity-100">
-                                    Zapisanie zachowuje Twoją pracę w bezpiecznym miejscu. Publikacja wysyła ją w świat, by mogli zobaczyć ją Twoi klienci.
-                                    <div class="absolute -top-2 left-1/2 h-0 w-0 -translate-x-1/2 border-x-[7px] border-x-transparent border-b-[8px] border-b-slate-900" aria-hidden="true"></div>
+                                <div id="dfops-publish-tip" role="tooltip" class="pointer-events-none invisible absolute right-0 top-full z-[70] mt-2 w-48 rounded-lg bg-slate-900 px-3 py-2.5 text-left text-xs font-normal leading-relaxed text-white opacity-0 shadow-lg ring-1 ring-black/15 transition-opacity duration-150 ease-out group-hover:visible group-hover:opacity-100">
+                                    Zapisanie przechowa pracę. Publikacja udostępni zmiany gościom na żywo.
+                                    <span class="absolute bottom-full right-4 mb-[-1px] h-0 w-0 border-x-[6px] border-x-transparent border-b-[6px] border-b-slate-900" aria-hidden="true"></span>
                                 </div>
                             </div>
                         </div>
-                        <button @click="saveData()" x-show="content && !isLoading" type="button" class="w-full rounded-lg bg-accent-fg px-6 py-3 text-xs font-bold uppercase tracking-widest text-white shadow-panel transition-all duration-200 hover:bg-accent hover:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 md:px-8 md:text-sm lg:w-auto">
-                            <span x-show="!saving">Publikuj Zmiany</span>
-                            <span x-show="saving" class="animate-pulse">Zapisywanie...</span>
+
+                        <button @click="saveData()" x-show="content && !isLoading" type="button"
+                                class="inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-lg border border-slate-800 bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2">
+                            <span x-show="!saving">Publikuj zmiany</span>
+                            <span x-show="saving" x-cloak class="animate-pulse">Zapisywanie…</span>
                         </button>
-                    </div>
-                    <div class="flex flex-row items-center justify-between gap-3 sm:justify-end sm:gap-4 lg:flex-col lg:items-end lg:gap-1">
-                        <button type="button" @click="setTab('subscription'); $nextTick(() => { const el = document.getElementById('dfops-platnosci-info'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); })" class="text-[10px] uppercase tracking-widest text-slate-400 transition-colors hover:text-accent md:text-xs">Warunki planów i płatności</button>
-                        <button type="button" @click="logout()" class="text-[10px] font-bold uppercase tracking-widest text-slate-400 transition-colors hover:text-red-600 md:text-xs">Wyloguj</button>
+
+                        <div class="hidden h-8 w-px shrink-0 bg-slate-200 sm:block lg:block" aria-hidden="true"></div>
+
+                        <div class="flex shrink-0 items-center gap-5 whitespace-nowrap pl-2 sm:gap-6 sm:pl-3">
+                            <button type="button" @click="setTab('subscription'); $nextTick(() => { const el = document.getElementById('dfops-platnosci-info'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); })" class="text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:text-accent lg:text-[11px]">Warunki</button>
+                            <button type="button" @click="logout()" class="text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:text-red-600 lg:text-[11px]">Wyloguj</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -589,9 +600,9 @@
                 </button>
             </div>
 
-            <div class="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
+            <div class="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-10">
                 <aside
-                    class="fixed inset-y-0 left-0 z-50 flex w-64 max-w-[min(100vw,18rem)] transform flex-col overflow-y-auto overflow-x-hidden border-r border-slate-200/80 bg-white py-2 shadow-panel-md transition-transform duration-300 ease-out lg:relative lg:inset-auto lg:z-auto lg:w-1/4 lg:max-w-none lg:translate-x-0 lg:flex-shrink-0 lg:overflow-visible lg:rounded-xl lg:border lg:border-slate-200/70 lg:shadow-panel lg:ring-1 lg:ring-slate-900/5 lg:sticky lg:top-4 lg:self-start"
+                    class="fixed inset-y-0 left-0 z-50 flex w-64 max-w-[min(100vw,18rem)] transform flex-col overflow-y-auto overflow-x-hidden border-r border-slate-200/80 bg-white py-2 shadow-panel-md transition-transform duration-300 ease-out lg:relative lg:inset-auto lg:z-auto lg:w-1/4 lg:max-w-none lg:translate-x-0 lg:flex-shrink-0 lg:overflow-visible lg:rounded-xl lg:border lg:border-slate-200/70 lg:shadow-[4px_0_28px_-8px_rgba(15,23,42,0.09)] lg:ring-1 lg:ring-slate-900/[0.045] lg:sticky lg:top-4 lg:self-start"
                     :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
                 >
                     <div class="flex flex-col overflow-x-hidden px-2 pb-4 pt-3 lg:overflow-visible">
@@ -633,8 +644,8 @@
                                 <span :class="activeTab === 'hero' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Powitanie na stronie</span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: powitanie na stronie">
-                                    <svg class="w-4 h-4 text-slate-400 hover:text-accent transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: powitanie na stronie">
+                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                 </button>
                                 <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
                                     Tu ustawiasz pierwszy ekran dla gości: duże zdjęcie, nagłówek i zaproszenie — jak witryna przy wejściu do salonu, tylko w internecie.
@@ -647,8 +658,8 @@
                                 <span :class="activeTab === 'services' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Usługi i ceny</span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: usługi i ceny">
-                                    <svg class="w-4 h-4 text-slate-400 hover:text-accent transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: usługi i ceny">
+                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5h10M9 12h10M9 19h6M5 5h.01M5 12h.01M5 19h.01"/></svg>
                                 </button>
                                 <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
                                     Opisujesz, czym się zajmujesz i po jakiej cenie — podobnie jak cennik w gabinecie, tylko na stronie.
@@ -661,8 +672,8 @@
                                 <span :class="activeTab === 'trust' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Zaufanie</span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: zaufanie">
-                                    <svg class="w-4 h-4 text-slate-400 hover:text-accent transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: zaufanie">
+                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.291 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                                 </button>
                                 <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
                                     Cytat i gwiazdki — budują wiarygodność przed opiniami z Google.
@@ -675,8 +686,8 @@
                                 <span :class="activeTab === 'schedule' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Grafik zajęć</span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: grafik">
-                                    <svg class="w-4 h-4 text-slate-400 hover:text-accent transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: grafik">
+                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 9h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                 </button>
                                 <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
                                     Dni, godziny i krótkie notatki — jak w szablonie Fitness na stronie.
@@ -690,8 +701,8 @@
                                 <span :class="activeTab === 'gallery' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Galeria zdjęć</span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: galeria zdjęć">
-                                    <svg class="w-4 h-4 text-slate-400 hover:text-accent transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: galeria zdjęć">
+                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01"/></svg>
                                 </button>
                                 <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
                                     Zdjęcia efektów lub wnętrza — goście chętniej zostają, gdy widzą, czego się spodziewać.
@@ -704,8 +715,8 @@
                                 <span :class="activeTab === 'contact' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="inline-flex items-center gap-1.5 leading-snug">Kontakt<span x-show="sidebarTabNeedsAttention('contact')" class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[10px] font-bold leading-none text-amber-800" title="Wymaga uwagi">!</span></span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: kontakt">
-                                    <svg class="w-4 h-4 text-slate-400 hover:text-accent transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: kontakt">
+                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-6-7.05-6-11a6 6 0 1112 0c0 3.95-6 11-6 11z"/><circle cx="12" cy="10" r="2.5" fill="none"/></svg>
                                 </button>
                                 <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
                                     Telefon, adres, mapa i formularz — żeby klient mógł się odezwać bez głowy.
@@ -718,8 +729,8 @@
                                 <span :class="activeTab === 'faq' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Pytania i odpowiedzi</span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: pytania i odpowiedzi">
-                                    <svg class="w-4 h-4 text-slate-400 hover:text-accent transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: pytania i odpowiedzi">
+                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 </button>
                                 <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
                                     Krótkie odpowiedzi na częste pytania. Sekcję możesz wyłączyć w dowolnej chwili — teksty zostają bezpieczne w Studiu.
@@ -732,8 +743,8 @@
                                 <span :class="activeTab === 'google_reviews' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Opinie z Google</span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: opinie z Google">
-                                    <svg class="w-4 h-4 text-slate-400 hover:text-accent transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: opinie z Google">
+                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 17.273l5.724 4.086-2.086-6.836L21 11.273 14.086 11.09 12 4.728 9.914 11.09 3 11.273l5.362 3.242-2.086 6.837L12 17.274z"/></svg>
                                 </button>
                                 <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
                                     Wpinasz opinie z wizytówki Google — budują zaufanie u nowych gości.
@@ -746,8 +757,8 @@
                                 <span :class="activeTab === 'reviews' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Opinie własne</span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: opinie własne">
-                                    <svg class="w-4 h-4 text-slate-400 hover:text-accent transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: opinie własne">
+                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 20l4.5-1.5L18 8.5l-4-4L4.5 16.5 4 20z"/><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l5 5"/></svg>
                                 </button>
                                 <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
                                     Cytaty od klientów wpisujesz sama — pełna kontrola nad treścią i wyglądem.
@@ -760,8 +771,8 @@
                                 <span :class="activeTab === 'leady' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Wiadomości od gości</span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: wiadomości od gości">
-                                    <svg class="w-4 h-4 text-slate-400 hover:text-accent transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: wiadomości od gości">
+                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 4.935a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                                 </button>
                                 <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
                                     Tutaj kiedyś zbierzesz formularze i zapytania od osób, które weszły na stronę.
@@ -776,8 +787,8 @@
                                 <span :class="activeTab === 'settings' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="inline-flex items-center gap-1.5 leading-snug">Szablon i kolory<span x-show="sidebarTabNeedsAttention('settings')" class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[10px] font-bold leading-none text-amber-800" title="Wymaga uwagi">!</span></span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: szablon i kolory">
-                                    <svg class="w-4 h-4 text-slate-400 hover:text-accent transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: szablon i kolory">
+                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.311-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                 </button>
                                 <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
                                     Logo, kolory, fonty oraz to, które sekcje są widoczne na stronie — wygląd całej witryny.
@@ -790,8 +801,8 @@
                                 <span :class="activeTab === 'seo' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">SEO i&nbsp;Analityka</span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: SEO i Analityka">
-                                    <svg class="w-4 h-4 text-slate-400 hover:text-accent transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: SEO i Analityka">
+                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                                 </button>
                                 <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
                                     Wyniki Google, udostępnianie w mediach oraz opcjonalnie GTM / Meta&nbsp;Pixel.
@@ -805,8 +816,8 @@
                                 <span :class="activeTab === 'legal' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Prawne / RODO</span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: dokumenty prawne">
-                                    <svg class="w-4 h-4 text-slate-400 hover:text-accent transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: dokumenty prawne">
+                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 17h6M9 13h4"/></svg>
                                 </button>
                                 <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
                                     Regulamin i polityka prywatności w stopce — spokój dla Ciebie i dla klientów.
@@ -820,8 +831,8 @@
                                 <span :class="activeTab === 'account' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Konto i bezpieczeństwo</span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: konto">
-                                    <svg class="w-4 h-4 text-slate-400 hover:text-accent transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: konto">
+                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                                 </button>
                                 <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
                                     Hasło, e-mail logowania (przez Supabase) i prośba o usunięcie konta.
@@ -834,8 +845,8 @@
                                 <span :class="activeTab === 'subscription' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Subskrypcja</span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: subskrypcja">
-                                    <svg class="w-4 h-4 text-slate-400 hover:text-accent transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: subskrypcja">
+                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2" ry="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18"/></svg>
                                 </button>
                                 <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
                                     Pakiet, płatności i dostęp do funkcji — np. własna domena na wyższych planach.
@@ -846,7 +857,7 @@
                     </div>
                 </aside>
 
-                <div class="w-full min-w-0 overflow-hidden rounded-xl border border-slate-200/70 bg-white p-4 shadow-panel ring-1 ring-slate-900/5 md:p-8 lg:w-3/4">
+                <div class="w-full min-w-0 overflow-hidden rounded-xl border border-slate-200/70 border-l-slate-200/80 bg-white p-4 shadow-panel ring-1 ring-slate-900/5 md:p-8 lg:w-3/4 lg:border-l lg:border-l-slate-200 lg:pl-8 lg:shadow-[2px_0_24px_-10px_rgba(15,23,42,0.07)]">
 
                     <div x-show="!showWizard && isEmailVerified && content?.pl?.settings?.onboarding_completed === false && incompleteOnboardingChecks.length > 0"
                          x-transition
@@ -2028,28 +2039,47 @@
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
                             <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Subskrypcja</h2>
                             <p x-show="!hasActivePaidSubscription" class="text-sm text-slate-600 leading-relaxed max-w-2xl">Masz 14 dni na wybranie pakietu i pierwszą opłatę. Dopóki płatność nie zostanie zaksięgowana, konto pozostaje w okresie próbnym — z ograniczeniami i komunikatem w panelu.</p>
-                            <p x-show="hasActivePaidSubscription" x-cloak class="text-sm text-slate-600 leading-relaxed max-w-2xl">Twoja subskrypcja jest aktywna. Poniżej status rozliczeń i skrót pakietu — w każdej chwili możesz przejść do porównania planów niżej.</p>
+                            <p x-show="hasActivePaidSubscription && !isSubscriptionCanceledButValid" x-cloak class="text-sm text-slate-600 leading-relaxed max-w-2xl">Twoja subskrypcja jest aktywna. Poniżej status rozliczeń i skrót pakietu — w każdej chwili możesz przejść do porównania planów niżej.</p>
+                        </div>
+
+                        <div x-show="isSubscriptionCanceledButValid && showStripeBillingPortal" x-cloak class="mb-6 rounded-xl border border-amber-300/90 bg-gradient-to-br from-amber-50/98 to-orange-50/55 p-5 sm:p-6 shadow-panel ring-1 ring-amber-200/70 scroll-mt-24">
+                            <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                                <div class="min-w-0 max-w-3xl">
+                                    <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-950/85 mb-2">Subskrypcja wygasająca</p>
+                                    <p class="text-sm leading-relaxed text-amber-950">
+                                        <strong>Twoja subskrypcja wygasa.</strong>
+                                        Nie zostanie pobrana kolejna opłata i nie odnowimy dostępu automatycznie po dniu
+                                        <strong class="tabular-nums" x-text="subscriptionRenewalDateFormatted"></strong>
+                                        — do tego dnia nadal korzystasz ze wszystkich funkcji wybranego pakietu. W portalu Stripe możesz w jednym miejscu
+                                        cofnąć zaplanowane zamknięcie, zmienić kartę oraz pobrać faktury.
+                                    </p>
+                                </div>
+                                <button type="button" @click="openCustomerPortal()" :disabled="isPortalLoading || saving" class="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-xl border border-orange-950/85 bg-gradient-to-b from-orange-900 to-orange-950 px-4 py-2 text-center text-xs font-semibold uppercase leading-tight tracking-widest text-white shadow-[0_12px_32px_-12px_rgba(194,65,12,0.55)] transition-all hover:from-orange-800 hover:to-orange-900 hover:shadow-[0_14px_36px_-10px_rgba(194,65,12,0.5)] focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-600/65 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 lg:min-h-0 lg:w-auto">
+                                    <span x-show="!isPortalLoading">Wznów subskrypcję w portalu Stripe</span>
+                                    <span x-show="isPortalLoading" x-cloak>Łączenie…</span>
+                                </button>
+                            </div>
                         </div>
 
                         <p x-show="!showStripeBillingPortal" class="mb-4 text-xs text-slate-500 leading-relaxed max-w-2xl">Portal Stripe (karta, faktury, anulowanie) pojawi się po pierwszej zaksięgowanej płatności — wtedy odblokujesz też pełne rozliczenia w jednym miejscu.</p>
 
-                        <div x-show="showStripeBillingPortal" x-cloak id="dfops-portal-stripe" class="mb-6 rounded-xl border border-[#D4AF37]/35 bg-gradient-to-br from-[#1a1816] via-[#141210] to-[#0f0e0c] p-5 sm:p-6 shadow-lg ring-1 ring-[#D4AF37]/20 scroll-mt-24">
+                        <div x-show="showStripeBillingPortal && !isSubscriptionCanceledButValid" x-cloak id="dfops-portal-stripe" class="mb-6 rounded-xl border border-[#D4AF37]/35 bg-gradient-to-br from-[#1a1816] via-[#141210] to-[#0f0e0c] p-5 sm:p-6 shadow-lg ring-1 ring-[#D4AF37]/20 scroll-mt-24">
                             <p class="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.2em] mb-2">Portal rozliczeń Stripe</p>
                             <p class="text-xs text-stone-400 mb-4 leading-relaxed max-w-2xl">Zmiana karty, anulowanie subskrypcji, faktury i historia płatności — w jednym bezpiecznym miejscu.</p>
                             <div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-stretch">
-                        <button type="button" @click="openCustomerPortal" :disabled="isPortalLoading || saving" class="inline-flex items-center justify-center gap-2.5 min-h-[2.75rem] w-full sm:w-auto bg-[#D4AF37] text-[#121212] px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#c9a432] transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed border border-[#D4AF37]/60">
-                                <svg x-show="isPortalLoading" x-cloak class="animate-spin h-5 w-5 shrink-0 text-[#121212]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                <span x-show="!isPortalLoading">Zarządzaj subskrypcją i fakturami</span>
-                                <span x-show="isPortalLoading" x-cloak>Łączenie…</span>
-                            </button>
-                                <div class="flex min-w-0 flex-1 flex-col gap-2 sm:min-w-[14rem] sm:max-w-md">
+                                <button type="button" @click="openCustomerPortal()" :disabled="isPortalLoading || saving" class="inline-flex min-h-[3.25rem] w-full shrink-0 items-center justify-center gap-2 rounded-xl border border-[#D4AF37]/70 bg-[#D4AF37] px-4 py-2 text-[10px] font-bold uppercase leading-tight tracking-widest text-[#121212] shadow-panel transition-colors hover:bg-[#c9a432] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/45 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">
+                                    <svg x-show="isPortalLoading" x-cloak class="h-4 w-4 shrink-0 animate-spin text-[#121212]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span x-show="!isPortalLoading">Zarządzaj subskrypcją i fakturami</span>
+                                    <span x-show="isPortalLoading" x-cloak>Łączenie…</span>
+                                </button>
+                                <div x-show="hasActivePaidSubscription && !isSubscriptionCanceledButValid" x-cloak class="flex min-w-0 flex-1 flex-col gap-2 sm:min-w-[14rem] sm:max-w-md">
                                     <p class="text-[11px] leading-relaxed text-amber-100/90">
                                         <strong class="text-amber-50">Anuluj subskrypcję:</strong> zostaniesz przeniesiony do bezpiecznego portalu Stripe (ankiety wyjścia, faktury, ewentualna retencja).
                                     </p>
-                                    <button type="button" @click="openCustomerPortal" :disabled="isPortalLoading || saving" class="inline-flex items-center justify-center gap-2 min-h-[2.75rem] w-full rounded-xl border-2 border-red-400/70 bg-transparent px-5 py-3 text-xs font-bold uppercase tracking-widest text-red-200 transition-colors hover:border-red-300 hover:bg-red-950/40 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400/50 disabled:cursor-not-allowed disabled:opacity-50">
+                                    <button type="button" @click="openCustomerPortal()" :disabled="isPortalLoading || saving" class="inline-flex min-h-[3.25rem] w-full items-center justify-center gap-2 rounded-xl border-2 border-red-400/70 bg-transparent px-4 py-2 text-[10px] font-bold uppercase leading-tight tracking-widest text-red-200 transition-colors hover:border-red-300 hover:bg-red-950/40 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400/50 disabled:cursor-not-allowed disabled:opacity-50">
                                         <span x-show="!isPortalLoading">Anuluj subskrypcję</span>
                                         <span x-show="isPortalLoading" x-cloak>Łączenie…</span>
                                     </button>
@@ -2064,25 +2094,36 @@
                                         <p class="text-[10px] font-bold text-[#9a7b16] uppercase tracking-[0.2em] mb-2">Twój plan</p>
                                         <p class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight" x-text="activeSubscriptionBrandLabel"></p>
                                         <div class="mt-4 flex flex-wrap items-center gap-2">
-                                            <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold px-3 py-1 border border-emerald-200/80">
+                                            <span x-show="hasActivePaidSubscription && !isSubscriptionCanceledButValid" class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold px-3 py-1 border border-emerald-200/80" x-cloak>
                                                 <span>Status:</span> Aktywny <span aria-hidden="true">✨</span>
                                             </span>
-                                            <span class="text-xs text-slate-500" x-show="content?.pl?.settings?.subscription?.status === 'active'" x-cloak>Płatność cykliczna</span>
+                                            <span x-show="isSubscriptionCanceledButValid" class="inline-flex max-w-full shrink-0 items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold tabular-nums text-amber-950 ring-1 ring-amber-300/90" x-cloak>
+                                                Wygasa&nbsp;<strong class="font-bold tracking-tight text-amber-950" x-text="subscriptionRenewalDateBadgeShort"></strong>
+                                            </span>
+                                            <span class="text-xs text-slate-500" x-show="content?.pl?.settings?.subscription?.status === 'active' && !isSubscriptionCanceledButValid" x-cloak>Płatność cykliczna</span>
+                                            <span class="text-xs text-amber-800 font-semibold" x-show="isSubscriptionCanceledButValid" x-cloak>Bez kolejnej faktury po tym okresie</span>
                                         </div>
                                     </div>
                                     <div class="shrink-0 text-left sm:text-right">
-                                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Następna płatność</p>
+                                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1" x-show="!isSubscriptionCanceledButValid">Następna płatność</p>
+                                        <p class="text-[10px] font-bold text-amber-800 uppercase tracking-widest mb-1" x-show="isSubscriptionCanceledButValid" x-cloak>Koniec opłaconego okresu</p>
                                         <p class="text-lg font-semibold text-slate-900 tabular-nums" x-text="subscriptionRenewalDateFormatted"></p>
-                                        <p class="text-[10px] text-slate-500 mt-2 uppercase tracking-wider">wg ustawień rozliczeń Stripe</p>
+                                        <p class="text-[10px] text-slate-500 mt-2 uppercase tracking-wider" x-show="!isSubscriptionCanceledButValid">wg ustawień rozliczeń Stripe</p>
+                                        <p class="text-[10px] text-amber-800/90 mt-2 uppercase tracking-wider" x-show="isSubscriptionCanceledButValid" x-cloak>ostatni dzień pełnego dostępu do funkcji pakietu</p>
                                     </div>
                                 </div>
                                 <div class="mt-6 pt-6 border-t border-amber-100/80">
                                     <div>
-                                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Kwota</p>
-                                        <p class="text-base font-bold text-[#121212]" x-text="activeSubscriptionPriceLine"></p>
-                                        <p class="text-xs text-slate-500 mt-1">+ 23% VAT · rozliczenie miesięczne</p>
+                                        <div class="mb-3 flex flex-wrap items-center gap-2">
+                                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Kwota miesięczna</p>
+                                            <span class="inline-flex items-center rounded-md border border-amber-900/15 bg-amber-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-950">rozliczenia co miesiąc</span>
+                                        </div>
+                                        <p class="text-xl font-black tabular-nums tracking-tight text-[#121212]" x-text="activeSubscriptionPriceLine"></p>
+                                        <p class="mt-2 text-[11px] font-medium text-slate-700">Kwota pobierana <strong class="font-semibold text-slate-900">co miesiąc</strong> przez Stripe — do zmiany lub anulowania w portalu.</p>
+                                        <p class="text-xs text-slate-500 mt-1.5">+ 23% VAT · wg pakietu</p>
                                     </div>
-                                    <p class="text-xs text-slate-600 mt-4 leading-relaxed">Rozliczenia i faktury — przycisk <strong class="text-slate-900">Zarządzaj subskrypcją i fakturami</strong> powyżej.</p>
+                                    <p class="text-xs text-slate-600 mt-4 leading-relaxed" x-show="hasActivePaidSubscription && !isSubscriptionCanceledButValid" x-cloak>Rozliczenia i faktury — przycisk <strong class="text-slate-900">Zarządzaj subskrypcją i fakturami</strong> powyżej.</p>
+                                    <p class="text-xs leading-relaxed text-amber-900/90 mt-4" x-show="isSubscriptionCanceledButValid" x-cloak>Wznów odnowienia lub pobierz faktury przez <strong class="font-semibold text-amber-950">przycisk do portalu Stripe</strong> w ramce pomarańczowej powyżej.</p>
                                 </div>
                             </div>
                         </div>

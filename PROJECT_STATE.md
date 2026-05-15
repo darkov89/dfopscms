@@ -3,7 +3,7 @@
 > **Przeznaczenie:** jeden plik w korzeniu repozytorium do aktualizacji **na koniec sesji** (ludzie + agenci), żeby zachować ciągłość decyzji architektonicznych, produktowych i operacyjnych.  
 > **Nie zastępuje** `README.md` (start, deploy, struktura katalogów), ale je **uzupełnia** o „co wiemy o systemie teraz”.
 
-**Ostatnia aktualizacja treści:** 2026-05-15 — usunięty plan testowy Stripe (test_daily / Dzienny)
+**Ostatnia aktualizacja treści:** 2026-05-15 — panel CMS: zakładka w URL (`#subscription` itd.), header UX, ikony menu, badge subskrypcji
 
 ---
 
@@ -55,6 +55,7 @@ Użytkownik → Auth (Supabase) → pages.content (JSON) → front (szablon + me
 - **Webhook Stripe** (`supabase/functions/stripe-webhook/`): weryfikacja podpisu przez **`stripe.webhooks.constructEventAsync`** (async, Deno) — zgodnie z wymaganiami Stripe dla środowisk async.
 - **Obsługiwane zdarzenia** (nagłówek funkcji): m.in. `checkout.session.completed`, `customer.subscription.updated` / `deleted`, `invoice.paid`, `invoice.payment_succeeded`, `invoice.payment_failed`.
 - **Źródło prawdy dla okresu rozliczeniowego:** wyłącznie **`Stripe.Subscription.current_period_end`** po `subscriptions.retrieve` — merge do `content.pl.settings.subscription` w `stripeBilling.ts` (nie polegać na `invoice.period_end` jako SoT dla subskrypcji).
+- **Rezygnacja na koniec okresu (`cancel_at_period_end`):** przy statusie **`active`/`trialing`** i tej fladze plan w CMS pozostaje płatny do **`current_period_end`**; panel pokazuje status *wygasający* (`isSubscriptionCanceledButValid` w `adminApp.js`, helpery w **`planUtils.js`**). **Widok publiczny nie jest blokowany samą tą flagą** — `publicSiteApp.shouldBlockPublicPageView` i blokady `trial_blocked_at` nie sprawdzają `cancel_at_period_end`; goście tracą dostęp dopiero po faktycznym zakończeniu rozliczenia w Stripe (webhook → m.in. `canceled` / brak płatności), zgodnie z dotychczasowymi regułami trial i `billing_failed_at`.
 - **Tryb demo / konfiguracja:** ceny i klucze publikowalne w `js/core/config.js`; sekrety (webhook secret, service role) w Supabase Secrets — **demo** oznacza typowo środowisko testowe Stripe + testowe price IDs; produkcja wymaga spójnych URL-i webhooka i Redirect URLs w Supabase/Stripe.
 
 ### 2.1 Wygasły trial — widok publiczny i retencja
@@ -112,7 +113,7 @@ Użytkownik → Auth (Supabase) → pages.content (JSON) → front (szablon + me
 4. **Pierwsze logowanie do panelu** — `admin.html` → `loadData` (ekran „Weryfikacja…” trwa do końca pierwszego wczytania, mniej migania) → ewentualnie **modal powitalny** → **Driver.js** (start kreatora → podgląd → menu) → zapis `welcome_onboarding_completed`.  
 5. **Konfiguracja treści** — edycja zakładek (hero, szablon, kontakt, …); **Konfiguracja → Wygląd** — zmiana motywu branżowego (`switchTemplate`) z potwierdzeniem, zapis i przeładowanie panelu; opcjonalnie **pełny kreator** (także trzy szablony w kroku 1); checklista podstaw z **!** dopóki brakuje szablonu (nie `setup`) / nazwy / kontaktu.  
 6. **Podgląd strony publicznej** — link w nagłówku panelu → plik **`{motyw}.html`** na localhost z `?site=` **+ `dfcms_preview=1`**, lub domena `{slug}.{appDomain}` / custom z **`?dfcms_preview=1`** — **bez uruchamiania** GTM/Pixel z podglądu edytora. Demo katalogowe: **`demo-beauty`**, **`demo-fitness`**, **`demo-services`** (treść jak w **`docs/demo_seeds.json`**; na produkcji po **`supabase db push`** migracji seed).  
-7. **Subskrypcja** — zakładka Subskrypcja → Stripe Checkout; **Customer Portal** widoczny dopiero przy aktywnym rozliczeniu (`showStripeBillingPortal`), z komunikatem dla trialu bez płatności; po anulowaniu subskrypcji portal może zostać dostępny przy istniejącym **`stripe_customer_id`** (faktury). Webhook aktualizuje `content.pl.settings.subscription` i ewentualnie `trial_blocked_at` / blokady publikacji.  
+7. **Subskrypcja** — zakładka Subskrypcja → Stripe Checkout; **Customer Portal** widoczny dopiero przy aktywnym rozliczeniu (`showStripeBillingPortal`), z komunikatem dla trialu bez płatności; przy **rezygnacji na koniec okresu** (`cancel_at_period_end`, nadal `active`/`trialing`) panel pokazuje **jeden** pomarańczowy baner („wygasająca”) z datą końca okresu i **jednym** przyciskiem do portalu (wznów / faktury / karta) — **bez** drugiego bloku „Zarządzaj…” i **bez** widocznego „Anuluj subskrypcję” (użytkownik już zaplanował zamknięcie). Dla subskrypcji w pełni odnowianej pozostaje ciemny blok portalu z **Zarządzaj…** + ścieżka anulowania w portalu. **Publikacja strony dla gości jest utrzymana** do wygaśnięcia rozliczenia (logika publiczna bez zmian dla samej flagi anulowania). Po pełnym anulowaniu subskrypcji portal może zostać dostępny przy istniejącym **`stripe_customer_id`** (faktury). Webhook aktualizuje `content.pl.settings.subscription` i ewentualnie `trial_blocked_at` / blokady publikacji.  
 8. **Własna domena** (opcjonalnie, wyższe plany) — `add-custom-domain` + instrukcje DNS w panelu.  
 9. **Sesja i bezpieczeństwo** — reset hasła z maila; recovery wymusza zmianę hasła przed pełnym dostępem.
 

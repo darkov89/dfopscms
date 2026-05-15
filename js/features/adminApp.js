@@ -39,6 +39,55 @@
 
   const WIZARD_STATE_STORAGE_PREFIX = 'dfops_wizard_state_v1:';
 
+  /** Zakładki Studia — zgodnie z przyciskami w `admin.html` (hash w URL przy `setTab`). */
+  const ADMIN_TAB_IDS = new Set([
+    'hero',
+    'services',
+    'trust',
+    'schedule',
+    'gallery',
+    'contact',
+    'faq',
+    'google_reviews',
+    'reviews',
+    'leady',
+    'settings',
+    'seo',
+    'legal',
+    'account',
+    'subscription',
+  ]);
+
+  function parseAdminTabFromHash() {
+    try {
+      const h = window.location.hash;
+      if (!h || h === '#') return null;
+      let id = h.slice(1).trim();
+      if (!id) return null;
+      if (id.includes('=')) {
+        const p = new URLSearchParams(id);
+        const t = (p.get('tab') || '').trim();
+        if (t) id = t;
+      }
+      id = decodeURIComponent(id).trim().toLowerCase();
+      if (!id || !/^[a-z][a-z0-9_]*$/.test(id)) return null;
+      return ADMIN_TAB_IDS.has(id) ? id : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function replaceAdminUrlHashForTab(tab) {
+    try {
+      if (!tab || typeof tab !== 'string' || !ADMIN_TAB_IDS.has(tab)) return;
+      const u = new URL(window.location.href);
+      u.hash = tab === 'hero' ? '' : `#${encodeURIComponent(tab)}`;
+      window.history.replaceState(null, '', u.pathname + u.search + u.hash);
+    } catch {
+      /* ignore */
+    }
+  }
+
   function readWizardStateFromStorage(slug) {
     try {
       if (!slug || typeof localStorage === 'undefined') return null;
@@ -423,6 +472,17 @@
         return false;
       },
       /**
+       * Opłacony dostęp do końca bieżącego okresu, ale subskrypcja nie zostanie odnowiona
+       * (Stripe: status active/trialing + cancel_at_period_end).
+       */
+      get isSubscriptionCanceledButValid() {
+        const sub = this.content?.pl?.settings?.subscription;
+        if (typeof window.DFOPS_isSubscriptionCanceledButValid === 'function') {
+          return window.DFOPS_isSubscriptionCanceledButValid(sub);
+        }
+        return false;
+      },
+      /**
        * Portal Stripe — aktywny pakiet lub anulowana subskrypcja z nadal istniejącym klientem (faktury, karta).
        */
       get showStripeBillingPortal() {
@@ -574,6 +634,7 @@
       setTab(tab) {
         this.activeTab = tab;
         this.sidebarOpen = false;
+        replaceAdminUrlHashForTab(tab);
       },
 
       /** Gdy zmieni się motyw (lub wczytano stronę), ukryte zakładki nie zostawiają pustego widoku. */
@@ -662,6 +723,9 @@
       },
       get subscriptionRenewalDateFormatted() {
         const raw = this.content?.pl?.settings?.subscription?.current_period_end;
+        if (typeof window.DFOPS_formatSubscriptionPeriodEndPl === 'function') {
+          return window.DFOPS_formatSubscriptionPeriodEndPl(raw);
+        }
         if (raw == null || raw === '') return '—';
         try {
           const d = new Date(typeof raw === 'number' ? raw * 1000 : String(raw));
@@ -671,6 +735,21 @@
             month: 'long',
             year: 'numeric',
           });
+        } catch {
+          return '—';
+        }
+      },
+      /** Krótka data (np. badge „Wygasa 3.06.2026”) — zgodna z timezone przeglądarki jak `subscriptionRenewalDateFormatted`. */
+      get subscriptionRenewalDateBadgeShort() {
+        const raw = this.content?.pl?.settings?.subscription?.current_period_end;
+        if (raw == null || raw === '') return '—';
+        try {
+          const d = new Date(typeof raw === 'number' ? raw * 1000 : String(raw));
+          if (Number.isNaN(d.getTime())) return '—';
+          const day = d.getDate();
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const year = d.getFullYear();
+          return `${day}.${month}.${year}`;
         } catch {
           return '—';
         }
@@ -959,6 +1038,18 @@
           /* ignore */
         }
         this.supabase = window.DFOPS_getSupabaseClient();
+        window.addEventListener('hashchange', () => {
+          if (this.loadingAuth || this.isLoading || !this.content?.pl || this.showWizard) return;
+          const t = parseAdminTabFromHash();
+          if (t) {
+            this.activeTab = t;
+            this.ensureActiveTabForTheme();
+            return;
+          }
+          if (window.location.hash === '' || window.location.hash === '#') {
+            this.activeTab = 'hero';
+          }
+        });
         document.addEventListener('visibilitychange', () => {
           if (document.visibilityState !== 'visible' || this.loadingAuth) return;
           if (this.user && this.needsEmailConfirmation) {
@@ -1352,7 +1443,10 @@
           this.syncUserPlanFromBilling();
           this.applyThemeStylingFromContent();
           this.enforceColorPresetForStarter();
+          const fromHash = parseAdminTabFromHash();
+          if (fromHash) this.activeTab = fromHash;
           this.ensureActiveTabForTheme();
+          replaceAdminUrlHashForTab(this.activeTab);
 
           if (!this.isEmailVerified) {
             this.showWizard = false;
@@ -1613,7 +1707,7 @@
       },
       closeStudioWelcomeModal() {
         this.showStudioWelcomeModal = false;
-        this.activeTab = 'hero';
+        this.setTab('hero');
       },
 
       resolveDriverFactory() {
