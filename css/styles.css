@@ -187,3 +187,13 @@ html[data-dfops-scope="public"][data-theme="beauty"][data-bg-style="soft"] .bg-s
     display: none;
 }
 
+/* Panel: nagłówki sekcji w bocznym menu */
+.dfops-sidebar-section-title {
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #334155;
+    line-height: 1.35;
+}
+

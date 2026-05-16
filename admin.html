@@ -39,7 +39,7 @@
     <script defer src="js/features/adminApp.js?v=20260515d"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
-    <link rel="stylesheet" href="css/styles.css?v=20260404a">
+    <link rel="stylesheet" href="css/styles.css?v=20260516a">
 </head>
 <body class="dfops-admin-app flex min-h-screen flex-col bg-slate-50 font-sans text-slate-800 antialiased" x-data="typeof DFOPS_adminAlpineState === 'function' ? DFOPS_adminAlpineState() : { sidebarOpen: false, isLoading: false, content: { pl: { nav: { menu: {} }, hero: {}, manifesto: {}, services: [], faq: [], contact: {}, settings: {} } } }">
 
@@ -552,7 +552,7 @@
                         <div class="hidden h-8 w-px shrink-0 bg-slate-200 sm:block lg:block" aria-hidden="true"></div>
 
                         <div class="flex shrink-0 items-center gap-5 whitespace-nowrap pl-2 sm:gap-6 sm:pl-3">
-                            <button type="button" @click="setTab('subscription'); $nextTick(() => { const el = document.getElementById('dfops-platnosci-info'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); })" class="text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:text-accent lg:text-[11px]">Warunki</button>
+                            <button type="button" @click="setTab('subscription'); $nextTick(() => { const el = document.getElementById('dfops-platnosci-info'); if (el) { if (el.tagName === 'DETAILS') el.open = true; el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } })" class="text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:text-accent lg:text-[11px]">Warunki</button>
                             <button type="button" @click="logout()" class="text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:text-red-600 lg:text-[11px]">Wyloguj</button>
                         </div>
                     </div>
@@ -602,10 +602,10 @@
 
             <div class="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-10">
                 <aside
-                    class="fixed inset-y-0 left-0 z-50 flex w-64 max-w-[min(100vw,18rem)] transform flex-col overflow-y-auto overflow-x-hidden border-r border-slate-200/80 bg-white py-2 shadow-panel-md transition-transform duration-300 ease-out lg:relative lg:inset-auto lg:z-auto lg:w-1/4 lg:max-w-none lg:translate-x-0 lg:flex-shrink-0 lg:overflow-visible lg:rounded-xl lg:border lg:border-slate-200/70 lg:shadow-[4px_0_28px_-8px_rgba(15,23,42,0.09)] lg:ring-1 lg:ring-slate-900/[0.045] lg:sticky lg:top-4 lg:self-start"
+                    class="fixed inset-y-0 left-0 z-50 flex w-64 max-w-[min(100vw,18rem)] transform flex-col overflow-hidden border-r border-slate-200/80 bg-white shadow-panel-md transition-transform duration-300 ease-out lg:relative lg:inset-auto lg:z-auto lg:w-1/4 lg:max-w-none lg:translate-x-0 lg:flex-shrink-0 lg:rounded-xl lg:border lg:border-slate-200/70 lg:shadow-[4px_0_28px_-8px_rgba(15,23,42,0.09)] lg:ring-1 lg:ring-slate-900/[0.045] lg:sticky lg:top-4 lg:max-h-[calc(100vh-5.5rem)] lg:self-start"
                     :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
                 >
-                    <div class="flex flex-col overflow-x-hidden px-2 pb-4 pt-3 lg:overflow-visible">
+                    <div class="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden overscroll-y-contain px-2 pb-4 pt-3 [-webkit-overflow-scrolling:touch]">
                         <button type="button" id="dfcms-onboarding-wizard-btn" @click="openWizardFromStudio()" class="mb-4 flex w-full items-center gap-3 rounded-xl bg-accent/10 px-4 py-3 text-left font-bold text-accent transition-colors hover:bg-accent/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2">
                             <span class="text-xl shrink-0" aria-hidden="true">🪄</span>
                             <span class="min-w-0 flex-1 leading-snug">Uruchom Kreator</span>
@@ -638,7 +638,7 @@
                             </div>
                         </div>
 
-                        <h3 id="dfcms-onboarding-category-tresc" class="mb-2 mt-1 px-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Treść Twojej Strony</h3>
+                        <h3 id="dfcms-onboarding-category-tresc" class="dfops-sidebar-section-title mb-2 mt-1">Treść Twojej strony</h3>
                         <div class="mb-0.5 flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'hero' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
                             <button type="button" @click="setTab('hero')" class="min-w-0 flex-1 rounded-r-lg py-3 pl-4 pr-1 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-0">
                                 <span :class="activeTab === 'hero' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Powitanie na stronie</span>
@@ -696,8 +696,7 @@
                             </div>
                         </div>
                         <div x-show="['beauty','fitness','services'].includes(theme)" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'gallery' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
-                            <button type="button" @click="setTab('gallery')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 flex items-center gap-2">
-                                <svg class="w-4 h-4 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <button type="button" @click="setTab('gallery')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
                                 <span :class="activeTab === 'gallery' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Galeria zdjęć</span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
@@ -781,7 +780,7 @@
                             </div>
                         </div>
 
-                        <h3 id="dfcms-onboarding-category-konfiguracja" class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 mt-6">Konfiguracja</h3>
+                        <h3 id="dfcms-onboarding-category-konfiguracja" class="dfops-sidebar-section-title mb-2 mt-6 border-t border-slate-200/80 pt-5">Konfiguracja</h3>
                         <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'settings' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
                             <button type="button" @click="setTab('settings')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
                                 <span :class="activeTab === 'settings' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="inline-flex items-center gap-1.5 leading-snug">Szablon i kolory<span x-show="sidebarTabNeedsAttention('settings')" class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[10px] font-bold leading-none text-amber-800" title="Wymaga uwagi">!</span></span>
@@ -2260,8 +2259,12 @@
                             </div>
                         </div>
 
-                        <div id="dfops-platnosci-info" class="mt-10 pt-8 border-t border-gray-200 text-sm text-slate-700 leading-relaxed max-w-2xl">
-                            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-widest mb-4">Warunki rozliczeń</h3>
+                        <details id="dfops-platnosci-info" class="group/dfops-billing-terms mt-10 max-w-2xl scroll-mt-24 border-t border-slate-200/80 pt-6">
+                            <summary class="flex cursor-pointer list-none items-center justify-between gap-3 rounded-lg border border-slate-200/80 bg-slate-50/90 px-4 py-3.5 text-sm font-bold uppercase tracking-widest text-slate-900 transition-colors hover:border-slate-300 hover:bg-slate-100/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 [&::-webkit-details-marker]:hidden">
+                                <span>Warunki rozliczeń</span>
+                                <svg class="h-5 w-5 shrink-0 text-slate-400 transition-transform duration-200 group-open/dfops-billing-terms:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </summary>
+                            <div class="mt-4 text-sm leading-relaxed text-slate-700">
                             <ul class="space-y-3 text-slate-600 list-disc pl-5">
                                 <li>Wszystkie kwoty w pakietach podajemy <strong class="text-slate-900">netto</strong>. Na dokumentach rozliczeniowych stosujemy VAT zgodnie z przepisami (obecnie 23%).</li>
                                 <li>Płatności cykliczne za pakiety wyższe realizujemy przez bezpieczną bramkę płatności (subskrypcja online).</li>
@@ -2271,16 +2274,12 @@
                                 <li><strong class="text-slate-900">Asystent DFCMS (Concierge)</strong> — wsparcie i wdrożenia godzinowe; w Pro od 100 zł/h netto, w Premium jedna godzina w cenie miesięcznej subskrypcji.</li>
                             </ul>
                             <p class="text-xs text-slate-500 mt-6">Regulamin i polityka prywatności: zakładka <strong>Prawne</strong>, strona główna serwisu oraz <strong>Dragonfly Operations</strong> (<a href="mailto:kontakt@dfops.eu" class="text-slate-700 underline hover:text-accent">kontakt@dfops.eu</a>).</p>
-                        </div>
+                            </div>
+                        </details>
 
-                        <div class="mt-10 pt-8 border-t border-gray-200 max-w-2xl">
+                        <div class="mt-10 max-w-2xl border-t border-slate-200/80 pt-8">
                             <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Synchronizacja ze Stripe</p>
-                            <p class="text-sm text-slate-600 mb-4 leading-relaxed">Jeśli opłata lub zmiana planu w Stripe nie pojawiła się od razu w panelu, możesz wymusić odczyt subskrypcji i zapis do bazy — bez ponownego wpisywania karty.</p>
-                            <p class="text-xs text-slate-600 mb-4 break-all" x-show="content?.pl?.settings?.subscription?.stripe_subscription_id" x-cloak>
-                                <span class="font-bold text-slate-800">Stripe:</span>
-                                <span class="font-mono" x-text="content.pl.settings.subscription.stripe_subscription_id"></span>
-                                <span x-show="content?.pl?.settings?.subscription?.status"> · <span class="font-semibold text-slate-800" x-text="content.pl.settings.subscription.status"></span></span>
-                            </p>
+                            <p class="mb-4 text-sm leading-relaxed text-slate-600">Jeśli opłata lub zmiana planu w Stripe nie pojawiła się od razu w panelu, możesz wymusić odczyt subskrypcji i zapis do bazy — bez ponownego wpisywania karty.</p>
                             <button type="button"
                                 @click="syncStripeSubscription()"
                                 :disabled="stripeSyncLoading || saving || checkoutLoading"
