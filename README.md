@@ -28,8 +28,9 @@ Lekki CMS pod strony wizytówkowe: statyczny front (HTML + JavaScript), treść 
 ## Konfiguracja frontu
 
 1. Skopiuj lub edytuj `js/core/config.js`.
-2. Ustaw `supabaseUrl` i `supabaseAnonKey` z panelu Supabase (Project Settings → API).
-3. Dopasuj `appDomain`, `systemDomains` i `localHosts` do swojej infrastruktury DNS / hostingu.
+2. **Produkcja:** klucze w `SUPABASE_URL_PROD` / `SUPABASE_ANON_KEY_PROD` (Project Settings → API).
+3. **Localhost:** przy `localhost` / `127.0.0.1` klient używa `http://127.0.0.1:54321` — uzupełnij `SUPABASE_ANON_KEY_LOCAL` (wynik `supabase status` po `supabase start`).
+4. Dopasuj `appDomain`, `systemDomains` i `localHosts` do swojej infrastruktury DNS / hostingu.
 
 > Klucz anonimowy (publishable) jest przeznaczony do użycia w przeglądarce — i tak jest widoczny w bundle; nadal nie commituj **service role** ani sekretów serwerowych do repozytorium.
 

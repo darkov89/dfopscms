@@ -98,6 +98,20 @@ function periodEndIso(sub: Stripe.Subscription): string {
   return new Date().toISOString();
 }
 
+/** Rezygnacja zaplanowana: koniec okresu lub przyszły `cancel_at` (Customer Portal). */
+export function subscriptionScheduledToCancelStripe(sub: Stripe.Subscription): boolean {
+  if (sub.cancel_at_period_end === true) return true;
+  const cancelAt = sub.cancel_at;
+  if (typeof cancelAt === "number" && cancelAt > Math.floor(Date.now() / 1000)) return true;
+  return false;
+}
+
+function cancelAtIso(sub: Stripe.Subscription): string | undefined {
+  const cancelAt = sub.cancel_at;
+  if (typeof cancelAt !== "number") return undefined;
+  return new Date(cancelAt * 1000).toISOString();
+}
+
 /**
  * Składa patch dla `content.pl.settings.subscription` wg statusu Stripe.
  */
@@ -108,7 +122,8 @@ export function subscriptionContentPatch(
   const cid = customerIdString(sub.customer);
   const st = sub.status;
   const period = periodEndIso(sub);
-  const cancelAtPeriodEnd = sub.cancel_at_period_end === true;
+  const cancelAtPeriodEnd = subscriptionScheduledToCancelStripe(sub);
+  const cancelAt = cancelAtIso(sub);
 
   const base: Record<string, unknown> = {
     ...(cid ? { stripe_customer_id: cid } : {}),
@@ -116,6 +131,7 @@ export function subscriptionContentPatch(
     status: st,
     current_period_end: period,
     cancel_at_period_end: cancelAtPeriodEnd,
+    ...(cancelAt ? { cancel_at: cancelAt } : {}),
   };
 
   if (st === "active" || st === "trialing") {
@@ -141,6 +157,7 @@ export function subscriptionContentPatch(
     payment_completed: false,
     selected_plan: null,
     cancel_at_period_end: false,
+    cancel_at: null,
   };
 }
 
@@ -426,6 +443,7 @@ export async function applySubscriptionCanceledToPage(
     selected_plan: null,
     current_period_end: periodEndIso(sub),
     cancel_at_period_end: false,
+    cancel_at: null,
   };
 
   const prevContent =

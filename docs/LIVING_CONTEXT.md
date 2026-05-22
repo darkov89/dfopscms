@@ -28,6 +28,7 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 
 | Data | Co |
 |------|-----|
+| 2026-05-22 | **Supabase Data API:** migracja **`20260522104231_explicit_grants_pages.sql`** — jawne `GRANT` na `public.pages` (`anon` SELECT; `authenticated` + `service_role` pełny CRUD). Wdrożyć: **`supabase db push`**. |
 | 2026-05-16 | **Panel:** sidebar — niezależny scroll na `lg`, wyraźniejsze nagłówki sekcji; **Warunki rozliczeń** w accordionie; usunięty wiersz z `stripe_subscription_id` w UI (zostaje **Synchronizuj ze Stripe**). |
 | 2026-05-15 | **Panel:** aktywna zakładka synchronizowana z **`admin.html#tab`** (`replaceState`), po odświeżeniu zostajesz na tej samej karcie; `hashchange` obsługa. |
 | 2026-05-15 | **Panel:** nagłówek, ikony podpowiedzi w menu, separator treści; **Subskrypcja** — badge „Wygasa …”, kwota miesięczna, przycisk „Wznów w Stripe”. |

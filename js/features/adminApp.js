@@ -332,6 +332,8 @@
       upgrading: false,
       checkoutLoading: false,
       stripeSyncLoading: false,
+      /** Jednorazowy silent sync ze Stripe po wejściu w zakładkę Subskrypcja (świeży `cancel_at_period_end`). */
+      _subscriptionTabStripeSynced: false,
       newPassword: '',
       newPasswordConfirm: '',
       /** Podgląd znaków przy zmianie hasła (Konto). */
@@ -365,6 +367,7 @@
       get subscriptionPlan() { return this.content?.pl?.settings?.subscription?.plan || 'trial'; },
       /** Tier zapisany w CMS albo wybrany przed pełnym merge z webhookiem. */
       get activePaidTierForUi() {
+        if (!this.hasActivePaidSubscription) return null;
         const p = this.subscriptionPlan;
         if (p === 'tier0' || p === 'tier1' || p === 'tier2') return p;
         const sel = this.content?.pl?.settings?.subscription?.selected_plan;
@@ -459,17 +462,22 @@
         this.wizardTheme = norm.theme;
       },
       /**
-       * Aktywny plan płatny w CMS lub subskrypcja Stripe ze statusem active/trialing
-       * (np. gdy webhook nie nadpisał jeszcze pola `plan`).
+       * Opłacony dostęp (w tym do końca okresu po rezygnacji w Stripe).
+       * Nie ufa samemu `plan: tier*` — wymaga payment_completed lub statusu active/trialing;
+       * po `canceled` w Stripe nie traktuj jako aktywnej subskrypcji.
        */
       get hasActivePaidSubscription() {
-        const p = this.subscriptionPlan;
-        if (p === 'tier0' || p === 'tier1' || p === 'tier2') return true;
         const sub = this.content?.pl?.settings?.subscription;
-        const st = typeof sub?.status === 'string' ? sub.status : '';
+        if (typeof window.DFOPS_hasPaidSubscriptionAccess === 'function') {
+          return window.DFOPS_hasPaidSubscriptionAccess(sub);
+        }
+        const p = this.subscriptionPlan;
+        if (p === 'tier0' || p === 'tier1' || p === 'tier2') {
+          return sub?.payment_completed === true;
+        }
+        const st = typeof sub?.status === 'string' ? sub.status.trim().toLowerCase() : '';
         const sid = typeof sub?.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
-        if (sid && (st === 'active' || st === 'trialing')) return true;
-        return false;
+        return !!(sid && (st === 'active' || st === 'trialing'));
       },
       /**
        * Opłacony dostęp do końca bieżącego okresu, ale subskrypcja nie zostanie odnowiona
@@ -603,10 +611,7 @@
       },
 
       subscriptionPaymentActive() {
-        const sub = this.content?.pl?.settings?.subscription;
-        if (!sub || sub.payment_completed !== true) return false;
-        const p = sub.plan;
-        return p === 'tier0' || p === 'tier1' || p === 'tier2';
+        return this.hasActivePaidSubscription;
       },
       get planSummaryLine() {
         if (typeof window.DFOPS_planCapabilitiesSummary === 'function') {
@@ -631,10 +636,28 @@
         this._toastTimer = setTimeout(() => { this.toast.show = false; }, ms);
       },
 
+      /** Po wejściu w Subskrypcję — jednorazowo odśwież status ze Stripe (np. `cancel_at_period_end`). */
+      maybeSyncSubscriptionTabFromStripe() {
+        if (
+          this.activeTab !== 'subscription' ||
+          !this.user?.id ||
+          this._subscriptionTabStripeSynced ||
+          this.stripeSyncLoading ||
+          this.isLoading
+        ) {
+          return;
+        }
+        const sid = this.content?.pl?.settings?.subscription?.stripe_subscription_id;
+        if (typeof sid !== 'string' || !sid.trim()) return;
+        this._subscriptionTabStripeSynced = true;
+        void this.syncStripeSubscription({ silent: true });
+      },
+
       setTab(tab) {
         this.activeTab = tab;
         this.sidebarOpen = false;
         replaceAdminUrlHashForTab(tab);
+        this.maybeSyncSubscriptionTabFromStripe();
       },
 
       /** Gdy zmieni się motyw (lub wczytano stronę), ukryte zakładki nie zostawiają pustego widoku. */
@@ -1447,6 +1470,7 @@
           if (fromHash) this.activeTab = fromHash;
           this.ensureActiveTabForTheme();
           replaceAdminUrlHashForTab(this.activeTab);
+          this.maybeSyncSubscriptionTabFromStripe();
 
           if (!this.isEmailVerified) {
             this.showWizard = false;

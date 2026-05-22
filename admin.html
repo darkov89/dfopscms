@@ -26,17 +26,17 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
-    <script defer src="js/core/config.js?v=20260404c"></script>
+    <script defer src="js/core/config.js?v=20260522b"></script>
     <script defer src="js/core/supabaseClient.js?v=20260403t"></script>
     <script defer src="js/templates/registry.js?v=20260404c"></script>
     <script defer src="js/core/contentSchema.js?v=20260404c"></script>
     <script defer src="js/core/contentUpgrader.js?v=20260404c"></script>
     <script defer src="js/core/themeStyling.js?v=20260404c"></script>
     <script defer src="js/core/pageRepository.js?v=20260403t"></script>
-    <script defer src="js/core/planUtils.js?v=20260515a"></script>
+    <script defer src="js/core/planUtils.js?v=20260522a"></script>
     <script defer src="js/core/analytics.js?v=20260403t"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260515d"></script>
+    <script defer src="js/features/adminApp.js?v=20260522a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260516a">
@@ -2039,6 +2039,7 @@
                             <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Subskrypcja</h2>
                             <p x-show="!hasActivePaidSubscription" class="text-sm text-slate-600 leading-relaxed max-w-2xl">Masz 14 dni na wybranie pakietu i pierwszą opłatę. Dopóki płatność nie zostanie zaksięgowana, konto pozostaje w okresie próbnym — z ograniczeniami i komunikatem w panelu.</p>
                             <p x-show="hasActivePaidSubscription && !isSubscriptionCanceledButValid" x-cloak class="text-sm text-slate-600 leading-relaxed max-w-2xl">Twoja subskrypcja jest aktywna. Poniżej status rozliczeń i skrót pakietu — w każdej chwili możesz przejść do porównania planów niżej.</p>
+                            <p x-show="isSubscriptionCanceledButValid" x-cloak class="text-sm leading-relaxed text-amber-900 max-w-2xl">Subskrypcja jest opłacona do końca bieżącego okresu, ale <strong>nie odnowi się</strong> — poniżej data zakończenia i link do portalu Stripe (wznów lub faktury).</p>
                         </div>
 
                         <div x-show="isSubscriptionCanceledButValid && showStripeBillingPortal" x-cloak class="mb-6 rounded-xl border border-amber-300/90 bg-gradient-to-br from-amber-50/98 to-orange-50/55 p-5 sm:p-6 shadow-panel ring-1 ring-amber-200/70 scroll-mt-24">

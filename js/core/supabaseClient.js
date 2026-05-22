@@ -39,12 +39,20 @@
     }
     const cfg = window.DFOPS_CONFIG;
     if (!cfg) throw new Error('Brak DFOPS_CONFIG');
+    const url = typeof cfg.supabaseUrl === 'string' ? cfg.supabaseUrl.trim() : '';
+    const key = typeof cfg.supabaseAnonKey === 'string' ? cfg.supabaseAnonKey.trim() : '';
+    if (!url || !key) {
+      const hint = cfg.isLocalhost
+        ? 'Na localhost uzupełnij SUPABASE_ANON_KEY_LOCAL w js/core/config.js (supabase status).'
+        : 'Uzupełnij supabaseUrl i supabaseAnonKey w js/core/config.js.';
+      throw new Error('Brak konfiguracji Supabase. ' + hint);
+    }
     if (!window.supabase || !window.supabase.createClient) throw new Error('Brak supabase-js');
     const remember = readRememberFlag();
     if (client && cachedAuthRemember === remember) return client;
     client = null;
     cachedAuthRemember = remember;
-    client = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
+    client = window.supabase.createClient(url, key, {
       auth: {
         storage: remember ? window.localStorage : window.sessionStorage,
         autoRefreshToken: true,

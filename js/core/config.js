@@ -1,7 +1,25 @@
 ;(function () {
+  /**
+   * Local vs Production — Supabase API (PostgREST + Auth + Edge z tego samego origin w config).
+   * Na localhost: `supabase start` → URL http://127.0.0.1:54321; anon key z `supabase status`.
+   */
+  const isLocalhost =
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+  const SUPABASE_URL_PROD = 'https://tawywecinkubmouyprab.supabase.co';
+  const SUPABASE_ANON_KEY_PROD = 'sb_publishable_b-y5BLfAZBNnPdjhFx61Tw_NP_FI1Sp';
+  const SUPABASE_URL_LOCAL = 'http://127.0.0.1:54321';
+  /** Uzupełnij po `supabase status` (anon key lokalnego stacka). */
+  const SUPABASE_ANON_KEY_LOCAL = '625729a08b95bf1b7ff351a663f3a23c';
+
+  const SUPABASE_URL = isLocalhost ? SUPABASE_URL_LOCAL : SUPABASE_URL_PROD;
+  const SUPABASE_ANON_KEY = isLocalhost ? SUPABASE_ANON_KEY_LOCAL : SUPABASE_ANON_KEY_PROD;
+
   const APP_CONFIG = {
-    supabaseUrl: 'https://tawywecinkubmouyprab.supabase.co',
-    supabaseAnonKey: 'sb_publishable_b-y5BLfAZBNnPdjhFx61Tw_NP_FI1Sp',
+    supabaseUrl: SUPABASE_URL,
+    supabaseAnonKey: SUPABASE_ANON_KEY,
+    isLocalhost,
     /** Opcjonalny URL (np. Edge Function) do zapisu zdarzeń DFOPS_trackEvent — może zostać puste. */
     analyticsEndpoint: '',
     /**
@@ -167,5 +185,8 @@
   };
 
   window.DFOPS_CONFIG = APP_CONFIG;
+  window.DFOPS_IS_LOCALHOST = isLocalhost;
+  window.DFOPS_SUPABASE_URL = SUPABASE_URL;
+  window.DFOPS_SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
 })();
 
