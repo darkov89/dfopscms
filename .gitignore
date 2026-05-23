@@ -20,3 +20,4 @@ yarn-error.log*
 
 # Supabase CLI temp
 supabase/.temp/
+supabase/migrations/20260522000000_init_schema.sql
