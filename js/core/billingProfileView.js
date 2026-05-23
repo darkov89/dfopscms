@@ -18,9 +18,10 @@
         cancel_at: trial.cancel_at ?? null,
       };
     }
-    const plan = billing.plan || 'trial';
     const st = String(billing.status || '').trim().toLowerCase();
-    const paidTier = plan === 'tier0' || plan === 'tier1' || plan === 'tier2';
+    const terminated = st === 'canceled' || st === 'cancelled' || st === 'incomplete_expired';
+    const plan = terminated ? 'trial' : (billing.plan || 'trial');
+    const paidTier = !terminated && (plan === 'tier0' || plan === 'tier1' || plan === 'tier2');
     return {
       plan,
       status: st,

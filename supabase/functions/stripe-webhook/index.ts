@@ -16,6 +16,7 @@ import {
   findPageByUserId,
   resolvePageForInvoice,
   resolvePageForStripeSubscription,
+  subscriptionIsTerminated,
   type StripePaidTier,
 } from "../_shared/stripeBilling.ts";
 
@@ -162,11 +163,13 @@ async function processStripeWebhookEvent(
         console.warn("stripe-webhook: updated — brak strony dla subscription", subscription.id);
         return { skipped: "no_page" };
       }
-      const result = await applyStripeSubscriptionToPage(supabase, page, subscription, {
-        priceStarter,
-        pricePro,
-        pricePremium,
-      });
+      const result = subscriptionIsTerminated(subscription)
+        ? await applySubscriptionCanceledToPage(supabase, page, subscription)
+        : await applyStripeSubscriptionToPage(supabase, page, subscription, {
+            priceStarter,
+            pricePro,
+            pricePremium,
+          });
       if (!result.ok) {
         return { dbError: logDbFailure("customer.subscription.updated", result.error) };
       }

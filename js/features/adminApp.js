@@ -561,8 +561,14 @@
         if (this.hasActivePaidSubscription) return 'Kwota zgodnie z aktywnym pakietem w Stripe';
         return '';
       },
+      get isBillingCanceled() {
+        const st = String(this.billingProfile?.status || '').trim().toLowerCase();
+        return st === 'canceled' || st === 'cancelled' || st === 'incomplete_expired';
+      },
       get trialDaysLeft() {
+        if (this.isBillingCanceled) return 0;
         const sub = this.billingSubscriptionView;
+        if (this.hasActivePaidSubscription) return 0;
         if (this.subscriptionPlan !== 'trial' || !sub?.trial_started_at) return 14;
         const start = new Date(sub.trial_started_at).getTime();
         const now = Date.now();

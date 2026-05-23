@@ -81,6 +81,19 @@ export function subscriptionScheduledToCancelStripe(sub: Stripe.Subscription): b
   return false;
 }
 
+/** Dostęp publiczny (active/trialing lub karencja past_due/unpaid). */
+export function subscriptionGrantsPublicAccess(sub: Stripe.Subscription): boolean {
+  const st = sub.status;
+  if (st === "active" || st === "trialing") return true;
+  if (st === "past_due" || st === "unpaid") return true;
+  return false;
+}
+
+export function subscriptionIsTerminated(sub: Stripe.Subscription): boolean {
+  const st = sub.status;
+  return st === "canceled" || st === "incomplete_expired" || st === "paused";
+}
+
 export type BillingProfileUpsert = {
   user_id: string;
   stripe_customer_id?: string | null;
@@ -239,13 +252,18 @@ async function applyPageBlocksForSubscription(
   const st = sub.status;
   const rowUpdate: Record<string, unknown> = { billing_plan: plan };
 
-  if (st === "active" || st === "trialing") {
+  if (subscriptionGrantsPublicAccess(sub)) {
     rowUpdate.trial_blocked_at = null;
-    rowUpdate.billing_failed_at = null;
-  } else if (st === "past_due" || st === "unpaid") {
-    if (!page.billing_failed_at) {
-      rowUpdate.billing_failed_at = new Date().toISOString();
+    if (st === "active" || st === "trialing") {
+      rowUpdate.billing_failed_at = null;
+    } else if (st === "past_due" || st === "unpaid") {
+      if (!page.billing_failed_at) {
+        rowUpdate.billing_failed_at = new Date().toISOString();
+      }
     }
+  } else if (subscriptionIsTerminated(sub)) {
+    rowUpdate.billing_plan = "trial";
+    rowUpdate.trial_blocked_at = new Date().toISOString();
   }
 
   const { error: updErr } = await supabase.from("pages").update(rowUpdate).eq("id", page.id);
@@ -441,9 +459,13 @@ export async function applySubscriptionCanceledToPage(
   const up = await upsertBillingProfile(supabase, upsertRow);
   if (!up.ok) return up;
 
+  const nowIso = new Date().toISOString();
   const { error: updErr } = await supabase
     .from("pages")
-    .update({ billing_plan: "trial" })
+    .update({
+      billing_plan: "trial",
+      trial_blocked_at: nowIso,
+    })
     .eq("id", page.id);
 
   if (updErr) {

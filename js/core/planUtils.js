@@ -29,6 +29,10 @@
   /** Pełny opis z uwzględnieniem wybranego pakietu w trialu (przed pierwszą opłatą). */
   function subscriptionDisplayName(sub) {
     if (!sub || typeof sub !== 'object') return 'Okres próbny (14 dni)';
+    const st = subscriptionStripeStatus(sub);
+    if (st === 'canceled' || st === 'cancelled') {
+      return 'Subskrypcja anulowana — strona publiczna wyłączona';
+    }
     const p = normalizePlan(sub.plan);
     const sel = sub.selected_plan ? normalizePlan(sub.selected_plan) : '';
     if (p === 'trial') {

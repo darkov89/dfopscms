@@ -31,14 +31,13 @@
     const billingPlan = String(page.billing_plan || '').trim() || 'trial';
     if (billingPlan === 'tier0' || billingPlan === 'tier1' || billingPlan === 'tier2') return false;
     const sub = page.content?.pl?.settings?.subscription;
-    if (!sub || typeof sub !== 'object') return false;
+    if (!sub || typeof sub !== 'object') return true;
     const ts = sub.trial_started_at;
-    if (ts == null || String(ts).trim() === '') return false;
+    if (ts == null || String(ts).trim() === '') return true;
     const start = new Date(ts).getTime();
-    if (!Number.isFinite(start)) return false;
+    if (!Number.isFinite(start)) return true;
     if (Date.now() - start < TRIAL_PUBLIC_BLOCK_AFTER_DAYS * MS_PER_DAY) return false;
-    if (paymentCompletedTrue(sub)) return false;
-    return billingPlan === 'trial';
+    return true;
   }
 
   class DFCMSWatermark extends HTMLElement {
