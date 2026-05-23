@@ -197,3 +197,68 @@ html[data-dfops-scope="public"][data-theme="beauty"][data-bg-style="soft"] .bg-s
     line-height: 1.35;
 }
 
+/* Panel: sidebar — przewijanie tylko w drawerze mobilnym, na desktopie naturalna wysokość */
+.dfops-admin-sidebar-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 1024px) {
+    .dfops-admin-sidebar-scroll {
+        flex: none;
+        min-height: auto;
+        max-height: none;
+        overflow: visible;
+    }
+}
+
+/* Panel: karty planów (Subskrypcja) */
+.dfops-plan-card {
+    border-radius: 1rem;
+    box-shadow: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 8px 24px -6px rgb(15 23 42 / 0.08);
+}
+
+.dfops-plan-features {
+    border: 0;
+}
+
+.dfops-plan-features summary {
+    list-style: none;
+    cursor: pointer;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #64748b;
+    padding: 0.35rem 0;
+    transition: color 0.15s ease;
+}
+
+.dfops-plan-features summary:hover {
+    color: #0f172a;
+}
+
+.dfops-plan-features summary::-webkit-details-marker {
+    display: none;
+}
+
+.dfops-plan-features summary::after {
+    content: " ›";
+    font-weight: 600;
+    opacity: 0.7;
+}
+
+.dfops-plan-features[open] summary::after {
+    content: " ∨";
+}
+
+.dfops-plan-features[open] summary {
+    color: #0f172a;
+    margin-bottom: 0.25rem;
+}
+

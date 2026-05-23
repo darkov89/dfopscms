@@ -41,7 +41,7 @@
     <script defer src="js/features/adminApp.js?v=20260523g"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
-    <link rel="stylesheet" href="css/styles.css?v=20260516a">
+    <link rel="stylesheet" href="css/styles.css?v=20260523a">
 </head>
 <body class="dfops-admin-app flex min-h-screen flex-col bg-slate-50 font-sans text-slate-800 antialiased" x-data="typeof DFOPS_adminAlpineState === 'function' ? DFOPS_adminAlpineState() : { sidebarOpen: false, isLoading: false, content: { pl: { nav: { menu: {} }, hero: {}, manifesto: {}, services: [], faq: [], contact: {}, settings: {} } } }">
 
@@ -524,36 +524,24 @@
 
                 <p class="hidden max-w-[min(100%,13rem)] shrink-0 truncate text-sm font-medium text-slate-500 lg:block xl:max-w-[16rem]" title="Zalogowany użytkownik">Witaj, <span x-text="user?.email"></span></p>
 
-                <div class="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-end lg:w-auto lg:max-w-none lg:shrink-0 lg:pl-3">
-                    <div class="flex flex-wrap items-center justify-end gap-x-5 gap-y-2 sm:gap-x-6 lg:pr-1">
+                <div class="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-end lg:w-auto lg:max-w-none lg:shrink-0">
+                    <div class="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 sm:gap-x-5">
                         <a id="dfcms-onboarding-site-preview"
                            :href="getPublicSiteUrl()"
                            :title="previewUsesHtmlFallback ? 'Motyw bez dedykowanego pliku HTML — podgląd używa beauty.html (localhost).' : ''"
                            target="_blank" rel="noopener noreferrer"
-                           class="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">Podgląd strony</a>
-
-                        <div class="flex items-center gap-2">
-                            <span class="hidden text-sm font-medium text-gray-600 hover:text-gray-900 sm:inline">Publikuj na żywo</span>
-                            <div class="group relative inline-flex shrink-0 items-center" @click.stop>
-                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35" aria-describedby="dfops-publish-tip" aria-label="Czym jest publikacja?">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                </button>
-                                <div id="dfops-publish-tip" role="tooltip" class="pointer-events-none invisible absolute right-0 top-full z-[70] mt-2 w-48 rounded-lg bg-slate-900 px-3 py-2.5 text-left text-xs font-normal leading-relaxed text-white opacity-0 shadow-lg ring-1 ring-black/15 transition-opacity duration-150 ease-out group-hover:visible group-hover:opacity-100">
-                                    Zapisanie przechowa pracę. Publikacja udostępni zmiany gościom na żywo.
-                                    <span class="absolute bottom-full right-4 mb-[-1px] h-0 w-0 border-x-[6px] border-x-transparent border-b-[6px] border-b-slate-900" aria-hidden="true"></span>
-                                </div>
-                            </div>
-                        </div>
+                           class="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900">Podgląd strony</a>
 
                         <button @click="saveData()" x-show="content && !isLoading" type="button"
-                                class="inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-lg border border-slate-800 bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2">
+                                title="Zapisz i opublikuj stronę na żywo"
+                                class="inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-lg border border-slate-800 bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2">
                             <span x-show="!saving">Publikuj zmiany</span>
                             <span x-show="saving" x-cloak class="animate-pulse">Zapisywanie…</span>
                         </button>
 
-                        <div class="hidden h-8 w-px shrink-0 bg-slate-200 sm:block lg:block" aria-hidden="true"></div>
+                        <div class="hidden h-8 w-px shrink-0 bg-slate-200 sm:block" aria-hidden="true"></div>
 
-                        <div class="flex shrink-0 items-center gap-5 whitespace-nowrap pl-2 sm:gap-6 sm:pl-3">
+                        <div class="flex shrink-0 items-center gap-4 whitespace-nowrap sm:gap-5">
                             <button type="button" @click="setTab('subscription'); $nextTick(() => { const el = document.getElementById('dfops-platnosci-info'); if (el) { if (el.tagName === 'DETAILS') el.open = true; el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } })" class="text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:text-accent lg:text-[11px]">Warunki</button>
                             <button type="button" @click="logout()" class="text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:text-red-600 lg:text-[11px]">Wyloguj</button>
                         </div>
@@ -607,10 +595,10 @@
 
             <div class="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-10">
                 <aside
-                    class="fixed inset-y-0 left-0 z-50 flex w-64 max-w-[min(100vw,18rem)] transform flex-col overflow-hidden border-r border-slate-200/80 bg-white shadow-panel-md transition-transform duration-300 ease-out lg:relative lg:inset-auto lg:z-auto lg:w-1/4 lg:max-w-none lg:translate-x-0 lg:flex-shrink-0 lg:rounded-xl lg:border lg:border-slate-200/70 lg:shadow-[4px_0_28px_-8px_rgba(15,23,42,0.09)] lg:ring-1 lg:ring-slate-900/[0.045] lg:sticky lg:top-4 lg:max-h-[calc(100vh-5.5rem)] lg:self-start"
+                    class="fixed inset-y-0 left-0 z-50 flex w-64 max-w-[min(100vw,18rem)] transform flex-col overflow-hidden border-r border-slate-200/80 bg-white shadow-panel-md transition-transform duration-300 ease-out lg:relative lg:inset-auto lg:z-auto lg:w-1/4 lg:max-w-none lg:translate-x-0 lg:flex-shrink-0 lg:overflow-visible lg:rounded-xl lg:border lg:border-slate-200/70 lg:shadow-[4px_0_28px_-8px_rgba(15,23,42,0.09)] lg:ring-1 lg:ring-slate-900/[0.045] lg:sticky lg:top-4 lg:self-start"
                     :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
                 >
-                    <div class="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden overscroll-y-contain px-2 pb-4 pt-3 [-webkit-overflow-scrolling:touch]">
+                    <div class="dfops-admin-sidebar-scroll flex flex-col px-2 pb-4 pt-3">
                         <button type="button" id="dfcms-onboarding-wizard-btn" @click="openWizardFromStudio()" class="mb-4 flex w-full items-center gap-3 rounded-xl bg-accent/10 px-4 py-3 text-left font-bold text-accent transition-colors hover:bg-accent/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2">
                             <span class="text-xl shrink-0" aria-hidden="true">🪄</span>
                             <span class="min-w-0 flex-1 leading-snug">Uruchom Kreator</span>
@@ -2156,8 +2144,8 @@
                             <button type="button" @click="scrollPlans(1)" class="absolute right-0 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200/80 bg-white text-lg font-bold text-slate-700 shadow-panel transition-colors hover:border-accent hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 xl:hidden md:flex" aria-label="Następny pakiet">›</button>
                             <div x-ref="planStrip" class="-mx-1 flex min-w-0 snap-x snap-mandatory scroll-smooth items-stretch gap-4 overflow-x-auto overflow-y-visible px-1 py-3 pb-4 [scrollbar-width:thin] sm:gap-5 md:px-12 xl:grid xl:grid-cols-3 xl:items-stretch xl:gap-4 xl:[grid-auto-rows:minmax(0,1fr)] xl:overflow-visible xl:px-0 xl:pb-0 xl:snap-none [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300/80">
                             <!-- Starter -->
-                            <article class="flex min-h-0 min-w-[min(100%,18rem)] w-[85vw] max-w-[100%] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border border-slate-200/80 bg-gradient-to-b from-slate-50/90 to-white shadow-panel ring-1 ring-slate-900/5 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] xl:h-full xl:min-h-0 xl:min-w-0 xl:w-full xl:max-w-none xl:flex-shrink xl:self-stretch">
-                                <div class="flex min-h-0 flex-1 flex-col p-6">
+                            <article class="dfops-plan-card flex min-h-0 min-w-[min(100%,18rem)] w-[85vw] max-w-[100%] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border border-slate-200/80 bg-gradient-to-b from-slate-50/90 to-white ring-1 ring-slate-900/5 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] xl:flex xl:h-full xl:min-h-0 xl:min-w-0 xl:w-full xl:max-w-none xl:flex-shrink xl:self-stretch">
+                                <div class="flex min-h-0 flex-1 flex-col p-7">
                                     <div class="mb-3 flex min-h-[1.75rem] shrink-0 items-center justify-end" aria-hidden="true"></div>
                                     <div class="mb-4">
                                         <h3 class="text-lg font-bold tracking-tight text-slate-900">Starter</h3>
@@ -2174,12 +2162,15 @@
                                         </div>
                                         <p class="mt-1 text-[11px] text-slate-500">netto · +23% VAT</p>
                                     </div>
-                                    <ul class="min-h-0 flex-1 space-y-2.5 text-sm text-slate-600">
-                                        <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Domena</strong> .dfcms.pl</span></li>
-                                        <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Podstawowy motyw</strong> (jedna paleta)</span></li>
-                                        <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Logo DFCMS</strong> w stopce</span></li>
-                                    </ul>
-                                    <div class="mt-auto w-full shrink-0 space-y-3 pt-6">
+                                    <details class="dfops-plan-features min-h-0 flex-1">
+                                        <summary>Zobacz pełną listę funkcji</summary>
+                                        <ul class="space-y-2.5 text-sm text-slate-600">
+                                            <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Adres</strong> na subdomenie <strong class="text-slate-800">.dfcms.pl</strong></span></li>
+                                            <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Podstawowy motyw</strong> (jedna paleta)</span></li>
+                                            <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Logo DFCMS</strong> w stopce</span></li>
+                                        </ul>
+                                    </details>
+                                    <div class="mt-auto w-full shrink-0 space-y-3 pt-4">
                                         <button type="button" @click="subscribe('starter')" x-show="subscriptionPlan === 'trial'" :disabled="checkoutLoading || saving" class="inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-xl bg-accent-fg px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-white shadow-panel transition-colors hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 disabled:opacity-50 xl:text-[11px]">
                                             <span x-show="!checkoutLoading">Przejdź do płatności</span>
                                             <span x-show="checkoutLoading" x-cloak>Łączenie ze Stripe…</span>
@@ -2191,8 +2182,8 @@
                                 </div>
                             </article>
                             <!-- Standard -->
-                            <article class="relative flex min-h-0 min-w-[min(100%,18rem)] w-[85vw] max-w-[100%] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border-2 border-accent bg-gradient-to-b from-white via-amber-50/45 to-amber-50/80 shadow-panel-md ring-1 ring-accent/20 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] xl:h-full xl:min-h-0 xl:min-w-0 xl:w-full xl:max-w-none xl:flex-shrink xl:self-stretch">
-                                <div class="flex min-h-0 flex-1 flex-col p-6">
+                            <article class="dfops-plan-card relative flex min-h-0 min-w-[min(100%,18rem)] w-[85vw] max-w-[100%] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border-2 border-accent bg-gradient-to-b from-white via-amber-50/45 to-amber-50/80 ring-1 ring-accent/20 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] xl:flex xl:h-full xl:min-h-0 xl:min-w-0 xl:w-full xl:max-w-none xl:flex-shrink xl:self-stretch">
+                                <div class="flex min-h-0 flex-1 flex-col p-7">
                                     <div class="mb-3 flex min-h-[1.75rem] shrink-0 justify-end">
                                         <span class="inline-flex shrink-0 self-center rounded-full bg-accent px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-accent-fg shadow-panel">Polecane</span>
                                     </div>
@@ -2211,13 +2202,16 @@
                                         </div>
                                         <p class="mt-1 text-[11px] text-slate-500">netto · +23% VAT</p>
                                     </div>
-                                    <ul class="min-h-0 flex-1 space-y-2.5 text-sm text-slate-600">
-                                        <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Własna domena</strong> .pl / .com</span></li>
-                                        <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Pełna paleta</strong> kolorów i motywów</span></li>
-                                        <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Bez logo DFCMS</strong></span></li>
-                                        <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Asystent</strong> od 100 zł/h netto</span></li>
-                                    </ul>
-                                    <div class="mt-auto w-full shrink-0 space-y-3 pt-6">
+                                    <details class="dfops-plan-features min-h-0 flex-1">
+                                        <summary>Zobacz pełną listę funkcji</summary>
+                                        <ul class="space-y-2.5 text-sm text-slate-600">
+                                            <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Własna domena</strong> .pl / .com</span></li>
+                                            <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Pełna paleta</strong> kolorów i motywów</span></li>
+                                            <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Bez logo DFCMS</strong></span></li>
+                                            <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Asystent</strong> od 100 zł/h netto</span></li>
+                                        </ul>
+                                    </details>
+                                    <div class="mt-auto w-full shrink-0 space-y-3 pt-4">
                                         <p x-show="subscriptionPlan === 'trial' && content?.pl?.settings?.subscription?.selected_plan === 'tier1'" class="min-h-0 text-xs font-medium leading-relaxed text-amber-900/90" x-cloak>Dokończ płatność Standard, aby utrzymać dostęp po trialu.</p>
                                         <button type="button" @click="subscribe('standard')" x-show="subscriptionPlan !== 'tier1'" :disabled="checkoutLoading || saving" class="inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-xl bg-accent px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-accent-fg shadow-panel transition-colors hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 disabled:opacity-50 xl:text-[11px]">
                                             <span x-show="!checkoutLoading">Przejdź do płatności</span>
@@ -2230,23 +2224,26 @@
                                 </div>
                             </article>
                             <!-- Custom -->
-                            <article class="flex min-h-0 min-w-[min(100%,18rem)] w-[85vw] max-w-[100%] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border-2 border-dashed border-slate-300/90 bg-gradient-to-b from-slate-50 to-slate-100/70 shadow-panel ring-1 ring-slate-900/5 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] xl:h-full xl:min-h-0 xl:min-w-0 xl:w-full xl:max-w-none xl:flex-shrink xl:self-stretch">
-                                <div class="flex min-h-0 flex-1 flex-col p-6">
+                            <article class="dfops-plan-card flex min-h-0 min-w-[min(100%,18rem)] w-[85vw] max-w-[100%] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border-2 border-dashed border-slate-300/90 bg-gradient-to-b from-slate-50 to-slate-100/70 ring-1 ring-slate-900/5 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] xl:flex xl:h-full xl:min-h-0 xl:min-w-0 xl:w-full xl:max-w-none xl:flex-shrink xl:self-stretch">
+                                <div class="flex min-h-0 flex-1 flex-col p-7">
                                     <div class="mb-3 flex min-h-[1.75rem] shrink-0 items-center justify-end" aria-hidden="true"></div>
                                     <div class="mb-4">
                                         <h3 class="text-lg font-bold tracking-tight text-slate-900">Custom</h3>
                                         <p class="mt-1 text-[11px] font-semibold uppercase tracking-widest text-slate-500">Na zamówienie</p>
                                     </div>
                                     <div class="mb-5 border-b border-slate-200/80 pb-5">
-                                        <p class="text-3xl font-bold tabular-nums text-accent">od 149 zł</p>
-                                        <p class="mt-1 text-[11px] text-slate-500">wycena indywidualna · netto</p>
+                                        <p class="text-2xl font-bold leading-tight tabular-nums text-accent sm:text-3xl">Wycena indywidualna</p>
+                                        <p class="mt-1 text-[11px] text-slate-500">Rozszerzenia i wdrożenie · netto</p>
                                     </div>
-                                    <ul class="min-h-0 flex-1 space-y-2.5 text-sm text-slate-600">
-                                        <li class="flex gap-2"><span class="shrink-0 font-bold text-slate-400">◇</span><span>Indywidualne wdrożenie</span></li>
-                                        <li class="flex gap-2"><span class="shrink-0 font-bold text-slate-400">◇</span><span>Rozszerzenia pod proces</span></li>
-                                        <li class="flex gap-2"><span class="shrink-0 font-bold text-slate-400">◇</span><span>Kontakt z zespołem</span></li>
-                                    </ul>
-                                    <div class="mt-auto w-full shrink-0 pt-6">
+                                    <details class="dfops-plan-features min-h-0 flex-1">
+                                        <summary>Zobacz pełną listę funkcji</summary>
+                                        <ul class="space-y-2.5 text-sm text-slate-600">
+                                            <li class="flex gap-2"><span class="shrink-0 font-bold text-slate-400">◇</span><span>Indywidualne wdrożenie</span></li>
+                                            <li class="flex gap-2"><span class="shrink-0 font-bold text-slate-400">◇</span><span>Rozszerzenia pod proces</span></li>
+                                            <li class="flex gap-2"><span class="shrink-0 font-bold text-slate-400">◇</span><span>Kontakt z zespołem</span></li>
+                                        </ul>
+                                    </details>
+                                    <div class="mt-auto w-full shrink-0 pt-4">
                                         <a href="zapytanie-custom.html" class="inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-xl border-2 border-slate-300 bg-white/90 px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-slate-800 shadow-panel transition-colors hover:border-accent hover:text-accent-soft xl:text-[11px]">Formularz zapytania</a>
                                     </div>
                                 </div>
