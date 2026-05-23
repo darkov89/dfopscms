@@ -3,7 +3,7 @@
 > **Przeznaczenie:** jeden plik w korzeniu repozytorium do aktualizacji **na koniec sesji** (ludzie + agenci), żeby zachować ciągłość decyzji architektonicznych, produktowych i operacyjnych.  
 > **Nie zastępuje** `README.md` (start, deploy, struktura katalogów), ale je **uzupełnia** o „co wiemy o systemie teraz”.
 
-**Ostatnia aktualizacja treści:** 2026-05-16 — panel CMS: scroll sidebara, accordion warunków rozliczeń, bez ID Stripe w UI
+**Ostatnia aktualizacja treści:** 2026-05-22 — Edge `get-google-reviews`: wymagany JWT użytkownika przed Google API
 
 ---
 
@@ -86,6 +86,7 @@ Użytkownik → Auth (Supabase) → pages.content (JSON) → front (szablon + me
 - **Treść HTML:** DOMPurify + sanityzacja rekurencyjna w `pageRepository`; ostrożnie z polami embed (mapy, recenzje Google).
 - **Analityka:** w panelu tylko **ID** kontenerów; snippet generuje **`publicSiteApp`** po zweryfikowanej zgodzie cookies. Właściciel wdrażający wyłącznie tagi marketingowe wyłącznie w **GTM** powinien uzgodnić to z tekstem baneru / dobrymi praktykami (GTM wiąże się obecnie z kategorią **Analityczne** po stronie technicznej).
 - **Stripe:** sekret webhooka tylko po stronie Edge; klient anon w przeglądarce.
+- **Google Maps / Places (`get-google-reviews`):** po CORS i `POST` — twarda walidacja `Authorization` + `auth.getUser()`; **401** bez sesji użytkownika. **Panel:** `js/core/googlePlacesSync.js` — przy **Publikuj zmiany** i przy wyborze miejsca na mapie uzupełnia `contact.map_embed_url` oraz `reviews` + metadane w `google_reviews` (`cached_*`, `google_synced_at`). **Widok publiczny:** tylko dane z bazy (`map_embed_url`, `content.pl.reviews`); brak wywołań Edge. Istniejące strony z samym `map_place_id` — jednorazowo **Publikuj** w panelu.
 
 ---
 

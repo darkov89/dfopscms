@@ -17,66 +17,82 @@
         return d.toISOString();
       },
 
-      hydrateDemoReviewsFromContent() {
+      hydrateFromContent() {
         const c = this.content;
         const l = this.lang || 'pl';
         const rows = Array.isArray(c[l]?.reviews) ? c[l].reviews : [];
         const gr = c[l]?.settings?.google_reviews || c[l]?.google_reviews;
-        const key = `${l}:${rows.map((x) => (x?.author || '') + '|' + String(x?.content || '').slice(0, 48)).join(';')}`;
+        const key = `${l}:${rows.map((x) => (x?.author || '') + '|' + String(x?.content || '').slice(0, 48)).join(';')}:${gr?.google_synced_at || ''}`;
         if (this._demoReviewsKey === key) return;
         this._demoReviewsKey = key;
-        this._lastFetchedQuery = null;
+        this._lastFetchedQuery = gr?.place_query?.trim() || null;
         this.loading = false;
         this.error = '';
         this.slide = 0;
-        this.placeId = '';
+        this.placeId = String(gr?.cached_place_id || '').trim();
+        const pr = gr?.cached_place_rating;
+        const uc = gr?.cached_user_rating_count;
+        this.placeRating =
+          pr != null && Number.isFinite(Number(pr)) ? Number(pr) : null;
+        this.userRatingCount =
+          uc != null && Number.isFinite(Number(uc)) ? Number(uc) : null;
         this.reviews = rows.map((row, i) => ({
           author_name: typeof row.author === 'string' && row.author.trim() ? row.author.trim() : 'Klient',
           text: typeof row.content === 'string' ? row.content : '',
           rating: Number(row.stars) > 0 ? Number(row.stars) : 5,
-          publishTime: typeof row.publishTime === 'string' && row.publishTime.trim() ? row.publishTime.trim() : this.demoStaggerIso(i)
+          publishTime:
+            typeof row.publishTime === 'string' && row.publishTime.trim()
+              ? row.publishTime.trim()
+              : this.demoStaggerIso(i),
         }));
-        const ratings = this.reviews.map((r) => Number(r.rating) || 0).filter((n) => n > 0);
-        if (ratings.length) {
-          const avg = ratings.reduce((a, n) => a + n, 0) / ratings.length;
-          this.placeRating = Math.round(avg * 10) / 10;
-        } else {
-          this.placeRating = 5;
+        if (this.placeRating == null) {
+          const ratings = this.reviews.map((r) => Number(r.rating) || 0).filter((n) => n > 0);
+          if (ratings.length) {
+            const avg = ratings.reduce((a, n) => a + n, 0) / ratings.length;
+            this.placeRating = Math.round(avg * 10) / 10;
+          }
         }
-        this.userRatingCount = this.reviews.length;
+        if (this.userRatingCount == null || this.userRatingCount <= 0) {
+          this.userRatingCount = this.reviews.length;
+        }
       },
 
       init() {
         const tryLoad = () => {
-          // Alpine.js automatycznie dziedziczy zmienne z publicSiteApp.
-          // Używamy bezpośrednio this.content i this.lang!
           const c = this.content;
           const l = this.lang || 'pl';
 
-          if (!c) return; // Jeśli dane z bazy jeszcze nie zeszły - czekamy
+          if (!c) return;
 
-          // Pobieramy konfigurację niezależnie od tego, czy jest w 'settings' czy bezpośrednio
           const gr = c[l]?.settings?.google_reviews || c[l]?.google_reviews;
           const query = gr?.place_query?.trim();
           const isDemoCatalog = !!c[l]?.settings?.is_demo_catalog;
           const ownReviews = Array.isArray(c[l]?.reviews) ? c[l].reviews : [];
 
-          if (query && query !== this._lastFetchedQuery) {
-            this._demoReviewsKey = null;
-            this.loadReviews();
-          } else if (!query && isDemoCatalog && ownReviews.length) {
-            this.hydrateDemoReviewsFromContent();
+          if (query) {
+            if (ownReviews.length) {
+              this.hydrateFromContent();
+            } else {
+              this.loading = false;
+              this.reviews = [];
+              this.error =
+                'Opinie z Google pojawią się po publikacji strony w panelu (zakładka Opinie z Google → Publikuj zmiany).';
+            }
+            return;
+          }
+
+          if (!query && isDemoCatalog && ownReviews.length) {
+            this.hydrateFromContent();
           } else if (query === '' || (gr && !query)) {
             this.loading = false;
             this._demoReviewsKey = null;
             this.error = 'Brak konfiguracji place_query.';
+          } else {
+            this.loading = false;
           }
         };
 
-        // 1. Sprawdzamy przy starcie
         tryLoad();
-
-        // 2. Obserwujemy zmiany w obiekcie content (poprawna składnia Alpine.js)
         this.$watch('content', () => {
           tryLoad();
         });
@@ -139,70 +155,6 @@
       nextSlide() {
         this.slide = Math.min(Math.max(0, (this.reviews || []).length - 1), this.slide + 1);
       },
-
-      async loadReviews() {
-        const c = this.content;
-        const l = this.lang || 'pl';
-        const gr = c?.[l]?.settings?.google_reviews || c?.[l]?.google_reviews;
-        const query = gr?.place_query?.trim();
-        const maxReviews = gr?.max_reviews ?? 8;
-
-        if (!query) return;
-
-        this._lastFetchedQuery = query;
-        this.loading = true;
-        this.reviews = [];
-        this.error = '';
-        this.slide = 0;
-        let failSafeId = null;
-        let timeoutId = null;
-
-        try {
-          const t = window.DFOPS_CONFIG?.timeouts || {};
-          const apiTimeout = t.apiTimeout ?? 25000;
-          const abortTimeout = t.abortTimeout ?? 12000;
-
-          failSafeId = setTimeout(() => {
-            this.loading = false;
-            this.error = 'Timeout pobierania opinii.';
-          }, apiTimeout);
-
-          const controller = new AbortController();
-          timeoutId = setTimeout(() => controller.abort(), abortTimeout);
-
-          const fnUrl = (window.DFOPS_CONFIG?.supabaseUrl
-            ? window.DFOPS_CONFIG.supabaseUrl + '/functions/v1/get-google-reviews'
-            : '/functions/v1/get-google-reviews');
-
-          const resp = await fetch(fnUrl, {
-            method: 'POST',
-            headers: {
-              'content-type': 'application/json',
-              'authorization': 'Bearer ' + (window.DFOPS_CONFIG?.supabaseAnonKey || '')
-            },
-            signal: controller.signal,
-            body: JSON.stringify({
-              query,
-              maxReviews: typeof maxReviews === 'number' ? Math.min(20, Math.max(1, maxReviews)) : 8
-            })
-          });
-
-          if (timeoutId) clearTimeout(timeoutId);
-          if (!resp.ok) throw new Error('HTTP ' + resp.status);
-
-          const json = await resp.json();
-          this.placeId = json?.placeId || '';
-          this.placeRating = json?.placeRating ?? null;
-          this.userRatingCount = json?.userRatingCount ?? null;
-          this.reviews = json?.reviews || [];
-          this.error = json?.error || '';
-        } catch (e) {
-          this.error = e?.message || 'Błąd pobierania opinii.';
-        } finally {
-          if (failSafeId) clearTimeout(failSafeId);
-          this.loading = false;
-        }
-      }
     };
   }
 

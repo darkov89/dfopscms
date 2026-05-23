@@ -201,6 +201,11 @@
     if (pl.google_reviews.place_query === undefined) pl.google_reviews.place_query = '';
     if (pl.google_reviews.max_reviews === undefined) pl.google_reviews.max_reviews = 6;
     if (pl.google_reviews.title === undefined) pl.google_reviews.title = 'Opinie z Google';
+    if (pl.google_reviews.cached_place_id === undefined) pl.google_reviews.cached_place_id = '';
+    if (pl.google_reviews.cached_place_rating === undefined) pl.google_reviews.cached_place_rating = null;
+    if (pl.google_reviews.cached_user_rating_count === undefined) pl.google_reviews.cached_user_rating_count = null;
+    if (pl.google_reviews.google_synced_at === undefined) pl.google_reviews.google_synced_at = '';
+    if (pl.google_reviews.google_sync_query === undefined) pl.google_reviews.google_sync_query = '';
 
     if (!pl.gallery) pl.gallery = { title: 'Nasze realizacje', images: [] };
     if (!Array.isArray(pl.gallery.images)) pl.gallery.images = [];

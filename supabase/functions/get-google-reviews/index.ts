@@ -1,5 +1,6 @@
 // @ts-ignore - remote Deno std module isn't resolvable by local TS linter.
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 /** Deno global - available at runtime in Supabase Edge Functions. */
 declare const Deno: { env: { get: (k: string) => string | undefined } };
@@ -183,6 +184,37 @@ serve(async (req) => {
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ ok: false, error: "Metoda nieobsługiwana." }), {
       status: 405,
+      headers: { ...cors, "content-type": "application/json; charset=utf-8" },
+    });
+  }
+
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) {
+    return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...cors, "content-type": "application/json; charset=utf-8" },
+    });
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return new Response(JSON.stringify({ ok: false, error: "Brak konfiguracji serwera." }), {
+      status: 500,
+      headers: { ...cors, "content-type": "application/json; charset=utf-8" },
+    });
+  }
+
+  const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const {
+    data: { user },
+    error: userErr,
+  } = await supabaseAuth.auth.getUser();
+  if (userErr || !user?.id) {
+    return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
+      status: 401,
       headers: { ...cors, "content-type": "application/json; charset=utf-8" },
     });
   }

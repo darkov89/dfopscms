@@ -362,13 +362,13 @@
                     <template x-if="content[lang].contact">
                         <div>
                             <div class="flex flex-col md:flex-row gap-6 items-start">
-                                <template x-if="content[lang].contact?.map_embed_url || mapIframeSrc">
+                                <template x-if="content[lang].contact?.map_embed_url">
                                     <div class="w-full md:w-[320px] max-w-full rounded-xl overflow-hidden border border-white/10 shadow-sm aspect-[4/3]">
                                         <iframe
                                             class="w-full h-full"
                                             loading="lazy"
                                             referrerpolicy="no-referrer-when-downgrade"
-                                            :src="content[lang].contact.map_embed_url || mapIframeSrc">
+                                            :src="content[lang].contact.map_embed_url">
                                         </iframe>
                                     </div>
                                 </template>

@@ -339,8 +339,6 @@
       landingPricingUrl: '',
       theme: expectedTheme,
       slug: null,
-      /** URL iframe z get-google-reviews (embed_for_place_id), gdy brak map_embed_url. */
-      mapIframeSrc: '',
       activeModal: null,
       openModal(type) {
         this.activeModal = type;
@@ -364,30 +362,6 @@
           window.DFOPS__applyAnalyticsConsentNow();
         } catch (e) {
           console.warn('DFOPS analytics:', e);
-        }
-      },
-      async resolveMapIframeFromPlace() {
-        this.mapIframeSrc = '';
-        const c = this.content?.[this.lang]?.contact;
-        if (!c) return;
-        if (String(c.map_embed_url || '').trim()) return;
-        const pid = String(c.map_place_id || '').trim();
-        if (!pid) return;
-        if (!cfg.supabaseAnonKey) return;
-        try {
-          const sb = window.DFOPS_getSupabaseClient();
-          const { data, error } = await sb.functions.invoke('get-google-reviews', {
-            body: { embed_for_place_id: pid },
-          });
-          if (error) {
-            console.warn('DFOPS map embed:', error.message || error);
-            return;
-          }
-          if (data?.ok && typeof data.embedUrl === 'string' && data.embedUrl.startsWith('https://')) {
-            this.mapIframeSrc = data.embedUrl;
-          }
-        } catch (e) {
-          console.warn('DFOPS resolveMapIframeFromPlace:', e);
         }
       },
       getSiteSlug() {
@@ -498,7 +472,6 @@
 
           applyDocumentSeo(this.content, this.lang);
           initWatermark(this.content?.pl?.settings?.subscription?.plan);
-          await this.resolveMapIframeFromPlace();
           this.injectAnalyticsTracking();
           this.dataLoaded = true;
         } catch (error) {

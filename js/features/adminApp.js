@@ -193,7 +193,17 @@
           },
         },
         social: { linkedin: '', facebook: '', instagram: '', tiktok: '' },
-        google_reviews: { embed_url: '', place_query: '', max_reviews: 6, title: 'Opinie z Google' },
+        google_reviews: {
+          embed_url: '',
+          place_query: '',
+          max_reviews: 6,
+          title: 'Opinie z Google',
+          cached_place_id: '',
+          cached_place_rating: null,
+          cached_user_rating_count: null,
+          google_synced_at: '',
+          google_sync_query: '',
+        },
         reviews: [],
         schedule: [],
         trust: { title: '', quote: '', author: '', subtitle: '', stars: 5 },
@@ -332,6 +342,8 @@
       upgrading: false,
       checkoutLoading: false,
       stripeSyncLoading: false,
+      /** Zapobiega pętli loadData → sync → loadData oraz auto-save subskrypcji po sync ze Stripe. */
+      _loadDataSubscriptionStripeSync: false,
       /** Jednorazowy silent sync ze Stripe po wejściu w zakładkę Subskrypcja (świeży `cancel_at_period_end`). */
       _subscriptionTabStripeSynced: false,
       newPassword: '',
@@ -1035,7 +1047,12 @@
             if (!silent) this.showToast(data.error, 'error');
             return false;
           }
-          await this.loadData();
+          this._loadDataSubscriptionStripeSync = true;
+          try {
+            await this.loadData();
+          } finally {
+            this._loadDataSubscriptionStripeSync = false;
+          }
           this.syncUserPlanFromBilling();
           if (!silent) {
             this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
@@ -1518,8 +1535,20 @@
             this.content.pl.settings.welcome_onboarding_completed = true;
           }
           const nextSubSig = subSig(this.content.pl.settings.subscription);
-          if (prevSubSig !== nextSubSig) {
-            await this.saveData({ silentSuccess: true });
+          if (!this._loadDataSubscriptionStripeSync && prevSubSig !== nextSubSig) {
+            const stripeSubId =
+              typeof data.content?.pl?.settings?.subscription?.stripe_subscription_id === 'string'
+                ? data.content.pl.settings.subscription.stripe_subscription_id.trim()
+                : '';
+            if (stripeSubId) {
+              const synced = await this.syncStripeSubscription({ silent: true });
+              if (synced) return;
+              console.warn(
+                '[DFCMS] Różnica sygnatury subskrypcji — sync ze Stripe nieudany; pomijamy auto-zapis (unik nadpisania webhooka).',
+              );
+            } else {
+              await this.saveData({ silentSuccess: true });
+            }
           }
           this.currentTemplateVersion = Number(this.content.pl.settings.template_version || 1);
           this.updateAvailable = this.currentTemplateVersion < this.latestTemplateVersion;
@@ -2223,6 +2252,16 @@
         if (!this.content?.pl || this.isLoading || !this.pageId) return false;
         this.saving = true;
         try {
+          const syncFn = window.DFOPS_googlePlacesSync?.syncGooglePlacesForPublish;
+          if (typeof syncFn === 'function' && this.supabase) {
+            const syncResult = await syncFn(this.supabase, this.content.pl);
+            if (syncResult?.warnings?.length) {
+              this.showToast(
+                'Zapisano, ale nie udało się odświeżyć: ' + syncResult.warnings.join(', ') + '. Sprawdź konfigurację Google.',
+                'error',
+              );
+            }
+          }
           if (Array.isArray(this.content.pl.services)) {
             this.content.pl.services = this.content.pl.services.filter((s) => s.title && String(s.title).trim() !== '');
           }
@@ -2366,7 +2405,7 @@
         }
       },
 
-      confirmMapPlaceSelection() {
+      async confirmMapPlaceSelection() {
         if (!this.mapPlaceSelectedId || !this.content?.pl) return;
         const hit = this.mapPlaceResults.find((p) => p.id === this.mapPlaceSelectedId);
         if (!hit) return;
@@ -2376,7 +2415,21 @@
         if (hit.address && !String(this.content.pl.contact.address || '').trim()) {
           this.content.pl.contact.address = hit.address;
         }
-        this.message = 'Wybrano lokalizację mapy. Opublikuj zmiany, żeby była widoczna na stronie.';
+        this.mapPlaceLoading = true;
+        try {
+          const syncEmbed = window.DFOPS_googlePlacesSync?.syncMapEmbedIntoContact;
+          if (typeof syncEmbed === 'function' && this.supabase) {
+            await syncEmbed(this.supabase, this.content.pl.contact);
+          }
+        } catch (e) {
+          console.warn('DFOPS map embed po wyborze miejsca:', e);
+        } finally {
+          this.mapPlaceLoading = false;
+        }
+        const hasEmbed = !!String(this.content.pl.contact.map_embed_url || '').trim();
+        this.message = hasEmbed
+          ? 'Wybrano lokalizację mapy. Opublikuj zmiany, żeby była widoczna na stronie.'
+          : 'Wybrano lokalizację. Opublikuj zmiany — przy zapisie spróbujemy ponownie wygenerować embed mapy.';
         setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
       },
 
