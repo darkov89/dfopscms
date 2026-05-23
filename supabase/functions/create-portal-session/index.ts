@@ -2,7 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "npm:stripe@^14.0.0";
 import { createClient } from "npm:@supabase/supabase-js@^2.39.0";
-import { findPageByUserId, subscriptionObjFromContent } from "../_shared/stripeBilling.ts";
+import { findBillingProfileByUserId } from "../_shared/stripeBilling.ts";
 
 declare const Deno: { env: { get: (k: string) => string | undefined } };
 
@@ -97,11 +97,10 @@ serve(async (req) => {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
-    const page = await findPageByUserId(supabase, user.id);
-    const subObj = page?.content ? subscriptionObjFromContent(page.content) : undefined;
+    const billing = await findBillingProfileByUserId(supabase, user.id);
     let customerId =
-      typeof subObj?.stripe_customer_id === "string"
-        ? subObj.stripe_customer_id.trim()
+      typeof billing?.stripe_customer_id === "string"
+        ? billing.stripe_customer_id.trim()
         : "";
 
     const stripe = new Stripe(stripeSecret, {

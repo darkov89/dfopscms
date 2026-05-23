@@ -342,7 +342,9 @@
       upgrading: false,
       checkoutLoading: false,
       stripeSyncLoading: false,
-      /** Zapobiega pętli loadData → sync → loadData oraz auto-save subskrypcji po sync ze Stripe. */
+      /** Profil rozliczeniowy z tabeli billing_profiles (źródło prawdy Stripe). */
+      billingProfile: null,
+      /** Zapobiega podwójnemu sync przy loadData po syncStripeSubscription. */
       _loadDataSubscriptionStripeSync: false,
       /** Jednorazowy silent sync ze Stripe po wejściu w zakładkę Subskrypcja (świeży `cancel_at_period_end`). */
       _subscriptionTabStripeSynced: false,
@@ -376,13 +378,22 @@
       },
       get accentColor() { return cfg.accentByPreset[this.content?.pl?.settings?.color_preset] || '#D4AF37'; },
       get styleBundles() { return cfg.bundlesByTheme[this.theme] || []; },
-      get subscriptionPlan() { return this.content?.pl?.settings?.subscription?.plan || 'trial'; },
+      get billingSubscriptionView() {
+        const trialSub = this.content?.pl?.settings?.subscription;
+        if (typeof window.DFOPS_billingRowToSubscriptionView === 'function') {
+          return window.DFOPS_billingRowToSubscriptionView(this.billingProfile, trialSub);
+        }
+        return trialSub && typeof trialSub === 'object' ? trialSub : { plan: 'trial' };
+      },
+      get subscriptionPlan() {
+        return this.billingSubscriptionView?.plan || 'trial';
+      },
       /** Tier zapisany w CMS albo wybrany przed pełnym merge z webhookiem. */
       get activePaidTierForUi() {
         if (!this.hasActivePaidSubscription) return null;
         const p = this.subscriptionPlan;
         if (p === 'tier0' || p === 'tier1' || p === 'tier2') return p;
-        const sel = this.content?.pl?.settings?.subscription?.selected_plan;
+        const sel = this.billingSubscriptionView?.selected_plan;
         if (sel === 'tier0' || sel === 'tier1' || sel === 'tier2') return sel;
         return null;
       },
@@ -479,7 +490,7 @@
        * po `canceled` w Stripe nie traktuj jako aktywnej subskrypcji.
        */
       get hasActivePaidSubscription() {
-        const sub = this.content?.pl?.settings?.subscription;
+        const sub = this.billingSubscriptionView;
         if (typeof window.DFOPS_hasPaidSubscriptionAccess === 'function') {
           return window.DFOPS_hasPaidSubscriptionAccess(sub);
         }
@@ -496,7 +507,7 @@
        * (Stripe: status active/trialing + cancel_at_period_end).
        */
       get isSubscriptionCanceledButValid() {
-        const sub = this.content?.pl?.settings?.subscription;
+        const sub = this.billingSubscriptionView;
         if (typeof window.DFOPS_isSubscriptionCanceledButValid === 'function') {
           return window.DFOPS_isSubscriptionCanceledButValid(sub);
         }
@@ -507,15 +518,15 @@
        */
       get showStripeBillingPortal() {
         if (this.hasActivePaidSubscription) return true;
-        const sub = this.content?.pl?.settings?.subscription;
+        const sub = this.billingSubscriptionView;
         const cid = typeof sub?.stripe_customer_id === 'string' ? sub.stripe_customer_id.trim() : '';
         if (!cid) return false;
-        const st = typeof sub.status === 'string' ? sub.status.trim().toLowerCase() : '';
+        const st = typeof sub?.status === 'string' ? sub.status.trim().toLowerCase() : '';
         return st === 'canceled' || st === 'cancelled';
       },
       /** Istniejący klient Stripe — zmiany planu tylko przez portal (bez cichej zmiany subskrypcji). */
       hasStripeBillingCustomer() {
-        const sub = this.content?.pl?.settings?.subscription;
+        const sub = this.billingSubscriptionView;
         if (!sub || typeof sub !== 'object') return false;
         const cid = typeof sub.stripe_customer_id === 'string' ? sub.stripe_customer_id.trim() : '';
         const sid = typeof sub.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
@@ -526,7 +537,7 @@
        * (najpierw anulowanie w portalu Stripe).
        */
       get subscriptionBlocksAccountDeletion() {
-        const sub = this.content?.pl?.settings?.subscription;
+        const sub = this.billingSubscriptionView;
         const sid = typeof sub?.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
         if (!sid) return false;
         const stRaw = typeof sub?.status === 'string' ? sub.status.trim().toLowerCase() : '';
@@ -551,8 +562,8 @@
         return '';
       },
       get trialDaysLeft() {
-        const sub = this.content?.pl?.settings?.subscription;
-        if (!sub || sub.plan !== 'trial' || !sub.trial_started_at) return 14;
+        const sub = this.billingSubscriptionView;
+        if (this.subscriptionPlan !== 'trial' || !sub?.trial_started_at) return 14;
         const start = new Date(sub.trial_started_at).getTime();
         const now = Date.now();
         const elapsed = Math.floor((now - start) / MS_PER_DAY);
@@ -613,7 +624,7 @@
         return `https://${this.slug}.${base}/?${preview}`;
       },
       get planDisplayLabel() {
-        const sub = this.content?.pl?.settings?.subscription;
+        const sub = this.billingSubscriptionView;
         if (typeof window.DFOPS_subscriptionDisplayName === 'function') {
           return window.DFOPS_subscriptionDisplayName(sub);
         }
@@ -623,7 +634,7 @@
         return this.subscriptionPlan;
       },
       get selectedPlanHumanLabel() {
-        const s = this.content?.pl?.settings?.subscription?.selected_plan;
+        const s = this.billingSubscriptionView?.selected_plan;
         if (s === 'tier0') return 'Starter';
         if (s === 'tier1') return 'Pro';
         if (s === 'tier2') return 'Premium';
@@ -667,7 +678,7 @@
         ) {
           return;
         }
-        const sid = this.content?.pl?.settings?.subscription?.stripe_subscription_id;
+        const sid = this.billingProfile?.stripe_subscription_id;
         if (typeof sid !== 'string' || !sid.trim()) return;
         this._subscriptionTabStripeSynced = true;
         void this.syncStripeSubscription({ silent: true });
@@ -765,7 +776,7 @@
         return this.canSubmitForcedPasswordReset ? 'text-emerald-700' : 'text-amber-800';
       },
       get subscriptionRenewalDateFormatted() {
-        const raw = this.content?.pl?.settings?.subscription?.current_period_end;
+        const raw = this.billingSubscriptionView?.current_period_end;
         if (typeof window.DFOPS_formatSubscriptionPeriodEndPl === 'function') {
           return window.DFOPS_formatSubscriptionPeriodEndPl(raw);
         }
@@ -784,7 +795,7 @@
       },
       /** Krótka data (np. badge „Wygasa 3.06.2026”) — zgodna z timezone przeglądarki jak `subscriptionRenewalDateFormatted`. */
       get subscriptionRenewalDateBadgeShort() {
-        const raw = this.content?.pl?.settings?.subscription?.current_period_end;
+        const raw = this.billingSubscriptionView?.current_period_end;
         if (raw == null || raw === '') return '—';
         try {
           const d = new Date(typeof raw === 'number' ? raw * 1000 : String(raw));
@@ -1488,6 +1499,24 @@
         return true;
       },
 
+      async loadBillingProfile() {
+        if (!this.user?.id || !this.supabase) {
+          this.billingProfile = null;
+          return;
+        }
+        const { data, error } = await this.supabase
+          .from('billing_profiles')
+          .select('*')
+          .eq('user_id', this.user.id)
+          .maybeSingle();
+        if (error) {
+          console.warn('[DFCMS] loadBillingProfile:', error.message || error);
+          this.billingProfile = null;
+          return;
+        }
+        this.billingProfile = data || null;
+      },
+
       async loadData() {
         this.isLoading = true;
         this.showWizardDismissModal = false;
@@ -1519,37 +1548,22 @@
           this.showTrialSuspendedModal = !!this.trialBlockedAt;
           this.customDomain = data.custom_domain || '';
           this.customDomainStatus = data.custom_domain_status || '';
-          const subSig = (s) => {
-            if (!s || typeof s !== 'object') return '';
-            const p = s.plan || 'trial';
-            const sel = s.selected_plan == null ? '' : String(s.selected_plan);
-            const paid = s.payment_completed === true ? '1' : '0';
-            return `${p}|${sel}|${paid}`;
-          };
           /** Z Supabase bez normalizacji — jeśli true, pomijamy modal i Driver.js także przy pustym localStorage kreatora. */
           const serverWelcomeOnboardingDone =
             data?.content?.pl?.settings?.welcome_onboarding_completed === true;
-          const prevSubSig = subSig(data.content?.pl?.settings?.subscription);
           this.content = window.DFOPS_normalizeContent(data.content, this.theme);
           if (serverWelcomeOnboardingDone && this.content?.pl?.settings) {
             this.content.pl.settings.welcome_onboarding_completed = true;
           }
-          const nextSubSig = subSig(this.content.pl.settings.subscription);
-          if (!this._loadDataSubscriptionStripeSync && prevSubSig !== nextSubSig) {
-            const stripeSubId =
-              typeof data.content?.pl?.settings?.subscription?.stripe_subscription_id === 'string'
-                ? data.content.pl.settings.subscription.stripe_subscription_id.trim()
-                : '';
-            if (stripeSubId) {
-              const synced = await this.syncStripeSubscription({ silent: true });
-              if (synced) return;
-              console.warn(
-                '[DFCMS] Różnica sygnatury subskrypcji — sync ze Stripe nieudany; pomijamy auto-zapis (unik nadpisania webhooka).',
-              );
-            } else {
-              await this.saveData({ silentSuccess: true });
-            }
+          if (
+            this.content?.pl?.settings &&
+            typeof window.DFOPS_stripBillingFromContentSubscription === 'function'
+          ) {
+            this.content.pl.settings.subscription = window.DFOPS_stripBillingFromContentSubscription(
+              this.content.pl.settings.subscription,
+            );
           }
+          await this.loadBillingProfile();
           this.currentTemplateVersion = Number(this.content.pl.settings.template_version || 1);
           this.updateAvailable = this.currentTemplateVersion < this.latestTemplateVersion;
           this.syncUserPlanFromBilling();
@@ -1627,7 +1641,13 @@
           const savedContact = JSON.parse(JSON.stringify(this.content?.pl?.contact || {}));
           const savedLogo = this.content?.pl?.nav?.logo ?? '';
           const savedLogoImage = this.content?.pl?.nav?.logoImage ?? '';
-          const savedSubscription = JSON.parse(JSON.stringify(this.content?.pl?.settings?.subscription || {}));
+          const savedSubscription = JSON.parse(
+            JSON.stringify(this.content?.pl?.settings?.subscription || {}),
+          );
+          const trialOnlySub =
+            typeof window.DFOPS_stripBillingFromContentSubscription === 'function'
+              ? window.DFOPS_stripBillingFromContentSubscription(savedSubscription)
+              : savedSubscription;
           const savedWelcomeDone = this.content?.pl?.settings?.welcome_onboarding_completed === true;
           const savedOnboardingDone = this.content?.pl?.settings?.onboarding_completed === true;
 
@@ -1639,7 +1659,7 @@
           if (merged.pl.settings) {
             merged.pl.settings.subscription = {
               ...(merged.pl.settings.subscription || {}),
-              ...savedSubscription,
+              ...trialOnlySub,
             };
             if (savedWelcomeDone) merged.pl.settings.welcome_onboarding_completed = true;
             if (savedOnboardingDone) merged.pl.settings.onboarding_completed = true;
@@ -1749,7 +1769,13 @@
           const savedContact = JSON.parse(JSON.stringify(this.content?.pl?.contact || {}));
           const savedLogo = this.content?.pl?.nav?.logo ?? '';
           const savedLogoImage = this.content?.pl?.nav?.logoImage ?? '';
-          const savedSubscription = JSON.parse(JSON.stringify(this.content?.pl?.settings?.subscription || {}));
+          const savedSubscription = JSON.parse(
+            JSON.stringify(this.content?.pl?.settings?.subscription || {}),
+          );
+          const trialOnlySub =
+            typeof window.DFOPS_stripBillingFromContentSubscription === 'function'
+              ? window.DFOPS_stripBillingFromContentSubscription(savedSubscription)
+              : savedSubscription;
 
           const merged = window.DFOPS_mergeContentWithTemplate(this.wizardTheme, {});
           merged.pl.contact = savedContact;
@@ -1759,7 +1785,7 @@
           if (merged.pl.settings) {
             merged.pl.settings.subscription = {
               ...(merged.pl.settings.subscription || {}),
-              ...savedSubscription,
+              ...trialOnlySub,
             };
           }
 

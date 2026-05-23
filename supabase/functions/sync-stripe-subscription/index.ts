@@ -4,6 +4,7 @@ import Stripe from "npm:stripe@^14.0.0";
 import { createClient } from "npm:@supabase/supabase-js@^2.39.0";
 import {
   applyStripeSubscriptionToPage,
+  findBillingProfileByUserId,
   findPageByUserId,
   firstRecurringPriceId,
   type StripePaidTier,
@@ -128,23 +129,12 @@ serve(async (req) => {
       httpClient: Stripe.createFetchHttpClient(),
     });
 
-    const content = page.content;
-    const subObj =
-      content &&
-      typeof content === "object" &&
-      !Array.isArray(content) &&
-      (content as Record<string, unknown>).pl &&
-      typeof (content as Record<string, unknown>).pl === "object"
-        ? (((content as Record<string, unknown>).pl as Record<string, unknown>).settings as Record<
-            string,
-            unknown
-          > | undefined)?.subscription as Record<string, unknown> | undefined
-        : undefined;
+    const billing = await findBillingProfileByUserId(supabase, user.id);
 
     let storedSubId =
-      typeof subObj?.stripe_subscription_id === "string" ? subObj.stripe_subscription_id.trim() : "";
+      typeof billing?.stripe_subscription_id === "string" ? billing.stripe_subscription_id.trim() : "";
     const storedCustId =
-      typeof subObj?.stripe_customer_id === "string" ? subObj.stripe_customer_id.trim() : "";
+      typeof billing?.stripe_customer_id === "string" ? billing.stripe_customer_id.trim() : "";
 
     let subscription: Stripe.Subscription | null = null;
 

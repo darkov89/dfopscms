@@ -289,6 +289,9 @@
     }
     if (Array.isArray(obj)) return obj.map((x) => sanitizeContent(x));
     if (typeof obj === 'object') {
+      if (keyHint === 'subscription' && typeof window.DFOPS_stripBillingFromContentSubscription === 'function') {
+        return window.DFOPS_stripBillingFromContentSubscription(obj);
+      }
       const out = {};
       for (const k of Object.keys(obj)) {
         out[k] = sanitizeContent(obj[k], k);
@@ -346,7 +349,7 @@
     const slugTrimmed = typeof slug === 'string' ? slug.trim() : '';
     const { data, error } = await supabase()
       .from('pages')
-      .select('slug, theme, content, color_preset, custom_domain, user_id, trial_blocked_at, billing_failed_at')
+      .select('slug, theme, content, color_preset, custom_domain, user_id, trial_blocked_at, billing_failed_at, billing_plan')
       .eq('slug', slugTrimmed)
       .maybeSingle();
 
@@ -384,7 +387,7 @@
   async function getCurrentUserPage(userId) {
     const { data, error } = await supabase()
       .from('pages')
-      .select('id, slug, theme, content, color_preset, custom_domain, custom_domain_status, trial_blocked_at, billing_failed_at')
+      .select('id, slug, theme, content, color_preset, custom_domain, custom_domain_status, trial_blocked_at, billing_failed_at, billing_plan')
       .eq('user_id', userId)
       .maybeSingle();
     return { data: data || null, error };

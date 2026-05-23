@@ -2,7 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "npm:stripe@^14.0.0";
 import { createClient } from "npm:@supabase/supabase-js@^2.39.0";
-import { findPageByUserId, subscriptionObjFromContent } from "../_shared/stripeBilling.ts";
+import { findBillingProfileByUserId } from "../_shared/stripeBilling.ts";
 
 /** Deno global - available at runtime in Supabase Edge Functions. */
 declare const Deno: { env: { get: (k: string) => string | undefined } };
@@ -68,7 +68,7 @@ function buildCorsHeaders(req: Request) {
 /**
  * Po zakończeniu płatności webhook Stripe powinien w bazie:
  * - `trial_blocked_at` = NULL, `billing_failed_at` = NULL (pełne odblokowanie publicznego widoku),
- * - w `content.pl.settings.subscription`: plan + `payment_completed: true`, wyczyścić `selected_plan` gdzie trzeba.
+ * - w `billing_profiles` + `pages.billing_plan` (service_role).
  *
  * invoice.payment_failed / subscription past_due:
  * - ustaw `billing_failed_at` = COALESCE(billing_failed_at, now()) (pierwsza nieudana próba),
@@ -119,11 +119,10 @@ serve(async (req) => {
       const supabaseAdmin = createClient(supabaseUrl, serviceRole, {
         auth: { persistSession: false, autoRefreshToken: false },
       });
-      const page = await findPageByUserId(supabaseAdmin, user.id);
-      const subObj = page?.content ? subscriptionObjFromContent(page.content) : undefined;
+      const billing = await findBillingProfileByUserId(supabaseAdmin, user.id);
       const existingSubId =
-        typeof subObj?.stripe_subscription_id === "string"
-          ? subObj.stripe_subscription_id.trim()
+        typeof billing?.stripe_subscription_id === "string"
+          ? billing.stripe_subscription_id.trim()
           : "";
       if (existingSubId) {
         return new Response(
@@ -139,8 +138,8 @@ serve(async (req) => {
         );
       }
       existingCustomerId =
-        typeof subObj?.stripe_customer_id === "string"
-          ? subObj.stripe_customer_id.trim()
+        typeof billing?.stripe_customer_id === "string"
+          ? billing.stripe_customer_id.trim()
           : "";
     }
 

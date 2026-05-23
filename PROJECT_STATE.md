@@ -3,7 +3,7 @@
 > **Przeznaczenie:** jeden plik w korzeniu repozytorium do aktualizacji **na koniec sesji** (ludzie + agenci), żeby zachować ciągłość decyzji architektonicznych, produktowych i operacyjnych.  
 > **Nie zastępuje** `README.md` (start, deploy, struktura katalogów), ale je **uzupełnia** o „co wiemy o systemie teraz”.
 
-**Ostatnia aktualizacja treści:** 2026-05-23 — migracja `billing_profiles` (Stripe poza `pages.content`; RLS read-only dla authenticated)
+**Ostatnia aktualizacja treści:** 2026-05-23 — billing: `billing_profiles` + `pages.billing_plan` (źródło prawdy); JSON tylko pola trial
 
 ---
 
@@ -87,6 +87,7 @@ Użytkownik → Auth (Supabase) → pages.content (JSON) → front (szablon + me
 - **Analityka:** w panelu tylko **ID** kontenerów; snippet generuje **`publicSiteApp`** po zweryfikowanej zgodzie cookies. Właściciel wdrażający wyłącznie tagi marketingowe wyłącznie w **GTM** powinien uzgodnić to z tekstem baneru / dobrymi praktykami (GTM wiąże się obecnie z kategorią **Analityczne** po stronie technicznej).
 - **Stripe:** sekret webhooka tylko po stronie Edge; klient anon w przeglądarce.
 - **Google Maps / Places (`get-google-reviews`):** po CORS i `POST` — twarda walidacja `Authorization` + `auth.getUser()`; **401** bez sesji użytkownika. **Panel:** `js/core/googlePlacesSync.js` — przy **Publikuj zmiany** i przy wyborze miejsca na mapie uzupełnia `contact.map_embed_url` oraz `reviews` + metadane w `google_reviews` (`cached_*`, `google_synced_at`). **Widok publiczny:** tylko dane z bazy (`map_embed_url`, `content.pl.reviews`); brak wywołań Edge. Istniejące strony z samym `map_place_id` — jednorazowo **Publikuj** w panelu.
+- **Rozliczenia (Stripe):** tabela **`billing_profiles`** (zapis: Edge `service_role`); **`pages.billing_plan`** — lustrzany plan dla anon (watermark, blokada trial). W **`pages.content`** zostają wyłącznie pola trial (`trial_started_at`, `selected_plan`, opcjonalnie `payment_completed`). Panel: `loadBillingProfile()` + `billingProfileView.js`; webhook/sync/checkout/portal → `stripeBilling.ts`.
 
 ---
 

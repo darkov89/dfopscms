@@ -1,35 +1,32 @@
 /**
- * Wspólna logika merge subskrypcji w `content` + aktualizacja `pages` (blokady trial / billing).
- * Używana przez stripe-webhook i sync-stripe-subscription.
+ * Rozliczenia Stripe → `billing_profiles` (źródło prawdy).
+ * `pages`: wyłącznie `trial_blocked_at`, `billing_failed_at`, `billing_plan` (lustrzany plan dla anon).
  */
 import type { SupabaseClient } from "npm:@supabase/supabase-js@^2.39.0";
 import type Stripe from "npm:stripe@^14.0.0";
 
-export function mergeSubscriptionIntoContent(
-  content: Record<string, unknown>,
-  patch: Record<string, unknown>,
-): Record<string, unknown> {
-  const out: Record<string, unknown> = { ...content };
-  const plRaw = out.pl;
-  const pl =
-    plRaw && typeof plRaw === "object" && !Array.isArray(plRaw)
-      ? { ...(plRaw as Record<string, unknown>) }
-      : {};
-  const settingsRaw = pl.settings;
-  const settings =
-    settingsRaw && typeof settingsRaw === "object" && !Array.isArray(settingsRaw)
-      ? { ...(settingsRaw as Record<string, unknown>) }
-      : {};
-  const oldSubRaw = settings.subscription;
-  const oldSub =
-    oldSubRaw && typeof oldSubRaw === "object" && !Array.isArray(oldSubRaw)
-      ? { ...(oldSubRaw as Record<string, unknown>) }
-      : {};
-  settings.subscription = { ...oldSub, ...patch };
-  pl.settings = settings;
-  out.pl = pl;
-  return out;
-}
+export type StripePaidTier = "tier0" | "tier1" | "tier2";
+
+export type BillingProfileRow = {
+  id: string;
+  user_id: string;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  plan: string | null;
+  status: string | null;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type PageRowMini = {
+  id: string;
+  user_id: string;
+  billing_failed_at?: string | null;
+  trial_blocked_at?: string | null;
+  billing_plan?: string | null;
+};
 
 function customerIdString(cust: string | Stripe.Customer | Stripe.DeletedCustomer | null | undefined): string {
   if (!cust) return "";
@@ -46,9 +43,6 @@ export function firstRecurringPriceId(sub: Stripe.Subscription): string {
   return typeof p === "string" ? p : p?.id ?? "";
 }
 
-export type StripePaidTier = "tier0" | "tier1" | "tier2";
-
-/** Mapowanie price_id z Secrets → tier (Starter / Pro / Premium). */
 export function tierFromStripePrice(
   priceId: string,
   priceStarter: string,
@@ -62,7 +56,6 @@ export function tierFromStripePrice(
   return fallbackTier;
 }
 
-/** Wykrywanie rangi planu wg ID cen (0 = Starter / nieznany, 1 = Pro, 2 = Premium). */
 export function priceTierRank(
   priceId: string,
   priceStarter: string,
@@ -75,30 +68,12 @@ export function priceTierRank(
   return 0;
 }
 
-/** `content.pl.settings.subscription` z JSON strony (bez pełnego typowania content). */
-export function subscriptionObjFromContent(
-  content: unknown,
-): Record<string, unknown> | undefined {
-  if (!content || typeof content !== "object" || Array.isArray(content)) {
-    return undefined;
-  }
-  const pl = (content as Record<string, unknown>).pl;
-  if (!pl || typeof pl !== "object") return undefined;
-  const settings = (pl as Record<string, unknown>).settings;
-  if (!settings || typeof settings !== "object") return undefined;
-  const sub = (settings as Record<string, unknown>).subscription;
-  if (!sub || typeof sub !== "object") return undefined;
-  return sub as Record<string, unknown>;
-}
-
-/** Koniec bieżącego okresu rozliczeniowego — wyłącznie z obiektu Subscription API (źródło prawdy Stripe). */
-function periodEndIso(sub: Stripe.Subscription): string {
+function periodEndIso(sub: Stripe.Subscription): string | null {
   const periodEnd = sub.current_period_end;
   if (typeof periodEnd === "number") return new Date(periodEnd * 1000).toISOString();
-  return new Date().toISOString();
+  return null;
 }
 
-/** Rezygnacja zaplanowana: koniec okresu lub przyszły `cancel_at` (Customer Portal). */
 export function subscriptionScheduledToCancelStripe(sub: Stripe.Subscription): boolean {
   if (sub.cancel_at_period_end === true) return true;
   const cancelAt = sub.cancel_at;
@@ -106,98 +81,96 @@ export function subscriptionScheduledToCancelStripe(sub: Stripe.Subscription): b
   return false;
 }
 
-function cancelAtIso(sub: Stripe.Subscription): string | undefined {
-  const cancelAt = sub.cancel_at;
-  if (typeof cancelAt !== "number") return undefined;
-  return new Date(cancelAt * 1000).toISOString();
-}
+export type BillingProfileUpsert = {
+  user_id: string;
+  stripe_customer_id?: string | null;
+  stripe_subscription_id?: string | null;
+  plan: string;
+  status: string | null;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+};
 
-/**
- * Składa patch dla `content.pl.settings.subscription` wg statusu Stripe.
- */
-export function subscriptionContentPatch(
+/** Patch `billing_profiles` z obiektu Subscription Stripe. */
+export function billingProfileUpsertFromStripe(
+  userId: string,
   sub: Stripe.Subscription,
   tier: StripePaidTier,
-): Record<string, unknown> {
+): BillingProfileUpsert {
   const cid = customerIdString(sub.customer);
   const st = sub.status;
   const period = periodEndIso(sub);
   const cancelAtPeriodEnd = subscriptionScheduledToCancelStripe(sub);
-  const cancelAt = cancelAtIso(sub);
 
-  const base: Record<string, unknown> = {
-    ...(cid ? { stripe_customer_id: cid } : {}),
+  if (st === "active" || st === "trialing" || st === "past_due" || st === "unpaid") {
+    return {
+      user_id: userId,
+      stripe_customer_id: cid || null,
+      stripe_subscription_id: sub.id,
+      plan: tier,
+      status: st,
+      current_period_end: period,
+      cancel_at_period_end: cancelAtPeriodEnd,
+    };
+  }
+
+  return {
+    user_id: userId,
+    stripe_customer_id: cid || null,
     stripe_subscription_id: sub.id,
+    plan: "trial",
     status: st,
     current_period_end: period,
-    cancel_at_period_end: cancelAtPeriodEnd,
-    ...(cancelAt ? { cancel_at: cancelAt } : {}),
-  };
-
-  if (st === "active" || st === "trialing") {
-    return {
-      ...base,
-      plan: tier,
-      payment_completed: true,
-      selected_plan: tier,
-    };
-  }
-  if (st === "past_due" || st === "unpaid") {
-    return {
-      ...base,
-      plan: tier,
-      payment_completed: true,
-      selected_plan: tier,
-    };
-  }
-  /** canceled, incomplete, incomplete_expired, … */
-  return {
-    ...base,
-    plan: "trial",
-    payment_completed: false,
-    selected_plan: null,
     cancel_at_period_end: false,
-    cancel_at: null,
   };
 }
 
-export type PageRowMini = {
-  id: string;
-  content: unknown;
-  billing_failed_at?: string | null;
-  trial_blocked_at?: string | null;
-};
+export async function findBillingProfileByUserId(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<BillingProfileRow | null> {
+  const { data, error } = await supabase
+    .from("billing_profiles")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) {
+    console.error("findBillingProfileByUserId", error);
+    return null;
+  }
+  return data as BillingProfileRow | null;
+}
 
-export async function findPageByStripeSubscriptionId(
+export async function findBillingProfileByStripeSubscriptionId(
   supabase: SupabaseClient,
   subscriptionId: string,
-): Promise<PageRowMini | null> {
+): Promise<BillingProfileRow | null> {
   const { data, error } = await supabase
-    .from("pages")
-    .select("id, content, billing_failed_at, trial_blocked_at")
-    .eq("content->pl->settings->subscription->>stripe_subscription_id", subscriptionId)
+    .from("billing_profiles")
+    .select("*")
+    .eq("stripe_subscription_id", subscriptionId)
     .maybeSingle();
   if (error) {
-    console.error("findPageByStripeSubscriptionId", error);
+    console.error("findBillingProfileByStripeSubscriptionId", error);
     return null;
   }
-  return data as PageRowMini | null;
+  return data as BillingProfileRow | null;
 }
 
-export async function findPageByStripeCustomerId(
+export async function findBillingProfileByStripeCustomerId(
   supabase: SupabaseClient,
   customerId: string,
-): Promise<PageRowMini | null> {
+): Promise<BillingProfileRow | null> {
   const { data, error } = await supabase
-    .from("pages")
-    .select("id, content, billing_failed_at, trial_blocked_at")
-    .eq("content->pl->settings->subscription->>stripe_customer_id", customerId)
+    .from("billing_profiles")
+    .select("*")
+    .eq("stripe_customer_id", customerId)
     .maybeSingle();
   if (error) {
-    console.error("findPageByStripeCustomerId", error);
+    console.error("findBillingProfileByStripeCustomerId", error);
     return null;
   }
-  return data as PageRowMini | null;
+  return data as BillingProfileRow | null;
 }
 
 export async function findPageByUserId(
@@ -206,7 +179,7 @@ export async function findPageByUserId(
 ): Promise<PageRowMini | null> {
   const { data, error } = await supabase
     .from("pages")
-    .select("id, content, billing_failed_at, trial_blocked_at")
+    .select("id, user_id, billing_failed_at, trial_blocked_at, billing_plan")
     .eq("user_id", userId)
     .maybeSingle();
   if (error) {
@@ -216,7 +189,24 @@ export async function findPageByUserId(
   return data as PageRowMini | null;
 }
 
-/** Łączy znalezienie strony: sub_id → customer_id. */
+export async function findPageByStripeSubscriptionId(
+  supabase: SupabaseClient,
+  subscriptionId: string,
+): Promise<PageRowMini | null> {
+  const profile = await findBillingProfileByStripeSubscriptionId(supabase, subscriptionId);
+  if (!profile?.user_id) return null;
+  return findPageByUserId(supabase, profile.user_id);
+}
+
+export async function findPageByStripeCustomerId(
+  supabase: SupabaseClient,
+  customerId: string,
+): Promise<PageRowMini | null> {
+  const profile = await findBillingProfileByStripeCustomerId(supabase, customerId);
+  if (!profile?.user_id) return null;
+  return findPageByUserId(supabase, profile.user_id);
+}
+
 export async function resolvePageForStripeSubscription(
   supabase: SupabaseClient,
   sub: Stripe.Subscription,
@@ -225,68 +215,29 @@ export async function resolvePageForStripeSubscription(
   if (bySub) return bySub;
   const cid = customerIdString(sub.customer);
   if (!cid) return null;
-  return await findPageByStripeCustomerId(supabase, cid);
+  return findPageByStripeCustomerId(supabase, cid);
 }
 
-type ApplyOpts = {
-  /** Opcjonalny Secret STRIPE_PRICE_STARTER — bez niego Starter z checkoutu mapuje się z metadata / fallback. */
-  priceStarter?: string;
-  pricePro: string;
-  pricePremium: string;
-  /** Gdy brak price match (np. zmiana cennika) — ostatnia znana wartość z content / checkout. */
-  tierFallback?: StripePaidTier;
-  /** Nadpisanie tieru (np. świeży checkout — metadata ma pierwszeństwo przed price_id). */
-  tierOverride?: StripePaidTier;
-};
+export async function upsertBillingProfile(
+  supabase: SupabaseClient,
+  row: BillingProfileUpsert,
+): Promise<{ ok: boolean; error?: string }> {
+  const { error } = await supabase.from("billing_profiles").upsert(row, { onConflict: "user_id" });
+  if (error) {
+    console.error("Supabase DB Error (upsertBillingProfile):", error);
+    return { ok: false, error: error.message };
+  }
+  return { ok: true };
+}
 
-/**
- * Aktualizuje `content` + opcjonalnie `trial_blocked_at` / `billing_failed_at`.
- */
-export async function applyStripeSubscriptionToPage(
+async function applyPageBlocksForSubscription(
   supabase: SupabaseClient,
   page: PageRowMini,
   sub: Stripe.Subscription,
-  opts: ApplyOpts,
+  plan: string,
 ): Promise<{ ok: boolean; error?: string }> {
-  const priceId = firstRecurringPriceId(sub);
-  const existingTier =
-    page.content &&
-    typeof page.content === "object" &&
-    !Array.isArray(page.content) &&
-    (page.content as Record<string, unknown>).pl &&
-    typeof (page.content as Record<string, unknown>).pl === "object"
-      ? (((page.content as Record<string, unknown>).pl as Record<string, unknown>).settings as Record<
-          string,
-          unknown
-        > | undefined)?.subscription as Record<string, unknown> | undefined
-      : undefined;
-  let fallback: StripePaidTier = "tier1";
-  if (existingTier?.plan === "tier2" || existingTier?.selected_plan === "tier2") fallback = "tier2";
-  else if (existingTier?.plan === "tier0" || existingTier?.selected_plan === "tier0") fallback = "tier0";
-  if (opts.tierFallback === "tier2") fallback = "tier2";
-  if (opts.tierFallback === "tier0") fallback = "tier0";
-  if (opts.tierFallback === "tier1") fallback = "tier1";
-  const priceStarter = opts.priceStarter ?? "";
-  const tier =
-    opts.tierOverride ??
-    tierFromStripePrice(
-      priceId,
-      priceStarter,
-      opts.pricePro,
-      opts.pricePremium,
-      fallback,
-    );
-  const patch = subscriptionContentPatch(sub, tier);
-
-  const prevContent =
-    page.content && typeof page.content === "object" && !Array.isArray(page.content)
-      ? (page.content as Record<string, unknown>)
-      : {};
-
-  const newContent = mergeSubscriptionIntoContent(prevContent, patch);
-
   const st = sub.status;
-  const rowUpdate: Record<string, unknown> = { content: newContent };
+  const rowUpdate: Record<string, unknown> = { billing_plan: plan };
 
   if (st === "active" || st === "trialing") {
     rowUpdate.trial_blocked_at = null;
@@ -299,13 +250,55 @@ export async function applyStripeSubscriptionToPage(
 
   const { error: updErr } = await supabase.from("pages").update(rowUpdate).eq("id", page.id);
   if (updErr) {
-    console.error("Supabase DB Error (applyStripeSubscriptionToPage):", updErr);
+    console.error("Supabase DB Error (applyPageBlocksForSubscription):", updErr);
     return { ok: false, error: updErr.message };
   }
   return { ok: true };
 }
 
-/** Pierwsza nieudana faktura — znacznik okresu karencji przed blokadą publiczną. */
+type ApplyOpts = {
+  priceStarter?: string;
+  pricePro: string;
+  pricePremium: string;
+  tierFallback?: StripePaidTier;
+  tierOverride?: StripePaidTier;
+};
+
+/**
+ * Zapisuje subskrypcję w `billing_profiles` + blokuje/odblokowuje `pages`.
+ */
+export async function applyStripeSubscriptionToPage(
+  supabase: SupabaseClient,
+  page: PageRowMini,
+  sub: Stripe.Subscription,
+  opts: ApplyOpts,
+): Promise<{ ok: boolean; error?: string }> {
+  if (!page.user_id) {
+    return { ok: false, error: "Brak user_id na stronie" };
+  }
+
+  const profile = await findBillingProfileByUserId(supabase, page.user_id);
+  const priceId = firstRecurringPriceId(sub);
+  let fallback: StripePaidTier = "tier1";
+  const existingPlan = profile?.plan;
+  if (existingPlan === "tier2") fallback = "tier2";
+  else if (existingPlan === "tier0") fallback = "tier0";
+  if (opts.tierFallback === "tier2") fallback = "tier2";
+  if (opts.tierFallback === "tier0") fallback = "tier0";
+  if (opts.tierFallback === "tier1") fallback = "tier1";
+
+  const priceStarter = opts.priceStarter ?? "";
+  const tier =
+    opts.tierOverride ??
+    tierFromStripePrice(priceId, priceStarter, opts.pricePro, opts.pricePremium, fallback);
+
+  const upsertRow = billingProfileUpsertFromStripe(page.user_id, sub, tier);
+  const up = await upsertBillingProfile(supabase, upsertRow);
+  if (!up.ok) return up;
+
+  return applyPageBlocksForSubscription(supabase, page, sub, upsertRow.plan);
+}
+
 export async function applyInvoicePaymentFailed(
   supabase: SupabaseClient,
   subscriptionId: string,
@@ -334,10 +327,6 @@ export function extractInvoiceSubscriptionId(invoice: Stripe.Invoice): string {
   return "";
 }
 
-/**
- * Wyszukanie strony po adresie e-mail konta Auth (service_role).
- * Filter: email.eq.{email} (GoTrue admin API).
- */
 export async function findPageByAuthUserEmail(
   supabase: SupabaseClient,
   email: string,
@@ -355,12 +344,9 @@ export async function findPageByAuthUserEmail(
   }
   const uid = data?.users?.[0]?.id;
   if (!uid) return null;
-  return await findPageByUserId(supabase, uid);
+  return findPageByUserId(supabase, uid);
 }
 
-/**
- * Rozwiązuje `pages` po fakturze: subscription → customer w JSON → customer w Stripe → e-mail.
- */
 export async function resolvePageForInvoice(
   supabase: SupabaseClient,
   stripe: Stripe,
@@ -409,12 +395,11 @@ export async function resolvePageForInvoice(
   }
 
   if (invoice.customer_email) {
-    return await findPageByAuthUserEmail(supabase, invoice.customer_email);
+    return findPageByAuthUserEmail(supabase, invoice.customer_email);
   }
   return null;
 }
 
-/** Nieudana opłata przy odnowieniu / zmianie cyklu — ustawia billing_failed_at (karencja przed cronem). */
 export async function applyInvoiceRenewalPaymentFailed(
   supabase: SupabaseClient,
   subscriptionId: string,
@@ -435,38 +420,30 @@ export async function applyInvoiceRenewalPaymentFailed(
   return { ok: true };
 }
 
-/**
- * `customer.subscription.deleted` — anulowana subskrypcja w Stripe: brak aktywnego planu płatnego w CMS.
- */
 export async function applySubscriptionCanceledToPage(
   supabase: SupabaseClient,
   page: PageRowMini,
   sub: Stripe.Subscription,
 ): Promise<{ ok: boolean; error?: string }> {
+  if (!page.user_id) {
+    return { ok: false, error: "Brak user_id na stronie" };
+  }
   const cid = customerIdString(sub.customer);
-  const patch: Record<string, unknown> = {
-    ...(cid ? { stripe_customer_id: cid } : {}),
+  const upsertRow: BillingProfileUpsert = {
+    user_id: page.user_id,
+    stripe_customer_id: cid || null,
     stripe_subscription_id: sub.id,
-    status: "canceled",
     plan: "trial",
-    payment_completed: false,
-    selected_plan: null,
+    status: "canceled",
     current_period_end: periodEndIso(sub),
     cancel_at_period_end: false,
-    cancel_at: null,
   };
-
-  const prevContent =
-    page.content && typeof page.content === "object" && !Array.isArray(page.content)
-      ? (page.content as Record<string, unknown>)
-      : {};
-  const newContent = mergeSubscriptionIntoContent(prevContent, patch);
+  const up = await upsertBillingProfile(supabase, upsertRow);
+  if (!up.ok) return up;
 
   const { error: updErr } = await supabase
     .from("pages")
-    .update({
-      content: newContent,
-    })
+    .update({ billing_plan: "trial" })
     .eq("id", page.id);
 
   if (updErr) {

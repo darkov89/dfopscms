@@ -28,6 +28,8 @@
         return true;
       }
     }
+    const billingPlan = String(page.billing_plan || '').trim() || 'trial';
+    if (billingPlan === 'tier0' || billingPlan === 'tier1' || billingPlan === 'tier2') return false;
     const sub = page.content?.pl?.settings?.subscription;
     if (!sub || typeof sub !== 'object') return false;
     const ts = sub.trial_started_at;
@@ -36,10 +38,7 @@
     if (!Number.isFinite(start)) return false;
     if (Date.now() - start < TRIAL_PUBLIC_BLOCK_AFTER_DAYS * MS_PER_DAY) return false;
     if (paymentCompletedTrue(sub)) return false;
-    const plan = String(sub.plan || 'trial');
-    if (plan === 'trial') return true;
-    if (plan === 'tier0' && !paymentCompletedTrue(sub)) return true;
-    return false;
+    return billingPlan === 'trial';
   }
 
   class DFCMSWatermark extends HTMLElement {
@@ -471,7 +470,7 @@
           this.lang = this.content[userLang] ? userLang : (Object.keys(this.content)[0] || 'pl');
 
           applyDocumentSeo(this.content, this.lang);
-          initWatermark(this.content?.pl?.settings?.subscription?.plan);
+          initWatermark(page.billing_plan || 'trial');
           this.injectAnalyticsTracking();
           this.dataLoaded = true;
         } catch (error) {
