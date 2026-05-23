@@ -501,6 +501,14 @@
         const st = typeof sub.status === 'string' ? sub.status.trim().toLowerCase() : '';
         return st === 'canceled' || st === 'cancelled';
       },
+      /** Istniejący klient Stripe — zmiany planu tylko przez portal (bez cichej zmiany subskrypcji). */
+      hasStripeBillingCustomer() {
+        const sub = this.content?.pl?.settings?.subscription;
+        if (!sub || typeof sub !== 'object') return false;
+        const cid = typeof sub.stripe_customer_id === 'string' ? sub.stripe_customer_id.trim() : '';
+        const sid = typeof sub.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
+        return !!(cid || sid);
+      },
       /**
        * True gdy w Stripe wisi jeszcze subskrypcja — wtedy nie udostępniamy prośby o usunięcie konta
        * (najpierw anulowanie w portalu Stripe).
@@ -859,7 +867,10 @@
           const { data: sessionData } = await this.supabase.auth.getSession();
           const token = sessionData?.session?.access_token;
           if (!token) throw new Error('Brak autoryzacji');
-          const returnUrl = `${window.location.origin}${window.location.pathname}${window.location.search || ''}`;
+          const returnUrlObj = new URL(window.location.href);
+          returnUrlObj.searchParams.set('billing', 'return');
+          returnUrlObj.hash = 'subscription';
+          const returnUrl = returnUrlObj.toString();
           const { data, error } = await this.supabase.functions.invoke('create-portal-session', {
             body: { returnUrl },
             headers: { Authorization: `Bearer ${token}` },
@@ -932,7 +943,7 @@
                   'error',
                 );
               } else {
-                this.showToast('Gotowe! Twój plan jest aktywny.', 'success');
+                this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
               }
             } catch (e) {
               console.error(e);
@@ -949,6 +960,45 @@
               this.showSuccessModal = false;
             }
           }, 4000);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+
+      /**
+       * Po powrocie z portalu Stripe (`?billing=return`) — sync + loadData + toast o zaktualizowanym planie.
+       */
+      schedulePostPortalBillingRefresh() {
+        try {
+          const u = new URL(window.location.href);
+          if (u.searchParams.get('billing') !== 'return' || !this.user) return false;
+          this.isLoading = true;
+          this.showToast('Odświeżam status subskrypcji…', 'info');
+          void (async () => {
+            try {
+              await this.syncStripeSubscription({ silent: true });
+              await this.loadData();
+              this.setTab('subscription');
+              this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
+            } catch (e) {
+              console.error(e);
+              this.showToast(
+                'Nie udało się odświeżyć planu. Użyj Subskrypcja → „Synchronizuj ze Stripe”.',
+                'error',
+              );
+            } finally {
+              const clean = new URL(window.location.href);
+              clean.searchParams.delete('billing');
+              const qs = clean.searchParams.toString();
+              window.history.replaceState(
+                {},
+                document.title,
+                clean.pathname + (qs ? `?${qs}` : '') + clean.hash,
+              );
+              this.isLoading = false;
+            }
+          })();
           return true;
         } catch {
           return false;
@@ -986,7 +1036,10 @@
             return false;
           }
           await this.loadData();
-          if (!silent) this.showToast('Zsynchronizowano status subskrypcji ze Stripe.', 'success');
+          this.syncUserPlanFromBilling();
+          if (!silent) {
+            this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
+          }
           return true;
         } catch (e) {
           console.error(e);
@@ -1245,10 +1298,17 @@
         this.assignAuthUser(session?.user || null);
         await this.syncAuthUserFromServer();
         const paymentRefreshScheduled = !!this.user && this.schedulePostPaymentDataRefresh();
-        if (this.user && !paymentRefreshScheduled) {
+        const portalRefreshScheduled =
+          !!this.user && !paymentRefreshScheduled && this.schedulePostPortalBillingRefresh();
+        if (this.user && !paymentRefreshScheduled && !portalRefreshScheduled) {
           this.isLoading = true;
         }
-        if (this.user && !paymentRefreshScheduled && !this.isForcedPasswordReset) {
+        if (
+          this.user &&
+          !paymentRefreshScheduled &&
+          !portalRefreshScheduled &&
+          !this.isForcedPasswordReset
+        ) {
           await this.loadData();
         } else if (this.user && this.isForcedPasswordReset) {
           this.isLoading = false;
@@ -1979,21 +2039,30 @@
         if (!this.content?.pl?.settings) return;
         const tier =
           planType === 'premium' ? 'tier2' : planType === 'starter' ? 'tier0' : 'tier1';
-        const sub = this.content.pl.settings.subscription || {};
-        const existingStripeSubId =
-          typeof sub.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
-        const changePlanInStripe =
-          !!existingStripeSubId &&
-          (planType === 'pro' || planType === 'premium');
+        const currentTier = this.subscriptionPlan;
+        const isCurrentPaidTier =
+          currentTier === 'tier0' || currentTier === 'tier1' || currentTier === 'tier2';
 
-        if (!changePlanInStripe) {
-          if (!this.content.pl.settings.subscription) {
-            this.content.pl.settings.subscription = { plan: 'trial', trial_started_at: new Date().toISOString() };
+        if (this.hasStripeBillingCustomer()) {
+          if (isCurrentPaidTier && currentTier === tier) {
+            this.showToast('Masz już wybrany ten plan rozliczeniowy.', 'success');
+            await this.loadData();
+            return;
           }
-          this.content.pl.settings.subscription.selected_plan = tier;
-          const saved = await this.saveData({ silentSuccess: true });
-          if (!saved) return;
+          this.showToast(
+            'Zmianę pakietu wykonasz w portalu Stripe — zobaczysz podsumowanie kosztów i potwierdzisz płatność przed obciążeniem karty.',
+            'info',
+          );
+          await this.openCustomerPortal();
+          return;
         }
+
+        if (!this.content.pl.settings.subscription) {
+          this.content.pl.settings.subscription = { plan: 'trial', trial_started_at: new Date().toISOString() };
+        }
+        this.content.pl.settings.subscription.selected_plan = tier;
+        const saved = await this.saveData({ silentSuccess: true });
+        if (!saved) return;
 
         const { data: sessionData } = await this.supabase.auth.getSession();
         const token = sessionData?.session?.access_token;
@@ -2003,37 +2072,10 @@
         }
         this.checkoutLoading = true;
         try {
-          const returnUrl = `${window.location.origin}${window.location.pathname}${window.location.search || ''}`;
-          if (changePlanInStripe) {
-            const { data, error } = await this.supabase.functions.invoke('change-subscription-plan', {
-              body: { plan: planType, priceId, returnUrl },
-              headers: { Authorization: `Bearer ${token}` },
-            });
-            if (error) throw error;
-            if (data && data.action === 'use_portal') {
-              this.showToast(
-                typeof data.message === 'string'
-                  ? data.message
-                  : 'Zmianę na niższy pakiet wykonasz w portalu Stripe (od następnego okresu).',
-                'info',
-              );
-              await this.openCustomerPortal();
-              return;
-            }
-            if (data && data.unchanged === true) {
-              this.showToast('Masz już wybrany ten plan rozliczeniowy.', 'success');
-              return;
-            }
-            if (data && typeof data.error === 'string') {
-              throw new Error(data.error);
-            }
-            await this.syncStripeSubscription({ silent: true });
-            this.showToast(
-              'Plan został zaktualizowany. Stripe może wystawić dopłatę proratą — sprawdź e-mail lub portal płatności.',
-              'success',
-            );
-            return;
-          }
+          const returnUrlObj = new URL(window.location.href);
+          returnUrlObj.searchParams.set('payment', 'success');
+          returnUrlObj.hash = 'subscription';
+          const returnUrl = returnUrlObj.toString();
 
           const { data, error } = await this.supabase.functions.invoke(
             'create-checkout',

@@ -2,8 +2,8 @@
  * Wspólna logika merge subskrypcji w `content` + aktualizacja `pages` (blokady trial / billing).
  * Używana przez stripe-webhook i sync-stripe-subscription.
  */
-import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
-import type Stripe from "https://esm.sh/stripe@12.0.0?target=deno";
+import type { SupabaseClient } from "npm:@supabase/supabase-js@^2.39.0";
+import type Stripe from "npm:stripe@^14.0.0";
 
 export function mergeSubscriptionIntoContent(
   content: Record<string, unknown>,
@@ -299,7 +299,7 @@ export async function applyStripeSubscriptionToPage(
 
   const { error: updErr } = await supabase.from("pages").update(rowUpdate).eq("id", page.id);
   if (updErr) {
-    console.error("applyStripeSubscriptionToPage", updErr);
+    console.error("Supabase DB Error (applyStripeSubscriptionToPage):", updErr);
     return { ok: false, error: updErr.message };
   }
   return { ok: true };
@@ -309,17 +309,22 @@ export async function applyStripeSubscriptionToPage(
 export async function applyInvoicePaymentFailed(
   supabase: SupabaseClient,
   subscriptionId: string,
-): Promise<void> {
+): Promise<{ ok: boolean; error?: string }> {
   const page = await findPageByStripeSubscriptionId(supabase, subscriptionId);
   if (!page?.id) {
     console.warn("applyInvoicePaymentFailed: brak strony dla subscription", subscriptionId);
-    return;
+    return { ok: true };
   }
-  if (page.billing_failed_at) return;
-  await supabase
+  if (page.billing_failed_at) return { ok: true };
+  const { error } = await supabase
     .from("pages")
     .update({ billing_failed_at: new Date().toISOString() })
     .eq("id", page.id);
+  if (error) {
+    console.error("Supabase DB Error (applyInvoicePaymentFailed):", error);
+    return { ok: false, error: error.message };
+  }
+  return { ok: true };
 }
 
 export function extractInvoiceSubscriptionId(invoice: Stripe.Invoice): string {
@@ -350,7 +355,7 @@ export async function findPageByAuthUserEmail(
   }
   const uid = data?.users?.[0]?.id;
   if (!uid) return null;
-  return findPageByUserId(supabase, uid);
+  return await findPageByUserId(supabase, uid);
 }
 
 /**
@@ -413,16 +418,21 @@ export async function resolvePageForInvoice(
 export async function applyInvoiceRenewalPaymentFailed(
   supabase: SupabaseClient,
   subscriptionId: string,
-): Promise<void> {
+): Promise<{ ok: boolean; error?: string }> {
   const page = await findPageByStripeSubscriptionId(supabase, subscriptionId);
   if (!page?.id) {
     console.warn("applyInvoiceRenewalPaymentFailed: brak strony dla subscription", subscriptionId);
-    return;
+    return { ok: true };
   }
-  await supabase
+  const { error } = await supabase
     .from("pages")
     .update({ billing_failed_at: new Date().toISOString() })
     .eq("id", page.id);
+  if (error) {
+    console.error("Supabase DB Error (applyInvoiceRenewalPaymentFailed):", error);
+    return { ok: false, error: error.message };
+  }
+  return { ok: true };
 }
 
 /**
@@ -460,7 +470,7 @@ export async function applySubscriptionCanceledToPage(
     .eq("id", page.id);
 
   if (updErr) {
-    console.error("applySubscriptionCanceledToPage", updErr);
+    console.error("Supabase DB Error (applySubscriptionCanceledToPage):", updErr);
     return { ok: false, error: updErr.message };
   }
   return { ok: true };

@@ -6,10 +6,8 @@
  *
  * Aktualizacje `pages` wyłącznie przez klienta z SUPABASE_SERVICE_ROLE_KEY (pomija RLS).
  */
-// @ts-ignore - remote Deno std module isn't resolvable by local TS linter.
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@12.0.0?target=deno";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import Stripe from "npm:stripe@^14.0.0";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@^2.39.0";
 import {
   applyInvoiceRenewalPaymentFailed,
   applyStripeSubscriptionToPage,
@@ -21,7 +19,10 @@ import {
   type StripePaidTier,
 } from "../_shared/stripeBilling.ts";
 
-declare const Deno: { env: { get: (k: string) => string | undefined } };
+type WebhookProcessResult = {
+  skipped?: string;
+  dbError?: string;
+};
 
 function tierPlanFromMetadata(planMeta: string | undefined | null): StripePaidTier | undefined {
   const p = String(planMeta || "").toLowerCase().trim();
@@ -32,25 +33,31 @@ function tierPlanFromMetadata(planMeta: string | undefined | null): StripePaidTi
   return undefined;
 }
 
+function logDbFailure(context: string, message: string | undefined): string {
+  const errText = message || "unknown_db_error";
+  console.error(`Supabase DB Error (${context}):`, errText);
+  return errText;
+}
+
 /**
  * Udana opłata faktury (odnowienie lub pierwsza): odblokowanie + harmonogram wyłącznie z
  * `Stripe.Subscription.current_period_end` (brak `invoice.period_end` / lokalnych przybliżeń).
  */
 async function handleInvoicePaymentSuccess(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   stripe: Stripe,
   invoice: Stripe.Invoice,
   priceStarter: string,
   pricePro: string,
   pricePremium: string,
-): Promise<{ errorResponse?: Response }> {
+): Promise<WebhookProcessResult> {
   const subscriptionId = extractInvoiceSubscriptionId(invoice);
   if (!subscriptionId) {
     console.warn(
       "handleInvoicePaymentSuccess: brak invoice.subscription — pomijam aktualizację okresu (wymagane API Subscription)",
       invoice.id,
     );
-    return {};
+    return { skipped: "no_subscription_on_invoice" };
   }
 
   let subscription: Stripe.Subscription;
@@ -58,12 +65,7 @@ async function handleInvoicePaymentSuccess(
     subscription = await stripe.subscriptions.retrieve(subscriptionId);
   } catch (e) {
     console.error("handleInvoicePaymentSuccess: subscriptions.retrieve", subscriptionId, e);
-    return {
-      errorResponse: new Response(JSON.stringify({ error: "Stripe subscription retrieve failed" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }),
-    };
+    throw e;
   }
 
   let page = await resolvePageForStripeSubscription(supabase, subscription);
@@ -72,7 +74,7 @@ async function handleInvoicePaymentSuccess(
   }
   if (!page?.id) {
     console.warn("handleInvoicePaymentSuccess: brak pages dla faktury", invoice.id);
-    return {};
+    return { skipped: "no_page" };
   }
 
   const result = await applyStripeSubscriptionToPage(supabase, page, subscription, {
@@ -81,17 +83,164 @@ async function handleInvoicePaymentSuccess(
     pricePremium,
   });
   if (!result.ok) {
-    return {
-      errorResponse: new Response(JSON.stringify({ error: result.error }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }),
-    };
+    return { dbError: logDbFailure("handleInvoicePaymentSuccess", result.error) };
   }
   return {};
 }
 
-serve(async (req) => {
+async function processStripeWebhookEvent(
+  event: Stripe.Event,
+  supabase: SupabaseClient,
+  stripe: Stripe,
+  priceStarter: string,
+  pricePro: string,
+  pricePremium: string,
+): Promise<WebhookProcessResult> {
+  switch (event.type) {
+    case "checkout.session.completed": {
+      const session = event.data.object as Stripe.Checkout.Session;
+      if (session.mode !== "subscription") {
+        return { skipped: "not_subscription" };
+      }
+
+      const userId =
+        (typeof session.client_reference_id === "string" && session.client_reference_id.trim()) ||
+        (typeof session.metadata?.supabase_user_id === "string" && session.metadata.supabase_user_id.trim()) ||
+        "";
+
+      if (!userId) {
+        console.warn("stripe-webhook: checkout.session.completed bez client_reference_id / supabase_user_id");
+        return { skipped: "no_user" };
+      }
+
+      const tierFromMeta = tierPlanFromMetadata(session.metadata?.plan);
+
+      const subId =
+        typeof session.subscription === "string"
+          ? session.subscription
+          : session.subscription &&
+              typeof session.subscription === "object" &&
+              "id" in session.subscription
+            ? (session.subscription as { id: string }).id
+            : null;
+
+      if (!subId) {
+        console.warn("stripe-webhook: brak session.subscription");
+        return { skipped: "no_subscription_on_session" };
+      }
+
+      let subscription: Stripe.Subscription;
+      try {
+        subscription = await stripe.subscriptions.retrieve(subId);
+      } catch (e) {
+        console.error("stripe-webhook: retrieve subscription", e);
+        throw e;
+      }
+
+      const page = await findPageByUserId(supabase, userId);
+      if (!page?.id) {
+        console.warn("stripe-webhook: brak wiersza pages dla user_id=", userId);
+        return { skipped: "no_page" };
+      }
+
+      const result = await applyStripeSubscriptionToPage(supabase, page, subscription, {
+        priceStarter,
+        pricePro,
+        pricePremium,
+        ...(tierFromMeta ? { tierOverride: tierFromMeta } : {}),
+      });
+      if (!result.ok) {
+        return { dbError: logDbFailure("checkout.session.completed", result.error) };
+      }
+      return {};
+    }
+
+    case "customer.subscription.updated": {
+      const subscription = event.data.object as Stripe.Subscription;
+      const page = await resolvePageForStripeSubscription(supabase, subscription);
+      if (!page?.id) {
+        console.warn("stripe-webhook: updated — brak strony dla subscription", subscription.id);
+        return { skipped: "no_page" };
+      }
+      const result = await applyStripeSubscriptionToPage(supabase, page, subscription, {
+        priceStarter,
+        pricePro,
+        pricePremium,
+      });
+      if (!result.ok) {
+        return { dbError: logDbFailure("customer.subscription.updated", result.error) };
+      }
+      return {};
+    }
+
+    case "customer.subscription.deleted": {
+      const subscription = event.data.object as Stripe.Subscription;
+      const page = await resolvePageForStripeSubscription(supabase, subscription);
+      if (!page?.id) {
+        console.warn("stripe-webhook: deleted — brak strony dla subscription", subscription.id);
+        return { skipped: "no_page" };
+      }
+      const result = await applySubscriptionCanceledToPage(supabase, page, subscription);
+      if (!result.ok) {
+        return { dbError: logDbFailure("customer.subscription.deleted", result.error) };
+      }
+      return {};
+    }
+
+    case "invoice.payment_succeeded":
+    case "invoice.paid": {
+      return await handleInvoicePaymentSuccess(
+        supabase,
+        stripe,
+        event.data.object as Stripe.Invoice,
+        priceStarter,
+        pricePro,
+        pricePremium,
+      );
+    }
+
+    case "invoice.payment_failed": {
+      const invoice = event.data.object as Stripe.Invoice;
+      const reason = invoice.billing_reason;
+      if (reason !== "subscription_cycle" && reason !== "subscription_update") {
+        return { skipped: "not_renewal_invoice" };
+      }
+      const subId = extractInvoiceSubscriptionId(invoice);
+      if (subId) {
+        const result = await applyInvoiceRenewalPaymentFailed(supabase, subId);
+        if (!result.ok) {
+          return { dbError: logDbFailure("invoice.payment_failed", result.error) };
+        }
+        return {};
+      }
+      const page = await resolvePageForInvoice(supabase, stripe, invoice);
+      if (!page?.id) {
+        console.warn("invoice.payment_failed: brak sub_id i strony", invoice.id);
+        return { skipped: "no_page" };
+      }
+      const { error } = await supabase
+        .from("pages")
+        .update({ billing_failed_at: new Date().toISOString() })
+        .eq("id", page.id);
+      if (error) {
+        return { dbError: logDbFailure("invoice.payment_failed.page", error.message) };
+      }
+      return {};
+    }
+
+    default:
+      return { skipped: "unhandled_event_type" };
+  }
+}
+
+function jsonOk(body: Record<string, unknown>) {
+  return new Response(JSON.stringify(body), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
   }
@@ -131,7 +280,7 @@ serve(async (req) => {
 
   let event: Stripe.Event;
   try {
-    event = await stripe.webhooks.constructEventAsync(payload, signature, webhookSecret, undefined);
+    event = await stripe.webhooks.constructEventAsync(payload, signature, webhookSecret);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     console.warn("stripe-webhook: podpis", msg);
@@ -141,157 +290,20 @@ serve(async (req) => {
     });
   }
 
-  const supabase = createClient(supabaseUrl, serviceRole);
+  const supabase = createClient(supabaseUrl, serviceRole, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 
+  let processResult: WebhookProcessResult = {};
   try {
-    switch (event.type) {
-      case "checkout.session.completed": {
-        const session = event.data.object as Stripe.Checkout.Session;
-        if (session.mode !== "subscription") {
-          return jsonOk({ received: true, skipped: "not_subscription" });
-        }
-
-        const userId =
-          (typeof session.client_reference_id === "string" && session.client_reference_id.trim()) ||
-          (typeof session.metadata?.supabase_user_id === "string" && session.metadata.supabase_user_id.trim()) ||
-          "";
-
-        if (!userId) {
-          console.warn("stripe-webhook: checkout.session.completed bez client_reference_id / supabase_user_id");
-          return jsonOk({ received: true, skipped: "no_user" });
-        }
-
-        const tierFromMeta = tierPlanFromMetadata(session.metadata?.plan);
-
-        const subId =
-          typeof session.subscription === "string"
-            ? session.subscription
-            : session.subscription &&
-                typeof session.subscription === "object" &&
-                "id" in session.subscription
-              ? (session.subscription as { id: string }).id
-              : null;
-
-        if (!subId) {
-          console.warn("stripe-webhook: brak session.subscription");
-          return new Response(JSON.stringify({ error: "No subscription on session" }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          });
-        }
-
-        let subscription: Stripe.Subscription;
-        try {
-          subscription = await stripe.subscriptions.retrieve(subId);
-        } catch (e) {
-          console.error("stripe-webhook: retrieve subscription", e);
-          return new Response(JSON.stringify({ error: "Stripe retrieve failed" }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          });
-        }
-
-        const page = await findPageByUserId(supabase, userId);
-        if (!page?.id) {
-          console.warn("stripe-webhook: brak wiersza pages dla user_id=", userId);
-          return jsonOk({ received: true, skipped: "no_page" });
-        }
-
-        const result = await applyStripeSubscriptionToPage(supabase, page, subscription, {
-          priceStarter,
-          pricePro,
-          pricePremium,
-          ...(tierFromMeta ? { tierOverride: tierFromMeta } : {}),
-        });
-        if (!result.ok) {
-          return new Response(JSON.stringify({ error: result.error }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          });
-        }
-        break;
-      }
-
-      case "customer.subscription.updated": {
-        const subscription = event.data.object as Stripe.Subscription;
-        const page = await resolvePageForStripeSubscription(supabase, subscription);
-        if (!page?.id) {
-          console.warn("stripe-webhook: updated — brak strony dla subscription", subscription.id);
-          return jsonOk({ received: true, skipped: "no_page" });
-        }
-        const result = await applyStripeSubscriptionToPage(supabase, page, subscription, {
-          priceStarter,
-          pricePro,
-          pricePremium,
-        });
-        if (!result.ok) {
-          return new Response(JSON.stringify({ error: result.error }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          });
-        }
-        break;
-      }
-
-      case "customer.subscription.deleted": {
-        const subscription = event.data.object as Stripe.Subscription;
-        const page = await resolvePageForStripeSubscription(supabase, subscription);
-        if (!page?.id) {
-          console.warn("stripe-webhook: deleted — brak strony dla subscription", subscription.id);
-          return jsonOk({ received: true, skipped: "no_page" });
-        }
-        const result = await applySubscriptionCanceledToPage(supabase, page, subscription);
-        if (!result.ok) {
-          return new Response(JSON.stringify({ error: result.error }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          });
-        }
-        break;
-      }
-
-      case "invoice.payment_succeeded":
-      case "invoice.paid": {
-        const invoice = event.data.object as Stripe.Invoice;
-        const { errorResponse } = await handleInvoicePaymentSuccess(
-          supabase,
-          stripe,
-          invoice,
-          priceStarter,
-          pricePro,
-          pricePremium,
-        );
-        if (errorResponse) return errorResponse;
-        break;
-      }
-
-      case "invoice.payment_failed": {
-        const invoice = event.data.object as Stripe.Invoice;
-        const reason = invoice.billing_reason;
-        /** Pierwsza płatność przy utworzeniu subskrypcji — nie ustawiamy billing_failed jak przy odnowieniu. */
-        if (reason !== "subscription_cycle" && reason !== "subscription_update") {
-          return jsonOk({ received: true, skipped: "not_renewal_invoice", billing_reason: reason ?? null });
-        }
-        const subId = extractInvoiceSubscriptionId(invoice);
-        if (subId) {
-          await applyInvoiceRenewalPaymentFailed(supabase, subId);
-        } else {
-          const page = await resolvePageForInvoice(supabase, stripe, invoice);
-          if (page?.id) {
-            await supabase
-              .from("pages")
-              .update({ billing_failed_at: new Date().toISOString() })
-              .eq("id", page.id);
-          } else {
-            console.warn("invoice.payment_failed: brak sub_id i strony", invoice.id);
-          }
-        }
-        break;
-      }
-
-      default:
-        break;
-    }
+    processResult = await processStripeWebhookEvent(
+      event,
+      supabase,
+      stripe,
+      priceStarter,
+      pricePro,
+      pricePremium,
+    );
   } catch (e) {
     console.error("stripe-webhook handler", e);
     return new Response(JSON.stringify({ error: "Webhook handler error" }), {
@@ -300,12 +312,10 @@ serve(async (req) => {
     });
   }
 
-  return jsonOk({ received: true });
-});
-
-function jsonOk(body: Record<string, unknown>) {
-  return new Response(JSON.stringify(body), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
+  return jsonOk({
+    received: true,
+    event_type: event.type,
+    ...(processResult.skipped ? { skipped: processResult.skipped } : {}),
+    ...(processResult.dbError ? { db_error: processResult.dbError } : {}),
   });
-}
+});
