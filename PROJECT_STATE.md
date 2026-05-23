@@ -3,7 +3,7 @@
 > **Przeznaczenie:** jeden plik w korzeniu repozytorium do aktualizacji **na koniec sesji** (ludzie + agenci), żeby zachować ciągłość decyzji architektonicznych, produktowych i operacyjnych.  
 > **Nie zastępuje** `README.md` (start, deploy, struktura katalogów), ale je **uzupełnia** o „co wiemy o systemie teraz”.
 
-**Ostatnia aktualizacja treści:** 2026-05-22 — Edge Stripe/checkout/portal/domeny/cron: importy `npm:` zamiast `esm.sh`
+**Ostatnia aktualizacja treści:** 2026-05-23 — migracja `billing_profiles` (Stripe poza `pages.content`; RLS read-only dla authenticated)
 
 ---
 
