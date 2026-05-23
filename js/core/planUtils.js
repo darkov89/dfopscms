@@ -1,9 +1,12 @@
 ;(function () {
   /**
    * Jedna „prawda” o planie: domena, znak wodny (publiczny widok).
+   * Legacy `tier2` (dawny Premium) traktowany jak Standard (`tier1`).
    */
   function normalizePlan(plan) {
-    return plan && String(plan).trim() !== '' ? String(plan).trim() : 'trial';
+    const raw = plan && String(plan).trim() !== '' ? String(plan).trim() : 'trial';
+    if (raw === 'tier2' || raw === 'premium') return 'tier1';
+    return raw;
   }
 
   function planAllowsCustomDomain(plan) {
@@ -19,9 +22,8 @@
   function planDisplayName(plan) {
     const p = normalizePlan(plan);
     if (p === 'trial') return 'Okres próbny (14 dni)';
-    if (p === 'tier0') return 'Starter — 19 zł netto / msc';
-    if (p === 'tier1') return 'Pro — 49 zł netto / msc';
-    if (p === 'tier2') return 'Premium — 99 zł netto / msc';
+    if (p === 'tier0') return 'Starter — 29 zł netto / msc';
+    if (p === 'tier1') return 'Standard — 49 zł netto / msc';
     if (p === 'tier_custom' || p === 'custom') return 'Custom / Concierge';
     return p;
   }
@@ -37,8 +39,7 @@
     const sel = sub.selected_plan ? normalizePlan(sub.selected_plan) : '';
     if (p === 'trial') {
       if (sel === 'tier0') return 'Okres próbny — wybrany Starter (dokończ opłatę)';
-      if (sel === 'tier1') return 'Okres próbny — wybrany Pro (dokończ płatność)';
-      if (sel === 'tier2') return 'Okres próbny — wybrany Premium (dokończ płatność)';
+      if (sel === 'tier1') return 'Okres próbny — wybrany Standard (dokończ płatność)';
       return 'Okres próbny (14 dni)';
     }
     return planDisplayName(p);
@@ -46,18 +47,14 @@
 
   function planCapabilitiesSummary(plan) {
     const p = normalizePlan(plan);
-    const domain = planAllowsCustomDomain(p) ? 'Własna domena: tak' : 'Własna domena: .dfcms.pl (od Pro: .pl/.com)';
+    const domain = planAllowsCustomDomain(p) ? 'Własna domena: tak' : 'Własna domena: .dfcms.pl (od Standard: .pl/.com)';
     const wm = planShowsWatermark(p) ? 'Logo DFCMS w stopce' : 'Bez logo DFCMS';
     const colors =
       p === 'trial' || p === 'tier0'
         ? 'Kolory: podstawowy preset'
         : 'Kolory: wszystkie presety';
     const assistant =
-      p === 'tier2'
-        ? 'Asystent: 1 h/msc w cenie'
-        : p === 'tier1'
-          ? 'Asystent: 100 zł/h netto'
-          : 'Asystent: od Pro';
+      p === 'tier1' ? 'Asystent: 100 zł/h netto' : 'Asystent: od pakietu Standard';
     return `${domain} · ${wm} · ${colors} · ${assistant}`;
   }
 
@@ -106,7 +103,7 @@
     if (subscriptionStripeStatusTerminal(sub)) return false;
     const st = subscriptionStripeStatus(sub);
     const p = normalizePlan(sub.plan);
-    const paidPlan = p === 'tier0' || p === 'tier1' || p === 'tier2';
+    const paidPlan = p === 'tier0' || p === 'tier1';
     const sid =
       typeof sub.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
     const stripeLive =
@@ -154,4 +151,5 @@
   window.DFOPS_subscriptionStripeStatusTerminal = subscriptionStripeStatusTerminal;
   window.DFOPS_isSubscriptionCanceledButValid = isSubscriptionCanceledButValid;
   window.DFOPS_formatSubscriptionPeriodEndPl = formatSubscriptionPeriodEndPl;
+  window.DFOPS_normalizePlan = normalizePlan;
 })();

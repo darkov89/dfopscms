@@ -5,7 +5,15 @@
 import type { SupabaseClient } from "npm:@supabase/supabase-js@^2.39.0";
 import type Stripe from "npm:stripe@^14.0.0";
 
-export type StripePaidTier = "tier0" | "tier1" | "tier2";
+export type StripePaidTier = "tier0" | "tier1";
+
+/** Legacy `tier2` (dawny Premium) → Standard. */
+export function normalizeStripePaidTier(plan: string | null | undefined): StripePaidTier {
+  const p = String(plan || "").trim().toLowerCase();
+  if (p === "tier0" || p === "starter") return "tier0";
+  if (p === "tier2" || p === "tier1" || p === "pro" || p === "standard") return "tier1";
+  return "tier1";
+}
 
 export type BillingProfileRow = {
   id: string;
@@ -36,6 +44,51 @@ function customerIdString(cust: string | Stripe.Customer | Stripe.DeletedCustome
   return "";
 }
 
+export type StripePriceEnv = {
+  priceStarter: string;
+  priceStarterYearly: string;
+  pricePro: string;
+  priceProYearly: string;
+};
+
+/** Identyfikatory cen z Secrets Supabase (miesięczne + roczne). */
+export function readStripePriceEnv(): StripePriceEnv {
+  return {
+    priceStarter: Deno.env.get("STRIPE_PRICE_STARTER") ?? "",
+    priceStarterYearly: Deno.env.get("STRIPE_PRICE_STARTER_YEARLY") ?? "",
+    pricePro: Deno.env.get("STRIPE_PRICE_PRO") ?? "",
+    priceProYearly: Deno.env.get("STRIPE_PRICE_PRO_YEARLY") ?? "",
+  };
+}
+
+export function applyOptsFromPriceEnv(env: StripePriceEnv): ApplyOpts {
+  return {
+    priceStarter: env.priceStarter,
+    priceStarterYearly: env.priceStarterYearly,
+    pricePro: env.pricePro,
+    priceProYearly: env.priceProYearly,
+  };
+}
+
+export function tierOverrideFromPriceId(
+  priceId: string,
+  env: StripePriceEnv,
+): StripePaidTier | undefined {
+  if (
+    (env.pricePro && priceId === env.pricePro) ||
+    (env.priceProYearly && priceId === env.priceProYearly)
+  ) {
+    return "tier1";
+  }
+  if (
+    (env.priceStarter && priceId === env.priceStarter) ||
+    (env.priceStarterYearly && priceId === env.priceStarterYearly)
+  ) {
+    return "tier0";
+  }
+  return undefined;
+}
+
 export function firstRecurringPriceId(sub: Stripe.Subscription): string {
   const item = sub.items?.data?.[0];
   if (!item?.price) return "";
@@ -46,25 +99,31 @@ export function firstRecurringPriceId(sub: Stripe.Subscription): string {
 export function tierFromStripePrice(
   priceId: string,
   priceStarter: string,
+  priceStarterYearly: string,
   pricePro: string,
-  pricePremium: string,
+  priceProYearly: string,
   fallbackTier: StripePaidTier,
 ): StripePaidTier {
-  if (pricePremium && priceId === pricePremium) return "tier2";
-  if (pricePro && priceId === pricePro) return "tier1";
-  if (priceStarter && priceId === priceStarter) return "tier0";
-  return fallbackTier;
+  if ((pricePro && priceId === pricePro) || (priceProYearly && priceId === priceProYearly)) {
+    return "tier1";
+  }
+  if ((priceStarter && priceId === priceStarter) || (priceStarterYearly && priceId === priceStarterYearly)) {
+    return "tier0";
+  }
+  return normalizeStripePaidTier(fallbackTier);
 }
 
 export function priceTierRank(
   priceId: string,
   priceStarter: string,
+  priceStarterYearly: string,
   pricePro: string,
-  pricePremium: string,
+  priceProYearly: string,
 ): number {
-  if (pricePremium && priceId === pricePremium) return 2;
-  if (pricePro && priceId === pricePro) return 1;
-  if (priceStarter && priceId === priceStarter) return 0;
+  if ((pricePro && priceId === pricePro) || (priceProYearly && priceId === priceProYearly)) return 1;
+  if ((priceStarter && priceId === priceStarter) || (priceStarterYearly && priceId === priceStarterYearly)) {
+    return 0;
+  }
   return 0;
 }
 
@@ -276,8 +335,9 @@ async function applyPageBlocksForSubscription(
 
 type ApplyOpts = {
   priceStarter?: string;
+  priceStarterYearly?: string;
   pricePro: string;
-  pricePremium: string;
+  priceProYearly?: string;
   tierFallback?: StripePaidTier;
   tierOverride?: StripePaidTier;
 };
@@ -299,16 +359,24 @@ export async function applyStripeSubscriptionToPage(
   const priceId = firstRecurringPriceId(sub);
   let fallback: StripePaidTier = "tier1";
   const existingPlan = profile?.plan;
-  if (existingPlan === "tier2") fallback = "tier2";
-  else if (existingPlan === "tier0") fallback = "tier0";
-  if (opts.tierFallback === "tier2") fallback = "tier2";
-  if (opts.tierFallback === "tier0") fallback = "tier0";
-  if (opts.tierFallback === "tier1") fallback = "tier1";
+  if (existingPlan) fallback = normalizeStripePaidTier(existingPlan);
+  if (opts.tierFallback) fallback = normalizeStripePaidTier(opts.tierFallback);
 
   const priceStarter = opts.priceStarter ?? "";
+  const priceStarterYearly = opts.priceStarterYearly ?? "";
+  const priceProYearly = opts.priceProYearly ?? "";
   const tier =
     opts.tierOverride ??
-    tierFromStripePrice(priceId, priceStarter, opts.pricePro, opts.pricePremium, fallback);
+    normalizeStripePaidTier(
+      tierFromStripePrice(
+        priceId,
+        priceStarter,
+        priceStarterYearly,
+        opts.pricePro,
+        priceProYearly,
+        fallback,
+      ),
+    );
 
   const upsertRow = billingProfileUpsertFromStripe(page.user_id, sub, tier);
   const up = await upsertBillingProfile(supabase, upsertRow);

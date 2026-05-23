@@ -20,8 +20,9 @@
     }
     const st = String(billing.status || '').trim().toLowerCase();
     const terminated = st === 'canceled' || st === 'cancelled' || st === 'incomplete_expired';
-    const plan = terminated ? 'trial' : (billing.plan || 'trial');
-    const paidTier = !terminated && (plan === 'tier0' || plan === 'tier1' || plan === 'tier2');
+    let plan = terminated ? 'trial' : (billing.plan || 'trial');
+    if (plan === 'tier2') plan = 'tier1';
+    const paidTier = !terminated && (plan === 'tier0' || plan === 'tier1');
     return {
       plan,
       status: st,

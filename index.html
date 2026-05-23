@@ -288,46 +288,98 @@
         </section>
 
         <!-- Cennik -->
-        <section id="cennik" class="py-16 sm:py-20">
+        <section id="cennik" class="py-16 sm:py-20" x-data="landingPricing()">
             <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                 <h2 class="font-display text-center text-2xl font-bold tracking-tight text-brand-ink sm:text-3xl">Prosty cennik</h2>
-                <p class="mx-auto mt-3 max-w-lg text-center text-sm text-zinc-600">Wybierz start za darmo albo rozwiń biznes z własną domeną.</p>
+                <p class="mx-auto mt-3 max-w-xl text-center text-sm text-zinc-600">Starter, Standard lub Premium na zamówienie — wybierz okres rozliczenia i załóż konto w kilka minut.</p>
 
-                <div class="mt-12 grid gap-8 lg:grid-cols-2 lg:gap-10">
-                    <!-- STARTER -->
-                    <div class="flex flex-col rounded-2xl border border-zinc-200 bg-white p-8 shadow-lift ring-1 ring-zinc-900/5 sm:p-10">
-                        <p class="text-xs font-bold uppercase tracking-widest text-zinc-500">Pakiet STARTER</p>
-                        <p class="mt-4 font-display text-4xl font-bold text-brand-ink">0 zł</p>
-                        <p class="mt-1 text-sm text-zinc-500">14 dni testów</p>
-                        <ul class="mt-8 flex-1 space-y-3 text-sm text-zinc-600">
-                            <li class="flex gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Wszystkie funkcje kreatora</li>
-                            <li class="flex gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Szablony pod beauty i doradztwo</li>
-                            <li class="flex gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Hosting i certyfikat SSL</li>
-                            <li class="flex gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Panel do edycji treści</li>
-                        </ul>
-                        <a href="rejestracja.html" class="mt-10 inline-flex justify-center rounded-xl border-2 border-brand-ink bg-transparent px-6 py-3.5 text-xs font-bold uppercase tracking-widest text-brand-ink transition hover:bg-brand-ink hover:text-white">
-                            Wybierz STARTER
-                        </a>
+                <div class="mt-8 flex flex-col items-center gap-2" role="group" aria-label="Okres rozliczenia">
+                    <div class="inline-flex max-w-full flex-wrap items-center justify-center gap-1 rounded-full border border-zinc-200/90 bg-zinc-50/95 p-1 shadow-sm ring-1 ring-zinc-900/5">
+                        <button type="button" @click="billingInterval = 'monthly'" :aria-pressed="billingInterval === 'monthly'" :class="billingInterval === 'monthly' ? 'bg-white text-brand-ink shadow-sm ring-1 ring-zinc-200/80' : 'text-zinc-600 hover:text-brand-ink'" class="rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-wide transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/50 sm:text-xs">Płatność miesięczna</button>
+                        <button type="button" @click="billingInterval = 'yearly'" :aria-pressed="billingInterval === 'yearly'" :class="billingInterval === 'yearly' ? 'bg-brand-gold text-brand-ink shadow-sm ring-1 ring-brand-gold/40' : 'text-zinc-600 hover:text-brand-ink'" class="rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-wide transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/50 sm:text-xs">Płatność roczna <span class="font-semibold normal-case tracking-normal opacity-90">(−20%)</span></button>
                     </div>
-
-                    <!-- PRO -->
-                    <div class="relative flex flex-col overflow-hidden rounded-2xl border-2 border-brand-gold bg-brand-ink p-8 text-white shadow-gold sm:p-10">
-                        <div class="absolute right-4 top-4 rounded-full bg-brand-gold/20 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-brand-gold">Polecany</div>
-                        <p class="text-xs font-bold uppercase tracking-widest text-zinc-400">Pakiet PRO</p>
-                        <p class="mt-4 font-display text-4xl font-bold text-white">49 zł <span class="text-lg font-semibold text-zinc-400">/ mies.</span></p>
-                        <p class="mt-1 text-sm text-zinc-400">Pełna swoboda dla rosnącego biznesu</p>
-                        <ul class="mt-8 flex-1 space-y-3 text-sm text-zinc-300">
-                            <li class="flex gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Własna domena (.pl / .com)</li>
-                            <li class="flex gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Brak widocznych reklam DFCMS</li>
-                            <li class="flex gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Priorytetowe wsparcie</li>
-                            <li class="flex gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Wszystko ze STARTER</li>
-                        </ul>
-                        <a href="rejestracja.html" class="mt-10 inline-flex justify-center rounded-xl bg-brand-gold px-6 py-3.5 text-xs font-bold uppercase tracking-widest text-brand-ink transition hover:brightness-110">
-                            Wybierz PRO
-                        </a>
-                    </div>
+                    <p class="text-center text-[11px] text-zinc-500" x-show="billingInterval === 'yearly'" x-cloak>Roczna opłata z rabatem 20% — rozliczenie jednorazowo na 12 miesięcy.</p>
                 </div>
-                <p class="mt-8 text-center text-xs text-zinc-500">Ceny netto. Szczegóły planów w panelu po rejestracji.</p>
+
+                <div class="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+                    <!-- Starter -->
+                    <article class="flex flex-col rounded-2xl border border-zinc-200 bg-white p-8 shadow-lift ring-1 ring-zinc-900/5 sm:p-9">
+                        <p class="text-xs font-bold uppercase tracking-widest text-zinc-500">Starter</p>
+                        <p class="mt-1 text-sm text-zinc-600">Wejście w CMS</p>
+                        <div class="mt-5 border-b border-zinc-100 pb-5">
+                            <div x-show="billingInterval === 'monthly'">
+                                <p class="font-display text-4xl font-bold tabular-nums text-brand-ink">29 zł<span class="text-lg font-semibold text-zinc-500"> / msc</span></p>
+                            </div>
+                            <div x-show="billingInterval === 'yearly'" x-cloak>
+                                <p class="text-xs font-medium text-zinc-400 line-through tabular-nums">348 zł</p>
+                                <p class="font-display text-4xl font-bold tabular-nums text-brand-ink">278,40 zł<span class="text-lg font-semibold text-zinc-500"> / rok</span></p>
+                                <p class="mt-1 text-xs font-medium text-emerald-800/90">23,20 zł / mc przy płatności rocznej</p>
+                            </div>
+                            <p class="mt-2 text-xs text-zinc-500">netto · +23% VAT</p>
+                            <p class="mt-1 text-xs font-medium text-zinc-600">14 dni trialu przy rejestracji — bez karty</p>
+                        </div>
+                        <ul class="mt-6 flex-1 space-y-3 text-sm text-zinc-600">
+                            <li class="flex gap-2"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span><span><strong class="text-brand-ink">Adres strony</strong> na subdomenie <strong class="text-brand-ink">.dfcms.pl</strong> (bez własnej domeny)</span></li>
+                            <li class="flex gap-2"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span><span><strong class="text-brand-ink">Podstawowy motyw</strong> — jedna paleta kolorów</span></li>
+                            <li class="flex gap-2"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span><span><strong class="text-brand-ink">Logo DFCMS</strong> w stopce strony</span></li>
+                            <li class="flex gap-2"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span><span>Panel CMS, hosting i certyfikat SSL</span></li>
+                        </ul>
+                        <a href="rejestracja.html" class="mt-8 inline-flex min-h-[3.25rem] items-center justify-center rounded-xl border-2 border-brand-ink bg-transparent px-6 py-3.5 text-xs font-bold uppercase tracking-widest text-brand-ink transition hover:bg-brand-ink hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/50">
+                            Wybierz Starter
+                        </a>
+                    </article>
+
+                    <!-- Standard -->
+                    <article class="relative flex flex-col overflow-hidden rounded-2xl border-2 border-brand-gold bg-brand-ink p-8 text-white shadow-gold sm:p-9 lg:-mt-1 lg:mb-1">
+                        <div class="absolute right-4 top-4 rounded-full bg-brand-gold/20 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-brand-gold">Polecane</div>
+                        <p class="text-xs font-bold uppercase tracking-widest text-zinc-400">Standard</p>
+                        <p class="mt-1 text-sm text-zinc-400">Rozwój marki</p>
+                        <div class="mt-5 border-b border-white/10 pb-5">
+                            <div x-show="billingInterval === 'monthly'">
+                                <p class="font-display text-4xl font-bold tabular-nums text-white">49 zł<span class="text-lg font-semibold text-zinc-400"> / msc</span></p>
+                            </div>
+                            <div x-show="billingInterval === 'yearly'" x-cloak>
+                                <p class="text-xs font-medium text-zinc-500 line-through tabular-nums">588 zł</p>
+                                <p class="font-display text-4xl font-bold tabular-nums text-white">470,40 zł<span class="text-lg font-semibold text-zinc-400"> / rok</span></p>
+                                <p class="mt-1 text-xs font-medium text-brand-gold/95">39,20 zł / mc przy płatności rocznej</p>
+                            </div>
+                            <p class="mt-2 text-xs text-zinc-400">netto · +23% VAT</p>
+                        </div>
+                        <ul class="mt-6 flex-1 space-y-3 text-sm text-zinc-300">
+                            <li class="flex gap-2"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span><span><strong class="text-white">Własna domena</strong> .pl / .com w cenie</span></li>
+                            <li class="flex gap-2"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span><span><strong class="text-white">Pełna paleta</strong> kolorów i motywów</span></li>
+                            <li class="flex gap-2"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span><span><strong class="text-white">Bez logo DFCMS</strong> na stronie publicznej</span></li>
+                            <li class="flex gap-2"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span><span>Wszystko ze Starter + <strong class="text-white">Asystent</strong> od 100 zł/h netto</span></li>
+                        </ul>
+                        <a href="rejestracja.html" class="mt-8 inline-flex min-h-[3.25rem] items-center justify-center rounded-xl bg-brand-gold px-6 py-3.5 text-xs font-bold uppercase tracking-widest text-brand-ink transition hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40">
+                            Wybierz Standard
+                        </a>
+                    </article>
+
+                    <!-- Premium (na zamówienie) -->
+                    <article class="flex flex-col rounded-2xl border-2 border-dashed border-zinc-300 bg-gradient-to-b from-zinc-50 to-zinc-100/80 p-8 shadow-lift ring-1 ring-zinc-900/5 sm:p-9 md:col-span-2 lg:col-span-1">
+                        <p class="text-xs font-bold uppercase tracking-widest text-zinc-500">Premium</p>
+                        <p class="mt-1 text-sm text-zinc-600">Na zamówienie · Custom</p>
+                        <div class="mt-5 border-b border-zinc-200/80 pb-5">
+                            <p class="font-display text-3xl font-bold leading-tight text-brand-ink sm:text-4xl">Wycena indywidualna</p>
+                            <p class="mt-2 text-xs text-zinc-500">Rozszerzenia, wdrożenie i wsparcie dopasowane do procesu</p>
+                        </div>
+                        <ul class="mt-6 flex-1 space-y-3 text-sm text-zinc-600">
+                            <li class="flex gap-2"><span class="shrink-0 text-zinc-400" aria-hidden="true">◇</span><span>Indywidualne wdrożenie i integracje</span></li>
+                            <li class="flex gap-2"><span class="shrink-0 text-zinc-400" aria-hidden="true">◇</span><span>Rozszerzenia pod Twój model pracy</span></li>
+                            <li class="flex gap-2"><span class="shrink-0 text-zinc-400" aria-hidden="true">◇</span><span>Bez samoobsługowej subskrypcji — kontakt z zespołem</span></li>
+                        </ul>
+                        <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                            <a href="zapytanie-custom.html" class="inline-flex min-h-[3.25rem] flex-1 items-center justify-center rounded-xl border-2 border-zinc-300 bg-white px-5 py-3.5 text-center text-xs font-bold uppercase tracking-widest text-brand-ink shadow-sm transition hover:border-brand-gold hover:text-brand-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/50">
+                                Formularz zapytania
+                            </a>
+                            <a href="mailto:kontakt@dfops.eu?subject=DFCMS%20%E2%80%94%20pakiet%20Premium" class="inline-flex min-h-[3.25rem] flex-1 items-center justify-center rounded-xl border-2 border-transparent bg-brand-ink px-5 py-3.5 text-center text-xs font-bold uppercase tracking-widest text-white transition hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/50">
+                                Napisz do nas
+                            </a>
+                        </div>
+                    </article>
+                </div>
+                <p class="mt-8 text-center text-xs text-zinc-500">Ceny netto. Po rejestracji wybierzesz plan i okres rozliczenia w panelu — zgodnie z aktualną ofertą.</p>
             </div>
         </section>
 
@@ -361,7 +413,7 @@
                             <span class="text-brand-gold" x-text="open === 2 ? '−' : '+'" aria-hidden="true"></span>
                         </button>
                         <div x-show="open === 2" x-transition class="border-t border-zinc-100">
-                            <p class="px-5 py-4 text-sm leading-relaxed text-zinc-600">Tak, w pakiecie PRO pomożemy Ci podpiąć Twoją własną domenę .pl lub .com.</p>
+                            <p class="px-5 py-4 text-sm leading-relaxed text-zinc-600">Tak, w pakiecie Standard pomożemy Ci podpiąć Twoją własną domenę .pl lub .com.</p>
                         </div>
                     </div>
                     <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
@@ -403,6 +455,7 @@
     <script>
         document.getElementById('y').textContent = new Date().getFullYear();
     </script>
+    <script defer src="js/features/landingPricing.js?v=20260522a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 </body>
 </html>

@@ -149,22 +149,36 @@ serve(async (req) => {
     }
 
     const priceStarter = Deno.env.get("STRIPE_PRICE_STARTER") ?? "";
+    const priceStarterYearly = Deno.env.get("STRIPE_PRICE_STARTER_YEARLY") ?? "";
     const pricePro = Deno.env.get("STRIPE_PRICE_PRO") ?? "";
-    const pricePremium = Deno.env.get("STRIPE_PRICE_PREMIUM") ?? "";
-    const allowed = new Set([priceStarter, pricePro, pricePremium].filter(Boolean));
+    const priceProYearly = Deno.env.get("STRIPE_PRICE_PRO_YEARLY") ?? "";
+    const allowed = new Set(
+      [priceStarter, priceStarterYearly, pricePro, priceProYearly].filter(Boolean),
+    );
 
     const body = await req.json().catch(() => ({}));
     const rawPrice =
       typeof body?.priceId === "string" ? body.priceId.trim() : "";
     const plan = typeof body?.plan === "string" ? body.plan.trim().toLowerCase() : "";
+    const intervalRaw = typeof body?.interval === "string" ? body.interval.trim().toLowerCase() : "monthly";
+    const interval = intervalRaw === "yearly" || intervalRaw === "annual" || intervalRaw === "year"
+      ? "yearly"
+      : "monthly";
+
+    const isProPlan = plan === "pro" || plan === "standard" || plan === "tier1";
+    const isStarterPlan = plan === "starter" || plan === "tier0";
 
     let priceId = "";
-    if (plan === "starter" && priceStarter) priceId = priceStarter;
-    else if (plan === "pro" && pricePro) priceId = pricePro;
-    else if (plan === "premium" && pricePremium) priceId = pricePremium;
-    else if (rawPrice && allowed.has(rawPrice)) priceId = rawPrice;
-    else if (
-      (plan === "pro" || plan === "premium" || plan === "starter") &&
+    if (isStarterPlan) {
+      priceId = interval === "yearly" ? priceStarterYearly : priceStarter;
+    } else if (isProPlan) {
+      priceId = interval === "yearly" ? priceProYearly : pricePro;
+    } else if (plan === "premium" || plan === "tier2") {
+      throw new Error("Pakiet Premium nie jest już dostępny. Wybierz Starter lub Standard.");
+    } else if (rawPrice && allowed.has(rawPrice)) {
+      priceId = rawPrice;
+    } else if (
+      (isProPlan || isStarterPlan) &&
       rawPrice &&
       (rawPrice.startsWith("price_") || rawPrice.startsWith("prod_"))
     ) {
@@ -174,7 +188,7 @@ serve(async (req) => {
 
     if (!priceId) {
       throw new Error(
-        "Nieprawidłowy plan lub cena. Ustaw Secrets (STRIPE_PRICE_PRO, PREMIUM, opcjonalnie STARTER) albo stripePrices w config.js.",
+        "Nieprawidłowy plan, okres lub cena. Ustaw Secrets STRIPE_PRICE_* (w tym *_YEARLY) albo stripePrices w config.js.",
       );
     }
 
@@ -206,15 +220,18 @@ serve(async (req) => {
       client_reference_id: user.id,
       metadata: {
         supabase_user_id: user.id,
+        billing_interval: interval,
         plan:
-          plan ||
-          (resolvedPriceId === priceStarter
+          isStarterPlan
             ? "starter"
-            : resolvedPriceId === pricePro
-              ? "pro"
-              : resolvedPriceId === pricePremium
-                ? "premium"
-                : ""),
+            : isProPlan
+              ? "standard"
+              : plan ||
+                  (resolvedPriceId === priceStarter || resolvedPriceId === priceStarterYearly
+                    ? "starter"
+                    : resolvedPriceId === pricePro || resolvedPriceId === priceProYearly
+                      ? "standard"
+                      : ""),
       },
     };
     if (existingCustomerId) {

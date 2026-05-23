@@ -309,7 +309,7 @@
       lang: 'pl',
       theme: '',
       isLoading: false,
-      /** Pakiet do feature gating (kolory). Test lokalny: ustaw 'pro' | 'premium'; po loadData nadpisuje się z subskrypcji. */
+      /** Pakiet do feature gating (kolory): starter | standard. Po loadData nadpisuje się z subskrypcji. */
       userPlan: 'starter',
       content: createAdminContentShell(),
       showWizard: false,
@@ -341,6 +341,8 @@
       _stopContentWatch: null,
       upgrading: false,
       checkoutLoading: false,
+      /** Okres rozliczenia na ekranie pakietów: monthly | yearly */
+      billingInterval: 'monthly',
       stripeSyncLoading: false,
       /** Profil rozliczeniowy z tabeli billing_profiles (źródło prawdy Stripe). */
       billingProfile: null,
@@ -392,9 +394,14 @@
       get activePaidTierForUi() {
         if (!this.hasActivePaidSubscription) return null;
         const p = this.subscriptionPlan;
-        if (p === 'tier0' || p === 'tier1' || p === 'tier2') return p;
+        if (p === 'tier0' || p === 'tier1') return p;
+        if (p === 'tier2' && typeof window.DFOPS_normalizePlan === 'function') {
+          return window.DFOPS_normalizePlan(p);
+        }
+        if (p === 'tier2') return 'tier1';
         const sel = this.billingSubscriptionView?.selected_plan;
-        if (sel === 'tier0' || sel === 'tier1' || sel === 'tier2') return sel;
+        if (sel === 'tier0' || sel === 'tier1') return sel;
+        if (sel === 'tier2') return 'tier1';
         return null;
       },
       /** Kreator tylko po potwierdzeniu e-maila — zgodny z needsEmailConfirmation ustawianym po getUser(). */
@@ -498,6 +505,7 @@
         if (p === 'tier0' || p === 'tier1' || p === 'tier2') {
           return sub?.payment_completed === true;
         }
+        /* tier2 = legacy Premium → traktowany jak opłacony Standard */
         const st = typeof sub?.status === 'string' ? sub.status.trim().toLowerCase() : '';
         const sid = typeof sub?.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
         return !!(sid && (st === 'active' || st === 'trialing'));
@@ -547,17 +555,15 @@
       },
       get activeSubscriptionBrandLabel() {
         const t = this.activePaidTierForUi;
-        if (t === 'tier2') return 'PREMIUM';
-        if (t === 'tier1') return 'PRO';
+        if (t === 'tier1' || t === 'tier2') return 'STANDARD';
         if (t === 'tier0') return 'STARTER';
         if (this.hasActivePaidSubscription) return 'SUBSKRYPCJA STRIPE';
         return '';
       },
       get activeSubscriptionPriceLine() {
         const t = this.activePaidTierForUi;
-        if (t === 'tier2') return '99 PLN netto / msc';
-        if (t === 'tier1') return '49 PLN netto / msc';
-        if (t === 'tier0') return '19 PLN netto / msc';
+        if (t === 'tier1' || t === 'tier2') return '49 PLN netto / msc';
+        if (t === 'tier0') return '29 PLN netto / msc';
         if (this.hasActivePaidSubscription) return 'Kwota zgodnie z aktywnym pakietem w Stripe';
         return '';
       },
@@ -642,8 +648,7 @@
       get selectedPlanHumanLabel() {
         const s = this.billingSubscriptionView?.selected_plan;
         if (s === 'tier0') return 'Starter';
-        if (s === 'tier1') return 'Pro';
-        if (s === 'tier2') return 'Premium';
+        if (s === 'tier1' || s === 'tier2') return 'Standard';
         return '';
       },
 
@@ -1089,8 +1094,7 @@
 
       syncUserPlanFromBilling() {
         const p = this.subscriptionPlan;
-        if (p === 'tier2') this.userPlan = 'premium';
-        else if (p === 'tier1') this.userPlan = 'pro';
+        if (p === 'tier1' || p === 'tier2') this.userPlan = 'standard';
         else this.userPlan = 'starter';
       },
 
@@ -1105,7 +1109,7 @@
       selectColorPreset(preset, index) {
         if (!preset?.id || !this.content?.pl?.settings) return;
         if (this.isLocked(index)) {
-          this.showToast('Ten kolor wymaga pakietu PRO!', 'error');
+          this.showToast('Ten kolor wymaga pakietu Standard!', 'error');
           return;
         }
         this.content.pl.settings.color_preset = preset.id;
@@ -1705,7 +1709,7 @@
         const presets = this.availablePresets;
         const cIdx = presets.findIndex((p) => p.id === bundle.color_preset);
         if (this.userPlan === 'starter' && cIdx > 0) {
-          this.showToast('Ten zestaw wymaga pakietu PRO (pełna paleta kolorów).', 'error');
+          this.showToast('Ten zestaw wymaga pakietu Standard (pełna paleta kolorów).', 'error');
           return;
         }
         this.content.pl.settings.color_preset = bundle.color_preset;
@@ -2087,22 +2091,47 @@
         this.showWizardDismissModal = false;
       },
       async subscribe(planType) {
+        if (planType === 'premium') {
+          this.showError('Pakiet Premium nie jest już dostępny. Wybierz Starter lub Standard.');
+          return;
+        }
+        const plan = planType === 'pro' ? 'standard' : String(planType || '').trim();
+        if (!plan || plan === 'custom') {
+          this.showError('Pakiet Custom — skorzystaj z formularza zapytania.');
+          return;
+        }
         const prices = cfg.stripePrices || {};
-        const priceId = prices[planType];
-        if (!priceId || String(priceId).includes('TUTAJ')) {
+        const interval = this.billingInterval === 'yearly' ? 'yearly' : 'monthly';
+        const priceKey =
+          interval === 'yearly'
+            ? plan === 'starter'
+              ? 'starterYearly'
+              : plan === 'standard'
+                ? 'standardYearly'
+                : plan
+            : plan;
+        let priceId =
+          prices[priceKey] ||
+          prices[plan] ||
+          (plan === 'standard' ? prices.pro || prices.proYearly : '') ||
+          '';
+        const priceMissing = !priceId || String(priceId).includes('TUTAJ');
+        const serverResolvesInterval =
+          interval === 'yearly' && (plan === 'starter' || plan === 'standard');
+        if (priceMissing && !serverResolvesInterval) {
           this.showError('Skonfiguruj ID cen Stripe w js/core/config.js (stripePrices) i Secrets w Supabase.');
           return;
         }
+        if (priceMissing) priceId = '';
         if (!this.user?.id) {
           this.showError('Zaloguj się, aby wykupić subskrypcję.');
           return;
         }
         if (!this.content?.pl?.settings) return;
-        const tier =
-          planType === 'premium' ? 'tier2' : planType === 'starter' ? 'tier0' : 'tier1';
-        const currentTier = this.subscriptionPlan;
-        const isCurrentPaidTier =
-          currentTier === 'tier0' || currentTier === 'tier1' || currentTier === 'tier2';
+        const tier = plan === 'starter' ? 'tier0' : 'tier1';
+        const currentTier =
+          this.subscriptionPlan === 'tier2' ? 'tier1' : this.subscriptionPlan;
+        const isCurrentPaidTier = currentTier === 'tier0' || currentTier === 'tier1';
 
         if (this.hasStripeBillingCustomer()) {
           if (isCurrentPaidTier && currentTier === tier) {
@@ -2142,8 +2171,9 @@
             'create-checkout',
             {
               body: {
-                plan: planType,
-                priceId,
+                plan,
+                interval,
+                ...(priceId ? { priceId } : {}),
                 returnUrl,
                 userEmail: this.user?.email || '',
               },

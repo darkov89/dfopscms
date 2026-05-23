@@ -3,11 +3,13 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "npm:stripe@^14.0.0";
 import { createClient } from "npm:@supabase/supabase-js@^2.39.0";
 import {
+  applyOptsFromPriceEnv,
   applyStripeSubscriptionToPage,
   findBillingProfileByUserId,
   findPageByUserId,
   firstRecurringPriceId,
-  type StripePaidTier,
+  readStripePriceEnv,
+  tierOverrideFromPriceId,
 } from "../_shared/stripeBilling.ts";
 
 declare const Deno: { env: { get: (k: string) => string | undefined } };
@@ -96,9 +98,7 @@ serve(async (req) => {
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
     const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     const stripeSecret = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
-    const priceStarter = Deno.env.get("STRIPE_PRICE_STARTER") ?? "";
-    const pricePro = Deno.env.get("STRIPE_PRICE_PRO") ?? "";
-    const pricePremium = Deno.env.get("STRIPE_PRICE_PREMIUM") ?? "";
+    const prices = readStripePriceEnv();
 
     if (!supabaseUrl || !supabaseAnonKey || !serviceRole || !stripeSecret) {
       throw new Error("Brak konfiguracji serwera (Supabase / Stripe).");
@@ -170,15 +170,10 @@ serve(async (req) => {
     }
 
     const priceId = firstRecurringPriceId(subscription);
-    let tierOverride: StripePaidTier | undefined;
-    if (pricePremium && priceId === pricePremium) tierOverride = "tier2";
-    else if (pricePro && priceId === pricePro) tierOverride = "tier1";
-    else if (priceStarter && priceId === priceStarter) tierOverride = "tier0";
+    const tierOverride = tierOverrideFromPriceId(priceId, prices);
 
     const result = await applyStripeSubscriptionToPage(supabase, page, subscription, {
-      priceStarter,
-      pricePro,
-      pricePremium,
+      ...applyOptsFromPriceEnv(prices),
       ...(tierOverride ? { tierOverride } : {}),
     });
 

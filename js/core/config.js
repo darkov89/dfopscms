@@ -34,8 +34,9 @@
      */
     stripePrices: {
       starter: 'prod_UH55Tk8hYyhzcs',
-      pro: 'prod_UFPYv9j5jTbNZd',
-      premium: 'prod_UFPccgmP3lMp9N',
+      starterYearly: 'price_1TaLN8I2mNLYIaHUQnY3TNYf',
+      standard: 'prod_UFPYv9j5jTbNZd',
+      standardYearly: 'price_1TaLW3I2mNLYIaHUZed0PXND',
     },
     appDomain: 'dfcms.pl',
     /**

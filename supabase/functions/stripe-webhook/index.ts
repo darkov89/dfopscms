@@ -11,13 +11,16 @@ import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@^2.
 import {
   applyInvoiceRenewalPaymentFailed,
   applyStripeSubscriptionToPage,
+  applyOptsFromPriceEnv,
   applySubscriptionCanceledToPage,
   extractInvoiceSubscriptionId,
   findPageByUserId,
+  readStripePriceEnv,
   resolvePageForInvoice,
   resolvePageForStripeSubscription,
   subscriptionIsTerminated,
   type StripePaidTier,
+  type StripePriceEnv,
 } from "../_shared/stripeBilling.ts";
 
 type WebhookProcessResult = {
@@ -28,8 +31,9 @@ type WebhookProcessResult = {
 function tierPlanFromMetadata(planMeta: string | undefined | null): StripePaidTier | undefined {
   const p = String(planMeta || "").toLowerCase().trim();
   if (!p) return undefined;
-  if (p === "premium" || p === "tier2") return "tier2";
-  if (p === "pro" || p === "tier1") return "tier1";
+  if (p === "premium" || p === "tier2" || p === "pro" || p === "standard" || p === "tier1") {
+    return "tier1";
+  }
   if (p === "starter" || p === "tier0") return "tier0";
   return undefined;
 }
@@ -48,9 +52,7 @@ async function handleInvoicePaymentSuccess(
   supabase: SupabaseClient,
   stripe: Stripe,
   invoice: Stripe.Invoice,
-  priceStarter: string,
-  pricePro: string,
-  pricePremium: string,
+  prices: StripePriceEnv,
 ): Promise<WebhookProcessResult> {
   const subscriptionId = extractInvoiceSubscriptionId(invoice);
   if (!subscriptionId) {
@@ -78,11 +80,12 @@ async function handleInvoicePaymentSuccess(
     return { skipped: "no_page" };
   }
 
-  const result = await applyStripeSubscriptionToPage(supabase, page, subscription, {
-    priceStarter,
-    pricePro,
-    pricePremium,
-  });
+  const result = await applyStripeSubscriptionToPage(
+    supabase,
+    page,
+    subscription,
+    applyOptsFromPriceEnv(prices),
+  );
   if (!result.ok) {
     return { dbError: logDbFailure("handleInvoicePaymentSuccess", result.error) };
   }
@@ -93,10 +96,9 @@ async function processStripeWebhookEvent(
   event: Stripe.Event,
   supabase: SupabaseClient,
   stripe: Stripe,
-  priceStarter: string,
-  pricePro: string,
-  pricePremium: string,
+  prices: StripePriceEnv,
 ): Promise<WebhookProcessResult> {
+  const priceOpts = applyOptsFromPriceEnv(prices);
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
@@ -145,9 +147,7 @@ async function processStripeWebhookEvent(
       }
 
       const result = await applyStripeSubscriptionToPage(supabase, page, subscription, {
-        priceStarter,
-        pricePro,
-        pricePremium,
+        ...priceOpts,
         ...(tierFromMeta ? { tierOverride: tierFromMeta } : {}),
       });
       if (!result.ok) {
@@ -165,11 +165,7 @@ async function processStripeWebhookEvent(
       }
       const result = subscriptionIsTerminated(subscription)
         ? await applySubscriptionCanceledToPage(supabase, page, subscription)
-        : await applyStripeSubscriptionToPage(supabase, page, subscription, {
-            priceStarter,
-            pricePro,
-            pricePremium,
-          });
+        : await applyStripeSubscriptionToPage(supabase, page, subscription, priceOpts);
       if (!result.ok) {
         return { dbError: logDbFailure("customer.subscription.updated", result.error) };
       }
@@ -196,9 +192,7 @@ async function processStripeWebhookEvent(
         supabase,
         stripe,
         event.data.object as Stripe.Invoice,
-        priceStarter,
-        pricePro,
-        pricePremium,
+        prices,
       );
     }
 
@@ -252,9 +246,7 @@ Deno.serve(async (req) => {
   const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET") ?? "";
   const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
   const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-  const priceStarter = Deno.env.get("STRIPE_PRICE_STARTER") ?? "";
-  const pricePro = Deno.env.get("STRIPE_PRICE_PRO") ?? "";
-  const pricePremium = Deno.env.get("STRIPE_PRICE_PREMIUM") ?? "";
+  const prices = readStripePriceEnv();
 
   if (!stripeSecret || !webhookSecret || !supabaseUrl || !serviceRole) {
     console.error(
@@ -299,14 +291,7 @@ Deno.serve(async (req) => {
 
   let processResult: WebhookProcessResult = {};
   try {
-    processResult = await processStripeWebhookEvent(
-      event,
-      supabase,
-      stripe,
-      priceStarter,
-      pricePro,
-      pricePremium,
-    );
+    processResult = await processStripeWebhookEvent(event, supabase, stripe, prices);
   } catch (e) {
     console.error("stripe-webhook handler", e);
     return new Response(JSON.stringify({ error: "Webhook handler error" }), {

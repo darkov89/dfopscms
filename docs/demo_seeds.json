@@ -7,7 +7,7 @@
     "reviews_note_pl": "Tablica `reviews` jest w kształcie jak „Opinie własne” w panelu (author, content, logoImage, stars). Szablony beauty / fitness / services renderują karuzelę z Google przy niepustym `google_reviews.place_query`; przy pustym query sekcja Google się nie pojawi — dane `reviews` zostawiamy dla spójności schematu, eksportów i ewentualnych rozszerzeń szablonu.",
     "address_shared": "ul. Korzecznik 16, Kłodawa",
     "local_dev_pl": "Na hostname localhost / 127.0.0.1, gdy w tabeli `pages` nie ma wiersza dla slug demo-beauty | demo-fitness | demo-services, klient ładuje treść z tego pliku przez getPageBySlug (pageRepository.js) — działa Live Server bez wstrzykiwania seedów do Supabase.",
-    "supabase_seed_pl": "Migracja `supabase/migrations/*_seed_demo_catalog_pages.sql` (generowana skryptem `node scripts/generate-demo-pages-migration.mjs`) wstawia te same treści do tabeli `pages`. `settings.subscription.plan` = tier2 + payment_completed — omija blokadę trial w cronie `expire_trial_pages`.",
+    "supabase_seed_pl": "Migracja `supabase/migrations/*_seed_demo_catalog_pages.sql` (generowana skryptem `node scripts/generate-demo-pages-migration.mjs`) wstawia te same treści do tabeli `pages`. `settings.subscription.plan` = tier1 + payment_completed — omija blokadę trial w cronie `expire_trial_pages`.",
     "generated": "DFCMS demo seeds — Data Architect artefakt"
   },
   "seeds": [
@@ -133,7 +133,7 @@
             "background_style": "soft",
             "font_preset": "poppins",
             "subscription": {
-              "plan": "tier2",
+              "plan": "tier1",
               "payment_completed": true,
               "trial_started_at": "2026-05-01T08:00:00.000Z"
             },
@@ -286,7 +286,7 @@
             "background_style": "glow",
             "font_preset": "inter",
             "subscription": {
-              "plan": "tier2",
+              "plan": "tier1",
               "payment_completed": true,
               "trial_started_at": "2026-05-01T08:00:00.000Z"
             },
@@ -431,7 +431,7 @@
             "background_style": "clean",
             "font_preset": "inter",
             "subscription": {
-              "plan": "tier2",
+              "plan": "tier1",
               "payment_completed": true,
               "trial_started_at": "2026-05-01T08:00:00.000Z"
             },

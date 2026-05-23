@@ -29,7 +29,9 @@
       }
     }
     const billingPlan = String(page.billing_plan || '').trim() || 'trial';
-    if (billingPlan === 'tier0' || billingPlan === 'tier1' || billingPlan === 'tier2') return false;
+    if (billingPlan === 'tier0' || billingPlan === 'tier1' || billingPlan === 'tier2') {
+      return false;
+    }
     const sub = page.content?.pl?.settings?.subscription;
     if (!sub || typeof sub !== 'object') return true;
     const ts = sub.trial_started_at;

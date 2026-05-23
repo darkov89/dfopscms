@@ -80,7 +80,7 @@
       sub.payment_completed = false;
     }
     if (
-      (sub.plan === 'tier1' || sub.plan === 'tier2') &&
+      (sub.plan === 'tier1' || sub.plan === 'tier2') && /* tier2: legacy → Standard */
       (sub.payment_completed === undefined || sub.payment_completed === null)
     ) {
       sub.payment_completed = true;

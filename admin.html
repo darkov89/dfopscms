@@ -33,12 +33,12 @@
     <script defer src="js/core/contentUpgrader.js?v=20260404c"></script>
     <script defer src="js/core/themeStyling.js?v=20260404c"></script>
     <script defer src="js/core/pageRepository.js?v=20260403t"></script>
-    <script defer src="js/core/planUtils.js?v=20260522a"></script>
+    <script defer src="js/core/planUtils.js?v=20260522b"></script>
     <script defer src="js/core/billingProfileView.js?v=20260523a"></script>
     <script defer src="js/core/googlePlacesSync.js?v=20260522c"></script>
     <script defer src="js/core/analytics.js?v=20260403t"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260523e"></script>
+    <script defer src="js/features/adminApp.js?v=20260523g"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260516a">
@@ -176,7 +176,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Główny kolor strony</label>
-                            <p x-show="userPlan === 'starter'" class="text-xs text-slate-500 mb-3" x-cloak>W pakiecie Starter dostępna jest pierwsza paleta; pozostałe odblokujesz w PRO.</p>
+                            <p x-show="userPlan === 'starter'" class="text-xs text-slate-500 mb-3" x-cloak>W pakiecie Starter dostępna jest pierwsza paleta; pozostałe odblokujesz w Standard.</p>
                             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
                                 <template x-for="(preset, index) in availablePresets" :key="preset.id">
                                     <button type="button"
@@ -1080,7 +1080,7 @@
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:items-start">
                                             <div>
                                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Preset kolorystyczny</label>
-                                                <p x-show="userPlan === 'starter'" class="text-xs text-slate-500 mb-3" x-cloak>W Starterze pierwsza paleta jest w cenie; pełna paleta i zestawy ze zmiennymi kolorami — od PRO.</p>
+                                                <p x-show="userPlan === 'starter'" class="text-xs text-slate-500 mb-3" x-cloak>W Starterze pierwsza paleta jest w cenie; pełna paleta i zestawy ze zmiennymi kolorami — od Standard.</p>
                                                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                                     <template x-for="(preset, index) in availablePresets" :key="preset.id">
                                                         <button type="button"
@@ -1269,7 +1269,7 @@
                                         </p>
                                     </div>
                                     <div x-show="domainError" x-cloak class="p-4 bg-red-50 text-red-800 border border-red-200 rounded-sm text-sm font-medium flex items-center gap-2"><span x-text="domainError"></span></div>
-                                    <p x-show="isCustomDomainLocked" class="text-xs text-amber-700">Własna domena od pakietu Pro (Tier 1) — <button type="button" @click="setTab('subscription')" class="font-bold underline text-amber-900 hover:text-slate-900">Zobacz plany</button>.</p>
+                                    <p x-show="isCustomDomainLocked" class="text-xs text-amber-700">Własna domena od pakietu Standard — <button type="button" @click="setTab('subscription')" class="font-bold underline text-amber-900 hover:text-slate-900">Zobacz plany</button>.</p>
                                     <p x-show="!isCustomDomainLocked" class="text-xs text-slate-500">Hostname (np. twojadomena.pl) — rekord CNAME u rejestratora.</p>
                                 </div>
                             </section>
@@ -2142,12 +2142,19 @@
                             <span class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-200 text-slate-600" aria-hidden="true">↔</span>
                             <span>Przewiń plansze albo użyj strzałek — od szerokiego laptopa wszystkie pakiety są w jednej siatce.</span>
                         </p>
+                        <div class="mb-6 flex flex-col items-center gap-2" role="group" aria-label="Okres rozliczenia subskrypcji">
+                            <div class="inline-flex max-w-full flex-wrap items-center justify-center gap-1 rounded-full border border-slate-200/90 bg-slate-50/95 p-1 shadow-panel ring-1 ring-slate-900/5">
+                                <button type="button" @click="billingInterval = 'monthly'" :aria-pressed="billingInterval === 'monthly'" :class="billingInterval === 'monthly' ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200/80' : 'text-slate-600 hover:text-slate-900'" class="rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-wide transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 sm:text-xs">Płatność miesięczna</button>
+                                <button type="button" @click="billingInterval = 'yearly'" :aria-pressed="billingInterval === 'yearly'" :class="billingInterval === 'yearly' ? 'bg-accent text-accent-fg shadow-sm ring-1 ring-accent/30' : 'text-slate-600 hover:text-slate-900'" class="rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-wide transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 sm:text-xs">Płatność roczna <span class="font-semibold normal-case tracking-normal opacity-90">(−20%)</span></button>
+                            </div>
+                            <p class="text-center text-[11px] text-slate-500" x-show="billingInterval === 'yearly'" x-cloak>Roczna opłata z rabatem 20% — rozliczenie jednorazowo na 12 miesięcy.</p>
+                        </div>
                         <div class="relative" x-data="{ scrollPlans(dir) { const el = this.$refs.planStrip; if (!el) return; const step = Math.min(el.clientWidth * 0.88, 360); el.scrollBy({ left: dir * step, behavior: 'smooth' }); } }">
                             <div class="pointer-events-none absolute inset-y-0 left-0 z-10 hidden w-10 bg-gradient-to-r from-white via-white/95 to-transparent xl:hidden md:block" aria-hidden="true"></div>
                             <div class="pointer-events-none absolute inset-y-0 right-0 z-10 hidden w-10 bg-gradient-to-l from-white via-white/95 to-transparent xl:hidden md:block" aria-hidden="true"></div>
                             <button type="button" @click="scrollPlans(-1)" class="absolute left-0 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200/80 bg-white text-lg font-bold text-slate-700 shadow-panel transition-colors hover:border-accent hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 xl:hidden md:flex" aria-label="Poprzedni pakiet">‹</button>
                             <button type="button" @click="scrollPlans(1)" class="absolute right-0 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200/80 bg-white text-lg font-bold text-slate-700 shadow-panel transition-colors hover:border-accent hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 xl:hidden md:flex" aria-label="Następny pakiet">›</button>
-                            <div x-ref="planStrip" class="-mx-1 flex min-w-0 snap-x snap-mandatory scroll-smooth items-stretch gap-4 overflow-x-auto overflow-y-visible px-1 py-3 pb-4 [scrollbar-width:thin] sm:gap-5 md:px-12 xl:grid xl:grid-cols-4 xl:items-stretch xl:gap-4 xl:[grid-auto-rows:minmax(0,1fr)] xl:overflow-visible xl:px-0 xl:pb-0 xl:snap-none [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300/80">
+                            <div x-ref="planStrip" class="-mx-1 flex min-w-0 snap-x snap-mandatory scroll-smooth items-stretch gap-4 overflow-x-auto overflow-y-visible px-1 py-3 pb-4 [scrollbar-width:thin] sm:gap-5 md:px-12 xl:grid xl:grid-cols-3 xl:items-stretch xl:gap-4 xl:[grid-auto-rows:minmax(0,1fr)] xl:overflow-visible xl:px-0 xl:pb-0 xl:snap-none [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300/80">
                             <!-- Starter -->
                             <article class="flex min-h-0 min-w-[min(100%,18rem)] w-[85vw] max-w-[100%] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border border-slate-200/80 bg-gradient-to-b from-slate-50/90 to-white shadow-panel ring-1 ring-slate-900/5 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] xl:h-full xl:min-h-0 xl:min-w-0 xl:w-full xl:max-w-none xl:flex-shrink xl:self-stretch">
                                 <div class="flex min-h-0 flex-1 flex-col p-6">
@@ -2156,8 +2163,15 @@
                                         <h3 class="text-lg font-bold tracking-tight text-slate-900">Starter</h3>
                                         <p class="mt-1 text-[11px] font-semibold uppercase tracking-widest text-slate-500">Wejście w CMS</p>
                                     </div>
-                                    <div class="mb-5 border-b border-slate-100 pb-5">
-                                        <p class="text-3xl font-bold tabular-nums text-accent">19 zł<span class="text-base font-semibold text-slate-500"> / msc</span></p>
+                                    <div class="mb-5 border-b border-slate-100 pb-5" data-plan-price="starter">
+                                        <div x-show="billingInterval === 'monthly'">
+                                            <p class="text-3xl font-bold tabular-nums text-accent">29 zł<span class="text-base font-semibold text-slate-500"> / msc</span></p>
+                                        </div>
+                                        <div x-show="billingInterval === 'yearly'" x-cloak>
+                                            <p class="text-xs font-medium text-slate-400 line-through tabular-nums">348 zł</p>
+                                            <p class="text-3xl font-bold tabular-nums text-accent">278,40 zł<span class="text-base font-semibold text-slate-500"> / rok</span></p>
+                                            <p class="mt-1 text-[11px] font-medium text-emerald-800/90">23,20 zł / mc przy płatności rocznej</p>
+                                        </div>
                                         <p class="mt-1 text-[11px] text-slate-500">netto · +23% VAT</p>
                                     </div>
                                     <ul class="min-h-0 flex-1 space-y-2.5 text-sm text-slate-600">
@@ -2176,18 +2190,25 @@
                                     </div>
                                 </div>
                             </article>
-                            <!-- Pro -->
+                            <!-- Standard -->
                             <article class="relative flex min-h-0 min-w-[min(100%,18rem)] w-[85vw] max-w-[100%] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border-2 border-accent bg-gradient-to-b from-white via-amber-50/45 to-amber-50/80 shadow-panel-md ring-1 ring-accent/20 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] xl:h-full xl:min-h-0 xl:min-w-0 xl:w-full xl:max-w-none xl:flex-shrink xl:self-stretch">
                                 <div class="flex min-h-0 flex-1 flex-col p-6">
                                     <div class="mb-3 flex min-h-[1.75rem] shrink-0 justify-end">
                                         <span class="inline-flex shrink-0 self-center rounded-full bg-accent px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-accent-fg shadow-panel">Polecane</span>
                                     </div>
                                     <div class="mb-4">
-                                        <h3 class="text-lg font-bold tracking-tight text-slate-900">Pro</h3>
+                                        <h3 class="text-lg font-bold tracking-tight text-slate-900">Standard</h3>
                                         <p class="mt-1 text-[11px] font-semibold uppercase tracking-widest text-slate-500">Rozwój marki</p>
                                     </div>
-                                    <div class="mb-5 border-b border-amber-200/70 pb-5">
-                                        <p class="text-3xl font-bold tabular-nums text-accent">49 zł<span class="text-base font-semibold text-slate-500"> / msc</span></p>
+                                    <div class="mb-5 border-b border-amber-200/70 pb-5" data-plan-price="standard">
+                                        <div x-show="billingInterval === 'monthly'">
+                                            <p class="text-3xl font-bold tabular-nums text-accent">49 zł<span class="text-base font-semibold text-slate-500"> / msc</span></p>
+                                        </div>
+                                        <div x-show="billingInterval === 'yearly'" x-cloak>
+                                            <p class="text-xs font-medium text-slate-400 line-through tabular-nums">588 zł</p>
+                                            <p class="text-3xl font-bold tabular-nums text-accent">470,40 zł<span class="text-base font-semibold text-slate-500"> / rok</span></p>
+                                            <p class="mt-1 text-[11px] font-medium text-emerald-800/90">39,20 zł / mc przy płatności rocznej</p>
+                                        </div>
                                         <p class="mt-1 text-[11px] text-slate-500">netto · +23% VAT</p>
                                     </div>
                                     <ul class="min-h-0 flex-1 space-y-2.5 text-sm text-slate-600">
@@ -2197,44 +2218,12 @@
                                         <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Asystent</strong> od 100 zł/h netto</span></li>
                                     </ul>
                                     <div class="mt-auto w-full shrink-0 space-y-3 pt-6">
-                                        <p x-show="subscriptionPlan === 'trial' && content?.pl?.settings?.subscription?.selected_plan === 'tier1'" class="min-h-0 text-xs font-medium leading-relaxed text-amber-900/90" x-cloak>Dokończ płatność Pro, aby utrzymać dostęp po trialu.</p>
-                                        <button type="button" @click="subscribe('pro')" x-show="subscriptionPlan !== 'tier1'" :disabled="checkoutLoading || saving" class="inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-xl bg-accent px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-accent-fg shadow-panel transition-colors hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 disabled:opacity-50 xl:text-[11px]">
+                                        <p x-show="subscriptionPlan === 'trial' && content?.pl?.settings?.subscription?.selected_plan === 'tier1'" class="min-h-0 text-xs font-medium leading-relaxed text-amber-900/90" x-cloak>Dokończ płatność Standard, aby utrzymać dostęp po trialu.</p>
+                                        <button type="button" @click="subscribe('standard')" x-show="subscriptionPlan !== 'tier1'" :disabled="checkoutLoading || saving" class="inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-xl bg-accent px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-accent-fg shadow-panel transition-colors hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 disabled:opacity-50 xl:text-[11px]">
                                             <span x-show="!checkoutLoading">Przejdź do płatności</span>
                                             <span x-show="checkoutLoading" x-cloak>Łączenie ze Stripe…</span>
                                         </button>
                                         <div x-show="subscriptionPlan === 'tier1'" x-cloak class="flex min-h-[3.25rem] w-full items-center justify-center rounded-xl border-2 border-accent bg-white/90 px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-accent-soft xl:text-[11px]">
-                                            Aktywna subskrypcja
-                                        </div>
-                                    </div>
-                                </div>
-                            </article>
-                            <!-- Premium -->
-                            <article class="flex min-h-0 min-w-[min(100%,18rem)] w-[85vw] max-w-[100%] flex-shrink-0 snap-center snap-always flex-col rounded-2xl border border-slate-200/80 bg-white shadow-panel-md ring-1 ring-slate-900/5 sm:min-w-[20rem] sm:w-auto md:min-w-[17.5rem] xl:h-full xl:min-h-0 xl:min-w-0 xl:w-full xl:max-w-none xl:flex-shrink xl:self-stretch">
-                                <div class="flex min-h-0 flex-1 flex-col p-6">
-                                    <div class="mb-3 flex min-h-[1.75rem] shrink-0 items-center justify-start">
-                                        <span class="inline-flex shrink-0 rounded-full bg-accent-fg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-accent shadow-panel">Premium</span>
-                                    </div>
-                                    <div class="mb-4">
-                                        <h3 class="text-lg font-bold tracking-tight text-slate-900">Premium</h3>
-                                        <p class="mt-1 text-[11px] font-semibold uppercase tracking-widest text-slate-500">Pełny serwis</p>
-                                    </div>
-                                    <div class="mb-5 border-b border-slate-100 pb-5">
-                                        <p class="text-3xl font-bold tabular-nums text-accent">99 zł<span class="text-base font-semibold text-slate-500"> / msc</span></p>
-                                        <p class="mt-1 text-[11px] text-slate-500">netto · +23% VAT</p>
-                                    </div>
-                                    <ul class="min-h-0 flex-1 space-y-2.5 text-sm text-slate-600">
-                                        <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Wszystko z Pro</strong></span></li>
-                                        <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">1 h Asystenta</strong> w cenie / msc</span></li>
-                                        <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Priorytet</strong> wsparcia</span></li>
-                                        <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Kopia zapasowa</strong></span></li>
-                                    </ul>
-                                    <div class="mt-auto w-full shrink-0 space-y-3 pt-6">
-                                        <p x-show="subscriptionPlan === 'trial' && content?.pl?.settings?.subscription?.selected_plan === 'tier2'" class="min-h-0 text-xs font-medium leading-relaxed text-amber-900/90" x-cloak>Dokończ płatność Premium po trialu.</p>
-                                        <button type="button" @click="subscribe('premium')" x-show="subscriptionPlan !== 'tier2'" :disabled="checkoutLoading || saving" class="inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-xl border-2 border-accent bg-white px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-accent-fg transition-colors hover:bg-amber-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 disabled:opacity-50 xl:text-[11px]">
-                                            <span x-show="!checkoutLoading">Przejdź do płatności</span>
-                                            <span x-show="checkoutLoading" x-cloak>Łączenie ze Stripe…</span>
-                                        </button>
-                                        <div x-show="subscriptionPlan === 'tier2'" x-cloak class="flex min-h-[3.25rem] w-full items-center justify-center rounded-xl border-2 border-accent-fg bg-slate-50 px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-slate-900 xl:text-[11px]">
                                             Aktywna subskrypcja
                                         </div>
                                     </div>
@@ -2274,10 +2263,10 @@
                             <ul class="space-y-3 text-slate-600 list-disc pl-5">
                                 <li>Wszystkie kwoty w pakietach podajemy <strong class="text-slate-900">netto</strong>. Na dokumentach rozliczeniowych stosujemy VAT zgodnie z przepisami (obecnie 23%).</li>
                                 <li>Płatności cykliczne za pakiety wyższe realizujemy przez bezpieczną bramkę płatności (subskrypcja online).</li>
-                                <li><strong class="text-slate-900">Okres próbny trwa 14 dni.</strong> Możesz od razu wskazać preferowany pakiet (np. Starter 19 zł lub wyższy), ale pełne konto rozliczeniowe powstaje po zaksięgowaniu pierwszej opłaty. Do tego czasu obowiązują zasady i limity trialu.</li>
+                                <li><strong class="text-slate-900">Okres próbny trwa 14 dni.</strong> Możesz od razu wskazać preferowany pakiet (np. Starter 29 zł/mc lub wyższy, także w opcji rocznej z rabatem), ale pełne konto rozliczeniowe powstaje po zaksięgowaniu pierwszej opłaty. Do tego czasu obowiązują zasady i limity trialu.</li>
                                 <li>Przy <strong class="text-slate-900">aktywnej subskrypcji</strong>, jeśli płatność nie przejdzie, masz typowo <strong class="text-slate-900">14 dni</strong> na uregulowanie (od zarejestrowania problemu w systemie) — potem widok publiczny zostaje ukryty tak jak przy wygasłym trialu, do czasu opłaty.</li>
                                 <li>Brak opłaty po zakończeniu trialu lub po tym terminie może skutkować <strong class="text-slate-900">zablokowaniem widoku publicznego (archiwizacja)</strong> — dokładne konsekwencje opisuje regulamin.</li>
-                                <li><strong class="text-slate-900">Asystent DFCMS (Concierge)</strong> — wsparcie i wdrożenia godzinowe; w Pro od 100 zł/h netto, w Premium jedna godzina w cenie miesięcznej subskrypcji.</li>
+                                <li><strong class="text-slate-900">Asystent DFCMS (Concierge)</strong> — wsparcie i wdrożenia godzinowe; w pakiecie Standard od 100 zł/h netto, w Custom — indywidualna wycena.</li>
                             </ul>
                             <p class="text-xs text-slate-500 mt-6">Regulamin i polityka prywatności: zakładka <strong>Prawne</strong>, strona główna serwisu oraz <strong>Dragonfly Operations</strong> (<a href="mailto:kontakt@dfops.eu" class="text-slate-700 underline hover:text-accent">kontakt@dfops.eu</a>).</p>
                             </div>
