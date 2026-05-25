@@ -20,6 +20,10 @@
    */
   function shouldBlockPublicPageView(page) {
     if (!page || typeof page !== 'object') return true;
+    const billingPlan = String(page.billing_plan || '').trim() || 'trial';
+    if (billingPlan === 'tier0' || billingPlan === 'tier1' || billingPlan === 'tier2') {
+      return false;
+    }
     if (page.trial_blocked_at) return true;
     const bf = page.billing_failed_at;
     if (bf) {
@@ -27,10 +31,6 @@
       if (Number.isFinite(bt) && Date.now() - bt >= BILLING_FAILED_BLOCK_AFTER_DAYS * MS_PER_DAY) {
         return true;
       }
-    }
-    const billingPlan = String(page.billing_plan || '').trim() || 'trial';
-    if (billingPlan === 'tier0' || billingPlan === 'tier1' || billingPlan === 'tier2') {
-      return false;
     }
     const sub = page.content?.pl?.settings?.subscription;
     if (!sub || typeof sub !== 'object') return true;
@@ -446,7 +446,7 @@
           if (!page) throw new Error('Brak strony');
 
           this.slug = page.slug;
-          if (page.trial_blocked_at || shouldBlockPublicPageView(page)) {
+          if (shouldBlockPublicPageView(page)) {
             window.DFOPS__applyAnalyticsConsentNow = function noopAnalyticsConsent() {};
             const links = this.buildSubscriptionLinks(page.slug);
             this.subscriptionPanelUrl = links.panel;

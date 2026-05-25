@@ -213,6 +213,16 @@ export async function findBillingProfileByUserId(
   return data as BillingProfileRow | null;
 }
 
+function billingProfileStatusNormalized(status: string | null | undefined): string {
+  return String(status ?? "").trim().toLowerCase();
+}
+
+/** Aktywna subskrypcja w billing_profiles (źródło prawdy po płatności). */
+export function billingProfileHasLiveSubscription(profile: BillingProfileRow | null): boolean {
+  const st = billingProfileStatusNormalized(profile?.status ?? null);
+  return st === "active" || st === "trialing";
+}
+
 /** Webhook obniżający status — podatny na opóźnione zdarzenia o poprzedniej subskrypcji. */
 function isDowngradeBillingStatus(status: string | null | undefined): boolean {
   const st = String(status ?? "").trim().toLowerCase();
@@ -662,6 +672,28 @@ export async function applySubscriptionCanceledToPage(
 ): Promise<{ ok: boolean; error?: string }> {
   if (!page.user_id) {
     return { ok: false, error: "Brak user_id na stronie" };
+  }
+
+  const profile = await findBillingProfileByUserId(supabase, page.user_id);
+  const dbSubId =
+    typeof profile?.stripe_subscription_id === "string"
+      ? profile.stripe_subscription_id.trim()
+      : "";
+  const dbSt = billingProfileStatusNormalized(profile?.status ?? null);
+
+  if (billingProfileHasLiveSubscription(profile) && dbSubId && dbSubId !== sub.id) {
+    console.log(
+      "applySubscriptionCanceled: pomijam — billing_profiles ma aktywną sub:",
+      dbSubId,
+      "zdarzenie:",
+      sub.id,
+    );
+    return { ok: true };
+  }
+
+  if (dbSubId === sub.id && (dbSt === "canceled" || dbSt === "cancelled")) {
+    console.log("applySubscriptionCanceled: idempotent — profil już canceled dla", sub.id);
+    return { ok: true };
   }
 
   if (

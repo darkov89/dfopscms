@@ -30,6 +30,7 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 
 | Data | Co |
 |------|-----|
+| **2026-05-24** | **Fix blokady po płatności:** `expire_trial_pages` respektuje `billing_profiles` + `pages.billing_plan`; anulowanie Stripe nie nadpisuje aktywnej sub; publicSite — paid plan przed `trial_blocked_at`. |
 | **2026-05-22** | **Dual SoT:** `syncPageBillingMirrorFromProfile` — po aktywnej sub zawsze czyści `pages.trial_blocked_at` / `billing_failed_at`. |
 | **2026-05-22** | **Zombie webhooks:** `shouldIgnoreStaleBillingDowngradeWebhook` — stary `canceled`/`past_due` nie nadpisuje innej `active`/`trialing` sub w `billing_profiles`. |
 | **2026-05-22** | **Stripe returning customer:** checkout reuse `cus_…`; `upsertBillingProfile` + `resolvePageForStripeSubscription` (customer przed sub id). |
