@@ -4,7 +4,7 @@
 
 Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **changelog** jednoliniowy, żeby nie dublować długich sekcji.
 
-**Ostatnia aktualizacja treści:** 2026-05-23 (rozliczenia §2 + lifting UI panelu w `css/styles.css`)
+**Ostatnia aktualizacja treści:** 2026-05-22 (fix Checkout vs Portal przy trial / anulowanej sub)
 
 ---
 
@@ -30,6 +30,7 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 
 | Data | Co |
 |------|-----|
+| **2026-05-22** | **Fix płatności:** `subscribe()` → Checkout gdy trial / tylko `stripe_customer_id` / sub `canceled`; portal tylko przy aktywnej sub (`shouldUseStripePortalForPlanChange`). Edge `create-checkout` — 409 tylko przy żywej sub w `billing_profiles`. |
 | **2026-05-23** | **Refaktor rozliczeń:** cykle mies./rok, Starter/Standard/Custom, `billing_profiles`, landing `#cennik`, Edge deploy, migracja tier2→tier1 — commit **`72ea349`**. |
 | **2026-05-23** | **Lifting UI panelu (tylko HTML/CSS):** sidebar bez scrolla na desktopie (`.dfops-admin-sidebar-scroll`); top bar — sam **Publikuj zmiany** + `title`; Subskrypcja — karty odchudzone (`<details>` funkcji, `.dfops-plan-card`). Bez zmian JS. |
 | 2026-05-22 | **Supabase Data API:** migracja **`20260522104231_explicit_grants_pages.sql`** — jawne `GRANT` na `public.pages`. |

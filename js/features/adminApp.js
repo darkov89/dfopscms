@@ -532,13 +532,28 @@
         const st = typeof sub?.status === 'string' ? sub.status.trim().toLowerCase() : '';
         return st === 'canceled' || st === 'cancelled';
       },
-      /** Istniejący klient Stripe — zmiany planu tylko przez portal (bez cichej zmiany subskrypcji). */
+      /** Istniejący klient Stripe (CID lub SID) — nie oznacza aktywnej subskrypcji. */
       hasStripeBillingCustomer() {
         const sub = this.billingSubscriptionView;
         if (!sub || typeof sub !== 'object') return false;
         const cid = typeof sub.stripe_customer_id === 'string' ? sub.stripe_customer_id.trim() : '';
         const sid = typeof sub.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
         return !!(cid || sid);
+      },
+      /** Aktywna (lub wymagająca opłaty) subskrypcja w Stripe — zmiana planu przez portal, nie Checkout. */
+      hasManageableStripeSubscription() {
+        const sub = this.billingSubscriptionView;
+        const sid = typeof sub?.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
+        if (!sid) return false;
+        const st = typeof sub?.status === 'string' ? sub.status.trim().toLowerCase() : '';
+        if (st === 'canceled' || st === 'cancelled' || st === 'incomplete_expired') return false;
+        if (!st) return true;
+        return ['active', 'trialing', 'past_due', 'unpaid', 'paused', 'incomplete'].includes(st);
+      },
+      /** Checkout vs portal przy wyborze pakietu — portal tylko przy żywej subskrypcji. */
+      shouldUseStripePortalForPlanChange() {
+        if (this.hasActivePaidSubscription) return true;
+        return this.hasManageableStripeSubscription();
       },
       /**
        * True gdy w Stripe wisi jeszcze subskrypcja — wtedy nie udostępniamy prośby o usunięcie konta
@@ -2133,7 +2148,7 @@
           this.subscriptionPlan === 'tier2' ? 'tier1' : this.subscriptionPlan;
         const isCurrentPaidTier = currentTier === 'tier0' || currentTier === 'tier1';
 
-        if (this.hasStripeBillingCustomer()) {
+        if (this.shouldUseStripePortalForPlanChange()) {
           if (isCurrentPaidTier && currentTier === tier) {
             this.showToast('Masz już wybrany ten plan rozliczeniowy.', 'success');
             await this.loadData();

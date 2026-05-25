@@ -124,7 +124,18 @@ serve(async (req) => {
         typeof billing?.stripe_subscription_id === "string"
           ? billing.stripe_subscription_id.trim()
           : "";
-      if (existingSubId) {
+      const billingStatus =
+        typeof billing?.status === "string" ? billing.status.trim().toLowerCase() : "";
+      const subscriptionBlocksCheckout =
+        !!existingSubId &&
+        billingStatus !== "canceled" &&
+        billingStatus !== "cancelled" &&
+        billingStatus !== "incomplete_expired" &&
+        (billingStatus === "" ||
+          ["active", "trialing", "past_due", "unpaid", "paused", "incomplete"].includes(
+            billingStatus,
+          ));
+      if (subscriptionBlocksCheckout) {
         return new Response(
           JSON.stringify({
             error:
