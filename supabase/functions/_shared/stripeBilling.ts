@@ -213,6 +213,55 @@ export async function findBillingProfileByUserId(
   return data as BillingProfileRow | null;
 }
 
+/** Webhook obniżający status — podatny na opóźnione zdarzenia o poprzedniej subskrypcji. */
+function isDowngradeBillingStatus(status: string | null | undefined): boolean {
+  const st = String(status ?? "").trim().toLowerCase();
+  return st === "canceled" || st === "cancelled" || st === "past_due";
+}
+
+/**
+ * Zombie webhook: nie nadpisuj active/trialing w DB starszym `sub_…` (canceled / past_due).
+ * Zwraca `true` = zignoruj zdarzenie (bez upsertu).
+ */
+export async function shouldIgnoreStaleBillingDowngradeWebhook(
+  supabase: SupabaseClient,
+  userId: string,
+  incomingSubscriptionId: string,
+  incomingStatus: string | null | undefined,
+): Promise<boolean> {
+  if (!userId || !isDowngradeBillingStatus(incomingStatus)) return false;
+
+  const incomingSubId = String(incomingSubscriptionId || "").trim();
+  if (!incomingSubId) return false;
+
+  const { data, error } = await supabase
+    .from("billing_profiles")
+    .select("stripe_subscription_id, status")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    console.warn("shouldIgnoreStaleBillingDowngradeWebhook lookup:", error.message);
+    return false;
+  }
+
+  const currentDbId =
+    typeof data?.stripe_subscription_id === "string" ? data.stripe_subscription_id.trim() : "";
+  const dbStatus = typeof data?.status === "string" ? data.status.trim().toLowerCase() : "";
+
+  if (!currentDbId || currentDbId === incomingSubId) return false;
+
+  if (dbStatus === "active" || dbStatus === "trialing") {
+    const incomingSt = String(incomingStatus ?? "").trim().toLowerCase();
+    console.log(
+      `ZOMBIE WEBHOOK KILLED: Ignorowanie starego zdarzenia (${incomingSt}) dla ${incomingSubId}. Aktywna to: ${currentDbId}`,
+    );
+    return true;
+  }
+
+  return false;
+}
+
 export async function findBillingProfileByStripeSubscriptionId(
   supabase: SupabaseClient,
   subscriptionId: string,
@@ -424,6 +473,17 @@ export async function applyStripeSubscriptionToPage(
     );
 
   const upsertRow = billingProfileUpsertFromStripe(page.user_id, sub, tier);
+  if (
+    await shouldIgnoreStaleBillingDowngradeWebhook(
+      supabase,
+      page.user_id,
+      sub.id,
+      upsertRow.status ?? sub.status,
+    )
+  ) {
+    return { ok: true };
+  }
+
   const up = await upsertBillingProfile(supabase, upsertRow);
   if (!up.ok) return up;
 
@@ -559,6 +619,18 @@ export async function applySubscriptionCanceledToPage(
   if (!page.user_id) {
     return { ok: false, error: "Brak user_id na stronie" };
   }
+
+  if (
+    await shouldIgnoreStaleBillingDowngradeWebhook(
+      supabase,
+      page.user_id,
+      sub.id,
+      "canceled",
+    )
+  ) {
+    return { ok: true };
+  }
+
   const cid = customerIdString(sub.customer);
   const upsertRow: BillingProfileUpsert = {
     user_id: page.user_id,

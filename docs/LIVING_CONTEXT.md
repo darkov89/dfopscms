@@ -30,6 +30,7 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 
 | Data | Co |
 |------|-----|
+| **2026-05-22** | **Zombie webhooks:** `shouldIgnoreStaleBillingDowngradeWebhook` — stary `canceled`/`past_due` nie nadpisuje innej `active`/`trialing` sub w `billing_profiles`. |
 | **2026-05-22** | **Stripe returning customer:** checkout reuse `cus_…`; `upsertBillingProfile` + `resolvePageForStripeSubscription` (customer przed sub id). |
 | **2026-05-22** | **Panel:** `hasActivePaidSubscription` / `isSubscriptionCanceledButValid` — tylko Stripe (`sid`+status, `cancel_at_period_end`), bez `payment_completed`. |
 | **2026-05-22** | **Panel billing UX:** `billingProfileReady` + `panelBootLoading` (bez migania banerów); toast wygasającej/zakończonej sub raz po `loadBillingProfile`; portal przy zakupie tylko `stripe_customer_id` + `active`/`trialing`/`past_due`; `create-checkout` reuse `customer` (bez `customer_email`). |
