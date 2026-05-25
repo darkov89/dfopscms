@@ -2,7 +2,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "npm:stripe@^14.0.0";
 import { createClient } from "npm:@supabase/supabase-js@^2.39.0";
-import { findBillingProfileByUserId } from "../_shared/stripeBilling.ts";
 
 /** Deno global - available at runtime in Supabase Edge Functions. */
 declare const Deno: { env: { get: (k: string) => string | undefined } };
@@ -103,6 +102,10 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
     const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    if (!serviceRole) {
+      throw new Error("Brak SUPABASE_SERVICE_ROLE_KEY na serwerze");
+    }
+
     const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -115,41 +118,48 @@ serve(async (req) => {
     }
     const userId = user.id;
 
-    let existingCustomerId = "";
-    if (serviceRole) {
-      const supabaseAdmin = createClient(supabaseUrl, serviceRole, {
-        auth: { persistSession: false, autoRefreshToken: false },
-      });
-      const billing = await findBillingProfileByUserId(supabaseAdmin, userId);
-      const existingSubId =
-        typeof billing?.stripe_subscription_id === "string"
-          ? billing.stripe_subscription_id.trim()
-          : "";
-      const billingStatus =
-        typeof billing?.status === "string" ? billing.status.trim().toLowerCase() : "";
-      const subscriptionBlocksCheckout =
-        !!existingSubId &&
-        (billingStatus === "active" ||
-          billingStatus === "trialing" ||
-          billingStatus === "past_due");
-      if (subscriptionBlocksCheckout) {
-        return new Response(
-          JSON.stringify({
-            error:
-              "Masz już subskrypcję Stripe. Upgrade wykonasz w panelu (zmiana planu); downgrade i faktury — w portalu klienta zgodnie z regulaminem.",
-            code: "HAS_STRIPE_SUBSCRIPTION",
-          }),
-          {
-            status: 409,
-            headers: { ...cors, "Content-Type": "application/json" },
-          },
-        );
-      }
-      existingCustomerId =
-        typeof billing?.stripe_customer_id === "string"
-          ? billing.stripe_customer_id.trim()
-          : "";
+    const supabaseAdmin = createClient(supabaseUrl, serviceRole, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+
+    const { data: profile, error: profileErr } = await supabaseAdmin
+      .from("billing_profiles")
+      .select("stripe_customer_id, stripe_subscription_id, status")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (profileErr) {
+      console.warn("[create-checkout] billing_profiles lookup:", profileErr.message);
     }
+
+    const existingSubId =
+      typeof profile?.stripe_subscription_id === "string"
+        ? profile.stripe_subscription_id.trim()
+        : "";
+    const billingStatus =
+      typeof profile?.status === "string" ? profile.status.trim().toLowerCase() : "";
+    const subscriptionBlocksCheckout =
+      !!existingSubId &&
+      (billingStatus === "active" ||
+        billingStatus === "trialing" ||
+        billingStatus === "past_due");
+    if (subscriptionBlocksCheckout) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "Masz już subskrypcję Stripe. Upgrade wykonasz w panelu (zmiana planu); downgrade i faktury — w portalu klienta zgodnie z regulaminem.",
+          code: "HAS_STRIPE_SUBSCRIPTION",
+        }),
+        {
+          status: 409,
+          headers: { ...cors, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    const returningCustomerId =
+      typeof profile?.stripe_customer_id === "string"
+        ? profile.stripe_customer_id.trim()
+        : "";
 
     const stripeSecret = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
     if (!stripeSecret) {
@@ -193,11 +203,6 @@ serve(async (req) => {
     }
     const returnUrl = returnUrlRaw.replace(/\/$/, "");
 
-    const emailFromBody =
-      typeof body?.userEmail === "string" ? body.userEmail.trim() : "";
-    const customerEmail =
-      user.email || (emailFromBody.includes("@") ? emailFromBody : "");
-
     const stripe = new Stripe(stripeSecret, {
       apiVersion: "2022-11-15",
       httpClient: Stripe.createFetchHttpClient(),
@@ -220,11 +225,18 @@ serve(async (req) => {
         plan: checkoutPlan,
       },
     };
-    /** Stripe: `customer` i `customer_email` są wzajemnie wykluczające. */
-    if (existingCustomerId) {
-      sessionParams.customer = existingCustomerId;
-    } else if (customerEmail) {
-      sessionParams.customer_email = customerEmail;
+
+    /** Returning customer: ten sam `cus_…` w Stripe — bez duplikatu i bez `customer_email`. */
+    if (returningCustomerId) {
+      sessionParams.customer = returningCustomerId;
+    } else if (user.email) {
+      sessionParams.customer_email = user.email;
+    } else {
+      const emailFromBody =
+        typeof body?.userEmail === "string" ? body.userEmail.trim() : "";
+      if (emailFromBody.includes("@")) {
+        sessionParams.customer_email = emailFromBody;
+      }
     }
 
     const session = await stripe.checkout.sessions.create(sessionParams);

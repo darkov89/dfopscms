@@ -283,18 +283,63 @@ export async function resolvePageForStripeSubscription(
   supabase: SupabaseClient,
   sub: Stripe.Subscription,
 ): Promise<PageRowMini | null> {
+  const cid = customerIdString(sub.customer);
+  if (cid) {
+    const byCust = await findPageByStripeCustomerId(supabase, cid);
+    if (byCust) return byCust;
+  }
   const bySub = await findPageByStripeSubscriptionId(supabase, sub.id);
   if (bySub) return bySub;
-  const cid = customerIdString(sub.customer);
-  if (!cid) return null;
-  return findPageByStripeCustomerId(supabase, cid);
+  return null;
 }
 
+/**
+ * Zwalnia unikalne klucze Stripe na innych wierszach — powrót klienta z nową subskrypcją
+ * (stary `stripe_subscription_id` w DB nie blokuje upsertu po `user_id`).
+ */
+async function releaseStaleStripeUniqueKeys(
+  supabase: SupabaseClient,
+  row: BillingProfileUpsert,
+): Promise<void> {
+  const subId =
+    typeof row.stripe_subscription_id === "string" ? row.stripe_subscription_id.trim() : "";
+  if (subId) {
+    const { error } = await supabase
+      .from("billing_profiles")
+      .update({ stripe_subscription_id: null })
+      .eq("stripe_subscription_id", subId)
+      .neq("user_id", row.user_id);
+    if (error) {
+      console.warn("releaseStaleStripeUniqueKeys subscription", subId, error.message);
+    }
+  }
+  const cid =
+    typeof row.stripe_customer_id === "string" ? row.stripe_customer_id.trim() : "";
+  if (cid) {
+    const { error } = await supabase
+      .from("billing_profiles")
+      .update({ stripe_customer_id: null })
+      .eq("stripe_customer_id", cid)
+      .neq("user_id", row.user_id);
+    if (error) {
+      console.warn("releaseStaleStripeUniqueKeys customer", cid, error.message);
+    }
+  }
+}
+
+/**
+ * Zapis / odświeżenie profilu 1:1 po `user_id` — nadpisuje subskrypcję i status (renew / returning).
+ */
 export async function upsertBillingProfile(
   supabase: SupabaseClient,
   row: BillingProfileUpsert,
 ): Promise<{ ok: boolean; error?: string }> {
-  const { error } = await supabase.from("billing_profiles").upsert(row, { onConflict: "user_id" });
+  await releaseStaleStripeUniqueKeys(supabase, row);
+
+  const { error } = await supabase.from("billing_profiles").upsert(row, {
+    onConflict: "user_id",
+    ignoreDuplicates: false,
+  });
   if (error) {
     console.error("Supabase DB Error (upsertBillingProfile):", error);
     return { ok: false, error: error.message };
