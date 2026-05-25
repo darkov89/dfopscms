@@ -940,9 +940,19 @@
         }
       },
 
+      /** Czy deep link do zmiany planu w portalu Stripe ma sens (active/trialing, nie wygasająca). */
+      canOpenPortalPlanChangeFlow() {
+        return (
+          this.shouldUseStripePortalForPlanChange() &&
+          this.hasActivePaidSubscription &&
+          !this.isSubscriptionCanceledButValid
+        );
+      },
+
       /**
-       * @param {{ subscriptionUpdate?: boolean }} [opts]
-       *   subscriptionUpdate — deep link Stripe do zmiany planu (upgrade/downgrade).
+       * @param {{ subscriptionUpdate?: boolean, subscriptionCancel?: boolean }} [opts]
+       *   subscriptionUpdate — deep link: zmiana planu (upgrade/downgrade).
+       *   subscriptionCancel — deep link: anulowanie subskrypcji w Stripe.
        */
       async openCustomerPortal(opts = {}) {
         if (!this.supabase) {
@@ -965,7 +975,8 @@
               : '';
           const portalBody = { returnUrl };
           if (subscriptionId) portalBody.subscription_id = subscriptionId;
-          if (opts.subscriptionUpdate) portalBody.flow = 'subscription_update';
+          if (opts.subscriptionCancel) portalBody.flow = 'subscription_cancel';
+          else if (opts.subscriptionUpdate) portalBody.flow = 'subscription_update';
           const { data, error } = await this.supabase.functions.invoke('create-portal-session', {
             body: portalBody,
             headers: { Authorization: `Bearer ${token}` },

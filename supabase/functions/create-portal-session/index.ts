@@ -129,8 +129,11 @@ serve(async (req) => {
 
     const wantSubscriptionUpdateFlow =
       body?.flow === "subscription_update" || body?.subscriptionUpdate === true;
+    const wantSubscriptionCancelFlow =
+      body?.flow === "subscription_cancel" || body?.subscriptionCancel === true;
     const billingStatus = String(billing?.status ?? "").trim().toLowerCase();
     const liveForPlanChange = billingStatus === "active" || billingStatus === "trialing";
+    const canUseSubscriptionFlows = !!subscriptionId && liveForPlanChange;
 
     const sessionParams: Stripe.BillingPortal.SessionCreateParams = {
       customer: customerId,
@@ -138,7 +141,12 @@ serve(async (req) => {
       ...(portalConfigurationId ? { configuration: portalConfigurationId } : {}),
     };
 
-    if (wantSubscriptionUpdateFlow && subscriptionId && liveForPlanChange) {
+    if (wantSubscriptionCancelFlow && canUseSubscriptionFlows) {
+      sessionParams.flow_data = {
+        type: "subscription_cancel",
+        subscription_cancel: { subscription: subscriptionId },
+      };
+    } else if (wantSubscriptionUpdateFlow && canUseSubscriptionFlows) {
       sessionParams.flow_data = {
         type: "subscription_update",
         subscription_update: { subscription: subscriptionId },
