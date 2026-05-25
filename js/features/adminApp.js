@@ -515,34 +515,27 @@
         this.wizardTheme = norm.theme;
       },
       /**
-       * Opłacony dostęp (w tym do końca okresu po rezygnacji w Stripe).
-       * Nie ufa samemu `plan: tier*` — wymaga payment_completed lub statusu active/trialing;
-       * po `canceled` w Stripe nie traktuj jako aktywnej subskrypcji.
+       * Aktywna opłacona subskrypcja Stripe (`billing_profiles` → billingSubscriptionView).
+       * Wyłącznie: niepuste `stripe_subscription_id` + status `active` lub `trialing`.
        */
       get hasActivePaidSubscription() {
         const sub = this.billingSubscriptionView;
-        if (typeof window.DFOPS_hasPaidSubscriptionAccess === 'function') {
-          return window.DFOPS_hasPaidSubscriptionAccess(sub);
-        }
-        const p = this.subscriptionPlan;
-        if (p === 'tier0' || p === 'tier1' || p === 'tier2') {
-          return sub?.payment_completed === true;
-        }
-        /* tier2 = legacy Premium → traktowany jak opłacony Standard */
-        const st = typeof sub?.status === 'string' ? sub.status.trim().toLowerCase() : '';
-        const sid = typeof sub?.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
-        return !!(sid && (st === 'active' || st === 'trialing'));
+        if (!sub || typeof sub !== 'object') return false;
+        const sid =
+          typeof sub.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
+        if (!sid) return false;
+        const st = typeof sub.status === 'string' ? sub.status.trim().toLowerCase() : '';
+        return st === 'active' || st === 'trialing';
       },
       /**
-       * Opłacony dostęp do końca bieżącego okresu, ale subskrypcja nie zostanie odnowiona
-       * (Stripe: status active/trialing + cancel_at_period_end).
+       * Subskrypcja opłacona do końca okresu, ale zaplanowane zamknięcie (nie odnowi się).
        */
       get isSubscriptionCanceledButValid() {
         const sub = this.billingSubscriptionView;
-        if (typeof window.DFOPS_isSubscriptionCanceledButValid === 'function') {
-          return window.DFOPS_isSubscriptionCanceledButValid(sub);
-        }
-        return false;
+        if (!sub || typeof sub !== 'object') return false;
+        const st = typeof sub.status === 'string' ? sub.status.trim().toLowerCase() : '';
+        if (st !== 'active' && st !== 'trialing') return false;
+        return sub.cancel_at_period_end === true;
       },
       /**
        * Portal Stripe — aktywny pakiet lub anulowana subskrypcja z nadal istniejącym klientem (faktury, karta).
