@@ -2156,29 +2156,11 @@
           this.showError('Pakiet Custom — skorzystaj z formularza zapytania.');
           return;
         }
-        const prices = cfg.stripePrices || {};
         const interval = this.billingInterval === 'yearly' ? 'yearly' : 'monthly';
-        const priceKey =
-          interval === 'yearly'
-            ? plan === 'starter'
-              ? 'starterYearly'
-              : plan === 'standard'
-                ? 'standardYearly'
-                : plan
-            : plan;
-        let priceId =
-          prices[priceKey] ||
-          prices[plan] ||
-          (plan === 'standard' ? prices.pro || prices.proYearly : '') ||
-          '';
-        const priceMissing = !priceId || String(priceId).includes('TUTAJ');
-        const serverResolvesInterval =
-          interval === 'yearly' && (plan === 'starter' || plan === 'standard');
-        if (priceMissing && !serverResolvesInterval) {
-          this.showError('Skonfiguruj ID cen Stripe w js/core/config.js (stripePrices) i Secrets w Supabase.');
+        if (plan !== 'starter' && plan !== 'standard') {
+          this.showError('Nieprawidłowy plan. Wybierz Starter lub Standard.');
           return;
         }
-        if (priceMissing) priceId = '';
         if (!this.user?.id) {
           this.showError('Zaloguj się, aby wykupić subskrypcję.');
           return;
@@ -2234,7 +2216,6 @@
               body: {
                 plan,
                 interval,
-                ...(priceId ? { priceId } : {}),
                 returnUrl,
                 userEmail: this.user?.email || '',
               },

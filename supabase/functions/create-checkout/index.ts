@@ -110,16 +110,17 @@ serve(async (req) => {
       data: { user },
       error: userErr,
     } = await supabaseAuth.auth.getUser();
-    if (userErr || !user?.email) {
+    if (userErr || !user?.id) {
       throw new Error("Wymagane zalogowanie.");
     }
+    const userId = user.id;
 
     let existingCustomerId = "";
     if (serviceRole) {
       const supabaseAdmin = createClient(supabaseUrl, serviceRole, {
         auth: { persistSession: false, autoRefreshToken: false },
       });
-      const billing = await findBillingProfileByUserId(supabaseAdmin, user.id);
+      const billing = await findBillingProfileByUserId(supabaseAdmin, userId);
       const existingSubId =
         typeof billing?.stripe_subscription_id === "string"
           ? billing.stripe_subscription_id.trim()
@@ -159,13 +160,8 @@ serve(async (req) => {
     const priceStarterYearly = Deno.env.get("STRIPE_PRICE_STARTER_YEARLY") ?? "";
     const pricePro = Deno.env.get("STRIPE_PRICE_PRO") ?? "";
     const priceProYearly = Deno.env.get("STRIPE_PRICE_PRO_YEARLY") ?? "";
-    const allowed = new Set(
-      [priceStarter, priceStarterYearly, pricePro, priceProYearly].filter(Boolean),
-    );
 
     const body = await req.json().catch(() => ({}));
-    const rawPrice =
-      typeof body?.priceId === "string" ? body.priceId.trim() : "";
     const plan = typeof body?.plan === "string" ? body.plan.trim().toLowerCase() : "";
     const intervalRaw = typeof body?.interval === "string" ? body.interval.trim().toLowerCase() : "monthly";
     const interval = intervalRaw === "yearly" || intervalRaw === "annual" || intervalRaw === "year"
@@ -182,20 +178,11 @@ serve(async (req) => {
       priceId = interval === "yearly" ? priceProYearly : pricePro;
     } else if (plan === "premium" || plan === "tier2") {
       throw new Error("Pakiet Premium nie jest już dostępny. Wybierz Starter lub Standard.");
-    } else if (rawPrice && allowed.has(rawPrice)) {
-      priceId = rawPrice;
-    } else if (
-      (isProPlan || isStarterPlan) &&
-      rawPrice &&
-      (rawPrice.startsWith("price_") || rawPrice.startsWith("prod_"))
-    ) {
-      /** Gdy Secrets nieustawione — body z config.js (staging). */
-      priceId = rawPrice;
     }
 
     if (!priceId) {
       throw new Error(
-        "Nieprawidłowy plan, okres lub cena. Ustaw Secrets STRIPE_PRICE_* (w tym *_YEARLY) albo stripePrices w config.js.",
+        "Nieprawidłowy plan lub okres. Ustaw Secrets STRIPE_PRICE_STARTER, STRIPE_PRICE_STARTER_YEARLY, STRIPE_PRICE_PRO, STRIPE_PRICE_PRO_YEARLY w Supabase.",
       );
     }
 
@@ -218,27 +205,19 @@ serve(async (req) => {
 
     const resolvedPriceId = await resolveToPriceId(stripe, priceId);
 
+    const checkoutPlan = isStarterPlan ? "starter" : isProPlan ? "standard" : plan;
+
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       payment_method_types: ["card"],
       line_items: [{ price: resolvedPriceId, quantity: 1 }],
       mode: "subscription",
       success_url: `${returnUrl}?payment=success`,
       cancel_url: `${returnUrl}?payment=cancelled`,
-      client_reference_id: user.id,
+      client_reference_id: userId,
       metadata: {
-        supabase_user_id: user.id,
+        supabase_user_id: userId,
         billing_interval: interval,
-        plan:
-          isStarterPlan
-            ? "starter"
-            : isProPlan
-              ? "standard"
-              : plan ||
-                  (resolvedPriceId === priceStarter || resolvedPriceId === priceStarterYearly
-                    ? "starter"
-                    : resolvedPriceId === pricePro || resolvedPriceId === priceProYearly
-                      ? "standard"
-                      : ""),
+        plan: checkoutPlan,
       },
     };
     /** Stripe: `customer` i `customer_email` są wzajemnie wykluczające. */
