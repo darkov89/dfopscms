@@ -402,6 +402,10 @@ async function applyPageBlocksForSubscription(
   sub: Stripe.Subscription,
   plan: string,
 ): Promise<{ ok: boolean; error?: string }> {
+  if (!page.user_id) {
+    return { ok: false, error: "Brak user_id na stronie" };
+  }
+
   const st = sub.status;
   const rowUpdate: Record<string, unknown> = { billing_plan: plan };
 
@@ -419,12 +423,52 @@ async function applyPageBlocksForSubscription(
     rowUpdate.trial_blocked_at = new Date().toISOString();
   }
 
-  const { error: updErr } = await supabase.from("pages").update(rowUpdate).eq("id", page.id);
+  const { error: updErr } = await supabase
+    .from("pages")
+    .update(rowUpdate)
+    .eq("user_id", page.user_id);
   if (updErr) {
     console.error("Supabase DB Error (applyPageBlocksForSubscription):", updErr);
     return { ok: false, error: updErr.message };
   }
   return { ok: true };
+}
+
+/**
+ * Po `upsertBillingProfile` — lustrzane odblokowanie `pages` (nie tylko billing_profiles).
+ * Przy active/trialing zawsze czyści blokady (renew / powracający klient).
+ */
+async function syncPageBillingMirrorFromProfile(
+  supabase: SupabaseClient,
+  page: PageRowMini,
+  upsertRow: BillingProfileUpsert,
+  sub: Stripe.Subscription,
+): Promise<{ ok: boolean; error?: string }> {
+  if (!page.user_id) {
+    return { ok: false, error: "Brak user_id na stronie" };
+  }
+
+  const st = String(upsertRow.status ?? sub.status ?? "").trim().toLowerCase();
+  const plan = upsertRow.plan;
+
+  if (st === "active" || st === "trialing") {
+    const { error: updErr } = await supabase
+      .from("pages")
+      .update({
+        billing_plan: plan,
+        trial_blocked_at: null,
+        billing_failed_at: null,
+      })
+      .eq("user_id", page.user_id);
+
+    if (updErr) {
+      console.error("Supabase DB Error (syncPageBillingMirrorFromProfile):", updErr);
+      return { ok: false, error: updErr.message };
+    }
+    return { ok: true };
+  }
+
+  return applyPageBlocksForSubscription(supabase, page, sub, plan);
 }
 
 type ApplyOpts = {
@@ -487,7 +531,7 @@ export async function applyStripeSubscriptionToPage(
   const up = await upsertBillingProfile(supabase, upsertRow);
   if (!up.ok) return up;
 
-  return applyPageBlocksForSubscription(supabase, page, sub, upsertRow.plan);
+  return syncPageBillingMirrorFromProfile(supabase, page, upsertRow, sub);
 }
 
 export async function applyInvoicePaymentFailed(
@@ -651,7 +695,7 @@ export async function applySubscriptionCanceledToPage(
       billing_plan: "trial",
       trial_blocked_at: nowIso,
     })
-    .eq("id", page.id);
+    .eq("user_id", page.user_id);
 
   if (updErr) {
     console.error("Supabase DB Error (applySubscriptionCanceledToPage):", updErr);
