@@ -13,12 +13,17 @@ import {
   applyStripeSubscriptionToPage,
   applyOptsFromPriceEnv,
   applySubscriptionCanceledToPage,
+  clearPageBillingBlocksForPaidUser,
   extractInvoiceSubscriptionId,
+  resolveInvoiceSubscriptionId,
   findPageByUserId,
+  firstRecurringPriceId,
+  normalizeStripePaidTier,
   readStripePriceEnv,
   resolvePageForInvoice,
   resolvePageForStripeSubscription,
   subscriptionIsTerminated,
+  tierFromStripePrice,
   type StripePaidTier,
   type StripePriceEnv,
 } from "../_shared/stripeBilling.ts";
@@ -44,6 +49,25 @@ function logDbFailure(context: string, message: string | undefined): string {
   return errText;
 }
 
+/** Kolejka Stripe — log JSON do Supabase Functions Logs (filtrowanie po `stripe-webhook-queue`). */
+function logWebhookQueue(
+  event: Stripe.Event,
+  phase: "start" | "done" | "skip",
+  detail: Record<string, unknown> = {},
+) {
+  console.log(
+    JSON.stringify({
+      tag: "stripe-webhook-queue",
+      phase,
+      event_id: event.id,
+      event_type: event.type,
+      created: event.created,
+      created_iso: new Date(event.created * 1000).toISOString(),
+      ...detail,
+    }),
+  );
+}
+
 /**
  * Udana opłata faktury (odnowienie lub pierwsza): odblokowanie + harmonogram wyłącznie z
  * `Stripe.Subscription.current_period_end` (brak `invoice.period_end` / lokalnych przybliżeń).
@@ -54,14 +78,30 @@ async function handleInvoicePaymentSuccess(
   invoice: Stripe.Invoice,
   prices: StripePriceEnv,
 ): Promise<WebhookProcessResult> {
-  const subscriptionId = extractInvoiceSubscriptionId(invoice);
+  let subscriptionId = extractInvoiceSubscriptionId(invoice);
+  let subSource = subscriptionId ? "invoice_payload" : "";
+  if (!subscriptionId) {
+    subscriptionId = await resolveInvoiceSubscriptionId(stripe, invoice);
+    subSource = subscriptionId ? "stripe_api_fallback" : "";
+  }
   if (!subscriptionId) {
     console.warn(
-      "handleInvoicePaymentSuccess: brak invoice.subscription — pomijam aktualizację okresu (wymagane API Subscription)",
+      "handleInvoicePaymentSuccess: brak subscription id na fakturze (legacy + parent.subscription_details)",
       invoice.id,
     );
     return { skipped: "no_subscription_on_invoice" };
   }
+
+  console.log(
+    JSON.stringify({
+      tag: "stripe-webhook-queue",
+      phase: "start",
+      handler: "handleInvoicePaymentSuccess",
+      invoice_id: invoice.id,
+      subscription_id: subscriptionId,
+      sub_source: subSource,
+    }),
+  );
 
   let subscription: Stripe.Subscription;
   try {
@@ -99,6 +139,7 @@ async function processStripeWebhookEvent(
   prices: StripePriceEnv,
 ): Promise<WebhookProcessResult> {
   const priceOpts = applyOptsFromPriceEnv(prices);
+  logWebhookQueue(event, "start");
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
@@ -146,6 +187,13 @@ async function processStripeWebhookEvent(
         return { skipped: "no_page" };
       }
 
+      logWebhookQueue(event, "start", {
+        handler: "checkout.session.completed",
+        user_id: userId,
+        subscription_id: subId,
+        stripe_status: subscription.status,
+      });
+
       const result = await applyStripeSubscriptionToPage(supabase, page, subscription, {
         ...priceOpts,
         ...(tierFromMeta ? { tierOverride: tierFromMeta } : {}),
@@ -153,18 +201,56 @@ async function processStripeWebhookEvent(
       if (!result.ok) {
         return { dbError: logDbFailure("checkout.session.completed", result.error) };
       }
+
+      const st = subscription.status;
+      if (st === "active" || st === "trialing") {
+        const priceId = firstRecurringPriceId(subscription);
+        const tier =
+          tierFromMeta ??
+          normalizeStripePaidTier(
+            tierFromStripePrice(
+              priceId,
+              prices.priceStarter,
+              prices.priceStarterYearly,
+              prices.pricePro,
+              prices.priceProYearly,
+              "tier1",
+            ),
+          );
+        const cleared = await clearPageBillingBlocksForPaidUser(supabase, userId, tier);
+        if (!cleared.ok) {
+          return { dbError: logDbFailure("checkout.session.completed.clear_pages", cleared.error) };
+        }
+        logWebhookQueue(event, "done", {
+          handler: "checkout.session.completed",
+          pages_cleared: true,
+          billing_plan: tier,
+        });
+      } else {
+        logWebhookQueue(event, "skip", {
+          handler: "checkout.session.completed",
+          reason: "subscription_not_active_yet",
+          stripe_status: st,
+          hint: "oczekuj invoice.paid / subscription.updated",
+        });
+      }
       return {};
     }
 
     case "customer.subscription.updated": {
       const subscription = event.data.object as Stripe.Subscription;
+      logWebhookQueue(event, "start", {
+        handler: "customer.subscription.updated",
+        subscription_id: subscription.id,
+        stripe_status: subscription.status,
+      });
       const page = await resolvePageForStripeSubscription(supabase, subscription);
       if (!page?.id) {
         console.warn("stripe-webhook: updated — brak strony dla subscription", subscription.id);
         return { skipped: "no_page" };
       }
       const result = subscriptionIsTerminated(subscription)
-        ? await applySubscriptionCanceledToPage(supabase, page, subscription)
+        ? await applySubscriptionCanceledToPage(supabase, page, subscription, { stripe })
         : await applyStripeSubscriptionToPage(supabase, page, subscription, priceOpts);
       if (!result.ok) {
         return { dbError: logDbFailure("customer.subscription.updated", result.error) };
@@ -174,12 +260,16 @@ async function processStripeWebhookEvent(
 
     case "customer.subscription.deleted": {
       const subscription = event.data.object as Stripe.Subscription;
+      logWebhookQueue(event, "start", {
+        handler: "customer.subscription.deleted",
+        subscription_id: subscription.id,
+      });
       const page = await resolvePageForStripeSubscription(supabase, subscription);
       if (!page?.id) {
         console.warn("stripe-webhook: deleted — brak strony dla subscription", subscription.id);
         return { skipped: "no_page" };
       }
-      const result = await applySubscriptionCanceledToPage(supabase, page, subscription);
+      const result = await applySubscriptionCanceledToPage(supabase, page, subscription, { stripe });
       if (!result.ok) {
         return { dbError: logDbFailure("customer.subscription.deleted", result.error) };
       }
@@ -202,7 +292,10 @@ async function processStripeWebhookEvent(
       if (reason !== "subscription_cycle" && reason !== "subscription_update") {
         return { skipped: "not_renewal_invoice" };
       }
-      const subId = extractInvoiceSubscriptionId(invoice);
+      let subId = extractInvoiceSubscriptionId(invoice);
+      if (!subId) {
+        subId = await resolveInvoiceSubscriptionId(stripe, invoice);
+      }
       if (subId) {
         const result = await applyInvoiceRenewalPaymentFailed(supabase, subId);
         if (!result.ok) {
@@ -292,6 +385,10 @@ Deno.serve(async (req) => {
   let processResult: WebhookProcessResult = {};
   try {
     processResult = await processStripeWebhookEvent(event, supabase, stripe, prices);
+    logWebhookQueue(event, processResult.skipped ? "skip" : "done", {
+      ...(processResult.skipped ? { skipped: processResult.skipped } : {}),
+      ...(processResult.dbError ? { db_error: processResult.dbError } : {}),
+    });
   } catch (e) {
     console.error("stripe-webhook handler", e);
     return new Response(JSON.stringify({ error: "Webhook handler error" }), {

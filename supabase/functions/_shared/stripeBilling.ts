@@ -223,15 +223,121 @@ export function billingProfileHasLiveSubscription(profile: BillingProfileRow | n
   return st === "active" || st === "trialing";
 }
 
+/**
+ * Źródło prawdy przy kolejce webhooków: inna sub active/trialing u tego klienta w Stripe
+ * (nie polegaj wyłącznie na billing_profiles — może być opóźnione względem checkout).
+ */
+export async function stripeCustomerHasLiveSubscription(
+  stripe: Stripe,
+  customerId: string,
+): Promise<boolean> {
+  const cid = customerId.trim();
+  if (!cid) return false;
+  try {
+    for (const status of ["active", "trialing"] as const) {
+      const { data } = await stripe.subscriptions.list({
+        customer: cid,
+        status,
+        limit: 1,
+      });
+      if (data.length > 0) return true;
+    }
+  } catch (e) {
+    console.warn("stripeCustomerHasLiveSubscription", cid, e);
+  }
+  return false;
+}
+
+/** Wymuszone odblokowanie pages po udanej płatności (dual SoT → pages musi być czyste). */
+export async function clearPageBillingBlocksForPaidUser(
+  supabase: SupabaseClient,
+  userId: string,
+  plan: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const uid = userId.trim();
+  if (!uid) return { ok: false, error: "Brak user_id" };
+  const { error } = await supabase
+    .from("pages")
+    .update({
+      billing_plan: plan,
+      trial_blocked_at: null,
+      billing_failed_at: null,
+    })
+    .eq("user_id", uid);
+  if (error) {
+    console.error("Supabase DB Error (clearPageBillingBlocksForPaidUser):", error);
+    return { ok: false, error: error.message };
+  }
+  return { ok: true };
+}
+
 /** Webhook obniżający status — podatny na opóźnione zdarzenia o poprzedniej subskrypcji. */
 function isDowngradeBillingStatus(status: string | null | undefined): boolean {
   const st = String(status ?? "").trim().toLowerCase();
   return st === "canceled" || st === "cancelled" || st === "past_due";
 }
 
+export type ZombieGuardResult = {
+  killed: boolean;
+  currentProfile: BillingProfileRow | null;
+};
+
 /**
- * Zombie webhook: nie nadpisuj active/trialing w DB starszym `sub_…` (canceled / past_due).
- * Zwraca `true` = zignoruj zdarzenie (bez upsertu).
+ * Tarcza anty-zombie (źródło prawdy: `billing_profiles` w DB).
+ * Zanim upsert / `trial_blocked_at` — jeśli profil jest zdrowy (active/trialing)
+ * i dotyczy INNEJ sub niż event, przerwij (opóźniony cancel/update starej sub).
+ *
+ * `incomingIsLive`: true gdy przychodząca sub jest active/trialing (nowa płatność) — nie zabijaj.
+ */
+export async function killZombieSubscriptionEvent(
+  supabase: SupabaseClient,
+  userId: string,
+  incomingSubscriptionId: string,
+  incomingIsLive = false,
+): Promise<ZombieGuardResult> {
+  const uid = userId.trim();
+  const incomingSubId = String(incomingSubscriptionId || "").trim();
+  if (!uid || !incomingSubId) {
+    return { killed: false, currentProfile: null };
+  }
+
+  const { data, error } = await supabase
+    .from("billing_profiles")
+    .select("*")
+    .eq("user_id", uid)
+    .maybeSingle();
+
+  if (error) {
+    console.warn("killZombieSubscriptionEvent lookup:", error.message);
+    return { killed: false, currentProfile: null };
+  }
+
+  const currentProfile = (data as BillingProfileRow | null) ?? null;
+  const currentSubId =
+    typeof currentProfile?.stripe_subscription_id === "string"
+      ? currentProfile.stripe_subscription_id.trim()
+      : "";
+
+  if (!currentProfile || !currentSubId || currentSubId === incomingSubId) {
+    return { killed: false, currentProfile };
+  }
+
+  if (incomingIsLive) {
+    return { killed: false, currentProfile };
+  }
+
+  if (billingProfileHasLiveSubscription(currentProfile)) {
+    console.log(
+      `ZOMBIE KILLED: Ignoruję event dla starej subskrypcji (event=${incomingSubId}, aktywna=${currentSubId})`,
+    );
+    return { killed: true, currentProfile };
+  }
+
+  return { killed: false, currentProfile };
+}
+
+/**
+ * @deprecated Użyj `killZombieSubscriptionEvent` — zachowane dla kompatybilności wywołań.
  */
 export async function shouldIgnoreStaleBillingDowngradeWebhook(
   supabase: SupabaseClient,
@@ -240,36 +346,13 @@ export async function shouldIgnoreStaleBillingDowngradeWebhook(
   incomingStatus: string | null | undefined,
 ): Promise<boolean> {
   if (!userId || !isDowngradeBillingStatus(incomingStatus)) return false;
-
-  const incomingSubId = String(incomingSubscriptionId || "").trim();
-  if (!incomingSubId) return false;
-
-  const { data, error } = await supabase
-    .from("billing_profiles")
-    .select("stripe_subscription_id, status")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (error) {
-    console.warn("shouldIgnoreStaleBillingDowngradeWebhook lookup:", error.message);
-    return false;
-  }
-
-  const currentDbId =
-    typeof data?.stripe_subscription_id === "string" ? data.stripe_subscription_id.trim() : "";
-  const dbStatus = typeof data?.status === "string" ? data.status.trim().toLowerCase() : "";
-
-  if (!currentDbId || currentDbId === incomingSubId) return false;
-
-  if (dbStatus === "active" || dbStatus === "trialing") {
-    const incomingSt = String(incomingStatus ?? "").trim().toLowerCase();
-    console.log(
-      `ZOMBIE WEBHOOK KILLED: Ignorowanie starego zdarzenia (${incomingSt}) dla ${incomingSubId}. Aktywna to: ${currentDbId}`,
-    );
-    return true;
-  }
-
-  return false;
+  const { killed } = await killZombieSubscriptionEvent(
+    supabase,
+    userId,
+    incomingSubscriptionId,
+    false,
+  );
+  return killed;
 }
 
 export async function findBillingProfileByStripeSubscriptionId(
@@ -462,20 +545,7 @@ async function syncPageBillingMirrorFromProfile(
   const plan = upsertRow.plan;
 
   if (st === "active" || st === "trialing") {
-    const { error: updErr } = await supabase
-      .from("pages")
-      .update({
-        billing_plan: plan,
-        trial_blocked_at: null,
-        billing_failed_at: null,
-      })
-      .eq("user_id", page.user_id);
-
-    if (updErr) {
-      console.error("Supabase DB Error (syncPageBillingMirrorFromProfile):", updErr);
-      return { ok: false, error: updErr.message };
-    }
-    return { ok: true };
+    return clearPageBillingBlocksForPaidUser(supabase, page.user_id, plan);
   }
 
   return applyPageBlocksForSubscription(supabase, page, sub, plan);
@@ -503,7 +573,20 @@ export async function applyStripeSubscriptionToPage(
     return { ok: false, error: "Brak user_id na stronie" };
   }
 
-  const profile = await findBillingProfileByUserId(supabase, page.user_id);
+  const subStatus = String(sub.status ?? "").trim().toLowerCase();
+  const incomingIsLive = subStatus === "active" || subStatus === "trialing";
+
+  const zombie = await killZombieSubscriptionEvent(
+    supabase,
+    page.user_id,
+    sub.id,
+    incomingIsLive,
+  );
+  if (zombie.killed) {
+    return { ok: true };
+  }
+
+  const profile = zombie.currentProfile ?? (await findBillingProfileByUserId(supabase, page.user_id));
   const priceId = firstRecurringPriceId(sub);
   let fallback: StripePaidTier = "tier1";
   const existingPlan = profile?.plan;
@@ -527,19 +610,28 @@ export async function applyStripeSubscriptionToPage(
     );
 
   const upsertRow = billingProfileUpsertFromStripe(page.user_id, sub, tier);
-  if (
-    await shouldIgnoreStaleBillingDowngradeWebhook(
+  const upsertStatus = String(upsertRow.status ?? sub.status ?? "").trim().toLowerCase();
+
+  if (!incomingIsLive && isDowngradeBillingStatus(upsertStatus)) {
+    const downgradeZombie = await killZombieSubscriptionEvent(
       supabase,
       page.user_id,
       sub.id,
-      upsertRow.status ?? sub.status,
-    )
-  ) {
-    return { ok: true };
+      false,
+    );
+    if (downgradeZombie.killed) {
+      return { ok: true };
+    }
   }
 
   const up = await upsertBillingProfile(supabase, upsertRow);
   if (!up.ok) return up;
+
+  if (upsertStatus === "active" || upsertStatus === "trialing") {
+    const healed = await clearPageBillingBlocksForPaidUser(supabase, page.user_id, tier);
+    if (!healed.ok) return healed;
+    return { ok: true };
+  }
 
   return syncPageBillingMirrorFromProfile(supabase, page, upsertRow, sub);
 }
@@ -565,10 +657,104 @@ export async function applyInvoicePaymentFailed(
   return { ok: true };
 }
 
+type InvoiceParentLike = {
+  type?: string;
+  subscription_details?: {
+    subscription?: string | { id: string } | null;
+  } | null;
+};
+
+function subscriptionIdFromRef(
+  ref: string | { id: string } | null | undefined,
+): string {
+  if (typeof ref === "string" && ref.trim()) return ref.trim();
+  if (ref && typeof ref === "object" && "id" in ref && typeof ref.id === "string") {
+    return ref.id.trim();
+  }
+  return "";
+}
+
+/**
+ * ID subskrypcji z Invoice (legacy `subscription` + Basil `parent.subscription_details`).
+ * Webhooki Stripe często nie mają już top-level `invoice.subscription`.
+ */
 export function extractInvoiceSubscriptionId(invoice: Stripe.Invoice): string {
-  const subRaw = invoice.subscription;
-  if (typeof subRaw === "string") return subRaw;
-  if (subRaw && typeof subRaw === "object" && "id" in subRaw) return (subRaw as { id: string }).id;
+  const fromTop = subscriptionIdFromRef(
+    invoice.subscription as string | { id: string } | null | undefined,
+  );
+  if (fromTop) return fromTop;
+
+  const invExt = invoice as Stripe.Invoice & {
+    parent?: InvoiceParentLike;
+    subscription_details?: InvoiceParentLike["subscription_details"];
+  };
+
+  const parent = invExt.parent;
+  if (parent?.type === "subscription_details") {
+    const fromParent = subscriptionIdFromRef(parent.subscription_details?.subscription);
+    if (fromParent) return fromParent;
+  }
+
+  const fromDetails = subscriptionIdFromRef(invExt.subscription_details?.subscription);
+  if (fromDetails) return fromDetails;
+
+  const lines = invoice.lines?.data ?? [];
+  for (const line of lines) {
+    const lineExt = line as {
+      subscription?: string | { id: string };
+      parent?: InvoiceParentLike;
+    };
+    const fromLine = subscriptionIdFromRef(lineExt.subscription);
+    if (fromLine) return fromLine;
+    if (lineExt.parent?.type === "subscription_details") {
+      const fromLineParent = subscriptionIdFromRef(
+        lineExt.parent.subscription_details?.subscription,
+      );
+      if (fromLineParent) return fromLineParent;
+    }
+  }
+
+  return "";
+}
+
+/** Gdy webhook nie zawiera sub id — dociągnij pełną fakturę z API Stripe. */
+export async function resolveInvoiceSubscriptionId(
+  stripe: Stripe,
+  invoice: Stripe.Invoice,
+): Promise<string> {
+  let id = extractInvoiceSubscriptionId(invoice);
+  if (id) return id;
+  const invoiceId = typeof invoice.id === "string" ? invoice.id.trim() : "";
+  if (!invoiceId) return "";
+
+  try {
+    const full = await stripe.invoices.retrieve(invoiceId, {
+      expand: ["subscription", "lines.data.subscription"],
+    });
+    id = extractInvoiceSubscriptionId(full);
+    if (id) return id;
+  } catch (e) {
+    console.warn("resolveInvoiceSubscriptionId retrieve", invoiceId, e);
+  }
+
+  const custId = customerIdString(
+    invoice.customer as string | Stripe.Customer | Stripe.DeletedCustomer | null | undefined,
+  );
+  if (custId) {
+    try {
+      for (const status of ["active", "trialing"] as const) {
+        const { data } = await stripe.subscriptions.list({
+          customer: custId,
+          status,
+          limit: 1,
+        });
+        if (data[0]?.id) return data[0].id;
+      }
+    } catch (e) {
+      console.warn("resolveInvoiceSubscriptionId list subs", custId, e);
+    }
+  }
+
   return "";
 }
 
@@ -665,49 +851,99 @@ export async function applyInvoiceRenewalPaymentFailed(
   return { ok: true };
 }
 
+export type ApplySubscriptionCanceledOpts = {
+  stripe?: Stripe;
+};
+
+/**
+ * Wyścig kolejki: starsze `deleted` mogło ustawić `trial_blocked_at` zanim checkout/invoice odblokowało profil.
+ * Przy pominięciu cancel — wyrównaj `pages` do aktywnego `billing_profiles`.
+ */
+async function healPageBlocksIfBillingProfileLive(
+  supabase: SupabaseClient,
+  page: PageRowMini,
+  profile: BillingProfileRow | null,
+  reason: string,
+): Promise<void> {
+  if (!page.user_id || !billingProfileHasLiveSubscription(profile)) return;
+  const blocked = page.trial_blocked_at || page.billing_failed_at;
+  const planOnPage = String(page.billing_plan ?? "").trim().toLowerCase();
+  const paidOnPage = planOnPage === "tier0" || planOnPage === "tier1";
+  if (!blocked && paidOnPage) return;
+
+  const plan = normalizeStripePaidTier(profile?.plan ?? (planOnPage || "tier1"));
+  const healed = await clearPageBillingBlocksForPaidUser(supabase, page.user_id, plan);
+  if (healed.ok) {
+    console.log(
+      JSON.stringify({
+        tag: "stripe-webhook-queue",
+        phase: "heal",
+        reason,
+        user_id: page.user_id,
+        billing_plan: plan,
+      }),
+    );
+  }
+}
+
 export async function applySubscriptionCanceledToPage(
   supabase: SupabaseClient,
   page: PageRowMini,
   sub: Stripe.Subscription,
+  opts?: ApplySubscriptionCanceledOpts,
 ): Promise<{ ok: boolean; error?: string }> {
   if (!page.user_id) {
     return { ok: false, error: "Brak user_id na stronie" };
   }
 
-  const profile = await findBillingProfileByUserId(supabase, page.user_id);
+  const zombie = await killZombieSubscriptionEvent(supabase, page.user_id, sub.id, false);
+  if (zombie.killed) {
+    await healPageBlocksIfBillingProfileLive(
+      supabase,
+      page,
+      zombie.currentProfile,
+      "zombie_killed_before_cancel",
+    );
+    return { ok: true };
+  }
+
+  const cid = customerIdString(sub.customer);
+  if (opts?.stripe && cid) {
+    if (await stripeCustomerHasLiveSubscription(opts.stripe, cid)) {
+      console.log(
+        `ZOMBIE QUEUE: klient ${cid} ma aktywną sub w Stripe — ignoruję cancel/deleted ${sub.id}`,
+      );
+      const profile =
+        zombie.currentProfile ?? (await findBillingProfileByUserId(supabase, page.user_id));
+      await healPageBlocksIfBillingProfileLive(supabase, page, profile, "stripe_live_subscription");
+      return { ok: true };
+    }
+  }
+
+  const profile =
+    zombie.currentProfile ?? (await findBillingProfileByUserId(supabase, page.user_id));
   const dbSubId =
     typeof profile?.stripe_subscription_id === "string"
       ? profile.stripe_subscription_id.trim()
       : "";
   const dbSt = billingProfileStatusNormalized(profile?.status ?? null);
 
-  if (billingProfileHasLiveSubscription(profile) && dbSubId && dbSubId !== sub.id) {
-    console.log(
-      "applySubscriptionCanceled: pomijam — billing_profiles ma aktywną sub:",
-      dbSubId,
-      "zdarzenie:",
-      sub.id,
-    );
-    return { ok: true };
-  }
-
   if (dbSubId === sub.id && (dbSt === "canceled" || dbSt === "cancelled")) {
     console.log("applySubscriptionCanceled: idempotent — profil już canceled dla", sub.id);
     return { ok: true };
   }
 
-  if (
-    await shouldIgnoreStaleBillingDowngradeWebhook(
+  const preWriteZombie = await killZombieSubscriptionEvent(supabase, page.user_id, sub.id, false);
+  if (preWriteZombie.killed) {
+    await healPageBlocksIfBillingProfileLive(
       supabase,
-      page.user_id,
-      sub.id,
-      "canceled",
-    )
-  ) {
+      page,
+      preWriteZombie.currentProfile,
+      "zombie_killed_pre_upsert",
+    );
     return { ok: true };
   }
 
-  const cid = customerIdString(sub.customer);
   const upsertRow: BillingProfileUpsert = {
     user_id: page.user_id,
     stripe_customer_id: cid || null,
@@ -719,6 +955,17 @@ export async function applySubscriptionCanceledToPage(
   };
   const up = await upsertBillingProfile(supabase, upsertRow);
   if (!up.ok) return up;
+
+  const preBlockZombie = await killZombieSubscriptionEvent(supabase, page.user_id, sub.id, false);
+  if (preBlockZombie.killed) {
+    await healPageBlocksIfBillingProfileLive(
+      supabase,
+      page,
+      preBlockZombie.currentProfile,
+      "zombie_killed_pre_trial_block",
+    );
+    return { ok: true };
+  }
 
   const nowIso = new Date().toISOString();
   const { error: updErr } = await supabase

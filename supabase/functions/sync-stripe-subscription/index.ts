@@ -5,10 +5,13 @@ import { createClient } from "npm:@supabase/supabase-js@^2.39.0";
 import {
   applyOptsFromPriceEnv,
   applyStripeSubscriptionToPage,
+  clearPageBillingBlocksForPaidUser,
   findBillingProfileByUserId,
   findPageByUserId,
   firstRecurringPriceId,
+  normalizeStripePaidTier,
   readStripePriceEnv,
+  tierFromStripePrice,
   tierOverrideFromPriceId,
 } from "../_shared/stripeBilling.ts";
 
@@ -181,11 +184,45 @@ serve(async (req) => {
       throw new Error(result.error || "Błąd zapisu do bazy");
     }
 
+    const st = subscription.status;
+    let pagesCleared = false;
+    if (st === "active" || st === "trialing") {
+      const tier =
+        tierOverride ??
+        normalizeStripePaidTier(
+          tierFromStripePrice(
+            priceId,
+            prices.priceStarter,
+            prices.priceStarterYearly,
+            prices.pricePro,
+            prices.priceProYearly,
+            "tier1",
+          ),
+        );
+      const cleared = await clearPageBillingBlocksForPaidUser(supabase, user.id, tier);
+      pagesCleared = cleared.ok;
+      if (!cleared.ok) {
+        throw new Error(cleared.error || "Nie udało się odblokować strony (pages)");
+      }
+    }
+
+    console.log(
+      JSON.stringify({
+        tag: "sync-stripe-subscription",
+        ok: true,
+        user_id: user.id,
+        stripe_status: st,
+        subscription_id: subscription.id,
+        pages_cleared: pagesCleared,
+      }),
+    );
+
     return new Response(
       JSON.stringify({
         ok: true,
         stripe_status: subscription.status,
         subscription_id: subscription.id,
+        pages_cleared: pagesCleared,
       }),
       { status: 200, headers: { ...cors, "Content-Type": "application/json" } },
     );

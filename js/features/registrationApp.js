@@ -8,6 +8,12 @@
       const sec = secMatch ? secMatch[1] : 'kilka';
       return `Wysłano już niedawno wiadomość na ten adres. Ze względów bezpieczeństwa odczekaj ok. ${sec} s i spróbuj ponownie — albo sprawdź skrzynkę, czy wcześniejszy mail z linkiem już doszedł.`;
     }
+    if (
+      code === 'user_already_registered' ||
+      /already registered|already been registered|email address is already/i.test(msg)
+    ) {
+      return 'Ten adres e-mail jest już zarejestrowany. Sprawdź skrzynkę (link potwierdzający) lub zaloguj się w panelu.';
+    }
     return msg || 'Błąd tworzenia konta.';
   }
 
@@ -51,13 +57,14 @@
       },
 
       /**
-       * Rejestracja: tylko signUp + slug w user_metadata.
-       * Przy potwierdzaniu e-maila nie ma JWT — insert z przeglądarki nie przejdzie RLS.
-       * Strona: trigger w bazie (migracja) albo pierwsze wejście do panelu (adminApp.ensurePageFromRegistrationMetadata).
+       * Kolejność w bazie: 1) auth.signUp → wiersz auth.users, 2) trigger DB → pages (slug).
+       * Przy włączonym „Confirm email” Supabase często zwraca user:null bez błędu (ten sam e-mail) —
+       * wtedy strona może już istnieć z triggera; nie traktujemy tego jako błąd rejestracji.
        */
       async createPage() {
         this.loading = true;
         this.errorMessage = '';
+        const slugTrimmed = (this.form.slug || '').trim();
         try {
           if (!this.accepted) {
             throw new Error('Zaakceptuj Regulamin oraz Politykę Prywatności.');
@@ -73,22 +80,42 @@
 
           const origin = typeof window !== 'undefined' ? window.location.origin : '';
           const { data: authData, error: authError } = await this.supabase.auth.signUp({
-            email: this.form.email,
+            email: this.form.email.trim(),
             password: this.form.password,
             options: {
-              data: { slug: this.form.slug.trim() },
+              data: { slug: slugTrimmed },
               emailRedirectTo: origin ? `${origin}/admin.html` : undefined,
             },
           });
           if (authError) throw authError;
-          if (!authData?.user?.id) throw new Error('Nie udało się utworzyć użytkownika.');
 
-          this.pendingEmailConfirmation = !authData.session;
-          this.success = true;
+          const userId = authData?.user?.id;
+          const hasSession = !!authData?.session;
 
-          if (authData.session) {
-            localStorage.setItem('dfops_login_time', String(Date.now()));
+          if (userId) {
+            this.pendingEmailConfirmation = !hasSession;
+            this.success = true;
+            if (hasSession) {
+              localStorage.setItem('dfops_login_time', String(Date.now()));
+            }
+            return;
           }
+
+          // Brak user w odpowiedzi — typowe przy ponownym signUp na ten sam e-mail (anti-enumeration).
+          // Trigger mógł już utworzyć pages przy pierwszej próbie — slug zajęty = traktuj jak sukces.
+          const afterSignUp = await repo.isSlugAvailable(slugTrimmed);
+          if (afterSignUp.error) {
+            throw new Error('Nie udało się zweryfikować adresu strony po rejestracji. Spróbuj za chwilę.');
+          }
+          if (!afterSignUp.available) {
+            this.pendingEmailConfirmation = true;
+            this.success = true;
+            return;
+          }
+
+          throw new Error(
+            'Nie udało się dokończyć rejestracji. Sprawdź poprawność e-maila i hasła (min. 6 znaków) lub zaloguj się, jeśli konto już istnieje.',
+          );
         } catch (e) {
           this.errorMessage = formatRegistrationAuthError(e);
         } finally {

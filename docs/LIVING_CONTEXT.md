@@ -4,7 +4,7 @@
 
 Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **changelog** jednoliniowy, żeby nie dublować długich sekcji.
 
-**Ostatnia aktualizacja treści:** 2026-05-22 (fix Checkout vs Portal przy trial / anulowanej sub)
+**Ostatnia aktualizacja treści:** 2026-05-25 (rejestracja + Stripe anty-zombie / invoice / sync)
 
 ---
 
@@ -21,6 +21,7 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 | Plany / watermark / domena | `js/core/planUtils.js` (`DFOPS_normalizePlan` — legacy tier2→tier1) |
 | Profil Stripe w panelu | `billingProfileView.js` · `loadBillingProfile()` w `adminApp.js` |
 | Demo / seed treści | [`docs/demo_seeds.json`](demo_seeds.json) (`tier1` + `payment_completed`) |
+| Rejestracja | `rejestracja.html` · `registrationApp.js` · trigger `handle_new_user` (`20260525130000`) |
 | Edge Stripe | `create-checkout`, `stripe-webhook`, `sync-stripe-subscription`, `_shared/stripeBilling.ts` |
 | Custom / Premium (zapytanie) | `zapytanie-custom.html` · `mailto:kontakt@dfops.eu` |
 
@@ -30,6 +31,10 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 
 | Data | Co |
 |------|-----|
+| **2026-05-25** | **Rejestracja:** signUp `user:null` (ten sam e-mail) → sukces gdy slug zajęty; trigger `handle_new_user` — rollback przy kolizji slug. |
+| **2026-05-22** | **Tarcze anty-zombie:** `killZombieSubscriptionEvent` + heal przy `active`/`trialing` w `applyStripeSubscriptionToPage`; potrójny guard przed upsert/block w `applySubscriptionCanceledToPage`. |
+| **2026-05-22** | **Invoice webhook:** `extractInvoiceSubscriptionId` — Basil `parent.subscription_details.subscription` + API fallback (fix `brak invoice.subscription`); sync wymusza `clearPageBillingBlocksForPaidUser`. |
+| **2026-05-22** | **Kolejka Stripe:** `stripeCustomerHasLiveSubscription` + heal `pages` przy pominiętym cancel; logi `stripe-webhook-queue`; podwójne czyszczenie po checkout (prod deploy). |
 | **2026-05-24** | **Fix blokady po płatności:** `expire_trial_pages` respektuje `billing_profiles` + `pages.billing_plan`; anulowanie Stripe nie nadpisuje aktywnej sub; publicSite — paid plan przed `trial_blocked_at`. |
 | **2026-05-22** | **Dual SoT:** `syncPageBillingMirrorFromProfile` — po aktywnej sub zawsze czyści `pages.trial_blocked_at` / `billing_failed_at`. |
 | **2026-05-22** | **Zombie webhooks:** `shouldIgnoreStaleBillingDowngradeWebhook` — stary `canceled`/`past_due` nie nadpisuje innej `active`/`trialing` sub w `billing_profiles`. |
