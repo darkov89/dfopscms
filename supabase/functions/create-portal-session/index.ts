@@ -120,11 +120,32 @@ serve(async (req) => {
     }
 
     const portalConfigurationId = Deno.env.get("STRIPE_BILLING_PORTAL_CONFIGURATION_ID") ?? "";
-    const session = await stripe.billingPortal.sessions.create({
+
+    let subscriptionId =
+      typeof body?.subscription_id === "string" ? body.subscription_id.trim() : "";
+    if (!subscriptionId && typeof billing?.stripe_subscription_id === "string") {
+      subscriptionId = billing.stripe_subscription_id.trim();
+    }
+
+    const wantSubscriptionUpdateFlow =
+      body?.flow === "subscription_update" || body?.subscriptionUpdate === true;
+    const billingStatus = String(billing?.status ?? "").trim().toLowerCase();
+    const liveForPlanChange = billingStatus === "active" || billingStatus === "trialing";
+
+    const sessionParams: Stripe.BillingPortal.SessionCreateParams = {
       customer: customerId,
       return_url: returnUrl,
       ...(portalConfigurationId ? { configuration: portalConfigurationId } : {}),
-    });
+    };
+
+    if (wantSubscriptionUpdateFlow && subscriptionId && liveForPlanChange) {
+      sessionParams.flow_data = {
+        type: "subscription_update",
+        subscription_update: { subscription: subscriptionId },
+      };
+    }
+
+    const session = await stripe.billingPortal.sessions.create(sessionParams);
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...cors, "Content-Type": "application/json" },

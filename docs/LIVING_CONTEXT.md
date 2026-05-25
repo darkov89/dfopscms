@@ -31,6 +31,7 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 
 | Data | Co |
 |------|-----|
+| **2026-05-25** | **Portal Stripe:** `create-portal-session` — `flow_data.subscription_update` przy zmianie planu; front przekazuje `subscription_id` + `flow`. |
 | **2026-05-25** | **Rejestracja:** signUp `user:null` (ten sam e-mail) → sukces gdy slug zajęty; trigger `handle_new_user` — rollback przy kolizji slug. |
 | **2026-05-22** | **Tarcze anty-zombie:** `killZombieSubscriptionEvent` + heal przy `active`/`trialing` w `applyStripeSubscriptionToPage`; potrójny guard przed upsert/block w `applySubscriptionCanceledToPage`. |
 | **2026-05-22** | **Invoice webhook:** `extractInvoiceSubscriptionId` — Basil `parent.subscription_details.subscription` + API fallback (fix `brak invoice.subscription`); sync wymusza `clearPageBillingBlocksForPaidUser`. |

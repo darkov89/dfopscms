@@ -940,7 +940,11 @@
         }
       },
 
-      async openCustomerPortal() {
+      /**
+       * @param {{ subscriptionUpdate?: boolean }} [opts]
+       *   subscriptionUpdate — deep link Stripe do zmiany planu (upgrade/downgrade).
+       */
+      async openCustomerPortal(opts = {}) {
         if (!this.supabase) {
           this.showToast('Brak połączenia z serwisem. Odśwież stronę.', 'error');
           return;
@@ -954,8 +958,16 @@
           returnUrlObj.searchParams.set('billing', 'return');
           returnUrlObj.hash = 'subscription';
           const returnUrl = returnUrlObj.toString();
+          const sub = this.billingSubscriptionView;
+          const subscriptionId =
+            typeof sub?.stripe_subscription_id === 'string'
+              ? sub.stripe_subscription_id.trim()
+              : '';
+          const portalBody = { returnUrl };
+          if (subscriptionId) portalBody.subscription_id = subscriptionId;
+          if (opts.subscriptionUpdate) portalBody.flow = 'subscription_update';
           const { data, error } = await this.supabase.functions.invoke('create-portal-session', {
-            body: { returnUrl },
+            body: portalBody,
             headers: { Authorization: `Bearer ${token}` },
           });
           if (error) throw error;
@@ -2186,7 +2198,7 @@
             'Zmianę pakietu wykonasz w portalu Stripe — zobaczysz podsumowanie kosztów i potwierdzisz płatność przed obciążeniem karty.',
             'info',
           );
-          await this.openCustomerPortal();
+          await this.openCustomerPortal({ subscriptionUpdate: true });
           return;
         }
 
