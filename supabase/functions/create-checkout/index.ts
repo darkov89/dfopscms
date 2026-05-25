@@ -128,13 +128,9 @@ serve(async (req) => {
         typeof billing?.status === "string" ? billing.status.trim().toLowerCase() : "";
       const subscriptionBlocksCheckout =
         !!existingSubId &&
-        billingStatus !== "canceled" &&
-        billingStatus !== "cancelled" &&
-        billingStatus !== "incomplete_expired" &&
-        (billingStatus === "" ||
-          ["active", "trialing", "past_due", "unpaid", "paused", "incomplete"].includes(
-            billingStatus,
-          ));
+        (billingStatus === "active" ||
+          billingStatus === "trialing" ||
+          billingStatus === "past_due");
       if (subscriptionBlocksCheckout) {
         return new Response(
           JSON.stringify({
@@ -245,6 +241,7 @@ serve(async (req) => {
                       : ""),
       },
     };
+    /** Stripe: `customer` i `customer_email` są wzajemnie wykluczające. */
     if (existingCustomerId) {
       sessionParams.customer = existingCustomerId;
     } else if (customerEmail) {

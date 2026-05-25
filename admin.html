@@ -38,7 +38,7 @@
     <script defer src="js/core/googlePlacesSync.js?v=20260522c"></script>
     <script defer src="js/core/analytics.js?v=20260403t"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260523g"></script>
+    <script defer src="js/features/adminApp.js?v=20260522a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -532,7 +532,7 @@
                            target="_blank" rel="noopener noreferrer"
                            class="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900">Podgląd strony</a>
 
-                        <button @click="saveData()" x-show="content && !isLoading" type="button"
+                        <button @click="saveData()" x-show="content && panelContentReady" type="button"
                                 title="Zapisz i opublikuj stronę na żywo"
                                 class="inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-lg border border-slate-800 bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2">
                             <span x-show="!saving">Publikuj zmiany</span>
@@ -550,12 +550,12 @@
             </div>
         </header>
 
-        <div x-show="isLoading" x-cloak class="flex flex-grow flex-col items-center justify-center px-6 py-20">
+        <div x-show="panelBootLoading" x-cloak class="flex flex-grow flex-col items-center justify-center px-6 py-20">
             <div class="mb-4 h-12 w-12 animate-spin rounded-full border-2 border-accent border-t-transparent"></div>
-            <p class="text-center text-sm font-medium tracking-wide text-slate-600">Wczytuję Twoją stronę…</p>
+            <p class="text-center text-sm font-medium tracking-wide text-slate-600">Wczytuję panel…</p>
         </div>
 
-        <template x-if="!isLoading && content && content.pl">
+        <template x-if="panelContentReady && content && content.pl">
         <main class="mx-auto mt-4 w-full max-w-6xl px-4 pb-16 md:mt-8 md:px-6 md:pb-24" x-transition.opacity>
             <div x-show="isBillingCanceled" x-cloak class="mb-6 rounded-xl border border-red-200/90 bg-red-50 p-4 text-red-950 shadow-panel ring-1 ring-red-900/10">
                 <p class="text-sm font-medium leading-relaxed">Subskrypcja Stripe została <strong>zakończona</strong>. Widok publiczny strony jest wyłączony. Aby przywrócić dostęp, wykup pakiet ponownie lub wznów subskrypcję w portalu Stripe (jeśli dostępne).</p>

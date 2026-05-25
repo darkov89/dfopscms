@@ -346,6 +346,12 @@
       stripeSyncLoading: false,
       /** Profil rozliczeniowy z tabeli billing_profiles (źródło prawdy Stripe). */
       billingProfile: null,
+      /** False do zakończenia pierwszego loadBillingProfile w bieżącej sesji panelu. */
+      billingProfileReady: false,
+      /** Jednorazowy toast o wygasającej / zakończonej subskrypcji (po pełnym stanie billing). */
+      _billingStatusToastShown: false,
+      /** Pierwsze loadData zakończone — dopiero potem silent sync na zakładce Subskrypcja. */
+      _initialPanelLoadDone: false,
       /** Zapobiega podwójnemu sync przy loadData po syncStripeSubscription. */
       _loadDataSubscriptionStripeSync: false,
       /** Jednorazowy silent sync ze Stripe po wejściu w zakładkę Subskrypcja (świeży `cancel_at_period_end`). */
@@ -386,6 +392,23 @@
           return window.DFOPS_billingRowToSubscriptionView(this.billingProfile, trialSub);
         }
         return trialSub && typeof trialSub === 'object' ? trialSub : { plan: 'trial' };
+      },
+      /** Panel gotowy do renderu (treść + profil billing po zalogowaniu). */
+      get panelContentReady() {
+        if (this.loadingAuth || this.isLoading) return false;
+        if (!this.user || this.isForcedPasswordReset) return true;
+        return this.billingProfileReady;
+      },
+      get panelBootLoading() {
+        return (
+          this.loadingAuth ||
+          this.isLoading ||
+          (!!this.user && !this.isForcedPasswordReset && !this.billingProfileReady)
+        );
+      },
+      billingStripeStatusNormalized() {
+        const sub = this.billingSubscriptionView;
+        return typeof sub?.status === 'string' ? sub.status.trim().toLowerCase() : '';
       },
       get subscriptionPlan() {
         return this.billingSubscriptionView?.plan || 'trial';
@@ -540,20 +563,13 @@
         const sid = typeof sub.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
         return !!(cid || sid);
       },
-      /** Aktywna (lub wymagająca opłaty) subskrypcja w Stripe — zmiana planu przez portal, nie Checkout. */
-      hasManageableStripeSubscription() {
-        const sub = this.billingSubscriptionView;
-        const sid = typeof sub?.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
-        if (!sid) return false;
-        const st = typeof sub?.status === 'string' ? sub.status.trim().toLowerCase() : '';
-        if (st === 'canceled' || st === 'cancelled' || st === 'incomplete_expired') return false;
-        if (!st) return true;
-        return ['active', 'trialing', 'past_due', 'unpaid', 'paused', 'incomplete'].includes(st);
-      },
-      /** Checkout vs portal przy wyborze pakietu — portal tylko przy żywej subskrypcji. */
+      /** Checkout vs portal — portal tylko: stripe_customer_id + status active | trialing | past_due. */
       shouldUseStripePortalForPlanChange() {
-        if (this.hasActivePaidSubscription) return true;
-        return this.hasManageableStripeSubscription();
+        const sub = this.billingSubscriptionView;
+        const cid = typeof sub?.stripe_customer_id === 'string' ? sub.stripe_customer_id.trim() : '';
+        if (!cid) return false;
+        const st = this.billingStripeStatusNormalized();
+        return st === 'active' || st === 'trialing' || st === 'past_due';
       },
       /**
        * True gdy w Stripe wisi jeszcze subskrypcja — wtedy nie udostępniamy prośby o usunięcie konta
@@ -696,6 +712,8 @@
       /** Po wejściu w Subskrypcję — jednorazowo odśwież status ze Stripe (np. `cancel_at_period_end`). */
       maybeSyncSubscriptionTabFromStripe() {
         if (
+          !this._initialPanelLoadDone ||
+          !this.billingProfileReady ||
           this.activeTab !== 'subscription' ||
           !this.user?.id ||
           this._subscriptionTabStripeSynced ||
@@ -731,7 +749,7 @@
       },
 
       maybeShowPaymentReturnToast() {
-        /** Parametr `payment` jest czyszczony w init() — tu tylko zapas na starsze sesje. */
+        if (!this.billingProfileReady) return;
         try {
           const url = new URL(window.location.href);
           const p = url.searchParams.get('payment');
@@ -744,6 +762,29 @@
           }
         } catch (e) {
           /* ignore */
+        }
+      },
+
+      /** Jednorazowy toast po pełnym wczytaniu billing_profiles (bez duplikatu przy drugim loadData). */
+      maybeShowBillingStatusToastOnce() {
+        if (this._billingStatusToastShown || !this.billingProfileReady || !this.user) return;
+        if (this.isSubscriptionCanceledButValid) {
+          this._billingStatusToastShown = true;
+          const when = this.subscriptionRenewalDateFormatted;
+          this.showToast(
+            when && when !== '—'
+              ? `Twoja subskrypcja wygasa ${when}. W portalu Stripe możesz cofnąć zamknięcie lub pobrać faktury.`
+              : 'Twoja subskrypcja wygasa po zakończeniu bieżącego okresu. Zarządzaj nią w portalu Stripe.',
+            'info',
+          );
+          return;
+        }
+        if (this.isBillingCanceled) {
+          this._billingStatusToastShown = true;
+          this.showToast(
+            'Subskrypcja została zakończona — widok publiczny jest wyłączony. Wykup pakiet ponownie w sekcji Subskrypcja.',
+            'error',
+          );
         }
       },
 
@@ -977,6 +1018,7 @@
             this._postPaymentRefreshTimer = null;
           }
           this.showToast('Przetwarzanie płatności... Odświeżam Twoje konto! ✨', 'success');
+          this.billingProfileReady = false;
           this.isLoading = true;
           this._postPaymentRefreshTimer = setTimeout(async () => {
             this._postPaymentRefreshTimer = null;
@@ -1022,6 +1064,7 @@
         try {
           const u = new URL(window.location.href);
           if (u.searchParams.get('billing') !== 'return' || !this.user) return false;
+          this.billingProfileReady = false;
           this.isLoading = true;
           this.showToast('Odświeżam status subskrypcji…', 'info');
           void (async () => {
@@ -1152,23 +1195,9 @@
             e.returnValue = 'Masz niezapisane zmiany!';
           }
         });
-        try {
-          const url = new URL(window.location.href);
-          if (url.searchParams.get('payment') === 'cancelled') {
-            url.searchParams.delete('payment');
-            const qs = url.searchParams.toString();
-            window.history.replaceState({}, '', url.pathname + (qs ? `?${qs}` : '') + url.hash);
-            this.showToast(
-              'Płatność nie została dokończona — możesz spróbować ponownie w sekcji Subskrypcja.',
-              'error',
-            );
-          }
-        } catch {
-          /* ignore */
-        }
         this.supabase = window.DFOPS_getSupabaseClient();
         window.addEventListener('hashchange', () => {
-          if (this.loadingAuth || this.isLoading || !this.content?.pl || this.showWizard) return;
+          if (this.loadingAuth || this.panelBootLoading || !this.content?.pl || this.showWizard) return;
           const t = parseAdminTabFromHash();
           if (t) {
             this.activeTab = t;
@@ -1467,6 +1496,11 @@
         this.showWelcomeModal = false;
         this.hasUnsavedChanges = false;
         this.showSuccessModal = false;
+        this.billingProfile = null;
+        this.billingProfileReady = false;
+        this._billingStatusToastShown = false;
+        this._initialPanelLoadDone = false;
+        this._subscriptionTabStripeSynced = false;
         if (this._postPaymentRefreshTimer != null) {
           clearTimeout(this._postPaymentRefreshTimer);
           this._postPaymentRefreshTimer = null;
@@ -1544,6 +1578,7 @@
 
       async loadData() {
         this.isLoading = true;
+        this.billingProfileReady = false;
         this.showWizardDismissModal = false;
         try {
           if (this.user) {
@@ -1589,6 +1624,7 @@
             );
           }
           await this.loadBillingProfile();
+          this.billingProfileReady = true;
           this.currentTemplateVersion = Number(this.content.pl.settings.template_version || 1);
           this.updateAvailable = this.currentTemplateVersion < this.latestTemplateVersion;
           this.syncUserPlanFromBilling();
@@ -1633,8 +1669,20 @@
             }, 0);
           });
         } finally {
+          if (this.user?.id && !this.billingProfileReady) {
+            this.billingProfileReady = true;
+          }
+          if (!this.user?.id) {
+            this.billingProfileReady = true;
+          }
           this.isLoading = false;
-          if (this.user) this.maybeShowPaymentReturnToast();
+          if (this.user && this.billingProfileReady) {
+            this.maybeShowPaymentReturnToast();
+            this.maybeShowBillingStatusToastOnce();
+          }
+          if (!this._initialPanelLoadDone && this.billingProfileReady) {
+            this._initialPanelLoadDone = true;
+          }
         }
       },
       applyThemeStylingFromContent() {
@@ -2147,6 +2195,11 @@
         const currentTier =
           this.subscriptionPlan === 'tier2' ? 'tier1' : this.subscriptionPlan;
         const isCurrentPaidTier = currentTier === 'tier0' || currentTier === 'tier1';
+
+        if (!this.billingProfileReady) {
+          await this.loadBillingProfile();
+          this.billingProfileReady = true;
+        }
 
         if (this.shouldUseStripePortalForPlanChange()) {
           if (isCurrentPaidTier && currentTier === tier) {
