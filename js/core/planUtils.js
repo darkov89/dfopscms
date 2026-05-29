@@ -14,6 +14,12 @@
     return p !== 'trial' && p !== 'tier0';
   }
 
+  /** Własny kolor akcentu, font i tło — od Standard (tier1). */
+  function planAllowsCustomAppearance(plan) {
+    const p = normalizePlan(plan);
+    return p === 'tier1' || p === 'tier_custom' || p === 'custom';
+  }
+
   function planShowsWatermark(plan) {
     const p = normalizePlan(plan);
     return p === 'trial' || p === 'tier0';
@@ -51,8 +57,8 @@
     const wm = planShowsWatermark(p) ? 'Logo DFCMS w stopce' : 'Bez logo DFCMS';
     const colors =
       p === 'trial' || p === 'tier0'
-        ? 'Kolory: podstawowy preset'
-        : 'Kolory: wszystkie presety';
+        ? 'Kolory: gotowe presety i zestawy'
+        : 'Kolory: presety + własny akcent';
     const assistant =
       p === 'tier1' ? 'Asystent: 100 zł/h netto' : 'Asystent: od pakietu Standard';
     return `${domain} · ${wm} · ${colors} · ${assistant}`;
@@ -141,6 +147,7 @@
   }
 
   window.DFOPS_planAllowsCustomDomain = planAllowsCustomDomain;
+  window.DFOPS_planAllowsCustomAppearance = planAllowsCustomAppearance;
   window.DFOPS_planShowsWatermark = planShowsWatermark;
   window.DFOPS_planDisplayName = planDisplayName;
   window.DFOPS_subscriptionDisplayName = subscriptionDisplayName;

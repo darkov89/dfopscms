@@ -33,12 +33,12 @@
     <script defer src="js/core/contentUpgrader.js?v=20260404c"></script>
     <script defer src="js/core/themeStyling.js?v=20260404c"></script>
     <script defer src="js/core/pageRepository.js?v=20260403t"></script>
-    <script defer src="js/core/planUtils.js?v=20260522b"></script>
+    <script defer src="js/core/planUtils.js?v=20260522e"></script>
     <script defer src="js/core/billingProfileView.js?v=20260523a"></script>
     <script defer src="js/core/googlePlacesSync.js?v=20260522d"></script>
     <script defer src="js/core/analytics.js?v=20260403t"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260522d"></script>
+    <script defer src="js/features/adminApp.js?v=20260522e"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -176,24 +176,18 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Główny kolor strony</label>
-                            <p x-show="userPlan === 'starter'" class="text-xs text-slate-500 mb-3" x-cloak>W pakiecie Starter dostępna jest pierwsza paleta; pozostałe odblokujesz w Standard.</p>
                             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                                <template x-for="(preset, index) in availablePresets" :key="preset.id">
+                                <template x-for="preset in availablePresets" :key="preset.id">
                                     <button type="button"
-                                            @click="selectColorPreset(preset, index)"
-                                            class="relative rounded-lg border-2 p-3 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2"
+                                            @click="selectColorPreset(preset)"
+                                            class="relative rounded-lg border-2 p-3 text-left transition-all hover:border-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2"
                                             :class="{
                                                 'border-accent ring-1 ring-accent/25': content.pl.settings.color_preset === preset.id,
-                                                'border-slate-200/80': content.pl.settings.color_preset !== preset.id,
-                                                'cursor-not-allowed opacity-50': isLocked(index),
-                                                'hover:border-slate-300': !isLocked(index)
+                                                'border-slate-200/80': content.pl.settings.color_preset !== preset.id
                                             }">
                                         <div class="flex items-center gap-2">
                                             <div class="h-8 w-8 shrink-0 rounded-md border border-slate-200 shadow-inner" :style="'background:' + presetSwatchColor(preset.id)"></div>
                                             <span class="text-xs font-semibold leading-tight text-slate-800" x-text="preset.label"></span>
-                                        </div>
-                                        <div x-show="isLocked(index)" x-cloak class="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg bg-white/60">
-                                            <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                                         </div>
                                     </button>
                                 </template>
@@ -434,6 +428,19 @@
                 <div class="flex flex-col sm:flex-row gap-3">
                     <button type="button" @click="setTab('subscription'); showTrialSuspendedModal = false" class="flex-1 rounded-lg bg-accent px-4 py-3 text-sm font-bold uppercase tracking-widest text-accent-fg transition-colors hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2">Subskrypcja i płatność</button>
                     <button type="button" @click="showTrialSuspendedModal = false" class="flex-1 rounded-lg border-2 border-slate-200 px-4 py-3 text-sm font-semibold text-slate-800 transition-colors hover:border-slate-300 hover:bg-slate-50/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/50 focus-visible:ring-offset-2">Pracuję w panelu</button>
+                </div>
+            </div>
+        </div>
+
+        <div x-show="showAppearanceUpgradeModal" x-cloak class="fixed inset-0 z-[264] flex items-center justify-center p-4 bg-black/55 backdrop-blur-[2px]" @click.self="showAppearanceUpgradeModal = false" role="dialog" aria-modal="true" aria-labelledby="dfops-appearance-upgrade-title">
+            <div class="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-panel-md ring-1 ring-slate-900/10">
+                <button type="button" class="absolute top-3 right-3 text-slate-400 hover:text-slate-800 text-xl leading-none" @click="showAppearanceUpgradeModal = false" aria-label="Zamknij">×</button>
+                <p class="text-3xl mb-3" aria-hidden="true">🔒</p>
+                <h2 id="dfops-appearance-upgrade-title" class="text-lg font-bold text-slate-900 mb-2">Własne kolory i fonty</h2>
+                <p class="text-sm text-slate-600 leading-relaxed">Aby wybrać własne kolory i fonty, przejdź na plan Premium — w panelu odpowiada pakietowi <strong class="text-slate-900">Standard</strong>.</p>
+                <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                    <button type="button" @click="goAppearanceUpgrade()" class="flex-1 rounded-lg bg-accent px-4 py-3 text-xs font-bold uppercase tracking-widest text-accent-fg transition-colors hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2">Ulepsz pakiet</button>
+                    <button type="button" @click="showAppearanceUpgradeModal = false" class="flex-1 rounded-lg border-2 border-slate-200 px-4 py-3 text-xs font-semibold text-slate-800 transition-colors hover:border-slate-300 hover:bg-slate-50/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/50 focus-visible:ring-offset-2">Zamknij</button>
                 </div>
             </div>
         </div>
@@ -1064,71 +1071,28 @@
                                 </div>
                                 <div class="p-5 md:p-6 space-y-8">
                                     <div>
-                                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-widest mb-3">Paleta</h4>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:items-start">
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Preset kolorystyczny</label>
-                                                <p x-show="userPlan === 'starter'" class="text-xs text-slate-500 mb-3" x-cloak>W Starterze pierwsza paleta jest w cenie; pełna paleta i zestawy ze zmiennymi kolorami — od Standard.</p>
-                                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                                    <template x-for="(preset, index) in availablePresets" :key="preset.id">
-                                                        <button type="button"
-                                                                @click="selectColorPreset(preset, index)"
-                                                                class="relative rounded-sm border-2 p-3 text-left transition-all focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
-                                                                :class="{
-                                                                    'border-[#D4AF37] ring-1 ring-[#D4AF37]/30': content.pl.settings.color_preset === preset.id,
-                                                                    'border-gray-200': content.pl.settings.color_preset !== preset.id,
-                                                                    'opacity-50 cursor-not-allowed': isLocked(index),
-                                                                    'hover:border-gray-300': !isLocked(index)
-                                                                }">
-                                                            <div class="flex items-center gap-2">
-                                                                <div class="w-8 h-8 rounded-sm border border-gray-300 shrink-0 shadow-inner" :style="'background:' + presetSwatchColor(preset.id)"></div>
-                                                                <span class="text-xs font-semibold text-slate-800 leading-tight" x-text="preset.label"></span>
-                                                            </div>
-                                                            <div x-show="isLocked(index)" x-cloak class="absolute inset-0 flex items-center justify-center rounded-sm bg-white/50 pointer-events-none">
-                                                                <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                                                            </div>
-                                                        </button>
-                                                    </template>
-                                                </div>
-                                            </div>
-                                            <div class="flex items-center justify-between border border-gray-200 rounded-sm px-4 py-3 bg-gray-50">
-                                                <div class="text-xs uppercase tracking-widest text-slate-500">Akcent</div>
-                                                <div class="flex items-center gap-2">
-                                                    <div class="w-6 h-6 rounded-sm border border-gray-300 shadow-inner" :style="`background:${accentColor}`"></div>
-                                                    <div class="text-xs font-mono text-slate-700" x-text="accentColor"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="pt-6 border-t border-gray-100">
-                                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-widest mb-3">Tło i typografia</h4>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Styl tła</label>
-                                                <select x-model="content.pl.settings.background_style"
-                                                        @change="applyThemeStylingFromContent()"
-                                                        class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white">
-                                                    <option value="clean">Clean</option>
-                                                    <option value="glow">Glow (premium)</option>
-                                                    <option value="soft">Soft (delikatne)</option>
-                                                    <option value="smoky">Smoky (barber / luxe)</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Fonty</label>
-                                                <select x-model="content.pl.settings.font_preset"
-                                                        @change="applyThemeStylingFromContent()"
-                                                        class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white">
-                                                    <option value="inter">Inter + Playfair</option>
-                                                    <option value="poppins">Poppins + Playfair</option>
-                                                    <option value="barber">Oswald + Playfair</option>
-                                                    <option value="elegant">Cormorant + Inter</option>
-                                                </select>
-                                            </div>
+                                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-widest mb-3">Gotowe zestawy kolorów</h4>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Preset kolorystyczny</label>
+                                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                            <template x-for="preset in availablePresets" :key="preset.id">
+                                                <button type="button"
+                                                        @click="selectColorPreset(preset)"
+                                                        class="relative rounded-sm border-2 p-3 text-left transition-all hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                                                        :class="{
+                                                            'border-[#D4AF37] ring-1 ring-[#D4AF37]/30': content.pl.settings.color_preset === preset.id,
+                                                            'border-gray-200': content.pl.settings.color_preset !== preset.id
+                                                        }">
+                                                    <div class="flex items-center gap-2">
+                                                        <div class="w-8 h-8 rounded-sm border border-gray-300 shrink-0 shadow-inner" :style="'background:' + presetSwatchColor(preset.id)"></div>
+                                                        <span class="text-xs font-semibold text-slate-800 leading-tight" x-text="preset.label"></span>
+                                                    </div>
+                                                </button>
+                                            </template>
                                         </div>
                                     </div>
                                     <div class="pt-6 border-t border-gray-100">
                                         <h4 class="text-xs font-bold text-slate-700 uppercase tracking-widest mb-3">Skrót: gotowe zestawy</h4>
+                                        <p class="text-xs text-slate-500 mb-3 leading-relaxed">Kolor, tło i fonty jednym kliknięciem — dostępne na każdym planie.</p>
                                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                                             <div class="md:col-span-2">
                                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Wybierz zestaw</label>
@@ -1145,7 +1109,60 @@
                                                 Zastosuj
                                             </button>
                                         </div>
-                                        <p class="text-xs text-slate-500 mt-2">Jednym klikiem ustawia kolor, tło i fonty — potem możesz dopracować ręcznie.</p>
+                                        <p class="text-xs text-slate-500 mt-2">Jednym klikiem ustawia kolor, tło i fonty — potem możesz dopracować ręcznie (w Standard).</p>
+                                    </div>
+                                    <div class="pt-6 border-t border-gray-100">
+                                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-widest mb-3">Własna personalizacja</h4>
+                                        <p class="text-xs text-slate-500 mb-4 leading-relaxed">Wybór własnego koloru akcentu, tła i fontów — od pakietu Standard.</p>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:items-start">
+                                            <div class="relative rounded-lg border border-slate-200/80 bg-slate-50/80 p-4" :class="isCustomAppearanceLocked ? 'opacity-50' : ''">
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Własny kolor akcentu</label>
+                                                <div class="flex flex-wrap items-center gap-3" :class="isCustomAppearanceLocked ? 'pointer-events-none' : ''">
+                                                    <input type="color" :value="appearancePickerAccentHex" @input="onCustomAccentColorInput($event)" class="h-11 w-14 cursor-pointer rounded-lg border border-slate-300 bg-white p-0.5 shadow-inner" aria-label="Wybierz kolor akcentu">
+                                                    <div class="flex items-center gap-2 min-w-0">
+                                                        <div class="w-8 h-8 rounded-sm border border-gray-300 shadow-inner shrink-0" :style="`background:${accentColor}`"></div>
+                                                        <div class="text-xs font-mono text-slate-700 truncate" x-text="accentColor"></div>
+                                                    </div>
+                                                </div>
+                                                <button type="button" x-show="isCustomAppearanceLocked" x-cloak @click="promptAppearanceUpgrade()" class="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/50 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40" aria-label="Odblokuj własny kolor — Standard">
+                                                    <span class="text-2xl leading-none" aria-hidden="true">🔒</span>
+                                                </button>
+                                            </div>
+                                            <div class="space-y-4">
+                                                <div class="relative">
+                                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Własny styl tła</label>
+                                                    <select x-model="content.pl.settings.background_style"
+                                                            @change="onCustomBackgroundStyleGuard($event)"
+                                                            :disabled="isCustomAppearanceLocked"
+                                                            class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white"
+                                                            :class="isCustomAppearanceLocked ? 'pointer-events-none' : ''">
+                                                        <option value="clean">Clean</option>
+                                                        <option value="glow">Glow (premium)</option>
+                                                        <option value="soft">Soft (delikatne)</option>
+                                                        <option value="smoky">Smoky (barber / luxe)</option>
+                                                    </select>
+                                                    <button type="button" x-show="isCustomAppearanceLocked" x-cloak @click="promptAppearanceUpgrade()" class="absolute inset-0 z-10 flex items-end justify-end p-2 cursor-pointer rounded-lg bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40" aria-label="Odblokuj własne tło">
+                                                        <span class="text-lg leading-none drop-shadow-sm" aria-hidden="true">🔒</span>
+                                                    </button>
+                                                </div>
+                                                <div class="relative">
+                                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Własny wybór fontu</label>
+                                                    <select x-model="content.pl.settings.font_preset"
+                                                            @change="onCustomFontPresetGuard($event)"
+                                                            :disabled="isCustomAppearanceLocked"
+                                                            class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white"
+                                                            :class="isCustomAppearanceLocked ? 'pointer-events-none' : ''">
+                                                        <option value="inter">Inter + Playfair</option>
+                                                        <option value="poppins">Poppins + Playfair</option>
+                                                        <option value="barber">Oswald + Playfair</option>
+                                                        <option value="elegant">Cormorant + Inter</option>
+                                                    </select>
+                                                    <button type="button" x-show="isCustomAppearanceLocked" x-cloak @click="promptAppearanceUpgrade()" class="absolute inset-0 z-10 flex items-end justify-end p-2 cursor-pointer rounded-lg bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40" aria-label="Odblokuj własny font">
+                                                        <span class="text-lg leading-none drop-shadow-sm" aria-hidden="true">🔒</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </section>

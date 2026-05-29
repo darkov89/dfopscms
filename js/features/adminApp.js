@@ -613,6 +613,20 @@
         const p = this.subscriptionPlan;
         return p === 'trial' || p === 'tier0';
       },
+
+      /** Trial / Starter — bez własnego koloru, fontu i tła (presety i zestawy są wolne). */
+      get isCustomAppearanceLocked() {
+        if (typeof window.DFOPS_planAllowsCustomAppearance === 'function') {
+          return !window.DFOPS_planAllowsCustomAppearance(this.subscriptionPlan);
+        }
+        const p = this.subscriptionPlan;
+        return p === 'trial' || p === 'tier0';
+      },
+
+      get appearancePickerAccentHex() {
+        if (this.appearancePickerHex) return this.appearancePickerHex;
+        return this.accentColor || '#D4AF37';
+      },
       /** Na localhost podgląd wskazuje plik .html — brak pliku = proxy (Epik 3). */
       get previewHtmlBasename() {
         const t = String(this.theme || 'beauty').trim().toLowerCase();
@@ -1174,33 +1188,103 @@
         else this.userPlan = 'starter';
       },
 
-      isLocked(index) {
-        return this.userPlan === 'starter' && index > 0;
+      /** Gotowe palety kolorów — zawsze dostępne (freemium). */
+      isLocked() {
+        return false;
       },
 
       presetSwatchColor(presetId) {
         return (cfg.accentByPreset && cfg.accentByPreset[presetId]) || '#a1a1aa';
       },
 
-      selectColorPreset(preset, index) {
+      selectColorPreset(preset) {
         if (!preset?.id || !this.content?.pl?.settings) return;
-        if (this.isLocked(index)) {
-          this.showToast('Ten kolor wymaga pakietu Standard!', 'error');
-          return;
-        }
         this.content.pl.settings.color_preset = preset.id;
+        this.appearancePickerHex = '';
         this.applyThemeStylingFromContent();
       },
 
-      enforceColorPresetForStarter() {
-        const presets = this.availablePresets;
-        if (!presets?.length || !this.content?.pl?.settings) return;
-        if (this.userPlan !== 'starter') return;
-        const idx = presets.findIndex((p) => p.id === this.content.pl.settings.color_preset);
-        if (idx > 0) {
-          this.content.pl.settings.color_preset = presets[0].id;
-          this.applyThemeStylingFromContent();
+      _hexColorDistance(hexA, hexB) {
+        const parse = (h) => {
+          const s = String(h || '')
+            .trim()
+            .replace(/^#/, '');
+          if (s.length === 3) {
+            return [
+              parseInt(s[0] + s[0], 16),
+              parseInt(s[1] + s[1], 16),
+              parseInt(s[2] + s[2], 16),
+            ];
+          }
+          if (s.length !== 6) return null;
+          return [parseInt(s.slice(0, 2), 16), parseInt(s.slice(2, 4), 16), parseInt(s.slice(4, 6), 16)];
+        };
+        const a = parse(hexA);
+        const b = parse(hexB);
+        if (!a || !b) return Infinity;
+        return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+      },
+
+      findPresetIdForAccentHex(hex) {
+        const presets = cfg.accentByPreset || {};
+        const current = this.content?.pl?.settings?.color_preset;
+        let bestId = typeof current === 'string' && current ? current : 'gold';
+        let best = Infinity;
+        for (const [id, color] of Object.entries(presets)) {
+          const d = this._hexColorDistance(hex, color);
+          if (d < best) {
+            best = d;
+            bestId = id;
+          }
         }
+        return bestId;
+      },
+
+      promptAppearanceUpgrade() {
+        this.showAppearanceUpgradeModal = true;
+      },
+
+      goAppearanceUpgrade() {
+        this.showAppearanceUpgradeModal = false;
+        this.setTab('subscription');
+      },
+
+      onCustomAccentColorInput(event) {
+        if (this.isCustomAppearanceLocked) {
+          this.promptAppearanceUpgrade();
+          return;
+        }
+        const hex = event?.target?.value;
+        if (!hex || !this.content?.pl?.settings) return;
+        this.appearancePickerHex = hex;
+        this.content.pl.settings.color_preset = this.findPresetIdForAccentHex(hex);
+        this.applyThemeStylingFromContent();
+      },
+
+      onCustomFontPresetGuard(event) {
+        if (!this.isCustomAppearanceLocked) {
+          this.applyThemeStylingFromContent();
+          return;
+        }
+        if (event?.target && this.content?.pl?.settings) {
+          event.target.value = this.content.pl.settings.font_preset;
+        }
+        this.promptAppearanceUpgrade();
+      },
+
+      onCustomBackgroundStyleGuard(event) {
+        if (!this.isCustomAppearanceLocked) {
+          this.applyThemeStylingFromContent();
+          return;
+        }
+        if (event?.target && this.content?.pl?.settings) {
+          event.target.value = this.content.pl.settings.background_style;
+        }
+        this.promptAppearanceUpgrade();
+      },
+
+      enforceColorPresetForStarter() {
+        /* Freemium: wszystkie gotowe presety kolorów dostępne na każdym planie. */
       },
 
       init() {
@@ -1787,17 +1871,11 @@
       applyStyleBundle() {
         const bundle = this.styleBundles.find((b) => b.id === this.selectedStyleBundle);
         if (!bundle || !this.content?.pl?.settings) return;
-        const presets = this.availablePresets;
-        const cIdx = presets.findIndex((p) => p.id === bundle.color_preset);
-        if (this.userPlan === 'starter' && cIdx > 0) {
-          this.showToast('Ten zestaw wymaga pakietu Standard (pełna paleta kolorów).', 'error');
-          return;
-        }
         this.content.pl.settings.color_preset = bundle.color_preset;
         this.content.pl.settings.background_style = bundle.background_style;
         this.content.pl.settings.font_preset = bundle.font_preset;
+        this.appearancePickerHex = '';
         this.applyThemeStylingFromContent();
-        this.enforceColorPresetForStarter();
       },
       validateWizardStep(step) {
         const pl = this.content?.pl;
@@ -2493,6 +2571,9 @@
       mapPlaceLoading: false,
       mapPlaceError: '',
       mapPlaceSelectedId: null,
+
+      showAppearanceUpgradeModal: false,
+      appearancePickerHex: '',
 
       googleReviewsPlaceInput: '',
       googleReviewsPlaceResults: [],
