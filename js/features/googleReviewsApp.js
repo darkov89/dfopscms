@@ -66,10 +66,12 @@
 
           const gr = c[l]?.settings?.google_reviews || c[l]?.google_reviews;
           const query = gr?.place_query?.trim();
+          const placeId = gr?.place_id?.trim();
+          const hasGoogleSource = !!(query || placeId);
           const isDemoCatalog = !!c[l]?.settings?.is_demo_catalog;
           const ownReviews = Array.isArray(c[l]?.reviews) ? c[l].reviews : [];
 
-          if (query) {
+          if (hasGoogleSource) {
             if (ownReviews.length) {
               this.hydrateFromContent();
             } else {
@@ -81,12 +83,12 @@
             return;
           }
 
-          if (!query && isDemoCatalog && ownReviews.length) {
+          if (!hasGoogleSource && isDemoCatalog && ownReviews.length) {
             this.hydrateFromContent();
-          } else if (query === '' || (gr && !query)) {
+          } else if (gr && !hasGoogleSource) {
             this.loading = false;
             this._demoReviewsKey = null;
-            this.error = 'Brak konfiguracji place_query.';
+            this.error = 'Brak konfiguracji wizytówki Google.';
           } else {
             this.loading = false;
           }

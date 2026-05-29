@@ -168,6 +168,86 @@ function normalizeReview(r: ReviewRaw | null) {
   };
 }
 
+async function fetchPlaceReviewsBundle(
+  placeId: string,
+  maxReviews: number,
+  googleApiKey: string,
+): Promise<
+  | {
+      ok: true;
+      placeId: string;
+      placeName: string;
+      placeRating: number | null;
+      userRatingCount: number | null;
+      reviews: ReturnType<typeof normalizeReview>[];
+      debug?: { detailsError: string };
+    }
+  | { ok: false; stage: string; httpStatus?: number; errorText?: string; placeId?: string }
+> {
+  const detailsUrl = `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`;
+
+  const detailsReq = await fetchWithTimeout(
+    detailsUrl,
+    {
+      method: "GET",
+      headers: {
+        "X-Goog-Api-Key": googleApiKey,
+        "X-Goog-FieldMask": "displayName,reviews,rating,userRatingCount",
+      },
+    },
+    9000,
+  );
+
+  if (!detailsReq.ok) {
+    return {
+      ok: false,
+      stage: "place_details",
+      placeId,
+      httpStatus: detailsReq.resp.status,
+      errorText: detailsReq.text,
+    };
+  }
+
+  const detailsJson = (detailsReq.json ?? {}) as PlaceDetailsResponse;
+  const detailsError =
+    typeof detailsJson?.error === "object"
+      ? (detailsJson.error as { message?: string })?.message
+      : typeof detailsJson?.error === "string"
+      ? detailsJson.error
+      : detailsJson?.error_message ?? null;
+  const reviews = Array.isArray(detailsJson?.reviews) ? detailsJson.reviews : [];
+
+  const normalized = reviews.slice(0, maxReviews).map(normalizeReview);
+
+  const placeRating =
+    typeof detailsJson?.rating === "number"
+      ? detailsJson.rating
+      : detailsJson?.rating != null
+      ? Number(detailsJson.rating)
+      : null;
+  const userRatingCount =
+    typeof detailsJson?.userRatingCount === "number"
+      ? detailsJson.userRatingCount
+      : detailsJson?.userRatingCount != null
+      ? Number(detailsJson.userRatingCount)
+      : null;
+
+  return {
+    ok: true,
+    placeId,
+    placeName:
+      typeof detailsJson?.displayName === "object" && detailsJson.displayName?.text
+        ? String(detailsJson.displayName.text)
+        : typeof detailsJson?.displayName === "string"
+        ? detailsJson.displayName
+        : "",
+    placeRating: Number.isFinite(placeRating) ? placeRating : null,
+    userRatingCount: Number.isFinite(userRatingCount) ? userRatingCount : null,
+    reviews: normalized,
+    debug: detailsError ? { detailsError } : undefined,
+  };
+}
+
 serve(async (req) => {
   const cors = buildCorsHeaders(req);
   if (!cors) {
@@ -236,6 +316,7 @@ serve(async (req) => {
     maxResults?: unknown;
     listPlaces?: boolean;
     embed_for_place_id?: string;
+    reviews_for_place_id?: string;
   } = {};
   try {
     payload = (await req.json()) as typeof payload;
@@ -355,6 +436,29 @@ serve(async (req) => {
     });
   }
 
+  /** Panel: opinie po wybranym place_id (bez searchText). */
+  if (typeof payload.reviews_for_place_id === "string" && payload.reviews_for_place_id.trim() !== "") {
+    const placeId = sanitizePlaceIdForEmbed(payload.reviews_for_place_id);
+    if (!placeId) {
+      return new Response(JSON.stringify({ ok: false, error: "Nieprawidłowe reviews_for_place_id." }), {
+        status: 400,
+        headers: { ...cors, "content-type": "application/json; charset=utf-8" },
+      });
+    }
+    const maxReviews = safeToInt(payload?.maxReviews, 6);
+    const bundle = await fetchPlaceReviewsBundle(placeId, maxReviews, googleApiKey);
+    if (!bundle.ok) {
+      return new Response(JSON.stringify(bundle), {
+        status: 502,
+        headers: { ...cors, "content-type": "application/json; charset=utf-8" },
+      });
+    }
+    return new Response(JSON.stringify(bundle), {
+      status: 200,
+      headers: { ...cors, "content-type": "application/json; charset=utf-8" },
+    });
+  }
+
   const query = typeof payload?.query === "string" ? payload.query.trim() : "";
   const maxReviews = safeToInt(payload?.maxReviews, 6);
 
@@ -409,63 +513,16 @@ serve(async (req) => {
     }), { status: 200, headers: { ...cors, "content-type": "application/json; charset=utf-8" } });
   }
 
-  const detailsUrl = `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`;
-
-  const detailsReq = await fetchWithTimeout(
-    detailsUrl,
-    {
-      method: "GET",
-      headers: {
-        "X-Goog-Api-Key": googleApiKey,
-        "X-Goog-FieldMask": "displayName,reviews,rating,userRatingCount",
-      },
-    },
-    9000,
-  );
-
-  if (!detailsReq.ok) {
-    return new Response(JSON.stringify({
-      ok: false,
-      stage: "place_details",
-      placeId,
-      httpStatus: detailsReq.resp.status,
-      errorText: detailsReq.text,
-    }), { status: 502, headers: { ...cors, "content-type": "application/json; charset=utf-8" } });
+  const bundle = await fetchPlaceReviewsBundle(placeId, maxReviews, googleApiKey);
+  if (!bundle.ok) {
+    return new Response(JSON.stringify(bundle), {
+      status: 502,
+      headers: { ...cors, "content-type": "application/json; charset=utf-8" },
+    });
   }
 
-  const detailsJson = (detailsReq.json ?? {}) as PlaceDetailsResponse;
-  const detailsError =
-    typeof detailsJson?.error === "object"
-      ? (detailsJson.error as { message?: string })?.message
-      : typeof detailsJson?.error === "string"
-      ? detailsJson.error
-      : detailsJson?.error_message ?? null;
-  const reviews = Array.isArray(detailsJson?.reviews) ? detailsJson.reviews : [];
-
-  const normalized = reviews
-    .slice(0, maxReviews)
-    .map(normalizeReview);
-
-  const placeRating =
-    typeof detailsJson?.rating === "number"
-      ? detailsJson.rating
-      : detailsJson?.rating != null
-      ? Number(detailsJson.rating)
-      : null;
-  const userRatingCount =
-    typeof detailsJson?.userRatingCount === "number"
-      ? detailsJson.userRatingCount
-      : detailsJson?.userRatingCount != null
-      ? Number(detailsJson.userRatingCount)
-      : null;
-
-  return new Response(JSON.stringify({
-    ok: true,
-    placeId,
-    placeName: detailsJson?.displayName?.text ?? detailsJson?.displayName ?? "",
-    placeRating: Number.isFinite(placeRating) ? placeRating : null,
-    userRatingCount: Number.isFinite(userRatingCount) ? userRatingCount : null,
-    reviews: normalized,
-    debug: detailsError ? { detailsError } : undefined,
-  }), { status: 200, headers: { ...cors, "content-type": "application/json; charset=utf-8" } });
+  return new Response(JSON.stringify(bundle), {
+    status: 200,
+    headers: { ...cors, "content-type": "application/json; charset=utf-8" },
+  });
 });

@@ -293,7 +293,7 @@
         </section>
 
         <!-- Google Reviews (Zaufanie) — nad kontaktem, karuzela -->
-        <template x-if="content[lang].google_reviews?.place_query">
+        <template x-if="(content[lang].google_reviews?.place_query || content[lang].google_reviews?.place_id)">
             <section class="py-20 px-4 sm:px-6 bg-sattva-accent overflow-hidden">
                 <div class="max-w-5xl mx-auto">
                     <div class="text-center mb-8 reveal">

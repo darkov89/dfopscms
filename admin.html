@@ -35,10 +35,10 @@
     <script defer src="js/core/pageRepository.js?v=20260403t"></script>
     <script defer src="js/core/planUtils.js?v=20260522b"></script>
     <script defer src="js/core/billingProfileView.js?v=20260523a"></script>
-    <script defer src="js/core/googlePlacesSync.js?v=20260522c"></script>
+    <script defer src="js/core/googlePlacesSync.js?v=20260522d"></script>
     <script defer src="js/core/analytics.js?v=20260403t"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260525c"></script>
+    <script defer src="js/features/adminApp.js?v=20260522d"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -1903,9 +1903,23 @@
                                 <p class="text-xs text-slate-500 mt-2 leading-relaxed">Np. „Opinie z Google” — nagłówek nad blokiem opinii.</p>
                             </div>
                             <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Place query (nazwa + miasto)</label>
-                                <input type="text" x-model="content.pl.google_reviews.place_query" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="np. Sattva Gabinet Terapii Naturalnych, Wrocław">
-                                <p class="text-xs text-slate-500 mt-2 leading-relaxed">Przy publikacji strony pobieramy opinie z Google (wymaga zalogowania w panelu). Goście widzą zapisane opinie w <code class="text-[11px]">content.pl.reviews</code>.</p>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Wizytówka Google</label>
+                                <p class="text-xs text-slate-500 mb-3 leading-relaxed">Zacznij wpisywać nazwę firmy lub adres — wybierz swoją wizytówkę z listy. Przy publikacji opinie trafiają do treści strony (bez dodatkowych wywołań API u gości).</p>
+                                <input type="text" x-model="googleReviewsPlaceInput" @input="onGoogleReviewsPlaceInput()" placeholder="np. Sattva Gabinet Terapii Naturalnych, Wrocław" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                <p x-show="googleReviewsPlaceError" class="text-xs text-red-600 mt-2" x-text="googleReviewsPlaceError"></p>
+                                <p x-show="googleReviewsPlaceLoading" class="text-xs text-slate-500 mt-2">Szukam…</p>
+                                <ul x-show="googleReviewsPlaceResults.length" class="mt-3 max-h-48 divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-200/80 shadow-panel ring-1 ring-slate-900/5">
+                                    <template x-for="p in googleReviewsPlaceResults" :key="p.id">
+                                        <li class="flex items-start gap-2 p-2 hover:bg-slate-50/90 cursor-pointer" @click="selectGoogleReviewsPlace(p)">
+                                            <div class="min-w-0">
+                                                <div class="text-sm font-medium text-slate-900" x-text="p.name"></div>
+                                                <div class="text-xs text-slate-500" x-text="p.address"></div>
+                                            </div>
+                                        </li>
+                                    </template>
+                                </ul>
+                                <p x-show="googleReviewsPlaceSelectedId || content.pl.google_reviews?.place_id" class="text-xs text-emerald-800 mt-3">Wybrano wizytówkę — kliknij <strong>Publikuj zmiany</strong>, aby pobrać opinie.</p>
+                                <button type="button" x-show="googleReviewsPlaceInput || content.pl.google_reviews?.place_id || content.pl.google_reviews?.place_query" @click="clearGoogleReviewsPlaceSelection()" class="mt-3 rounded-lg border border-slate-200 px-4 py-2 text-xs font-bold uppercase text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/50">Usuń wybór</button>
                             </div>
                             <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Maks. liczba opinii</label>

@@ -116,7 +116,7 @@
                     <template x-if="content[lang].settings?.showTrust !== false && content[lang].trust?.quote">
                         <a href="#zaufanie" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.trust || 'Zaufanie'"></a>
                     </template>
-                    <template x-if="content[lang].google_reviews?.place_query || (content[lang].settings?.is_demo_catalog && (content[lang].reviews || []).length)">
+                    <template x-if="(content[lang].google_reviews?.place_query || content[lang].google_reviews?.place_id) || (content[lang].settings?.is_demo_catalog && (content[lang].reviews || []).length)">
                         <a href="#opinie" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.reviews || 'Opinie'"></a>
                     </template>
                     <template x-if="content[lang].settings?.showFaq !== false && content[lang].faq?.length">
@@ -317,7 +317,7 @@
             </div>
         </section>
 
-        <template x-if="content[lang].google_reviews?.place_query || (content[lang].settings?.is_demo_catalog && (content[lang].reviews || []).length)">
+        <template x-if="(content[lang].google_reviews?.place_query || content[lang].google_reviews?.place_id) || (content[lang].settings?.is_demo_catalog && (content[lang].reviews || []).length)">
             <section id="opinie" class="py-20 md:py-24 px-4 sm:px-6 bg-white overflow-hidden border-t border-slate-100">
                 <div class="max-w-6xl mx-auto">
                     <div class="text-center mb-10 reveal">

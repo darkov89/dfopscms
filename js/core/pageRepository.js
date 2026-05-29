@@ -281,7 +281,7 @@
     if (obj == null) return obj;
     if (typeof obj === 'string') {
       if (keyHint === 'map_embed_url') return sanitizeGoogleMapEmbedField(obj);
-      if (keyHint === 'map_place_id') return sanitizeMapPlaceId(obj);
+      if (keyHint === 'map_place_id' || keyHint === 'place_id') return sanitizeMapPlaceId(obj);
       if (keyHint === 'embed_url') return sanitizeGoogleReviewsEmbedField(obj);
       if (keyHint === 'gtm_id') return sanitizeGtmContainerId(obj);
       if (keyHint === 'fb_pixel_id') return sanitizeFbPixelIdField(obj);

@@ -42,6 +42,7 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 | **2026-05-22** | **Zombie webhooks:** `shouldIgnoreStaleBillingDowngradeWebhook` — stary `canceled`/`past_due` nie nadpisuje innej `active`/`trialing` sub w `billing_profiles`. |
 | **2026-05-22** | **Stripe returning customer:** checkout reuse `cus_…`; `upsertBillingProfile` + `resolvePageForStripeSubscription` (customer przed sub id). |
 | **2026-05-22** | **Panel:** `hasActivePaidSubscription` / `isSubscriptionCanceledButValid` — tylko Stripe (`sid`+status, `cancel_at_period_end`), bez `payment_completed`. |
+| **2026-05-22** | **Opinie Google (panel):** autocomplete wizytówki → `google_reviews.place_id`; Edge `reviews_for_place_id` + `listPlaces` (klucz tylko serwer). |
 | **2026-05-22** | **Panel billing UX:** `billingProfileReady` + `panelBootLoading` (bez migania banerów); toast wygasającej/zakończonej sub raz po `loadBillingProfile`; portal przy zakupie tylko `stripe_customer_id` + `active`/`trialing`/`past_due`; `create-checkout` reuse `customer` (bez `customer_email`). |
 | **2026-05-23** | **Refaktor rozliczeń:** cykle mies./rok, Starter/Standard/Custom, `billing_profiles`, landing `#cennik`, Edge deploy, migracja tier2→tier1 — commit **`72ea349`**. |
 | **2026-05-23** | **Lifting UI panelu (tylko HTML/CSS):** sidebar bez scrolla na desktopie (`.dfops-admin-sidebar-scroll`); top bar — sam **Publikuj zmiany** + `title`; Subskrypcja — karty odchudzone (`<details>` funkcji, `.dfops-plan-card`). Bez zmian JS. |

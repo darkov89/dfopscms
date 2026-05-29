@@ -23,11 +23,7 @@
     return data.embedUrl;
   }
 
-  async function fetchGoogleReviewsBundle(supabase, query, maxReviews) {
-    const { data, error } = await supabase.functions.invoke('get-google-reviews', {
-      body: { query, maxReviews: clampMaxReviews(maxReviews, 8) },
-    });
-    if (error) throw new Error(error.message || String(error));
+  async function parseGoogleReviewsInvokeData(data) {
     if (!data?.ok) {
       throw new Error(typeof data?.error === 'string' ? data.error : 'Błąd pobierania opinii Google.');
     }
@@ -37,6 +33,22 @@
       userRatingCount: data.userRatingCount ?? null,
       reviews: Array.isArray(data.reviews) ? data.reviews : [],
     };
+  }
+
+  async function fetchGoogleReviewsBundle(supabase, query, maxReviews) {
+    const { data, error } = await supabase.functions.invoke('get-google-reviews', {
+      body: { query, maxReviews: clampMaxReviews(maxReviews, 8) },
+    });
+    if (error) throw new Error(error.message || String(error));
+    return parseGoogleReviewsInvokeData(data);
+  }
+
+  async function fetchGoogleReviewsByPlaceId(supabase, placeId, maxReviews) {
+    const { data, error } = await supabase.functions.invoke('get-google-reviews', {
+      body: { reviews_for_place_id: placeId, maxReviews: clampMaxReviews(maxReviews, 8) },
+    });
+    if (error) throw new Error(error.message || String(error));
+    return parseGoogleReviewsInvokeData(data);
   }
 
   function apiReviewsToContentRows(apiReviews) {
@@ -70,14 +82,22 @@
     if (!pl || typeof pl !== 'object') return false;
     const gr = pl.google_reviews;
     if (!gr || typeof gr !== 'object') return false;
+    const placeId = String(gr.place_id || '').trim();
     const query = String(gr.place_query || '').trim();
-    if (!query) return false;
+    if (!placeId && !query) return false;
 
-    const bundle = await fetchGoogleReviewsBundle(supabase, query, gr.max_reviews);
+    const bundle = placeId
+      ? await fetchGoogleReviewsByPlaceId(supabase, placeId, gr.max_reviews)
+      : await fetchGoogleReviewsBundle(supabase, query, gr.max_reviews);
     const rows = apiReviewsToContentRows(bundle.reviews);
     if (rows.length) pl.reviews = rows;
 
-    gr.cached_place_id = bundle.placeId || '';
+    if (bundle.placeId) {
+      gr.place_id = bundle.placeId;
+      gr.cached_place_id = bundle.placeId;
+    } else {
+      gr.cached_place_id = '';
+    }
     gr.cached_place_rating =
       bundle.placeRating != null && Number.isFinite(Number(bundle.placeRating))
         ? Number(bundle.placeRating)
@@ -87,7 +107,7 @@
         ? Number(bundle.userRatingCount)
         : null;
     gr.google_synced_at = new Date().toISOString();
-    gr.google_sync_query = query;
+    gr.google_sync_query = placeId || query;
     return true;
   }
 
@@ -110,8 +130,11 @@
     }
 
     const gr = pl.google_reviews;
-    const query = gr && typeof gr === 'object' ? String(gr.place_query || '').trim() : '';
-    if (query) {
+    const hasReviewsSource =
+      gr &&
+      typeof gr === 'object' &&
+      (String(gr.place_id || '').trim() || String(gr.place_query || '').trim());
+    if (hasReviewsSource) {
       try {
         out.reviews = await syncGoogleReviewsIntoPl(supabase, pl);
       } catch (e) {
@@ -126,6 +149,7 @@
   window.DFOPS_googlePlacesSync = {
     fetchMapEmbedUrl,
     fetchGoogleReviewsBundle,
+    fetchGoogleReviewsByPlaceId,
     apiReviewsToContentRows,
     syncMapEmbedIntoContact,
     syncGoogleReviewsIntoPl,

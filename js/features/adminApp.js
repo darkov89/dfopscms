@@ -196,6 +196,7 @@
         google_reviews: {
           embed_url: '',
           place_query: '',
+          place_id: '',
           max_reviews: 6,
           title: 'Opinie z Google',
           cached_place_id: '',
@@ -726,6 +727,7 @@
         this.sidebarOpen = false;
         replaceAdminUrlHashForTab(tab);
         this.maybeSyncSubscriptionTabFromStripe();
+        if (tab === 'google_reviews') this.syncGoogleReviewsPlaceInputFromContent();
       },
 
       /** Gdy zmieni się motyw (lub wczytano stronę), ukryte zakładki nie zostawiają pustego widoku. */
@@ -2492,14 +2494,140 @@
       mapPlaceError: '',
       mapPlaceSelectedId: null,
 
+      googleReviewsPlaceInput: '',
+      googleReviewsPlaceResults: [],
+      googleReviewsPlaceLoading: false,
+      googleReviewsPlaceError: '',
+      googleReviewsPlaceSelectedId: null,
+      googleReviewsPlaceDebounceTimer: null,
+
+      formatPlacesListError(e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        return /401|JWT|Unauthorized/i.test(msg)
+          ? 'Brak uprawnień (401). Wdróż get-google-reviews z supabase/config.toml (verify_jwt) lub zaloguj się ponownie.'
+          : 'Nie udało się wyszukać. Sprawdź połączenie i czy funkcja get-google-reviews jest wdrożona.';
+      },
+
+      async invokePlacesList(query, maxResults = 8) {
+        if (!cfg.supabaseUrl || !cfg.supabaseAnonKey) {
+          throw new Error('Brak konfiguracji Supabase.');
+        }
+        const q = String(query || '').trim();
+        if (!q || q.length < 2) {
+          throw new Error('Wpisz co najmniej 2 znaki (nazwa firmy lub adres).');
+        }
+        const { data, error } = await this.supabase.functions.invoke('get-google-reviews', {
+          body: { query: q, maxResults, listPlaces: true },
+        });
+        if (error) throw new Error(error.message || String(error));
+        if (!data?.ok) {
+          throw new Error(typeof data?.error === 'string' ? data.error : 'Błąd wyszukiwania.');
+        }
+        return Array.isArray(data.places) ? data.places : [];
+      },
+
+      syncGoogleReviewsPlaceInputFromContent() {
+        const gr = this.content?.pl?.google_reviews;
+        if (!gr) return;
+        this.googleReviewsPlaceInput = String(gr.place_query || '').trim();
+        const pid = String(gr.place_id || '').trim();
+        this.googleReviewsPlaceSelectedId = pid || null;
+        this.googleReviewsPlaceResults = [];
+        this.googleReviewsPlaceError = '';
+      },
+
+      onGoogleReviewsPlaceInput() {
+        const input = String(this.googleReviewsPlaceInput || '').trim();
+        const gr = this.content?.pl?.google_reviews;
+        if (!gr) return;
+
+        if (!input) {
+          this.clearGoogleReviewsPlaceSelection();
+          return;
+        }
+
+        if (this.googleReviewsPlaceSelectedId) {
+          gr.place_id = '';
+          this.googleReviewsPlaceSelectedId = null;
+        }
+        gr.place_query = '';
+
+        if (this.googleReviewsPlaceDebounceTimer) {
+          clearTimeout(this.googleReviewsPlaceDebounceTimer);
+        }
+        this.googleReviewsPlaceDebounceTimer = setTimeout(() => {
+          this.googleReviewsPlaceDebounceTimer = null;
+          void this.searchGoogleReviewsPlaces();
+        }, 400);
+      },
+
+      async searchGoogleReviewsPlaces() {
+        const q = String(this.googleReviewsPlaceInput || '').trim();
+        if (!q || q.length < 2) {
+          this.googleReviewsPlaceResults = [];
+          return;
+        }
+        this.googleReviewsPlaceLoading = true;
+        this.googleReviewsPlaceError = '';
+        this.googleReviewsPlaceResults = [];
+        try {
+          const places = await this.invokePlacesList(q, 8);
+          this.googleReviewsPlaceResults = places;
+          if (!places.length) {
+            this.googleReviewsPlaceError = 'Brak wyników — spróbuj innej frazy (np. miasto + nazwa).';
+          }
+        } catch (e) {
+          console.error(e);
+          const msg = e instanceof Error ? e.message : String(e);
+          this.googleReviewsPlaceError =
+            msg === 'Wpisz co najmniej 2 znaki (nazwa firmy lub adres).'
+              ? msg
+              : this.formatPlacesListError(e);
+        } finally {
+          this.googleReviewsPlaceLoading = false;
+        }
+      },
+
+      selectGoogleReviewsPlace(place) {
+        if (!place?.id || !this.content?.pl) return;
+        if (!this.content.pl.google_reviews) {
+          this.content.pl.google_reviews = {
+            embed_url: '',
+            place_query: '',
+            place_id: '',
+            max_reviews: 6,
+            title: 'Opinie z Google',
+          };
+        }
+        const gr = this.content.pl.google_reviews;
+        gr.place_id = place.id;
+        gr.place_query = place.address ? `${place.name}, ${place.address}` : String(place.name || '').trim();
+        this.googleReviewsPlaceInput = gr.place_query;
+        this.googleReviewsPlaceSelectedId = place.id;
+        this.googleReviewsPlaceResults = [];
+        this.googleReviewsPlaceError = '';
+      },
+
+      clearGoogleReviewsPlaceSelection() {
+        const gr = this.content?.pl?.google_reviews;
+        if (gr) {
+          gr.place_id = '';
+          gr.place_query = '';
+        }
+        this.googleReviewsPlaceInput = '';
+        this.googleReviewsPlaceSelectedId = null;
+        this.googleReviewsPlaceResults = [];
+        this.googleReviewsPlaceError = '';
+        if (this.googleReviewsPlaceDebounceTimer) {
+          clearTimeout(this.googleReviewsPlaceDebounceTimer);
+          this.googleReviewsPlaceDebounceTimer = null;
+        }
+      },
+
       async searchPlacesForMap() {
         const q = (this.mapPlaceQuery || '').trim();
         if (!q || q.length < 2) {
           this.mapPlaceError = 'Wpisz co najmniej 2 znaki (nazwa firmy lub adres).';
-          return;
-        }
-        if (!cfg.supabaseUrl || !cfg.supabaseAnonKey) {
-          this.mapPlaceError = 'Brak konfiguracji Supabase.';
           return;
         }
         this.mapPlaceLoading = true;
@@ -2507,26 +2635,13 @@
         this.mapPlaceResults = [];
         this.mapPlaceSelectedId = null;
         try {
-          const { data, error } = await this.supabase.functions.invoke('get-google-reviews', {
-            body: { query: q, maxResults: 8, listPlaces: true },
-          });
-          if (error) {
-            throw new Error(error.message || String(error));
-          }
-          if (!data?.ok) {
-            throw new Error(typeof data?.error === 'string' ? data.error : 'Błąd wyszukiwania.');
-          }
-          this.mapPlaceResults = Array.isArray(data.places) ? data.places : [];
+          this.mapPlaceResults = await this.invokePlacesList(q, 8);
           if (!this.mapPlaceResults.length) {
             this.mapPlaceError = 'Brak wyników — spróbuj innej frazy (np. miasto + nazwa).';
           }
         } catch (e) {
           console.error(e);
-          const msg = e instanceof Error ? e.message : String(e);
-          this.mapPlaceError =
-            /401|JWT|Unauthorized/i.test(msg)
-              ? 'Brak uprawnień (401). Wdróż get-google-reviews z supabase/config.toml (verify_jwt) lub zaloguj się ponownie.'
-              : 'Nie udało się wyszukać. Sprawdź połączenie i czy funkcja get-google-reviews jest wdrożona.';
+          this.mapPlaceError = this.formatPlacesListError(e);
         } finally {
           this.mapPlaceLoading = false;
         }

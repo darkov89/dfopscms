@@ -303,7 +303,7 @@
         faq: [],
         contact: { email: '', phone: '', address: '', booksyUrl: '', map_embed_url: '', map_place_id: '' },
         social: { linkedin: '', facebook: '', instagram: '', tiktok: '' },
-        google_reviews: { embed_url: '', place_query: '', max_reviews: 6, title: 'Opinie z Google' },
+        google_reviews: { embed_url: '', place_query: '', place_id: '', max_reviews: 6, title: 'Opinie z Google' },
         reviews: [],
         seo: { title: '', description: '', ogImage: '' },
         legal: { enabled: false, privacy_policy: '', terms: '' },

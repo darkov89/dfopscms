@@ -199,6 +199,9 @@
     if (!pl.google_reviews) pl.google_reviews = { embed_url: '', place_query: '', max_reviews: 6, title: 'Opinie z Google' };
     if (pl.google_reviews.embed_url === undefined) pl.google_reviews.embed_url = '';
     if (pl.google_reviews.place_query === undefined) pl.google_reviews.place_query = '';
+    if (pl.google_reviews.place_id === undefined || pl.google_reviews.place_id === null) {
+      pl.google_reviews.place_id = '';
+    }
     if (pl.google_reviews.max_reviews === undefined) pl.google_reviews.max_reviews = 6;
     if (pl.google_reviews.title === undefined) pl.google_reviews.title = 'Opinie z Google';
     if (pl.google_reviews.cached_place_id === undefined) pl.google_reviews.cached_place_id = '';
