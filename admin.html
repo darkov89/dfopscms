@@ -26,19 +26,19 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
-    <script defer src="js/core/config.js?v=20260601b"></script>
+    <script defer src="js/core/config.js?v=20260601c"></script>
     <script defer src="js/core/supabaseClient.js?v=20260403t"></script>
     <script defer src="js/templates/registry.js?v=20260404c"></script>
     <script defer src="js/core/contentSchema.js?v=20260404c"></script>
     <script defer src="js/core/contentUpgrader.js?v=20260404c"></script>
     <script defer src="js/core/themeStyling.js?v=20260404c"></script>
-    <script defer src="js/core/pageRepository.js?v=20260601a"></script>
+    <script defer src="js/core/pageRepository.js?v=20260601c"></script>
     <script defer src="js/core/planUtils.js?v=20260522e"></script>
     <script defer src="js/core/billingProfileView.js?v=20260523a"></script>
     <script defer src="js/core/googlePlacesSync.js?v=20260522d"></script>
     <script defer src="js/core/analytics.js?v=20260403t"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260601b"></script>
+    <script defer src="js/features/adminApp.js?v=20260601c"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -546,9 +546,14 @@
 
                 <div class="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-end lg:w-auto lg:max-w-none lg:shrink-0">
                     <div class="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 sm:gap-x-5">
+                        <span x-show="content && panelContentReady" x-cloak class="hidden items-center gap-1.5 text-xs text-slate-400 sm:inline-flex" aria-live="polite">
+                            <span x-show="draftSaving" class="inline-flex items-center gap-1.5 animate-pulse"><span class="h-1.5 w-1.5 rounded-full bg-amber-400"></span>Zapisuję roboczo…</span>
+                            <span x-show="!draftSaving && !hasUnsavedChanges && draftSavedOnce" class="inline-flex items-center gap-1.5"><span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>Zapisano roboczo</span>
+                        </span>
+
                         <a id="dfcms-onboarding-site-preview"
                            :href="getPublicSiteUrl()"
-                           :title="previewUsesHtmlFallback ? 'Motyw bez dedykowanego pliku HTML — podgląd używa beauty.html (localhost).' : ''"
+                           :title="previewUsesHtmlFallback ? 'Motyw bez dedykowanego pliku HTML — podgląd używa beauty.html (localhost).' : 'Otwiera podgląd Twojej wersji roboczej (draft) — nic nie publikuje'"
                            target="_blank" rel="noopener noreferrer"
                            class="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900">Podgląd strony</a>
 

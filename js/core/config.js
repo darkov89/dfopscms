@@ -162,6 +162,8 @@
       apiTimeout: 25000,
       abortTimeout: 12000,
       slugDebounce: 400,
+      /** Cichy auto-save stanu roboczego (draft_content) po zakończeniu pisania. */
+      draftAutosave: 1000,
       redirectDelay: 800,
       errorMessage: 5000,
       successMessage: 3000,

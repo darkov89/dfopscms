@@ -362,6 +362,27 @@
   }
 
   /**
+   * Podgląd roboczy (draft) WYŁĄCZNIE dla zalogowanego właściciela strony.
+   * Zwraca `draft_content` tylko gdy istnieje sesja i `user_id` zgadza się z właścicielem rekordu
+   * (RLS + filtr) — anonimowy gość nigdy nie otrzyma wersji roboczej. Szczelne oddzielenie draft/content.
+   */
+  async function getDraftContentForOwner(slug) {
+    const slugTrimmed = typeof slug === 'string' ? slug.trim() : '';
+    if (!slugTrimmed) return { data: null, error: null };
+    const {
+      data: { user } = { user: null },
+    } = await supabase().auth.getUser();
+    if (!user?.id) return { data: null, error: null };
+    const { data, error } = await supabase()
+      .from('pages')
+      .select('draft_content')
+      .eq('slug', slugTrimmed)
+      .eq('user_id', user.id)
+      .maybeSingle();
+    return { data: data?.draft_content || null, error };
+  }
+
+  /**
    * Strona przypisana do niestandardowej domeny (SaaS). Kolumny: custom_domain, custom_domain_status.
    * Hostname bez www — normalizuj przed wywołaniem (np. w routerze).
    */
@@ -416,6 +437,7 @@
 
   window.DFOPS_pageRepository = {
     getPageBySlug,
+    getDraftContentForOwner,
     getPageByCustomDomain,
     isSlugAvailable,
     getCurrentUserPage,

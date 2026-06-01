@@ -340,6 +340,10 @@
       _toastTimer: null,
       hasUnsavedChanges: false,
       _stopContentWatch: null,
+      /** Cichy auto-save stanu roboczego (draft_content). */
+      _draftAutosaveTimer: null,
+      draftSaving: false,
+      draftSavedOnce: false,
       upgrading: false,
       checkoutLoading: false,
       /** Okres rozliczenia na ekranie pakietów: monthly | yearly */
@@ -1800,7 +1804,10 @@
                 this._stopContentWatch = null;
               }
               this.hasUnsavedChanges = false;
-              this._stopContentWatch = this.$watch('content', () => { this.hasUnsavedChanges = true; }, { deep: true });
+              this._stopContentWatch = this.$watch('content', () => {
+                this.hasUnsavedChanges = true;
+                this.scheduleDraftAutosave();
+              }, { deep: true });
             }, 0);
           });
         } finally {
@@ -2509,6 +2516,35 @@
         return true;
       },
 
+      /**
+       * Cichy auto-save (debounce) stanu roboczego — jak w Webflow/Framer.
+       * Pisze WYŁĄCZNIE do `draft_content`; publiczne `content` zmienia tylko „Publikuj”.
+       */
+      scheduleDraftAutosave() {
+        if (!this.pageId || !this.user?.id || this.isLoading || this.isForcedPasswordReset) return;
+        if (this._draftAutosaveTimer) clearTimeout(this._draftAutosaveTimer);
+        const delay = (cfg?.timeouts?.draftAutosave) ?? 1000;
+        this._draftAutosaveTimer = setTimeout(() => {
+          this._draftAutosaveTimer = null;
+          void this.autosaveDraftNow();
+        }, delay);
+      },
+
+      async autosaveDraftNow() {
+        if (!this.content?.pl || !this.pageId || !this.user?.id) return;
+        if (this.isLoading || this.saving || this.draftSaving) return;
+        this.draftSaving = true;
+        try {
+          const ok = await this._persistDraft({ silent: true });
+          if (ok) {
+            this.hasUnsavedChanges = false;
+            this.draftSavedOnce = true;
+          }
+        } finally {
+          this.draftSaving = false;
+        }
+      },
+
       /** Auto-save / zapis roboczy panelu — trafia tylko do `draft_content`. Publikacja: `publishChanges()`. */
       async saveData(opts) {
         const options = opts && typeof opts === 'object' ? opts : {};
@@ -2594,8 +2630,13 @@
           this._publishedContentRaw = JSON.parse(JSON.stringify(this.content));
           this._publishedTheme = this.theme;
           this.hasUnsavedChanges = false;
+          if (this._draftAutosaveTimer) {
+            clearTimeout(this._draftAutosaveTimer);
+            this._draftAutosaveTimer = null;
+          }
           if (!silentSuccess) {
             this.message = 'Zmiany zostały opublikowane!';
+            this.showToast('Zmiany zostały opublikowane i są widoczne dla klientów.', 'success');
             setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
           }
           return true;

@@ -457,13 +457,34 @@
             return;
           }
 
-          if (expectedTheme && page.theme && page.theme !== expectedTheme) {
+          /**
+           * Podgląd roboczy (Live Preview): TYLKO gdy `dfcms_preview=1` i zalogowany właściciel.
+           * Anonimowy gość nigdy tu nie wchodzi (brak sesji → brak draftu) — publiczna ścieżka bez zmian.
+           */
+          const isPreview = urlParams.get('dfcms_preview') === '1';
+          let previewDraft = null;
+          if (isPreview && typeof repo.getDraftContentForOwner === 'function') {
+            try {
+              const draftRes = await repo.getDraftContentForOwner(page.slug);
+              if (draftRes && draftRes.data && draftRes.data.pl) previewDraft = draftRes.data;
+            } catch (_) {
+              previewDraft = null;
+            }
+          }
+
+          // Redirect na właściwy plik motywu tylko dla wersji opublikowanej; w podglądzie draftu
+          // panel sam wybiera plik wg motywu roboczego (unikamy gubienia parametru dfcms_preview).
+          if (!previewDraft && expectedTheme && page.theme && page.theme !== expectedTheme) {
             window.location.replace(this.buildThemePageUrl(page));
             return;
           }
 
-          this.theme = page.theme || expectedTheme;
-          this.content = window.DFOPS_normalizeContent(page.content, this.theme);
+          const renderSource = previewDraft || page.content;
+          this.theme =
+            (previewDraft && previewDraft.pl?.settings?.theme && String(previewDraft.pl.settings.theme).trim()) ||
+            page.theme ||
+            expectedTheme;
+          this.content = window.DFOPS_normalizeContent(renderSource, this.theme);
           normalizeEmbedFields(this.content);
           window.DFOPS_applyThemeStyling(this.content?.pl?.settings, this.theme, 'public');
 
