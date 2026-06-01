@@ -463,12 +463,30 @@
            */
           const isPreview = urlParams.get('dfcms_preview') === '1';
           let previewDraft = null;
-          if (isPreview && typeof repo.getDraftContentForOwner === 'function') {
+          if (isPreview) {
+            // 1) Handoff z panelu przez localStorage — działa w nowej karcie niezależnie od
+            //    sesji/„Zapamiętaj mnie” (sessionStorage nie jest dziedziczony przez nową kartę).
+            //    Tylko przeglądarka właściciela ma ten wpis → szczelne wobec anona.
             try {
-              const draftRes = await repo.getDraftContentForOwner(page.slug);
-              if (draftRes && draftRes.data && draftRes.data.pl) previewDraft = draftRes.data;
+              const raw = window.localStorage.getItem('dfops_preview_draft:' + page.slug);
+              if (raw) {
+                const parsed = JSON.parse(raw);
+                const fresh = parsed && parsed.ts && Date.now() - parsed.ts < 30 * 60 * 1000;
+                if (fresh && parsed.slug === page.slug && parsed.content && parsed.content.pl) {
+                  previewDraft = parsed.content;
+                }
+              }
             } catch (_) {
               previewDraft = null;
+            }
+            // 2) Fallback: draft z bazy dla zalogowanego właściciela (gdy handoff niedostępny).
+            if (!previewDraft && typeof repo.getDraftContentForOwner === 'function') {
+              try {
+                const draftRes = await repo.getDraftContentForOwner(page.slug);
+                if (draftRes && draftRes.data && draftRes.data.pl) previewDraft = draftRes.data;
+              } catch (_) {
+                previewDraft = null;
+              }
             }
           }
 

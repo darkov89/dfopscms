@@ -662,6 +662,27 @@
         if (this.theme === entry.id) return;
         this.switchTemplate(entry.id);
       },
+      /**
+       * Handoff wersji roboczej do karty podglądu przez localStorage (współdzielony między kartami
+       * tego samego originu, niezależnie od „Zapamiętaj mnie”/sessionStorage). Tylko przeglądarka
+       * właściciela ma ten wpis — anon nigdy → szczelne oddzielenie draft/content.
+       */
+      stashDraftForPreview() {
+        try {
+          if (!this.slug || !this.content?.pl) return;
+          const payload = {
+            slug: this.slug,
+            theme: this.theme,
+            content: this.content,
+            ts: Date.now(),
+          };
+          window.localStorage.setItem('dfops_preview_draft:' + this.slug, JSON.stringify(payload));
+        } catch (_) {
+          /* brak localStorage — fallback do draftu z bazy (getDraftContentForOwner) */
+        }
+        // Najświeższy draft także w bazie (gdyby auto-save jeszcze nie zdążył).
+        void this.autosaveDraftNow();
+      },
       getPublicSiteUrl() {
         const preview = 'dfcms_preview=1';
         if (!this.slug || !this.theme) return '#';
@@ -2576,6 +2597,25 @@
         }
       },
 
+      /**
+       * Pozytywne tarcie dla głównego przycisku „Publikuj zmiany”: nie strzela od razu do bazy —
+       * najpierw freemium-guard, potem modal potwierdzenia. Właściwy zapis robi dopiero `confirmPublish()`.
+       */
+      requestPublish() {
+        if (!this.content?.pl || this.isLoading || this.saving || !this.pageId) return;
+        if (this.isPublishBlockedByPlan) {
+          this.showPublishUpgradeModal = true;
+          return;
+        }
+        this.showPublishConfirmModal = true;
+      },
+
+      /** Potwierdzenie z modala — uruchamia właściwą publikację; modal znika dopiero po sukcesie. */
+      async confirmPublish() {
+        const ok = await this.publishChanges();
+        if (ok) this.showPublishConfirmModal = false;
+      },
+
       /** Publikacja: kopiuje stan roboczy do `content` (widok publiczny) + synchronizuje `draft_content`. */
       async publishChanges(opts) {
         const options = opts && typeof opts === 'object' ? opts : {};
@@ -2760,6 +2800,8 @@
 
       showAppearanceUpgradeModal: false,
       showPublishUpgradeModal: false,
+      /** Pozytywne tarcie: potwierdzenie przed publikacją draft_content → content. */
+      showPublishConfirmModal: false,
       appearancePickerHex: '',
       /** Migawka opublikowanej treści (kolumna `content`) — pod „Odrzuć zmiany”. */
       _publishedContentRaw: null,
