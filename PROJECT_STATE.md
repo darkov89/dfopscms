@@ -3,7 +3,7 @@
 > **Przeznaczenie:** jeden plik w korzeniu repozytorium do aktualizacji **na koniec sesji** (ludzie + agenci), żeby zachować ciągłość decyzji architektonicznych, produktowych i operacyjnych.  
 > **Nie zastępuje** `README.md` (start, deploy, struktura katalogów), ale je **uzupełnia** o „co wiemy o systemie teraz”.
 
-**Ostatnia aktualizacja treści:** 2026-05-25 — rejestracja / Stripe (anty-zombie, invoice Basil); panel **Opinie Google:** autocomplete wizytówki → `place_id` (`listPlaces` / `reviews_for_place_id`, klucz tylko Edge)
+**Ostatnia aktualizacja treści:** 2026-06-01 — **Draft vs Published** w panelu (`pages.draft_content`); panel **Opinie Google** autocomplete (`place_id`); freemium kolory/fonty + blokada publikacji premium motywu
 
 ---
 
@@ -109,6 +109,7 @@ Użytkownik → Auth (Supabase) → pages.content (JSON) + pages.billing_plan + 
 - **Stripe:** sekret webhooka tylko po stronie Edge; klient anon w przeglądarce.
 - **Google Maps / Places (`get-google-reviews`):** po CORS i `POST` — twarda walidacja `Authorization` + `auth.getUser()`; **401** bez sesji użytkownika. Klucz **`GOOGLE_MAPS_API_KEY`** tylko na Edge (brak Maps JS w panelu). **Panel:** zakładka **Opinie z Google** — autocomplete wizytówki (`listPlaces`); w treści **`google_reviews.place_id`** + etykieta **`place_query`**; sync opinii: **`reviews_for_place_id`** gdy jest `place_id`, inaczej legacy **`query`**. **`googlePlacesSync.js`** przy **Publikuj** uzupełnia też mapę (`contact.map_embed_url`) i `reviews` + `cached_*`. **Widok publiczny:** tylko dane z bazy; sekcja Google gdy `place_query` lub `place_id`. Istniejące strony z samym `place_query` — bez zmian do ponownego wyboru z listy.
 - **Rozliczenia (Stripe):** tabela **`billing_profiles`** (zapis: Edge `service_role`); **`pages.billing_plan`** — lustrzany plan dla anon (watermark, blokada trial). W **`pages.content`** zostają wyłącznie pola trial (`trial_started_at`, `selected_plan`, opcjonalnie `payment_completed`). Panel: `loadBillingProfile()` + `billingProfileView.js`; webhook/sync/checkout/portal → `stripeBilling.ts`.
+- **Draft vs Published (panel):** kolumna **`pages.draft_content`** (migracja `20260601155000`) = stan roboczy kreatora; **`pages.content`** = wersja publiczna (renderowana przez strony klientów — czytają **wyłącznie `content`**, zero regresji). `loadData` startuje na `draft_content` (fallback `content` gdy draft pusty; jednorazowy init draftu). **`saveData`** (auto-save, kroki kreatora, switchTemplate, wybór planu) zapisuje **tylko `draft_content`**. **`publishChanges()`** (przycisk „Publikuj zmiany” + koniec kreatora + podpięcie domeny) kopiuje `draft_content`→`content` (+ `theme`, `color_preset`, `custom_domain`, odblokowanie trialu, sync Google) i trzyma `draft_content`==`content`. **`revertChanges()`** („Odrzuć zmiany”) przywraca edytor do opublikowanej migawki (`_publishedContentRaw`) i nadpisuje `draft_content`. **Freemium publikacji:** `cfg.premiumThemes` (domyślnie puste) — premium motyw na trial/Starter można edytować i podglądać, ale `publishChanges` blokuje publikację (🔒 na przycisku + modal upgrade).
 
 ---
 

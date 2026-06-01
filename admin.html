@@ -26,19 +26,19 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
-    <script defer src="js/core/config.js?v=20260522b"></script>
+    <script defer src="js/core/config.js?v=20260601a"></script>
     <script defer src="js/core/supabaseClient.js?v=20260403t"></script>
     <script defer src="js/templates/registry.js?v=20260404c"></script>
     <script defer src="js/core/contentSchema.js?v=20260404c"></script>
     <script defer src="js/core/contentUpgrader.js?v=20260404c"></script>
     <script defer src="js/core/themeStyling.js?v=20260404c"></script>
-    <script defer src="js/core/pageRepository.js?v=20260403t"></script>
+    <script defer src="js/core/pageRepository.js?v=20260601a"></script>
     <script defer src="js/core/planUtils.js?v=20260522e"></script>
     <script defer src="js/core/billingProfileView.js?v=20260523a"></script>
     <script defer src="js/core/googlePlacesSync.js?v=20260522d"></script>
     <script defer src="js/core/analytics.js?v=20260403t"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260522e"></script>
+    <script defer src="js/features/adminApp.js?v=20260601a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -445,6 +445,19 @@
             </div>
         </div>
 
+        <div x-show="showPublishUpgradeModal" x-cloak class="fixed inset-0 z-[264] flex items-center justify-center p-4 bg-black/55 backdrop-blur-[2px]" @click.self="showPublishUpgradeModal = false" role="dialog" aria-modal="true" aria-labelledby="dfops-publish-upgrade-title">
+            <div class="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-panel-md ring-1 ring-slate-900/10">
+                <button type="button" class="absolute top-3 right-3 text-slate-400 hover:text-slate-800 text-xl leading-none" @click="showPublishUpgradeModal = false" aria-label="Zamknij">×</button>
+                <p class="text-3xl mb-3" aria-hidden="true">🔒</p>
+                <h2 id="dfops-publish-upgrade-title" class="text-lg font-bold text-slate-900 mb-2">Publikacja premium motywu</h2>
+                <p class="text-sm text-slate-600 leading-relaxed">Ten motyw możesz edytować i podglądać na darmowym planie, ale jego <strong class="text-slate-900">publikacja na żywo</strong> wymaga planu Premium (w panelu pakiet <strong class="text-slate-900">Standard</strong>).</p>
+                <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                    <button type="button" @click="showPublishUpgradeModal = false; setTab('subscription')" class="flex-1 rounded-lg bg-accent px-4 py-3 text-xs font-bold uppercase tracking-widest text-accent-fg transition-colors hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2">Ulepsz pakiet</button>
+                    <button type="button" @click="showPublishUpgradeModal = false" class="flex-1 rounded-lg border-2 border-slate-200 px-4 py-3 text-xs font-semibold text-slate-800 transition-colors hover:border-slate-300 hover:bg-slate-50/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/50 focus-visible:ring-offset-2">Zamknij</button>
+                </div>
+            </div>
+        </div>
+
         <div x-show="showSuccessModal" x-cloak class="fixed inset-0 z-[265] flex items-center justify-center p-4 bg-black/55 backdrop-blur-[2px]" @click.self="closeSuccessModal()" role="dialog" aria-modal="true" aria-labelledby="dfops-payment-success-title">
             <div class="bg-white max-w-md w-full rounded-2xl shadow-2xl relative border border-amber-100/80 overflow-hidden" @click.stop>
                 <div class="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#D4AF37] via-amber-200 to-[#D4AF37]"></div>
@@ -539,9 +552,18 @@
                            target="_blank" rel="noopener noreferrer"
                            class="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900">Podgląd strony</a>
 
-                        <button @click="saveData()" x-show="content && panelContentReady" type="button"
-                                title="Zapisz i opublikuj stronę na żywo"
-                                class="inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-lg border border-slate-800 bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2">
+                        <button @click="revertChanges()" x-show="content && panelContentReady" type="button"
+                                :disabled="saving"
+                                title="Odrzuć zmiany robocze i przywróć aktualnie opublikowaną wersję"
+                                class="inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/50 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                            Odrzuć zmiany
+                        </button>
+
+                        <button @click="publishChanges()" x-show="content && panelContentReady" type="button"
+                                :disabled="saving"
+                                :title="isPublishBlockedByPlan ? 'Publikacja tego motywu wymaga planu Premium' : 'Skopiuj stan roboczy do wersji publicznej (na żywo)'"
+                                class="inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-slate-800 bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60">
+                            <span x-show="isPublishBlockedByPlan" x-cloak aria-hidden="true">🔒</span>
                             <span x-show="!saving">Publikuj zmiany</span>
                             <span x-show="saving" x-cloak class="animate-pulse">Zapisywanie…</span>
                         </button>

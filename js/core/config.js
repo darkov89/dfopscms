@@ -40,6 +40,12 @@
     },
     appDomain: 'dfcms.pl',
     /**
+     * Motywy premium (freemium): edycja i podgląd dozwolone na każdym planie,
+     * ale PUBLIKACJA na żywo wymaga planu płatnego. Pusta lista = brak ograniczeń
+     * (obecnie wszystkie motywy beauty/consultant/fitness/services są dostępne dla wszystkich).
+     */
+    premiumThemes: [],
+    /**
      * Opcjonalnie nadpisz URL w resetPasswordForEmail (musi być w Supabase → Authentication → Redirect URLs).
      * Puste = automatycznie: na localhost origin/admin.html; na domenie produkcyjnej https://{appDomain}/admin.html.
      */

@@ -387,7 +387,7 @@
   async function getCurrentUserPage(userId) {
     const { data, error } = await supabase()
       .from('pages')
-      .select('id, slug, theme, content, color_preset, custom_domain, custom_domain_status, trial_blocked_at, billing_failed_at, billing_plan')
+      .select('id, slug, theme, content, draft_content, color_preset, custom_domain, custom_domain_status, trial_blocked_at, billing_failed_at, billing_plan')
       .eq('user_id', userId)
       .maybeSingle();
     return { data: data || null, error };
@@ -395,7 +395,9 @@
 
   async function saveCurrentUserPage(userId, payload) {
     const safe = { ...payload };
+    // Sanityzacja dotyczy obu wariantów treści: publikowanej (`content`) oraz roboczej (`draft_content`).
     if (safe.content) safe.content = sanitizeContent(safe.content);
+    if (safe.draft_content) safe.draft_content = sanitizeContent(safe.draft_content);
     const { data, error } = await supabase()
       .from('pages')
       .update(safe)

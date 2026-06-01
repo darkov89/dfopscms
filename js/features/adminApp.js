@@ -1705,15 +1705,31 @@
           }
           this.pageId = data.id;
           this.slug = data.slug;
-          this.theme = data.theme;
           this.trialBlockedAt = data.trial_blocked_at ?? null;
           this.showTrialSuspendedModal = !!this.trialBlockedAt;
           this.customDomain = data.custom_domain || '';
           this.customDomainStatus = data.custom_domain_status || '';
+
+          /**
+           * Draft vs Published: panel pracuje na stanie roboczym (`draft_content`).
+           * Gdy draft jest pusty/niespójny — startujemy od opublikowanej kolumny `content`.
+           */
+          const draftRaw =
+            data.draft_content && typeof data.draft_content === 'object' ? data.draft_content : null;
+          const usingDraft = !!(draftRaw && draftRaw.pl);
+          const workingRaw = usingDraft ? draftRaw : data.content;
+          this.theme =
+            (workingRaw?.pl?.settings?.theme && String(workingRaw.pl.settings.theme).trim()) ||
+            data.theme;
+
+          /** Migawka opublikowanej wersji (kolumna `content`) — pod akcję „Odrzuć zmiany” (revert do produkcji). */
+          this._publishedContentRaw = data.content ?? null;
+          this._publishedTheme = data.theme;
+
           /** Z Supabase bez normalizacji — jeśli true, pomijamy modal i Driver.js także przy pustym localStorage kreatora. */
           const serverWelcomeOnboardingDone =
-            data?.content?.pl?.settings?.welcome_onboarding_completed === true;
-          this.content = window.DFOPS_normalizeContent(data.content, this.theme);
+            workingRaw?.pl?.settings?.welcome_onboarding_completed === true;
+          this.content = window.DFOPS_normalizeContent(workingRaw, this.theme);
           if (serverWelcomeOnboardingDone && this.content?.pl?.settings) {
             this.content.pl.settings.welcome_onboarding_completed = true;
           }
@@ -1732,6 +1748,12 @@
           this.syncUserPlanFromBilling();
           this.applyThemeStylingFromContent();
           this.enforceColorPresetForStarter();
+
+          /** Pierwsze wejście po migracji (draft pusty): utrwalamy spójny stan roboczy = opublikowana treść. */
+          if (!usingDraft && this.pageId && this.user?.id) {
+            void this._persistDraft({ silent: true });
+          }
+
           const fromHash = parseAdminTabFromHash();
           if (fromHash) this.activeTab = fromHash;
           this.ensureActiveTabForTheme();
@@ -2002,7 +2024,8 @@
         }
         this.wizardFieldWarning = '';
         this.content[this.lang].settings.onboarding_completed = true;
-        const ok = await this.saveData({ silentSuccess: true });
+        /** Koniec kreatora = pierwsza publikacja na żywo (przycisk „Opublikuj moją stronę”). */
+        const ok = await this.publishChanges({ silentSuccess: true });
         if (!ok) return;
         this.showWizard = false;
         this.wizardStep = 0;
@@ -2365,12 +2388,12 @@
           this.syncUserPlanFromBilling();
           this.enforceColorPresetForStarter();
           this.applyThemeStylingFromContent();
-          const { error } = await repo.saveCurrentUserPage(this.user.id, { content: this.content });
-          if (error) throw error;
+          const ok = await this._persistDraft({ silent: false });
+          if (!ok) throw new Error('template upgrade draft save failed');
           this.currentTemplateVersion = this.latestTemplateVersion;
           this.updateAvailable = false;
           this.hasUnsavedChanges = false;
-          this.message = `Szablon zaktualizowany do v${this.latestTemplateVersion}.`;
+          this.message = `Szablon zaktualizowany do v${this.latestTemplateVersion}. Kliknij „Publikuj zmiany”, aby udostępnić.`;
           setTimeout(() => { this.message = ''; }, UPGRADE_MESSAGE_TIMEOUT);
         } catch (e) {
           console.error(e);
@@ -2397,7 +2420,7 @@
           return;
         }
 
-        const saved = await this.saveData();
+        const saved = await this.publishChanges();
         if (!saved) {
           this.domainError = 'Nie udało się zapisać zmian — domena nie została zgłoszona do Cloudflare. Popraw błędy i spróbuj ponownie.';
           this.domainMessage = '';
@@ -2452,11 +2475,71 @@
           this.verifyingDomain = false;
         }
       },
+      /** Czy plan pozwala publikować premium motyw. Premium = lista `cfg.premiumThemes` (domyślnie pusta → brak regresji). */
+      get isPremiumDraftTheme() {
+        const premium = Array.isArray(cfg?.premiumThemes) ? cfg.premiumThemes : [];
+        return premium.includes(String(this.theme || '').trim());
+      },
+      /** Freemium: na darmowym planie (trial/Starter) premium motyw można edytować i podglądać, ale NIE publikować. */
+      get isPublishBlockedByPlan() {
+        return this.isPremiumDraftTheme && this.isCustomAppearanceLocked;
+      },
+
+      /** Zapis WYŁĄCZNIE stanu roboczego (`draft_content`) — nic nie trafia na stronę publiczną. */
+      async _persistDraft(opts) {
+        const options = opts && typeof opts === 'object' ? opts : {};
+        if (!this.content?.pl || !this.pageId || !this.user?.id) return false;
+        if (this.content.pl.settings) this.content.pl.settings.theme = this.theme;
+        const { error } = await repo.saveCurrentUserPage(this.user.id, { draft_content: this.content });
+        if (error) {
+          if (!options.silent) console.error(error);
+          return false;
+        }
+        return true;
+      },
+
+      /** Auto-save / zapis roboczy panelu — trafia tylko do `draft_content`. Publikacja: `publishChanges()`. */
       async saveData(opts) {
         const options = opts && typeof opts === 'object' ? opts : {};
         const silentSuccess = options.silentSuccess === true;
         const successMessage = typeof options.successMessage === 'string' ? options.successMessage : '';
         if (!this.content?.pl || this.isLoading || !this.pageId) return false;
+        this.saving = true;
+        try {
+          if (Array.isArray(this.content.pl.services)) {
+            this.content.pl.services = this.content.pl.services.filter((s) => s.title && String(s.title).trim() !== '');
+          }
+          this.content.pl.settings.template_version = this.latestTemplateVersion;
+          this.content.pl.settings.theme = this.theme;
+          const ok = await this._persistDraft({ silent: silentSuccess });
+          if (!ok) throw new Error('draft save failed');
+          this.hasUnsavedChanges = false;
+          if (!silentSuccess) {
+            this.message = successMessage || 'Zapisano roboczo. Kliknij „Publikuj zmiany”, aby pokazać je na stronie.';
+            setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
+          }
+          return true;
+        } catch (e) {
+          console.error(e);
+          this.showError('Nie udało się zapisać zmian roboczych. Sprawdź połączenie i spróbuj ponownie.');
+          this.showToast('Nie udało się zapisać zmian. Sprawdź połączenie i spróbuj ponownie.', 'error');
+          return false;
+        } finally {
+          this.saving = false;
+        }
+      },
+
+      /** Publikacja: kopiuje stan roboczy do `content` (widok publiczny) + synchronizuje `draft_content`. */
+      async publishChanges(opts) {
+        const options = opts && typeof opts === 'object' ? opts : {};
+        const silentSuccess = options.silentSuccess === true;
+        if (!this.content?.pl || this.isLoading || !this.pageId) return false;
+
+        if (this.isPublishBlockedByPlan) {
+          this.showPublishUpgradeModal = true;
+          return false;
+        }
+
         this.saving = true;
         try {
           const syncFn = window.DFOPS_googlePlacesSync?.syncGooglePlacesForPublish;
@@ -2476,6 +2559,7 @@
           this.content.pl.settings.theme = this.theme;
           const payload = {
             content: this.content,
+            draft_content: this.content,
             color_preset: this.content.pl.settings.color_preset,
             theme: this.theme,
           };
@@ -2495,17 +2579,67 @@
           if (this.subscriptionPaymentActive()) {
             this.trialBlockedAt = null;
           }
+          /** Migawka produkcji po udanej publikacji — żeby „Odrzuć zmiany” wracało do świeżo opublikowanej wersji. */
+          this._publishedContentRaw = JSON.parse(JSON.stringify(this.content));
+          this._publishedTheme = this.theme;
           this.hasUnsavedChanges = false;
           if (!silentSuccess) {
-            this.message = successMessage || 'Zmiany zostały opublikowane!';
+            this.message = 'Zmiany zostały opublikowane!';
             setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
           }
           return true;
         } catch (e) {
           console.error(e);
-          this.showError('Nie udało się zapisać zmian. Sprawdź połączenie i spróbuj ponownie. Jeśli błąd się powtarza, napisz do nas.');
-          this.showToast('Nie udało się zapisać zmian. Sprawdź połączenie i spróbuj ponownie.', 'error');
+          this.showError('Nie udało się opublikować zmian. Sprawdź połączenie i spróbuj ponownie. Jeśli błąd się powtarza, napisz do nas.');
+          this.showToast('Nie udało się opublikować zmian. Sprawdź połączenie i spróbuj ponownie.', 'error');
           return false;
+        } finally {
+          this.saving = false;
+        }
+      },
+
+      /** Odrzucenie zmian roboczych — przywraca edytor do aktualnie opublikowanej wersji (`content`). */
+      async revertChanges() {
+        if (!this.pageId || !this.user?.id) return;
+        if (!this._publishedContentRaw) {
+          this.showToast('Brak opublikowanej wersji do przywrócenia.', 'error');
+          return;
+        }
+        if (!confirm('Odrzucić zmiany robocze i przywrócić aktualnie opublikowaną wersję strony? Tej operacji nie można cofnąć.')) {
+          return;
+        }
+        this.saving = true;
+        try {
+          const publishedTheme =
+            (this._publishedContentRaw?.pl?.settings?.theme &&
+              String(this._publishedContentRaw.pl.settings.theme).trim()) ||
+            this._publishedTheme ||
+            this.theme;
+          this.theme = publishedTheme;
+          this.content = window.DFOPS_normalizeContent(
+            JSON.parse(JSON.stringify(this._publishedContentRaw)),
+            publishedTheme,
+          );
+          if (
+            this.content?.pl?.settings &&
+            typeof window.DFOPS_stripBillingFromContentSubscription === 'function'
+          ) {
+            this.content.pl.settings.subscription = window.DFOPS_stripBillingFromContentSubscription(
+              this.content.pl.settings.subscription,
+            );
+          }
+          this.selectedStyleBundle = '';
+          this.appearancePickerHex = '';
+          this.syncUserPlanFromBilling();
+          this.applyThemeStylingFromContent();
+          const ok = await this._persistDraft({ silent: true });
+          if (!ok) throw new Error('revert persist failed');
+          this.hasUnsavedChanges = false;
+          this.message = 'Przywrócono opublikowaną wersję strony.';
+          setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
+        } catch (e) {
+          console.error(e);
+          this.showError('Nie udało się przywrócić wersji opublikowanej.');
         } finally {
           this.saving = false;
         }
@@ -2573,7 +2707,11 @@
       mapPlaceSelectedId: null,
 
       showAppearanceUpgradeModal: false,
+      showPublishUpgradeModal: false,
       appearancePickerHex: '',
+      /** Migawka opublikowanej treści (kolumna `content`) — pod „Odrzuć zmiany”. */
+      _publishedContentRaw: null,
+      _publishedTheme: '',
 
       googleReviewsPlaceInput: '',
       googleReviewsPlaceResults: [],
