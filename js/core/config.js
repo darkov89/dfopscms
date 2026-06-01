@@ -56,6 +56,12 @@
     notificationsEmail: 'notifications@dfops.eu',
     systemDomains: ['dfcms.pl', 'localhost', '127.0.0.1'],
     localHosts: ['localhost', '127.0.0.1'],
+    /**
+     * Panel na stagingu / preview deploy — „Podgląd strony” na tym samym originie
+     * (`/{theme}.html?site=slug&dfcms_preview=1`), nie na produkcyjną subdomenę.
+     */
+    previewSameOriginHosts: ['staging.dfcms.pl'],
+    previewSameOriginHostPatterns: [/\.pages\.dev$/i],
     accentByPreset: {
       gold: '#D4AF37',
       navy: '#2B3A67',
@@ -191,9 +197,25 @@
     },
   };
 
+  /**
+   * Czy panel działa poza produkcyjnym apexem (staging / Cloudflare preview).
+   * Wtedy podgląd strony = ten sam host co admin.html, z parametrem ?site=.
+   */
+  function panelPreviewUsesSameOrigin() {
+    if (typeof window === 'undefined' || !window.location?.hostname) return false;
+    const h = String(window.location.hostname).replace(/^www\./i, '').toLowerCase();
+    const appDomain = String(APP_CONFIG.appDomain || 'dfcms.pl').toLowerCase();
+    if (h === appDomain) return false;
+    const hosts = APP_CONFIG.previewSameOriginHosts || [];
+    if (hosts.some((x) => String(x).toLowerCase() === h)) return true;
+    const patterns = APP_CONFIG.previewSameOriginHostPatterns || [];
+    return patterns.some((re) => re.test(h));
+  }
+
   window.DFOPS_CONFIG = APP_CONFIG;
   window.DFOPS_IS_LOCALHOST = isLocalhost;
   window.DFOPS_SUPABASE_URL = SUPABASE_URL;
   window.DFOPS_SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
+  window.DFOPS_panelPreviewUsesSameOrigin = panelPreviewUsesSameOrigin;
 })();
 

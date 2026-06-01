@@ -660,17 +660,28 @@
       },
       getPublicSiteUrl() {
         const preview = 'dfcms_preview=1';
+        if (!this.slug || !this.theme) return '#';
+        const siteQs = `site=${encodeURIComponent(this.slug)}&${preview}`;
+
+        const isLocalhost =
+          window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const useSameOrigin =
+          isLocalhost ||
+          (typeof window.DFOPS_panelPreviewUsesSameOrigin === 'function' &&
+            window.DFOPS_panelPreviewUsesSameOrigin());
+
+        if (useSameOrigin) {
+          const path = `/${this.previewHtmlBasename}.html?${siteQs}`;
+          if (isLocalhost) return path;
+          const origin = String(window.location.origin || '').replace(/\/$/, '');
+          return origin ? `${origin}${path}` : path;
+        }
+
         const hostCustom = typeof this.customDomain === 'string' ? this.customDomain.trim() : '';
         if (hostCustom && this.customDomainStatus === 'active') {
           const h = hostCustom.replace(/^https?:\/\//i, '').split('/')[0];
           return `https://${h}/?${preview}`;
         }
-        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        if (isLocalhost) {
-          if (!this.slug || !this.theme) return '#';
-          return `/${this.previewHtmlBasename}.html?site=${encodeURIComponent(this.slug)}&${preview}`;
-        }
-        if (!this.slug) return '#';
         const base = (cfg.appDomain || 'dfcms.pl').toLowerCase();
         return `https://${this.slug}.${base}/?${preview}`;
       },
