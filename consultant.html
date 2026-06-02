@@ -36,15 +36,15 @@
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
-    <script defer src="js/core/config.js?v=20260601c"></script>
+    <script defer src="js/core/config.js?v=20260602b"></script>
     <script defer src="js/core/supabaseClient.js"></script>
     <script defer src="js/templates/registry.js"></script>
     <script defer src="js/core/contentSchema.js"></script>
     <script defer src="js/core/contentUpgrader.js"></script>
     <script defer src="js/core/themeStyling.js"></script>
-    <script defer src="js/core/pageRepository.js?v=20260601c"></script>
-    <script defer src="js/core/planUtils.js"></script>
-    <script defer src="js/features/publicSiteApp.js?v=20260601d"></script>
+    <script defer src="js/core/pageRepository.js?v=20260602b"></script>
+    <script defer src="js/core/planUtils.js?v=20260602b"></script>
+    <script defer src="js/features/publicSiteApp.js?v=20260602b"></script>
     <script defer src="js/features/googleReviewsApp.js"></script>
     <script defer src="js/features/cookieConsentApp.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
@@ -617,11 +617,7 @@
         </div>
     </div>
 
-    <a x-show="content && (content[lang].settings?.subscription?.plan === 'trial' || content[lang].settings?.subscription?.plan === 'tier0')"
-       href="https://dfcms.pl" target="_blank"
-       class="fixed bottom-4 right-4 z-[100] bg-black/80 text-white text-xs font-sans px-4 py-2 rounded-full shadow-2xl backdrop-blur-md hover:bg-black transition-colors border border-white/10 flex items-center gap-2">
-        <span>⚡ Zbudowano w DFCMS</span>
-    </a>
+    <!-- Watermark jest sterowany przez `publicSiteApp.js` na podstawie `pages.billing_plan` (anon mirror). -->
 
     <div x-show="activeModal" x-cloak x-transition.opacity
          class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
