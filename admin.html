@@ -2115,8 +2115,8 @@
                                     <div x-show="subscriptionBlocksAccountDeletion" x-cloak class="mb-4 rounded-lg border border-amber-200 bg-amber-50/90 p-4 text-sm text-amber-950">
                                         <p class="font-bold text-amber-900 mb-2">Najpierw zrezygnuj z subskrypcji w Stripe</p>
                                         <p class="text-amber-900/90 leading-relaxed mb-3">Masz aktywną subskrypcję rozliczaną przez Stripe. Anuluj ją w portalu płatności (faktury, anulowanie). Gdy status subskrypcji w Stripe będzie <strong>anulowany</strong>, możesz poprosić o usunięcie konta.</p>
-                                        <button type="button" @click="setTab('subscription')" class="text-xs font-bold uppercase tracking-widest text-[#9a7b16] underline hover:text-[#121212] mr-4">Przejdź do subskrypcji</button>
-                                        <button type="button" @click="openCustomerPortal()" :disabled="isPortalLoading" class="text-xs font-bold uppercase tracking-widest text-[#9a7b16] underline hover:text-[#121212] disabled:opacity-50">Otwórz portal Stripe</button>
+                                        <button type="button" @click="setTab('subscription')" class="mr-3 text-sm font-semibold text-slate-800 underline decoration-slate-300 underline-offset-2 hover:text-slate-900">Przejdź do subskrypcji</button>
+                                        <button type="button" @click="openCustomerPortal()" :disabled="isPortalLoading" class="text-sm font-semibold text-slate-800 underline decoration-slate-300 underline-offset-2 hover:text-slate-900 disabled:opacity-50">Otwórz portal Stripe</button>
                                     </div>
                                     <p class="text-sm text-red-600 mb-4">Usunięcie konta jest nieodwracalne. Utracisz dostęp do swojej strony i wszystkich danych. Otworzymy szkic wiadomości e-mail do obsługi.</p>
                                     <button type="button"
@@ -2135,100 +2135,84 @@
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
                             <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Subskrypcja</h2>
                             <p x-show="!hasActivePaidSubscription" class="text-sm text-slate-600 leading-relaxed max-w-2xl">Masz 14 dni na wybranie pakietu i pierwszą opłatę. Dopóki płatność nie zostanie zaksięgowana, konto pozostaje w okresie próbnym — z ograniczeniami i komunikatem w panelu.</p>
-                            <p x-show="hasActivePaidSubscription && !isSubscriptionCanceledButValid" x-cloak class="text-sm text-slate-600 leading-relaxed max-w-2xl">Twoja subskrypcja jest aktywna. Poniżej status rozliczeń i skrót pakietu — w każdej chwili możesz przejść do porównania planów niżej.</p>
-                            <p x-show="isSubscriptionCanceledButValid" x-cloak class="text-sm leading-relaxed text-amber-900 max-w-2xl">Subskrypcja jest opłacona do końca bieżącego okresu, ale <strong>nie odnowi się</strong> — poniżej data zakończenia i link do portalu Stripe (wznów lub faktury).</p>
+                            <p x-show="hasActivePaidSubscription && !isSubscriptionCanceledButValid" x-cloak class="text-sm text-slate-600 leading-relaxed max-w-2xl">Status pakietu i rozliczenia w jednym miejscu. Zmiany karty, faktur i planu realizujesz w bezpiecznym portalu Stripe — poniżej skróty do najczęstszych akcji.</p>
+                            <p x-show="isSubscriptionCanceledButValid" x-cloak class="text-sm leading-relaxed text-slate-600 max-w-2xl">Subskrypcja jest opłacona do końca bieżącego okresu, ale <strong class="text-slate-900">nie odnowi się</strong>. Do tej daty masz pełny dostęp; w portalu Stripe możesz wznowić odnowienia lub pobrać faktury.</p>
                         </div>
 
-                        <div x-show="isSubscriptionCanceledButValid && showStripeBillingPortal" x-cloak class="mb-6 rounded-xl border border-amber-300/90 bg-gradient-to-br from-amber-50/98 to-orange-50/55 p-5 sm:p-6 shadow-panel ring-1 ring-amber-200/70 scroll-mt-24">
-                            <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-                                <div class="min-w-0 max-w-3xl">
-                                    <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-950/85 mb-2">Subskrypcja wygasająca</p>
-                                    <p class="text-sm leading-relaxed text-amber-950">
-                                        <strong>Twoja subskrypcja wygasa.</strong>
-                                        Nie zostanie pobrana kolejna opłata i nie odnowimy dostępu automatycznie po dniu
-                                        <strong class="tabular-nums" x-text="subscriptionRenewalDateFormatted"></strong>
-                                        — do tego dnia nadal korzystasz ze wszystkich funkcji wybranego pakietu. W portalu Stripe możesz w jednym miejscu
-                                        cofnąć zaplanowane zamknięcie, zmienić kartę oraz pobrać faktury.
-                                    </p>
-                                </div>
-                                <button type="button" @click="openCustomerPortal()" :disabled="isPortalLoading || saving" class="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-xl border border-orange-950/85 bg-gradient-to-b from-orange-900 to-orange-950 px-4 py-2 text-center text-xs font-semibold uppercase leading-tight tracking-widest text-white shadow-[0_12px_32px_-12px_rgba(194,65,12,0.55)] transition-all hover:from-orange-800 hover:to-orange-900 hover:shadow-[0_14px_36px_-10px_rgba(194,65,12,0.5)] focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-600/65 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 lg:min-h-0 lg:w-auto">
-                                    <span x-show="!isPortalLoading">Wznów subskrypcję w portalu Stripe</span>
-                                    <span x-show="isPortalLoading" x-cloak>Łączenie…</span>
-                                </button>
+                        <!-- Aktywna subskrypcja: jedna karta statusu + zarządzanie (spójne z resztą panelu) -->
+                        <div x-show="hasActivePaidSubscription" x-cloak id="dfops-subscription-overview" class="mb-8 rounded-xl border border-slate-200/70 bg-white shadow-panel ring-1 ring-slate-900/5 overflow-hidden scroll-mt-24">
+                            <!-- Alert: zaplanowane anulowanie -->
+                            <div x-show="isSubscriptionCanceledButValid" x-cloak class="border-b border-amber-200/80 bg-amber-50/90 px-6 py-4">
+                                <p class="text-xs font-bold uppercase tracking-widest text-amber-900 mb-1">Subskrypcja wygasa</p>
+                                <p class="text-sm leading-relaxed text-amber-950">
+                                    Dostęp do funkcji pakietu do <strong class="tabular-nums" x-text="subscriptionRenewalDateFormatted"></strong>.
+                                    Kolejna opłata nie zostanie pobrana — możesz cofnąć zamknięcie w portalu Stripe.
+                                </p>
                             </div>
-                        </div>
 
-                        <p x-show="!showStripeBillingPortal" class="mb-4 text-xs text-slate-500 leading-relaxed max-w-2xl">Portal Stripe (karta, faktury, anulowanie) pojawi się po pierwszej zaksięgowanej płatności — wtedy odblokujesz też pełne rozliczenia w jednym miejscu.</p>
-
-                        <div x-show="showStripeBillingPortal && !isSubscriptionCanceledButValid" x-cloak id="dfops-portal-stripe" class="mb-6 rounded-xl border border-[#D4AF37]/35 bg-gradient-to-br from-[#1a1816] via-[#141210] to-[#0f0e0c] p-5 sm:p-6 shadow-lg ring-1 ring-[#D4AF37]/20 scroll-mt-24">
-                            <p class="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.2em] mb-2">Portal rozliczeń Stripe</p>
-                            <p class="text-xs text-stone-400 mb-4 leading-relaxed max-w-2xl" x-show="canOpenPortalPlanChangeFlow()" x-cloak>Wybierz akcję — każdy przycisk otwiera właściwy krok w bezpiecznym portalu Stripe (bez szukania w menu).</p>
-                            <p class="text-xs text-stone-400 mb-4 leading-relaxed max-w-2xl" x-show="!canOpenPortalPlanChangeFlow()">Karta, faktury i rozliczenia — w portalu Stripe.</p>
-                            <div class="flex flex-col gap-3 sm:max-w-xl">
-                                <button type="button" x-show="canOpenPortalPlanChangeFlow()" x-cloak @click="openCustomerPortal({ subscriptionUpdate: true })" :disabled="isPortalLoading || saving" class="inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl border border-[#D4AF37]/70 bg-[#D4AF37] px-4 py-3 text-[10px] font-bold uppercase leading-tight tracking-widest text-[#121212] shadow-panel transition-colors hover:bg-[#c9a432] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/45 disabled:cursor-not-allowed disabled:opacity-50">
-                                    <span x-show="!isPortalLoading">Zmień pakiet (Starter / Standard)</span>
-                                    <span x-show="isPortalLoading" x-cloak>Łączenie…</span>
-                                </button>
-                                <button type="button" @click="openCustomerPortal()" :disabled="isPortalLoading || saving" class="inline-flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-xl border border-stone-500/60 bg-stone-900/40 px-4 py-2.5 text-[10px] font-bold uppercase leading-tight tracking-widest text-stone-200 transition-colors hover:border-stone-400 hover:bg-stone-800/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-stone-500/40 disabled:cursor-not-allowed disabled:opacity-50" :class="canOpenPortalPlanChangeFlow() ? '' : 'border-[#D4AF37]/70 bg-[#D4AF37] text-[#121212] hover:bg-[#c9a432]'">
-                                    <span x-show="!isPortalLoading && canOpenPortalPlanChangeFlow()" x-cloak>Faktury, karta i historia płatności</span>
-                                    <span x-show="!isPortalLoading && !canOpenPortalPlanChangeFlow()">Otwórz portal Stripe</span>
-                                    <span x-show="isPortalLoading" x-cloak>Łączenie…</span>
-                                </button>
-                                <div x-show="hasActivePaidSubscription && !isSubscriptionCanceledButValid" x-cloak class="pt-1 border-t border-white/10">
-                                    <p class="text-[11px] leading-relaxed text-amber-100/80 mb-2">Rezygnacja z odnowień — ankieta wyjścia i ewentualna retencja w Stripe.</p>
-                                    <button type="button" @click="openCustomerPortal({ subscriptionCancel: true })" :disabled="isPortalLoading || saving" class="inline-flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-xl border-2 border-red-400/60 bg-transparent px-4 py-2.5 text-[10px] font-bold uppercase leading-tight tracking-widest text-red-200 transition-colors hover:border-red-300 hover:bg-red-950/40 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400/50 disabled:cursor-not-allowed disabled:opacity-50">
-                                        <span x-show="!isPortalLoading">Anuluj subskrypcję</span>
-                                        <span x-show="isPortalLoading" x-cloak>Łączenie…</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div x-show="hasActivePaidSubscription" x-cloak class="mb-8 rounded-2xl border border-[#D4AF37]/35 bg-gradient-to-br from-white via-amber-50/30 to-white shadow-lg shadow-amber-900/5 ring-1 ring-black/5 overflow-hidden">
                             <div class="p-6 sm:p-8">
-                                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
-                                    <div class="min-w-0">
-                                        <p class="text-[10px] font-bold text-[#9a7b16] uppercase tracking-[0.2em] mb-2">Twój plan</p>
-                                        <p class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight" x-text="activeSubscriptionBrandLabel"></p>
-                                        <div class="mt-4 flex flex-wrap items-center gap-2">
-                                            <span x-show="hasActivePaidSubscription && !isSubscriptionCanceledButValid" class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold px-3 py-1 border border-emerald-200/80" x-cloak>
-                                                <span>Status:</span> Aktywny <span aria-hidden="true">✨</span>
+                                <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Twój plan</p>
+                                        <p class="text-2xl font-bold tracking-tight text-slate-900" x-text="activeSubscriptionBrandLabel"></p>
+                                        <div class="mt-3 flex flex-wrap items-center gap-2">
+                                            <span x-show="!isSubscriptionCanceledButValid" class="inline-flex items-center rounded-full border border-emerald-200/80 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800" x-cloak>Aktywny</span>
+                                            <span x-show="isSubscriptionCanceledButValid" class="inline-flex items-center rounded-full border border-amber-300/90 bg-amber-100 px-3 py-1 text-xs font-semibold tabular-nums text-amber-950" x-cloak>
+                                                Wygasa <span x-text="subscriptionRenewalDateBadgeShort"></span>
                                             </span>
-                                            <span x-show="isSubscriptionCanceledButValid" class="inline-flex max-w-full shrink-0 items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold tabular-nums text-amber-950 ring-1 ring-amber-300/90" x-cloak>
-                                                Wygasa&nbsp;<strong class="font-bold tracking-tight text-amber-950" x-text="subscriptionRenewalDateBadgeShort"></strong>
-                                            </span>
-                                            <span class="text-xs text-slate-500" x-show="content?.pl?.settings?.subscription?.status === 'active' && !isSubscriptionCanceledButValid" x-cloak>Płatność cykliczna</span>
-                                            <span class="text-xs text-amber-800 font-semibold" x-show="isSubscriptionCanceledButValid" x-cloak>Bez kolejnej faktury po tym okresie</span>
+                                            <span class="text-xs text-slate-500" x-show="!isSubscriptionCanceledButValid" x-cloak>Płatność cykliczna · Stripe</span>
                                         </div>
+                                        <p class="mt-4 text-xl font-bold tabular-nums text-slate-900" x-text="activeSubscriptionPriceLine"></p>
+                                        <p class="mt-1 text-xs text-slate-500">netto · +23% VAT · wg pakietu i okresu rozliczenia w Stripe</p>
                                     </div>
-                                    <div class="shrink-0 text-left sm:text-right">
-                                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1" x-show="!isSubscriptionCanceledButValid">Następna płatność</p>
-                                        <p class="text-[10px] font-bold text-amber-800 uppercase tracking-widest mb-1" x-show="isSubscriptionCanceledButValid" x-cloak>Koniec opłaconego okresu</p>
-                                        <p class="text-lg font-semibold text-slate-900 tabular-nums" x-text="subscriptionRenewalDateFormatted"></p>
-                                        <p class="text-[10px] text-slate-500 mt-2 uppercase tracking-wider" x-show="!isSubscriptionCanceledButValid">wg ustawień rozliczeń Stripe</p>
-                                        <p class="text-[10px] text-amber-800/90 mt-2 uppercase tracking-wider" x-show="isSubscriptionCanceledButValid" x-cloak>ostatni dzień pełnego dostępu do funkcji pakietu</p>
+                                    <div class="shrink-0 rounded-lg border border-slate-200/80 bg-slate-50/80 px-5 py-4 lg:min-w-[12rem] lg:text-right">
+                                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1" x-show="!isSubscriptionCanceledButValid">Następna płatność</p>
+                                        <p class="text-xs font-bold text-amber-800 uppercase tracking-widest mb-1" x-show="isSubscriptionCanceledButValid" x-cloak>Koniec okresu</p>
+                                        <p class="text-lg font-semibold tabular-nums text-slate-900" x-text="subscriptionRenewalDateFormatted"></p>
                                     </div>
                                 </div>
-                                <div class="mt-6 pt-6 border-t border-amber-100/80">
-                                    <div>
-                                        <div class="mb-3 flex flex-wrap items-center gap-2">
-                                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Kwota miesięczna</p>
-                                            <span class="inline-flex items-center rounded-md border border-amber-900/15 bg-amber-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-950">rozliczenia co miesiąc</span>
+
+                                <!-- Zarządzanie przez Stripe -->
+                                <div x-show="showStripeBillingPortal" x-cloak id="dfops-portal-stripe" class="mt-8 border-t border-slate-200/80 pt-8">
+                                    <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between mb-5">
+                                        <div>
+                                            <h3 class="text-sm font-bold text-slate-900">Zarządzanie rozliczeniami</h3>
+                                            <p class="mt-1 text-xs text-slate-500 leading-relaxed max-w-xl">Karta, faktury i zmiana planu — w bezpiecznym portalu Stripe. Każdy przycisk otwiera właściwy krok.</p>
                                         </div>
-                                        <p class="text-xl font-black tabular-nums tracking-tight text-[#121212]" x-text="activeSubscriptionPriceLine"></p>
-                                        <p class="mt-2 text-[11px] font-medium text-slate-700">Kwota pobierana <strong class="font-semibold text-slate-900">co miesiąc</strong> przez Stripe — do zmiany lub anulowania w portalu.</p>
-                                        <p class="text-xs text-slate-500 mt-1.5">+ 23% VAT · wg pakietu</p>
+                                        <span class="mt-2 inline-flex w-fit shrink-0 items-center rounded-md border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:mt-0">Obsługa: Stripe</span>
                                     </div>
-                                    <p class="text-xs text-slate-600 mt-4 leading-relaxed" x-show="hasActivePaidSubscription && !isSubscriptionCanceledButValid" x-cloak>Zmiana pakietu — <strong class="text-slate-900">Zmień pakiet</strong> w ramce Stripe powyżej; faktury i karta — drugi przycisk.</p>
-                                    <p class="text-xs leading-relaxed text-amber-900/90 mt-4" x-show="isSubscriptionCanceledButValid" x-cloak>Wznów odnowienia lub pobierz faktury przez <strong class="font-semibold text-amber-950">przycisk do portalu Stripe</strong> w ramce pomarańczowej powyżej.</p>
+                                    <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                                        <button type="button" x-show="canOpenPortalPlanChangeFlow() && !isSubscriptionCanceledButValid" x-cloak
+                                                @click="openCustomerPortal({ subscriptionUpdate: true })" :disabled="isPortalLoading || saving"
+                                                class="inline-flex min-h-[2.75rem] flex-1 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-[12rem] sm:flex-none">
+                                            <span x-show="!isPortalLoading">Zmień pakiet</span>
+                                            <span x-show="isPortalLoading" x-cloak>Łączenie…</span>
+                                        </button>
+                                        <button type="button" @click="openCustomerPortal()" :disabled="isPortalLoading || saving"
+                                                class="inline-flex min-h-[2.75rem] flex-1 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/50 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-[12rem] sm:flex-none">
+                                            <span x-show="!isPortalLoading" x-text="isSubscriptionCanceledButValid ? 'Portal Stripe (wznów / faktury)' : 'Faktury i karta'"></span>
+                                            <span x-show="isPortalLoading" x-cloak>Łączenie…</span>
+                                        </button>
+                                    </div>
+                                    <div x-show="hasActivePaidSubscription && !isSubscriptionCanceledButValid" x-cloak class="mt-6 flex flex-col gap-2 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
+                                        <p class="text-xs text-slate-500 leading-relaxed max-w-md">Rezygnacja z odnowień — przejdziesz do ankiety wyjścia w Stripe (możliwa retencja oferty).</p>
+                                        <button type="button" @click="openCustomerPortal({ subscriptionCancel: true })" :disabled="isPortalLoading || saving"
+                                                class="inline-flex shrink-0 items-center justify-center rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:border-red-300 hover:bg-red-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-300/50 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                            <span x-show="!isPortalLoading">Anuluj subskrypcję</span>
+                                            <span x-show="isPortalLoading" x-cloak>Łączenie…</span>
+                                        </button>
+                                    </div>
                                 </div>
+                                <p x-show="!showStripeBillingPortal" class="mt-6 text-xs text-slate-500 leading-relaxed border-t border-slate-100 pt-6">
+                                    Portal Stripe (karta, faktury, zmiana planu) pojawi się po pierwszej zaksięgowanej płatności.
+                                </p>
                             </div>
                         </div>
 
-                        <div x-show="!hasActivePaidSubscription" class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-sm">
+                        <div x-show="!hasActivePaidSubscription" class="mb-6 rounded-xl border border-slate-200/70 bg-white p-5 shadow-panel ring-1 ring-slate-900/5">
                             <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Twój aktualny plan</p>
                             <p class="text-lg font-bold text-slate-900" x-text="planDisplayLabel"></p>
-                            <p class="text-sm text-slate-600 mt-1" x-text="planSummaryLine"></p>
+                            <p class="text-sm text-slate-600 mt-1 leading-relaxed" x-text="planSummaryLine"></p>
                         </div>
                         <p class="mb-3 flex items-center gap-2 text-xs text-slate-500 xl:hidden">
                             <span class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-200 text-slate-600" aria-hidden="true">↔</span>
@@ -2379,7 +2363,7 @@
                             <button type="button"
                                 @click="syncStripeSubscription()"
                                 :disabled="stripeSyncLoading || saving || checkoutLoading"
-                                class="inline-flex items-center justify-center min-h-[2.75rem] bg-[#121212] text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#D4AF37] hover:text-[#121212] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                class="inline-flex min-h-[2.75rem] items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/50 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                                 <span x-show="!stripeSyncLoading">Synchronizuj ze Stripe</span>
                                 <span x-show="stripeSyncLoading" x-cloak>Łączenie ze Stripe…</span>
                             </button>
