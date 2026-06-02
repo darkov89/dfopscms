@@ -31,6 +31,8 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 
 | Data | Co |
 |------|-----|
+| **2026-06-02** | **Panel — Subskrypcja UI (spójność):** usunięto „czarny portal” w stylu obcym do admina → jedna biała karta statusu + sekcja „Zarządzanie rozliczeniami” (badge „Obsługa: Stripe” + ikonka), przyciski w stylu panelu (primary slate, secondary white, danger red outline). |
+| **2026-06-02** | **Panel — dialogi systemowe:** zastąpiono systemowy `confirm()` globalnym modalem zwracającym `Promise<boolean>` (`confirmAsync` + `await` w call-site’ach: usuwanie konta, zmiana szablonu, domena, odrzucenie zmian). Toasty: 3s auto-dismiss, success zielony. |
 | **2026-06-01** | **Publikacja — pozytywne tarcie:** główny przycisk „Publikuj zmiany” → `requestPublish()` otwiera modal potwierdzenia („Opublikować zmiany?”), właściwy zapis dopiero w `confirmPublish()` → `publishChanges()`; modal znika po sukcesie + toast. Wewnętrzne wywołania (wizard/domena) publikują bez modala. |
 | **2026-06-01** | **Live Preview draftu (fix):** podgląd otwiera się w nowej karcie, więc sesja z `sessionStorage` (bez „Zapamiętaj mnie”) nie była dziedziczona → handoff draftu przez `localStorage` (`dfops_preview_draft:{slug}`, TTL 30 min, szczelne wobec anona) w `adminApp.stashDraftForPreview()` + odczyt w `publicSiteApp` (DB `getDraftContentForOwner` jako fallback). Cache-bust `?v=20260601c` na szablonach (`beauty/consultant/fitness/services/setup.html`). |
 | **2026-05-25** | **Portal Stripe (UX):** 3 akcje w karcie — zmiana planu / faktury+karta / anuluj (`subscription_update` + `subscription_cancel` deep links). |
