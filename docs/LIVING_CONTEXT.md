@@ -31,6 +31,7 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 
 | Data | Co |
 |------|-----|
+| **2026-06-02** | **Edge — Telegram webhook:** dodano `supabase/functions/telegram-webhook` jako zunifikowany odbiornik alertów (Sentry Webhook + Supabase Log Alerts) wysyłający wiadomości do Telegrama (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`). |
 | **2026-06-02** | **Panel — monitoring błędów:** dodano **Sentry Loader Script** jako pierwszy element w `<head>` w `admin.html` (bez `Sentry.init()`). |
 | **2026-06-02** | **Panel — Subskrypcja UI (spójność):** usunięto „czarny portal” w stylu obcym do admina → jedna biała karta statusu + sekcja „Zarządzanie rozliczeniami” (badge „Obsługa: Stripe” + ikonka), przyciski w stylu panelu (primary slate, secondary white, danger red outline). |
 | **2026-06-02** | **Panel — dialogi systemowe:** zastąpiono systemowy `confirm()` globalnym modalem zwracającym `Promise<boolean>` (`confirmAsync` + `await` w call-site’ach: usuwanie konta, zmiana szablonu, domena, odrzucenie zmian). Toasty: 3s auto-dismiss, success zielony. |
