@@ -698,27 +698,15 @@
         if (!this.slug || !this.theme) return '#';
         const siteQs = `site=${encodeURIComponent(this.slug)}&${preview}`;
 
+        // Podgląd wersji roboczej MUSI być na tym samym originie co panel — inaczej handoff draftu
+        // (`localStorage` `dfops_preview_draft:{slug}`) i sesja właściciela nie są dostępne w nowej karcie
+        // (subdomena `{slug}.dfcms.pl` to inny origin). Dlatego zawsze otwieramy `/{motyw}.html?site=…`.
         const isLocalhost =
           window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const useSameOrigin =
-          isLocalhost ||
-          (typeof window.DFOPS_panelPreviewUsesSameOrigin === 'function' &&
-            window.DFOPS_panelPreviewUsesSameOrigin());
-
-        if (useSameOrigin) {
-          const path = `/${this.previewHtmlBasename}.html?${siteQs}`;
-          if (isLocalhost) return path;
-          const origin = String(window.location.origin || '').replace(/\/$/, '');
-          return origin ? `${origin}${path}` : path;
-        }
-
-        const hostCustom = typeof this.customDomain === 'string' ? this.customDomain.trim() : '';
-        if (hostCustom && this.customDomainStatus === 'active') {
-          const h = hostCustom.replace(/^https?:\/\//i, '').split('/')[0];
-          return `https://${h}/?${preview}`;
-        }
-        const base = (cfg.appDomain || 'dfcms.pl').toLowerCase();
-        return `https://${this.slug}.${base}/?${preview}`;
+        const path = `/${this.previewHtmlBasename}.html?${siteQs}`;
+        if (isLocalhost) return path;
+        const origin = String(window.location.origin || '').replace(/\/$/, '');
+        return origin ? `${origin}${path}` : path;
       },
       get planDisplayLabel() {
         const sub = this.billingSubscriptionView;
@@ -794,23 +782,14 @@
         if (r) r(result === true);
       },
 
-      /** Po wejściu w Subskrypcję — jednorazowo odśwież status ze Stripe (np. `cancel_at_period_end`). */
+      /**
+       * Wejście w zakładkę Subskrypcja NIE odpala już automatycznego synca ze Stripe.
+       * Wcześniej powodowało to drugie `loadData()` (podwójne ładowanie panelu). Status pokazujemy
+       * z `billing_profiles` (loadData), a aktualizację ze Stripe użytkownik uruchamia ręcznie
+       * przyciskiem „Synchronizuj ze Stripe”. Metoda zostaje (call-site’y bez zmian) jako no-op.
+       */
       maybeSyncSubscriptionTabFromStripe() {
-        if (
-          !this._initialPanelLoadDone ||
-          !this.billingProfileReady ||
-          this.activeTab !== 'subscription' ||
-          !this.user?.id ||
-          this._subscriptionTabStripeSynced ||
-          this.stripeSyncLoading ||
-          this.isLoading
-        ) {
-          return;
-        }
-        const sid = this.billingProfile?.stripe_subscription_id;
-        if (typeof sid !== 'string' || !sid.trim()) return;
-        this._subscriptionTabStripeSynced = true;
-        void this.syncStripeSubscription({ silent: true });
+        /* celowo pusto — patrz docstring (manualny sync zamiast auto). */
       },
 
       setTab(tab) {
