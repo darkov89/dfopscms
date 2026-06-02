@@ -338,6 +338,16 @@
       errorMessage: '',
       toast: { show: false, message: '', type: 'success' },
       _toastTimer: null,
+      /** Globalny modal confirm() (Promise<boolean>) — zastępuje systemowy `confirm()` w panelu. */
+      confirmDialog: {
+        open: false,
+        title: '',
+        message: '',
+        yesLabel: 'Tak',
+        noLabel: 'Nie',
+        tone: 'default', // default | danger
+      },
+      _confirmDialogResolve: null,
       hasUnsavedChanges: false,
       _stopContentWatch: null,
       /** Cichy auto-save stanu roboczego (draft_content). */
@@ -749,8 +759,39 @@
         this.toast.type = t;
         this.toast.show = true;
         if (this._toastTimer) clearTimeout(this._toastTimer);
-        const ms = t === 'info' ? 5000 : 4000;
-        this._toastTimer = setTimeout(() => { this.toast.show = false; }, ms);
+        // UX: nieblokujące powiadomienia, znikają po 3 sekundach.
+        this._toastTimer = setTimeout(() => { this.toast.show = false; }, 3000);
+      },
+
+      /**
+       * Zastępnik systemowego `confirm()`:
+       * - zwraca Promise<boolean>
+       * - wyświetla modal o spójnym designie (Tailwind) w `admin.html`
+       */
+      confirmAsync(opts) {
+        const options = opts && typeof opts === 'object' ? opts : {};
+        const title = typeof options.title === 'string' ? options.title : 'Potwierdź';
+        const message = typeof options.message === 'string' ? options.message : '';
+        const yesLabel = typeof options.yesLabel === 'string' ? options.yesLabel : 'Tak';
+        const noLabel = typeof options.noLabel === 'string' ? options.noLabel : 'Nie';
+        const tone = options.tone === 'danger' ? 'danger' : 'default';
+
+        // Jeśli jakiś confirm jest już otwarty, zamykamy go jako "Nie" (bez wieszania Promise).
+        if (this.confirmDialog?.open && typeof this._confirmDialogResolve === 'function') {
+          try { this._confirmDialogResolve(false); } catch (_) { /* ignore */ }
+        }
+
+        this.confirmDialog = { open: true, title, message, yesLabel, noLabel, tone };
+        return new Promise((resolve) => {
+          this._confirmDialogResolve = resolve;
+        });
+      },
+
+      resolveConfirmDialog(result) {
+        const r = typeof this._confirmDialogResolve === 'function' ? this._confirmDialogResolve : null;
+        this._confirmDialogResolve = null;
+        if (this.confirmDialog) this.confirmDialog.open = false;
+        if (r) r(result === true);
       },
 
       /** Po wejściu w Subskrypcję — jednorazowo odśwież status ze Stripe (np. `cancel_at_period_end`). */
@@ -1050,7 +1091,7 @@
         }
       },
 
-      deleteAccount() {
+      async deleteAccount() {
         if (this.subscriptionBlocksAccountDeletion) {
           this.showToast(
             'Najpierw anuluj subskrypcję w Stripe: zakładka Subskrypcja → „Zarządzaj subskrypcją i fakturami”. Gdy subskrypcja w Stripe będzie anulowana, wróć tu i wyślij prośbę o usunięcie konta.',
@@ -1058,9 +1099,13 @@
           );
           return;
         }
-        const confirmed = confirm(
-          'Czy na pewno chcesz bezpowrotnie usunąć swoje konto i stronę? Tej operacji nie można cofnąć.',
-        );
+        const confirmed = await this.confirmAsync({
+          title: 'Usunąć konto?',
+          message: 'Czy na pewno chcesz bezpowrotnie usunąć swoje konto i stronę? Tej operacji nie można cofnąć.',
+          yesLabel: 'Tak, usuń konto',
+          noLabel: 'Nie',
+          tone: 'danger',
+        });
         if (!confirmed) return;
         const support =
           (cfg && typeof cfg.supportEmail === 'string' && cfg.supportEmail.includes('@')
@@ -1862,13 +1907,14 @@
         )
           return;
         if (this.theme === newTemplateId) return;
-        if (
-          !confirm(
-            'Uwaga: zmiana szablonu nadpisze aktualne teksty i układ sekcji (hero, usługi, FAQ itd.). Zachowamy dane kontaktowe, logo tekstowe i logo graficzne oraz ustawienia subskrypcji. Kontynuować?'
-          )
-        ) {
-          return;
-        }
+        const confirmed = await this.confirmAsync({
+          title: 'Zmienić szablon?',
+          message:
+            'Uwaga: zmiana szablonu nadpisze aktualne teksty i układ sekcji (hero, usługi, FAQ itd.). Zachowamy dane kontaktowe, logo tekstowe i logo graficzne oraz ustawienia subskrypcji. Kontynuować?',
+          yesLabel: 'Tak, zmień szablon',
+          noLabel: 'Nie',
+        });
+        if (!confirmed) return;
         if (typeof window.DFOPS_mergeContentWithTemplate !== 'function' || typeof window.DFOPS_getTemplate !== 'function') {
           this.showError('Brak konfiguracji szablonów (registry).');
           return;
@@ -2455,9 +2501,14 @@
           return;
         }
 
-        if (!confirm('Podpięcie domeny spowoduje również zapisanie i opublikowanie wszystkich wprowadzonych przez Ciebie zmian na stronie. Czy chcesz kontynuować?')) {
-          return;
-        }
+        const confirmed = await this.confirmAsync({
+          title: 'Podpiąć domenę?',
+          message:
+            'Podpięcie domeny spowoduje również zapisanie i opublikowanie wszystkich wprowadzonych przez Ciebie zmian na stronie. Czy chcesz kontynuować?',
+          yesLabel: 'Tak, kontynuuj',
+          noLabel: 'Nie',
+        });
+        if (!confirmed) return;
 
         const saved = await this.publishChanges();
         if (!saved) {
@@ -2697,9 +2748,15 @@
           this.showToast('Brak opublikowanej wersji do przywrócenia.', 'error');
           return;
         }
-        if (!confirm('Odrzucić zmiany robocze i przywrócić aktualnie opublikowaną wersję strony? Tej operacji nie można cofnąć.')) {
-          return;
-        }
+        const confirmed = await this.confirmAsync({
+          title: 'Odrzucić zmiany?',
+          message:
+            'Odrzucić zmiany robocze i przywrócić aktualnie opublikowaną wersję strony? Tej operacji nie można cofnąć.',
+          yesLabel: 'Tak, odrzuć',
+          noLabel: 'Nie',
+          tone: 'danger',
+        });
+        if (!confirmed) return;
         this.saving = true;
         try {
           const publishedTheme =
