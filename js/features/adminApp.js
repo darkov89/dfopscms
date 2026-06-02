@@ -708,6 +708,24 @@
         const origin = String(window.location.origin || '').replace(/\/$/, '');
         return origin ? `${origin}${path}` : path;
       },
+
+      /** Link do wersji opublikowanej (LIVE) — bez `dfcms_preview`, z preferencją custom domain. */
+      getLiveSiteUrl() {
+        if (!this.slug) return '#';
+        const isLocalhost =
+          window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        if (isLocalhost) {
+          const qs = `site=${encodeURIComponent(this.slug)}`;
+          return `/${this.previewHtmlBasename}.html?${qs}`;
+        }
+        const hostCustom = typeof this.customDomain === 'string' ? this.customDomain.trim() : '';
+        if (hostCustom && this.customDomainStatus === 'active') {
+          const h = hostCustom.replace(/^https?:\/\//i, '').split('/')[0];
+          return `https://${h}/`;
+        }
+        const base = (cfg.appDomain || 'dfcms.pl').toLowerCase();
+        return `https://${this.slug}.${base}/`;
+      },
       get planDisplayLabel() {
         const sub = this.billingSubscriptionView;
         if (typeof window.DFOPS_subscriptionDisplayName === 'function') {

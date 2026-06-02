@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
+    <script
+      src="https://js-de.sentry-cdn.com/38ac49c48b8ef4ea5af8beda241de90d.min.js"
+      crossorigin="anonymous"
+    ></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Wymuszaj świeże JS/CSS na preview/staging (CDN) — podbij ?v= przy większych zmianach panelu. -->
@@ -38,7 +42,7 @@
     <script defer src="js/core/googlePlacesSync.js?v=20260522d"></script>
     <script defer src="js/core/analytics.js?v=20260403t"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260602a"></script>
+    <script defer src="js/features/adminApp.js?v=20260602c"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -583,7 +587,13 @@
                             <span class="truncate font-medium uppercase tracking-wide text-slate-900" x-text="theme"></span>
                         </div>
                         <span class="hidden h-3.5 w-px shrink-0 self-center bg-slate-200 sm:block" aria-hidden="true"></span>
-                        <span class="min-w-0 truncate font-medium tabular-nums text-slate-900" x-text="slug" title="Twój slug strony"></span>
+                        <a :href="getLiveSiteUrl()"
+                           target="_blank" rel="noopener noreferrer"
+                           class="group inline-flex min-w-0 items-center gap-1 truncate font-medium tabular-nums text-slate-900 underline decoration-slate-200 underline-offset-4 hover:decoration-slate-400"
+                           title="Otwórz opublikowaną stronę (LIVE) w nowej karcie">
+                            <span class="min-w-0 truncate" x-text="slug"></span>
+                            <span class="shrink-0 text-slate-400 transition-colors group-hover:text-slate-600" aria-hidden="true">↗</span>
+                        </a>
                     </div>
                 </div>
 
