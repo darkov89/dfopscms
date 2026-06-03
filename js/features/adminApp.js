@@ -746,12 +746,6 @@
       subscriptionPaymentActive() {
         return this.hasActivePaidSubscription;
       },
-      get planSummaryLine() {
-        if (typeof window.DFOPS_planCapabilitiesSummary === 'function') {
-          return window.DFOPS_planCapabilitiesSummary(this.subscriptionPlan);
-        }
-        return '';
-      },
 
       showError(msg) {
         this.errorMessage = msg;

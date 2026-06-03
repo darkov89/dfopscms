@@ -51,19 +51,6 @@
     return planDisplayName(p);
   }
 
-  function planCapabilitiesSummary(plan) {
-    const p = normalizePlan(plan);
-    const domain = planAllowsCustomDomain(p) ? 'Własna domena: tak' : 'Własna domena: .dfcms.pl (od Standard: .pl/.com)';
-    const wm = planShowsWatermark(p) ? 'Logo DFCMS w stopce' : 'Bez logo DFCMS';
-    const colors =
-      p === 'trial' || p === 'tier0'
-        ? 'Kolory: gotowe presety i zestawy'
-        : 'Kolory: presety + własny akcent';
-    const assistant =
-      p === 'tier1' ? 'Asystent: 100 zł/h netto' : 'Asystent: od pakietu Standard';
-    return `${domain} · ${wm} · ${colors} · ${assistant}`;
-  }
-
   function subscriptionStripeStatus(sub) {
     if (!sub || typeof sub !== 'object') return '';
     return String(sub.status || '')
@@ -151,7 +138,6 @@
   window.DFOPS_planShowsWatermark = planShowsWatermark;
   window.DFOPS_planDisplayName = planDisplayName;
   window.DFOPS_subscriptionDisplayName = subscriptionDisplayName;
-  window.DFOPS_planCapabilitiesSummary = planCapabilitiesSummary;
   window.DFOPS_subscriptionCancelAtPeriodEndTrue = subscriptionCancelAtPeriodEndTrue;
   window.DFOPS_subscriptionScheduledToCancel = subscriptionScheduledToCancel;
   window.DFOPS_hasPaidSubscriptionAccess = hasPaidSubscriptionAccess;
