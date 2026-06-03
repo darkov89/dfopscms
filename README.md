@@ -1,6 +1,6 @@
 # DFOPS CMS (dfopscms)
 
-**Stan projektu i kontekst trwały (architektura, onboarding, Stripe, security, user journey):** zobacz [`PROJECT_STATE.md`](PROJECT_STATE.md) — aktualizować **na koniec sesji** przy istotnych zmianach. Skrót i changelog: [`docs/LIVING_CONTEXT.md`](docs/LIVING_CONTEXT.md). Reguła Cursor: `.cursor/rules/living-context.mdc`.
+**Stan projektu i kontekst trwały (architektura, onboarding, Stripe, security, user journey):** zobacz [`PROJECT_STATE.md`](PROJECT_STATE.md) — aktualizować **na koniec sesji** przy istotnych zmianach. Skrót i changelog: [`docs/LIVING_CONTEXT.md`](docs/LIVING_CONTEXT.md). **Architektura i workflow zespołu:** [`ARCHITECTURE.md`](ARCHITECTURE.md), [`WORKFLOW.md`](WORKFLOW.md). Reguła Cursor: `.cursor/rules/living-context.mdc`.
 
 Lekki CMS pod strony wizytówkowe: statyczny front (HTML + JavaScript), treść i ustawienia w **Supabase** (PostgreSQL, Auth, Storage), publikacja pod własną domeną z obsługą **Cloudflare** (Pages + Custom Hostnames).
 
@@ -27,10 +27,10 @@ Lekki CMS pod strony wizytówkowe: statyczny front (HTML + JavaScript), treść 
 
 ## Konfiguracja frontu
 
-1. Skopiuj lub edytuj `js/core/config.js`.
-2. **Produkcja:** klucze w `SUPABASE_URL_PROD` / `SUPABASE_ANON_KEY_PROD` (Project Settings → API).
-3. **Localhost:** przy `localhost` / `127.0.0.1` klient używa `http://127.0.0.1:54321` — uzupełnij `SUPABASE_ANON_KEY_LOCAL` (wynik `supabase status` po `supabase start`).
-4. Dopasuj `appDomain`, `systemDomains` i `localHosts` do swojej infrastruktury DNS / hostingu.
+1. Edytuj `js/core/config.js` — routing **Staging vs Production** po hoście (bez Dockera).
+2. **Staging** (`localhost`, `staging.dfcms.pl`, `*.pages.dev`): projekt `asxrsdsprrbvjvgcsckh` — klucze jak w `.env.development`.
+3. **Production** (`dfcms.pl`, subdomeny, domeny klientów): projekt `tawywecinkubmouyprab` — klucze jak w `.env.production`.
+4. Dopasuj `appDomain`, `systemDomains` i `localHosts` do infrastruktury DNS / hostingu. Szczegóły: [`WORKFLOW.md`](WORKFLOW.md).
 
 > Klucz anonimowy (publishable) jest przeznaczony do użycia w przeglądarce — i tak jest widoczny w bundle; nadal nie commituj **service role** ani sekretów serwerowych do repozytorium.
 
@@ -81,9 +81,16 @@ Szczegóły w nagłówku `functions/_middleware.js`.
 
 ## Rozwój lokalny
 
-Front to pliki statyczne — wystarczy serwer HTTP (np. Live Server, `python3 -m http.server`, `npx serve`).
+```bash
+npm install
+npm run dev
+```
+
+Front to pliki statyczne serwowane na `http://localhost:3000`. Szczegóły: migracje bez Dockera, Staging vs Production, Stripe Test — [`WORKFLOW.md`](WORKFLOW.md).
 
 **Nie otwieraj `admin.html` z `file://`** — wywołania do Supabase i Edge Functions wymagają originu `http://` lub `https://`.
+
+Pliki `.env*` są wyłącznie lokalnie (CLI) — patrz `.gitignore`; klucze przeglądarki w `js/core/config.js`.
 
 ## Własna domena (skrót przepływu)
 

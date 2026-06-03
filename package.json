@@ -1,0 +1,18 @@
+{
+  "name": "dfopscms",
+  "private": true,
+  "description": "DFCMS — statyczny front + Supabase",
+  "scripts": {
+    "dev": "serve . -l 3000",
+    "supabase:link:staging": "supabase link --project-ref asxrsdsprrbvjvgcsckh",
+    "supabase:link:production": "supabase link --project-ref tawywecinkubmouyprab",
+    "supabase:linked": "node -e \"const fs=require('fs');const p='supabase/.temp/project-ref';try{const r=fs.readFileSync(p,'utf8').trim();const m={asxrsdsprrbvjvgcsckh:'STAGING',tawywecinkubmouyprab:'PRODUCTION'};console.log('CLI →',m[r]||'?','('+r+')');}catch{console.log('Brak linku — uruchom npm run supabase:link:staging|production');}\"",
+    "deploy:db:staging": "npm run supabase:link:staging && supabase db push",
+    "deploy:db:production": "npm run supabase:link:production && supabase db push",
+    "deploy:functions:staging": "npm run supabase:link:staging && supabase functions deploy",
+    "deploy:functions:production": "npm run supabase:link:production && supabase functions deploy"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}

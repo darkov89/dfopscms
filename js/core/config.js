@@ -1,24 +1,72 @@
 ;(function () {
   /**
-   * Local vs Production — Supabase API (PostgREST + Auth + Edge z tego samego origin w config).
-   * Na localhost: `supabase start` → URL http://127.0.0.1:54321; anon key z `supabase status`.
+   * Supabase: Staging vs Production — routing po hoście (statyczny front, bez bundlera).
+   * Wartości zgodne z .env.development / .env.production (publishable anon — widoczne w przeglądarce).
+   *
+   * Staging: localhost, 127.0.0.1, staging.dfcms.pl, *.pages.dev
+   * Production: dfcms.pl (+ subdomeny systemowe, np. {slug}.dfcms.pl), własne domeny klientów
    */
+  const SUPABASE_URL_STAGING = 'https://asxrsdsprrbvjvgcsckh.supabase.co';
+  const SUPABASE_ANON_KEY_STAGING =
+    'sb_publishable_nhVLmda_F30SnqrIXDd2Eg__wKnJVqm';
+
+  const SUPABASE_URL_PRODUCTION = 'https://tawywecinkubmouyprab.supabase.co';
+  const SUPABASE_ANON_KEY_PRODUCTION =
+    'sb_publishable_b-y5BLfAZBNnPdjhFx61Tw_NP_FI1Sp';
+
+  const STAGING_HOSTS = ['localhost', '127.0.0.1', 'staging.dfcms.pl'];
+  const STAGING_HOST_PATTERNS = [/\.pages\.dev$/i];
+
+  function normalizeHostname(hostname) {
+    return String(hostname || '')
+      .replace(/^www\./i, '')
+      .toLowerCase();
+  }
+
+  /**
+   * @returns {'staging' | 'production'}
+   */
+  function resolveDeployEnvironment(hostname) {
+    const h = normalizeHostname(hostname);
+    if (!h) return 'production';
+    if (STAGING_HOSTS.includes(h)) return 'staging';
+    if (STAGING_HOST_PATTERNS.some((re) => re.test(h))) return 'staging';
+    return 'production';
+  }
+
+  function resolveSupabaseCredentials(hostname) {
+    const env = resolveDeployEnvironment(hostname);
+    if (env === 'staging') {
+      return {
+        environment: env,
+        supabaseUrl: SUPABASE_URL_STAGING,
+        supabaseAnonKey: SUPABASE_ANON_KEY_STAGING,
+      };
+    }
+    return {
+      environment: env,
+      supabaseUrl: SUPABASE_URL_PRODUCTION,
+      supabaseAnonKey: SUPABASE_ANON_KEY_PRODUCTION,
+    };
+  }
+
+  const browserHostname =
+    typeof window !== 'undefined' && window.location?.hostname
+      ? window.location.hostname
+      : '';
+
+  const { environment, supabaseUrl, supabaseAnonKey } =
+    resolveSupabaseCredentials(browserHostname);
+
   const isLocalhost =
     typeof window !== 'undefined' &&
-    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-
-  const SUPABASE_URL_PROD = 'https://tawywecinkubmouyprab.supabase.co';
-  const SUPABASE_ANON_KEY_PROD = 'sb_publishable_b-y5BLfAZBNnPdjhFx61Tw_NP_FI1Sp';
-  const SUPABASE_URL_LOCAL = 'http://127.0.0.1:54321';
-  /** Uzupełnij po `supabase status` (anon key lokalnego stacka). */
-  const SUPABASE_ANON_KEY_LOCAL = '625729a08b95bf1b7ff351a663f3a23c';
-
-  const SUPABASE_URL = isLocalhost ? SUPABASE_URL_LOCAL : SUPABASE_URL_PROD;
-  const SUPABASE_ANON_KEY = isLocalhost ? SUPABASE_ANON_KEY_LOCAL : SUPABASE_ANON_KEY_PROD;
+    (window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1');
 
   const APP_CONFIG = {
-    supabaseUrl: SUPABASE_URL,
-    supabaseAnonKey: SUPABASE_ANON_KEY,
+    supabaseUrl,
+    supabaseAnonKey,
+    deployEnvironment: environment,
     isLocalhost,
     /** Opcjonalny URL (np. Edge Function) do zapisu zdarzeń DFOPS_trackEvent — może zostać puste. */
     analyticsEndpoint: '',
@@ -216,8 +264,9 @@
 
   window.DFOPS_CONFIG = APP_CONFIG;
   window.DFOPS_IS_LOCALHOST = isLocalhost;
-  window.DFOPS_SUPABASE_URL = SUPABASE_URL;
-  window.DFOPS_SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
+  window.DFOPS_DEPLOY_ENVIRONMENT = environment;
+  window.DFOPS_SUPABASE_URL = supabaseUrl;
+  window.DFOPS_SUPABASE_ANON_KEY = supabaseAnonKey;
+  window.DFOPS_resolveDeployEnvironment = resolveDeployEnvironment;
   window.DFOPS_panelPreviewUsesSameOrigin = panelPreviewUsesSameOrigin;
 })();
-

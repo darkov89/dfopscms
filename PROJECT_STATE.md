@@ -3,11 +3,25 @@
 > **Przeznaczenie:** jeden plik w korzeniu repozytorium do aktualizacji **na koniec sesji** (ludzie + agenci), żeby zachować ciągłość decyzji architektonicznych, produktowych i operacyjnych.  
 > **Nie zastępuje** `README.md` (start, deploy, struktura katalogów), ale je **uzupełnia** o „co wiemy o systemie teraz”.
 
-**Ostatnia aktualizacja treści:** 2026-06-02 — potwierdzenia bez `confirm()` (async modal), toast 3s, spójny UI Subskrypcji + doprecyzowanie przepływów draft/preview/publish
+**Ostatnia aktualizacja treści:** 2026-06-03 — `config.js` routing Supabase (localhost/staging → Staging, prod → Production); bez lokalnego Dockera
 
 ---
 
 ## 1. ARCHITEKTURA
+
+### 1.0 Infrastruktura wielośrodowiskowa (stan po rewolucji 2026-06)
+
+| Obszar | Staging | Production |
+|--------|---------|------------|
+| **Git** | gałąź `staging` | gałąź `main` |
+| **Frontend** | Cloudflare Pages — `staging.dfcms.pl`, preview `*.pages.dev` | Cloudflare Pages — `dfcms.pl`, subdomeny `{slug}.dfcms.pl` |
+| **Supabase** | projekt `asxrsdsprrbvjvgcsckh` — Auth, DB, Storage, Edge | projekt `tawywecinkubmouyprab` |
+| **Stripe** | **Test mode** — Checkout Sessions, osobne Secrets `STRIPE_*` | **Live mode** — osobne ceny i webhook |
+| **Domeny klientów** | testowe Custom Hostnames (token staging w Secrets) | **Cloudflare for SaaS** — Edge `add-custom-domain` |
+| **Workflow DB** | `supabase db pull` ze Stagingu → migracje w repo | `supabase db push` na Production po merge do `main` |
+| **Lokalny dev** | **bez** `supabase start`; `npm run dev` + `config.js` → API **Staging** na localhost | — |
+
+Szczegóły diagramów i deploy: [`ARCHITECTURE.md`](ARCHITECTURE.md), [`WORKFLOW.md`](WORKFLOW.md).
 
 ### 1.1 Co jest w produkcie (krótko)
 
@@ -45,7 +59,7 @@ Użytkownik → Auth (Supabase) → pages.content (JSON) + pages.billing_plan + 
 | Obszar | Status / uwagi |
 |--------|----------------|
 | **Testy automatyczne** | Brak widocznego zestawu E2E/unit w repo jako obowiązkowego gate’a — ryzyko regresji przy zmianach w `adminApp` i Edge. |
-| **CI/CD** | Deploy funkcji przez Supabase CLI (dokumentacja w `README`); brak jednego opisanego pipeline’u w repozytorium (np. GitHub Actions) — do ustalenia z infrastrukturą. |
+| **CI/CD** | Front: **Cloudflare Pages** (build z GitHub `staging` / `main`). Baza + Edge: **Supabase CLI** (`db push`, `functions deploy`) — ręcznie per środowisko; brak GitHub Actions w repo. Proces: [`WORKFLOW.md`](WORKFLOW.md). |
 | **Observability** | Logi Edge/Deno + Stripe Dashboard; `telegram-webhook`: router Sentry → Supabase Database Webhooks (`users`, `pages`, `billing_profiles`) → Log Alerts → fallback → Telegram. |
 | **i18n** | Panel i treści głównie **PL**; szablony pod wielojęzyczność w modelu `content.pl` — pełne i18n nie są domknięte w UI. |
 | **RLS / anon read** | Wiersze demo mają **`user_id` NULL**. **`GRANT SELECT`** dla `anon` na tabeli (migracja explicit grants) + polityka RLS **`SELECT`** po `slug` — bez obu warstw podgląd z landingu zwróci pustkę. |
@@ -155,5 +169,7 @@ Użytkownik → Auth (Supabase) → pages.content (JSON) + pages.billing_plan + 
 
 ## 8. Powiązane dokumenty
 
-- `README.md` — start, struktura, deploy, Cloudflare.  
+- `README.md` — start, struktura katalogów.  
+- [`ARCHITECTURE.md`](ARCHITECTURE.md) — warstwy systemu, diagram Mermaid, indeks Edge Functions.  
+- [`WORKFLOW.md`](WORKFLOW.md) — development, migracje, Stripe Test vs Live, deploy.  
 - `docs/LIVING_CONTEXT.md` — skrót + changelog (opcjonalnie); reguła Cursor w `.cursor/rules/living-context.mdc` powinna wskazywać na aktualizację **`PROJECT_STATE.md`** przy większych zmianach.

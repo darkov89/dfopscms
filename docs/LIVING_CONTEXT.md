@@ -4,7 +4,7 @@
 
 Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **changelog** jednoliniowy, żeby nie dublować długich sekcji.
 
-**Ostatnia aktualizacja treści:** 2026-05-25 (rejestracja + Stripe anty-zombie / invoice / sync)
+**Ostatnia aktualizacja treści:** 2026-06-03 (infrastruktura Staging/Production + ARCHITECTURE / WORKFLOW)
 
 ---
 
@@ -13,6 +13,8 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 | Temat | Gdzie szczegóły |
 |-------|------------------|
 | Stos, deploy, katalogi | [`README.md`](../README.md) |
+| Diagram architektury, środowiska | [`ARCHITECTURE.md`](../ARCHITECTURE.md) |
+| Onboarding dev, migracje, deploy | [`WORKFLOW.md`](../WORKFLOW.md) |
 | Stan architektury, Stripe, onboarding, security, user journey | [`PROJECT_STATE.md`](../PROJECT_STATE.md) |
 | Konfiguracja klienta / ceny fallback | `js/core/config.js` (`stripePrices`: starter, starterYearly, standard, standardYearly) |
 | Landing marketingowy + cennik | `index.html#cennik` · `js/features/landingPricing.js` |
@@ -31,6 +33,8 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 
 | Data | Co |
 |------|-----|
+| **2026-06-03** | **config.js:** routing Supabase po hoście — localhost / `staging.dfcms.pl` / `*.pages.dev` → Staging; produkcja → Production; usunięty Docker `127.0.0.1:54321`. |
+| **2026-06-03** | **Infrastruktura:** separacja Staging/Production (Supabase CLI, Stripe Test/Live, Cloudflare Pages + SaaS); `ARCHITECTURE.md`, `WORKFLOW.md`, `.gitignore`, `npm run dev`; migracja `remote_schema` bez triggerów `http_request`. |
 | **2026-06-02** | **Edge — Telegram webhook:** router Sentry → Database Webhooks (`users`/`pages`/`billing_profiles`) → Log Alerts → fallback; Telegram (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`). |
 | **2026-06-02** | **Panel — monitoring błędów:** dodano **Sentry Loader Script** jako pierwszy element w `<head>` w `admin.html` (bez `Sentry.init()`). |
 | **2026-06-02** | **Panel — Subskrypcja UI (spójność):** usunięto „czarny portal” w stylu obcym do admina → jedna biała karta statusu + sekcja „Zarządzanie rozliczeniami” (badge „Obsługa: Stripe” + ikonka), przyciski w stylu panelu (primary slate, secondary white, danger red outline). |
