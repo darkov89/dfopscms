@@ -46,7 +46,7 @@ Użytkownik → Auth (Supabase) → pages.content (JSON) + pages.billing_plan + 
 |--------|----------------|
 | **Testy automatyczne** | Brak widocznego zestawu E2E/unit w repo jako obowiązkowego gate’a — ryzyko regresji przy zmianach w `adminApp` i Edge. |
 | **CI/CD** | Deploy funkcji przez Supabase CLI (dokumentacja w `README`); brak jednego opisanego pipeline’u w repozytorium (np. GitHub Actions) — do ustalenia z infrastrukturą. |
-| **Observability** | Logi Edge/Deno + Stripe Dashboard; zunifikowany receiver alertów do Telegrama: Edge Function `telegram-webhook` (Sentry Webhook + Supabase Log Alerts) → Telegram (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`). |
+| **Observability** | Logi Edge/Deno + Stripe Dashboard; `telegram-webhook`: router Sentry → Supabase Database Webhooks (`users`, `pages`, `billing_profiles`) → Log Alerts → fallback → Telegram. |
 | **i18n** | Panel i treści głównie **PL**; szablony pod wielojęzyczność w modelu `content.pl` — pełne i18n nie są domknięte w UI. |
 | **RLS / anon read** | Wiersze demo mają **`user_id` NULL**. **`GRANT SELECT`** dla `anon` na tabeli (migracja explicit grants) + polityka RLS **`SELECT`** po `slug` — bez obu warstw podgląd z landingu zwróci pustkę. |
 | **Wersjonowanie treści / audit** | Pojedynczy JSON `content` na stronę — brak historii wersji w produkcie. |

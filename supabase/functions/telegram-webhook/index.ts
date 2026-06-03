@@ -61,6 +61,102 @@ function buildMessageFromSentry(payload: Record<string, unknown>) {
   return lines.join("\n");
 }
 
+const DB_EVENT_TYPES = new Set(["INSERT", "UPDATE", "DELETE"]);
+
+function isDatabaseWebhook(payload: Record<string, unknown>): boolean {
+  const type = getString(payload, "type");
+  const table = getString(payload, "table");
+  const schema = getString(payload, "schema");
+  if (!DB_EVENT_TYPES.has(type) || !table || !schema) return false;
+  const record = payload.record;
+  const oldRecord = payload.old_record;
+  const recordOk = record == null || isObject(record);
+  const oldOk =
+    oldRecord == null || oldRecord === undefined || isObject(oldRecord);
+  return recordOk && oldOk;
+}
+
+function recordForDbEvent(
+  type: string,
+  payload: Record<string, unknown>,
+): Record<string, unknown> | null {
+  if (type === "DELETE") {
+    const old = payload.old_record;
+    return isObject(old) ? old : null;
+  }
+  const rec = payload.record;
+  return isObject(rec) ? rec : null;
+}
+
+/** ID, email, user_id, slug — cokolwiek jest w wierszu. */
+function appendRecordContext(
+  lines: string[],
+  rec: Record<string, unknown> | null,
+) {
+  if (!rec) return;
+  const id = rec.id;
+  if (typeof id === "string" && id) {
+    lines.push(`ID: <code>${escapeHtml(id)}</code>`);
+  }
+  const email = rec.email;
+  if (typeof email === "string" && email) {
+    lines.push(`Email: <code>${escapeHtml(email)}</code>`);
+  }
+  const userId = rec.user_id;
+  if (typeof userId === "string" && userId && userId !== id) {
+    lines.push(`User ID: <code>${escapeHtml(userId)}</code>`);
+  }
+  const slug = rec.slug;
+  if (typeof slug === "string" && slug) {
+    lines.push(`Slug: <code>${escapeHtml(slug)}</code>`);
+  }
+}
+
+function buildMessageFromDatabaseWebhook(payload: Record<string, unknown>) {
+  if (!isDatabaseWebhook(payload)) return null;
+
+  const type = getString(payload, "type");
+  const table = getString(payload, "table");
+  const schema = getString(payload, "schema");
+  const rec = recordForDbEvent(type, payload);
+
+  let headline: string | null = null;
+
+  if (table === "users" && type === "INSERT") {
+    headline = "🎉 <b>Nowy użytkownik!</b> Ktoś właśnie założył konto.";
+  } else if (table === "users" && type === "DELETE") {
+    headline = "⚠️ <b>Usunięto konto!</b> Użytkownik skasował profil.";
+  } else if (table === "pages" && type === "INSERT") {
+    headline = "📄 <b>Nowa strona!</b> Klient opublikował nową stronę.";
+  } else if (table === "pages" && type === "DELETE") {
+    headline = "🗑️ <b>Usunięto stronę.</b>";
+  } else if (table === "billing_profiles" && type === "UPDATE") {
+    headline = "💳 <b>Zmiana w płatnościach!</b> Profil bilingowy zaktualizowany.";
+  }
+
+  if (!headline) return null;
+
+  const lines: string[] = [
+    headline,
+    `<i>${escapeHtml(schema)}.${escapeHtml(table)} · ${escapeHtml(type)}</i>`,
+  ];
+  appendRecordContext(lines, rec);
+  return lines.join("\n");
+}
+
+function routeWebhookMessage(payload: Record<string, unknown>): string {
+  const msgSentry = buildMessageFromSentry(payload);
+  if (msgSentry) return msgSentry;
+
+  const msgDb = buildMessageFromDatabaseWebhook(payload);
+  if (msgDb) return msgDb;
+
+  const msgSb = buildMessageFromSupabaseAlert(payload);
+  if (msgSb) return msgSb;
+
+  return `🚨 <b>Nieznany alert z Webhooka</b>\n<pre>${escapeHtml(truncate(JSON.stringify(payload, null, 2)))}</pre>`;
+}
+
 function buildMessageFromSupabaseAlert(payload: Record<string, unknown>) {
   // Supabase alerts/logs can vary; try a few likely keys and fall back.
   const title =
@@ -143,14 +239,7 @@ serve(async (req) => {
     : { raw: raw ?? "non_json_body" };
 
   try {
-    const msgSentry = buildMessageFromSentry(payload);
-    const msgSb = msgSentry ? null : buildMessageFromSupabaseAlert(payload);
-    const finalText =
-      msgSentry ||
-      msgSb ||
-      `🚨 <b>Nieznany alert z Webhooka</b>\n<pre>${escapeHtml(truncate(JSON.stringify(payload, null, 2)))}</pre>`;
-
-    await sendTelegram(finalText);
+    await sendTelegram(routeWebhookMessage(payload));
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
