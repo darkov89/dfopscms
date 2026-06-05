@@ -1,7 +1,7 @@
 # DFCMS — architektura systemu
 
-> **Ostatnia aktualizacja:** 2026-06-03  
-> Uzupełnia [`PROJECT_STATE.md`](PROJECT_STATE.md) (decyzje produktowe) i [`WORKFLOW.md`](WORKFLOW.md) (proces zespołu).
+> **Ostatnia aktualizacja:** 2026-06-05  
+> Uzupełnia [`PROJECT_STATE.md`](PROJECT_STATE.md) (decyzje produktowe) i [`WORKFLOW.md`](WORKFLOW.md) (proces zespołu). Szczegóły produktu i Stripe — tylko w `PROJECT_STATE.md`.
 
 ## 1. Podział logiczny
 
@@ -113,3 +113,5 @@ Współdzielona logika Stripe: `supabase/functions/_shared/stripeBilling.ts`.
 - [`WORKFLOW.md`](WORKFLOW.md) — development, migracje, deploy  
 - [`README.md`](README.md) — szybki start i struktura katalogów  
 - [`docs/LIVING_CONTEXT.md`](docs/LIVING_CONTEXT.md) — changelog skrótowy  
+- [`docs/roadmap/`](docs/roadmap/) — backlog i plany post-MVP  
+- [`data/seeds/demo_pages.json`](data/seeds/demo_pages.json) — treść stron demo  

@@ -301,7 +301,7 @@
     return obj;
   }
 
-  /** Lokalnie (VS Code Live Server itd.) — bez wierszy w Supabase dla demo-* nadal pokazujemy treść z docs/demo_seeds.json. */
+  /** Lokalnie — bez wierszy w Supabase dla demo-* nadal pokazujemy treść z data/seeds/demo_pages.json. */
   const DEMO_SEED_SLUG_RE = /^demo-(beauty|fitness|services)$/;
 
   function isLocalDemoSeedHost() {
@@ -315,7 +315,7 @@
     if (!DEMO_SEED_SLUG_RE.test(slugTrimmed) || typeof window === 'undefined') return null;
     try {
       if (!window.__DFOPS_demoSeedsJsonPromise) {
-        const jsonUrl = new URL('./docs/demo_seeds.json', window.location.href);
+        const jsonUrl = new URL('./data/seeds/demo_pages.json', window.location.href);
         window.__DFOPS_demoSeedsJsonPromise = fetch(jsonUrl.toString())
           .then((r) => (r.ok ? r.json() : null))
           .catch(() => null);

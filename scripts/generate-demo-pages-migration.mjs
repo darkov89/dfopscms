@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Czyta docs/demo_seeds.json i emituje migrację Postgres (UPSERT po slug).
+ * Czyta data/seeds/demo_pages.json i emituje migrację Postgres (UPSERT po slug).
  * Uruchom z korzenia repo: node scripts/generate-demo-pages-migration.mjs [timestamp]
  *
  * Domyślny plik wyjściowy: supabase/migrations/<timestamp>_seed_demo_catalog_pages.sql
@@ -11,7 +11,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
-const seedsPath = path.join(root, 'docs', 'demo_seeds.json');
+const seedsPath = path.join(root, 'data', 'seeds', 'demo_pages.json');
 
 const stamp = process.argv[2] || '20260503140000';
 const outFile = path.join(root, 'supabase', 'migrations', `${stamp}_seed_demo_catalog_pages.sql`);
@@ -20,7 +20,7 @@ const raw = fs.readFileSync(seedsPath, 'utf8');
 const doc = JSON.parse(raw);
 
 if (!Array.isArray(doc.seeds) || doc.seeds.length < 1) {
-  console.error('Brak seeds w docs/demo_seeds.json');
+  console.error('Brak seeds w data/seeds/demo_pages.json');
   process.exit(1);
 }
 
@@ -57,7 +57,7 @@ if (!parts.length) {
 }
 
 const sql = `-- Demo: strony katalogowe (linki z index.html → ?site=demo-*).
--- Źródło: docs/demo_seeds.json (regeneruj: node scripts/generate-demo-pages-migration.mjs)
+-- Źródło: data/seeds/demo_pages.json (regeneruj: node scripts/generate-demo-pages-migration.mjs)
 -- Wymaga UNIQUE na public.pages.slug (ON CONFLICT).
 
 INSERT INTO public.pages (slug, theme, color_preset, content, user_id, trial_blocked_at, billing_failed_at)

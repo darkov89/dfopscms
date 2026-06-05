@@ -4,7 +4,7 @@
 
 Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **changelog** jednoliniowy, żeby nie dublować długich sekcji.
 
-**Ostatnia aktualizacja treści:** 2026-06-03 (infrastruktura Staging/Production + ARCHITECTURE / WORKFLOW)
+**Ostatnia aktualizacja treści:** 2026-06-05 (porządek repo)
 
 ---
 
@@ -22,7 +22,7 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 | Panel — UI (CSS) | `css/styles.css` — `.dfops-admin-sidebar-scroll`, `.dfops-plan-card`, `.dfops-plan-features` |
 | Plany / watermark / domena | `js/core/planUtils.js` (`DFOPS_normalizePlan` — legacy tier2→tier1) |
 | Profil Stripe w panelu | `billingProfileView.js` · `loadBillingProfile()` w `adminApp.js` |
-| Demo / seed treści | [`docs/demo_seeds.json`](demo_seeds.json) (`tier1` + `payment_completed`) |
+| Demo / seed treści | [`data/seeds/demo_pages.json`](../data/seeds/demo_pages.json) (`tier1` + `payment_completed`) |
 | Rejestracja | `rejestracja.html` · `registrationApp.js` · trigger `handle_new_user` (`20260525130000`) |
 | Edge Stripe | `create-checkout`, `stripe-webhook`, `sync-stripe-subscription`, `_shared/stripeBilling.ts` |
 | Custom / Premium (zapytanie) | `zapytanie-custom.html` · `mailto:kontakt@dfops.eu` |
@@ -33,7 +33,8 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 
 | Data | Co |
 |------|-----|
-| **2026-06-05** | **Edge — wFirma:** `stripe-webhook` po `checkout.session.completed` wystawia fakturę (B2B/B2C) + `/invoices/send` e-mail; błędy nie blokują CMS (`WFIRMA_*` Secrets). |
+| **2026-06-05** | **Porządek repo:** usunięte martwe pliki (`templates.js`, `app.js`, mp4); `data/seeds/demo_pages.json`; `docs/roadmap/`; `.env.example` bez `VITE_`; docs bez starych migracji. |
+| **2026-06-05** | **Checkout + wFirma:** `billing_address_collection` + `tax_id_collection`; webhook → faktura e-mail (`WFIRMA_*` Secrets). |
 | **2026-06-03** | **config.js:** routing Supabase po hoście — localhost / `staging.dfcms.pl` / `*.pages.dev` → Staging; produkcja → Production; usunięty Docker `127.0.0.1:54321`. |
 | **2026-06-03** | **Infrastruktura:** separacja Staging/Production (Supabase CLI, Stripe Test/Live, Cloudflare Pages + SaaS); `ARCHITECTURE.md`, `WORKFLOW.md`, `.gitignore`, `npm run dev`; migracja `remote_schema` bez triggerów `http_request`. |
 | **2026-06-02** | **Edge — Telegram webhook:** router Sentry → Database Webhooks (`users`/`pages`/`billing_profiles`) → Log Alerts → fallback; Telegram (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`). |

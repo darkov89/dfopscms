@@ -1,7 +1,7 @@
 # DFCMS — workflow zespołu
 
 > **Biblia onboardingu** dla nowych programistów.  
-> **Ostatnia aktualizacja:** 2026-06-03 (config.js → chmurowy Staging na localhost)
+> **Ostatnia aktualizacja:** 2026-06-05 (porządek repo: `data/seeds/`, docs)
 
 ## Mapa dokumentów
 
@@ -65,7 +65,7 @@ Pliki **`.env*`** — w **`.gitignore`**; nie commituj sekretów (service role, 
 
 - Nie otwieraj `admin.html` z dysku (`file://`) — Auth i Edge wymagają HTTP(S).
 - Po zmianach w panelu podbij `?v=` w `admin.html` / szablonach, jeśli CDN cacheuje stare JS.
-- Demo bez wiersza w bazie: slugi `demo-*` z **`docs/demo_seeds.json`** (tylko localhost).
+- Demo bez wiersza w bazie: slugi `demo-*` z **`data/seeds/demo_pages.json`** (tylko localhost).
 
 ```mermaid
 flowchart LR
@@ -140,7 +140,7 @@ supabase db push
 
 **Production** `project-ref`: `tawywecinkubmouyprab`.
 
-Nazwy migracji: `<timestamp>_opis.sql` (np. `20260603072317_remote_schema.sql`).
+**Baseline w repo:** `supabase/migrations/20260603072317_remote_schema.sql` (squashed `db pull`). Nowe zmiany: osobny plik `<timestamp>_opis.sql` → `db push`. Regeneracja seedów demo: `node scripts/generate-demo-pages-migration.mjs` (czyta `data/seeds/demo_pages.json`).
 
 ```mermaid
 sequenceDiagram

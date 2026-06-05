@@ -6,7 +6,7 @@ Poniżej jest lista ticketów UX gotowa do przeniesienia do Trello/Jira/GitHub I
 
 1) **Ujednolicić branding (DFCMS vs DFOPSCMS)**
 - **DoD**: 1 nazwa produktu wszędzie + spójne tytuły stron + komunikaty
-- **Pliki**: `landing.html`, `rejestracja.html`, `admin.html`
+- **Pliki**: `index.html`, `rejestracja.html`, `admin.html`
 
 2) **Poprawić czytelność zgody (Regulamin/Polityka) w rejestracji**
 - **DoD**: kontrast OK na ciemnym tle, linki wyraźne, duży obszar kliknięcia
@@ -58,7 +58,7 @@ Poniżej jest lista ticketów UX gotowa do przeniesienia do Trello/Jira/GitHub I
 
 13) **Spójne mikrocopy dla planów i ograniczeń (watermark/domena)**
 - **DoD**: jednoznaczne opisy planów, kiedy znika znak wodny, co daje domena
-- **Pliki**: `landing.html`, `admin.html`, public templates
+- **Pliki**: `index.html`, `admin.html`, public templates
 
 ### P3 — Nice-to-have
 
