@@ -5,6 +5,9 @@
  * invoice.paid, invoice.payment_succeeded, invoice.payment_failed
  *
  * Aktualizacje `pages` wyłącznie przez klienta z SUPABASE_SERVICE_ROLE_KEY (pomija RLS).
+ *
+ * wFirma (opcjonalnie, po checkout.session.completed): WFIRMA_ACCESS_KEY, WFIRMA_SECRET_KEY,
+ * WFIRMA_APP_KEY, opcjonalnie WFIRMA_COMPANY_ID — błędy nie blokują dostępu w CMS.
  */
 import Stripe from "npm:stripe@^14.0.0";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@^2.39.0";
@@ -27,6 +30,11 @@ import {
   type StripePaidTier,
   type StripePriceEnv,
 } from "../_shared/stripeBilling.ts";
+import {
+  extractPolishNipFromStripeTaxIds,
+  netFromGross,
+  tryIssueWfirmaInvoiceForCheckout,
+} from "../_shared/wfirmaBilling.ts";
 
 type WebhookProcessResult = {
   skipped?: string;
@@ -72,6 +80,59 @@ function logWebhookQueue(
  * Udana opłata faktury (odnowienie lub pierwsza): odblokowanie + harmonogram wyłącznie z
  * `Stripe.Subscription.current_period_end` (brak `invoice.period_end` / lokalnych przybliżeń).
  */
+function tierProductLabel(tier: StripePaidTier | undefined): string {
+  if (tier === "tier0") return "DFCMS Starter";
+  if (tier === "tier1") return "DFCMS Standard";
+  return "Subskrypcja DFCMS";
+}
+
+/** wFirma — pobierz line items + tax_ids; błędy nie propagują (log only). */
+async function enqueueWfirmaInvoiceForCheckout(
+  stripe: Stripe,
+  session: Stripe.Checkout.Session,
+  tier: StripePaidTier | undefined,
+): Promise<void> {
+  try {
+    const enriched = await stripe.checkout.sessions.retrieve(session.id, {
+      expand: ["customer_details.tax_ids"],
+    });
+
+    let productName = tierProductLabel(tier);
+    let unitPriceNet: number | undefined;
+    const vatPercent = Number(Deno.env.get("WFIRMA_VAT_RATE") ?? "23") || 23;
+
+    try {
+      const items = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1 });
+      const item = items.data[0];
+      if (item?.description) {
+        productName = item.description;
+      } else if (item?.price?.product) {
+        const prod = item.price.product;
+        if (typeof prod === "object" && prod !== null && "name" in prod) {
+          const n = (prod as Stripe.Product).name;
+          if (n) productName = n;
+        }
+      }
+      const gross = (item?.amount_total ?? session.amount_total ?? 0) / 100;
+      const hasNip = !!extractPolishNipFromStripeTaxIds(
+        enriched.customer_details?.tax_ids ?? null,
+      );
+      unitPriceNet = hasNip ? netFromGross(gross, vatPercent) : gross;
+    } catch (lineErr) {
+      console.warn("wfirma: listLineItems", lineErr);
+    }
+
+    await tryIssueWfirmaInvoiceForCheckout({
+      session: enriched,
+      tierLabel: tier,
+      productName,
+      unitPriceNet,
+    });
+  } catch (e) {
+    console.error("wfirma: enqueue checkout invoice", e);
+  }
+}
+
 async function handleInvoicePaymentSuccess(
   supabase: SupabaseClient,
   stripe: Stripe,
@@ -202,21 +263,24 @@ async function processStripeWebhookEvent(
         return { dbError: logDbFailure("checkout.session.completed", result.error) };
       }
 
+      const priceId = firstRecurringPriceId(subscription);
+      const tierForWfirma =
+        tierFromMeta ??
+        normalizeStripePaidTier(
+          tierFromStripePrice(
+            priceId,
+            prices.priceStarter,
+            prices.priceStarterYearly,
+            prices.pricePro,
+            prices.priceProYearly,
+            "tier1",
+          ),
+        );
+      void enqueueWfirmaInvoiceForCheckout(stripe, session, tierForWfirma);
+
       const st = subscription.status;
       if (st === "active" || st === "trialing") {
-        const priceId = firstRecurringPriceId(subscription);
-        const tier =
-          tierFromMeta ??
-          normalizeStripePaidTier(
-            tierFromStripePrice(
-              priceId,
-              prices.priceStarter,
-              prices.priceStarterYearly,
-              prices.pricePro,
-              prices.priceProYearly,
-              "tier1",
-            ),
-          );
+        const tier = tierForWfirma;
         const cleared = await clearPageBillingBlocksForPaidUser(supabase, userId, tier);
         if (!cleared.ok) {
           return { dbError: logDbFailure("checkout.session.completed.clear_pages", cleared.error) };

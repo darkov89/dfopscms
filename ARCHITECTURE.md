@@ -97,7 +97,7 @@ flowchart TB
 |---------|------|
 | `create-checkout` | Sesja Stripe Checkout (plan, interval) |
 | `create-portal-session` | Stripe Customer Portal |
-| `stripe-webhook` | Zdarzenia Stripe → `billing_profiles` + `pages` |
+| `stripe-webhook` | Zdarzenia Stripe → `billing_profiles` + `pages`; opcjonalnie wFirma (faktura e-mail po Checkout) |
 | `sync-stripe-subscription` | Ręczna synchronizacja statusu subskrypcji |
 | `add-custom-domain` | Cloudflare Custom Hostname + zapis w DB |
 | `get-google-reviews` | Places / opinie (klucz tylko na Edge) |
@@ -108,6 +108,7 @@ Współdzielona logika Stripe: `supabase/functions/_shared/stripeBilling.ts`.
 
 ## 5. Powiązane dokumenty
 
+- **PDF (architektura + workflow):** [`docs/DFCMS-Architecture-and-Flow.pdf`](docs/DFCMS-Architecture-and-Flow.pdf) — regeneracja: `npm run docs:pdf` (źródło HTML: `docs/DFCMS-Architecture-and-Flow.html`)
 - [`PROJECT_STATE.md`](PROJECT_STATE.md) — stan produktu, Stripe, onboarding, security  
 - [`WORKFLOW.md`](WORKFLOW.md) — development, migracje, deploy  
 - [`README.md`](README.md) — szybki start i struktura katalogów  

@@ -33,6 +33,7 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 
 | Data | Co |
 |------|-----|
+| **2026-06-05** | **Edge — wFirma:** `stripe-webhook` po `checkout.session.completed` wystawia fakturę (B2B/B2C) + `/invoices/send` e-mail; błędy nie blokują CMS (`WFIRMA_*` Secrets). |
 | **2026-06-03** | **config.js:** routing Supabase po hoście — localhost / `staging.dfcms.pl` / `*.pages.dev` → Staging; produkcja → Production; usunięty Docker `127.0.0.1:54321`. |
 | **2026-06-03** | **Infrastruktura:** separacja Staging/Production (Supabase CLI, Stripe Test/Live, Cloudflare Pages + SaaS); `ARCHITECTURE.md`, `WORKFLOW.md`, `.gitignore`, `npm run dev`; migracja `remote_schema` bez triggerów `http_request`. |
 | **2026-06-02** | **Edge — Telegram webhook:** router Sentry → Database Webhooks (`users`/`pages`/`billing_profiles`) → Log Alerts → fallback; Telegram (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`). |

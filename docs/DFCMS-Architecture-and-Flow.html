@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <title>DFCMS — Architektura i workflow</title>
+  <style>
+    @page { margin: 18mm 16mm; size: A4; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.45;
+      color: #1e293b;
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 12mm 0;
+    }
+    h1 { font-size: 22pt; color: #0f172a; border-bottom: 3px solid #d4af37; padding-bottom: 8px; margin-top: 0; }
+    h2 { font-size: 14pt; color: #0f172a; margin-top: 28px; page-break-after: avoid; }
+    h3 { font-size: 11pt; color: #334155; margin-top: 18px; }
+    p, li { margin: 0.4em 0; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 9.5pt; }
+    th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; vertical-align: top; }
+    th { background: #f1f5f9; font-weight: 600; }
+    code { background: #f1f5f9; padding: 1px 4px; border-radius: 3px; font-size: 9pt; }
+    pre { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; font-size: 8.5pt; overflow-x: auto; border-radius: 6px; }
+    .meta { color: #64748b; font-size: 9pt; margin-bottom: 24px; }
+    .diagram { margin: 16px 0; page-break-inside: avoid; text-align: center; }
+    .diagram svg { max-width: 100%; height: auto; }
+    ul { padding-left: 1.2em; }
+    .page-break { page-break-before: always; }
+    .toc a { color: #2563eb; text-decoration: none; }
+    .toc li { margin: 4px 0; }
+    footer.note { margin-top: 32px; padding-top: 12px; border-top: 1px solid #e2e8f0; font-size: 8.5pt; color: #64748b; }
+  </style>
+</head>
+<body>
+
+<h1>DFCMS — Architektura systemu i workflow</h1>
+<p class="meta">Dokument wygenerowany z repozytorium dfopscms · 2026-06-03 · Źródła: ARCHITECTURE.md, WORKFLOW.md, PROJECT_STATE.md</p>
+
+<h2>Spis treści</h2>
+<ol class="toc">
+  <li><a href="#s1">Podział logiczny systemu</a></li>
+  <li><a href="#s2">Środowiska Staging / Production</a></li>
+  <li><a href="#s3">Przepływ danych (architektura)</a></li>
+  <li><a href="#s4">Kluczowe ścieżki biznesowe</a></li>
+  <li><a href="#s5">Edge Functions</a></li>
+  <li><a href="#s6">Lokalny development</a></li>
+  <li><a href="#s7">Baza danych i Supabase CLI</a></li>
+  <li><a href="#s8">Stripe (test vs live)</a></li>
+  <li><a href="#s9">Wdrożenie (deploy)</a></li>
+  <li><a href="#s10">Gałęzie Git i bezpieczeństwo</a></li>
+</ol>
+
+<h2 id="s1">1. Podział logiczny systemu</h2>
+<table>
+  <tr><th>Warstwa</th><th>Odpowiedzialność</th><th>Technologie</th></tr>
+  <tr><td>Frontend</td><td>Landing, szablony, panel CMS, routing wielodomenowy</td><td>HTML, JS, Alpine.js, Tailwind CDN, config.js</td></tr>
+  <tr><td>Hosting</td><td>CDN, preview, custom hostnames (SaaS)</td><td>Cloudflare Pages, _middleware.js</td></tr>
+  <tr><td>Backend</td><td>Auth, treść, rozliczenia, obrazy</td><td>Supabase: PostgreSQL, Auth, Storage, RLS</td></tr>
+  <tr><td>Serverless</td><td>Płatności, domeny, cron, opinie, alerty</td><td>Supabase Edge Functions (Deno)</td></tr>
+  <tr><td>Płatności</td><td>Checkout, Portal, webhooks</td><td>Stripe (Test / Live)</td></tr>
+  <tr><td>DNS klientów</td><td>Własne domeny</td><td>Cloudflare for SaaS + add-custom-domain</td></tr>
+  <tr><td>Observability</td><td>Błędy, alerty ops</td><td>Sentry, telegram-webhook</td></tr>
+</table>
+
+<h2 id="s2">2. Środowiska Staging / Production</h2>
+<table>
+  <tr><th>Środowisko</th><th>Git</th><th>Frontend</th><th>Supabase project-ref</th><th>Stripe</th></tr>
+  <tr><td><strong>Staging</strong></td><td>staging</td><td>staging.dfcms.pl, *.pages.dev</td><td>asxrsdsprrbvjvgcsckh</td><td>Test mode</td></tr>
+  <tr><td><strong>Production</strong></td><td>main</td><td>dfcms.pl, {slug}.dfcms.pl</td><td>tawywecinkubmouyprab</td><td>Live mode</td></tr>
+</table>
+<p><strong>config.js</strong> (bez Dockera): hostname <code>localhost</code>, <code>staging.dfcms.pl</code>, <code>*.pages.dev</code> → Staging API; pozostałe hosty → Production.</p>
+
+<h2 id="s3">3. Przepływ danych</h2>
+<div class="diagram mermaid">
+flowchart TB
+  subgraph Client["Klient — przeglądarka"]
+    U[Użytkownik / gość]
+    A[Panel admin]
+  end
+  subgraph CF["Cloudflare"]
+    P[Cloudflare Pages]
+    MW[middleware SEO/CSP]
+    SaaS[Custom Hostnames SaaS]
+  end
+  subgraph SB["Supabase"]
+    Auth[Auth JWT]
+    DB[(PostgreSQL pages billing)]
+    Storage[Storage obrazy]
+    Edge[Edge Functions]
+  end
+  subgraph Ext["Integracje"]
+    Stripe[Stripe]
+    TG[Telegram]
+    CFAPI[Cloudflare API]
+    GMaps[Google Maps]
+    Sentry[Sentry]
+  end
+  U --> P
+  A --> P
+  P --> MW
+  MW --> Auth
+  MW --> DB
+  A --> Auth
+  A --> DB
+  A --> Edge
+  Edge --> DB
+  Edge --> Stripe
+  Stripe --> Edge
+  Edge --> CFAPI
+  CFAPI --> SaaS
+  SaaS --> P
+  Edge --> GMaps
+  Edge --> TG
+  A --> Sentry
+  DB --> Edge
+</div>
+
+<h2 id="s4">4. Kluczowe ścieżki biznesowe</h2>
+<ol>
+  <li><strong>Rejestracja / edycja</strong> — Auth + PostgREST (<code>pages</code>, <code>draft_content</code> / <code>content</code>), RLS + anon key.</li>
+  <li><strong>Publikacja</strong> — <code>draft_content</code> → <code>content</code>; publicznie tylko <code>content</code>; podgląd: <code>?dfcms_preview=1</code>.</li>
+  <li><strong>Płatność</strong> — create-checkout → Stripe → stripe-webhook / sync → billing_profiles + pages.billing_plan.</li>
+  <li><strong>Własna domena</strong> — add-custom-domain → Cloudflare Custom Hostname → pages.custom_domain.</li>
+  <li><strong>Alerty</strong> — Sentry / Database Webhooks → telegram-webhook → Telegram.</li>
+</ol>
+
+<h2 id="s5">5. Edge Functions</h2>
+<table>
+  <tr><th>Funkcja</th><th>Rola</th></tr>
+  <tr><td>create-checkout</td><td>Stripe Checkout (plan, interval)</td></tr>
+  <tr><td>create-portal-session</td><td>Stripe Customer Portal</td></tr>
+  <tr><td>stripe-webhook</td><td>Zdarzenia Stripe → DB</td></tr>
+  <tr><td>sync-stripe-subscription</td><td>Ręczna synchronizacja subskrypcji</td></tr>
+  <tr><td>add-custom-domain</td><td>Cloudflare Custom Hostname</td></tr>
+  <tr><td>get-google-reviews</td><td>Google Places / opinie</td></tr>
+  <tr><td>expire-trial-pages</td><td>Cron trial + purge</td></tr>
+  <tr><td>telegram-webhook</td><td>Router alertów → Telegram</td></tr>
+</table>
+<p>Współdzielona logika Stripe: <code>supabase/functions/_shared/stripeBilling.ts</code></p>
+
+<div class="page-break"></div>
+
+<h2 id="s6">6. Lokalny development</h2>
+<pre>npm install
+npm run dev   # http://localhost:3000 → Supabase Staging (bez supabase start / Docker)</pre>
+<p>Wymagania Staging: redirect URL <code>http://localhost:3000/admin.html</code>, Stripe Test w Secrets.</p>
+
+<div class="diagram mermaid">
+flowchart LR
+  Dev[Developer]
+  NPM[npm run dev]
+  CFG[config.js]
+  STG[(Supabase Staging)]
+  Dev --> NPM --> CFG --> STG
+</div>
+
+<h2 id="s7">7. Baza danych i Supabase CLI</h2>
+<h3>Przełączanie project-ref (jeden link na raz)</h3>
+<table>
+  <tr><th>Cel</th><th>project-ref</th><th>Git front</th><th>Komenda</th></tr>
+  <tr><td>Staging</td><td>asxrsdsprrbvjvgcsckh</td><td>staging</td><td>npm run supabase:link:staging</td></tr>
+  <tr><td>Production</td><td>tawywecinkubmouyprab</td><td>main</td><td>npm run supabase:link:production</td></tr>
+</table>
+<p>Sprawdzenie: <code>npm run supabase:linked</code></p>
+<p><strong>Uwaga:</strong> <code>db push</code> stosuje migracje SQL z repo na zlinkowany projekt — nie kopiuje danych ze Stagingu na Prod.</p>
+
+<div class="diagram mermaid">
+sequenceDiagram
+  participant Dev as Developer
+  participant STG as Supabase Staging
+  participant Git as GitHub
+  participant PRD as Supabase Production
+  Dev->>STG: link + db pull
+  Dev->>Dev: migracja w repo
+  Dev->>Git: push staging
+  Dev->>Git: merge main
+  Dev->>PRD: link + db push
+</div>
+
+<h3>Typowy cykl migracji</h3>
+<pre>supabase link --project-ref asxrsdsprrbvjvgcsckh
+supabase db pull
+# edycja supabase/migrations/*.sql
+git push origin staging
+# po QA:
+supabase link --project-ref tawywecinkubmouyprab
+supabase db push</pre>
+
+<h2 id="s8">8. Stripe — test vs live</h2>
+<ul>
+  <li>Staging / localhost: wyłącznie Stripe <strong>Test</strong> i webhook na projekt Staging.</li>
+  <li>Production: Live keys, Live Price ID, osobny webhook.</li>
+  <li>Karty testowe: 4242 4242 4242 4242 — nigdy live na Stagingu.</li>
+</ul>
+
+<div class="diagram mermaid">
+flowchart TB
+  subgraph OK[Dozwolone Staging]
+    T[Stripe Test]
+    TC[create-checkout]
+    TW[stripe-webhook]
+  end
+  subgraph NO[Zabronione Staging]
+    L[Stripe Live]
+  end
+  T --> TC --> TW
+</div>
+
+<h2 id="s9">9. Wdrożenie (deploy)</h2>
+<div class="diagram mermaid">
+flowchart TB
+  STG_B[git push staging]
+  MAIN_B[git push main]
+  STG_SITE[staging.dfcms.pl]
+  PRD_SITE[dfcms.pl]
+  L1[link Staging]
+  L2[link Production]
+  DB1[db push]
+  FN1[functions deploy]
+  DB2[db push]
+  FN2[functions deploy]
+  STG_B --> STG_SITE
+  STG_B --> L1 --> DB1
+  STG_B --> L1 --> FN1
+  MAIN_B --> PRD_SITE
+  MAIN_B --> L2 --> DB2
+  MAIN_B --> L2 --> FN2
+</div>
+
+<h3>Skróty npm</h3>
+<pre>npm run deploy:db:staging
+npm run deploy:functions:staging
+git push origin staging
+
+npm run deploy:db:production
+npm run deploy:functions:production
+git push origin main</pre>
+
+<h3>Checklist przed Production</h3>
+<ul>
+  <li>Migracje przetestowane na Staging</li>
+  <li>Edge Functions + Secrets Live na Production</li>
+  <li>Cloudflare Pages (main) → prod Supabase URL/anon</li>
+  <li>Stripe webhook Live → prod stripe-webhook</li>
+  <li>Database Webhooks → telegram-webhook (opcjonalnie)</li>
+</ul>
+
+<h2 id="s10">10. Gałęzie Git i bezpieczeństwo</h2>
+<table>
+  <tr><th>Gałąź</th><th>Cel</th></tr>
+  <tr><td>staging</td><td>QA, Stripe Test, Supabase Staging</td></tr>
+  <tr><td>main</td><td>Produkcja — Cloudflare + Supabase Production</td></tr>
+</table>
+<p>Service role, STRIPE_SECRET_KEY, tokeny CF/Telegram — tylko Supabase Secrets / CI, nigdy w Git.</p>
+
+<footer class="note">
+  Repozytorium: dfopscms · Aktualizuj ARCHITECTURE.md i WORKFLOW.md przy zmianach infrastruktury.
+</footer>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose' });
+  await mermaid.run();
+  document.body.setAttribute('data-ready', '1');
+</script>
+</body>
+</html>
