@@ -219,6 +219,8 @@ serve(async (req) => {
       success_url: `${returnUrl}?payment=success`,
       cancel_url: `${returnUrl}?payment=cancelled`,
       client_reference_id: userId,
+      billing_address_collection: "required",
+      tax_id_collection: { enabled: true },
       metadata: {
         supabase_user_id: userId,
         billing_interval: interval,
@@ -229,6 +231,7 @@ serve(async (req) => {
     /** Returning customer: ten sam `cus_…` w Stripe — bez duplikatu i bez `customer_email`. */
     if (returningCustomerId) {
       sessionParams.customer = returningCustomerId;
+      sessionParams.customer_update = { address: "auto", name: "auto" };
     } else if (user.email) {
       sessionParams.customer_email = user.email;
     } else {
