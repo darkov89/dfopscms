@@ -34,7 +34,7 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 | Data | Co |
 |------|-----|
 | **2026-06-05** | **Porządek repo:** usunięte martwe pliki (`templates.js`, `app.js`, mp4); `data/seeds/demo_pages.json`; `docs/roadmap/`; `.env.example` bez `VITE_`; docs bez starych migracji. |
-| **2026-06-05** | **wFirma cross-border B2B:** zagraniczny VAT UE → faktura WDT (`NP`), pełny numer z prefiksem kraju; PL B2B netto z 23%. |
+| **2026-06-05** | **wFirma fix:** `tax_id_type` eu_vat/nip, stawka `np`; faktury przy `invoice.payment_succeeded` (upgrade/odnowienie). |
 | **2026-06-05** | **Checkout + wFirma:** `billing_address_collection` + `tax_id_collection`; webhook → faktura e-mail (`WFIRMA_*` Secrets). |
 | **2026-06-03** | **config.js:** routing Supabase po hoście — localhost / `staging.dfcms.pl` / `*.pages.dev` → Staging; produkcja → Production; usunięty Docker `127.0.0.1:54321`. |
 | **2026-06-03** | **Infrastruktura:** separacja Staging/Production (Supabase CLI, Stripe Test/Live, Cloudflare Pages + SaaS); `ARCHITECTURE.md`, `WORKFLOW.md`, `.gitignore`, `npm run dev`; migracja `remote_schema` bez triggerów `http_request`. |

@@ -59,7 +59,7 @@ export function extractTaxId(
   return null;
 }
 
-/** Pełny numer VAT z przedrostkiem kraju (VIES / wFirma). */
+/** Pełny numer VAT UE z prefiksem kraju (VIES). */
 export function formatVatIdForWfirma(taxId: string, country: string): string {
   const cleaned = taxId.replace(/\s/g, "");
   if (!cleaned) return "";
@@ -70,6 +70,21 @@ export function formatVatIdForWfirma(taxId: string, country: string): string {
     if (digits.length === 10) return `PL${digits}`;
   }
   return cc ? `${cc}${cleaned}`.toUpperCase() : cleaned.toUpperCase();
+}
+
+export type WfirmaTaxIdType = "nip" | "eu_vat";
+
+/** Identyfikator podatkowy w formacie wymaganym przez wFirma (`nip` + `tax_id_type`). */
+export function resolveWfirmaTaxIdentifier(
+  taxIdRaw: string,
+  country: string,
+): { value: string; type: WfirmaTaxIdType } {
+  const cc = country.trim().toUpperCase();
+  if (cc === "PL") {
+    const digits = taxIdRaw.replace(/^PL/i, "").replace(/\D/g, "");
+    return { type: "nip", value: digits };
+  }
+  return { type: "eu_vat", value: formatVatIdForWfirma(taxIdRaw, country) };
 }
 
 function splitPersonName(fullName: string): { firstName: string; lastName: string } {
@@ -129,6 +144,7 @@ export type WfirmaContractorInput = {
   email: string;
   fullName: string;
   nip: string | null;
+  taxIdType?: WfirmaTaxIdType | null;
   street: string;
   zip: string;
   city: string;
@@ -138,7 +154,8 @@ export type WfirmaContractorInput = {
 export type WfirmaInvoiceOpts = {
   isB2B: boolean;
   isForeignB2B?: boolean;
-  stripeSessionId: string;
+  stripeReference: string;
+  stripeSource: "checkout" | "invoice";
 };
 
 export function buildWfirmaInvoiceAddXml(
@@ -150,11 +167,14 @@ export function buildWfirmaInvoiceAddXml(
   const vat = !opts.isB2B
     ? "zw"
     : opts.isForeignB2B
-    ? "NP"
+    ? "np"
     : line.vatRate;
   const qty = line.quantity ?? 1;
   const name = contractor.fullName || contractor.email;
   const contractorName = opts.isB2B ? name : name;
+  const taxIdTypeBlock = opts.isB2B && contractor.taxIdType
+    ? `<tax_id_type>${contractor.taxIdType}</tax_id_type>`
+    : "";
   const nipBlock = opts.isB2B && contractor.nip
     ? `<nip>${xmlEscape(contractor.nip)}</nip>`
     : "";
@@ -171,10 +191,11 @@ export function buildWfirmaInvoiceAddXml(
       <type>${invoiceType}</type>
       <paymentmethod>card</paymentmethod>
       <paymentdate>${todayPlDate()}</paymentdate>
-      <description>${xmlEscape(`Stripe Checkout ${opts.stripeSessionId}`)}</description>
+      <description>${xmlEscape(`Stripe ${opts.stripeSource} ${opts.stripeReference}`)}</description>
       <contractor>
         <name>${xmlEscape(contractorName)}</name>
         ${personBlock}
+        ${taxIdTypeBlock}
         ${nipBlock}
         <street>${xmlEscape(contractor.street)}</street>
         <zip>${xmlEscape(contractor.zip)}</zip>
@@ -261,6 +282,15 @@ export async function wfirmaCreateAndEmailInvoice(
   const addXml = buildWfirmaInvoiceAddXml(contractor, line, opts);
   const addRes = await wfirmaPost(creds, "/invoices/add", addXml);
   if (!addRes.ok) {
+    console.error(
+      JSON.stringify({
+        tag: "wfirma-api",
+        step: "invoices/add",
+        http: addRes.status,
+        api_code: addRes.apiCode,
+        body_preview: addRes.body.slice(0, 500),
+      }),
+    );
     throw new Error(
       `wfirma invoices/add failed HTTP ${addRes.status} code=${addRes.apiCode} body=${addRes.body.slice(0, 800)}`,
     );
@@ -277,6 +307,16 @@ export async function wfirmaCreateAndEmailInvoice(
   const sendXml = buildWfirmaSendEmailXml(contractor.email, subject, body);
   const sendRes = await wfirmaPost(creds, `/invoices/send/${invoiceId}`, sendXml);
   if (!sendRes.ok) {
+    console.error(
+      JSON.stringify({
+        tag: "wfirma-api",
+        step: "invoices/send",
+        invoice_id: invoiceId,
+        http: sendRes.status,
+        api_code: sendRes.apiCode,
+        body_preview: sendRes.body.slice(0, 500),
+      }),
+    );
     throw new Error(
       `wfirma invoices/send/${invoiceId} failed HTTP ${sendRes.status} code=${sendRes.apiCode}`,
     );
@@ -298,12 +338,38 @@ export type CheckoutWfirmaContext = {
   unitPriceNet?: number;
 };
 
-/**
- * Nie rzuca — loguje błędy. Wywołuj po udanym zapisie billing w Supabase (fire-and-forget).
- */
-export async function tryIssueWfirmaInvoiceForCheckout(
-  ctx: CheckoutWfirmaContext,
-): Promise<void> {
+type WfirmaBillingInput = {
+  email: string;
+  fullName: string;
+  taxIds: StripeTaxIdLike[] | null | undefined;
+  street: string;
+  zip: string;
+  city: string;
+  country: string;
+  grossPln: number;
+  productName: string;
+  unitPriceNetOverride?: number;
+  stripeReference: string;
+  stripeSource: "checkout" | "invoice";
+};
+
+function computeWfirmaLineAmounts(
+  grossPln: number,
+  isB2B: boolean,
+  isForeignB2B: boolean,
+  vatPercent: number,
+  unitPriceNetOverride?: number,
+): { unitPriceNet: number; lineVatRate: string } {
+  const unitPriceNet = unitPriceNetOverride ?? (
+    isB2B && !isForeignB2B
+      ? netFromGross(grossPln, vatPercent)
+      : grossPln
+  );
+  const lineVatRate = isForeignB2B ? "np" : String(vatPercent);
+  return { unitPriceNet, lineVatRate };
+}
+
+async function issueWfirmaInvoiceFromBillingInput(input: WfirmaBillingInput): Promise<void> {
   const creds = readWfirmaCredentials();
   if (!creds) {
     console.warn(
@@ -312,58 +378,67 @@ export async function tryIssueWfirmaInvoiceForCheckout(
     return;
   }
 
-  const session = ctx.session;
-  const details = session.customer_details;
-  const email = (details?.email ?? session.customer_email ?? "").trim();
-  if (!email) {
-    console.warn("wfirma: pominięto — brak email w checkout.session", session.id);
+  if (!input.email) {
+    console.warn("wfirma: pominięto — brak email", input.stripeReference);
     return;
   }
 
-  const taxIdRaw = extractTaxId(details?.tax_ids ?? null);
-  const isB2B = !!taxIdRaw;
+  if (input.grossPln <= 0) {
+    console.warn("wfirma: pominięto — kwota 0", input.stripeReference);
+    return;
+  }
 
-  const addr = details?.address;
-  const street = (addr?.line1 ?? "brak adresu").trim();
-  const zip = (addr?.postal_code ?? "00-000").trim();
-  const city = (addr?.city ?? "—").trim();
-  const country = (addr?.country ?? "PL").trim().toUpperCase();
+  const taxIdRaw = extractTaxId(input.taxIds);
+  const isB2B = !!taxIdRaw;
+  const country = input.country.trim().toUpperCase() || "PL";
   const isForeignB2B = isB2B && country !== "PL";
-  const vatId = taxIdRaw ? formatVatIdForWfirma(taxIdRaw, country) : null;
-  const fullName = (details?.name ?? email).trim();
+  const taxId = taxIdRaw ? resolveWfirmaTaxIdentifier(taxIdRaw, country) : null;
 
   const vatPercent = Number(Deno.env.get("WFIRMA_VAT_RATE") ?? "23") || 23;
-  const grossPln = (session.amount_total ?? 0) / 100;
-  const unitPriceNet = ctx.unitPriceNet ?? (
-    isB2B && !isForeignB2B
-      ? netFromGross(grossPln, vatPercent)
-      : grossPln
+  const { unitPriceNet, lineVatRate } = computeWfirmaLineAmounts(
+    input.grossPln,
+    isB2B,
+    isForeignB2B,
+    vatPercent,
+    input.unitPriceNetOverride,
   );
-  const lineVatRate = isForeignB2B ? "NP" : String(vatPercent);
-
-  const lineName = ctx.productName ??
-    planLabelFromTier(ctx.tierLabel, "Subskrypcja DFCMS");
 
   try {
     const result = await wfirmaCreateAndEmailInvoice(
       creds,
-      { email, fullName, nip: vatId, street, zip, city, country },
       {
-        name: lineName,
+        email: input.email,
+        fullName: input.fullName,
+        nip: taxId?.value ?? null,
+        taxIdType: taxId?.type ?? null,
+        street: input.street,
+        zip: input.zip,
+        city: input.city,
+        country,
+      },
+      {
+        name: input.productName,
         unitPriceNet,
         vatRate: lineVatRate,
       },
-      { isB2B, isForeignB2B, stripeSessionId: session.id },
+      {
+        isB2B,
+        isForeignB2B,
+        stripeReference: input.stripeReference,
+        stripeSource: input.stripeSource,
+      },
     );
     console.log(
       JSON.stringify({
         tag: "wfirma-invoice",
         ok: true,
-        stripe_session_id: session.id,
+        source: input.stripeSource,
+        stripe_ref: input.stripeReference,
         wfirma_invoice_id: result.invoiceId,
         b2b: isB2B,
         foreign_b2b: isForeignB2B,
-        email,
+        tax_id_type: taxId?.type ?? null,
+        email: input.email,
       }),
     );
   } catch (e) {
@@ -372,9 +447,111 @@ export async function tryIssueWfirmaInvoiceForCheckout(
       JSON.stringify({
         tag: "wfirma-invoice",
         ok: false,
-        stripe_session_id: session.id,
+        source: input.stripeSource,
+        stripe_ref: input.stripeReference,
         error: msg,
       }),
     );
   }
+}
+
+/**
+ * Nie rzuca — loguje błędy. Wywołuj po udanym zapisie billing w Supabase (fire-and-forget).
+ */
+export async function tryIssueWfirmaInvoiceForCheckout(
+  ctx: CheckoutWfirmaContext,
+): Promise<void> {
+  const session = ctx.session;
+  const details = session.customer_details;
+  const email = (details?.email ?? session.customer_email ?? "").trim();
+  const addr = details?.address;
+
+  await issueWfirmaInvoiceFromBillingInput({
+    email,
+    fullName: (details?.name ?? email).trim(),
+    taxIds: details?.tax_ids ?? null,
+    street: (addr?.line1 ?? "brak adresu").trim(),
+    zip: (addr?.postal_code ?? "00-000").trim(),
+    city: (addr?.city ?? "—").trim(),
+    country: (addr?.country ?? "PL").trim().toUpperCase(),
+    grossPln: (session.amount_total ?? 0) / 100,
+    productName: ctx.productName ??
+      planLabelFromTier(ctx.tierLabel, "Subskrypcja DFCMS"),
+    unitPriceNetOverride: ctx.unitPriceNet,
+    stripeReference: session.id,
+    stripeSource: "checkout",
+  });
+}
+
+export type StripeInvoiceWfirmaContext = {
+  invoice: Stripe.Invoice;
+  tierLabel?: string;
+  productName?: string;
+};
+
+async function loadTaxIdsForStripeInvoice(
+  stripe: Stripe,
+  invoice: Stripe.Invoice,
+): Promise<StripeTaxIdLike[] | null> {
+  if (invoice.customer_tax_ids?.length) {
+    return invoice.customer_tax_ids.map((t) => ({
+      type: t.type,
+      value: t.value,
+    }));
+  }
+
+  const customerId = typeof invoice.customer === "string"
+    ? invoice.customer
+    : invoice.customer?.id;
+  if (!customerId) return null;
+
+  try {
+    const customer = await stripe.customers.retrieve(customerId, {
+      expand: ["tax_ids"],
+    });
+    if (customer.deleted) return null;
+    const list = (customer as Stripe.Customer).tax_ids?.data ?? [];
+    return list.map((t) => ({ type: t.type, value: t.value }));
+  } catch (e) {
+    console.warn("wfirma: customers.retrieve tax_ids", customerId, e);
+    return null;
+  }
+}
+
+/**
+ * Faktura wFirma po opłaceniu faktury Stripe (upgrade/downgrade, odnowienie).
+ * Nie rzuca — loguje błędy.
+ */
+export async function tryIssueWfirmaInvoiceForStripeInvoice(
+  stripe: Stripe,
+  ctx: StripeInvoiceWfirmaContext,
+): Promise<void> {
+  const invoice = ctx.invoice;
+  const addr = invoice.customer_address;
+  const taxIds = await loadTaxIdsForStripeInvoice(stripe, invoice);
+
+  let productName = ctx.productName ?? "Subskrypcja DFCMS";
+  const line = invoice.lines?.data?.[0];
+  if (line?.description) {
+    productName = line.description;
+  } else if (typeof line?.price?.product === "object" && line.price.product && "name" in line.price.product) {
+    const n = (line.price.product as Stripe.Product).name;
+    if (n) productName = n;
+  } else if (!ctx.productName && ctx.tierLabel) {
+    productName = planLabelFromTier(ctx.tierLabel, productName);
+  }
+
+  await issueWfirmaInvoiceFromBillingInput({
+    email: (invoice.customer_email ?? "").trim(),
+    fullName: (invoice.customer_name ?? invoice.customer_email ?? "Klient").trim(),
+    taxIds,
+    street: (addr?.line1 ?? "brak adresu").trim(),
+    zip: (addr?.postal_code ?? "00-000").trim(),
+    city: (addr?.city ?? "—").trim(),
+    country: (addr?.country ?? "PL").trim().toUpperCase(),
+    grossPln: (invoice.amount_paid ?? 0) / 100,
+    productName,
+    stripeReference: invoice.id,
+    stripeSource: "invoice",
+  });
 }

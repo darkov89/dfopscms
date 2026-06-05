@@ -6,8 +6,10 @@
  *
  * Aktualizacje `pages` wyłącznie przez klienta z SUPABASE_SERVICE_ROLE_KEY (pomija RLS).
  *
- * wFirma (opcjonalnie, po checkout.session.completed): WFIRMA_ACCESS_KEY, WFIRMA_SECRET_KEY,
- * WFIRMA_APP_KEY, opcjonalnie WFIRMA_COMPANY_ID — błędy nie blokują dostępu w CMS.
+ * wFirma (opcjonalnie): WFIRMA_ACCESS_KEY, WFIRMA_SECRET_KEY, WFIRMA_APP_KEY,
+ * opcjonalnie WFIRMA_COMPANY_ID — błędy nie blokują dostępu w CMS.
+ * Faktury: checkout.session.completed (pierwsza płatność) oraz invoice.paid /
+ * invoice.payment_succeeded przy billing_reason subscription_update | subscription_cycle.
  */
 import Stripe from "npm:stripe@^14.0.0";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@^2.39.0";
@@ -30,7 +32,10 @@ import {
   type StripePaidTier,
   type StripePriceEnv,
 } from "../_shared/stripeBilling.ts";
-import { tryIssueWfirmaInvoiceForCheckout } from "../_shared/wfirmaBilling.ts";
+import {
+  tryIssueWfirmaInvoiceForCheckout,
+  tryIssueWfirmaInvoiceForStripeInvoice,
+} from "../_shared/wfirmaBilling.ts";
 
 type WebhookProcessResult = {
   skipped?: string;
@@ -82,7 +87,7 @@ function tierProductLabel(tier: StripePaidTier | undefined): string {
   return "Subskrypcja DFCMS";
 }
 
-/** wFirma — pobierz line items + tax_ids; błędy nie propagują (log only). */
+/** wFirma — faktura po Checkout (pierwsza płatność). */
 async function enqueueWfirmaInvoiceForCheckout(
   stripe: Stripe,
   session: Stripe.Checkout.Session,
@@ -118,6 +123,27 @@ async function enqueueWfirmaInvoiceForCheckout(
     });
   } catch (e) {
     console.error("wfirma: enqueue checkout invoice", e);
+  }
+}
+
+/** wFirma — faktura po opłaceniu faktury Stripe (upgrade / odnowienie). */
+async function enqueueWfirmaInvoiceForStripeInvoice(
+  stripe: Stripe,
+  invoice: Stripe.Invoice,
+  tier: StripePaidTier | undefined,
+): Promise<void> {
+  try {
+    const reason = invoice.billing_reason;
+    if (reason !== "subscription_update" && reason !== "subscription_cycle") {
+      return;
+    }
+    await tryIssueWfirmaInvoiceForStripeInvoice(stripe, {
+      invoice,
+      tierLabel: tier,
+      productName: tierProductLabel(tier),
+    });
+  } catch (e) {
+    console.error("wfirma: enqueue stripe invoice", invoice.id, e);
   }
 }
 
@@ -178,6 +204,20 @@ async function handleInvoicePaymentSuccess(
   if (!result.ok) {
     return { dbError: logDbFailure("handleInvoicePaymentSuccess", result.error) };
   }
+
+  const priceId = firstRecurringPriceId(subscription);
+  const tierForWfirma = normalizeStripePaidTier(
+    tierFromStripePrice(
+      priceId,
+      prices.priceStarter,
+      prices.priceStarterYearly,
+      prices.pricePro,
+      prices.priceProYearly,
+      "tier1",
+    ),
+  );
+  void enqueueWfirmaInvoiceForStripeInvoice(stripe, invoice, tierForWfirma);
+
   return {};
 }
 
