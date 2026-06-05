@@ -45,20 +45,31 @@ function formatPrice(amount: number): string {
   return amount.toFixed(2);
 }
 
-/** PL NIP z Stripe tax_ids (np. eu_vat PL5250007313). */
 type StripeTaxIdLike = { type?: string | null; value?: string | null };
 
-export function extractPolishNipFromStripeTaxIds(
+/** Pierwszy identyfikator podatkowy ze Stripe (np. eu_vat PL…, DE…, FR…). */
+export function extractTaxId(
   taxIds: StripeTaxIdLike[] | null | undefined,
 ): string | null {
   if (!taxIds?.length) return null;
   for (const t of taxIds) {
-    const raw = String(t.value ?? "").trim();
-    if (!raw) continue;
-    const digits = raw.replace(/^PL/i, "").replace(/\D/g, "");
-    if (digits.length === 10) return digits;
+    const raw = String(t.value ?? "").replace(/\s/g, "");
+    if (raw) return raw;
   }
   return null;
+}
+
+/** Pełny numer VAT z przedrostkiem kraju (VIES / wFirma). */
+export function formatVatIdForWfirma(taxId: string, country: string): string {
+  const cleaned = taxId.replace(/\s/g, "");
+  if (!cleaned) return "";
+  if (/^[A-Z]{2}/i.test(cleaned)) return cleaned.toUpperCase();
+  const cc = country.trim().toUpperCase();
+  if (cc === "PL") {
+    const digits = cleaned.replace(/\D/g, "");
+    if (digits.length === 10) return `PL${digits}`;
+  }
+  return cc ? `${cc}${cleaned}`.toUpperCase() : cleaned.toUpperCase();
 }
 
 function splitPersonName(fullName: string): { firstName: string; lastName: string } {
@@ -124,13 +135,23 @@ export type WfirmaContractorInput = {
   country: string;
 };
 
+export type WfirmaInvoiceOpts = {
+  isB2B: boolean;
+  isForeignB2B?: boolean;
+  stripeSessionId: string;
+};
+
 export function buildWfirmaInvoiceAddXml(
   contractor: WfirmaContractorInput,
   line: WfirmaInvoiceLine,
-  opts: { isB2B: boolean; stripeSessionId: string },
+  opts: WfirmaInvoiceOpts,
 ): string {
   const invoiceType = opts.isB2B ? "normal" : "bill";
-  const vat = opts.isB2B ? line.vatRate : "zw";
+  const vat = !opts.isB2B
+    ? "zw"
+    : opts.isForeignB2B
+    ? "NP"
+    : line.vatRate;
   const qty = line.quantity ?? 1;
   const name = contractor.fullName || contractor.email;
   const contractorName = opts.isB2B ? name : name;
@@ -235,7 +256,7 @@ export async function wfirmaCreateAndEmailInvoice(
   creds: WfirmaCredentials,
   contractor: WfirmaContractorInput,
   line: WfirmaInvoiceLine,
-  opts: { isB2B: boolean; stripeSessionId: string },
+  opts: WfirmaInvoiceOpts,
 ): Promise<{ invoiceId: string | null }> {
   const addXml = buildWfirmaInvoiceAddXml(contractor, line, opts);
   const addRes = await wfirmaPost(creds, "/invoices/add", addXml);
@@ -299,20 +320,26 @@ export async function tryIssueWfirmaInvoiceForCheckout(
     return;
   }
 
-  const nip = extractPolishNipFromStripeTaxIds(details?.tax_ids ?? null);
-  const isB2B = !!nip;
+  const taxIdRaw = extractTaxId(details?.tax_ids ?? null);
+  const isB2B = !!taxIdRaw;
 
   const addr = details?.address;
   const street = (addr?.line1 ?? "brak adresu").trim();
   const zip = (addr?.postal_code ?? "00-000").trim();
   const city = (addr?.city ?? "—").trim();
   const country = (addr?.country ?? "PL").trim().toUpperCase();
+  const isForeignB2B = isB2B && country !== "PL";
+  const vatId = taxIdRaw ? formatVatIdForWfirma(taxIdRaw, country) : null;
   const fullName = (details?.name ?? email).trim();
 
   const vatPercent = Number(Deno.env.get("WFIRMA_VAT_RATE") ?? "23") || 23;
   const grossPln = (session.amount_total ?? 0) / 100;
-  const unitPriceNet = ctx.unitPriceNet ??
-    (isB2B ? netFromGross(grossPln, vatPercent) : grossPln);
+  const unitPriceNet = ctx.unitPriceNet ?? (
+    isB2B && !isForeignB2B
+      ? netFromGross(grossPln, vatPercent)
+      : grossPln
+  );
+  const lineVatRate = isForeignB2B ? "NP" : String(vatPercent);
 
   const lineName = ctx.productName ??
     planLabelFromTier(ctx.tierLabel, "Subskrypcja DFCMS");
@@ -320,13 +347,13 @@ export async function tryIssueWfirmaInvoiceForCheckout(
   try {
     const result = await wfirmaCreateAndEmailInvoice(
       creds,
-      { email, fullName, nip, street, zip, city, country },
+      { email, fullName, nip: vatId, street, zip, city, country },
       {
         name: lineName,
         unitPriceNet,
-        vatRate: String(vatPercent),
+        vatRate: lineVatRate,
       },
-      { isB2B, stripeSessionId: session.id },
+      { isB2B, isForeignB2B, stripeSessionId: session.id },
     );
     console.log(
       JSON.stringify({
@@ -335,6 +362,7 @@ export async function tryIssueWfirmaInvoiceForCheckout(
         stripe_session_id: session.id,
         wfirma_invoice_id: result.invoiceId,
         b2b: isB2B,
+        foreign_b2b: isForeignB2B,
         email,
       }),
     );

@@ -30,11 +30,7 @@ import {
   type StripePaidTier,
   type StripePriceEnv,
 } from "../_shared/stripeBilling.ts";
-import {
-  extractPolishNipFromStripeTaxIds,
-  netFromGross,
-  tryIssueWfirmaInvoiceForCheckout,
-} from "../_shared/wfirmaBilling.ts";
+import { tryIssueWfirmaInvoiceForCheckout } from "../_shared/wfirmaBilling.ts";
 
 type WebhookProcessResult = {
   skipped?: string;
@@ -98,8 +94,6 @@ async function enqueueWfirmaInvoiceForCheckout(
     });
 
     let productName = tierProductLabel(tier);
-    let unitPriceNet: number | undefined;
-    const vatPercent = Number(Deno.env.get("WFIRMA_VAT_RATE") ?? "23") || 23;
 
     try {
       const items = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1 });
@@ -113,11 +107,6 @@ async function enqueueWfirmaInvoiceForCheckout(
           if (n) productName = n;
         }
       }
-      const gross = (item?.amount_total ?? session.amount_total ?? 0) / 100;
-      const hasNip = !!extractPolishNipFromStripeTaxIds(
-        enriched.customer_details?.tax_ids ?? null,
-      );
-      unitPriceNet = hasNip ? netFromGross(gross, vatPercent) : gross;
     } catch (lineErr) {
       console.warn("wfirma: listLineItems", lineErr);
     }
@@ -126,7 +115,6 @@ async function enqueueWfirmaInvoiceForCheckout(
       session: enriched,
       tierLabel: tier,
       productName,
-      unitPriceNet,
     });
   } catch (e) {
     console.error("wfirma: enqueue checkout invoice", e);
