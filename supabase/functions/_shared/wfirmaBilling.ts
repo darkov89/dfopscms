@@ -78,13 +78,36 @@ export type WfirmaTaxIdType = "nip" | "eu_vat";
 export function resolveWfirmaTaxIdentifier(
   taxIdRaw: string,
   country: string,
-): { value: string; type: WfirmaTaxIdType } {
-  const cc = country.trim().toUpperCase();
-  if (cc === "PL") {
-    const digits = taxIdRaw.replace(/^PL/i, "").replace(/\D/g, "");
-    return { type: "nip", value: digits };
+): { value: string; type: WfirmaTaxIdType; euPrefix?: string } {
+  const cleaned = taxIdRaw.replace(/\s/g, "");
+  const cc = country.trim().toUpperCase() || "PL";
+  const prefixMatch = cleaned.match(/^([A-Z]{2})(.+)$/i);
+  const vatPrefix = prefixMatch?.[1]?.toUpperCase();
+  const vatBody = prefixMatch?.[2] ?? cleaned;
+
+  const looksLikePolishNip =
+    cc === "PL" &&
+    (!vatPrefix || vatPrefix === "PL") &&
+    vatBody.replace(/\D/g, "").length === 10;
+
+  if (looksLikePolishNip) {
+    return { type: "nip", value: vatBody.replace(/\D/g, "") };
   }
-  return { type: "eu_vat", value: formatVatIdForWfirma(taxIdRaw, country) };
+
+  const euPrefix = vatPrefix && vatPrefix !== "PL" ? vatPrefix : cc;
+  return {
+    type: "eu_vat",
+    value: formatVatIdForWfirma(taxIdRaw, euPrefix),
+    euPrefix,
+  };
+}
+
+/** Rozdziela numer VAT UE na prefiks kraju i resztę (opcjonalne pole `<prefix>` w wFirma). */
+export function splitEuVatForWfirma(vatId: string): { prefix: string; number: string } {
+  const upper = vatId.replace(/\s/g, "").toUpperCase();
+  const m = upper.match(/^([A-Z]{2})(.+)$/);
+  if (!m) return { prefix: "", number: upper };
+  return { prefix: m[1], number: m[2] };
 }
 
 function splitPersonName(fullName: string): { firstName: string; lastName: string } {
@@ -145,6 +168,8 @@ export type WfirmaContractorInput = {
   fullName: string;
   nip: string | null;
   taxIdType?: WfirmaTaxIdType | null;
+  /** Prefiks kraju UE (np. DE) — opcjonalnie obok pełnego VAT w `<nip>`. */
+  euVatPrefix?: string | null;
   street: string;
   zip: string;
   city: string;
@@ -154,6 +179,8 @@ export type WfirmaContractorInput = {
 export type WfirmaInvoiceOpts = {
   isB2B: boolean;
   isForeignB2B?: boolean;
+  /** Kwota brutto zapłacona w Stripe (PLN) — trafia do `<alreadypaid>`. */
+  grossPaidPln: number;
   stripeReference: string;
   stripeSource: "checkout" | "invoice";
 };
@@ -172,11 +199,27 @@ export function buildWfirmaInvoiceAddXml(
   const qty = line.quantity ?? 1;
   const name = contractor.fullName || contractor.email;
   const contractorName = opts.isB2B ? name : name;
-  const taxIdTypeBlock = opts.isB2B && contractor.taxIdType
-    ? `<tax_id_type>${contractor.taxIdType}</tax_id_type>`
+
+  const taxIdType: WfirmaTaxIdType | null = !opts.isB2B
+    ? null
+    : opts.isForeignB2B
+    ? "eu_vat"
+    : (contractor.taxIdType ?? "nip");
+
+  const taxIdTypeBlock = taxIdType
+    ? `<tax_id_type>${taxIdType}</tax_id_type>`
     : "";
+
+  const euPrefixBlock = taxIdType === "eu_vat" && contractor.euVatPrefix
+    ? `<prefix>${xmlEscape(contractor.euVatPrefix)}</prefix>`
+    : "";
+
   const nipBlock = opts.isB2B && contractor.nip
     ? `<nip>${xmlEscape(contractor.nip)}</nip>`
+    : "";
+
+  const alreadyPaidBlock = opts.grossPaidPln > 0
+    ? `<alreadypaid>${formatPrice(opts.grossPaidPln)}</alreadypaid>`
     : "";
 
   const { firstName, lastName } = splitPersonName(contractor.fullName || name);
@@ -191,11 +234,13 @@ export function buildWfirmaInvoiceAddXml(
       <type>${invoiceType}</type>
       <paymentmethod>card</paymentmethod>
       <paymentdate>${todayPlDate()}</paymentdate>
+      ${alreadyPaidBlock}
       <description>${xmlEscape(`Stripe ${opts.stripeSource} ${opts.stripeReference}`)}</description>
       <contractor>
         <name>${xmlEscape(contractorName)}</name>
         ${personBlock}
         ${taxIdTypeBlock}
+        ${euPrefixBlock}
         ${nipBlock}
         <street>${xmlEscape(contractor.street)}</street>
         <zip>${xmlEscape(contractor.zip)}</zip>
@@ -391,8 +436,8 @@ async function issueWfirmaInvoiceFromBillingInput(input: WfirmaBillingInput): Pr
   const taxIdRaw = extractTaxId(input.taxIds);
   const isB2B = !!taxIdRaw;
   const country = input.country.trim().toUpperCase() || "PL";
-  const isForeignB2B = isB2B && country !== "PL";
   const taxId = taxIdRaw ? resolveWfirmaTaxIdentifier(taxIdRaw, country) : null;
+  const isForeignB2B = isB2B && taxId?.type === "eu_vat";
 
   const vatPercent = Number(Deno.env.get("WFIRMA_VAT_RATE") ?? "23") || 23;
   const { unitPriceNet, lineVatRate } = computeWfirmaLineAmounts(
@@ -403,6 +448,10 @@ async function issueWfirmaInvoiceFromBillingInput(input: WfirmaBillingInput): Pr
     input.unitPriceNetOverride,
   );
 
+  const euVat = taxId?.type === "eu_vat" && taxId.value
+    ? splitEuVatForWfirma(taxId.value)
+    : null;
+
   try {
     const result = await wfirmaCreateAndEmailInvoice(
       creds,
@@ -411,6 +460,7 @@ async function issueWfirmaInvoiceFromBillingInput(input: WfirmaBillingInput): Pr
         fullName: input.fullName,
         nip: taxId?.value ?? null,
         taxIdType: taxId?.type ?? null,
+        euVatPrefix: euVat?.prefix ?? taxId?.euPrefix ?? null,
         street: input.street,
         zip: input.zip,
         city: input.city,
@@ -424,6 +474,7 @@ async function issueWfirmaInvoiceFromBillingInput(input: WfirmaBillingInput): Pr
       {
         isB2B,
         isForeignB2B,
+        grossPaidPln: input.grossPln,
         stripeReference: input.stripeReference,
         stripeSource: input.stripeSource,
       },
@@ -438,6 +489,7 @@ async function issueWfirmaInvoiceFromBillingInput(input: WfirmaBillingInput): Pr
         b2b: isB2B,
         foreign_b2b: isForeignB2B,
         tax_id_type: taxId?.type ?? null,
+        gross_paid_pln: input.grossPln,
         email: input.email,
       }),
     );
