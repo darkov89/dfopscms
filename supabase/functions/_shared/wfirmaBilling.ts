@@ -5,6 +5,12 @@
  * Uwaga: oficjalne API2 nie przyjmuje JSON na /invoices/add — używamy XML (inputFormat=xml).
  */
 import type Stripe from "npm:stripe@^14.0.0";
+import type { SupabaseClient } from "npm:@supabase/supabase-js@^2.39.0";
+import {
+  claimWfirmaInvoiceLedger,
+  markWfirmaInvoiceLedgerFailed,
+  markWfirmaInvoiceLedgerIssued,
+} from "./wfirmaInvoiceLedger.ts";
 
 const WFIRMA_BASE = (Deno.env.get("WFIRMA_API_BASE") ?? "https://api2.wfirma.pl").replace(
   /\/$/,
@@ -73,6 +79,36 @@ export function formatVatIdForWfirma(taxId: string, country: string): string {
 }
 
 export type WfirmaTaxIdType = "nip" | "eu_vat";
+
+/** Kraje UE (ISO 3166-1 alpha-2) — bez PL; do stawki NPUE vs NP. */
+const EU_COUNTRY_CODES = new Set([
+  "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT",
+  "LV", "LT", "LU", "MT", "NL", "PT", "RO", "SK", "SI", "ES", "SE",
+]);
+
+export function isEuCountry(countryCode: string): boolean {
+  const cc = countryCode.trim().toUpperCase();
+  return cc !== "PL" && EU_COUNTRY_CODES.has(cc);
+}
+
+export function isForeignInvoiceCountry(countryCode: string): boolean {
+  return countryCode.trim().toUpperCase() !== "PL";
+}
+
+/** Stawka VAT w XML wFirma: NPUE/NP tylko B2B zagraniczne; B2C PL = stawka krajowa. */
+export function resolveWfirmaVatCode(
+  isB2B: boolean,
+  country: string,
+  domesticVatPercent: number,
+): string {
+  const cc = country.trim().toUpperCase() || "PL";
+  if (isB2B) {
+    if (cc === "PL") return String(domesticVatPercent);
+    if (isEuCountry(cc)) return "NPUE";
+    return "NP";
+  }
+  return String(domesticVatPercent);
+}
 
 /** Identyfikator podatkowy w formacie wymaganym przez wFirma (`nip` + `tax_id_type`). */
 export function resolveWfirmaTaxIdentifier(
@@ -151,9 +187,131 @@ function parseWfirmaStatusCode(xml: string): string {
   return m?.[1]?.trim() ?? "";
 }
 
+let cachedPolAngLanguageId: string | null | undefined;
+
+function parsePolAngTranslationLanguageId(xml: string): string | null {
+  const blocks = xml.match(/<translation_language>[\s\S]*?<\/translation_language>/gi) ?? [];
+  for (const block of blocks) {
+    if (!/pol-ang/i.test(block)) continue;
+    const id = block.match(/<id>(\d+)<\/id>/i)?.[1];
+    if (id) return id;
+  }
+  for (const block of blocks) {
+    if (!/(?:^|>)\s*ang/i.test(block) && !/pol.?ang/i.test(block)) continue;
+    const id = block.match(/<id>(\d+)<\/id>/i)?.[1];
+    if (id) return id;
+  }
+  return null;
+}
+
+async function resolveWfirmaPolAngLanguageId(
+  creds: WfirmaCredentials,
+): Promise<string | null> {
+  const fromEnv = (Deno.env.get("WFIRMA_TRANSLATION_LANG_EN_ID") ?? "").trim();
+  if (fromEnv) return fromEnv;
+  if (cachedPolAngLanguageId !== undefined) return cachedPolAngLanguageId;
+
+  const findXml = `<?xml version="1.0" encoding="UTF-8"?>
+<api>
+  <translation_languages>
+    <parameters>
+      <limit>50</limit>
+    </parameters>
+  </translation_languages>
+</api>`;
+
+  const res = await wfirmaPost(creds, "/translation_languages/find", findXml);
+  if (!res.ok) {
+    console.warn(
+      JSON.stringify({
+        tag: "wfirma-api",
+        step: "translation_languages/find",
+        http: res.status,
+        api_code: res.apiCode,
+      }),
+    );
+    cachedPolAngLanguageId = null;
+    return null;
+  }
+
+  cachedPolAngLanguageId = parsePolAngTranslationLanguageId(res.body);
+  return cachedPolAngLanguageId;
+}
+
 function parseInvoiceIdFromXml(xml: string): string | null {
   const m = xml.match(/<invoices>[\s\S]*?<invoice>[\s\S]*?<id>(\d+)<\/id>/i);
   return m?.[1] ?? null;
+}
+
+function parseContractorIdFromXml(xml: string): string | null {
+  const m = xml.match(/<contractors>[\s\S]*?<contractor>[\s\S]*?<id>(\d+)<\/id>/i);
+  return m?.[1] ?? null;
+}
+
+/** B2C — kontrahent bez NIP musi istnieć w CRM przed `/invoices/add`. */
+export function buildWfirmaContractorAddXml(contractor: WfirmaContractorInput): string {
+  const name = contractor.fullName || contractor.email || "Klient DFCMS";
+  const { firstName, lastName } = splitPersonName(name);
+  const emailBlock = contractor.email
+    ? `<email>${xmlEscape(contractor.email)}</email>`
+    : "";
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<api>
+  <contractors>
+    <contractor>
+      <name>${xmlEscape(name)}</name>
+      <firstname>${xmlEscape(firstName)}</firstname>
+      <lastname>${xmlEscape(lastName)}</lastname>
+      <street>${xmlEscape(contractor.street)}</street>
+      <zip>${xmlEscape(contractor.zip)}</zip>
+      <city>${xmlEscape(contractor.city)}</city>
+      <country>${xmlEscape(contractor.country)}</country>
+      ${emailBlock}
+    </contractor>
+  </contractors>
+</api>`;
+}
+
+async function wfirmaAddB2cContractor(
+  creds: WfirmaCredentials,
+  contractor: WfirmaContractorInput,
+): Promise<string> {
+  const addXml = buildWfirmaContractorAddXml(contractor);
+  const addRes = await wfirmaPost(creds, "/contractors/add", addXml);
+  if (!addRes.ok) {
+    console.error(
+      JSON.stringify({
+        tag: "wfirma-api",
+        step: "contractors/add",
+        http: addRes.status,
+        api_code: addRes.apiCode,
+        body_preview: addRes.body.slice(0, 500),
+      }),
+    );
+    throw new Error(
+      `wfirma contractors/add failed HTTP ${addRes.status} code=${addRes.apiCode} body=${addRes.body.slice(0, 800)}`,
+    );
+  }
+
+  const contractorId = parseContractorIdFromXml(addRes.body);
+  if (!contractorId) {
+    throw new Error(
+      `wfirma contractors/add: brak id w odpowiedzi: ${addRes.body.slice(0, 800)}`,
+    );
+  }
+
+  console.log(
+    JSON.stringify({
+      tag: "wfirma-api",
+      step: "contractors/add",
+      ok: true,
+      contractor_id: contractorId,
+      email: contractor.email,
+    }),
+  );
+
+  return contractorId;
 }
 
 export type WfirmaInvoiceLine = {
@@ -178,7 +336,13 @@ export type WfirmaContractorInput = {
 
 export type WfirmaInvoiceOpts = {
   isB2B: boolean;
+  /** Kontrahent spoza PL (B2B UE lub spoza UE). */
   isForeignB2B?: boolean;
+  /** B2B w kraju UE (nie PL) — stawka NPUE + odwrotne obciążenie. */
+  isEuB2B?: boolean;
+  /** Faktura dla kontrahenta spoza PL — język pol-ang, kwoty w PLN. */
+  isForeignInvoice?: boolean;
+  translationLanguageId?: string | null;
   /** Kwota brutto zapłacona w Stripe (PLN) — trafia do `<alreadypaid>`. */
   grossPaidPln: number;
   stripeReference: string;
@@ -189,21 +353,75 @@ export function buildWfirmaInvoiceAddXml(
   contractor: WfirmaContractorInput,
   line: WfirmaInvoiceLine,
   opts: WfirmaInvoiceOpts,
+  contractorId?: string | null,
 ): string {
-  const invoiceType = opts.isB2B ? "normal" : "bill";
-  const vat = !opts.isB2B
-    ? "zw"
-    : opts.isForeignB2B
-    ? "np"
-    : line.vatRate;
+  const invoiceType = "normal";
+  const vat = resolveWfirmaVatCode(
+    opts.isB2B,
+    contractor.country,
+    Number(line.vatRate) || 23,
+  );
   const qty = line.quantity ?? 1;
+
+  const alreadyPaidBlock = opts.grossPaidPln > 0
+    ? `<alreadypaid>${formatPrice(opts.grossPaidPln)}</alreadypaid>`
+    : "";
+
+  const currencyBlock = opts.isForeignInvoice
+    ? `<currency><symbol>PLN</symbol></currency>`
+    : "";
+
+  const translationBlock = opts.isForeignInvoice && opts.translationLanguageId
+    ? `<translation_language><id>${xmlEscape(opts.translationLanguageId)}</id></translation_language>`
+    : "";
+
+  const unitLabel = opts.isForeignInvoice ? "pcs." : "szt.";
+
+  const contractorBlock = contractorId
+    ? `<contractor><id>${xmlEscape(contractorId)}</id></contractor>`
+    : buildInlineContractorXml(contractor, opts);
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<api>
+  <invoices>
+    <invoice>
+      <type>${invoiceType}</type>
+      <paymentmethod>card</paymentmethod>
+      <paymentdate>${todayPlDate()}</paymentdate>
+      ${currencyBlock}
+      ${translationBlock}
+      ${alreadyPaidBlock}
+      <description>${xmlEscape(`Stripe ${opts.stripeSource} ${opts.stripeReference}`)}</description>
+      ${contractorBlock}
+      <invoicecontents>
+        <invoicecontent>
+          <name>${xmlEscape(line.name)}</name>
+          <unit>${xmlEscape(unitLabel)}</unit>
+          <count>${formatPrice(qty)}</count>
+          <price>${formatPrice(line.unitPriceNet)}</price>
+          <price_modified>0</price_modified>
+          <vat>${xmlEscape(vat)}</vat>
+        </invoicecontent>
+      </invoicecontents>
+    </invoice>
+  </invoices>
+</api>`;
+}
+
+/** B2B — pełne dane kontrahenta inline w `/invoices/add`. */
+function buildInlineContractorXml(
+  contractor: WfirmaContractorInput,
+  opts: WfirmaInvoiceOpts,
+): string {
   const name = contractor.fullName || contractor.email;
-  const contractorName = opts.isB2B ? name : name;
+  const isEuB2B = !!opts.isEuB2B;
 
   const taxIdType: WfirmaTaxIdType | null = !opts.isB2B
     ? null
-    : opts.isForeignB2B
+    : isEuB2B
     ? "eu_vat"
+    : opts.isForeignB2B
+    ? null
     : (contractor.taxIdType ?? "nip");
 
   const taxIdTypeBlock = taxIdType
@@ -218,26 +436,13 @@ export function buildWfirmaInvoiceAddXml(
     ? `<nip>${xmlEscape(contractor.nip)}</nip>`
     : "";
 
-  const alreadyPaidBlock = opts.grossPaidPln > 0
-    ? `<alreadypaid>${formatPrice(opts.grossPaidPln)}</alreadypaid>`
-    : "";
-
   const { firstName, lastName } = splitPersonName(contractor.fullName || name);
   const personBlock = opts.isB2B
     ? ""
     : `<firstname>${xmlEscape(firstName)}</firstname><lastname>${xmlEscape(lastName)}</lastname>`;
 
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<api>
-  <invoices>
-    <invoice>
-      <type>${invoiceType}</type>
-      <paymentmethod>card</paymentmethod>
-      <paymentdate>${todayPlDate()}</paymentdate>
-      ${alreadyPaidBlock}
-      <description>${xmlEscape(`Stripe ${opts.stripeSource} ${opts.stripeReference}`)}</description>
-      <contractor>
-        <name>${xmlEscape(contractorName)}</name>
+  return `<contractor>
+        <name>${xmlEscape(name)}</name>
         ${personBlock}
         ${taxIdTypeBlock}
         ${euPrefixBlock}
@@ -247,20 +452,7 @@ export function buildWfirmaInvoiceAddXml(
         <city>${xmlEscape(contractor.city)}</city>
         <country>${xmlEscape(contractor.country)}</country>
         <email>${xmlEscape(contractor.email)}</email>
-      </contractor>
-      <invoicecontents>
-        <invoicecontent>
-          <name>${xmlEscape(line.name)}</name>
-          <unit>szt.</unit>
-          <count>${formatPrice(qty)}</count>
-          <price>${formatPrice(line.unitPriceNet)}</price>
-          <price_modified>0</price_modified>
-          <vat>${xmlEscape(vat)}</vat>
-        </invoicecontent>
-      </invoicecontents>
-    </invoice>
-  </invoices>
-</api>`;
+      </contractor>`;
 }
 
 export function buildWfirmaSendEmailXml(
@@ -324,7 +516,17 @@ export async function wfirmaCreateAndEmailInvoice(
   line: WfirmaInvoiceLine,
   opts: WfirmaInvoiceOpts,
 ): Promise<{ invoiceId: string | null }> {
-  const addXml = buildWfirmaInvoiceAddXml(contractor, line, opts);
+  const invoiceOpts = { ...opts };
+  if (invoiceOpts.isForeignInvoice && !invoiceOpts.translationLanguageId) {
+    invoiceOpts.translationLanguageId = await resolveWfirmaPolAngLanguageId(creds);
+  }
+
+  let contractorId: string | null = null;
+  if (!invoiceOpts.isB2B) {
+    contractorId = await wfirmaAddB2cContractor(creds, contractor);
+  }
+
+  const addXml = buildWfirmaInvoiceAddXml(contractor, line, invoiceOpts, contractorId);
   const addRes = await wfirmaPost(creds, "/invoices/add", addXml);
   if (!addRes.ok) {
     console.error(
@@ -346,9 +548,12 @@ export async function wfirmaCreateAndEmailInvoice(
     throw new Error(`wfirma invoices/add: brak id w odpowiedzi: ${addRes.body.slice(0, 800)}`);
   }
 
-  const subject = "Faktura za subskrypcję DFCMS";
-  const body =
-    "Dziękujemy za opłacenie subskrypcji DFCMS. W załączeniu przesyłamy dokument księgowy.";
+  const subject = invoiceOpts.isForeignInvoice
+    ? "Invoice for your DFCMS subscription"
+    : "Faktura za subskrypcję DFCMS";
+  const body = invoiceOpts.isForeignInvoice
+    ? "Thank you for your DFCMS subscription payment. Please find your invoice attached."
+    : "Dziękujemy za opłacenie subskrypcji DFCMS. W załączeniu przesyłamy dokument księgowy.";
   const sendXml = buildWfirmaSendEmailXml(contractor.email, subject, body);
   const sendRes = await wfirmaPost(creds, `/invoices/send/${invoiceId}`, sendXml);
   if (!sendRes.ok) {
@@ -392,6 +597,8 @@ type WfirmaBillingInput = {
   city: string;
   country: string;
   grossPln: number;
+  /** Netto ze Stripe (`amount_subtotal` / `subtotal`) — dokładniejsze niż dzielenie brutto. */
+  netPlnOverride?: number;
   productName: string;
   unitPriceNetOverride?: number;
   stripeReference: string;
@@ -402,19 +609,28 @@ function computeWfirmaLineAmounts(
   grossPln: number,
   isB2B: boolean,
   isForeignB2B: boolean,
+  country: string,
   vatPercent: number,
   unitPriceNetOverride?: number,
+  netPlnOverride?: number,
 ): { unitPriceNet: number; lineVatRate: string } {
+  const cc = country.trim().toUpperCase() || "PL";
+  const useDomesticNet = !isForeignB2B && cc === "PL";
   const unitPriceNet = unitPriceNetOverride ?? (
-    isB2B && !isForeignB2B
-      ? netFromGross(grossPln, vatPercent)
+    useDomesticNet
+      ? (netPlnOverride != null && netPlnOverride > 0
+        ? netPlnOverride
+        : netFromGross(grossPln, vatPercent))
       : grossPln
   );
-  const lineVatRate = isForeignB2B ? "np" : String(vatPercent);
+  const lineVatRate = String(vatPercent);
   return { unitPriceNet, lineVatRate };
 }
 
-async function issueWfirmaInvoiceFromBillingInput(input: WfirmaBillingInput): Promise<void> {
+async function issueWfirmaInvoiceFromBillingInput(
+  input: WfirmaBillingInput,
+  supabase?: SupabaseClient | null,
+): Promise<void> {
   const creds = readWfirmaCredentials();
   if (!creds) {
     console.warn(
@@ -433,19 +649,48 @@ async function issueWfirmaInvoiceFromBillingInput(input: WfirmaBillingInput): Pr
     return;
   }
 
+  let ledgerId: string | undefined;
+  if (supabase) {
+    const claim = await claimWfirmaInvoiceLedger(
+      supabase,
+      input.stripeSource,
+      input.stripeReference,
+      input.grossPln,
+    );
+    if (claim.action === "skip") {
+      console.log(
+        JSON.stringify({
+          tag: "wfirma-invoice",
+          ok: true,
+          skipped: true,
+          reason: claim.reason,
+          source: input.stripeSource,
+          stripe_ref: input.stripeReference,
+          wfirma_invoice_id: claim.wfirmaInvoiceId ?? null,
+        }),
+      );
+      return;
+    }
+    ledgerId = claim.ledgerId;
+  }
+
   const taxIdRaw = extractTaxId(input.taxIds);
   const isB2B = !!taxIdRaw;
   const country = input.country.trim().toUpperCase() || "PL";
   const taxId = taxIdRaw ? resolveWfirmaTaxIdentifier(taxIdRaw, country) : null;
-  const isForeignB2B = isB2B && taxId?.type === "eu_vat";
+  const isForeignInvoice = isForeignInvoiceCountry(country);
+  const isEuB2B = isB2B && isForeignInvoice && isEuCountry(country);
+  const isForeignB2B = isB2B && isForeignInvoice;
 
   const vatPercent = Number(Deno.env.get("WFIRMA_VAT_RATE") ?? "23") || 23;
   const { unitPriceNet, lineVatRate } = computeWfirmaLineAmounts(
     input.grossPln,
     isB2B,
     isForeignB2B,
+    country,
     vatPercent,
     input.unitPriceNetOverride,
+    input.netPlnOverride,
   );
 
   const euVat = taxId?.type === "eu_vat" && taxId.value
@@ -474,11 +719,16 @@ async function issueWfirmaInvoiceFromBillingInput(input: WfirmaBillingInput): Pr
       {
         isB2B,
         isForeignB2B,
+        isEuB2B,
+        isForeignInvoice,
         grossPaidPln: input.grossPln,
         stripeReference: input.stripeReference,
         stripeSource: input.stripeSource,
       },
     );
+    if (supabase && ledgerId) {
+      await markWfirmaInvoiceLedgerIssued(supabase, ledgerId, result.invoiceId);
+    }
     console.log(
       JSON.stringify({
         tag: "wfirma-invoice",
@@ -487,14 +737,23 @@ async function issueWfirmaInvoiceFromBillingInput(input: WfirmaBillingInput): Pr
         stripe_ref: input.stripeReference,
         wfirma_invoice_id: result.invoiceId,
         b2b: isB2B,
+        b2c_contractor_flow: !isB2B,
+        eu_b2b: isEuB2B,
         foreign_b2b: isForeignB2B,
+        foreign_invoice: isForeignInvoice,
+        vat_code: resolveWfirmaVatCode(isB2B, country, vatPercent),
         tax_id_type: taxId?.type ?? null,
         gross_paid_pln: input.grossPln,
+        net_pln: input.netPlnOverride ?? null,
+        unit_price_net: unitPriceNet,
         email: input.email,
       }),
     );
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
+    if (supabase && ledgerId) {
+      await markWfirmaInvoiceLedgerFailed(supabase, ledgerId, msg);
+    }
     console.error(
       JSON.stringify({
         tag: "wfirma-invoice",
@@ -512,6 +771,7 @@ async function issueWfirmaInvoiceFromBillingInput(input: WfirmaBillingInput): Pr
  */
 export async function tryIssueWfirmaInvoiceForCheckout(
   ctx: CheckoutWfirmaContext,
+  supabase?: SupabaseClient | null,
 ): Promise<void> {
   const session = ctx.session;
   const details = session.customer_details;
@@ -527,12 +787,15 @@ export async function tryIssueWfirmaInvoiceForCheckout(
     city: (addr?.city ?? "—").trim(),
     country: (addr?.country ?? "PL").trim().toUpperCase(),
     grossPln: (session.amount_total ?? 0) / 100,
+    netPlnOverride: session.amount_subtotal != null
+      ? session.amount_subtotal / 100
+      : undefined,
     productName: ctx.productName ??
       planLabelFromTier(ctx.tierLabel, "Subskrypcja DFCMS"),
     unitPriceNetOverride: ctx.unitPriceNet,
     stripeReference: session.id,
     stripeSource: "checkout",
-  });
+  }, supabase);
 }
 
 export type StripeInvoiceWfirmaContext = {
@@ -577,6 +840,7 @@ async function loadTaxIdsForStripeInvoice(
 export async function tryIssueWfirmaInvoiceForStripeInvoice(
   stripe: Stripe,
   ctx: StripeInvoiceWfirmaContext,
+  supabase?: SupabaseClient | null,
 ): Promise<void> {
   const invoice = ctx.invoice;
   const addr = invoice.customer_address;
@@ -602,8 +866,9 @@ export async function tryIssueWfirmaInvoiceForStripeInvoice(
     city: (addr?.city ?? "—").trim(),
     country: (addr?.country ?? "PL").trim().toUpperCase(),
     grossPln: (invoice.amount_paid ?? 0) / 100,
+    netPlnOverride: invoice.subtotal != null ? invoice.subtotal / 100 : undefined,
     productName,
     stripeReference: invoice.id,
     stripeSource: "invoice",
-  });
+  }, supabase);
 }

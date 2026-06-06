@@ -221,6 +221,8 @@ serve(async (req) => {
       client_reference_id: userId,
       billing_address_collection: "required",
       tax_id_collection: { enabled: true },
+      /** Ceny w Stripe = netto (exclusive); Stripe Tax dolicza VAT wg adresu / NIP. */
+      automatic_tax: { enabled: true },
       metadata: {
         supabase_user_id: userId,
         billing_interval: interval,

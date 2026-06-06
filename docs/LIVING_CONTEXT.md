@@ -4,7 +4,7 @@
 
 Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **changelog** jednoliniowy, żeby nie dublować długich sekcji.
 
-**Ostatnia aktualizacja treści:** 2026-06-05 (porządek repo)
+**Ostatnia aktualizacja treści:** 2026-06-05 (idempotencja wFirma)
 
 ---
 
@@ -33,6 +33,11 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 
 | Data | Co |
 |------|-----|
+| **2026-06-05** | **wFirma B2C VAT:** faktura `normal` + stawka krajowa (nie `bill`/`zw`); netto jak B2B PL. |
+| **2026-06-05** | **wFirma B2C:** `/contractors/add` → faktura z `<contractor><id>` (bez NIP w CRM). |
+| **2026-06-05** | **Stripe Tax + wFirma netto:** `automatic_tax` w `create-checkout`; netto FV z `amount_subtotal`. |
+| **2026-06-05** | **wFirma zagranica:** stawka `NPUE` (UE B2B), faktury spoza PL → PLN + pol-ang + mail EN. |
+| **2026-06-05** | **wFirma idempotencja:** `wfirma_invoice_ledger` + claim przed `/invoices/add` (retry webhooka → bez duplikatu FV). |
 | **2026-06-05** | **Porządek repo:** usunięte martwe pliki (`templates.js`, `app.js`, mp4); `data/seeds/demo_pages.json`; `docs/roadmap/`; `.env.example` bez `VITE_`; docs bez starych migracji. |
 | **2026-06-05** | **wFirma fix:** `tax_id_type` eu_vat/nip, stawka `np`; faktury przy `invoice.payment_succeeded` (upgrade/odnowienie). |
 | **2026-06-05** | **Checkout + wFirma:** `billing_address_collection` + `tax_id_collection`; webhook → faktura e-mail (`WFIRMA_*` Secrets). |

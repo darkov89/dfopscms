@@ -89,6 +89,7 @@ function tierProductLabel(tier: StripePaidTier | undefined): string {
 
 /** wFirma — faktura po Checkout (pierwsza płatność). */
 async function enqueueWfirmaInvoiceForCheckout(
+  supabase: SupabaseClient,
   stripe: Stripe,
   session: Stripe.Checkout.Session,
   tier: StripePaidTier | undefined,
@@ -120,7 +121,7 @@ async function enqueueWfirmaInvoiceForCheckout(
       session: enriched,
       tierLabel: tier,
       productName,
-    });
+    }, supabase);
   } catch (e) {
     console.error("wfirma: enqueue checkout invoice", e);
   }
@@ -128,6 +129,7 @@ async function enqueueWfirmaInvoiceForCheckout(
 
 /** wFirma — faktura po opłaceniu faktury Stripe (upgrade / odnowienie). */
 async function enqueueWfirmaInvoiceForStripeInvoice(
+  supabase: SupabaseClient,
   stripe: Stripe,
   invoice: Stripe.Invoice,
   tier: StripePaidTier | undefined,
@@ -141,7 +143,7 @@ async function enqueueWfirmaInvoiceForStripeInvoice(
       invoice,
       tierLabel: tier,
       productName: tierProductLabel(tier),
-    });
+    }, supabase);
   } catch (e) {
     console.error("wfirma: enqueue stripe invoice", invoice.id, e);
   }
@@ -216,7 +218,7 @@ async function handleInvoicePaymentSuccess(
       "tier1",
     ),
   );
-  void enqueueWfirmaInvoiceForStripeInvoice(stripe, invoice, tierForWfirma);
+  void enqueueWfirmaInvoiceForStripeInvoice(supabase, stripe, invoice, tierForWfirma);
 
   return {};
 }
@@ -304,7 +306,7 @@ async function processStripeWebhookEvent(
             "tier1",
           ),
         );
-      void enqueueWfirmaInvoiceForCheckout(stripe, session, tierForWfirma);
+      void enqueueWfirmaInvoiceForCheckout(supabase, stripe, session, tierForWfirma);
 
       const st = subscription.status;
       if (st === "active" || st === "trialing") {
