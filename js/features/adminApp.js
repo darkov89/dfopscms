@@ -2426,7 +2426,13 @@
               },
             },
           );
-          if (error) throw error;
+          if (error) {
+            const detail =
+              (data && typeof data.error === 'string' && data.error) ||
+              (typeof error.message === 'string' && error.message) ||
+              'Błąd podczas łączenia z systemem płatności.';
+            throw new Error(detail);
+          }
           const url = data && typeof data.url === 'string' ? data.url : '';
           if (url) {
             if (planType === 'starter' && typeof window.DFOPS_trackEvent === 'function') {

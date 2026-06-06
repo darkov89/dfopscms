@@ -212,6 +212,8 @@ serve(async (req) => {
 
     const checkoutPlan = isStarterPlan ? "starter" : isProPlan ? "standard" : plan;
 
+    const enableAutomaticTax = Deno.env.get("STRIPE_AUTOMATIC_TAX") === "true";
+
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       payment_method_types: ["card"],
       line_items: [{ price: resolvedPriceId, quantity: 1 }],
@@ -221,14 +223,17 @@ serve(async (req) => {
       client_reference_id: userId,
       billing_address_collection: "required",
       tax_id_collection: { enabled: true },
-      /** Ceny w Stripe = netto (exclusive); Stripe Tax dolicza VAT wg adresu / NIP. */
-      automatic_tax: { enabled: true },
       metadata: {
         supabase_user_id: userId,
         billing_interval: interval,
         plan: checkoutPlan,
       },
     };
+
+    /** Wymaga Stripe Tax + rejestracji PL w Dashboard; włącz Secret STRIPE_AUTOMATIC_TAX=true. */
+    if (enableAutomaticTax) {
+      sessionParams.automatic_tax = { enabled: true };
+    }
 
     /** Returning customer: ten sam `cus_…` w Stripe — bez duplikatu i bez `customer_email`. */
     if (returningCustomerId) {
@@ -251,10 +256,26 @@ serve(async (req) => {
       status: 200,
     });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
+    const msg = formatCheckoutError(error);
+    console.error(
+      JSON.stringify({
+        tag: "create-checkout",
+        error: msg,
+        stripe_type: error instanceof Stripe.errors.StripeError ? error.type : null,
+        stripe_code: error instanceof Stripe.errors.StripeError ? error.code : null,
+      }),
+    );
     return new Response(JSON.stringify({ error: msg }), {
       headers: { ...cors, "Content-Type": "application/json" },
       status: 400,
     });
   }
 });
+
+function formatCheckoutError(error: unknown): string {
+  if (error instanceof Stripe.errors.StripeError) {
+    return error.message;
+  }
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
