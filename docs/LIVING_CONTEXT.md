@@ -33,6 +33,7 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 
 | Data | Co |
 |------|-----|
+| **2026-06-05** | **Panel Subskrypcja (B2C):** disclaimery cykliczności Stripe + zrzeczenie 14-dniowego odstąpienia przy Checkout; etykiety CTA „Aktywuj plan przez Stripe” / „Przejdź do płatności w Stripe”. |
 | **2026-06-05** | **wFirma B2C VAT:** faktura `normal` + stawka krajowa (nie `bill`/`zw`); netto jak B2B PL. |
 | **2026-06-05** | **wFirma B2C:** `/contractors/add` → faktura z `<contractor><id>` (bez NIP w CRM). |
 | **2026-06-05** | **Stripe Tax + wFirma netto:** `automatic_tax` w `create-checkout`; netto FV z `amount_subtotal`. |

@@ -30,41 +30,47 @@
 
     <main class="flex-1 py-12 px-4">
         <div class="max-w-4xl mx-auto py-20 px-8 md:px-12 bg-white rounded-lg shadow-sm">
-            <h1 class="font-serif text-4xl text-gray-900 mb-8">Polityka Prywatności</h1>
+            <h1 class="font-serif text-4xl text-gray-900 mb-8">Polityka Prywatności RODO</h1>
 
             <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">1. Administrator Danych Osobowych</h2>
-            <p class="text-gray-700 leading-relaxed mb-4">Administratorem Twoich danych osobowych jest <strong>Dragonfly Operations</strong>, operator platformy DFCMS.</p>
-            <p class="text-gray-700 leading-relaxed mb-4">W sprawach związanych z ochroną danych osobowych możesz kontaktować się z nami pod adresem: <a href="mailto:kontakt@dfops.eu" class="text-[#D4AF37] underline hover:no-underline">kontakt@dfops.eu</a>.</p>
-            <p class="text-gray-700 leading-relaxed mb-4">Wiadomości e-mail wysyłane automatycznie przez system (np. potwierdzenie rejestracji, logowanie, inne powiadomienia techniczne związane z działaniem Serwisu) mogą pochodzić z adresu <strong>notifications@dfops.eu</strong>. Na ten adres nie musisz odpowiadać — w sprawach ogólnych i danych osobowych używaj <a href="mailto:kontakt@dfops.eu" class="text-[#D4AF37] underline hover:no-underline">kontakt@dfops.eu</a>.</p>
+            <p class="text-gray-700 leading-relaxed mb-4">Administratorem Twoich danych osobowych jest <strong>Dragonfly Operations Sp. z o.o.</strong> z siedzibą: Korzecznik 16, 62-650 Korzecznik (KRS: 0001240056, NIP: 6662139556).</p>
+            <p class="text-gray-700 leading-relaxed mb-4">W sprawach związanych z RODO i ochroną prywatności kontaktuj się pod adresem: <a href="mailto:kontakt@dfops.eu" class="text-[#D4AF37] underline hover:no-underline">kontakt@dfops.eu</a>.</p>
 
-            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">2. Jakie dane zbieramy i w jakim celu?</h2>
+            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">2. Jakie dane zbieramy i po co?</h2>
             <ul class="list-disc list-inside space-y-2 text-gray-700 leading-relaxed mb-4">
-                <li><strong>Rejestracja i obsługa konta:</strong> Zbieramy Twój adres e-mail oraz hasło (w formie zaszyfrowanej) w celu założenia i utrzymania konta w systemie. Podstawa prawna: realizacja umowy (art. 6 ust. 1 lit. b RODO).</li>
-                <li><strong>Płatności i subskrypcje cykliczne:</strong> W przypadku przejścia na plan płatny zbieramy dane niezbędne do wystawienia faktury (np. NIP, nazwa firmy, adres). W celu bezpiecznej realizacji płatności cyklicznych (subskrypcji) współpracujemy z operatorem płatności Stripe Inc. (lub jego europejskim oddziałem Stripe Payments Europe, Ltd.). W momencie dokonywania płatności dane podane w formularzu płatności (w tym numer karty płatniczej) są przekazywane bezpośrednio do Stripe i nie są przechowywane, przetwarzane ani widoczne na naszych serwerach. Stripe przetwarza Twoje dane płatnicze jako odrębny administrator danych zgodnie ze swoją własną polityką prywatności.</li>
-                <li><strong>Dane techniczne:</strong> Zbieramy standardowe logi serwera (adres IP, rodzaj przeglądarki), by zapewnić bezpieczeństwo Serwisu.</li>
+                <li><strong>Rejestracja i logowanie:</strong> Adres e-mail oraz zahaszowane hasło (cel: realizacja umowy, art. 6 ust. 1 lit. b RODO).</li>
+                <li><strong>Fakturowanie i Księgowość:</strong> NIP, nazwa firmy, adres, dane z systemu e-Faktur (cel: wypełnienie obowiązku prawnego, art. 6 ust. 1 lit. c RODO).</li>
+                <li><strong>Płatności:</strong> Płatności w modelu subskrypcyjnym są przetwarzane bezpośrednio przez <strong>Stripe</strong>. DFCMS nie ma dostępu do Twojego pełnego numeru karty płatniczej.</li>
             </ul>
 
-            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">3. Odbiorcy danych (Podwykonawcy)</h2>
-            <p class="text-gray-700 leading-relaxed mb-4">Aby świadczyć usługi na najwyższym poziomie, korzystamy z zaufanych partnerów, którym możemy powierzyć przetwarzanie danych:</p>
+            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">3. Odbiorcy danych i Lokalizacja Serwerów</h2>
+            <p class="text-gray-700 leading-relaxed mb-4">Twoje dane są u nas w pełni bezpieczne. Główne serwery i bazy danych Serwisu (Supabase) znajdują się na terenie <strong>Unii Europejskiej (Francja / Irlandia)</strong>, co gwarantuje pełną zgodność z unijnymi przepisami o ochronie danych.</p>
+            <p class="text-gray-700 leading-relaxed mb-4">Do zautomatyzowania procesów, powierzamy przetwarzanie danych (Sub-procesorom) następującym podmiotom:</p>
             <ul class="list-disc list-inside space-y-2 text-gray-700 leading-relaxed mb-4">
-                <li><strong>Supabase</strong> – dostawca bazy danych i systemu autoryzacji.</li>
-                <li><strong>Stripe Inc. / Stripe Payments Europe, Ltd.</strong> – operator płatności i subskrypcji cyklicznych; dane płatnicze (w tym dane karty) trafiają bezpośrednio do Stripe, który może działać jako odrębny administrator w zakresie tych danych, zgodnie z <a href="https://stripe.com/privacy" class="text-[#D4AF37] underline hover:no-underline" target="_blank" rel="noopener noreferrer">polityką prywatności Stripe</a>.</li>
+                <li><strong>Supabase</strong> – infrastruktura chmurowa, uwierzytelnianie (UE).</li>
+                <li><strong>wFirma (Web INnovative Software Sp. z o.o.)</strong> – polski system ERP/CRM, automatyczne wystawianie faktur i integracja z KSeF. Twoje dane adresowe oraz NIP są tam przesyłane wyłącznie w celu wystawienia dokumentu księgowego.</li>
+                <li><strong>Stripe Inc.</strong> – operator płatności (dane mogą być transferowane bezpiecznymi kanałami na podstawie standardowych klauzul umownych do USA).</li>
             </ul>
 
-            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">4. Umowa Powierzenia Przetwarzania (DPA)</h2>
-            <p class="text-gray-700 leading-relaxed mb-4">W ramach usługi, Użytkownik (np. właściciel salonu) może przetwarzać dane swoich klientów (np. przez formularz kontaktowy). W takich relacjach to Użytkownik jest Administratorem Danych, a <strong>Dragonfly Operations</strong> (operator platformy DFCMS) jest Procesorem. Akceptacja Regulaminu oznacza jednoczesne zawarcie Umowy Powierzenia Przetwarzania Danych w ramach infrastruktury DFCMS.</p>
+            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">4. Umowa Powierzenia Przetwarzania (DPA dla B2B)</h2>
+            <p class="text-gray-700 leading-relaxed mb-4">Jeśli jesteś przedsiębiorcą i zbierasz dane swoich klientów na stronie stworzonej w DFCMS (np. w formularzu), występujesz jako Administrator Danych. Założenie konta i akceptacja Regulaminu stanowi prawnie wiążące zawarcie <strong>Umowy Powierzenia Przetwarzania Danych Osobowych</strong>, w której Dragonfly Operations Sp. z o.o. występuje jako Procesor.</p>
 
-            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">5. Twoje prawa</h2>
-            <p class="text-gray-700 leading-relaxed mb-4">Masz prawo do dostępu do swoich danych, ich sprostowania, usunięcia („prawo do bycia zapomnianym”), ograniczenia przetwarzania oraz przenoszenia danych. W celu realizacji praw skontaktuj się z nami pod adresem: <a href="mailto:kontakt@dfops.eu" class="text-[#D4AF37] underline hover:no-underline">kontakt@dfops.eu</a>.</p>
+            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">5. Pliki Cookies i Skrypty Śledzące</h2>
+            <p class="text-gray-700 leading-relaxed mb-4">Nasz Serwis wykorzystuje różne rodzaje plików cookies i podobnych technologii:</p>
+            <ul class="list-disc list-inside space-y-2 text-gray-700 leading-relaxed mb-4">
+                <li><strong>Niezbędne:</strong> Ciasteczka sesyjne wymagane do zalogowania się do Panelu oraz skrypty zabezpieczające płatności (Stripe). Są one załadowane domyślnie i nie wymagają zgody.</li>
+                <li><strong>Funkcjonalne:</strong> Elementy zewnętrzne ułatwiające działanie strony (np. integracja map Google Maps czy opinie Google Reviews).</li>
+                <li><strong>Analityczne i Marketingowe (Opcjonalne):</strong> W celach optymalizacji reklam i analizy ruchu docelowo możemy korzystać z narzędzi takich jak Google Ads czy Meta Pixel. Zostaną one uruchomione w Twojej przeglądarce <strong>wyłącznie po wyrażeniu przez Ciebie dobrowolnej zgody</strong> w oknie ustawień cookies.</li>
+            </ul>
 
-            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">6. Pliki Cookies</h2>
-            <p class="text-gray-700 leading-relaxed mb-4">Serwis korzysta z plików cookies (ciasteczek) wyłącznie w celach technicznych – do utrzymania sesji logowania (tzw. cookies niezbędne). Nie używamy obecnie zaawansowanych cookies śledzących do celów reklamowych bez Twojej zgody.</p>
+            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">6. Twoje prawa</h2>
+            <p class="text-gray-700 leading-relaxed mb-4">Zgodnie z RODO, masz prawo żądania dostępu do swoich danych, sprostowania, usunięcia, a także ograniczenia przetwarzania. Ponieważ większość danych (faktury) podlega nadrzędnym polskim przepisom podatkowym, usunięcie konta w systemie nie powoduje fizycznego wymazania wystawionych już dokumentów księgowych przed upływem wymaganego prawem terminu 5 lat.</p>
         </div>
     </main>
 
     <footer class="bg-[#121212] border-t border-white/10 py-6">
         <div class="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-500">
-            <p class="text-center sm:text-left text-gray-400">© 2026 DFCMS by Dragonfly Operations</p>
+            <p class="text-center sm:text-left text-gray-400">© 2026 DFCMS by Dragonfly Operations Sp. z o.o.</p>
             <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
                 <a href="mailto:kontakt@dfops.eu" class="hover:text-[#D4AF37] transition-colors">kontakt@dfops.eu</a>
                 <a href="/regulamin.html" class="hover:text-[#D4AF37] transition-colors">Regulamin</a>
