@@ -33,6 +33,7 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 
 | Data | Co |
 |------|-----|
+| **2026-06-09** | **Panel Subskrypcja:** „Warunki rozliczeń” — nowy blok (Stripe Tax B2C/B2B, wFirma/KSeF, upgrade/downgrade, grace 14 dni); zamiast accordionu `<details>`. |
 | **2026-06-05** | **Panel Subskrypcja (B2C):** disclaimery cykliczności Stripe + zrzeczenie 14-dniowego odstąpienia przy Checkout; etykiety CTA „Aktywuj plan przez Stripe” / „Przejdź do płatności w Stripe”. |
 | **2026-06-05** | **wFirma B2C VAT:** faktura `normal` + stawka krajowa (nie `bill`/`zw`); netto jak B2B PL. |
 | **2026-06-05** | **wFirma B2C:** `/contractors/add` → faktura z `<contractor><id>` (bez NIP w CRM). |

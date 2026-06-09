@@ -632,7 +632,7 @@
                         <div class="hidden h-8 w-px shrink-0 bg-slate-200 sm:block" aria-hidden="true"></div>
 
                         <div class="flex shrink-0 items-center gap-4 whitespace-nowrap sm:gap-5">
-                            <button type="button" @click="setTab('subscription'); $nextTick(() => { const el = document.getElementById('dfops-platnosci-info'); if (el) { if (el.tagName === 'DETAILS') el.open = true; el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } })" class="text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:text-accent lg:text-[11px]">Warunki</button>
+                            <button type="button" @click="setTab('subscription'); $nextTick(() => { const el = document.getElementById('dfops-platnosci-info'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); })" class="text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:text-accent lg:text-[11px]">Warunki</button>
                             <button type="button" @click="logout()" class="text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:text-red-600 lg:text-[11px]">Wyloguj</button>
                         </div>
                     </div>
@@ -2360,23 +2360,18 @@
                             </div>
                         </div>
 
-                        <details id="dfops-platnosci-info" class="group/dfops-billing-terms mt-10 max-w-2xl scroll-mt-24 border-t border-slate-200/80 pt-6">
-                            <summary class="flex cursor-pointer list-none items-center justify-between gap-3 rounded-lg border border-slate-200/80 bg-slate-50/90 px-4 py-3.5 text-sm font-bold uppercase tracking-widest text-slate-900 transition-colors hover:border-slate-300 hover:bg-slate-100/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 [&::-webkit-details-marker]:hidden">
-                                <span>Warunki rozliczeń</span>
-                                <svg class="h-5 w-5 shrink-0 text-slate-400 transition-transform duration-200 group-open/dfops-billing-terms:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            </summary>
-                            <div class="mt-4 text-sm leading-relaxed text-slate-700">
-                            <ul class="space-y-3 text-slate-600 list-disc pl-5">
-                                <li>Wszystkie kwoty w pakietach podajemy <strong class="text-slate-900">netto</strong>. Na dokumentach rozliczeniowych stosujemy VAT zgodnie z przepisami (obecnie 23%).</li>
-                                <li>Płatności cykliczne za pakiety wyższe realizujemy przez bezpieczną bramkę płatności (subskrypcja online).</li>
-                                <li><strong class="text-slate-900">Okres próbny trwa 14 dni.</strong> Możesz od razu wskazać preferowany pakiet (np. Starter 29 zł/mc lub wyższy, także w opcji rocznej z rabatem), ale pełne konto rozliczeniowe powstaje po zaksięgowaniu pierwszej opłaty. Do tego czasu obowiązują zasady i limity trialu.</li>
-                                <li>Przy <strong class="text-slate-900">aktywnej subskrypcji</strong>, jeśli płatność nie przejdzie, masz typowo <strong class="text-slate-900">14 dni</strong> na uregulowanie (od zarejestrowania problemu w systemie) — potem widok publiczny zostaje ukryty tak jak przy wygasłym trialu, do czasu opłaty.</li>
-                                <li>Brak opłaty po zakończeniu trialu lub po tym terminie może skutkować <strong class="text-slate-900">zablokowaniem widoku publicznego (archiwizacja)</strong> — dokładne konsekwencje opisuje regulamin.</li>
-                                <li><strong class="text-slate-900">Asystent DFCMS (Concierge)</strong> — wsparcie i wdrożenia godzinowe; w pakiecie Standard od 100 zł/h netto, w Custom — indywidualna wycena.</li>
+                        <div id="dfops-platnosci-info" class="mt-8 max-w-2xl scroll-mt-24 border-t border-slate-200/80 pt-6">
+                            <h3 class="mb-4 text-sm font-semibold text-slate-900">Warunki rozliczeń i zasady subskrypcji</h3>
+                            <ul class="list-inside list-disc space-y-2 text-xs leading-relaxed text-slate-500">
+                                <li><strong class="text-slate-700">Ceny i Podatek VAT:</strong> Prezentowane w panelu ceny pakietów są kwotami netto (dla podmiotów B2B). W przypadku zakupu przez konsumenta (B2C) lub wyboru określonych jurysdykcji podatkowych, do ceny netto zostanie doliczony podatek VAT zgodnie z obowiązującymi przepisami (standardowo 23% dla Polski) bezpośrednio w oknie płatności Stripe.</li>
+                                <li><strong class="text-slate-700">Bezpieczeństwo:</strong> Płatności cykliczne realizowane są przez certyfikowaną bramkę Stripe. Faktury są generowane automatycznie przez system wFirma (w tym via KSeF).</li>
+                                <li><strong class="text-slate-700">Okres próbny (Trial):</strong> Trwa 14 dni. Pełne, produkcyjne konto rozliczeniowe powstaje po zaksięgowaniu pierwszej opłaty subskrypcyjnej.</li>
+                                <li><strong class="text-slate-700">Zmiana planu:</strong> Zmiana planu na wyższy (Upgrade) następuje natychmiast, a karta zostanie obciążona proporcjonalną dopłatą (prorata). Zmiana planu na niższy (Downgrade) wchodzi w życie od nowego cyklu rozliczeniowego.</li>
+                                <li><strong class="text-slate-700">Brak płatności (Grace Period):</strong> W przypadku problemów z pobraniem środków przy odnowieniu, system daje 14 dni na uregulowanie zaległości. Po tym terminie widok publiczny strony zostaje automatycznie ukryty.</li>
+                                <li><strong class="text-slate-700">Asystent DFCMS (Concierge):</strong> Godzinowe wsparcie techniczne: w pakiecie Standard od 100 zł/h netto, w pakiecie Custom – wycena indywidualna.</li>
                             </ul>
-                            <p class="text-xs text-slate-500 mt-6">Regulamin i polityka prywatności: zakładka <strong>Prawne</strong>, strona główna serwisu oraz <strong>Dragonfly Operations</strong> (<a href="mailto:kontakt@dfops.eu" class="text-slate-700 underline hover:text-accent">kontakt@dfops.eu</a>).</p>
-                            </div>
-                        </details>
+                            <p class="mt-4 text-xs text-slate-400">Pełną treść zobowiązań prawnych oraz zasady RODO znajdziesz w <a href="/regulamin.html" target="_blank" rel="noopener noreferrer" class="text-slate-500 underline decoration-slate-300 underline-offset-2 hover:text-accent">Regulaminie</a> na stronie głównej. Masz pytania? Napisz: <a href="mailto:kontakt@dfops.eu" class="text-slate-500 underline decoration-slate-300 underline-offset-2 hover:text-accent">kontakt@dfops.eu</a></p>
+                        </div>
 
                         <div class="mt-10 max-w-2xl border-t border-slate-200/80 pt-8">
                             <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Synchronizacja ze Stripe</p>
