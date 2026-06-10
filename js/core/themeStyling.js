@@ -118,6 +118,17 @@
     }
 
     if (theme === 'fitness') {
+      const presetPalette = (cfg.fitnessPresetPalette || {})[s.color_preset];
+      if (presetPalette) {
+        setCssVar('--accent', presetPalette.accent);
+        setCssVar('--color-primary', presetPalette.primary || presetPalette.accent);
+        setCssVar('--color-secondary', presetPalette.secondary || '#22d3ee');
+      } else {
+        const primary = (cfg.accentByPreset || {})[s.color_preset] || '#a3e635';
+        setCssVar('--accent', primary);
+        setCssVar('--color-primary', primary);
+        setCssVar('--color-secondary', '#22d3ee');
+      }
       setCssVar('--beauty-text', darkBodyText);
       setCssVar('--beauty-text-muted', '#a1a1aa');
       setCssVar('--beauty-white', '#fafafa');
@@ -187,7 +198,9 @@
     const accentResolved = getComputedStyle(root).getPropertyValue('--accent').trim() || accent;
     const beautyTextResolved = getComputedStyle(root).getPropertyValue('--beauty-text').trim();
     const accentContrastResolved = getComputedStyle(root).getPropertyValue('--accent-contrast').trim() || '#121212';
-    setCssVar('--color-primary', accentResolved);
+    if (theme !== 'fitness') {
+      setCssVar('--color-primary', accentResolved);
+    }
     setCssVar(
       '--color-text-body',
       beautyTextResolved ||

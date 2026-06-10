@@ -146,6 +146,12 @@
         textMuted: '#64748b',
       },
     },
+    /** Paleta publiczna dla motywu `fitness` — primary/secondary na zmienne CSS. */
+    fitnessPresetPalette: {
+      'neon-lime': { accent: '#a3e635', primary: '#a3e635', secondary: '#22d3ee' },
+      'neon-cyan': { accent: '#22d3ee', primary: '#22d3ee', secondary: '#a3e635' },
+      'neon-orange': { accent: '#fb923c', primary: '#fb923c', secondary: '#22d3ee' },
+    },
     /**
      * Pełna paleta powierzchni/tła dla consultant przy wybranym color_preset (poza samym akcentem).
      * Stosowane w themeStyling.js — nadpisują domyślny gradient darkMode.
