@@ -57,7 +57,7 @@
     <script defer src="js/core/themeStyling.js"></script>
     <script defer src="js/core/pageRepository.js?v=20260602b"></script>
     <script defer src="js/core/planUtils.js?v=20260602b"></script>
-    <script defer src="js/features/publicSiteApp.js?v=20260602b"></script>
+    <script defer src="js/features/publicSiteApp.js?v=20260610a"></script>
     <script defer src="js/features/googleReviewsApp.js"></script>
     <script defer src="js/features/cookieConsentApp.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
@@ -138,10 +138,14 @@
                 <h1 class="fit-hero-headline font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.95] text-white uppercase tracking-tight mb-4" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].hero.headline)"></h1>
                 <h2 class="text-xl md:text-2xl font-bold text-zinc-200 mb-6 max-w-2xl" x-text="content[lang].hero.name"></h2>
                 <p class="text-base md:text-lg text-zinc-400 mb-10 leading-relaxed max-w-2xl font-medium" x-text="content[lang].hero.description"></p>
-                <a :href="content[lang].contact?.booksyUrl || '#kontakt'" target="_blank"
-                   class="inline-flex items-center justify-center bg-primary text-zinc-950 px-10 py-4 rounded-sm font-black uppercase tracking-[0.2em] text-sm shadow-neon hover:shadow-neon hover:bg-primary/80 hover:-translate-y-0.5 transition-all duration-300 border border-primary/50">
-                    <span x-text="content[lang].hero.button"></span>
-                </a>
+                <template x-if="heroCtaEnabled()">
+                    <a :href="resolveHeroButtonUrl()"
+                       :target="ctaLinkTarget(resolveHeroButtonUrl())"
+                       :rel="ctaLinkRel(resolveHeroButtonUrl())"
+                       class="inline-flex items-center justify-center bg-primary text-zinc-950 px-10 py-4 rounded-sm font-black uppercase tracking-[0.2em] text-sm shadow-neon hover:shadow-neon hover:bg-primary/80 hover:-translate-y-0.5 transition-all duration-300 border border-primary/50">
+                        <span x-text="content[lang].hero.button"></span>
+                    </a>
+                </template>
                 <template x-if="content[lang].hero.qrImage">
                     <div class="mt-10 flex flex-col sm:flex-row sm:items-end gap-6">
                         <div>
@@ -434,10 +438,13 @@
                     </template>
                 </div>
                 
-                <div class="md:w-1/2 text-left md:text-center">
-                    <h3 class="font-display text-2xl md:text-3xl uppercase tracking-wide text-white mb-6">Umów się wygodnie</h3>
-                    <a :href="content[lang].contact?.booksyUrl || '#'" target="_blank" class="inline-block bg-primary text-zinc-950 px-8 py-3 rounded-sm font-black uppercase tracking-widest text-xs shadow-neon hover:bg-primary/80 transition-all">
-                        Przejdź do Booksy
+                <div x-show="footerCtaEnabled()" x-cloak class="md:w-1/2 text-left md:text-center">
+                    <h3 class="font-display text-2xl md:text-3xl uppercase tracking-wide text-white mb-6" x-text="content[lang].contact.cta.title || 'Umów się wygodnie'"></h3>
+                    <a :href="resolveFooterCtaUrl()"
+                       :target="ctaLinkTarget(resolveFooterCtaUrl())"
+                       :rel="ctaLinkRel(resolveFooterCtaUrl())"
+                       class="inline-block bg-primary text-zinc-950 px-8 py-3 rounded-sm font-black uppercase tracking-widest text-xs shadow-neon hover:bg-primary/80 transition-all">
+                        <span x-text="content[lang].contact.cta.button_text || 'Przejdź do rezerwacji'"></span>
                     </a>
                 </div>
             </div>

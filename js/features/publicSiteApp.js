@@ -346,6 +346,39 @@
       closeModal() {
         this.activeModal = null;
       },
+      getContentBlock() {
+        return this.content?.[this.lang] || {};
+      },
+      heroCtaEnabled() {
+        return this.getContentBlock().hero?.button_enabled !== false;
+      },
+      footerCtaEnabled() {
+        return this.getContentBlock().contact?.cta?.enabled === true;
+      },
+      resolveHeroButtonUrl() {
+        const c = this.getContentBlock();
+        const u = String(
+          c.hero?.button_url || c.contact?.cta?.button_url || c.contact?.booksyUrl || '',
+        ).trim();
+        return u || '#kontakt';
+      },
+      resolveFooterCtaUrl() {
+        const c = this.getContentBlock();
+        const u = String(
+          c.contact?.cta?.button_url || c.contact?.booksyUrl || c.hero?.button_url || '',
+        ).trim();
+        return u || '#kontakt';
+      },
+      ctaOpensNewTab(url) {
+        const u = String(url || '').trim();
+        return u.startsWith('http://') || u.startsWith('https://');
+      },
+      ctaLinkTarget(url) {
+        return this.ctaOpensNewTab(url) ? '_blank' : '_self';
+      },
+      ctaLinkRel(url) {
+        return this.ctaOpensNewTab(url) ? 'noopener noreferrer' : null;
+      },
       injectAnalyticsTracking() {
         try {
           const self = this;

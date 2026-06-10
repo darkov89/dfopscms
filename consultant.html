@@ -44,7 +44,7 @@
     <script defer src="js/core/themeStyling.js"></script>
     <script defer src="js/core/pageRepository.js?v=20260602b"></script>
     <script defer src="js/core/planUtils.js?v=20260602b"></script>
-    <script defer src="js/features/publicSiteApp.js?v=20260602b"></script>
+    <script defer src="js/features/publicSiteApp.js?v=20260610a"></script>
     <script defer src="js/features/googleReviewsApp.js"></script>
     <script defer src="js/features/cookieConsentApp.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
@@ -169,7 +169,13 @@
             <p class="font-serif text-lg font-light leading-relaxed text-sattva-text/80 mb-3 max-w-2xl reveal delay-300" x-text="content[lang].hero.subheadline"></p>
             <p class="max-w-xl text-sm md:text-base text-sattva-text/75 mb-8 font-light leading-relaxed reveal delay-500" x-text="content[lang].hero.description"></p>
             
-            <a href="#kontakt" class="group relative px-6 py-2.5 border border-sattva-brand text-sattva-brand font-serif text-sm font-semibold tracking-wide hover:bg-sattva-brand hover:text-sattva-white transition-all duration-300 reveal delay-500" x-text="content[lang].hero.button"></a>
+            <template x-if="heroCtaEnabled()">
+                <a :href="resolveHeroButtonUrl()"
+                   :target="ctaLinkTarget(resolveHeroButtonUrl())"
+                   :rel="ctaLinkRel(resolveHeroButtonUrl())"
+                   class="group relative px-6 py-2.5 border border-sattva-brand text-sattva-brand font-serif text-sm font-semibold tracking-wide hover:bg-sattva-brand hover:text-sattva-white transition-all duration-300 reveal delay-500"
+                   x-text="content[lang].hero.button"></a>
+            </template>
         </header>
 
  <section id="manifesto" class="py-20 px-6 bg-sattva-accent" x-show="content[lang].settings?.showManifesto !== false">

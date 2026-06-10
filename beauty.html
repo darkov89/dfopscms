@@ -47,7 +47,7 @@
     <script defer src="js/core/themeStyling.js"></script>
     <script defer src="js/core/pageRepository.js?v=20260602b"></script>
     <script defer src="js/core/planUtils.js?v=20260602b"></script>
-    <script defer src="js/features/publicSiteApp.js?v=20260602b"></script>
+    <script defer src="js/features/publicSiteApp.js?v=20260610a"></script>
     <script defer src="js/features/googleReviewsApp.js"></script>
     <script defer src="js/features/cookieConsentApp.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
@@ -121,9 +121,14 @@
                     <h2 class="text-xl md:text-2xl font-medium mb-6 text-sattva-text/90" x-text="content[lang].hero.name"></h2>
                     <p class="text-lg text-sattva-text/80 mb-10 leading-relaxed max-w-2xl" x-text="content[lang].hero.description"></p>
                     
-                    <a :href="content[lang].contact?.booksyUrl || '#'" target="_blank" class="inline-block bg-sattva-brand text-sattva-white px-8 py-3 rounded-full font-medium tracking-wide hover:bg-[#8a705c] hover:-translate-y-1 transition-all duration-300 shadow-md">
-                        <span x-text="content[lang].hero.button"></span>
-                    </a>
+                    <template x-if="heroCtaEnabled()">
+                        <a :href="resolveHeroButtonUrl()"
+                           :target="ctaLinkTarget(resolveHeroButtonUrl())"
+                           :rel="ctaLinkRel(resolveHeroButtonUrl())"
+                           class="inline-block bg-sattva-brand text-sattva-white px-8 py-3 rounded-full font-medium tracking-wide hover:bg-[#8a705c] hover:-translate-y-1 transition-all duration-300 shadow-md">
+                            <span x-text="content[lang].hero.button"></span>
+                        </a>
+                    </template>
 
                     <template x-if="content[lang].hero.qrImage">
                         <div class="mt-10 animate-[fadeIn_1.5s_ease-in-out]">
@@ -394,10 +399,13 @@
                     </template>
                 </div>
                 
-                <div class="md:w-1/2 text-left md:text-center">
-                    <h3 class="font-serif text-2xl mb-6">Umów się wygodnie</h3>
-                    <a :href="content[lang].contact?.booksyUrl || '#'" target="_blank" class="inline-block bg-sattva-brand text-sattva-white px-8 py-3 rounded-full font-medium hover:bg-[#8a705c] transition-colors shadow-md">
-                        Przejdź do Booksy
+                <div x-show="footerCtaEnabled()" x-cloak class="md:w-1/2 text-left md:text-center">
+                    <h3 class="font-serif text-2xl mb-6" x-text="content[lang].contact.cta.title || 'Umów się wygodnie'"></h3>
+                    <a :href="resolveFooterCtaUrl()"
+                       :target="ctaLinkTarget(resolveFooterCtaUrl())"
+                       :rel="ctaLinkRel(resolveFooterCtaUrl())"
+                       class="inline-block bg-sattva-brand text-sattva-white px-8 py-3 rounded-full font-medium hover:bg-[#8a705c] transition-colors shadow-md">
+                        <span x-text="content[lang].contact.cta.button_text || 'Przejdź do rezerwacji'"></span>
                     </a>
                 </div>
             </div>

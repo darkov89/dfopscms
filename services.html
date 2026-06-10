@@ -45,7 +45,7 @@
     <script defer src="js/core/themeStyling.js"></script>
     <script defer src="js/core/pageRepository.js?v=20260602b"></script>
     <script defer src="js/core/planUtils.js?v=20260602b"></script>
-    <script defer src="js/features/publicSiteApp.js?v=20260602b"></script>
+    <script defer src="js/features/publicSiteApp.js?v=20260610a"></script>
     <script defer src="js/features/googleReviewsApp.js"></script>
     <script defer src="js/features/cookieConsentApp.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
@@ -166,13 +166,13 @@
                             <span x-text="content[lang].hero.button || 'Kontakt'"></span>
                         </a>
                     </template>
-                    <template x-if="content[lang].contact?.booksyUrl">
+                    <template x-if="footerCtaEnabled()">
                         <a
-                            :href="content[lang].contact.booksyUrl"
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            :href="resolveFooterCtaUrl()"
+                            :target="ctaLinkTarget(resolveFooterCtaUrl())"
+                            :rel="ctaLinkRel(resolveFooterCtaUrl())"
                             class="inline-flex justify-center items-center border-2 border-white/40 text-white px-8 py-4 rounded-md font-bold uppercase tracking-widest text-sm hover:bg-white/10 transition-colors"
-                        >Rezerwacja online</a>
+                        ><span x-text="content[lang].contact.cta.button_text || 'Rezerwacja online'"></span></a>
                     </template>
                 </div>
 
@@ -476,8 +476,8 @@
                         </div>
                     </template>
                 </div>
-                <div class="md:w-1/2 text-left md:text-center">
-                    <h3 class="text-xl font-bold mb-6 text-slate-100">Szybki kontakt</h3>
+                <div x-show="content[lang].contact?.phone || footerCtaEnabled()" x-cloak class="md:w-1/2 text-left md:text-center">
+                    <h3 class="text-xl font-bold mb-6 text-slate-100" x-text="content[lang].contact?.cta?.title || 'Szybki kontakt'"></h3>
                     <template x-if="content[lang].contact?.phone">
                         <a
                             :href="'tel:' + content[lang].contact.phone.replace(/\s/g, '')"
@@ -485,8 +485,12 @@
                             x-text="content[lang].nav?.cta || 'Zadzwoń'"
                         ></a>
                     </template>
-                    <template x-if="content[lang].contact?.booksyUrl">
-                        <a :href="content[lang].contact.booksyUrl" target="_blank" rel="noopener noreferrer" class="inline-block mt-4 md:mt-0 md:ml-4 border-2 border-white/40 text-white px-8 py-4 rounded-md font-bold uppercase tracking-widest text-xs hover:bg-white/10 transition-colors">Booksy</a>
+                    <template x-if="footerCtaEnabled()">
+                        <a :href="resolveFooterCtaUrl()"
+                           :target="ctaLinkTarget(resolveFooterCtaUrl())"
+                           :rel="ctaLinkRel(resolveFooterCtaUrl())"
+                           class="inline-block mt-4 md:mt-0 md:ml-4 border-2 border-white/40 text-white px-8 py-4 rounded-md font-bold uppercase tracking-widest text-xs hover:bg-white/10 transition-colors"
+                           x-text="content[lang].contact.cta.button_text || 'Rezerwacja online'"></a>
                     </template>
                 </div>
             </div>

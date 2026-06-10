@@ -238,34 +238,75 @@
       if (block.legal.terms === undefined) block.legal.terms = '';
     }
 
-    const defaultContactCta = {
-      enabled: true,
-      title: 'Szybki kalendarz',
-      description:
-        'Wybierz dogodny termin i umów się na darmową, 15-minutową konsultację wstępną.',
-      button_text: 'Wybierz termin na Calendly',
-      button_url: 'https://calendly.com/',
+    const contactCtaDefaultsByTheme = {
+      consultant: {
+        enabled: true,
+        title: 'Szybki kalendarz',
+        description:
+          'Wybierz dogodny termin i umów się na darmową, 15-minutową konsultację wstępną.',
+        button_text: 'Wybierz termin na Calendly',
+        button_url: 'https://calendly.com/',
+      },
+      beauty: {
+        enabled: false,
+        title: 'Umów się wygodnie',
+        description: '',
+        button_text: 'Przejdź do Booksy',
+        button_url: '',
+      },
+      fitness: {
+        enabled: false,
+        title: 'Umów się wygodnie',
+        description: '',
+        button_text: 'Przejdź do Booksy',
+        button_url: '',
+      },
+      services: {
+        enabled: false,
+        title: 'Szybki kontakt',
+        description: '',
+        button_text: 'Rezerwacja online',
+        button_url: '',
+      },
     };
 
-    function ensureContactCta(block) {
+    function ensureContactCta(block, contentTheme) {
       if (!block || typeof block !== 'object' || Array.isArray(block)) return;
       if (!block.contact) block.contact = {};
+      const defaults =
+        contactCtaDefaultsByTheme[contentTheme] || contactCtaDefaultsByTheme.consultant;
       if (!block.contact.cta) {
-        block.contact.cta = { ...defaultContactCta };
-        return;
+        block.contact.cta = { ...defaults };
       }
       const c = block.contact.cta;
-      if (c.enabled === undefined) c.enabled = defaultContactCta.enabled;
-      if (c.title === undefined || c.title === null) c.title = defaultContactCta.title;
-      if (c.description === undefined || c.description === null) c.description = defaultContactCta.description;
-      if (c.button_text === undefined || c.button_text === null) c.button_text = defaultContactCta.button_text;
-      if (c.button_url === undefined || c.button_url === null) c.button_url = defaultContactCta.button_url;
+      if (c.enabled === undefined) c.enabled = defaults.enabled;
+      if (c.title === undefined || c.title === null) c.title = defaults.title;
+      if (c.description === undefined || c.description === null) c.description = defaults.description;
+      if (c.button_text === undefined || c.button_text === null) c.button_text = defaults.button_text;
+      if (c.button_url === undefined || c.button_url === null) c.button_url = defaults.button_url;
+
+      const booksy = String(block.contact.booksyUrl || '').trim();
+      if (booksy) {
+        if (!String(c.button_url || '').trim()) c.button_url = booksy;
+        if (!block.hero) block.hero = {};
+        if (!String(block.hero.button_url || '').trim()) block.hero.button_url = booksy;
+      }
+    }
+
+    function ensureHeroButton(block) {
+      if (!block || typeof block !== 'object' || Array.isArray(block)) return;
+      if (!block.hero) block.hero = {};
+      if (block.hero.button_enabled === undefined) block.hero.button_enabled = true;
+      if (block.hero.button_url === undefined || block.hero.button_url === null) {
+        block.hero.button_url = '';
+      }
     }
 
     for (const _lang of Object.keys(merged)) {
       ensureSeo(merged[_lang]);
       ensureLegal(merged[_lang]);
-      ensureContactCta(merged[_lang]);
+      ensureContactCta(merged[_lang], theme);
+      ensureHeroButton(merged[_lang]);
     }
 
     return merged;
