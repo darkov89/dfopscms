@@ -285,11 +285,31 @@
       if (c.button_text === undefined || c.button_text === null) c.button_text = defaults.button_text;
       if (c.button_url === undefined || c.button_url === null) c.button_url = defaults.button_url;
 
-      const booksy = String(block.contact.booksyUrl || '').trim();
-      if (booksy) {
-        if (!String(c.button_url || '').trim()) c.button_url = booksy;
+      /* Smart Booking: kanoniczne `booking_url` + `settings.booking_mode` (kontrakt w contentSchema.js). */
+      const legacyBooking = String(block.contact.bookingUrl || '').trim();
+      const legacyBooksy = String(block.contact.booksyUrl || '').trim();
+      const legacyCtaUrl = String(c.button_url || '').trim();
+      if (!String(block.contact.booking_url || '').trim()) {
+        if (legacyBooking) block.contact.booking_url = legacyBooking;
+        else if (legacyBooksy) block.contact.booking_url = legacyBooksy;
+        else if (/calendly|booksy|znanylekarz/i.test(legacyCtaUrl)) block.contact.booking_url = legacyCtaUrl;
+        else block.contact.booking_url = '';
+      }
+      block.contact.booksyIframeUrl = '';
+      const booking = String(block.contact.booking_url || '').trim();
+      block.contact.bookingUrl = booking;
+      if (booking) {
+        block.contact.booksyUrl = booking;
+        if (!String(c.button_url || '').trim()) c.button_url = booking;
         if (!block.hero) block.hero = {};
-        if (!String(block.hero.button_url || '').trim()) block.hero.button_url = booksy;
+        if (!String(block.hero.button_url || '').trim()) block.hero.button_url = booking;
+      }
+      if (!block.settings || typeof block.settings !== 'object') block.settings = {};
+      const validModes = ['schedule', 'embed', 'button', 'both'];
+      if (!validModes.includes(String(block.settings.booking_mode || ''))) {
+        block.settings.booking_mode = !booking
+          ? 'schedule'
+          : (booking.toLowerCase().includes('calendly') ? 'embed' : 'button');
       }
     }
 

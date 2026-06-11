@@ -37,6 +37,31 @@
     return typeof v === 'string' && String(v).trim().length > 0;
   }
 
+  const BOOKING_MODES = new Set(['schedule', 'embed', 'button', 'both']);
+
+  /**
+   * Smart Booking: normalizuje `contact.booking_url` (kanoniczne; legacy `bookingUrl`/`booksyUrl`
+   * zsynchronizowane) oraz `settings.booking_mode` ('schedule' | 'embed' | 'button' | 'both').
+   * Brak trybu (stare treści) → inferencja: Calendly = embed, inny URL = button, pusty = schedule.
+   */
+  function normalizeBookingSettings(plBlock) {
+    if (!plBlock || typeof plBlock !== 'object') return;
+    if (!plBlock.contact || typeof plBlock.contact !== 'object') plBlock.contact = {};
+    const contact = plBlock.contact;
+    const raw = String(contact.booking_url || contact.bookingUrl || contact.booksyUrl || '').trim();
+    contact.booking_url = raw;
+    contact.bookingUrl = raw;
+    contact.booksyUrl = raw;
+    contact.booksyIframeUrl = '';
+    if (!plBlock.settings || typeof plBlock.settings !== 'object') plBlock.settings = {};
+    const mode = String(plBlock.settings.booking_mode || '').trim();
+    if (!BOOKING_MODES.has(mode)) {
+      plBlock.settings.booking_mode = !raw
+        ? 'schedule'
+        : (raw.toLowerCase().includes('calendly') ? 'embed' : 'button');
+    }
+  }
+
   const WIZARD_STATE_STORAGE_PREFIX = 'dfops_wizard_state_v1:';
 
   /** Zakładki Studia — zgodnie z przyciskami w `admin.html` (hash w URL przy `setTab`). */
@@ -45,6 +70,7 @@
     'services',
     'trust',
     'schedule',
+    'booking',
     'gallery',
     'contact',
     'faq',
@@ -181,7 +207,10 @@
           email: '',
           phone: '',
           address: '',
+          booking_url: '',
+          bookingUrl: '',
           booksyUrl: '',
+          booksyIframeUrl: '',
           map_embed_url: '',
           map_place_id: '',
           cta: {
@@ -215,6 +244,7 @@
         settings: {
           template_version: 1,
           color_preset: 'beige',
+          booking_mode: 'schedule',
           analytics: { gtm_id: '', fb_pixel_id: '' },
           subscription: { plan: 'trial', trial_started_at: new Date().toISOString(), selected_plan: null },
           background_style: 'soft',
@@ -223,6 +253,8 @@
           showManifesto: true,
           showServices: true,
           showProof: true,
+          showGallery: true,
+          showGoogleReviews: true,
           showFaq: true,
           showReviews: true,
           showContact: true,
@@ -1802,6 +1834,7 @@
           const serverWelcomeOnboardingDone =
             workingRaw?.pl?.settings?.welcome_onboarding_completed === true;
           this.content = window.DFOPS_normalizeContent(workingRaw, this.theme);
+          if (this.content?.pl) normalizeBookingSettings(this.content.pl);
           if (serverWelcomeOnboardingDone && this.content?.pl?.settings) {
             this.content.pl.settings.welcome_onboarding_completed = true;
           }
@@ -1901,7 +1934,7 @@
         const confirmed = await this.confirmAsync({
           title: 'Zmienić szablon?',
           message:
-            'Uwaga: zmiana szablonu nadpisze aktualne teksty i układ sekcji (hero, usługi, FAQ itd.). Zachowamy dane kontaktowe, logo tekstowe i logo graficzne oraz ustawienia subskrypcji. Kontynuować?',
+            'Uwaga: zmiana szablonu nadpisze aktualne teksty i układ sekcji (powitanie, usługi, FAQ itd.). Zachowamy dane kontaktowe, logo tekstowe i logo graficzne oraz ustawienia subskrypcji. Kontynuować?',
           yesLabel: 'Tak, zmień szablon',
           noLabel: 'Nie',
         });
@@ -2572,10 +2605,18 @@
         return this.isPremiumDraftTheme && this.isCustomAppearanceLocked;
       },
 
+      /** Po zmianie linku/trybu rezerwacji — normalizacja i cichy auto-save. */
+      syncBookingSettings() {
+        if (!this.content?.pl) return;
+        normalizeBookingSettings(this.content.pl);
+        this.scheduleDraftAutosave();
+      },
+
       /** Zapis WYŁĄCZNIE stanu roboczego (`draft_content`) — nic nie trafia na stronę publiczną. */
       async _persistDraft(opts) {
         const options = opts && typeof opts === 'object' ? opts : {};
         if (!this.content?.pl || !this.pageId || !this.user?.id) return false;
+        normalizeBookingSettings(this.content.pl);
         if (this.content.pl.settings) this.content.pl.settings.theme = this.theme;
         const { error } = await repo.saveCurrentUserPage(this.user.id, { draft_content: this.content });
         if (error) {
@@ -2690,6 +2731,7 @@
           if (Array.isArray(this.content.pl.services)) {
             this.content.pl.services = this.content.pl.services.filter((s) => s.title && String(s.title).trim() !== '');
           }
+          normalizeBookingSettings(this.content.pl);
           this.content.pl.settings.template_version = this.latestTemplateVersion;
           this.content.pl.settings.theme = this.theme;
           const payload = {
@@ -3038,7 +3080,7 @@
         const hasEmbed = !!String(this.content.pl.contact.map_embed_url || '').trim();
         this.message = hasEmbed
           ? 'Wybrano lokalizację mapy. Opublikuj zmiany, żeby była widoczna na stronie.'
-          : 'Wybrano lokalizację. Opublikuj zmiany — przy zapisie spróbujemy ponownie wygenerować embed mapy.';
+          : 'Wybrano lokalizację. Opublikuj zmiany — system spróbuje ponownie przygotować mapę.';
         setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
       },
 

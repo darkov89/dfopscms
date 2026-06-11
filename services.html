@@ -110,15 +110,16 @@
                     <template x-if="content[lang].settings?.showServices !== false">
                         <a href="#zakres" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.pricing || 'Zakres usług'"></a>
                     </template>
-                    <template x-if="content[lang].gallery?.images?.length > 0">
+                    <template x-if="content[lang].settings?.showGallery !== false && content[lang].gallery?.images?.length > 0">
                         <a href="#galeria" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.gallery || 'Realizacje'"></a>
                     </template>
                     <template x-if="content[lang].settings?.showTrust !== false && content[lang].trust?.quote">
                         <a href="#zaufanie" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.trust || 'Zaufanie'"></a>
                     </template>
-                    <template x-if="(content[lang].google_reviews?.place_query || content[lang].google_reviews?.place_id) || (content[lang].settings?.is_demo_catalog && (content[lang].reviews || []).length)">
+                    <template x-if="content[lang].settings?.showGoogleReviews !== false && ((content[lang].google_reviews?.place_query || content[lang].google_reviews?.place_id) || (content[lang].settings?.is_demo_catalog && (content[lang].reviews || []).length))">
                         <a href="#opinie" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.reviews || 'Opinie'"></a>
                     </template>
+                    <a href="#rezerwacja" x-show="bookingModuleActive() || footerCtaEnabled()" x-cloak class="hover:text-amber-400 transition-colors">Rezerwacja</a>
                     <template x-if="content[lang].settings?.showFaq !== false && content[lang].faq?.length">
                         <a href="#faq" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.faq || 'FAQ'"></a>
                     </template>
@@ -166,7 +167,13 @@
                             <span x-text="content[lang].hero.button || 'Kontakt'"></span>
                         </a>
                     </template>
-                    <template x-if="footerCtaEnabled()">
+                    <template x-if="bookingModuleActive()">
+                        <a
+                            href="#rezerwacja"
+                            class="inline-flex justify-center items-center border-2 border-white/40 text-white px-8 py-4 rounded-md font-bold uppercase tracking-widest text-sm hover:bg-white/10 transition-colors"
+                        ><span x-text="bookingCtaButtonText()"></span></a>
+                    </template>
+                    <template x-if="footerCtaEnabled() && !bookingModuleActive()">
                         <a
                             :href="resolveFooterCtaUrl()"
                             :target="ctaLinkTarget(resolveFooterCtaUrl())"
@@ -272,7 +279,7 @@
             </div>
         </section>
 
-        <section id="galeria" class="py-20 md:py-24 px-6 bg-white" x-show="content[lang].gallery?.images?.length > 0"
+        <section id="galeria" class="py-20 md:py-24 px-6 bg-white" x-show="content[lang].settings?.showGallery !== false && content[lang].gallery?.images?.length > 0"
                  x-data="{ scrollNext() { $refs.slider.scrollBy({ left: 300, behavior: 'smooth' }) }, scrollPrev() { $refs.slider.scrollBy({ left: -300, behavior: 'smooth' }) } }">
             <div class="max-w-6xl mx-auto">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-10 reveal">
@@ -298,6 +305,46 @@
             </div>
         </section>
 
+        <!-- DFCMS Smart Booking Module (services) — tryb: settings.booking_mode + contact.booking_url -->
+        <section id="rezerwacja" class="py-20 md:py-24 px-6 bg-slate-50 border-t border-slate-100" x-show="bookingModuleActive() || footerCtaEnabled()" x-cloak>
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-10" x-show="bookingModuleActive()" x-cloak>
+                    <p class="text-amber-600 text-xs font-bold uppercase tracking-[0.3em] mb-3">Rezerwacja</p>
+                    <h2 class="text-3xl md:text-4xl font-bold text-svc-navy" x-text="bookingCtaTitle()"></h2>
+                    <p class="mt-3 text-slate-600 text-sm max-w-xl mx-auto" x-text="bookingCtaDescription()"></p>
+                </div>
+                <template x-if="showBookingEmbed()">
+                    <div class="w-full h-[600px] rounded-xl overflow-hidden shadow-md border border-slate-200 bg-white">
+                        <iframe :src="resolveCalendlyEmbedUrl(resolveBookingUrl())" class="w-full h-full border-0" loading="lazy" title="Rezerwacja online"></iframe>
+                    </div>
+                </template>
+                <template x-if="showBookingButton()">
+                    <div class="p-10 md:p-14 rounded-xl border border-slate-200 bg-white shadow-md text-center">
+                        <a :href="resolveBookingUrl()" :target="ctaLinkTarget(resolveBookingUrl())" :rel="ctaLinkRel(resolveBookingUrl())"
+                           class="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-md font-black uppercase tracking-widest text-sm transition-all hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
+                           style="background-color: var(--color-primary, #f59e0b); color: var(--color-accent-text, #0f172a);">
+                            <span x-text="bookingCtaButtonText()"></span>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                        </a>
+                    </div>
+                </template>
+                <template x-if="footerCtaEnabled() && !bookingModuleActive()">
+                    <div class="p-10 md:p-14 rounded-xl border border-slate-200 bg-white shadow-md text-center">
+                        <h2 class="text-2xl md:text-3xl font-bold text-svc-navy mb-4" x-text="content[lang].contact.cta.title || 'Umów wizytę'"></h2>
+                        <p class="text-slate-600 text-sm max-w-xl mx-auto mb-8" x-text="content[lang].contact.cta.description || 'Zarezerwuj termin online lub zadzwoń — odpowiemy szybko.'"></p>
+                        <a :href="resolveFooterCtaUrl()"
+                           :target="ctaLinkTarget(resolveFooterCtaUrl())"
+                           :rel="ctaLinkRel(resolveFooterCtaUrl())"
+                           class="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-md font-black uppercase tracking-widest text-sm transition-all hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
+                           style="background-color: var(--color-primary, #f59e0b); color: var(--color-accent-text, #0f172a);">
+                            <span x-text="content[lang].contact.cta.button_text || 'Rezerwacja online'"></span>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                        </a>
+                    </div>
+                </template>
+            </div>
+        </section>
+
         <section id="faq" class="py-20 md:py-24 px-6 bg-slate-50" x-show="content[lang].settings?.showFaq !== false && content[lang].faq && content[lang].faq.length > 0">
             <div class="max-w-3xl mx-auto">
                 <div class="text-center mb-12 reveal">
@@ -317,7 +364,7 @@
             </div>
         </section>
 
-        <template x-if="(content[lang].google_reviews?.place_query || content[lang].google_reviews?.place_id) || (content[lang].settings?.is_demo_catalog && (content[lang].reviews || []).length)">
+        <template x-if="content[lang].settings?.showGoogleReviews !== false && ((content[lang].google_reviews?.place_query || content[lang].google_reviews?.place_id) || (content[lang].settings?.is_demo_catalog && (content[lang].reviews || []).length))">
             <section id="opinie" class="py-20 md:py-24 px-4 sm:px-6 bg-white overflow-hidden border-t border-slate-100">
                 <div class="max-w-6xl mx-auto">
                     <div class="text-center mb-10 reveal">
@@ -438,29 +485,25 @@
             </section>
         </template>
 
-        <footer id="kontakt" class="bg-svc-navy text-white pt-16 pb-8 px-6 border-t border-white/10" x-show="content[lang].settings?.showContact !== false">
-            <div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between gap-10 mb-10 reveal">
-                <div class="md:w-1/2 space-y-3">
-                    <h2 class="text-3xl font-bold mb-6">Kontakt</h2>
-                    <p class="font-semibold text-lg text-slate-100" x-text="content[lang].hero.name"></p>
-                    <template x-if="content[lang].contact">
-                        <div>
-                            <div class="flex flex-col md:flex-row gap-6 items-start">
-                                <template x-if="content[lang].contact?.map_embed_url">
-                                    <div class="w-full md:w-[320px] max-w-full rounded-xl overflow-hidden border border-white/10 shadow-sm aspect-[4/3]">
-                                        <iframe
-                                            class="w-full h-full"
-                                            loading="lazy"
-                                            referrerpolicy="no-referrer-when-downgrade"
-                                            :src="content[lang].contact.map_embed_url">
-                                        </iframe>
-                                    </div>
-                                </template>
-                                <div class="flex-1 min-w-0 space-y-2">
-                                    <p class="text-slate-300 break-words" x-text="content[lang].contact.address"></p>
-                                    <p class="text-slate-300 break-words" x-show="content[lang].contact.phone">Tel: <a :href="'tel:' + (content[lang].contact.phone || '').replace(/\s/g, '')" class="text-amber-400 font-bold hover:underline break-words" x-text="content[lang].contact.phone"></a></p>
-                                    <p class="text-slate-300 break-words">Email: <a :href="'mailto:' + content[lang].contact.email" class="text-amber-400 hover:underline break-words" x-text="content[lang].contact.email"></a></p>
-                                    <div class="flex flex-wrap gap-4 mt-4" x-show="content[lang].social?.facebook || content[lang].social?.instagram || content[lang].social?.tiktok">
+        <footer id="kontakt" class="bg-svc-navy text-white pt-10 pb-6 px-6 border-t border-white/10" x-show="content[lang].settings?.showContact !== false">
+            <div class="max-w-5xl mx-auto">
+                <template x-if="content[lang].contact">
+                    <div class="flex flex-col md:flex-row gap-6 md:gap-8 items-start mb-8">
+                        <template x-if="content[lang].contact?.map_embed_url">
+                            <div class="w-full md:w-[260px] shrink-0 rounded-lg overflow-hidden border border-white/10 aspect-[4/3]">
+                                <iframe
+                                    class="w-full h-full"
+                                    loading="lazy"
+                                    referrerpolicy="no-referrer-when-downgrade"
+                                    :src="content[lang].contact.map_embed_url">
+                                </iframe>
+                            </div>
+                        </template>
+                        <div class="flex-1 min-w-0 space-y-1.5 text-sm text-slate-300">
+                            <p class="break-words" x-text="content[lang].contact.address"></p>
+                            <p class="break-words" x-show="content[lang].contact.phone">Tel: <a :href="'tel:' + (content[lang].contact.phone || '').replace(/\s/g, '')" class="text-amber-400 font-bold hover:underline break-words" x-text="content[lang].contact.phone"></a></p>
+                            <p class="break-words">Email: <a :href="'mailto:' + content[lang].contact.email" class="text-amber-400 hover:underline break-words" x-text="content[lang].contact.email"></a></p>
+                            <div class="flex flex-wrap gap-3 pt-2" x-show="content[lang].social?.facebook || content[lang].social?.instagram || content[lang].social?.tiktok">
                                         <a x-show="content[lang].social?.facebook" :href="content[lang].social.facebook" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-amber-400 transition-colors" aria-label="Facebook">
                                             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                                         </a>
@@ -470,31 +513,12 @@
                                         <a x-show="content[lang].social?.tiktok" :href="content[lang].social.tiktok" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-amber-400 transition-colors" aria-label="TikTok">
                                             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>
                                         </a>
-                                    </div>
-                                </div>
                             </div>
                         </div>
-                    </template>
-                </div>
-                <div x-show="content[lang].contact?.phone || footerCtaEnabled()" x-cloak class="md:w-1/2 text-left md:text-center">
-                    <h3 class="text-xl font-bold mb-6 text-slate-100" x-text="content[lang].contact?.cta?.title || 'Szybki kontakt'"></h3>
-                    <template x-if="content[lang].contact?.phone">
-                        <a
-                            :href="'tel:' + content[lang].contact.phone.replace(/\s/g, '')"
-                            class="inline-block bg-amber-500 text-svc-navy px-8 py-4 rounded-md font-black uppercase tracking-widest text-sm hover:bg-amber-400 transition-colors shadow-lg"
-                            x-text="content[lang].nav?.cta || 'Zadzwoń'"
-                        ></a>
-                    </template>
-                    <template x-if="footerCtaEnabled()">
-                        <a :href="resolveFooterCtaUrl()"
-                           :target="ctaLinkTarget(resolveFooterCtaUrl())"
-                           :rel="ctaLinkRel(resolveFooterCtaUrl())"
-                           class="inline-block mt-4 md:mt-0 md:ml-4 border-2 border-white/40 text-white px-8 py-4 rounded-md font-bold uppercase tracking-widest text-xs hover:bg-white/10 transition-colors"
-                           x-text="content[lang].contact.cta.button_text || 'Rezerwacja online'"></a>
-                    </template>
-                </div>
-            </div>
-            <div class="max-w-5xl mx-auto border-t border-white/10 pt-6 text-center text-sm text-slate-400 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
+                    </div>
+                </template>
+
+            <div class="max-w-5xl mx-auto border-t border-white/10 pt-4 text-center text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
                 <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.privacy_policy">
                     <a href="#" @click.prevent="openModal('privacy')" class="underline hover:text-amber-400 transition-colors">Polityka prywatności</a>
                 </template>
@@ -502,6 +526,7 @@
                     <a href="#" @click.prevent="openModal('terms')" class="underline hover:text-amber-400 transition-colors">Regulamin</a>
                 </template>
                 <p>&copy; <span x-text="new Date().getFullYear()"></span> <span x-text="content[lang].hero.name"></span>. Wszelkie prawa zastrzeżone.</p>
+            </div>
             </div>
         </footer>
 
@@ -556,6 +581,7 @@
 
     <div x-show="activeModal" x-cloak x-transition.opacity
          class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+         @keydown.escape.window="closeModal()"
          role="dialog" aria-modal="true" :aria-label="activeModal === 'privacy' ? 'Polityka prywatności' : 'Regulamin'">
         <div @click.self="closeModal()" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div class="relative bg-white text-gray-900 rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">

@@ -4,7 +4,7 @@
 
 Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **changelog** jednoliniowy, żeby nie dublować długich sekcji.
 
-**Ostatnia aktualizacja treści:** 2026-06-05 (idempotencja wFirma)
+**Ostatnia aktualizacja treści:** 2026-06-05 (Booksy auto-iframe z linku profilu)
 
 ---
 
@@ -57,6 +57,10 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 | **2026-05-25** | **Rejestracja:** signUp `user:null` (ten sam e-mail) → sukces gdy slug zajęty; trigger `handle_new_user` — rollback przy kolizji slug. |
 | **2026-05-22** | **Tarcze anty-zombie:** `killZombieSubscriptionEvent` + heal przy `active`/`trialing` w `applyStripeSubscriptionToPage`; potrójny guard przed upsert/block w `applySubscriptionCanceledToPage`. |
 | **2026-05-22** | **Invoice webhook:** `extractInvoiceSubscriptionId` — Basil `parent.subscription_details.subscription` + API fallback (fix `brak invoice.subscription`); sync wymusza `clearPageBillingBlocksForPaidUser`. |
+| **2026-06-11** | **Sekcje per zakładka:** toggle Galerii (`showGallery`) w zakładce + szablony; „Co widnieje na stronie” zostaje jako przegląd (ten sam `x-model`). |
+| **2026-06-11** | **Panel admin — mapa zakładek:** Social Media → Kontakt (wszystkie motywy); CTA/rezerwacja → Rezerwacje online; SEO tylko meta/OG/analityka. |
+| **2026-06-11** | **Smart Booking v2:** zakładka „Rezerwacje online” w panelu; `settings.booking_mode` (schedule/embed/button/both) + `contact.booking_url`; szablony sterowane trybem. |
+| **2026-06-05** | **Smart Booking:** `contact.bookingUrl` — Calendly iframe / Booksy CTA / natywny fallback; wszystkie szablony + standard w `contentSchema.js`. |
 | **2026-05-22** | **Kolejka Stripe:** `stripeCustomerHasLiveSubscription` + heal `pages` przy pominiętym cancel; logi `stripe-webhook-queue`; podwójne czyszczenie po checkout (prod deploy). |
 | **2026-05-24** | **Fix blokady po płatności:** `expire_trial_pages` respektuje `billing_profiles` + `pages.billing_plan`; anulowanie Stripe nie nadpisuje aktywnej sub; publicSite — paid plan przed `trial_blocked_at`. |
 | **2026-05-22** | **Dual SoT:** `syncPageBillingMirrorFromProfile` — po aktywnej sub zawsze czyści `pages.trial_blocked_at` / `billing_failed_at`. |

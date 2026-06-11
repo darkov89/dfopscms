@@ -1,4 +1,17 @@
 ;(function () {
+  /**
+   * DFCMS Smart Booking Module — kontrakt treści.
+   * Klucze: `settings.booking_mode` ('schedule' | 'embed' | 'button' | 'both') + `contact.booking_url`.
+   * Każdy szablon publiczny MUSI mieć jeden ustandaryzowany blok rezerwacji, sterowany trybem:
+   * - 'schedule' → natywny widok branżowy (grafik fitness, karta CTA consultant; brak sekcji rezerwacji),
+   * - 'embed'    → osadzony iframe z `booking_url` (np. Calendly; Booksy blokuje X-Frame-Options),
+   * - 'button'   → duża karta CTA z linkiem zewnętrznym (Booksy, Google Booking, ZnanyLekarz, …),
+   * - 'both'     → natywny widok + karta CTA pod nim.
+   * Migracja: legacy `contact.booksyUrl` / `bookingUrl` → `booking_url`; brak trybu → inferencja
+   * (Calendly = embed, inny URL = button, pusty = schedule) w `contentUpgrader.js` i `adminApp.js`.
+   */
+  const CONTACT_BOOKING_DEFAULTS = { booking_url: '', booking_mode: 'schedule' };
+
   function deepClone(obj) {
     return JSON.parse(JSON.stringify(obj));
   }
@@ -53,6 +66,7 @@
     return normalized;
   }
 
+  window.DFOPS_CONTACT_BOOKING_DEFAULTS = CONTACT_BOOKING_DEFAULTS;
   window.DFOPS_deepClone = deepClone;
   window.DFOPS_fillDefaults = fillDefaults;
   window.DFOPS_mergeContentWithTemplate = mergeContentWithTemplate;

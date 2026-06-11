@@ -301,7 +301,17 @@
         schedule: [],
         gallery: { title: '', images: [] },
         faq: [],
-        contact: { email: '', phone: '', address: '', booksyUrl: '', map_embed_url: '', map_place_id: '' },
+        contact: {
+          email: '',
+          phone: '',
+          address: '',
+          booking_url: '',
+          bookingUrl: '',
+          booksyUrl: '',
+          booksyIframeUrl: '',
+          map_embed_url: '',
+          map_place_id: '',
+        },
         social: { linkedin: '', facebook: '', instagram: '', tiktok: '' },
         google_reviews: { embed_url: '', place_query: '', place_id: '', max_reviews: 6, title: 'Opinie z Google' },
         reviews: [],
@@ -312,6 +322,8 @@
           showManifesto: true,
           showServices: true,
           showProof: true,
+          showGallery: true,
+          showGoogleReviews: true,
           showFaq: true,
           showReviews: true,
           showContact: true,
@@ -355,17 +367,66 @@
       footerCtaEnabled() {
         return this.getContentBlock().contact?.cta?.enabled === true;
       },
+      /** Smart Booking Module — kanoniczny URL rezerwacji (Calendly / Booksy / inne). */
+      resolveBookingUrl() {
+        const c = this.getContentBlock().contact || {};
+        return String(c.booking_url || c.bookingUrl || c.booksyUrl || '').trim();
+      },
+      /** Tryb modułu rezerwacji: 'schedule' | 'embed' | 'button' | 'both'. Stare treści bez trybu → inferencja z URL. */
+      bookingMode() {
+        const raw = String(this.getContentBlock().settings?.booking_mode || '').trim().toLowerCase();
+        if (['schedule', 'embed', 'button', 'both'].includes(raw)) return raw;
+        const url = this.resolveBookingUrl().toLowerCase();
+        if (!url) return 'schedule';
+        return url.includes('calendly') ? 'embed' : 'button';
+      },
+      /** Czy sekcja rezerwacji (embed lub przycisk) jest aktywna — steruje nav-linkiem i sekcją `#rezerwacja`. */
+      bookingModuleActive() {
+        return this.bookingMode() !== 'schedule' && !!this.resolveBookingUrl();
+      },
+      showBookingEmbed() {
+        return this.bookingMode() === 'embed' && !!this.resolveBookingUrl();
+      },
+      showBookingButton() {
+        const m = this.bookingMode();
+        return (m === 'button' || m === 'both') && !!this.resolveBookingUrl();
+      },
+      resolveCalendlyEmbedUrl(raw) {
+        const u = String(raw || '').trim();
+        if (!u || !u.toLowerCase().includes('calendly')) return u;
+        if (/[?&]embed_type=/i.test(u)) return u;
+        return u + (u.includes('?') ? '&' : '?') + 'embed_type=Inline';
+      },
+      bookingCtaTitle() {
+        const c = this.getContentBlock().contact || {};
+        return String(c.cta?.title || '').trim() || 'Umów się online';
+      },
+      bookingCtaDescription() {
+        const c = this.getContentBlock().contact || {};
+        const url = this.resolveBookingUrl().toLowerCase();
+        if (String(c.cta?.description || '').trim()) return c.cta.description;
+        if (url.includes('booksy')) return 'Zarezerwuj wizytę w Booksy — wybierz usługę i dogodny termin.';
+        return 'Wybierz dogodny termin w zewnętrznym systemie rezerwacji.';
+      },
+      bookingCtaButtonText() {
+        const c = this.getContentBlock().contact || {};
+        if (String(c.cta?.button_text || '').trim()) return c.cta.button_text;
+        const url = this.resolveBookingUrl().toLowerCase();
+        if (url.includes('booksy')) return 'Przejdź do Booksy';
+        if (url.includes('calendly')) return 'Otwórz kalendarz';
+        return 'Zarezerwuj termin';
+      },
       resolveHeroButtonUrl() {
         const c = this.getContentBlock();
         const u = String(
-          c.hero?.button_url || c.contact?.cta?.button_url || c.contact?.booksyUrl || '',
+          c.hero?.button_url || c.contact?.bookingUrl || c.contact?.cta?.button_url || c.contact?.booksyUrl || '',
         ).trim();
         return u || '#kontakt';
       },
       resolveFooterCtaUrl() {
         const c = this.getContentBlock();
         const u = String(
-          c.contact?.cta?.button_url || c.contact?.booksyUrl || c.hero?.button_url || '',
+          c.contact?.booking_url || c.contact?.bookingUrl || c.contact?.booksyUrl || c.contact?.cta?.button_url || c.hero?.button_url || '',
         ).trim();
         return u || '#kontakt';
       },
