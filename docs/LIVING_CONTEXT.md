@@ -4,7 +4,7 @@
 
 Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **changelog** jednoliniowy, żeby nie dublować długich sekcji.
 
-**Ostatnia aktualizacja treści:** 2026-06-05 (Booksy auto-iframe z linku profilu)
+**Ostatnia aktualizacja treści:** 2026-06-12 (edge routing subdomen)
 
 ---
 
@@ -67,6 +67,7 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 | **2026-05-22** | **Zombie webhooks:** `shouldIgnoreStaleBillingDowngradeWebhook` — stary `canceled`/`past_due` nie nadpisuje innej `active`/`trialing` sub w `billing_profiles`. |
 | **2026-05-22** | **Stripe returning customer:** checkout reuse `cus_…`; `upsertBillingProfile` + `resolvePageForStripeSubscription` (customer przed sub id). |
 | **2026-05-22** | **Panel:** `hasActivePaidSubscription` / `isSubscriptionCanceledButValid` — tylko Stripe (`sid`+status, `cancel_at_period_end`), bez `payment_completed`. |
+| **2026-06-12** | **Edge routing:** `functions/_middleware.js` — szablon motywu na `/`, `/router`, `?site=` i `{slug}.dfcms.pl` bez hopu `index→router→fitness.html`; klient: `index.html` (prod bez redirectu), `routerApp.js` (subdomena → `/`), `publicSiteApp.js` (clean URL). |
 | **2026-06-01** | **Live preview + cichy auto-save:** debounce 1000ms → `draft_content`; podgląd renderuje draft tylko dla zalogowanego właściciela (`getDraftContentForOwner`), anon zawsze `content`; publish-toast. Staging-aware preview URL. |
 | **2026-06-01** | **Draft vs Published:** `pages.draft_content` (migracja `20260601155000`); panel pracuje na drafcie, `publishChanges()` kopiuje do `content`, `revertChanges()` do produkcji; blokada publikacji premium motywu na darmowym planie. Public czyta tylko `content`. |
 | **2026-05-22** | **Opinie Google (panel):** autocomplete wizytówki → `google_reviews.place_id`; Edge `reviews_for_place_id` + `listPlaces` (klucz tylko serwer). |

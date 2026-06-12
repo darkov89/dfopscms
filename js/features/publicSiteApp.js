@@ -506,7 +506,7 @@
         }
 
         if (host.endsWith(`.${baseDomain}`) && host !== baseDomain) {
-          return `${window.location.protocol}//${window.location.host}/${theme}.html`;
+          return `${window.location.protocol}//${window.location.host}/`;
         }
 
         if (host !== baseDomain && host !== 'localhost' && host !== '127.0.0.1' && !host.endsWith(`.${baseDomain}`)) {
@@ -586,7 +586,18 @@
 
           // Redirect na właściwy plik motywu tylko dla wersji opublikowanej; w podglądzie draftu
           // panel sam wybiera plik wg motywu roboczego (unikamy gubienia parametru dfcms_preview).
-          if (!previewDraft && expectedTheme && page.theme && page.theme !== expectedTheme) {
+          const onTenantHome =
+            onTenantSubdomain &&
+            (window.location.pathname === '/' ||
+              window.location.pathname === '/index.html' ||
+              window.location.pathname === '/index');
+          if (
+            !previewDraft &&
+            !onTenantHome &&
+            expectedTheme &&
+            page.theme &&
+            page.theme !== expectedTheme
+          ) {
             window.location.replace(this.buildThemePageUrl(page));
             return;
           }

@@ -102,8 +102,12 @@
       const localHosts = cfg.localHosts || [];
       const isLocal = localHosts.indexOf(window.location.hostname) !== -1;
       const slugFromSub = extractSubdomainAsSlug(hostname, baseDomains);
+      if (slugFromSub) {
+        window.location.replace('/' + (url.search || '') + (url.hash || ''));
+        return;
+      }
       let target = page.theme + '.html';
-      if (isLocal || (isHostUnderBaseDomain(hostname, baseDomains) && !slugFromSub)) {
+      if (isLocal || isHostUnderBaseDomain(hostname, baseDomains)) {
         target += '?site=' + encodeURIComponent(page.slug);
       }
       window.location.replace(target);
