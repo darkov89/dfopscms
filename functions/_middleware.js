@@ -2,6 +2,7 @@
  * Cloudflare Pages — globalny middleware (SEO + edge routing szablonów + HTMLRewriter + Supabase).
  * Zmienne: SUPABASE_URL, SUPABASE_ANON_KEY
  * Opcjonalnie: SEO_DEBUG=1 — wstrzyknie <meta name="dfops-debug" …> (tylko diagnostyka).
+ * Telemetria edge rewrite: nagłówek odpowiedzi `X-DFCMS-Debug` (SUCCESS_REWRITE lub FAIL[…]).
  *
  * Znak wodny DFCMS (trial / tier0) jest doklejany po stronie klienta w publicSiteApp.js
  * (Shadow DOM), po załadowaniu treści — nie w tym middleware.
@@ -257,61 +258,80 @@ export async function onRequest(context) {
     return next();
   }
 
-  const supabaseUrl = typeof env.SUPABASE_URL === 'string' ? env.SUPABASE_URL.replace(/\/$/, '') : '';
-  const anonKey = typeof env.SUPABASE_ANON_KEY === 'string' ? env.SUPABASE_ANON_KEY : '';
-
-  if (supabaseUrl && anonKey && isEdgeRoutePath(url.pathname)) {
-    try {
-      const hostnameNorm = hostname || urlHostname;
-      const slugTrimmed = resolveSlug(siteParam, hostname, urlHostname);
-      const row = await fetchPageRow(supabaseUrl, anonKey, slugTrimmed, hostnameNorm);
-
-      if (row?.theme && env.ASSETS) {
-        const themed = await serveThemedPage(request, env, row, slugTrimmed, hostnameNorm, url);
-        if (themed) return themed;
-      }
-    } catch {
-      /* fallback do next() */
-    }
-  }
-
-  let response;
-  try {
-    response = await next();
-  } catch {
-    return new Response('Upstream error', { status: 502 });
-  }
+  let debugTrace = 'START';
 
   try {
-    if (request.method === 'HEAD' || request.method === 'OPTIONS') {
-      return applySecurityHeaders(request, response);
-    }
-
-    const contentType = response.headers.get('content-type') || '';
-    if (!contentType.includes('text/html') || !response.body) {
-      return applySecurityHeaders(request, response);
-    }
+    const supabaseUrl = typeof env.SUPABASE_URL === 'string' ? env.SUPABASE_URL.replace(/\/$/, '') : '';
+    const anonKey = typeof env.SUPABASE_ANON_KEY === 'string' ? env.SUPABASE_ANON_KEY : '';
 
     if (!supabaseUrl || !anonKey) {
-      return applySecurityHeaders(request, response);
+      debugTrace = 'MISSING_ENV_VARS';
+      throw new Error(debugTrace);
+    }
+
+    if (!isEdgeRoutePath(url.pathname)) {
+      debugTrace = 'NOT_EDGE_ROUTE:' + url.pathname;
+      throw new Error(debugTrace);
     }
 
     const hostnameNorm = hostname || urlHostname;
     const slugTrimmed = resolveSlug(siteParam, hostname, urlHostname);
+
+    if (!slugTrimmed && !hostnameNorm) {
+      debugTrace = 'NO_SLUG_OR_HOST';
+      throw new Error(debugTrace);
+    }
+
+    debugTrace = `FETCH_DB|slug:${slugTrimmed}|host:${hostnameNorm}`;
     const row = await fetchPageRow(supabaseUrl, anonKey, slugTrimmed, hostnameNorm);
 
-    let htmlResponse = response;
+    if (!row) {
+      debugTrace = 'NO_ROW_IN_DB';
+      throw new Error(debugTrace);
+    }
+    if (!row.theme) {
+      debugTrace = 'NO_THEME_IN_DB';
+      throw new Error(debugTrace);
+    }
 
-    if (row?.theme && isEdgeRoutePath(url.pathname) && env.ASSETS) {
-      const themeResponse = await fetchThemeAsset(env, request, String(row.theme).trim().toLowerCase(), url, hostnameNorm);
-      if (themeResponse?.ok) {
-        htmlResponse = themeResponse;
+    const theme = String(row.theme).trim().toLowerCase();
+    if (!ALLOWED_THEMES.has(theme)) {
+      debugTrace = 'INVALID_THEME:' + theme;
+      throw new Error(debugTrace);
+    }
+
+    debugTrace = `FETCH_ASSET:${theme}`;
+    if (!env.ASSETS) {
+      debugTrace = 'NO_ENV_ASSETS';
+      throw new Error(debugTrace);
+    }
+
+    // Uproszczone, pancerne pobieranie z env.ASSETS
+    const assetUrl = new URL(`/${theme}.html`, request.url);
+    const assetReqOpts = { method: 'GET', headers: request.headers };
+    let themeResponse = await env.ASSETS.fetch(new Request(assetUrl, assetReqOpts));
+
+    if (!themeResponse.ok) {
+      // Fallback bez .html
+      const assetUrlNoExt = new URL(`/${theme}`, request.url);
+      themeResponse = await env.ASSETS.fetch(new Request(assetUrlNoExt, assetReqOpts));
+      if (!themeResponse.ok) {
+        debugTrace = 'ASSET_404:' + themeResponse.status;
+        throw new Error(debugTrace);
       }
     }
 
-    const withSeo = applySeoRewriter(htmlResponse, row, env, slugTrimmed, hostnameNorm);
-    return applySecurityHeaders(request, withSeo);
-  } catch {
-    return applySecurityHeaders(request, response);
+    debugTrace = 'SUCCESS_REWRITE';
+    const withSeo = applySeoRewriter(themeResponse, row, env, slugTrimmed, hostnameNorm);
+    const finalResponse = new Response(withSeo.body, withSeo);
+    finalResponse.headers.set('X-DFCMS-Debug', debugTrace);
+
+    return applySecurityHeaders(request, finalResponse);
+  } catch (e) {
+    // FALLBACK
+    const response = await next();
+    const fallbackRes = new Response(response.body, response);
+    fallbackRes.headers.set('X-DFCMS-Debug', `FAIL[${debugTrace}]`);
+    return applySecurityHeaders(request, fallbackRes);
   }
 }
