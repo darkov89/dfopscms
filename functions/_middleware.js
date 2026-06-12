@@ -1,5 +1,5 @@
 /**
- * Cloudflare Pages — globalny middleware (SEO + HTMLRewriter + Supabase).
+ * Cloudflare Pages — globalny middleware (SEO + edge routing szablonów + HTMLRewriter + Supabase).
  * Zmienne: SUPABASE_URL, SUPABASE_ANON_KEY
  * Opcjonalnie: SEO_DEBUG=1 — wstrzyknie <meta name="dfops-debug" …> (tylko diagnostyka).
  *
@@ -8,6 +8,39 @@
  */
 
 const STATIC_EXT = /\.(css|js|mjs|png|jpg|jpeg|gif|svg|ico|webp|woff2?|ttf|eot|map|json|xml|txt|pdf|webmanifest)$/i;
+
+const PLATFORM_BASE_DOMAINS = ['dfcms.pl', 'localhost', '127.0.0.1'];
+const ALLOWED_THEMES = new Set(['beauty', 'consultant', 'fitness', 'services']);
+const EDGE_ROUTE_PATHS = new Set(['/', '/index.html', '/router.html']);
+
+function normalizeHostname(hostname) {
+  return String(hostname || '')
+    .replace(/^www\./i, '')
+    .toLowerCase();
+}
+
+function isPlatformHost(hostnameNorm) {
+  return PLATFORM_BASE_DOMAINS.some(
+    (base) => hostnameNorm === base || hostnameNorm.endsWith('.' + base),
+  );
+}
+
+/** Dla user.dfcms.pl → 'user'; dla gołego dfcms.pl / localhost → '' */
+function extractSubdomainSlug(hostnameNorm) {
+  for (const base of PLATFORM_BASE_DOMAINS) {
+    if (hostnameNorm === base) return '';
+    const suffix = '.' + base;
+    if (hostnameNorm.endsWith(suffix)) {
+      const sub = hostnameNorm.slice(0, -suffix.length);
+      return sub && sub.length ? sub : '';
+    }
+  }
+  return '';
+}
+
+function isEdgeRoutePath(pathname) {
+  return EDGE_ROUTE_PATHS.has(pathname);
+}
 
 function applySecurityHeaders(request, response) {
   try {
@@ -124,12 +157,15 @@ export async function onRequest(context) {
       return response;
     }
 
-    const hostnameNorm = hostname.replace(/^www\./i, '').toLowerCase();
-    const slugTrimmed = siteParam != null ? String(siteParam).trim() : '';
+    const hostnameNorm = normalizeHostname(hostname);
+    let slugTrimmed = siteParam != null ? String(siteParam).trim() : '';
+    if (!slugTrimmed && isPlatformHost(hostnameNorm)) {
+      slugTrimmed = extractSubdomainSlug(hostnameNorm);
+    }
 
     const restUrl = slugTrimmed
-      ? `${supabaseUrl}/rest/v1/pages?slug=eq.${encodeURIComponent(slugTrimmed)}&select=content`
-      : `${supabaseUrl}/rest/v1/pages?custom_domain=eq.${encodeURIComponent(hostnameNorm)}&select=content`;
+      ? `${supabaseUrl}/rest/v1/pages?slug=eq.${encodeURIComponent(slugTrimmed)}&select=content,theme`
+      : `${supabaseUrl}/rest/v1/pages?custom_domain=eq.${encodeURIComponent(hostnameNorm)}&select=content,theme`;
 
     const supaRes = await fetch(restUrl, {
       headers: {
@@ -140,13 +176,31 @@ export async function onRequest(context) {
     });
 
     if (!supaRes.ok) {
-      return response;
+      return applySecurityHeaders(request, response);
     }
 
     const rows = await supaRes.json();
     const row = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+
+    let htmlResponse = response;
+
+    if (row?.theme && isEdgeRoutePath(url.pathname) && env.ASSETS) {
+      const theme = String(row.theme).trim().toLowerCase();
+      if (ALLOWED_THEMES.has(theme)) {
+        const themeUrl = new URL(`/${theme}.html`, request.url);
+        themeUrl.search = url.search;
+        const themeResponse = await env.ASSETS.fetch(themeUrl);
+        if (themeResponse.ok) {
+          htmlResponse = themeResponse;
+        }
+      }
+    }
+
     const seo = row?.content?.pl?.seo;
     if (!seo || typeof seo !== 'object') {
+      if (htmlResponse !== response) {
+        return applySecurityHeaders(request, htmlResponse);
+      }
       return response;
     }
 
@@ -158,6 +212,9 @@ export async function onRequest(context) {
     const description = stripHtmlMarkup(descRaw);
 
     if (!title && !description && !ogImageRaw) {
+      if (htmlResponse !== response) {
+        return applySecurityHeaders(request, htmlResponse);
+      }
       return response;
     }
 
@@ -202,7 +259,7 @@ export async function onRequest(context) {
       },
     });
 
-    return applySecurityHeaders(request, rewriter.transform(response));
+    return applySecurityHeaders(request, rewriter.transform(htmlResponse));
   } catch {
     return applySecurityHeaders(request, response);
   }
