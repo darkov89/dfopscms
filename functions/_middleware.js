@@ -2,7 +2,7 @@
  * Cloudflare Pages — globalny middleware (SEO + edge routing szablonów + HTMLRewriter + Supabase).
  * Zmienne: SUPABASE_URL, SUPABASE_ANON_KEY
  * Opcjonalnie: SEO_DEBUG=1 — wstrzyknie <meta name="dfops-debug" …> (tylko diagnostyka).
- * Telemetria edge rewrite: nagłówek odpowiedzi `X-DFCMS-Debug` (SUCCESS_REWRITE lub FAIL[…]).
+ * Telemetria edge rewrite: nagłówek `X-DFCMS-Debug` tylko gdy `SEO_DEBUG=1` lub `SEO_DEBUG=true`.
  *
  * Znak wodny DFCMS (trial / tier0) jest doklejany po stronie klienta w publicSiteApp.js
  * (Shadow DOM), po załadowaniu treści — nie w tym middleware.
@@ -324,14 +324,18 @@ export async function onRequest(context) {
     debugTrace = 'SUCCESS_REWRITE';
     const withSeo = applySeoRewriter(themeResponse, row, env, slugTrimmed, hostnameNorm);
     const finalResponse = new Response(withSeo.body, withSeo);
-    finalResponse.headers.set('X-DFCMS-Debug', debugTrace);
+    if (env.SEO_DEBUG === '1' || env.SEO_DEBUG === 'true') {
+      finalResponse.headers.set('X-DFCMS-Debug', debugTrace);
+    }
 
     return applySecurityHeaders(request, finalResponse);
   } catch (e) {
     // FALLBACK
     const response = await next();
     const fallbackRes = new Response(response.body, response);
-    fallbackRes.headers.set('X-DFCMS-Debug', `FAIL[${debugTrace}]`);
+    if (env.SEO_DEBUG === '1' || env.SEO_DEBUG === 'true') {
+      fallbackRes.headers.set('X-DFCMS-Debug', `FAIL[${debugTrace}]`);
+    }
     return applySecurityHeaders(request, fallbackRes);
   }
 }

@@ -83,14 +83,14 @@
         
         <nav class="fixed w-full z-50 bg-sattva-white shadow-sm py-4 transition-all duration-300">
             <div class="max-w-6xl mx-auto px-6 flex justify-between items-center">
-                <div class="flex items-center">
+                <a href="#" class="flex items-center shrink-0" aria-label="Strona główna">
                     <template x-if="content[lang].nav?.logoImage">
                         <img :src="content[lang].nav.logoImage" alt="Logo" class="h-16 mix-blend-multiply object-contain">
                     </template>
                     <template x-if="!content[lang].nav?.logoImage">
                         <div class="text-2xl font-serif font-semibold text-sattva-text" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].nav.logo)"></div>
                     </template>
-                </div>                
+                </a>                
                 <div class="hidden md:flex items-center gap-8 font-medium">
                     <template x-if="content[lang].settings?.showManifesto !== false">
                         <a href="#o-nas" class="hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.about || 'O nas'"></a>

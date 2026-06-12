@@ -90,7 +90,7 @@
         
         <nav class="fixed w-full z-50 bg-sattva-accent backdrop-blur-md border-b border-sattva-brand/10 py-3 transition-all duration-300">
             <div class="max-w-6xl mx-auto px-5 md:px-6 flex justify-between items-center">
-                <div class="flex items-center">
+                <a href="#" class="flex items-center shrink-0" aria-label="Strona główna">
                      <template x-if="content[lang].nav?.logoImage">
                         <img :src="content[lang].nav.logoImage" alt="Logo" class="h-7 md:h-10 object-contain">
                      </template>
@@ -98,7 +98,7 @@
                     <template x-if="!content[lang].nav?.logoImage">
                         <div class="text-base md:text-lg font-sans font-semibold tracking-[0.12em] uppercase text-sattva-text" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].nav.logo || 'MOJA <span class=\'text-sattva-brand\'>FIRMA</span>')"></div>
                     </template>
-                </div>                
+                </a>                
                 <div class="flex items-center gap-5">
                     <template x-if="content[lang].social?.linkedin">
                         <a :href="content[lang].social.linkedin" target="_blank" rel="noopener noreferrer" class="text-sattva-text/80 hover:text-sattva-brand transition-colors">

@@ -81,14 +81,14 @@
 
         <nav class="fixed w-full z-50 bg-svc-navy text-white shadow-lg border-b border-white/10">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
-                <div class="flex items-center min-w-0 flex-1 md:flex-none">
+                <a href="#" class="flex items-center min-w-0 flex-1 md:flex-none shrink-0" aria-label="Strona główna">
                     <template x-if="content[lang].nav?.logoImage">
                         <img :src="content[lang].nav.logoImage" alt="Logo" class="h-11 md:h-12 object-contain max-w-[200px]">
                     </template>
                     <template x-if="!content[lang].nav?.logoImage">
                         <div class="text-lg sm:text-xl font-extrabold tracking-tight text-white truncate" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].nav.logo)"></div>
                     </template>
-                </div>
+                </a>
 
                 <div class="flex items-center gap-2 sm:gap-4 order-3 w-full md:w-auto md:order-none md:flex-1 md:justify-end">
                     <template x-if="content[lang].contact?.phone">
