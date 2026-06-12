@@ -103,7 +103,7 @@
       const isLocal = localHosts.indexOf(window.location.hostname) !== -1;
       const slugFromSub = extractSubdomainAsSlug(hostname, baseDomains);
       if (slugFromSub) {
-        window.location.replace('/' + (url.search || '') + (url.hash || ''));
+        window.location.replace('/' + page.theme + (url.search || '') + (url.hash || ''));
         return;
       }
       let target = page.theme + '.html';

@@ -54,12 +54,16 @@ function extractSubdomainSlug(hostnameNorm) {
   return '';
 }
 
-function resolveSlug(siteParam, hostnameNorm) {
-  let slugTrimmed = siteParam != null ? String(siteParam).trim() : '';
-  if (!slugTrimmed && isPlatformHost(hostnameNorm)) {
-    slugTrimmed = extractSubdomainSlug(hostnameNorm);
+function resolveSlug(siteParam, hostnameNorm, altHostnameNorm) {
+  if (siteParam != null && String(siteParam).trim()) {
+    return String(siteParam).trim();
   }
-  return slugTrimmed;
+  for (const host of [hostnameNorm, altHostnameNorm]) {
+    if (!host || !isPlatformHost(host)) continue;
+    const fromSub = extractSubdomainSlug(host);
+    if (fromSub) return fromSub;
+  }
+  return '';
 }
 
 function isEdgeRoutePath(pathname) {
@@ -246,6 +250,7 @@ export async function onRequest(context) {
   const { request, env, next } = context;
   const url = new URL(request.url);
   const hostname = getRequestHostname(request, url);
+  const urlHostname = normalizeHostname(url.hostname);
   const siteParam = url.searchParams.get('site');
 
   if (STATIC_EXT.test(url.pathname)) {
@@ -257,8 +262,8 @@ export async function onRequest(context) {
 
   if (supabaseUrl && anonKey && isEdgeRoutePath(url.pathname)) {
     try {
-      const hostnameNorm = normalizeHostname(hostname);
-      const slugTrimmed = resolveSlug(siteParam, hostnameNorm);
+      const hostnameNorm = hostname || urlHostname;
+      const slugTrimmed = resolveSlug(siteParam, hostname, urlHostname);
       const row = await fetchPageRow(supabaseUrl, anonKey, slugTrimmed, hostnameNorm);
 
       if (row?.theme && env.ASSETS) {
@@ -291,8 +296,8 @@ export async function onRequest(context) {
       return applySecurityHeaders(request, response);
     }
 
-    const hostnameNorm = normalizeHostname(hostname);
-    const slugTrimmed = resolveSlug(siteParam, hostnameNorm);
+    const hostnameNorm = hostname || urlHostname;
+    const slugTrimmed = resolveSlug(siteParam, hostname, urlHostname);
     const row = await fetchPageRow(supabaseUrl, anonKey, slugTrimmed, hostnameNorm);
 
     let htmlResponse = response;
