@@ -25,6 +25,16 @@ function normalizeHostname(hostname) {
     .toLowerCase();
 }
 
+/** Host z nagłówka (subdomeny SaaS) ma pierwszeństwo przed url.hostname po wewnętrznym rewrite CF. */
+function getRequestHostname(request, url) {
+  const raw =
+    request.headers.get('Host') ||
+    request.headers.get('X-Forwarded-Host') ||
+    url.hostname ||
+    '';
+  return normalizeHostname(String(raw).split(':')[0]);
+}
+
 function isPlatformHost(hostnameNorm) {
   return PLATFORM_BASE_DOMAINS.some(
     (base) => hostnameNorm === base || hostnameNorm.endsWith('.' + base),
@@ -143,11 +153,12 @@ async function fetchPageRow(supabaseUrl, anonKey, slugTrimmed, hostnameNorm) {
   return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
 }
 
-async function fetchThemeAsset(env, request, theme, url) {
+async function fetchThemeAsset(env, request, theme, url, hostnameNorm) {
   if (!env.ASSETS) return null;
   const paths = [`/${theme}`, `/${theme}.html`];
+  const assetOrigin = `https://${hostnameNorm || new URL(request.url).hostname}`;
   for (let i = 0; i < paths.length; i++) {
-    const themeUrl = new URL(paths[i], request.url);
+    const themeUrl = new URL(paths[i], assetOrigin);
     themeUrl.search = url.search;
     const themeRequest = new Request(themeUrl.toString(), {
       method: request.method === 'HEAD' ? 'HEAD' : 'GET',
@@ -224,7 +235,7 @@ async function serveThemedPage(request, env, row, slugTrimmed, hostnameNorm, url
   const theme = String(row.theme).trim().toLowerCase();
   if (!ALLOWED_THEMES.has(theme)) return null;
 
-  const themeResponse = await fetchThemeAsset(env, request, theme, url);
+  const themeResponse = await fetchThemeAsset(env, request, theme, url, hostnameNorm);
   if (!themeResponse?.ok) return null;
 
   const withSeo = applySeoRewriter(themeResponse, row, env, slugTrimmed, hostnameNorm);
@@ -234,7 +245,7 @@ async function serveThemedPage(request, env, row, slugTrimmed, hostnameNorm, url
 export async function onRequest(context) {
   const { request, env, next } = context;
   const url = new URL(request.url);
-  const hostname = url.hostname;
+  const hostname = getRequestHostname(request, url);
   const siteParam = url.searchParams.get('site');
 
   if (STATIC_EXT.test(url.pathname)) {
@@ -287,7 +298,7 @@ export async function onRequest(context) {
     let htmlResponse = response;
 
     if (row?.theme && isEdgeRoutePath(url.pathname) && env.ASSETS) {
-      const themeResponse = await fetchThemeAsset(env, request, String(row.theme).trim().toLowerCase(), url);
+      const themeResponse = await fetchThemeAsset(env, request, String(row.theme).trim().toLowerCase(), url, hostnameNorm);
       if (themeResponse?.ok) {
         htmlResponse = themeResponse;
       }
