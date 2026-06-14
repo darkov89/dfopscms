@@ -346,11 +346,11 @@
   }
 
   async function getPageBySlug(slug) {
-    const slugTrimmed = typeof slug === 'string' ? slug.trim() : '';
+    const slugTrimmed = typeof slug === 'string' ? slug.trim().toLowerCase() : '';
     const { data, error } = await supabase()
       .from('pages')
       .select('slug, theme, content, color_preset, custom_domain, user_id, trial_blocked_at, billing_failed_at, billing_plan')
-      .eq('slug', slugTrimmed)
+      .ilike('slug', slugTrimmed)
       .maybeSingle();
 
     if (!data && isLocalDemoSeedHost() && DEMO_SEED_SLUG_RE.test(slugTrimmed)) {

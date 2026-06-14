@@ -332,6 +332,40 @@
     };
   }
 
+  /**
+   * Slug z ?site= (preview / pages.dev) lub subdomeny platformy; inaczej custom_domain klienta.
+   * @returns {{ currentSlug: string, currentCustomDomain: string }}
+   */
+  function resolveSiteContext() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const siteParam = urlParams.get('site');
+    const hostname = window.location.hostname.replace(/^www\./i, '').toLowerCase();
+
+    let currentSlug = '';
+    let currentCustomDomain = '';
+
+    if (siteParam && String(siteParam).trim()) {
+      currentSlug = String(siteParam).trim().toLowerCase();
+    } else if (
+      hostname.includes('dfcms.pl') ||
+      hostname.includes('dfopscms.pl') ||
+      hostname.includes('localhost') ||
+      hostname === '127.0.0.1'
+    ) {
+      const bareRoots = { 'dfcms.pl': 1, 'dfopscms.pl': 1, localhost: 1, '127.0.0.1': 1 };
+      if (!bareRoots[hostname]) {
+        const parts = hostname.split('.');
+        if (parts.length > 2 || (hostname.includes('localhost') && parts.length > 1 && parts[0] !== 'localhost')) {
+          currentSlug = parts[0].toLowerCase();
+        }
+      }
+    } else if (!hostname.includes('pages.dev')) {
+      currentCustomDomain = hostname;
+    }
+
+    return { currentSlug, currentCustomDomain };
+  }
+
   function createPublicSiteApp(expectedTheme) {
     const cfg = window.DFOPS_CONFIG;
     const repo = window.DFOPS_pageRepository;
@@ -459,24 +493,8 @@
         }
       },
       getSiteSlug() {
-        const baseDomain = (cfg.appDomain || 'dfcms.pl').toLowerCase();
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const siteParam = urlParams.get('site');
-        if (siteParam && String(siteParam).trim()) return String(siteParam).trim();
-
-        const hostname = window.location.hostname.replace(/^www\./, '').toLowerCase();
-
-        if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === baseDomain) {
-          return null;
-        }
-
-        if (hostname.endsWith(`.${baseDomain}`)) {
-          const slug = hostname.replace(`.${baseDomain}`, '');
-          return slug || null;
-        }
-
-        return hostname;
+        const { currentSlug, currentCustomDomain } = resolveSiteContext();
+        return currentSlug || currentCustomDomain || null;
       },
       /** URL do właściwego pliku szablonu (zachowanie hosta: subdomena / custom / apex z ?site=). */
       buildSubscriptionLinks(pageSlug) {
@@ -518,21 +536,20 @@
       async init() {
         try {
           const urlParams = new URLSearchParams(window.location.search);
-          const hostname = window.location.hostname.replace(/^www\./, '').toLowerCase();
-          const baseDomain = (cfg.appDomain || 'dfcms.pl').toLowerCase();
-          const hasSiteParam = urlParams.has('site') && urlParams.get('site')?.trim();
-          const onTenantSubdomain = hostname.endsWith(`.${baseDomain}`) && hostname !== baseDomain;
+          const hostname = window.location.hostname.replace(/^www\./i, '').toLowerCase();
+          const { currentSlug, currentCustomDomain } = resolveSiteContext();
 
-          this.slug = this.getSiteSlug();
-          if (!this.slug) throw new Error('Brak identyfikatora strony');
+          if (!currentSlug && !currentCustomDomain) {
+            throw new Error('Brak identyfikatora strony');
+          }
 
           let page = null;
-          if (hasSiteParam || onTenantSubdomain) {
-            const { data, error } = await repo.getPageBySlug(this.slug);
+          if (currentSlug) {
+            const { data, error } = await repo.getPageBySlug(currentSlug);
             if (error) throw error;
             page = data;
           } else {
-            const { data, error } = await repo.getPageByCustomDomain(hostname);
+            const { data, error } = await repo.getPageByCustomDomain(currentCustomDomain);
             if (error) throw error;
             page = data;
           }
@@ -540,6 +557,13 @@
           if (!page) throw new Error('Brak strony');
 
           this.slug = page.slug;
+          const onTenantSubdomain =
+            !!currentSlug &&
+            !currentCustomDomain &&
+            !urlParams.get('site')?.trim() &&
+            (hostname.includes('dfcms.pl') || hostname.includes('dfopscms.pl')) &&
+            hostname !== 'dfcms.pl' &&
+            hostname !== 'dfopscms.pl';
           if (shouldBlockPublicPageView(page)) {
             window.DFOPS__applyAnalyticsConsentNow = function noopAnalyticsConsent() {};
             const links = this.buildSubscriptionLinks(page.slug);
