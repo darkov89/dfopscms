@@ -289,7 +289,7 @@ export async function onRequest(context) {
     const row = await fetchPageRow(supabaseUrl, anonKey, slugTrimmed, hostnameNorm);
 
     if (!row) {
-      debugTrace = 'NO_ROW_IN_DB';
+      debugTrace = `NO_ROW|slug:[${slugTrimmed}]|host:[${hostnameNorm}]`;
       throw new Error(debugTrace);
     }
     if (!row.theme) {
