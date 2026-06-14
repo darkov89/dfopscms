@@ -302,6 +302,10 @@ export async function onRequest(context) {
     return next();
   }
 
+  if (url.pathname.startsWith('/api/')) {
+    return next();
+  }
+
   let debugTrace = 'START';
 
   try {

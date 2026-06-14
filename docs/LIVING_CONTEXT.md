@@ -4,7 +4,7 @@
 
 Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **changelog** jednoliniowy, żeby nie dublować długich sekcji.
 
-**Ostatnia aktualizacja treści:** 2026-06-12 (edge routing subdomen)
+**Ostatnia aktualizacja treści:** 2026-06-14 (routing tenantów: ?site= shim, pages.dev → prod DB)
 
 ---
 
@@ -33,6 +33,8 @@ Ten plik (`docs/LIVING_CONTEXT.md`) zostawiamy jako **krótki indeks** + **chang
 
 | Data | Co |
 |------|-----|
+| **2026-06-14** | **API weryfikacji domeny:** `functions/api/verify-domain.js` — DoH CNAME → `verified` / `pending` (`MISSING_CNAME`, `INVALID_DOMAIN`). |
+| **2026-06-14** | **Routing publiczny:** subdomeny `*.dfcms.pl` → shim `/?site=slug` + `cleanTenantPublicUrl` (czysty URL bez `/fitness`); `dfopscms.pages.dev` → Production Supabase; apex pages.dev = marketing (nie 404). |
 | **2026-06-10** | **CTA we wszystkich szablonach:** edycja/wyłączanie przycisków hero + stopki (`hero.button_*`, `contact.cta`); fitness/beauty — stopka domyślnie wyłączona (bez duplikatu Booksy). |
 | **2026-06-09** | **Panel Subskrypcja:** „Warunki rozliczeń” — nowy blok (Stripe Tax B2C/B2B, wFirma/KSeF, upgrade/downgrade, grace 14 dni); zamiast accordionu `<details>`. |
 | **2026-06-05** | **Panel Subskrypcja (B2C):** disclaimery cykliczności Stripe + zrzeczenie 14-dniowego odstąpienia przy Checkout; etykiety CTA „Aktywuj plan przez Stripe” / „Przejdź do płatności w Stripe”. |
