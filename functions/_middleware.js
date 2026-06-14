@@ -27,13 +27,54 @@ function normalizeHostname(hostname) {
 }
 
 /** Host z nagłówka (subdomeny SaaS) ma pierwszeństwo przed url.hostname po wewnętrznym rewrite CF. */
-function getRequestHostname(request, url) {
-  const raw =
-    request.headers.get('Host') ||
-    request.headers.get('X-Forwarded-Host') ||
-    url.hostname ||
-    '';
-  return normalizeHostname(String(raw).split(':')[0]);
+function parseForwardedHost(request) {
+  const fwd = request.headers.get('Forwarded') || '';
+  const m = fwd.match(/host=([^;,\s"]+)/i);
+  if (!m) return '';
+  return normalizeHostname(m[1].replace(/^"|"$/g, '').split(':')[0]);
+}
+
+function collectHostCandidates(request, url, cf) {
+  const raw = [
+    url.hostname,
+    request.headers.get('Host'),
+    request.headers.get('X-Forwarded-Host'),
+    request.headers.get('X-Original-Host'),
+    parseForwardedHost(request),
+    cf && cf.hostMetadata && cf.hostMetadata.httpHost,
+    cf && cf.hostname,
+  ];
+  const seen = new Set();
+  const out = [];
+  for (let i = 0; i < raw.length; i++) {
+    const h = normalizeHostname(String(raw[i] || '').split(',')[0].split(':')[0]);
+    if (h && !seen.has(h)) {
+      seen.add(h);
+      out.push(h);
+    }
+  }
+  return out;
+}
+
+/** Preferuj tenant *.dfcms.pl zamiast wewnętrznego hosta pages.dev widzianego przez worker. */
+function pickTenantHostname(candidates) {
+  for (let i = 0; i < candidates.length; i++) {
+    const h = candidates[i];
+    if (h.endsWith('.dfcms.pl') && h !== 'dfcms.pl' && h !== 'staging.dfcms.pl') return h;
+  }
+  for (let i = 0; i < candidates.length; i++) {
+    const h = candidates[i];
+    if (h.includes('dfcms.pl') || h.includes('dfopscms.pl')) return h;
+  }
+  for (let i = 0; i < candidates.length; i++) {
+    const h = candidates[i];
+    if (!h.includes('pages.dev')) return h;
+  }
+  return candidates[0] || '';
+}
+
+function getRequestHostname(request, url, cf) {
+  return pickTenantHostname(collectHostCandidates(request, url, cf));
 }
 
 function isPlatformHost(hostnameNorm) {
@@ -57,7 +98,7 @@ function extractSubdomainSlug(hostnameNorm) {
 
 function resolveSlug(siteParam, hostnameNorm, altHostnameNorm) {
   if (siteParam != null && String(siteParam).trim()) {
-    return String(siteParam).trim();
+    return String(siteParam).trim().toLowerCase();
   }
   for (const host of [hostnameNorm, altHostnameNorm]) {
     if (!host || !isPlatformHost(host)) continue;
@@ -251,9 +292,9 @@ async function serveThemedPage(request, env, row, slugTrimmed, hostnameNorm, url
 }
 
 export async function onRequest(context) {
-  const { request, env, next } = context;
+  const { request, env, next, cf } = context;
   const url = new URL(request.url);
-  const hostname = getRequestHostname(request, url);
+  const hostname = getRequestHostname(request, url, cf);
   const urlHostname = normalizeHostname(url.hostname);
   const siteParam = url.searchParams.get('site');
 

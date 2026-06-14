@@ -352,7 +352,14 @@
       hostname.includes('localhost') ||
       hostname === '127.0.0.1'
     ) {
-      const bareRoots = { 'dfcms.pl': 1, 'dfopscms.pl': 1, localhost: 1, '127.0.0.1': 1 };
+      const bareRoots = {
+        'dfcms.pl': 1,
+        'dfopscms.pl': 1,
+        'dfopscms.pages.dev': 1,
+        'staging.dfcms.pl': 1,
+        localhost: 1,
+        '127.0.0.1': 1,
+      };
       if (!bareRoots[hostname]) {
         const parts = hostname.split('.');
         if (parts.length > 2 || (hostname.includes('localhost') && parts.length > 1 && parts[0] !== 'localhost')) {
@@ -364,6 +371,32 @@
     }
 
     return { currentSlug, currentCustomDomain };
+  }
+
+  /** Po załadowaniu treści usuń ?site= z URL na subdomenie tenantowej (czysty adres w pasku). */
+  function cleanTenantPublicUrl(slug) {
+    try {
+      const u = new URL(window.location.href);
+      const siteQs = u.searchParams.get('site');
+      if (!siteQs || !String(siteQs).trim()) return;
+      const h = u.hostname.replace(/^www\./i, '').toLowerCase();
+      const bareRoots = {
+        'dfcms.pl': 1,
+        'dfopscms.pl': 1,
+        'dfopscms.pages.dev': 1,
+        'staging.dfcms.pl': 1,
+        localhost: 1,
+        '127.0.0.1': 1,
+      };
+      if (bareRoots[h]) return;
+      if (!h.endsWith('.dfcms.pl') && !h.endsWith('.dfopscms.pl')) return;
+      if (String(siteQs).trim().toLowerCase() !== String(slug || '').trim().toLowerCase()) return;
+      u.searchParams.delete('site');
+      const qs = u.searchParams.toString();
+      history.replaceState(null, '', u.pathname + (qs ? '?' + qs : '') + u.hash);
+    } catch (_) {
+      /* ignore */
+    }
   }
 
   function createPublicSiteApp(expectedTheme) {
@@ -642,6 +675,7 @@
           initWatermark(page.billing_plan || 'trial');
           this.injectAnalyticsTracking();
           this.dataLoaded = true;
+          cleanTenantPublicUrl(page.slug);
         } catch (error) {
           console.error('Błąd krytyczny aplikacji:', error);
           this.bazaBlad = true;

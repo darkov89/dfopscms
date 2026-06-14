@@ -15,6 +15,8 @@
     'sb_publishable_b-y5BLfAZBNnPdjhFx61Tw_NP_FI1Sp';
 
   const STAGING_HOSTS = ['localhost', '127.0.0.1', 'staging.dfcms.pl'];
+  /** Główny URL produkcyjny Pages — nie traktuj jak preview/staging Supabase. */
+  const PRODUCTION_PAGES_DEV_HOSTS = ['dfopscms.pages.dev'];
   const STAGING_HOST_PATTERNS = [/\.pages\.dev$/i];
 
   function normalizeHostname(hostname) {
@@ -29,6 +31,7 @@
   function resolveDeployEnvironment(hostname) {
     const h = normalizeHostname(hostname);
     if (!h) return 'production';
+    if (PRODUCTION_PAGES_DEV_HOSTS.includes(h)) return 'production';
     if (STAGING_HOSTS.includes(h)) return 'staging';
     if (STAGING_HOST_PATTERNS.some((re) => re.test(h))) return 'staging';
     return 'production';
@@ -102,7 +105,7 @@
     supportEmail: 'kontakt@dfops.eu',
     /** Nadawca wiadomości automatycznych (auth Supabase, powiadomienia systemowe) — ustaw w SMTP/Resend zgodnie z wdrożeniem. */
     notificationsEmail: 'notifications@dfops.eu',
-    systemDomains: ['dfcms.pl', 'localhost', '127.0.0.1'],
+    systemDomains: ['dfcms.pl', 'dfopscms.pl', 'dfopscms.pages.dev', 'localhost', '127.0.0.1'],
     localHosts: ['localhost', '127.0.0.1'],
     /**
      * Panel na stagingu / preview deploy — „Podgląd strony” na tym samym originie

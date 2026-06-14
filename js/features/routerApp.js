@@ -2,7 +2,7 @@
   /**
    * Domeny platformy (hosting wielodomenowy + dev). Host spoza tej listy → szukanie po custom_domain.
    */
-  const BASE_DOMAINS = ['dfcms.pl', 'localhost', '127.0.0.1'];
+  const BASE_DOMAINS = ['dfcms.pl', 'dfopscms.pl', 'dfopscms.pages.dev', 'localhost', '127.0.0.1'];
 
   /**
    * Router przekierowuje na plik `{theme}.html` (np. beauty, consultant, fitness).
@@ -103,7 +103,10 @@
       const isLocal = localHosts.indexOf(window.location.hostname) !== -1;
       const slugFromSub = extractSubdomainAsSlug(hostname, baseDomains);
       if (slugFromSub) {
-        window.location.replace('/' + page.theme + (url.search || '') + (url.hash || ''));
+        var qs = 'site=' + encodeURIComponent(page.slug);
+        var extra = url.search ? url.search.replace(/^\?/, '&') : '';
+        if (extra && !extra.includes('site=')) qs += extra;
+        window.location.replace('/?' + qs + url.hash);
         return;
       }
       let target = page.theme + '.html';

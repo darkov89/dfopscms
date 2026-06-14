@@ -38,16 +38,23 @@
 </head>
 <body class="min-h-screen bg-white font-sans text-brand-ink antialiased selection:bg-brand-gold/25 selection:text-brand-ink">
 
-    <!-- Marketing tylko na gołej domenie platformy. Prod: subdomeny i ?site= → edge middleware. -->
+    <!-- Marketing na gołej domenie. Subdomeny → /?site=slug (edge rewrite); localhost → router. -->
     <script>
         (function () {
             try {
                 var u = new URL(window.location.href);
                 var h = (u.hostname || '').replace(/^www\./i, '').toLowerCase();
-                var bareRoots = { 'dfcms.pl': 1, localhost: 1, '127.0.0.1': 1 };
+                var bareRoots = { 'dfcms.pl': 1, 'dfopscms.pl': 1, 'dfopscms.pages.dev': 1, 'staging.dfcms.pl': 1, localhost: 1, '127.0.0.1': 1 };
                 var site = u.searchParams.get('site');
                 var isLocal = h === 'localhost' || h === '127.0.0.1';
                 if (!isLocal && site && String(site).trim()) return;
+                if (!isLocal && !bareRoots[h] && h.endsWith('.dfcms.pl')) {
+                    var sub = h.split('.')[0];
+                    if (sub) {
+                        window.location.replace('/?site=' + encodeURIComponent(sub) + u.hash);
+                        return;
+                    }
+                }
                 if (site && String(site).trim()) {
                     window.location.replace('router.html' + u.search + u.hash);
                     return;
