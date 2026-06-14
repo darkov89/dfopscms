@@ -10,7 +10,7 @@
 
 const STATIC_EXT = /\.(css|js|mjs|png|jpg|jpeg|gif|svg|ico|webp|woff2?|ttf|eot|map|json|xml|txt|pdf|webmanifest)$/i;
 
-const PLATFORM_BASE_DOMAINS = ['dfcms.pl', 'localhost', '127.0.0.1'];
+const PLATFORM_BASE_DOMAINS = ['dfcms.pl', 'dfopscms.pl', 'dfopscms.pages.dev', 'localhost', '127.0.0.1'];
 const ALLOWED_THEMES = new Set(['beauty', 'consultant', 'fitness', 'services']);
 const EDGE_ROUTE_PATHS = new Set([
   '/',
@@ -140,9 +140,12 @@ function escapeAttr(s) {
 }
 
 async function fetchPageRow(supabaseUrl, anonKey, slugTrimmed, hostnameNorm) {
-  const restUrl = slugTrimmed
-    ? `${supabaseUrl}/rest/v1/pages?slug=eq.${encodeURIComponent(slugTrimmed)}&select=content,theme`
-    : `${supabaseUrl}/rest/v1/pages?custom_domain=eq.${encodeURIComponent(hostnameNorm)}&select=content,theme`;
+  const safeSlug = String(slugTrimmed || '').trim().toLowerCase();
+  const safeHost = String(hostnameNorm || '').trim().toLowerCase();
+
+  const restUrl = safeSlug
+    ? `${supabaseUrl}/rest/v1/pages?slug=ilike.${encodeURIComponent(safeSlug)}&select=content,theme`
+    : `${supabaseUrl}/rest/v1/pages?custom_domain=ilike.${encodeURIComponent(safeHost)}&select=content,theme`;
 
   const supaRes = await fetch(restUrl, {
     headers: {
