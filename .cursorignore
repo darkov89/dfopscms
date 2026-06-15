@@ -1,0 +1,39 @@
+# --- SEKRETNE I BEZPIECZEŃSTWO ---
+# AI nie powinno indeksować kluczy, haseł ani certyfikatów
+.env
+.env.local
+.env.*
+*.pem
+*.key
+supabase/config.toml
+
+# --- CIĘŻKIE ZALEŻNOŚCI I BUILDOOPISY ---
+# Dziesiątki tysięcy plików, które zapętlają indeksowanie
+node_modules/
+.npm/
+.yarn/
+
+# --- KATALOGI WYJŚCIOWE I PRODUKCYJNE ---
+# Pliki wygenerowane automatycznie (zminimalizowany kod)
+dist/
+build/
+out/
+.cloudflare/
+.wrangler/
+
+# --- LOGI I PLIKI TYMCZASOWE ---
+# Ciągle zmieniające się pliki tekstowe, które zmuszają AI do ciągłego przeindeksowywania
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.cache/
+.tmp/
+
+# --- SYSTEMOWE I METADANE ---
+.DS_Store
+Thumbs.db
+.git/
+.idea/
+.vscode/
+docs/system-flow.mermaid

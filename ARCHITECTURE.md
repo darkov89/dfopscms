@@ -30,58 +30,7 @@ Separacja jest **zakończona**: dwa niezależne projekty Supabase, osobne sekret
 
 ## 3. Przepływ danych (diagram)
 
-```mermaid
-flowchart TB
-  subgraph Client["Klient — przeglądarka"]
-    U[Użytkownik / gość]
-    A[Panel admin — admin.html]
-  end
-
-  subgraph CF["Cloudflare"]
-    P[Cloudflare Pages<br/>statyczne HTML + JS]
-    MW[_middleware.js<br/>SEO / CSP / rewrite]
-    SaaS[Cloudflare for SaaS<br/>Custom Hostnames]
-  end
-
-  subgraph SB["Supabase"]
-    Auth[Auth — JWT]
-    DB[(PostgreSQL<br/>pages · billing_profiles)]
-    Storage[Storage — obrazy]
-    Edge[Edge Functions]
-  end
-
-  subgraph Ext["Integracje zewnętrzne"]
-    Stripe[Stripe<br/>Checkout · Portal · Webhooks]
-    TG[Telegram Bot API]
-    CFAPI[Cloudflare API<br/>Custom Hostnames]
-    GMaps[Google Maps / Places]
-    Sentry[Sentry]
-  end
-
-  U --> P
-  A --> P
-  P --> MW
-  MW --> Auth
-  MW --> DB
-  A --> Auth
-  A --> DB
-  A --> Edge
-  U --> Edge
-
-  Edge --> DB
-  Edge --> Stripe
-  Stripe -->|webhook| Edge
-  Edge --> CFAPI
-  CFAPI --> SaaS
-  SaaS --> P
-
-  Edge --> GMaps
-  Edge --> TG
-  A --> Sentry
-
-  DB -->|Database Webhooks| Edge
-  Storage --> A
-```
+*Diagram architektury został wydzielony ze względów wydajnościowych do osobnego pliku: `docs/system-flow.mermaid`*
 
 ### Kluczowe ścieżki
 
