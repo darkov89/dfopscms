@@ -10,8 +10,7 @@
     "deploy:db:staging": "npm run supabase:link:staging && supabase db push",
     "deploy:db:production": "npm run supabase:link:production && supabase db push",
     "deploy:functions:staging": "npm run supabase:link:staging && supabase functions deploy",
-    "deploy:functions:production": "npm run supabase:link:production && supabase functions deploy",
-    "docs:pdf": "node scripts/generate-architecture-pdf.mjs"
+    "deploy:functions:production": "npm run supabase:link:production && supabase functions deploy"
   },
   "devDependencies": {
     "serve": "^14.2.4"

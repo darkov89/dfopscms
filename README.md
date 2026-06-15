@@ -6,10 +6,10 @@ Lekki CMS pod strony wizytówkowe: statyczny front (HTML + JavaScript), treść 
 
 | Plik | Po co |
 |------|--------|
-| [`PROJECT_STATE.md`](PROJECT_STATE.md) | Decyzje produktowe, Stripe, security, user journey |
-| [`WORKFLOW.md`](WORKFLOW.md) | Lokalny dev, migracje, deploy, Stripe Test vs Live |
-| [`ARCHITECTURE.md`](ARCHITECTURE.md) | Diagram i indeks komponentów |
-| [`docs/LIVING_CONTEXT.md`](docs/LIVING_CONTEXT.md) | Changelog jednoliniowy |
+| [`docs/MASTER_CONTEXT.md`](docs/MASTER_CONTEXT.md) | Stan techniczny: architektura, środowiska, Edge, migracje, Stripe, changelog |
+| [`docs/PRODUCT_ROADMAP.md`](docs/PRODUCT_ROADMAP.md) | Plany post-MVP: architektura V2, UX, backlog ticketów |
+
+**Supabase w dev:** bez Dockera; `js/core/config.js` kieruje localhost na projekt **Staging** (`asxrsdsprrbvjvgcsckh`). Szczegóły: [`docs/MASTER_CONTEXT.md`](docs/MASTER_CONTEXT.md) §3.
 
 ## Szybki start
 
@@ -19,8 +19,6 @@ npm run dev
 ```
 
 Front: **http://localhost:3000** (`serve`). Nie otwieraj `admin.html` z `file://` — Auth i Edge wymagają HTTP(S).
-
-**Supabase w dev:** bez Dockera; `js/core/config.js` kieruje localhost na projekt **Staging** (`asxrsdsprrbvjvgcsckh`). Szczegóły env: [`WORKFLOW.md`](WORKFLOW.md).
 
 ## Struktura (skrót)
 
@@ -32,8 +30,8 @@ Front: **http://localhost:3000** (`serve`). Nie otwieraj `admin.html` z `file://
 | `functions/_middleware.js` | Middleware **Cloudflare Pages** |
 | `supabase/functions/` | **Supabase Edge Functions** (Deno) |
 | `supabase/migrations/` | Migracje DB (baseline: `20260603072317_remote_schema.sql`) |
-| `docs/roadmap/` | Backlog i roadmapy post-MVP |
-| `scripts/` | Generatory (PDF architektury, migracja demo) |
+| `docs/MASTER_CONTEXT.md`, `docs/PRODUCT_ROADMAP.md` | Kontekst techniczny i roadmap post-MVP |
+| `scripts/` | Generatory (migracja demo) |
 
 ## Konfiguracja
 
@@ -51,7 +49,7 @@ Front: **http://localhost:3000** (`serve`). Nie otwieraj `admin.html` z `file://
 | DB + Edge Staging | `npm run deploy:db:staging` · `npm run deploy:functions:staging` |
 | DB + Edge Production | `npm run deploy:db:production` · `npm run deploy:functions:production` |
 
-Pełna checklista: [`WORKFLOW.md`](WORKFLOW.md).
+Pełna checklista: [`docs/MASTER_CONTEXT.md`](docs/MASTER_CONTEXT.md) §3.5.
 
 ## Demo katalogowe
 
