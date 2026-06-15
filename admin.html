@@ -1319,18 +1319,25 @@
                                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Opcja Pro</span>
                                 </div>
                                 <div class="p-5 md:p-6 space-y-4">
+                                    <div x-show="customDomain && customDomainStatus === 'active'" x-cloak class="flex items-start gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-900">
+                                        <span class="shrink-0" aria-hidden="true">🟢</span>
+                                        <span><strong>Aktywna (Połączono)</strong> — <span class="font-mono" x-text="customDomain"></span></span>
+                                    </div>
+                                    <div x-show="customDomain && customDomainStatus === 'pending'" x-cloak class="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+                                        <span class="shrink-0" aria-hidden="true">🟡</span>
+                                        <span><strong>Oczekuje na propagację DNS</strong> (dodaj rekord CNAME na <span class="font-mono font-semibold">proxy.dfcms.pl</span>) — <span class="font-mono" x-text="customDomain"></span></span>
+                                    </div>
                                     <div class="flex flex-col sm:flex-row gap-2 sm:items-stretch">
-                                        <input type="text" x-model="customDomain" :disabled="isCustomDomainLocked" placeholder="np. twojadomena.pl"
+                                        <input type="text" x-model="domainInput" :disabled="isCustomDomainLocked || isVerifyingDomain" placeholder="np. twojadomena.pl"
                                                class="min-w-0 flex-1 rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" :class="isCustomDomainLocked ? 'opacity-50 bg-gray-100 cursor-not-allowed' : 'bg-white'">
-                                        <button type="button" @click="verifyCustomDomain()"
-                                                title="Zapisuje zmiany i rozpoczyna weryfikację domeny"
-                                                :disabled="verifyingDomain || !customDomain || isCustomDomainLocked"
-                                                :class="{ 'animate-pulse': verifyingDomain }"
+                                        <button type="button" @click="verifyAndSaveDomain()"
+                                                title="Sprawdza rekord CNAME i zapisuje domenę"
+                                                :disabled="isVerifyingDomain || !domainInput || isCustomDomainLocked"
+                                                :class="{ 'animate-pulse': isVerifyingDomain }"
                                                 class="shrink-0 px-4 py-3 rounded-sm text-sm font-semibold border border-[#D4AF37] text-[#8B7355] bg-white hover:bg-[#faf8f3] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                                            <span x-text="verifyingDomain ? 'Przetwarzanie...' : 'Podepnij domenę'"></span>
+                                            <span x-text="isVerifyingDomain ? 'Sprawdzanie...' : 'Zapisz i sprawdź'"></span>
                                         </button>
                                     </div>
-                                    <p class="text-[10px] text-amber-700 font-bold uppercase tracking-widest flex items-center gap-1"><svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Ta akcja publikuje też pozostałe zmiany w panelu.</p>
                                     <div x-show="domainMessage" x-cloak class="p-4 bg-green-50 text-green-800 border border-green-200 rounded-sm text-sm font-medium flex items-center gap-2"><span x-text="domainMessage"></span></div>
                                     <div x-show="showDnsInstructions" x-cloak x-transition.opacity class="p-6 bg-blue-50 border border-blue-200 rounded-sm shadow-sm">
                                         <h4 class="text-sm font-bold text-blue-900 mb-2 uppercase tracking-widest flex items-center gap-2">

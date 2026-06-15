@@ -356,8 +356,9 @@
       showStudioWelcomeModal: false,
       customDomain: '',
       customDomainStatus: '',
+      domainInput: '',
       pageId: null,
-      verifyingDomain: false,
+      isVerifyingDomain: false,
       domainMessage: '',
       domainError: '',
       showDnsInstructions: false,
@@ -1693,6 +1694,7 @@
         this.pageId = null;
         this.isLoading = false;
         this.customDomainStatus = '';
+        this.domainInput = '';
         this.showDnsInstructions = false;
         this.showWizard = false;
         this.wizardStep = 0;
@@ -1813,6 +1815,7 @@
           this.showTrialSuspendedModal = !!this.trialBlockedAt;
           this.customDomain = data.custom_domain || '';
           this.customDomainStatus = data.custom_domain_status || '';
+          this.domainInput = data.custom_domain || '';
 
           /**
            * Draft vs Published: panel pracuje na stanie roboczym (`draft_content`).
@@ -2517,82 +2520,79 @@
           this.upgrading = false;
         }
       },
-      async verifyCustomDomain() {
+      cleanDomainInput(raw) {
+        if (raw == null || typeof raw !== 'string') return '';
+        return raw
+          .trim()
+          .replace(/^https?:\/\//i, '')
+          .replace(/\/.*$/, '')
+          .replace(/[?#].*$/, '')
+          .replace(/^www\./i, '')
+          .toLowerCase();
+      },
+
+      async verifyAndSaveDomain() {
         if (this.isCustomDomainLocked) return;
         if (window.location.protocol === 'file:') {
-          this.domainError = 'Otwórz panel przez adres http:// (np. Live Server na localhost), nie z dysku (file://) — inaczej przeglądarka blokuje połączenie z Supabase.';
+          this.domainError =
+            'Otwórz panel przez adres http:// (np. Live Server na localhost), nie z dysku (file://).';
           this.domainMessage = '';
           return;
         }
-        const domain = typeof this.customDomain === 'string' ? this.customDomain.trim() : '';
-        if (!this.pageId || !domain) {
+
+        const cleanDomain = this.cleanDomainInput(this.domainInput);
+        this.domainInput = cleanDomain;
+
+        if (!this.pageId || !cleanDomain) {
           this.domainError = 'Podaj domenę (hostname, np. twojadomena.pl).';
           this.domainMessage = '';
           return;
         }
 
-        const confirmed = await this.confirmAsync({
-          title: 'Podpiąć domenę?',
-          message:
-            'Podpięcie domeny spowoduje również zapisanie i opublikowanie wszystkich wprowadzonych przez Ciebie zmian na stronie. Czy chcesz kontynuować?',
-          yesLabel: 'Tak, kontynuuj',
-          noLabel: 'Nie',
-        });
-        if (!confirmed) return;
-
-        const saved = await this.publishChanges();
-        if (!saved) {
-          this.domainError = 'Nie udało się zapisać zmian — domena nie została zgłoszona do Cloudflare. Popraw błędy i spróbuj ponownie.';
-          this.domainMessage = '';
-          return;
-        }
-
-        this.verifyingDomain = true;
+        this.isVerifyingDomain = true;
         this.domainMessage = '';
         this.domainError = '';
-        this.showDnsInstructions = false;
 
         try {
-          const { data: { session } } = await this.supabase.auth.getSession();
-
-          if (!session) {
-            throw new Error('Brak aktywnej sesji. Zaloguj się ponownie.');
-          }
-
-          const cfg = window.DFOPS_CONFIG || {};
-          const response = await fetch(`${cfg.supabaseUrl}/functions/v1/add-custom-domain`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${session.access_token}`,
-              apikey: cfg.supabaseAnonKey || '',
-            },
-            body: JSON.stringify({
-              domain,
-              pageId: this.pageId,
-            }),
-          });
-
+          const response = await fetch(
+            `/api/verify-domain?domain=${encodeURIComponent(cleanDomain)}`,
+          );
           const result = await response.json().catch(() => ({}));
 
-          if (!response.ok) {
-            throw new Error(result.error || result.message || `HTTP ${response.status}`);
-          }
-          if (result.success === false) {
-            throw new Error(result.error || 'Odmowa dostępu z serwera Cloudflare.');
+          if (result.error === 'INVALID_DOMAIN') {
+            this.domainError = 'Nieprawidłowy adres domeny.';
+            return;
           }
 
-          this.domainMessage = 'Domena zgłoszona! Cloudflare weryfikuje rekordy DNS (może to potrwać do kilkunastu minut).';
-          this.showDnsInstructions = true;
-          await this.loadData();
+          const dbStatus = result.status === 'verified' ? 'active' : 'pending';
+
+          const { error } = await repo.saveCurrentUserPage(this.user.id, {
+            custom_domain: cleanDomain,
+            custom_domain_status: dbStatus,
+          });
+          if (error) throw error;
+
+          this.customDomain = cleanDomain;
+          this.customDomainStatus = dbStatus;
+
+          if (dbStatus === 'active') {
+            this.domainMessage = 'Domena zweryfikowana i zapisana.';
+            this.showDnsInstructions = false;
+            this.showToast('Własna domena jest aktywna.', 'success');
+          } else {
+            this.domainMessage =
+              'Domena zapisana. Dodaj rekord CNAME u operatora — po propagacji DNS kliknij „Zapisz i sprawdź” ponownie.';
+            this.showDnsInstructions = true;
+          }
         } catch (e) {
           console.error('Błąd weryfikacji domeny:', e);
           const raw = e instanceof Error ? e.message : String(e);
-          this.domainError = raw === 'Failed to fetch'
-            ? 'Brak połączenia z serwerem (CORS, sieć lub otwórz stronę przez http/https, nie file://).'
-            : (raw || 'Wystąpił błąd podczas komunikacji z serwerem.');
+          this.domainError =
+            raw === 'Failed to fetch'
+              ? 'Brak połączenia z serwerem. Otwórz panel przez http/https i spróbuj ponownie.'
+              : raw || 'Nie udało się zapisać domeny.';
         } finally {
-          this.verifyingDomain = false;
+          this.isVerifyingDomain = false;
         }
       },
       /** Czy plan pozwala publikować premium motyw. Premium = lista `cfg.premiumThemes` (domyślnie pusta → brak regresji). */
