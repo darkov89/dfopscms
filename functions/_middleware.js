@@ -136,11 +136,11 @@ function applySecurityHeaders(request, response) {
       "form-action 'self'",
       "upgrade-insecure-requests",
       "block-all-mixed-content",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://js-de.sentry-cdn.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' https: blob:",
-      "connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
+      "connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://*.ingest.sentry.io https://*.sentry.io",
       "frame-src https://www.google.com",
     ].join('; ');
     headers.set('Content-Security-Policy', csp);

@@ -175,6 +175,8 @@
 
   /** Przywrócony krok musi być spójny z `pages.theme` (np. nie krok 3–4, gdy szablon w DB wciąż `setup`). */
   const WIZARD_TEMPLATE_IDS = ['beauty', 'consultant', 'fitness', 'services'];
+  /** Motywy dostępne w przełączniku „Wybierz inny szablon” (Wygląd). */
+  const SWITCHABLE_TEMPLATE_IDS = ['beauty', 'consultant', 'fitness', 'services', 'gastro', 'care'];
 
   function normalizeWizardRestore(step, wizardTheme, pageTheme) {
     let s = step;
@@ -712,6 +714,8 @@
           { id: 'consultant', name: 'Konsultant', desc: 'Ekspert, freelancer, B2B', available: true },
           { id: 'fitness', name: 'Fitness', desc: 'Studio, trening, sport', available: true },
           { id: 'services', name: 'Usługi', desc: 'Rzemiosło, naprawy, lokalnie', available: true },
+          { id: 'gastro', name: 'Gastro', desc: 'Restauracja, kawiarnia', available: true },
+          { id: 'care', name: 'Care', desc: 'Medycyna, psychologia, fizjoterapia', available: true },
         ];
       },
       onTemplateTileClick(entry) {
@@ -1947,14 +1951,9 @@
       },
 
       async switchTemplate(newTemplateId) {
-        if (
-          newTemplateId !== 'beauty' &&
-          newTemplateId !== 'consultant' &&
-          newTemplateId !== 'fitness' &&
-          newTemplateId !== 'services'
-        )
-          return;
-        if (this.theme === newTemplateId) return;
+        const id = String(newTemplateId || '').trim().toLowerCase();
+        if (!SWITCHABLE_TEMPLATE_IDS.includes(id)) return;
+        if (this.theme === id) return;
         const confirmed = await this.confirmAsync({
           title: 'Zmienić szablon?',
           message:
@@ -1981,7 +1980,7 @@
           const savedWelcomeDone = this.content?.pl?.settings?.welcome_onboarding_completed === true;
           const savedOnboardingDone = this.content?.pl?.settings?.onboarding_completed === true;
 
-          const merged = window.DFOPS_mergeContentWithTemplate(newTemplateId, {});
+          const merged = window.DFOPS_mergeContentWithTemplate(id, {});
           merged.pl.contact = savedContact;
           if (!merged.pl.nav) merged.pl.nav = {};
           merged.pl.nav.logo = savedLogo;
@@ -1995,15 +1994,15 @@
             if (savedOnboardingDone) merged.pl.settings.onboarding_completed = true;
           }
 
-          this.theme = newTemplateId;
-          this.content = window.DFOPS_normalizeContent(merged, newTemplateId);
+          this.theme = id;
+          this.content = window.DFOPS_normalizeContent(merged, id);
 
-          const presets = cfg.presetsByTheme[newTemplateId] || [];
+          const presets = cfg.presetsByTheme[id] || [];
           const cp = this.content.pl.settings.color_preset;
           if (presets.length && !presets.some((p) => p.id === cp)) {
             this.content.pl.settings.color_preset = presets[0].id;
           }
-          if (newTemplateId === 'gastro' || newTemplateId === 'care') {
+          if (id === 'gastro' || id === 'care') {
             this.content.pl.settings.color_palette =
               this.content.pl.settings.color_palette || this.content.pl.settings.color_preset;
           }
