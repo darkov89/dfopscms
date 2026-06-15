@@ -268,6 +268,16 @@
         { id: 'ocean', label: 'Ocean (niebieski)' },
         { id: 'wine', label: 'Wine (bordowy)' },
       ],
+      gastro: [
+        { id: 'dark_gold', label: 'Dark gold' },
+        { id: 'warm_terracotta', label: 'Warm terracotta' },
+        { id: 'modern_mint', label: 'Modern mint' },
+      ],
+      care: [
+        { id: 'medical_blue', label: 'Medical blue' },
+        { id: 'eco_green', label: 'Eco green' },
+        { id: 'elegant_plum', label: 'Elegant plum' },
+      ],
     },
     backgroundByStyle: {
       clean: { a: '#ffffff', b: '#ffffff', c: 'rgba(0,0,0,0)', texture: 0 },
@@ -318,13 +328,17 @@
         { id: 'fit-orange', label: 'Metabolic Fire', color_preset: 'neon-orange', background_style: 'smoky', font_preset: 'inter' },
       ],
       services: [
-        {
-          id: 'svc-trades',
-          label: 'Rzemiosło (navy + pomarańcz)',
-          color_preset: 'trades-navy',
-          background_style: 'clean',
-          font_preset: 'inter',
-        },
+        { id: 'svc-trades', label: 'Rzemiosło (navy + pomarańcz)', color_preset: 'trades-navy', background_style: 'clean', font_preset: 'inter' },
+      ],
+      gastro: [
+        { id: 'gastro-wine', label: 'Dark gold', color_preset: 'wine', color_palette: 'dark_gold', background_style: 'smoky', font_preset: 'elegant' },
+        { id: 'gastro-terracotta', label: 'Warm terracotta', color_preset: 'forest', color_palette: 'warm_terracotta', background_style: 'soft', font_preset: 'poppins' },
+        { id: 'gastro-mint', label: 'Modern mint', color_preset: 'forest-mint', color_palette: 'modern_mint', background_style: 'clean', font_preset: 'inter' },
+      ],
+      care: [
+        { id: 'care-ocean', label: 'Medical blue', color_preset: 'ocean', color_palette: 'medical_blue', background_style: 'clean', font_preset: 'inter' },
+        { id: 'care-teal', label: 'Eco green', color_preset: 'emerald', color_palette: 'eco_green', background_style: 'soft', font_preset: 'inter' },
+        { id: 'care-plum', label: 'Elegant plum', color_preset: 'wine', color_palette: 'elegant_plum', background_style: 'soft', font_preset: 'elegant' },
       ],
     },
   };

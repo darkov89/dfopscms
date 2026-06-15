@@ -11,7 +11,7 @@
 const STATIC_EXT = /\.(css|js|mjs|png|jpg|jpeg|gif|svg|ico|webp|woff2?|ttf|eot|map|json|xml|txt|pdf|webmanifest)$/i;
 
 const PLATFORM_BASE_DOMAINS = ['dfcms.pl', 'dfopscms.pl', 'dfopscms.pages.dev', 'localhost', '127.0.0.1'];
-const ALLOWED_THEMES = new Set(['beauty', 'consultant', 'fitness', 'services']);
+const ALLOWED_THEMES = new Set(['beauty', 'consultant', 'fitness', 'services', 'gastro', 'care']);
 const EDGE_ROUTE_PATHS = new Set([
   '/',
   '/index.html',

@@ -677,13 +677,31 @@
       /** Na localhost podgląd wskazuje plik .html — brak pliku = proxy (Epik 3). */
       get previewHtmlBasename() {
         const t = String(this.theme || 'beauty').trim().toLowerCase();
-        if (t === 'beauty' || t === 'consultant' || t === 'setup' || t === 'fitness' || t === 'services') return t;
+        if (
+          t === 'beauty' ||
+          t === 'consultant' ||
+          t === 'setup' ||
+          t === 'fitness' ||
+          t === 'services' ||
+          t === 'gastro' ||
+          t === 'care'
+        ) {
+          return t;
+        }
         return 'beauty';
       },
       get previewUsesHtmlFallback() {
         const t = String(this.theme || '').trim().toLowerCase();
         if (!t) return false;
-        return !(t === 'beauty' || t === 'consultant' || t === 'setup' || t === 'fitness' || t === 'services');
+        return !(
+          t === 'beauty' ||
+          t === 'consultant' ||
+          t === 'setup' ||
+          t === 'fitness' ||
+          t === 'services' ||
+          t === 'gastro' ||
+          t === 'care'
+        );
       },
       get templateCatalog() {
         if (typeof window.DFOPS_getTemplateCatalog === 'function') {
@@ -1305,6 +1323,9 @@
       selectColorPreset(preset) {
         if (!preset?.id || !this.content?.pl?.settings) return;
         this.content.pl.settings.color_preset = preset.id;
+        if (this.theme === 'gastro' || this.theme === 'care') {
+          this.content.pl.settings.color_palette = preset.id;
+        }
         this.appearancePickerHex = '';
         this.applyThemeStylingFromContent();
       },
@@ -1982,6 +2003,10 @@
           if (presets.length && !presets.some((p) => p.id === cp)) {
             this.content.pl.settings.color_preset = presets[0].id;
           }
+          if (newTemplateId === 'gastro' || newTemplateId === 'care') {
+            this.content.pl.settings.color_palette =
+              this.content.pl.settings.color_palette || this.content.pl.settings.color_preset;
+          }
 
           this.selectedStyleBundle = '';
           this.syncUserPlanFromBilling();
@@ -2006,6 +2031,9 @@
         const bundle = this.styleBundles.find((b) => b.id === this.selectedStyleBundle);
         if (!bundle || !this.content?.pl?.settings) return;
         this.content.pl.settings.color_preset = bundle.color_preset;
+        if (bundle.color_palette) {
+          this.content.pl.settings.color_palette = bundle.color_palette;
+        }
         this.content.pl.settings.background_style = bundle.background_style;
         this.content.pl.settings.font_preset = bundle.font_preset;
         this.appearancePickerHex = '';

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gastro — DFCMS</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            safelist: [
+                'bg-zinc-900','bg-zinc-950','bg-amber-50','bg-slate-50','bg-stone-950','bg-stone-900',
+                'bg-amber-500','bg-orange-700','bg-emerald-600','bg-white','bg-amber-100',
+                'text-stone-100','text-stone-800','text-slate-800','text-amber-500','text-orange-700',
+                'text-emerald-800','text-stone-50','text-stone-900','text-slate-900','text-zinc-950',
+                'text-amber-400','text-orange-600','text-emerald-700','text-stone-300','text-stone-600',
+                'text-slate-600','text-stone-400','text-stone-500','text-stone-200','text-white','text-zinc-950',
+                'border-amber-500','border-orange-700','border-emerald-600','border-white/10','border-orange-200/60',
+                'border-slate-200','border-amber-500/30','border-orange-300','border-emerald-200','border-orange-100',
+                'border-slate-200','border-stone-800','border-orange-200','border-amber-500/20','border-white/5',
+                'hover:text-amber-500','hover:text-orange-700','hover:text-emerald-800',
+                'hover:bg-amber-400','hover:bg-orange-800','hover:bg-emerald-700',
+                'hover:border-amber-500/20','hover:border-orange-200','hover:border-emerald-200',
+                'group-hover:text-amber-500','group-hover:text-orange-700','group-hover:text-emerald-800',
+                'from-zinc-950','via-zinc-950/80','to-zinc-950/30','from-amber-50','via-amber-50/85','to-stone-900/40',
+                'from-slate-50','via-slate-50/85','to-slate-900/35',
+            ],
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['Playfair Display', 'Georgia', 'serif'],
+                        sans: ['DM Sans', 'var(--font-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                    },
+                },
+            },
+        };
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="js/core/config.js?v=20260602b"></script>
+    <script defer src="js/core/supabaseClient.js"></script>
+    <script defer src="js/templates/registry.js"></script>
+    <script defer src="js/core/contentSchema.js"></script>
+    <script defer src="js/core/contentUpgrader.js"></script>
+    <script defer src="js/core/themeStyling.js"></script>
+    <script defer src="js/core/pageRepository.js?v=20260602b"></script>
+    <script defer src="js/core/planUtils.js?v=20260602b"></script>
+    <script defer src="js/features/publicSiteApp.js?v=20260615a"></script>
+    <script defer src="js/features/cookieConsentApp.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    <script src="js/ui/reveal.js" defer></script>
+</head>
+
+<body
+    class="font-sans antialiased"
+    :class="paletteClass('page')"
+    x-data="createPublicSiteApp('gastro')"
+>
+
+    <div x-show="!dataLoaded && !bazaBlad" class="fixed inset-0 z-[100] flex flex-col items-center justify-center" :class="paletteClass('loaderBg')">
+        <div class="w-12 h-12 border-t-2 border-b-2 rounded-full animate-spin mb-4" :class="paletteClass('loaderSpin')"></div>
+        <p class="font-display text-lg animate-pulse" :class="paletteClass('loaderText')">Ładowanie…</p>
+    </div>
+
+    <div x-show="trialBlocked && dataLoaded" x-cloak class="fixed inset-0 z-[250] flex flex-col items-center justify-center bg-black/80 px-6 text-center">
+        <div class="max-w-lg rounded-xl border p-8 shadow-2xl" :class="paletteClass('trialCard')">
+            <p class="text-xs font-bold uppercase tracking-[0.2em] mb-3" :class="paletteClass('accentText')">DFCMS</p>
+            <h1 class="text-2xl font-display font-bold mb-4" :class="paletteClass('heading')" x-text="trialBlockedTitle"></h1>
+            <p class="text-sm leading-relaxed mb-4" :class="paletteClass('muted')" x-text="trialBlockedBody"></p>
+            <div class="flex flex-col gap-3">
+                <a :href="subscriptionPanelUrl" class="inline-flex justify-center rounded-sm px-6 py-3 text-sm font-bold" :class="[paletteClass('accentBg'), paletteClass('btnOnAccent')]">Zaloguj do panelu administratora</a>
+                <a :href="landingPricingUrl" class="inline-flex justify-center rounded-sm border px-6 py-3 text-sm font-bold" :class="[paletteClass('borderAccent'), paletteClass('accentText')]">Zobacz cennik</a>
+            </div>
+        </div>
+    </div>
+
+    <template x-if="dataLoaded && !trialBlocked && content && content.pl">
+        <div x-transition.opacity.duration.1000ms>
+
+        <nav class="fixed w-full z-50 backdrop-blur-md border-b" :class="paletteClass('nav')">
+            <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center gap-4">
+                <a href="#" class="flex items-center min-w-0 shrink-0" aria-label="Strona główna">
+                    <template x-if="content[lang].nav?.logoImage">
+                        <img :src="content[lang].nav.logoImage" alt="Logo" class="h-12 object-contain">
+                    </template>
+                    <template x-if="!content[lang].nav?.logoImage">
+                        <div class="font-display text-2xl truncate" :class="paletteClass('logo')" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].nav.logo)"></div>
+                    </template>
+                </a>
+                <div class="hidden md:flex items-center gap-6 text-sm font-semibold uppercase tracking-widest">
+                    <a href="#menu" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.menu || 'Menu'"></a>
+                    <a href="#lokalizacja" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.location || 'Lokalizacja'"></a>
+                    <a href="#kontakt" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></a>
+                </div>
+            </div>
+        </nav>
+
+        <header class="relative min-h-[85vh] flex items-end pt-28 pb-16 px-6 overflow-hidden">
+            <div class="absolute inset-0 z-0">
+                <template x-if="content[lang].hero?.image">
+                    <img :src="content[lang].hero.image" :alt="content[lang].hero.name || 'Restauracja'" class="absolute inset-0 w-full h-full object-cover" loading="eager">
+                </template>
+                <div class="absolute inset-0 bg-gradient-to-t" :class="paletteClass('heroOverlay')"></div>
+            </div>
+            <div class="relative z-10 max-w-5xl mx-auto w-full reveal">
+                <p class="text-xs font-bold uppercase tracking-[0.35em] mb-3" :class="paletteClass('tagline')" x-text="content[lang].hero.subheadline || content[lang].manifesto?.label || 'Gastronomia'"></p>
+                <h1 class="font-display text-5xl md:text-7xl leading-tight mb-3" :class="paletteClass('heading')" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].hero.headline)"></h1>
+                <h2 class="text-2xl md:text-3xl font-semibold mb-4" :class="paletteClass('name')" x-text="content[lang].hero.name"></h2>
+                <p class="text-lg max-w-2xl mb-8 leading-relaxed" :class="paletteClass('body')" x-text="content[lang].hero.description"></p>
+                <div class="inline-flex flex-col gap-1 rounded-lg border px-5 py-4 backdrop-blur-sm" x-show="content[lang].hours?.lines?.length" :class="paletteClass('hoursCard')">
+                    <p class="text-xs font-bold uppercase tracking-widest" :class="paletteClass('accentText')" x-text="content[lang].hours?.title || 'Godziny otwarcia'"></p>
+                    <template x-for="(line, hi) in (content[lang].hours?.lines || [])" :key="'h'+hi">
+                        <p class="text-sm font-medium" :class="paletteClass('body')" x-text="line"></p>
+                    </template>
+                </div>
+                <template x-if="heroCtaEnabled()">
+                    <a :href="resolveHeroButtonUrl()"
+                       :target="ctaLinkTarget(resolveHeroButtonUrl())"
+                       :rel="ctaLinkRel(resolveHeroButtonUrl())"
+                       class="mt-8 inline-flex items-center justify-center px-8 py-4 rounded-sm font-bold uppercase tracking-widest text-sm transition-colors"
+                       :class="[paletteClass('accentBg'), paletteClass('accentBgHover'), paletteClass('btnOnAccent')]">
+                        <span x-text="content[lang].hero.button || 'Zarezerwuj stolik'"></span>
+                    </a>
+                </template>
+            </div>
+        </header>
+
+        <section id="menu" class="py-20 md:py-28 px-6 border-t" :class="paletteClass('sectionAlt')">
+            <div class="max-w-5xl mx-auto">
+                <div class="text-center mb-14 reveal">
+                    <p class="text-xs font-bold uppercase tracking-[0.3em] mb-2" :class="paletteClass('accentText')">Karta dań</p>
+                    <h2 class="font-display text-4xl md:text-5xl" :class="paletteClass('heading')" x-text="content[lang].nav?.menu?.menu || 'Menu'"></h2>
+                </div>
+                <div class="space-y-2">
+                    <template x-for="(item, index) in (content[lang].menu_items || [])" :key="index">
+                        <div>
+                            <h3
+                                class="font-display text-2xl border-b pb-2 mb-4 mt-8 first:mt-0"
+                                :class="[paletteClass('accentText'), paletteClass('borderAccent')]"
+                                x-show="index === 0 || item.category !== content[lang].menu_items[index - 1].category"
+                                x-text="item.category"
+                            ></h3>
+                            <article class="reveal group flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 py-5 border-b transition-colors" :class="[paletteClass('borderMuted'), paletteClass('itemHover')]">
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="text-xl font-bold transition-colors" :class="paletteClass('heading')" x-text="item.name"></h4>
+                                    <p class="text-sm mt-1 leading-relaxed" :class="paletteClass('muted')" x-text="item.ingredients"></p>
+                                </div>
+                                <p class="shrink-0 text-lg font-bold tabular-nums" :class="paletteClass('accentText2')" x-text="item.price"></p>
+                            </article>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </section>
+
+        <section id="lokalizacja" class="py-20 md:py-28 px-6 border-t" :class="paletteClass('section')">
+            <div class="max-w-5xl mx-auto reveal">
+                <p class="text-xs font-bold uppercase tracking-[0.3em] mb-2" :class="paletteClass('accentText')">Gdzie nas znaleźć</p>
+                <h2 class="font-display text-4xl mb-10" :class="paletteClass('heading')" x-text="content[lang].nav?.menu?.location || 'Lokalizacja'"></h2>
+                <div class="grid md:grid-cols-2 gap-8 items-start">
+                    <div class="space-y-4" :class="paletteClass('body')">
+                        <p class="text-lg leading-relaxed" x-text="content[lang].contact?.address"></p>
+                        <p x-show="content[lang].contact?.phone">
+                            Zamówienia / rezerwacje:
+                            <a :href="'tel:' + (content[lang].contact.phone || '').replace(/\s/g, '')" class="font-bold hover:underline" :class="paletteClass('accentText')" x-text="content[lang].contact.phone"></a>
+                        </p>
+                        <p x-show="content[lang].contact?.email">
+                            <a :href="'mailto:' + content[lang].contact.email" class="hover:underline" :class="paletteClass('accentText')" x-text="content[lang].contact.email"></a>
+                        </p>
+                    </div>
+                    <div class="rounded-xl overflow-hidden border aspect-[4/3] flex items-center justify-center" :class="[paletteClass('mapBorder'), paletteClass('mapPlaceholder')]">
+                        <template x-if="content[lang].contact?.map_embed_url">
+                            <iframe class="w-full h-full" loading="lazy" referrerpolicy="no-referrer-when-downgrade" :src="content[lang].contact.map_embed_url"></iframe>
+                        </template>
+                        <template x-if="!content[lang].contact?.map_embed_url">
+                            <p class="text-sm px-6 text-center">Mapa pojawi się po dodaniu adresu w panelu CMS.</p>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer id="kontakt" class="border-t pt-10 pb-6 px-6" :class="paletteClass('footer')">
+            <div class="max-w-5xl mx-auto text-center text-sm space-y-3" :class="paletteClass('footerMuted')">
+                <p class="font-display text-xl" :class="paletteClass('footerTitle')" x-text="content[lang].hero.name"></p>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.privacy_policy">
+                        <a href="#" @click.prevent="openModal('privacy')" class="underline" :class="paletteClass('accentText')">Polityka Prywatności</a>
+                    </template>
+                    <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.terms">
+                        <a href="#" @click.prevent="openModal('terms')" class="underline" :class="paletteClass('accentText')">Regulamin</a>
+                    </template>
+                </div>
+                <p>&copy; <span x-text="new Date().getFullYear()"></span> <span x-text="content[lang].hero.name"></span>. Wszelkie prawa zastrzeżone.</p>
+            </div>
+        </footer>
+
+        </div>
+    </template>
+
+    <div x-show="content" x-cloak>
+        <div x-data="cookieConsent" x-show="showBanner" x-transition.opacity class="fixed bottom-0 left-0 right-0 w-full shadow-2xl border-t" :class="paletteClass('cookie')" style="z-index: 2147483647 !important;">
+            <div class="max-w-5xl mx-auto px-4 py-4 md:px-6">
+                <p class="text-sm mb-4" :class="paletteClass('cookieText')">Ta strona korzysta z ciasteczek w celach funkcjonalnych oraz opcjonalnej analityki i marketingu.</p>
+                <div class="flex flex-wrap gap-3" x-show="!showDetails">
+                    <button @click.prevent="acceptAll()" class="px-4 py-2 text-sm font-bold rounded-lg" :class="paletteClass('cookieBtn')">Akceptuję wszystkie</button>
+                    <button @click.prevent="rejectAll()" class="px-4 py-2 text-sm rounded-lg bg-stone-800 text-stone-200">Tylko niezbędne</button>
+                    <button @click.prevent="showDetails = true" class="px-4 py-2 border text-sm rounded-lg" :class="[paletteClass('borderAccent'), paletteClass('cookieText')]">Dostosuj</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="activeModal" x-cloak x-transition.opacity class="fixed inset-0 z-[9999] flex items-center justify-center p-4" @keydown.escape.window="closeModal()" role="dialog" aria-modal="true">
+        <div @click.self="closeModal()" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div class="relative bg-white text-gray-900 rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between p-4 border-b shrink-0">
+                <h2 class="text-xl font-display font-bold" x-text="activeModal === 'privacy' ? 'Polityka Prywatności' : 'Regulamin'"></h2>
+                <button @click="closeModal()" class="p-2 text-gray-500 hover:bg-gray-100 rounded-full" aria-label="Zamknij">✕</button>
+            </div>
+            <div class="overflow-y-auto p-6 text-gray-700 leading-relaxed" x-html="DFOPS_pageRepository.sanitizeHtml(activeModal === 'privacy' ? (content[lang]?.legal?.privacy_policy || '') : (content[lang]?.legal?.terms || ''))"></div>
+        </div>
+    </div>
+</body>
+</html>

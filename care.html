@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Care — DFCMS</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            safelist: [
+                'bg-slate-50','bg-stone-50','bg-zinc-50','bg-white','bg-blue-600','bg-teal-600','bg-purple-800',
+                'text-slate-800','text-stone-800','text-zinc-800','text-blue-600','text-teal-700','text-purple-950',
+                'text-slate-900','text-stone-900','text-purple-950','text-slate-600','text-stone-600','text-zinc-600',
+                'text-white','text-slate-500','text-stone-500','text-zinc-500','text-blue-900','text-teal-900',
+                'border-slate-200','border-stone-200','border-zinc-200','border-slate-100','border-stone-100',
+                'border-blue-100','border-teal-100','border-purple-100','border-zinc-100',
+                'hover:text-blue-600','hover:text-teal-700','hover:text-purple-950',
+                'hover:bg-blue-700','hover:bg-teal-700','hover:bg-purple-900',
+                'hover:border-blue-300','hover:border-teal-300','hover:border-purple-300',
+                'from-sky-50','to-white','from-teal-50/80','to-stone-50','from-purple-50/50','to-zinc-50',
+                'via-white','via-stone-50','via-zinc-50',
+                'ring-blue-600/20','ring-teal-600/20','ring-purple-800/20',
+                'shadow-blue-600/25','shadow-teal-600/25','shadow-purple-800/25',
+                'bg-blue-600/10','bg-teal-600/10','bg-purple-800/10',
+                'bg-sky-50','bg-teal-50','bg-purple-50',
+            ],
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Source Sans 3', 'Inter', 'var(--font-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                    },
+                },
+            },
+        };
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="js/core/config.js?v=20260602b"></script>
+    <script defer src="js/core/supabaseClient.js"></script>
+    <script defer src="js/templates/registry.js"></script>
+    <script defer src="js/core/contentSchema.js"></script>
+    <script defer src="js/core/contentUpgrader.js"></script>
+    <script defer src="js/core/themeStyling.js"></script>
+    <script defer src="js/core/pageRepository.js?v=20260602b"></script>
+    <script defer src="js/core/planUtils.js?v=20260602b"></script>
+    <script defer src="js/features/publicSiteApp.js?v=20260615a"></script>
+    <script defer src="js/features/cookieConsentApp.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    <script src="js/ui/reveal.js" defer></script>
+</head>
+
+<body
+    class="font-sans antialiased"
+    :class="paletteClass('page')"
+    x-data="createPublicSiteApp('care')"
+>
+
+    <div x-show="!dataLoaded && !bazaBlad" class="fixed inset-0 z-[100] flex flex-col items-center justify-center" :class="paletteClass('loaderBg')">
+        <div class="w-12 h-12 border-t-2 border-b-2 rounded-full animate-spin mb-4" :class="paletteClass('loaderSpin')"></div>
+        <p class="font-semibold tracking-wide text-sm animate-pulse" :class="paletteClass('loaderText')">Ładowanie…</p>
+    </div>
+
+    <div x-show="trialBlocked && dataLoaded" x-cloak class="fixed inset-0 z-[250] flex flex-col items-center justify-center bg-white/95 px-6 text-center">
+        <div class="max-w-lg rounded-2xl border p-8 shadow-xl" :class="paletteClass('trialCard')">
+            <p class="text-xs font-bold uppercase tracking-[0.2em] mb-3" :class="paletteClass('accentText')">DFCMS</p>
+            <h1 class="text-2xl font-bold mb-4" :class="paletteClass('heading')" x-text="trialBlockedTitle"></h1>
+            <p class="text-sm leading-relaxed mb-6" :class="paletteClass('muted')" x-text="trialBlockedBody"></p>
+            <div class="flex flex-col gap-3">
+                <a :href="subscriptionPanelUrl" class="inline-flex justify-center rounded-lg px-6 py-3 text-sm font-bold" :class="[paletteClass('accentBg'), paletteClass('btnOnAccent')]">Zaloguj do panelu administratora</a>
+                <a :href="landingPricingUrl" class="inline-flex justify-center rounded-lg border-2 px-6 py-3 text-sm font-bold" :class="[paletteClass('accentText'), paletteClass('borderAccent') || 'border-current']">Zobacz cennik</a>
+            </div>
+        </div>
+    </div>
+
+    <template x-if="dataLoaded && !trialBlocked && content && content.pl">
+        <div x-transition.opacity.duration.1000ms>
+
+        <nav class="fixed w-full z-50 backdrop-blur border-b" :class="paletteClass('nav')">
+            <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center gap-4">
+                <a href="#" class="flex items-center min-w-0 shrink-0" aria-label="Strona główna">
+                    <template x-if="content[lang].nav?.logoImage">
+                        <img :src="content[lang].nav.logoImage" alt="Logo" class="h-11 object-contain">
+                    </template>
+                    <template x-if="!content[lang].nav?.logoImage">
+                        <div class="text-lg font-bold truncate" :class="paletteClass('logo')" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].nav.logo)"></div>
+                    </template>
+                </a>
+                <div class="hidden md:flex items-center gap-6 text-sm font-semibold">
+                    <a href="#o-mnie" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.about || 'O mnie'"></a>
+                    <a href="#pomoc" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.help || 'Obszary pomocy'"></a>
+                    <a href="#cennik" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.pricing || 'Cennik'"></a>
+                    <a href="#kontakt" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></a>
+                </div>
+            </div>
+        </nav>
+
+        <header class="pt-28 pb-16 md:pt-32 md:pb-24 px-6" :class="paletteClass('hero')">
+            <div class="max-w-5xl mx-auto grid md:grid-cols-[1fr_auto] gap-10 items-center reveal">
+                <div>
+                    <p class="text-sm font-bold uppercase tracking-widest mb-3" :class="paletteClass('tagline')" x-text="content[lang].manifesto?.label || 'Gabinet'"></p>
+                    <h1 class="text-4xl md:text-5xl font-bold leading-tight mb-2" :class="paletteClass('heading')" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].hero.headline)"></h1>
+                    <h2 class="text-xl md:text-2xl font-medium mb-6" :class="paletteClass('name')" x-text="content[lang].hero.name"></h2>
+                    <p class="text-lg leading-relaxed max-w-xl" :class="paletteClass('body')" x-text="content[lang].hero.description"></p>
+                </div>
+                <div class="flex justify-center md:justify-end">
+                    <div class="w-48 h-48 md:w-56 md:h-56 rounded-full overflow-hidden border-4 border-white shadow-xl ring-4 shrink-0 bg-slate-100" :class="paletteClass('ring')">
+                        <template x-if="content[lang].hero?.image">
+                            <img :src="content[lang].hero.image" :alt="content[lang].hero.name || 'Zdjęcie profilowe'" class="w-full h-full object-cover">
+                        </template>
+                        <template x-if="!content[lang].hero?.image">
+                            <div class="w-full h-full flex items-center justify-center text-sm text-center px-4" :class="paletteClass('muted')">Zdjęcie profilowe</div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section id="o-mnie" class="py-16 md:py-24 px-6 border-t" :class="paletteClass('section')" x-show="content[lang].settings?.showManifesto !== false">
+            <div class="max-w-3xl mx-auto reveal">
+                <h2 class="text-3xl font-bold mb-6 text-center" :class="paletteClass('heading')" x-text="content[lang].manifesto?.title || 'O mnie'"></h2>
+                <p class="text-lg leading-relaxed text-center mb-10" :class="paletteClass('body')" x-text="content[lang].manifesto?.text"></p>
+                <div class="grid sm:grid-cols-2 gap-4" x-show="(content[lang].certificates || []).length">
+                    <template x-for="(cert, ci) in (content[lang].certificates || [])" :key="ci">
+                        <div class="rounded-xl border px-5 py-4" :class="paletteClass('cert')">
+                            <p class="font-bold text-sm" x-text="cert.title"></p>
+                            <p class="text-xs mt-1 opacity-80" x-text="cert.issuer"></p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </section>
+
+        <section id="pomoc" class="py-16 md:py-24 px-6" :class="paletteClass('sectionAlt')">
+            <div class="max-w-5xl mx-auto">
+                <div class="text-center mb-12 reveal">
+                    <p class="text-sm font-bold uppercase tracking-widest mb-2" :class="paletteClass('accentText')">W czym pomagam</p>
+                    <h2 class="text-3xl font-bold" :class="paletteClass('heading')" x-text="content[lang].nav?.menu?.help || 'Obszary pomocy'"></h2>
+                </div>
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <template x-for="(area, ai) in (content[lang].help_areas || [])" :key="ai">
+                        <article class="reveal rounded-2xl border p-6 shadow-sm transition-all" :class="paletteClass('card')">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mb-4" :class="paletteClass('cardBadge')" x-text="String(ai + 1)"></div>
+                            <h3 class="text-lg font-bold mb-2" :class="paletteClass('heading')" x-text="area.title"></h3>
+                            <p class="text-sm leading-relaxed" :class="paletteClass('muted')" x-text="area.desc"></p>
+                        </article>
+                    </template>
+                </div>
+            </div>
+        </section>
+
+        <section id="cennik" class="py-16 md:py-24 px-6 border-t" :class="paletteClass('section')" x-show="content[lang].settings?.showServices !== false">
+            <div class="max-w-3xl mx-auto">
+                <div class="text-center mb-12 reveal">
+                    <h2 class="text-3xl font-bold" :class="paletteClass('heading')" x-text="content[lang].nav?.menu?.pricing || 'Cennik usług'"></h2>
+                </div>
+                <div class="space-y-4">
+                    <template x-for="(service, si) in (content[lang].services || [])" :key="si">
+                        <div class="reveal flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-5 rounded-xl border transition-colors" :class="paletteClass('card')">
+                            <div>
+                                <h3 class="font-bold" :class="paletteClass('heading')" x-text="service.title"></h3>
+                                <p class="text-sm mt-1" :class="paletteClass('muted')" x-text="service.desc"></p>
+                                <p class="text-xs mt-1 opacity-75" x-show="service.duration" :class="paletteClass('muted')" x-text="service.duration"></p>
+                            </div>
+                            <p class="text-xl font-bold tabular-nums shrink-0" :class="paletteClass('accentText')" x-text="service.price"></p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </section>
+
+        <section id="kontakt" class="py-16 md:py-24 px-6 border-t" :class="paletteClass('contact')">
+            <div class="max-w-3xl mx-auto text-center reveal">
+                <h2 class="text-3xl font-bold mb-4" :class="paletteClass('heading')" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></h2>
+                <p class="mb-2" :class="paletteClass('muted')" x-text="content[lang].contact?.address"></p>
+                <p class="mb-8" x-show="content[lang].contact?.phone" :class="paletteClass('muted')">
+                    Tel:
+                    <a :href="'tel:' + (content[lang].contact.phone || '').replace(/\s/g, '')" class="font-semibold hover:underline" :class="paletteClass('accentText')" x-text="content[lang].contact.phone"></a>
+                </p>
+                <a
+                    :href="resolveBookingUrl() || '#kontakt'"
+                    :target="ctaLinkTarget(resolveBookingUrl())"
+                    :rel="ctaLinkRel(resolveBookingUrl())"
+                    class="inline-flex items-center justify-center min-w-[260px] px-10 py-5 rounded-xl text-lg font-bold shadow-lg hover:-translate-y-0.5 transition-all"
+                    :class="[paletteClass('accentBg'), paletteClass('accentBgHover'), paletteClass('btnOnAccent'), paletteClass('shadowCta')]"
+                >
+                    Umów wizytę
+                </a>
+                <p class="text-xs mt-6" x-show="content[lang].contact?.email" :class="paletteClass('muted')">
+                    lub napisz:
+                    <a :href="'mailto:' + content[lang].contact.email" class="hover:underline" :class="paletteClass('accentText')" x-text="content[lang].contact.email"></a>
+                </p>
+            </div>
+        </section>
+
+        <footer class="border-t py-8 px-6 text-center text-sm" :class="[paletteClass('footer'), paletteClass('footerMuted')]">
+            <div class="flex flex-wrap justify-center gap-4 mb-3">
+                <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.privacy_policy">
+                    <a href="#" @click.prevent="openModal('privacy')" class="underline" :class="paletteClass('accentText')">Polityka Prywatności</a>
+                </template>
+                <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.terms">
+                    <a href="#" @click.prevent="openModal('terms')" class="underline" :class="paletteClass('accentText')">Regulamin</a>
+                </template>
+            </div>
+            <p>&copy; <span x-text="new Date().getFullYear()"></span> <span x-text="content[lang].hero.name"></span>. Wszelkie prawa zastrzeżone.</p>
+        </footer>
+
+        </div>
+    </template>
+
+    <div x-show="content" x-cloak>
+        <div x-data="cookieConsent" x-show="showBanner" x-transition.opacity class="fixed bottom-0 left-0 right-0 w-full shadow-2xl border-t" :class="paletteClass('cookie')" style="z-index: 2147483647 !important;">
+            <div class="max-w-5xl mx-auto px-4 py-4 md:px-6">
+                <p class="text-sm mb-4" :class="paletteClass('cookieText')">Ta strona korzysta z ciasteczek w celach funkcjonalnych oraz opcjonalnej analityki i marketingu.</p>
+                <div class="flex flex-wrap gap-3" x-show="!showDetails">
+                    <button @click.prevent="acceptAll()" class="px-4 py-2 text-sm font-bold rounded-lg" :class="paletteClass('cookieBtn')">Akceptuję wszystkie</button>
+                    <button @click.prevent="rejectAll()" class="px-4 py-2 bg-slate-100 text-slate-700 text-sm rounded-lg">Tylko niezbędne</button>
+                    <button @click.prevent="showDetails = true" class="px-4 py-2 border border-slate-300 text-slate-700 text-sm rounded-lg">Dostosuj</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="activeModal" x-cloak x-transition.opacity class="fixed inset-0 z-[9999] flex items-center justify-center p-4" @keydown.escape.window="closeModal()" role="dialog" aria-modal="true">
+        <div @click.self="closeModal()" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between p-4 border-b shrink-0">
+                <h2 class="text-xl font-bold text-slate-900" x-text="activeModal === 'privacy' ? 'Polityka Prywatności' : 'Regulamin'"></h2>
+                <button @click="closeModal()" class="p-2 text-slate-500 hover:bg-slate-100 rounded-full" aria-label="Zamknij">✕</button>
+            </div>
+            <div class="overflow-y-auto p-6 text-slate-700 leading-relaxed" x-html="DFOPS_pageRepository.sanitizeHtml(activeModal === 'privacy' ? (content[lang]?.legal?.privacy_policy || '') : (content[lang]?.legal?.terms || ''))"></div>
+        </div>
+    </div>
+</body>
+</html>
