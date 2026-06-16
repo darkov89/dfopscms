@@ -302,7 +302,7 @@
   }
 
   /** Lokalnie — bez wierszy w Supabase dla demo-* nadal pokazujemy treść z data/seeds/demo_pages.json. */
-  const DEMO_SEED_SLUG_RE = /^demo-(beauty|fitness|services)$/;
+  const DEMO_SEED_SLUG_RE = /^demo-(beauty|fitness|services|gastro|care|consultant)$/;
 
   function isLocalDemoSeedHost() {
     if (typeof window === 'undefined' || !window.location) return false;

@@ -26,7 +26,7 @@ Front: **http://localhost:3000** (`serve`). Nie otwieraj `admin.html` z `file://
 |--------|-----------|
 | `admin.html`, `router.html`, `index.html`, `*.html` | Wejścia aplikacji i szablony (korzeń — ścieżki Cloudflare) |
 | `js/core/`, `js/features/` | Logika klienta (`config.js`, `pageRepository.js`, `adminApp.js`, …) |
-| `data/seeds/demo_pages.json` | Treść demo (`demo-beauty`, `demo-fitness`, `demo-services`) |
+| `data/seeds/demo_pages.json` | Treść demo (`demo-beauty`, `demo-fitness`, `demo-services`, `demo-gastro`, `demo-care`, `demo-consultant`) |
 | `functions/_middleware.js` | Middleware **Cloudflare Pages** |
 | `supabase/functions/` | **Supabase Edge Functions** (Deno) |
 | `supabase/migrations/` | Migracje DB (baseline: `20260603072317_remote_schema.sql`) |

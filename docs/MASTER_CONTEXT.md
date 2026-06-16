@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-06-16 — konsolidacja dokumentacji; `expire-trial-pages` → Telegram
+**Ostatnia aktualizacja treści:** 2026-06-16 — landing concierge (hero, silnik biznesu, porównanie, nisze); gastro/care palety
 
 ---
 
@@ -73,7 +73,7 @@ Użytkownik → Auth → pages.content + pages.billing_plan + billing_profiles
 
 | Warstwa | Kluczowe artefakty |
 |--------|---------------------|
-| **Front publiczny** | `index.html` (landing, `#cennik`, demo `?site=demo-*`), szablony: `beauty`, `consultant`, `fitness`, `services`, `gastro`, `care`, `setup`. `publicSiteApp.js`, `cookieConsentApp.js`, `routerApp.js`. Analityka: GTM/Pixel po zgodzie cookies; wyłączone w preview i iframe. Demo lokalnie: `data/seeds/demo_pages.json`. |
+| **Front publiczny** | `index.html` (landing concierge: hero 60s, `#silnik`, `#porownanie`, `#nisze` 6 branż, `#cennik`, SEO + `favicon.svg`), demo `?site=demo-*` (beauty/fitness/services). Szablony: `beauty`, `consultant`, `fitness`, `services`, `gastro`, `care`, `setup`. `landingPricing.js` — plany, porównanie, nisze, moduły silnika. |
 | **Panel CMS** | `admin.html`, `adminApp.js`. Draft vs published: `pages.draft_content` / `pages.content`. Subskrypcja: Starter/Standard/Custom, `billingInterval`, Stripe Checkout + Portal. Smart Booking: `settings.booking_mode` + `contact.booking_url`. |
 | **Backend** | `pages`, `billing_profiles`, RLS. Schemat baseline: `20260603072317_remote_schema.sql`. |
 | **Płatności** | Starter `tier0`, Standard `tier1`, Custom poza Stripe. Secrets: `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_STARTER_YEARLY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_PRO_YEARLY`. wFirma: `WFIRMA_*`, ledger `wfirma_invoice_ledger`. |
@@ -265,7 +265,8 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
-| **2026-06-16** | **Dokumentacja:** konsolidacja → `docs/MASTER_CONTEXT.md`, `docs/PRODUCT_ROADMAP.md`; usunięte rozproszone pliki architektury/roadmap. |
+| **2026-06-16** | **Demo katalog:** `demo-gastro`, `demo-care`, `demo-consultant` w `demo_pages.json` + migracja seed; landing — wszystkie nisze z linkiem „Zobacz demo”. |
+| **2026-06-16** | **Gastro/Care:** nowe layouty publiczne, 5 palet branżowych, fix panelu kolorów. |
 | **2026-06-16** | **Cron trial:** `expire-trial-pages` — powiadomienia **Telegram** (Markdown) zamiast Resend; alert −7 dni + raport ręcznej kasacji; `AUTO_PURGE_ENABLED` domyślnie off. |
 | **2026-06-15** | **SQL trial:** migracja `20260611120000` — przywrócona `expire_trial_pages()` (14 dni + `billing_profiles`); `purge_warning_sent_at`, RPC ostrzeżenia i listy kasacji. |
 | **2026-06-14** | **API weryfikacji domeny:** `functions/api/verify-domain.js` — DoH CNAME → `verified` / `pending`. |

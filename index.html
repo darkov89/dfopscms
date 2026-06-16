@@ -3,8 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DFCMS — Profesjonalna strona firmy w 5 minut</title>
-    <meta name="description" content="DFCMS: strona wizytówkowa dla beauty, doradztwa i usług. Załóż konto, uzupełnij profil — Twój biznes jest online. 14 dni za darmo.">
+    <title>DFCMS — Gotowa strona dla Twojej branży w 60 sekund</title>
+    <meta name="description" content="DFCMS to premium concierge dla lokalnego biznesu: gotowy szablon pod branżę, subdomena od razu, opinie Google, rezerwacje i panel bez układania klocków. 14 dni za darmo, stała cena bez ukrytej podwyżki.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://dfcms.pl/">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="pl_PL">
+    <meta property="og:site_name" content="DFCMS">
+    <meta property="og:title" content="DFCMS — Gotowa strona dla Twojej branży w 60 sekund">
+    <meta property="og:description" content="Silnik operacyjny dla lokalnego biznesu. Jeden szablon pod niszę zamiast 500 generycznych. Trial 14 dni bez karty.">
+    <meta property="og:url" content="https://dfcms.pl/">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="DFCMS — strona branżowa w 60 sekund">
+    <meta name="twitter:description" content="Concierge CMS: gastro, care, beauty, fitness i więcej. Bez Wixa i bez hostingowego labiryntu.">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/favicon.svg">
+    <meta name="theme-color" content="#121212">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -36,7 +50,7 @@
         body { font-feature-settings: "cv02", "cv03", "cv04", "cv11"; }
     </style>
 </head>
-<body class="min-h-screen bg-white font-sans text-brand-ink antialiased selection:bg-brand-gold/25 selection:text-brand-ink">
+<body class="min-h-screen bg-white font-sans text-brand-ink antialiased selection:bg-brand-gold/25 selection:text-brand-ink" x-data="landingPricing()">
 
     <!-- Marketing na gołej domenie. Subdomeny → /?site=slug (edge rewrite); localhost → router. -->
     <script>
@@ -79,13 +93,15 @@
         @keydown.escape.window="mobileOpen = false"
     >
         <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6 lg:px-8">
-            <a href="index.html" class="font-display text-lg font-bold tracking-tight text-brand-ink sm:text-xl">
-                <span class="text-brand-gold">DF</span>CMS
+            <a href="index.html" class="flex items-center gap-2 font-display text-lg font-bold tracking-tight text-brand-ink sm:text-xl">
+                <img src="/favicon.svg" alt="" width="28" height="28" class="rounded-md" aria-hidden="true">
+                <span><span class="text-brand-gold">DF</span>CMS</span>
             </a>
 
             <nav class="hidden items-center gap-8 text-sm font-medium text-zinc-600 md:flex" aria-label="Nawigacja główna">
-                <a href="#jak" class="transition hover:text-brand-ink">Jak to działa</a>
-                <a href="#demo" class="transition hover:text-brand-ink">Demo na żywo</a>
+                <a href="#silnik" class="transition hover:text-brand-ink">Silnik biznesu</a>
+                <a href="#nisze" class="transition hover:text-brand-ink">Branże</a>
+                <a href="#porownanie" class="transition hover:text-brand-ink">Porównanie</a>
                 <a href="#cennik" class="transition hover:text-brand-ink">Cennik</a>
                 <a href="#faq" class="transition hover:text-brand-ink">FAQ</a>
                 <a href="admin.html" class="transition hover:text-brand-ink">Zaloguj się</a>
@@ -96,7 +112,7 @@
                     href="rejestracja.html"
                     class="hidden rounded-xl bg-brand-ink px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-white shadow-md transition hover:bg-zinc-800 sm:inline-flex sm:px-5"
                 >
-                    Zacznij za darmo
+                    Uruchom stronę za darmo
                 </a>
                 <button
                     type="button"
@@ -120,326 +136,306 @@
             class="border-t border-zinc-100 bg-white px-4 py-4 md:hidden"
         >
             <nav class="flex flex-col gap-1 text-sm font-medium text-zinc-700" aria-label="Menu mobilne">
-                <a href="#jak" class="rounded-lg px-3 py-3 hover:bg-zinc-50" @click="mobileOpen = false">Jak to działa</a>
-                <a href="#demo" class="rounded-lg px-3 py-3 hover:bg-zinc-50" @click="mobileOpen = false">Demo na żywo</a>
+                <a href="#silnik" class="rounded-lg px-3 py-3 hover:bg-zinc-50" @click="mobileOpen = false">Silnik biznesu</a>
+                <a href="#nisze" class="rounded-lg px-3 py-3 hover:bg-zinc-50" @click="mobileOpen = false">Branże</a>
+                <a href="#porownanie" class="rounded-lg px-3 py-3 hover:bg-zinc-50" @click="mobileOpen = false">Porównanie</a>
                 <a href="#cennik" class="rounded-lg px-3 py-3 hover:bg-zinc-50" @click="mobileOpen = false">Cennik</a>
                 <a href="#faq" class="rounded-lg px-3 py-3 hover:bg-zinc-50" @click="mobileOpen = false">FAQ</a>
                 <a href="admin.html" class="rounded-lg px-3 py-3 hover:bg-zinc-50">Zaloguj się</a>
-                <a href="rejestracja.html" class="mt-2 rounded-xl bg-brand-gold px-4 py-3.5 text-center text-xs font-bold uppercase tracking-widest text-brand-ink shadow-sm" @click="mobileOpen = false">Zacznij za darmo (14 dni)</a>
+                <a href="rejestracja.html" class="mt-2 rounded-xl bg-brand-gold px-4 py-3.5 text-center text-xs font-bold uppercase tracking-widest text-brand-ink shadow-sm" @click="mobileOpen = false">Uruchom stronę za darmo</a>
             </nav>
         </div>
     </header>
 
     <main id="main">
         <!-- Hero -->
-        <section class="relative mx-auto max-w-6xl px-4 pb-16 pt-12 sm:px-6 sm:pb-24 sm:pt-16 lg:px-8 lg:pb-28 lg:pt-20">
+        <section class="relative mx-auto max-w-6xl px-4 pb-20 pt-14 sm:px-6 sm:pb-28 sm:pt-20 lg:px-8 lg:pb-32 lg:pt-24">
             <div class="mx-auto max-w-3xl text-center">
-                <p class="mb-4 text-[11px] font-bold uppercase tracking-[0.35em] text-brand-gold sm:text-xs">Strona w 5 minut</p>
-                <h1 class="font-display text-3xl font-extrabold leading-[1.15] tracking-tight text-brand-ink sm:text-4xl lg:text-5xl">
-                    Profesjonalna strona Twojej firmy w 5 minut. Bez programisty, bez stresu.
+                <p class="mb-5 text-[11px] font-bold uppercase tracking-[0.35em] text-brand-gold sm:text-xs">Concierge dla lokalnego biznesu</p>
+                <h1 class="font-display text-3xl font-extrabold leading-[1.12] tracking-tight text-brand-ink sm:text-4xl lg:text-[2.75rem] lg:leading-[1.1]">
+                    Gotowa strona dla Twojej branży w 60 sekund. Bez układania klocków.
                 </h1>
-                <p class="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-zinc-600 sm:text-lg">
-                    DFCMS to najprostszy sposób, by Twój biznes zaistniał w sieci. Skup się na swoich klientach, my zajmiemy się technologią.
+                <p class="mx-auto mt-7 max-w-2xl text-base leading-relaxed text-zinc-600 sm:text-lg">
+                    Startujesz od razu na darmowej subdomenie <strong class="font-semibold text-zinc-800">twojafirma.dfcms.pl</strong> — bez hostingu, bez instalacji WordPressa.
+                    Dostajesz <strong class="font-semibold text-zinc-800">jeden dopracowany szablon pod Twoją niszę</strong>, zamiast setek generycznych motywów do ręcznego składania jak na Wixie czy home.pl.
                 </p>
-                <div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
+                <div class="mt-11 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
                     <a
                         href="rejestracja.html"
                         class="inline-flex w-full max-w-sm items-center justify-center rounded-2xl bg-brand-gold px-8 py-4 text-sm font-bold uppercase tracking-widest text-brand-ink shadow-gold transition hover:brightness-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 sm:w-auto sm:min-w-[280px]"
                     >
-                        Zacznij za darmo (14 dni próby)
+                        Uruchom stronę za darmo
                     </a>
-                    <a href="#jak" class="text-sm font-semibold text-zinc-500 underline decoration-zinc-300 underline-offset-4 transition hover:text-brand-ink">
-                        Zobacz, jak to działa
+                    <a href="#porownanie" class="text-sm font-semibold text-zinc-500 underline decoration-zinc-300 underline-offset-4 transition hover:text-brand-ink">
+                        DFCMS vs tradycyjny kreator
                     </a>
                 </div>
-                <p class="mt-8 text-xs text-zinc-400">Salony beauty, doradztwo, usługi lokalne — szablon dopasowany do Twojej branży.</p>
+                <p class="mt-9 text-xs leading-relaxed text-zinc-400">14 dni trialu · bez karty · stała cena po trialu · hosting i SSL w cenie</p>
+            </div>
+        </section>
+
+        <!-- Silnik Biznesu -->
+        <section id="silnik" class="border-t border-zinc-100 bg-zinc-50/60 py-20 sm:py-24 scroll-mt-24">
+            <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+                <div class="mx-auto max-w-2xl text-center">
+                    <p class="text-[11px] font-bold uppercase tracking-[0.3em] text-brand-gold sm:text-xs">Nie tylko wizytówka</p>
+                    <h2 class="mt-4 font-display text-2xl font-bold tracking-tight text-brand-ink sm:text-3xl lg:text-4xl">Silnik operacyjny Twojej firmy</h2>
+                    <p class="mt-4 text-sm leading-relaxed text-zinc-600 sm:text-base">
+                        DFCMS to więcej niż zastępstwo skomplikowanego kreatora — to narzędzia, które codziennie pracują na Twoje przychody i spokój głowy.
+                    </p>
+                </div>
+                <div class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+                    <template x-for="mod in engineModules" :key="mod.id">
+                        <article class="rounded-2xl border border-zinc-200/80 bg-white p-7 shadow-sm ring-1 ring-zinc-900/[0.03] transition-shadow hover:shadow-md sm:p-8">
+                            <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-gold/10 text-brand-ink" x-html="moduleIcon(mod.icon)"></div>
+                            <h3 class="font-display text-lg font-bold text-brand-ink" x-text="mod.title"></h3>
+                            <p class="mt-3 text-sm leading-relaxed text-zinc-600" x-text="mod.desc"></p>
+                        </article>
+                    </template>
+                </div>
+            </div>
+        </section>
+
+        <!-- Porównanie -->
+        <section id="porownanie" class="border-t border-zinc-100 bg-white py-20 sm:py-24 scroll-mt-24">
+            <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+                <div class="mx-auto max-w-2xl text-center">
+                    <h2 class="font-display text-2xl font-bold tracking-tight text-brand-ink sm:text-3xl">DFCMS vs tradycyjny hosting i kreator</h2>
+                    <p class="mt-4 text-sm leading-relaxed text-zinc-600">Przejrzysta alternatywa dla modelu „pierwszy rok za 2 zł” i godzin spędzonych na układaniu sekcji.</p>
+                </div>
+                <div class="mt-12 overflow-hidden rounded-2xl border border-zinc-200/90 shadow-sm ring-1 ring-zinc-900/5">
+                    <div class="hidden grid-cols-[1.2fr_1fr_1fr] gap-0 border-b border-zinc-200 bg-zinc-50/90 px-6 py-4 text-xs font-bold uppercase tracking-widest text-zinc-500 sm:grid">
+                        <span></span>
+                        <span class="text-brand-ink">DFCMS</span>
+                        <span>Hosting + kreator</span>
+                    </div>
+                    <template x-for="(row, i) in comparisonRows" :key="row.label">
+                        <div class="grid grid-cols-1 gap-3 border-b border-zinc-100 px-5 py-5 last:border-b-0 sm:grid-cols-[1.2fr_1fr_1fr] sm:items-center sm:gap-4 sm:px-6" :class="i % 2 === 1 ? 'bg-zinc-50/40' : 'bg-white'">
+                            <p class="text-sm font-semibold text-brand-ink" x-text="row.label"></p>
+                            <p class="text-sm leading-relaxed text-zinc-700 sm:border-l sm:border-zinc-100 sm:pl-4">
+                                <span class="mb-1 inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-800 sm:hidden">DFCMS</span>
+                                <span x-text="row.dfcms"></span>
+                            </p>
+                            <p class="text-sm leading-relaxed text-zinc-500 sm:border-l sm:border-zinc-100 sm:pl-4">
+                                <span class="mb-1 inline-block rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-600 sm:hidden">Kreator</span>
+                                <span x-text="row.legacy"></span>
+                            </p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </section>
+
+        <!-- Zaprojektowane dla Twojej Niszy -->
+        <section id="nisze" class="border-t border-zinc-100 bg-zinc-50/80 py-20 sm:py-24 scroll-mt-24">
+            <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+                <div class="mx-auto max-w-2xl text-center">
+                    <p class="text-[11px] font-bold uppercase tracking-[0.3em] text-brand-gold sm:text-xs">Zero uniwersalnych szablonów</p>
+                    <h2 class="mt-4 font-display text-2xl font-bold tracking-tight text-brand-ink sm:text-3xl lg:text-4xl">Zaprojektowane dla Twojej niszy</h2>
+                    <p class="mt-4 text-sm leading-relaxed text-zinc-600 sm:text-base">
+                        Sześć dedykowanych układów — każdy z sekcjami, których faktycznie potrzebuje dana branża. Wybierasz niszę, uzupełniasz dane, publikujesz.
+                    </p>
+                </div>
+                <div class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+                    <template x-for="niche in niches" :key="niche.id">
+                        <article class="group flex flex-col overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm ring-1 ring-zinc-900/5 transition-shadow duration-300 hover:shadow-lift">
+                            <div class="relative aspect-[16/10] w-full overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-br" :class="niche.gradient" aria-hidden="true"></div>
+                                <div class="absolute bottom-3 left-4 text-[10px] font-bold uppercase tracking-[0.28em]" :class="niche.light ? 'text-zinc-500' : niche.accent" x-text="niche.name"></div>
+                            </div>
+                            <div class="flex flex-1 flex-col p-6 sm:p-7">
+                                <h3 class="font-display text-lg font-bold text-brand-ink" x-text="niche.name"></h3>
+                                <p class="mt-2 flex-1 text-sm leading-relaxed text-zinc-600" x-text="niche.desc"></p>
+                                <a
+                                    :href="niche.demoHref"
+                                    :target="niche.external ? '_blank' : '_self'"
+                                    :rel="niche.external ? 'noopener noreferrer' : null"
+                                    class="mt-6 inline-flex w-full items-center justify-center rounded-xl border border-zinc-200 bg-white px-5 py-3.5 text-xs font-bold uppercase tracking-widest text-brand-ink transition hover:border-brand-gold hover:bg-zinc-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2"
+                                    x-text="niche.demoLabel"
+                                ></a>
+                            </div>
+                        </article>
+                    </template>
+                </div>
             </div>
         </section>
 
         <!-- Jak to działa -->
-        <section id="jak" class="border-t border-zinc-100 bg-zinc-50/80 py-16 sm:py-20">
+        <section id="jak" class="border-t border-zinc-100 bg-white py-16 sm:py-20 scroll-mt-24">
             <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-                <h2 class="font-display text-center text-2xl font-bold tracking-tight text-brand-ink sm:text-3xl">Jak to działa</h2>
-                <p class="mx-auto mt-3 max-w-xl text-center text-sm text-zinc-600">Trzy krótkie kroki — od pomysłu do strony online.</p>
-                <div class="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 lg:gap-10">
-                    <article class="rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-sm ring-1 ring-zinc-900/5 sm:p-8">
+                <h2 class="font-display text-center text-2xl font-bold tracking-tight text-brand-ink sm:text-3xl">Trzy kroki do spokoju</h2>
+                <p class="mx-auto mt-3 max-w-xl text-center text-sm text-zinc-600">Bez programisty. Bez migracji z hostingu. Bez układania klocków.</p>
+                <div class="mt-12 grid gap-8 sm:grid-cols-3 lg:gap-10">
+                    <article class="rounded-2xl border border-zinc-200/80 bg-zinc-50/50 p-6 sm:p-8">
                         <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-gold/15 text-lg font-bold text-brand-ink">1</div>
                         <h3 class="font-display text-lg font-bold text-brand-ink">Załóż konto</h3>
-                        <p class="mt-2 text-sm leading-relaxed text-zinc-600">Szybka rejestracja w ok. 30 sekund — e-mail, hasło i adres Twojej przyszłej strony.</p>
+                        <p class="mt-2 text-sm leading-relaxed text-zinc-600">Rejestracja w minutę — od razu dostajesz subdomenę i szablon pod wybraną branżę.</p>
                     </article>
-                    <article class="rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-sm ring-1 ring-zinc-900/5 sm:p-8">
+                    <article class="rounded-2xl border border-zinc-200/80 bg-zinc-50/50 p-6 sm:p-8">
                         <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-gold/15 text-lg font-bold text-brand-ink">2</div>
                         <h3 class="font-display text-lg font-bold text-brand-ink">Uzupełnij profil</h3>
-                        <p class="mt-2 text-sm leading-relaxed text-zinc-600">Wpisz nazwę, dodaj zdjęcia i opis usług — prowadzimy Cię przez prosty kreator krok po kroku.</p>
+                        <p class="mt-2 text-sm leading-relaxed text-zinc-600">Nazwa, zdjęcia, cennik, godziny — kreator prowadzi Cię jak concierge, nie jak panel hostingu.</p>
                     </article>
-                    <article class="rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-sm ring-1 ring-zinc-900/5 sm:col-span-2 sm:p-8 lg:col-span-1">
+                    <article class="rounded-2xl border border-zinc-200/80 bg-zinc-50/50 p-6 sm:p-8">
                         <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-gold/15 text-lg font-bold text-brand-ink">3</div>
-                        <h3 class="font-display text-lg font-bold text-brand-ink">Strona gotowa!</h3>
-                        <p class="mt-2 text-sm leading-relaxed text-zinc-600">Twój biznes jest online pod własnym adresem — edytujesz treści w panelu, kiedy chcesz.</p>
+                        <h3 class="font-display text-lg font-bold text-brand-ink">Publikujesz i działasz</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-zinc-600">Strona online, opinie i rezerwacje skonfigurowane — Ty skupiasz się na klientach.</p>
                     </article>
                 </div>
-            </div>
-        </section>
-
-        <!-- Demo na żywo -->
-        <section id="demo" class="border-t border-zinc-100 bg-white py-16 sm:py-20 scroll-mt-24">
-            <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-                <p class="text-center text-[11px] font-bold uppercase tracking-[0.3em] text-brand-gold sm:text-xs">
-                    Wybierz branżę i zobacz magię na żywo
-                </p>
-                <h2 class="mt-4 text-center font-display text-2xl font-bold tracking-tight text-brand-ink sm:text-3xl lg:text-4xl">
-                    Gotowe szablony, które sprzedają za Ciebie.
-                </h2>
-                <p class="mx-auto mt-4 max-w-2xl text-center text-sm leading-relaxed text-zinc-600 sm:text-base">
-                    Kliknij i zobacz, jak może wyglądać Twoja strona w kilka sekund. Wszystko, co widzisz, wygenerowaliśmy w DFCMS.
-                </p>
-
-                <div class="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
-                    <!-- Beauty -->
-                    <article class="group flex flex-col overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm ring-1 ring-zinc-900/5 transition-shadow duration-300 hover:shadow-lift">
-                        <div class="relative aspect-video w-full overflow-hidden">
-                            <div
-                                class="absolute inset-0 bg-gradient-to-br from-rose-100 via-fuchsia-50 to-amber-50/80"
-                                aria-hidden="true"
-                            ></div>
-                            <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.55),transparent_55%)] opacity-90" aria-hidden="true"></div>
-                            <div class="absolute bottom-3 left-4 text-[10px] font-bold uppercase tracking-[0.28em] text-rose-950/35">
-                                Beauty
-                            </div>
-                        </div>
-                        <div class="flex flex-1 flex-col p-6 sm:p-7">
-                            <h3 class="font-display text-lg font-bold text-brand-ink">Salon Urody / SPA</h3>
-                            <p class="mt-2 flex-1 text-sm leading-relaxed text-zinc-600">
-                                Delikatny design, cennik i galeria zdjęć.
-                            </p>
-                            <a
-                                href="?site=demo-beauty"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-brand-ink px-5 py-3.5 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2"
-                            >
-                                Zobacz stronę na żywo
-                            </a>
-                        </div>
-                    </article>
-
-                    <!-- Fitness -->
-                    <article class="group flex flex-col overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm ring-1 ring-zinc-900/5 transition-shadow duration-300 hover:shadow-lift">
-                        <div class="relative aspect-video w-full overflow-hidden">
-                            <div
-                                class="absolute inset-0 bg-gradient-to-br from-zinc-900 via-emerald-950/90 to-lime-950/80"
-                                aria-hidden="true"
-                            ></div>
-                            <div
-                                class="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-lime-400/25 blur-2xl"
-                                aria-hidden="true"
-                            ></div>
-                            <div
-                                class="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-cyan-500/15 to-transparent"
-                                aria-hidden="true"
-                            ></div>
-                            <div class="absolute bottom-3 left-4 text-[10px] font-bold uppercase tracking-[0.28em] text-lime-300/65">
-                                Fitness
-                            </div>
-                        </div>
-                        <div class="flex flex-1 flex-col p-6 sm:p-7">
-                            <h3 class="font-display text-lg font-bold text-brand-ink">Trener Personalny</h3>
-                            <p class="mt-2 flex-1 text-sm leading-relaxed text-zinc-600">
-                                Mocny neon, grafik zajęć i sekcja dla klientów.
-                            </p>
-                            <a
-                                href="?site=demo-fitness"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-brand-ink px-5 py-3.5 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2"
-                            >
-                                Zobacz stronę na żywo
-                            </a>
-                        </div>
-                    </article>
-
-                    <!-- Usługi / Złota rączka -->
-                    <article class="group flex flex-col overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm ring-1 ring-zinc-900/5 transition-shadow duration-300 hover:shadow-lift md:col-span-2 lg:col-span-1">
-                        <div class="relative aspect-video w-full overflow-hidden">
-                            <div
-                                class="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-amber-950/50"
-                                aria-hidden="true"
-                            ></div>
-                            <div
-                                class="absolute right-0 top-0 h-full w-2/3 bg-gradient-to-l from-amber-500/30 to-transparent"
-                                aria-hidden="true"
-                            ></div>
-                            <div class="absolute bottom-3 left-4 text-[10px] font-bold uppercase tracking-[0.28em] text-amber-200/55">
-                                Usługi
-                            </div>
-                        </div>
-                        <div class="flex flex-1 flex-col p-6 sm:p-7">
-                            <h3 class="font-display text-lg font-bold text-brand-ink">Złota Rączka</h3>
-                            <p class="mt-2 flex-1 text-sm leading-relaxed text-zinc-600">
-                                Zaufanie klientów, realizacje i FAQ pod lokalny biznes.
-                            </p>
-                            <a
-                                href="?site=demo-services"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-brand-ink px-5 py-3.5 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2"
-                            >
-                                Zobacz stronę na żywo
-                            </a>
-                        </div>
-                    </article>
-                </div>
-
-                <p class="mx-auto mt-10 max-w-2xl text-center text-xs leading-relaxed text-zinc-400 sm:text-sm">
-                    I wiele więcej w przygotowaniu (Gastronomia, Konsultacje, Nieruchomości)…
-                </p>
             </div>
         </section>
 
         <!-- Cennik -->
-        <section id="cennik" class="py-16 sm:py-20" x-data="landingPricing()">
+        <section id="cennik" class="border-t border-zinc-100 bg-zinc-50/50 py-20 sm:py-24 scroll-mt-24">
             <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-                <h2 class="font-display text-center text-2xl font-bold tracking-tight text-brand-ink sm:text-3xl">Prosty cennik</h2>
-                <p class="mx-auto mt-3 max-w-xl text-center text-sm text-zinc-600">Starter, Standard lub Premium na zamówienie — wybierz okres rozliczenia i załóż konto w kilka minut.</p>
+                <div class="mx-auto max-w-2xl text-center">
+                    <h2 class="font-display text-2xl font-bold tracking-tight text-brand-ink sm:text-3xl">Przejrzysty cennik concierge</h2>
+                    <p class="mt-4 text-sm leading-relaxed text-zinc-600">Stała stawka — bez promocji „pierwszy rok za 2 zł” i bez niespodzianek po odnowieniu. Funkcje premium w standardzie, nie jako drogie dodatki.</p>
+                </div>
 
-                <div class="mt-8 flex flex-col items-center gap-2" role="group" aria-label="Okres rozliczenia">
-                    <div class="inline-flex max-w-full flex-wrap items-center justify-center gap-1 rounded-full border border-zinc-200/90 bg-zinc-50/95 p-1 shadow-sm ring-1 ring-zinc-900/5">
+                <div class="mt-10 flex flex-col items-center gap-2" role="group" aria-label="Okres rozliczenia">
+                    <div class="inline-flex max-w-full flex-wrap items-center justify-center gap-1 rounded-full border border-zinc-200/90 bg-white p-1 shadow-sm ring-1 ring-zinc-900/5">
                         <button type="button" @click="billingInterval = 'monthly'" :aria-pressed="billingInterval === 'monthly'" :class="billingInterval === 'monthly' ? 'bg-white text-brand-ink shadow-sm ring-1 ring-zinc-200/80' : 'text-zinc-600 hover:text-brand-ink'" class="rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-wide transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/50 sm:text-xs">Płatność miesięczna</button>
                         <button type="button" @click="billingInterval = 'yearly'" :aria-pressed="billingInterval === 'yearly'" :class="billingInterval === 'yearly' ? 'bg-brand-gold text-brand-ink shadow-sm ring-1 ring-brand-gold/40' : 'text-zinc-600 hover:text-brand-ink'" class="rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-wide transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/50 sm:text-xs">Płatność roczna <span class="font-semibold normal-case tracking-normal opacity-90">(−20%)</span></button>
                     </div>
                     <p class="text-center text-[11px] text-zinc-500" x-show="billingInterval === 'yearly'" x-cloak>Roczna opłata z rabatem 20% — rozliczenie jednorazowo na 12 miesięcy.</p>
                 </div>
 
-                <div class="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
-                    <!-- Starter -->
-                    <article class="flex flex-col rounded-2xl border border-zinc-200 bg-white p-8 shadow-lift ring-1 ring-zinc-900/5 sm:p-9">
-                        <p class="text-xs font-bold uppercase tracking-widest text-zinc-500">Starter</p>
-                        <p class="mt-1 text-sm text-zinc-600">Wejście w CMS</p>
-                        <div class="mt-5 border-b border-zinc-100 pb-5">
-                            <div x-show="billingInterval === 'monthly'">
-                                <p class="font-display text-4xl font-bold tabular-nums text-brand-ink">29 zł<span class="text-lg font-semibold text-zinc-500"> / msc</span></p>
-                            </div>
-                            <div x-show="billingInterval === 'yearly'" x-cloak>
-                                <p class="text-xs font-medium text-zinc-400 line-through tabular-nums">348 zł</p>
-                                <p class="font-display text-4xl font-bold tabular-nums text-brand-ink">278,40 zł<span class="text-lg font-semibold text-zinc-500"> / rok</span></p>
-                                <p class="mt-1 text-xs font-medium text-emerald-800/90">23,20 zł / mc przy płatności rocznej</p>
-                            </div>
-                            <p class="mt-2 text-xs text-zinc-500">netto · +23% VAT</p>
-                            <p class="mt-1 text-xs font-medium text-zinc-600">14 dni trialu przy rejestracji — bez karty</p>
-                        </div>
-                        <ul class="mt-6 flex-1 space-y-3 text-sm text-zinc-600">
-                            <li class="flex gap-2"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span><span><strong class="text-brand-ink">Adres strony</strong> na subdomenie <strong class="text-brand-ink">.dfcms.pl</strong> (bez własnej domeny)</span></li>
-                            <li class="flex gap-2"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span><span><strong class="text-brand-ink">Podstawowy motyw</strong> — jedna paleta kolorów</span></li>
-                            <li class="flex gap-2"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span><span><strong class="text-brand-ink">Logo DFCMS</strong> w stopce strony</span></li>
-                            <li class="flex gap-2"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span><span>Panel CMS, hosting i certyfikat SSL</span></li>
-                        </ul>
-                        <a href="rejestracja.html" class="mt-8 inline-flex min-h-[3.25rem] items-center justify-center rounded-xl border-2 border-brand-ink bg-transparent px-6 py-3.5 text-xs font-bold uppercase tracking-widest text-brand-ink transition hover:bg-brand-ink hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/50">
-                            Wybierz Starter
-                        </a>
-                    </article>
+                <div class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+                    <template x-for="plan in plans" :key="plan.id">
+                        <article
+                            class="flex flex-col rounded-2xl p-8 sm:p-9"
+                            :class="{
+                                'relative overflow-hidden border-2 border-brand-gold bg-brand-ink text-white shadow-gold lg:-mt-1 lg:mb-1': plan.highlighted,
+                                'border border-zinc-200 bg-white shadow-lift ring-1 ring-zinc-900/5': !plan.highlighted && plan.variant !== 'custom',
+                                'border-2 border-dashed border-zinc-300 bg-gradient-to-b from-zinc-50 to-zinc-100/80 shadow-lift ring-1 ring-zinc-900/5 md:col-span-2 lg:col-span-1': plan.variant === 'custom'
+                            }"
+                        >
+                            <div x-show="plan.badge" x-cloak class="absolute right-4 top-4 rounded-full bg-brand-gold/20 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-brand-gold" x-text="plan.badge"></div>
 
-                    <!-- Standard -->
-                    <article class="relative flex flex-col overflow-hidden rounded-2xl border-2 border-brand-gold bg-brand-ink p-8 text-white shadow-gold sm:p-9 lg:-mt-1 lg:mb-1">
-                        <div class="absolute right-4 top-4 rounded-full bg-brand-gold/20 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-brand-gold">Polecane</div>
-                        <p class="text-xs font-bold uppercase tracking-widest text-zinc-400">Standard</p>
-                        <p class="mt-1 text-sm text-zinc-400">Rozwój marki</p>
-                        <div class="mt-5 border-b border-white/10 pb-5">
-                            <div x-show="billingInterval === 'monthly'">
-                                <p class="font-display text-4xl font-bold tabular-nums text-white">49 zł<span class="text-lg font-semibold text-zinc-400"> / msc</span></p>
-                            </div>
-                            <div x-show="billingInterval === 'yearly'" x-cloak>
-                                <p class="text-xs font-medium text-zinc-500 line-through tabular-nums">588 zł</p>
-                                <p class="font-display text-4xl font-bold tabular-nums text-white">470,40 zł<span class="text-lg font-semibold text-zinc-400"> / rok</span></p>
-                                <p class="mt-1 text-xs font-medium text-brand-gold/95">39,20 zł / mc przy płatności rocznej</p>
-                            </div>
-                            <p class="mt-2 text-xs text-zinc-400">netto · +23% VAT</p>
-                        </div>
-                        <ul class="mt-6 flex-1 space-y-3 text-sm text-zinc-300">
-                            <li class="flex gap-2"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span><span><strong class="text-white">Własna domena</strong> .pl / .com w cenie</span></li>
-                            <li class="flex gap-2"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span><span><strong class="text-white">Pełna paleta</strong> kolorów i motywów</span></li>
-                            <li class="flex gap-2"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span><span><strong class="text-white">Bez logo DFCMS</strong> na stronie publicznej</span></li>
-                            <li class="flex gap-2"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span><span>Wszystko ze Starter + <strong class="text-white">Asystent</strong> od 100 zł/h netto</span></li>
-                        </ul>
-                        <a href="rejestracja.html" class="mt-8 inline-flex min-h-[3.25rem] items-center justify-center rounded-xl bg-brand-gold px-6 py-3.5 text-xs font-bold uppercase tracking-widest text-brand-ink transition hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40">
-                            Wybierz Standard
-                        </a>
-                    </article>
+                            <p class="text-xs font-bold uppercase tracking-widest" :class="plan.highlighted ? 'text-zinc-400' : 'text-zinc-500'" x-text="plan.name"></p>
+                            <p class="mt-1 text-sm" :class="plan.highlighted ? 'text-zinc-400' : 'text-zinc-600'" x-text="plan.tagline"></p>
 
-                    <!-- Premium (na zamówienie) -->
-                    <article class="flex flex-col rounded-2xl border-2 border-dashed border-zinc-300 bg-gradient-to-b from-zinc-50 to-zinc-100/80 p-8 shadow-lift ring-1 ring-zinc-900/5 sm:p-9 md:col-span-2 lg:col-span-1">
-                        <p class="text-xs font-bold uppercase tracking-widest text-zinc-500">Premium</p>
-                        <p class="mt-1 text-sm text-zinc-600">Na zamówienie · Custom</p>
-                        <div class="mt-5 border-b border-zinc-200/80 pb-5">
-                            <p class="font-display text-3xl font-bold leading-tight text-brand-ink sm:text-4xl">Wycena indywidualna</p>
-                            <p class="mt-2 text-xs text-zinc-500">Rozszerzenia, wdrożenie i wsparcie dopasowane do procesu</p>
-                        </div>
-                        <ul class="mt-6 flex-1 space-y-3 text-sm text-zinc-600">
-                            <li class="flex gap-2"><span class="shrink-0 text-zinc-400" aria-hidden="true">◇</span><span>Indywidualne wdrożenie i integracje</span></li>
-                            <li class="flex gap-2"><span class="shrink-0 text-zinc-400" aria-hidden="true">◇</span><span>Rozszerzenia pod Twój model pracy</span></li>
-                            <li class="flex gap-2"><span class="shrink-0 text-zinc-400" aria-hidden="true">◇</span><span>Bez samoobsługowej subskrypcji — kontakt z zespołem</span></li>
-                        </ul>
-                        <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                            <a href="zapytanie-custom.html" class="inline-flex min-h-[3.25rem] flex-1 items-center justify-center rounded-xl border-2 border-zinc-300 bg-white px-5 py-3.5 text-center text-xs font-bold uppercase tracking-widest text-brand-ink shadow-sm transition hover:border-brand-gold hover:text-brand-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/50">
-                                Formularz zapytania
-                            </a>
-                            <a href="mailto:kontakt@dfops.eu?subject=DFCMS%20%E2%80%94%20pakiet%20Premium" class="inline-flex min-h-[3.25rem] flex-1 items-center justify-center rounded-xl border-2 border-transparent bg-brand-ink px-5 py-3.5 text-center text-xs font-bold uppercase tracking-widest text-white transition hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/50">
-                                Napisz do nas
-                            </a>
-                        </div>
-                    </article>
+                            <div class="mt-5 border-b pb-5" :class="plan.highlighted ? 'border-white/10' : 'border-zinc-100'">
+                                <template x-if="plan.monthly != null">
+                                    <div>
+                                        <div x-show="billingInterval === 'monthly'">
+                                            <p class="font-display text-4xl font-bold tabular-nums" :class="plan.highlighted ? 'text-white' : 'text-brand-ink'">
+                                                <span x-text="formatPln(plan.monthly)"></span> zł<span class="text-lg font-semibold" :class="plan.highlighted ? 'text-zinc-400' : 'text-zinc-500'"> / msc</span>
+                                            </p>
+                                        </div>
+                                        <div x-show="billingInterval === 'yearly'" x-cloak>
+                                            <p class="text-xs font-medium line-through tabular-nums" :class="plan.highlighted ? 'text-zinc-500' : 'text-zinc-400'" x-text="formatPln(plan.yearlyStrike) + ' zł'"></p>
+                                            <p class="font-display text-4xl font-bold tabular-nums" :class="plan.highlighted ? 'text-white' : 'text-brand-ink'">
+                                                <span x-text="formatPln(plan.yearlyTotal)"></span> zł<span class="text-lg font-semibold" :class="plan.highlighted ? 'text-zinc-400' : 'text-zinc-500'"> / rok</span>
+                                            </p>
+                                            <p class="mt-1 text-xs font-medium" :class="plan.highlighted ? 'text-brand-gold/95' : 'text-emerald-800/90'" x-text="formatPln(plan.yearlyPerMonth) + ' zł / mc przy płatności rocznej'"></p>
+                                        </div>
+                                        <p class="mt-2 text-xs" :class="plan.highlighted ? 'text-zinc-400' : 'text-zinc-500'">netto · +23% VAT</p>
+                                        <p x-show="plan.trialNote" class="mt-1 text-xs font-medium" :class="plan.highlighted ? 'text-zinc-300' : 'text-zinc-600'" x-text="plan.trialNote"></p>
+                                    </div>
+                                </template>
+                                <template x-if="plan.customTitle">
+                                    <div>
+                                        <p class="font-display text-3xl font-bold leading-tight sm:text-4xl" :class="plan.highlighted ? 'text-white' : 'text-brand-ink'" x-text="plan.customTitle"></p>
+                                        <p class="mt-2 text-xs text-zinc-500" x-text="plan.customSub"></p>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <ul class="mt-6 flex-1 space-y-3 text-sm" :class="plan.highlighted ? 'text-zinc-300' : 'text-zinc-600'">
+                                <template x-for="(feat, fi) in plan.features" :key="fi">
+                                    <li class="flex gap-2">
+                                        <span class="shrink-0" :class="plan.variant === 'custom' ? 'text-zinc-400' : 'text-brand-gold'" aria-hidden="true" x-text="plan.variant === 'custom' ? '◇' : '✓'"></span>
+                                        <span>
+                                            <strong x-show="feat.strong" :class="plan.highlighted ? 'text-white' : 'text-brand-ink'" x-text="feat.strong"></strong><span x-text="feat.text || ''"></span>
+                                        </span>
+                                    </li>
+                                </template>
+                            </ul>
+
+                            <template x-if="plan.cta">
+                                <a
+                                    :href="plan.href"
+                                    class="mt-8 inline-flex min-h-[3.25rem] items-center justify-center rounded-xl px-6 py-3.5 text-xs font-bold uppercase tracking-widest transition focus:outline-none focus-visible:ring-2"
+                                    :class="plan.variant === 'gold'
+                                        ? 'bg-brand-gold text-brand-ink hover:brightness-110 focus-visible:ring-white/40'
+                                        : 'border-2 border-brand-ink bg-transparent text-brand-ink hover:bg-brand-ink hover:text-white focus-visible:ring-brand-gold/50'"
+                                    x-text="plan.cta"
+                                ></a>
+                            </template>
+                            <div x-show="plan.links" x-cloak class="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                                <template x-for="link in (plan.links || [])" :key="link.href">
+                                    <a
+                                        :href="link.href"
+                                        class="inline-flex min-h-[3.25rem] flex-1 items-center justify-center rounded-xl px-5 py-3.5 text-center text-xs font-bold uppercase tracking-widest transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/50"
+                                        :class="link.variant === 'dark'
+                                            ? 'border-2 border-transparent bg-brand-ink text-white hover:bg-zinc-800'
+                                            : 'border-2 border-zinc-300 bg-white text-brand-ink shadow-sm hover:border-brand-gold'"
+                                        x-text="link.label"
+                                    ></a>
+                                </template>
+                            </div>
+                        </article>
+                    </template>
                 </div>
-                <p class="mt-8 text-center text-xs text-zinc-500">Ceny netto. Po rejestracji wybierzesz plan i okres rozliczenia w panelu — zgodnie z aktualną ofertą.</p>
+                <p class="mt-10 text-center text-xs leading-relaxed text-zinc-500">Ceny netto. Po rejestracji wybierzesz plan w panelu — bez ukrytych opłat za SSL, hosting czy „aktywację strony”.</p>
             </div>
         </section>
 
         <!-- FAQ -->
-        <section id="faq" class="border-t border-zinc-100 bg-zinc-50/80 py-16 sm:py-20" x-data="{ open: null }">
+        <section id="faq" class="border-t border-zinc-100 bg-white py-16 sm:py-20 scroll-mt-24" x-data="{ open: null }">
             <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
                 <h2 class="font-display text-center text-2xl font-bold tracking-tight text-brand-ink sm:text-3xl">Często zadawane pytania</h2>
                 <div class="mt-10 space-y-3">
-                    <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
-                        <button
-                            type="button"
-                            class="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-sm font-semibold text-brand-ink sm:text-base"
-                            @click="open = open === 1 ? null : 1"
-                            :aria-expanded="open === 1"
-                        >
-                            Czy muszę podać kartę przy rejestracji?
+                    <div class="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50/50 shadow-sm">
+                        <button type="button" class="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-sm font-semibold text-brand-ink sm:text-base" @click="open = open === 1 ? null : 1" :aria-expanded="open === 1">
+                            Czym DFCMS różni się od Wixa czy home.pl?
                             <span class="text-brand-gold" x-text="open === 1 ? '−' : '+'" aria-hidden="true"></span>
                         </button>
-                        <div x-show="open === 1" x-transition class="border-t border-zinc-100">
-                            <p class="px-5 py-4 text-sm leading-relaxed text-zinc-600">Nie, okres próbny jest całkowicie darmowy i nie wymaga karty.</p>
+                        <div x-show="open === 1" x-transition class="border-t border-zinc-100 bg-white">
+                            <p class="px-5 py-4 text-sm leading-relaxed text-zinc-600">Nie dostajesz pustego kreatora z setkami szablonów do składania. Wybierasz niszę — dostajesz gotowy układ z opiniami Google, rezerwacjami i mapą. Stała cena zamiast promocji „pierwszy rok za 2 zł” z podwyżką po odnowieniu.</p>
                         </div>
                     </div>
-                    <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
-                        <button
-                            type="button"
-                            class="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-sm font-semibold text-brand-ink sm:text-base"
-                            @click="open = open === 2 ? null : 2"
-                            :aria-expanded="open === 2"
-                        >
-                            Czy mogę podpiąć własną domenę?
+                    <div class="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50/50 shadow-sm">
+                        <button type="button" class="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-sm font-semibold text-brand-ink sm:text-base" @click="open = open === 2 ? null : 2" :aria-expanded="open === 2">
+                            Czy muszę podać kartę przy rejestracji?
                             <span class="text-brand-gold" x-text="open === 2 ? '−' : '+'" aria-hidden="true"></span>
                         </button>
-                        <div x-show="open === 2" x-transition class="border-t border-zinc-100">
-                            <p class="px-5 py-4 text-sm leading-relaxed text-zinc-600">Tak, w pakiecie Standard pomożemy Ci podpiąć Twoją własną domenę .pl lub .com.</p>
+                        <div x-show="open === 2" x-transition class="border-t border-zinc-100 bg-white">
+                            <p class="px-5 py-4 text-sm leading-relaxed text-zinc-600">Nie. 14 dni trialu jest darmowe — uruchamiasz stronę na subdomenie i testujesz bez zobowiązań.</p>
                         </div>
                     </div>
-                    <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
-                        <button
-                            type="button"
-                            class="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-sm font-semibold text-brand-ink sm:text-base"
-                            @click="open = open === 3 ? null : 3"
-                            :aria-expanded="open === 3"
-                        >
-                            Kto jest właścicielem treści?
+                    <div class="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50/50 shadow-sm">
+                        <button type="button" class="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-sm font-semibold text-brand-ink sm:text-base" @click="open = open === 3 ? null : 3" :aria-expanded="open === 3">
+                            Czy mogę podpiąć własną domenę?
                             <span class="text-brand-gold" x-text="open === 3 ? '−' : '+'" aria-hidden="true"></span>
                         </button>
-                        <div x-show="open === 3" x-transition class="border-t border-zinc-100">
-                            <p class="px-5 py-4 text-sm leading-relaxed text-zinc-600">Ty. Twoje dane i treści należą do Ciebie, możesz je wyeksportować w każdej chwili.</p>
+                        <div x-show="open === 3" x-transition class="border-t border-zinc-100 bg-white">
+                            <p class="px-5 py-4 text-sm leading-relaxed text-zinc-600">Tak — w pakiecie Standard pomagamy podpiąć domenę .pl lub .com. Bez osobnego hostingu i bez ręcznej konfiguracji DNS od zera.</p>
+                        </div>
+                    </div>
+                    <div class="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50/50 shadow-sm">
+                        <button type="button" class="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-sm font-semibold text-brand-ink sm:text-base" @click="open = open === 4 ? null : 4" :aria-expanded="open === 4">
+                            Kto jest właścicielem treści?
+                            <span class="text-brand-gold" x-text="open === 4 ? '−' : '+'" aria-hidden="true"></span>
+                        </button>
+                        <div x-show="open === 4" x-transition class="border-t border-zinc-100 bg-white">
+                            <p class="px-5 py-4 text-sm leading-relaxed text-zinc-600">Ty. Twoje dane i treści należą do Ciebie — możesz je wyeksportować w każdej chwili.</p>
                         </div>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <!-- CTA końcowe -->
+        <section class="border-t border-zinc-100 bg-brand-ink py-16 sm:py-20">
+            <div class="mx-auto max-w-2xl px-4 text-center sm:px-6">
+                <h2 class="font-display text-2xl font-bold text-white sm:text-3xl">Święty spokój zamiast kolejnego kreatora</h2>
+                <p class="mt-4 text-sm leading-relaxed text-zinc-400 sm:text-base">Uruchom stronę pod swoją branżę w minutę. Resztę — hosting, SSL, aktualizacje — bierzemy na siebie.</p>
+                <a href="rejestracja.html" class="mt-8 inline-flex items-center justify-center rounded-2xl bg-brand-gold px-8 py-4 text-sm font-bold uppercase tracking-widest text-brand-ink shadow-gold transition hover:brightness-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-brand-ink">
+                    Uruchom stronę za darmo
+                </a>
             </div>
         </section>
     </main>
@@ -448,7 +444,7 @@
         <div class="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
             <div class="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                    <p class="font-display text-lg font-bold text-white"><span class="text-brand-gold">DF</span>CMS</p>
+                    <p class="font-display text-lg font-bold text-white flex items-center gap-2"><img src="/favicon.svg" alt="" width="24" height="24" class="rounded" aria-hidden="true"><span><span class="text-brand-gold">DF</span>CMS</span></p>
                     <p class="mt-3 text-sm leading-relaxed">Dragonfly Operations</p>
                 </div>
                 <nav class="flex flex-col gap-3 text-sm sm:items-end" aria-label="Stopka">
@@ -464,7 +460,30 @@
     <script>
         document.getElementById('y').textContent = new Date().getFullYear();
     </script>
-    <script defer src="js/features/landingPricing.js?v=20260522a"></script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "DFCMS",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "url": "https://dfcms.pl/",
+        "description": "Concierge CMS dla lokalnego biznesu — gotowa strona branżowa w 60 sekund, opinie Google, rezerwacje i panel bez układania klocków.",
+        "offers": {
+            "@type": "AggregateOffer",
+            "priceCurrency": "PLN",
+            "lowPrice": "29",
+            "highPrice": "49",
+            "offerCount": "2"
+        },
+        "provider": {
+            "@type": "Organization",
+            "name": "Dragonfly Operations Sp. z o.o.",
+            "url": "https://dfcms.pl/"
+        }
+    }
+    </script>
+    <script defer src="js/features/landingPricing.js?v=20260616a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 </body>
 </html>
