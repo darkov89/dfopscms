@@ -186,8 +186,8 @@
                                             @click="selectColorPreset(preset)"
                                             class="relative rounded-lg border-2 p-3 text-left transition-all hover:border-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2"
                                             :class="{
-                                                'border-accent ring-1 ring-accent/25': content.pl.settings.color_preset === preset.id,
-                                                'border-slate-200/80': content.pl.settings.color_preset !== preset.id
+                                                'border-accent ring-1 ring-accent/25': isColorPresetActive(preset),
+                                                'border-slate-200/80': !isColorPresetActive(preset)
                                             }">
                                         <div class="flex items-center gap-2">
                                             <div class="h-8 w-8 shrink-0 rounded-md border border-slate-200 shadow-inner" :style="'background:' + presetSwatchColor(preset.id)"></div>
@@ -1173,8 +1173,8 @@
                                                         @click="selectColorPreset(preset)"
                                                         class="relative rounded-sm border-2 p-3 text-left transition-all hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
                                                         :class="{
-                                                            'border-[#D4AF37] ring-1 ring-[#D4AF37]/30': content.pl.settings.color_preset === preset.id,
-                                                            'border-gray-200': content.pl.settings.color_preset !== preset.id
+                                                            'border-[#D4AF37] ring-1 ring-[#D4AF37]/30': isColorPresetActive(preset),
+                                                            'border-gray-200': !isColorPresetActive(preset)
                                                         }">
                                                     <div class="flex items-center gap-2">
                                                         <div class="w-8 h-8 rounded-sm border border-gray-300 shrink-0 shadow-inner" :style="'background:' + presetSwatchColor(preset.id)"></div>

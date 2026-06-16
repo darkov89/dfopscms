@@ -83,123 +83,199 @@
     <template x-if="dataLoaded && !trialBlocked && content && content.pl">
         <div x-transition.opacity.duration.1000ms>
 
-        <nav class="fixed w-full z-50 backdrop-blur-md border-b" :class="paletteClass('nav')">
-            <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center gap-4">
-                <a href="#" class="flex items-center min-w-0 shrink-0" aria-label="Strona główna">
-                    <template x-if="content[lang].nav?.logoImage">
-                        <img :src="content[lang].nav.logoImage" alt="Logo" class="h-12 object-contain">
-                    </template>
-                    <template x-if="!content[lang].nav?.logoImage">
-                        <div class="font-display text-2xl truncate" :class="paletteClass('logo')" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].nav.logo)"></div>
-                    </template>
-                </a>
-                <div class="hidden md:flex items-center gap-6 text-sm font-semibold uppercase tracking-widest">
-                    <a href="#menu" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.menu || 'Menu'"></a>
-                    <a href="#lokalizacja" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.location || 'Lokalizacja'"></a>
-                    <a href="#kontakt" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></a>
-                </div>
-            </div>
-        </nav>
-
-        <header class="relative min-h-[85vh] flex items-end pt-28 pb-16 px-6 overflow-hidden">
-            <div class="absolute inset-0 z-0">
-                <template x-if="content[lang].hero?.image">
-                    <img :src="content[lang].hero.image" :alt="content[lang].hero.name || 'Restauracja'" class="absolute inset-0 w-full h-full object-cover" loading="eager">
-                </template>
-                <div class="absolute inset-0 bg-gradient-to-t" :class="paletteClass('heroOverlay')"></div>
-            </div>
-            <div class="relative z-10 max-w-5xl mx-auto w-full reveal">
-                <p class="text-xs font-bold uppercase tracking-[0.35em] mb-3" :class="paletteClass('tagline')" x-text="content[lang].hero.subheadline || content[lang].manifesto?.label || 'Gastronomia'"></p>
-                <h1 class="font-display text-5xl md:text-7xl leading-tight mb-3" :class="paletteClass('heading')" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].hero.headline)"></h1>
-                <h2 class="text-2xl md:text-3xl font-semibold mb-4" :class="paletteClass('name')" x-text="content[lang].hero.name"></h2>
-                <p class="text-lg max-w-2xl mb-8 leading-relaxed" :class="paletteClass('body')" x-text="content[lang].hero.description"></p>
-                <div class="inline-flex flex-col gap-1 rounded-lg border px-5 py-4 backdrop-blur-sm" x-show="content[lang].hours?.lines?.length" :class="paletteClass('hoursCard')">
-                    <p class="text-xs font-bold uppercase tracking-widest" :class="paletteClass('accentText')" x-text="content[lang].hours?.title || 'Godziny otwarcia'"></p>
-                    <template x-for="(line, hi) in (content[lang].hours?.lines || [])" :key="'h'+hi">
-                        <p class="text-sm font-medium" :class="paletteClass('body')" x-text="line"></p>
-                    </template>
-                </div>
-                <template x-if="heroCtaEnabled()">
-                    <a :href="resolveHeroButtonUrl()"
-                       :target="ctaLinkTarget(resolveHeroButtonUrl())"
-                       :rel="ctaLinkRel(resolveHeroButtonUrl())"
-                       class="mt-8 inline-flex items-center justify-center px-8 py-4 rounded-sm font-bold uppercase tracking-widest text-sm transition-colors"
-                       :class="[paletteClass('accentBg'), paletteClass('accentBgHover'), paletteClass('btnOnAccent')]">
-                        <span x-text="content[lang].hero.button || 'Zarezerwuj stolik'"></span>
+            <!-- NAV -->
+            <nav class="fixed w-full z-50 backdrop-blur-md border-b" :class="paletteClass('nav')">
+                <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center gap-4">
+                    <a href="#" class="flex items-center min-w-0 shrink-0" aria-label="Strona główna">
+                        <template x-if="content[lang].nav?.logoImage">
+                            <img :src="content[lang].nav.logoImage" alt="Logo" class="h-12 object-contain">
+                        </template>
+                        <template x-if="!content[lang].nav?.logoImage">
+                            <div class="font-display text-2xl truncate" :class="paletteClass('logo')" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].nav.logo)"></div>
+                        </template>
                     </a>
-                </template>
-            </div>
-        </header>
-
-        <section id="menu" class="py-20 md:py-28 px-6 border-t" :class="paletteClass('sectionAlt')">
-            <div class="max-w-5xl mx-auto">
-                <div class="text-center mb-14 reveal">
-                    <p class="text-xs font-bold uppercase tracking-[0.3em] mb-2" :class="paletteClass('accentText')">Karta dań</p>
-                    <h2 class="font-display text-4xl md:text-5xl" :class="paletteClass('heading')" x-text="content[lang].nav?.menu?.menu || 'Menu'"></h2>
+                    <div class="hidden md:flex items-center gap-6 text-sm font-semibold uppercase tracking-widest">
+                        <a href="#menu" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.menu || 'Menu'"></a>
+                        <a href="#zamowienia" class="transition-colors" :class="paletteClass('navLink')">Zamówienia</a>
+                        <a href="#lokalizacja" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.location || 'Lokalizacja'"></a>
+                        <a href="#kontakt" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></a>
+                    </div>
                 </div>
-                <div class="space-y-2">
-                    <template x-for="(item, index) in (content[lang].menu_items || [])" :key="index">
-                        <div>
-                            <h3
-                                class="font-display text-2xl border-b pb-2 mb-4 mt-8 first:mt-0"
-                                :class="[paletteClass('accentText'), paletteClass('borderAccent')]"
-                                x-show="index === 0 || item.category !== content[lang].menu_items[index - 1].category"
-                                x-text="item.category"
-                            ></h3>
-                            <article class="reveal group flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 py-5 border-b transition-colors" :class="[paletteClass('borderMuted'), paletteClass('itemHover')]">
-                                <div class="flex-1 min-w-0">
-                                    <h4 class="text-xl font-bold transition-colors" :class="paletteClass('heading')" x-text="item.name"></h4>
-                                    <p class="text-sm mt-1 leading-relaxed" :class="paletteClass('muted')" x-text="item.ingredients"></p>
-                                </div>
-                                <p class="shrink-0 text-lg font-bold tabular-nums" :class="paletteClass('accentText2')" x-text="item.price"></p>
-                            </article>
+            </nav>
+
+            <!-- HERO (restauracja) -->
+            <header class="relative min-h-[92vh] flex items-end pt-28 pb-16 px-6 overflow-hidden">
+                <div class="absolute inset-0 z-0">
+                    <template x-if="content[lang].hero?.image">
+                        <img :src="content[lang].hero.image" :alt="content[lang].hero.name || 'Restauracja'" class="absolute inset-0 w-full h-full object-cover" loading="eager">
+                    </template>
+                    <div class="absolute inset-0 bg-gradient-to-t" :class="paletteClass('heroOverlay')"></div>
+                </div>
+
+                <div class="relative z-10 max-w-5xl mx-auto w-full reveal text-center">
+                    <p class="text-xs font-bold uppercase tracking-[0.35em] mb-4" :class="paletteClass('tagline')" x-text="content[lang].hero.subheadline || content[lang].manifesto?.label || 'Gastronomia'"></p>
+                    <h1 class="font-display text-5xl md:text-7xl leading-tight mb-4" :class="paletteClass('heading')" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].hero.headline)"></h1>
+                    <h2 class="text-2xl md:text-3xl font-semibold mb-6" :class="paletteClass('name')" x-text="content[lang].hero.name"></h2>
+
+                    <div class="mx-auto max-w-3xl">
+                        <p class="text-lg leading-relaxed mb-10" :class="paletteClass('body')" x-text="content[lang].hero.description"></p>
+                    </div>
+
+                    <!-- GODZINY -->
+                    <div class="mx-auto max-w-xl rounded-xl border px-6 py-5 backdrop-blur-sm" x-show="content[lang].hours?.lines?.length" :class="paletteClass('hoursCard')">
+                        <p class="text-xs font-bold uppercase tracking-widest mb-3" :class="paletteClass('accentText')" x-text="content[lang].hours?.title || 'Godziny otwarcia'"></p>
+                        <div class="grid gap-1">
+                            <template x-for="(line, hi) in (content[lang].hours?.lines || [])" :key="'h'+hi">
+                                <p class="text-sm font-medium" :class="paletteClass('body')" x-text="line"></p>
+                            </template>
                         </div>
-                    </template>
-                </div>
-            </div>
-        </section>
-
-        <section id="lokalizacja" class="py-20 md:py-28 px-6 border-t" :class="paletteClass('section')">
-            <div class="max-w-5xl mx-auto reveal">
-                <p class="text-xs font-bold uppercase tracking-[0.3em] mb-2" :class="paletteClass('accentText')">Gdzie nas znaleźć</p>
-                <h2 class="font-display text-4xl mb-10" :class="paletteClass('heading')" x-text="content[lang].nav?.menu?.location || 'Lokalizacja'"></h2>
-                <div class="grid md:grid-cols-2 gap-8 items-start">
-                    <div class="space-y-4" :class="paletteClass('body')">
-                        <p class="text-lg leading-relaxed" x-text="content[lang].contact?.address"></p>
-                        <p x-show="content[lang].contact?.phone">
-                            Zamówienia / rezerwacje:
-                            <a :href="'tel:' + (content[lang].contact.phone || '').replace(/\s/g, '')" class="font-bold hover:underline" :class="paletteClass('accentText')" x-text="content[lang].contact.phone"></a>
-                        </p>
-                        <p x-show="content[lang].contact?.email">
-                            <a :href="'mailto:' + content[lang].contact.email" class="hover:underline" :class="paletteClass('accentText')" x-text="content[lang].contact.email"></a>
-                        </p>
                     </div>
-                    <div class="rounded-xl overflow-hidden border aspect-[4/3] flex items-center justify-center" :class="[paletteClass('mapBorder'), paletteClass('mapPlaceholder')]">
-                        <template x-if="content[lang].contact?.map_embed_url">
-                            <iframe class="w-full h-full" loading="lazy" referrerpolicy="no-referrer-when-downgrade" :src="content[lang].contact.map_embed_url"></iframe>
-                        </template>
-                        <template x-if="!content[lang].contact?.map_embed_url">
-                            <p class="text-sm px-6 text-center">Mapa pojawi się po dodaniu adresu w panelu CMS.</p>
-                        </template>
+
+                    <!-- CTA (2 przyciski obok siebie) -->
+                    <div class="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
+                        <a href="#menu"
+                           class="inline-flex items-center justify-center px-8 py-4 rounded-sm font-bold uppercase tracking-widest text-sm transition-colors"
+                           :class="[paletteClass('accentBg'), paletteClass('accentBgHover'), paletteClass('btnOnAccent')]">
+                            Zobacz Menu
+                        </a>
+                        <a :href="content[lang].contact?.phone ? ('tel:' + (content[lang].contact.phone || '').replace(/\\s/g, '')) : '#kontakt'"
+                           class="inline-flex items-center justify-center px-8 py-4 rounded-sm border font-bold uppercase tracking-widest text-sm transition-colors"
+                           :class="[paletteClass('borderAccent'), paletteClass('accentText')]">
+                            Zadzwoń i zamów
+                        </a>
                     </div>
                 </div>
-            </div>
-        </section>
+            </header>
 
-        <footer id="kontakt" class="border-t pt-10 pb-6 px-6" :class="paletteClass('footer')">
-            <div class="max-w-5xl mx-auto text-center text-sm space-y-3" :class="paletteClass('footerMuted')">
-                <p class="font-display text-xl" :class="paletteClass('footerTitle')" x-text="content[lang].hero.name"></p>
-                <div class="flex flex-wrap justify-center gap-4">
-                    <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.privacy_policy">
-                        <a href="#" @click.prevent="openModal('privacy')" class="underline" :class="paletteClass('accentText')">Polityka Prywatności</a>
-                    </template>
-                    <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.terms">
-                        <a href="#" @click.prevent="openModal('terms')" class="underline" :class="paletteClass('accentText')">Regulamin</a>
-                    </template>
+            <!-- MENU (prawdziwa karta dań, dwie kolumny: opis + cena) -->
+            <section id="menu" class="py-20 md:py-28 px-6 border-t" :class="paletteClass('sectionAlt')">
+                <div class="max-w-5xl mx-auto">
+                    <div class="text-center mb-14 reveal">
+                        <p class="text-xs font-bold uppercase tracking-[0.3em] mb-2" :class="paletteClass('accentText')">Karta dań</p>
+                        <h2 class="font-display text-4xl md:text-5xl" :class="paletteClass('heading')" x-text="content[lang].nav?.menu?.menu || 'Menu'"></h2>
+                    </div>
+
+                    <div class="space-y-10">
+                        <template x-for="(item, index) in (content[lang].menu_items || [])" :key="'mi'+index">
+                            <div class="reveal">
+                                <!-- Nagłówek kategorii (raz na zmianę kategorii) -->
+                                <h3
+                                    class="font-display text-2xl border-b pb-2 mb-5"
+                                    :class="[paletteClass('accentText'), paletteClass('borderAccent')]"
+                                    x-show="index === 0 || item.category !== content[lang].menu_items[index - 1].category"
+                                    x-text="item.category"
+                                ></h3>
+
+                                <!-- Wiersz dania (czysto, bez B2B kafli) -->
+                                <div class="grid grid-cols-[1fr_auto] gap-4 py-4 border-b"
+                                     :class="paletteClass('borderMuted')">
+                                    <div class="min-w-0">
+                                        <div class="flex items-baseline justify-between gap-3">
+                                            <p class="font-bold text-lg leading-snug truncate" :class="paletteClass('heading')" x-text="item.name"></p>
+                                            <span class="hidden sm:block flex-1 border-b border-dotted mx-2 opacity-40" :class="paletteClass('borderMuted')"></span>
+                                        </div>
+                                        <p class="text-sm mt-1 leading-relaxed" :class="paletteClass('muted')" x-text="item.ingredients"></p>
+                                    </div>
+                                    <p class="text-lg font-bold tabular-nums whitespace-nowrap" :class="paletteClass('accentText2')" x-text="item.price"></p>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
                 </div>
-                <p>&copy; <span x-text="new Date().getFullYear()"></span> <span x-text="content[lang].hero.name"></span>. Wszelkie prawa zastrzeżone.</p>
-            </div>
-        </footer>
+            </section>
+
+            <!-- ZAMÓWIENIA / CTA -->
+            <section id="zamowienia" class="py-16 md:py-20 px-6 border-t" :class="paletteClass('section')">
+                <div class="max-w-5xl mx-auto reveal">
+                    <div class="rounded-2xl border p-8 md:p-10 backdrop-blur-sm" :class="paletteClass('hoursCard')">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+                            <div class="max-w-2xl">
+                                <p class="text-xs font-bold uppercase tracking-[0.3em] mb-2" :class="paletteClass('accentText')">Zamówienia i rezerwacje</p>
+                                <h2 class="font-display text-3xl md:text-4xl mb-3" :class="paletteClass('heading')">Zadzwoń — przygotujemy na wynos</h2>
+                                <p class="text-sm md:text-base leading-relaxed" :class="paletteClass('muted')">
+                                    Najszybciej obsłużymy zamówienie telefonicznie. Możesz też skorzystać z rezerwacji online, jeśli masz ustawiony przycisk w panelu.
+                                </p>
+                            </div>
+                            <div class="flex flex-col sm:flex-row gap-3 shrink-0">
+                                <template x-if="heroCtaEnabled()">
+                                    <a :href="resolveHeroButtonUrl()"
+                                       :target="ctaLinkTarget(resolveHeroButtonUrl())"
+                                       :rel="ctaLinkRel(resolveHeroButtonUrl())"
+                                       class="inline-flex items-center justify-center px-8 py-4 rounded-sm font-bold uppercase tracking-widest text-sm transition-colors"
+                                       :class="[paletteClass('accentBg'), paletteClass('accentBgHover'), paletteClass('btnOnAccent')]">
+                                        <span x-text="content[lang].hero.button || 'Zarezerwuj stolik'"></span>
+                                    </a>
+                                </template>
+                                <a :href="content[lang].contact?.phone ? ('tel:' + (content[lang].contact.phone || '').replace(/\\s/g, '')) : '#kontakt'"
+                                   class="inline-flex items-center justify-center px-8 py-4 rounded-sm border font-bold uppercase tracking-widest text-sm transition-colors"
+                                   :class="[paletteClass('borderAccent'), paletteClass('accentText')]">
+                                    Zadzwoń
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEKCJA ZAMÓWIEŃ / MAPA (adres + mapa obok danych kontaktowych) -->
+            <section id="lokalizacja" class="py-20 md:py-28 px-6 border-t" :class="paletteClass('section')">
+                <div class="max-w-5xl mx-auto reveal">
+                    <p class="text-xs font-bold uppercase tracking-[0.3em] mb-2" :class="paletteClass('accentText')">Dojazd</p>
+                    <h2 class="font-display text-4xl mb-10" :class="paletteClass('heading')" x-text="content[lang].nav?.menu?.location || 'Lokalizacja'"></h2>
+
+                    <div class="grid lg:grid-cols-2 gap-8 items-stretch">
+                        <div class="rounded-xl border overflow-hidden" :class="paletteClass('mapBorder')">
+                            <div class="aspect-[4/3] w-full flex items-center justify-center" :class="paletteClass('mapPlaceholder')">
+                                <template x-if="content[lang].contact?.map_embed_url">
+                                    <iframe class="w-full h-full" loading="lazy" referrerpolicy="no-referrer-when-downgrade" :src="content[lang].contact.map_embed_url"></iframe>
+                                </template>
+                                <template x-if="!content[lang].contact?.map_embed_url">
+                                    <p class="text-sm px-6 text-center">Mapa pojawi się po dodaniu adresu w panelu CMS.</p>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="rounded-xl border p-6 md:p-8" :class="paletteClass('hoursCard')">
+                            <h3 class="font-display text-2xl mb-4" :class="paletteClass('heading')">Kontakt i adres</h3>
+                            <div class="space-y-4" :class="paletteClass('body')">
+                                <p class="text-lg leading-relaxed" x-text="content[lang].contact?.address || 'Uzupełnij adres w panelu CMS'"></p>
+                                <div class="space-y-2">
+                                    <p x-show="content[lang].contact?.phone">
+                                        Telefon:
+                                        <a :href="'tel:' + (content[lang].contact.phone || '').replace(/\\s/g, '')" class="font-bold hover:underline" :class="paletteClass('accentText')" x-text="content[lang].contact.phone"></a>
+                                    </p>
+                                    <p x-show="content[lang].contact?.email">
+                                        E-mail:
+                                        <a :href="'mailto:' + content[lang].contact.email" class="hover:underline" :class="paletteClass('accentText')" x-text="content[lang].contact.email"></a>
+                                    </p>
+                                </div>
+                                <div class="pt-4 border-t" :class="paletteClass('borderMuted')" x-show="content[lang].hours?.lines?.length">
+                                    <p class="text-xs font-bold uppercase tracking-widest mb-2" :class="paletteClass('accentText')" x-text="content[lang].hours?.title || 'Godziny otwarcia'"></p>
+                                    <template x-for="(line, hi) in (content[lang].hours?.lines || [])" :key="'hl'+hi">
+                                        <p class="text-sm" :class="paletteClass('muted')" x-text="line"></p>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FOOTER -->
+            <footer id="kontakt" class="border-t pt-10 pb-6 px-6" :class="paletteClass('footer')">
+                <div class="max-w-5xl mx-auto text-center text-sm space-y-3" :class="paletteClass('footerMuted')">
+                    <p class="font-display text-xl" :class="paletteClass('footerTitle')" x-text="content[lang].hero.name"></p>
+                    <div class="flex flex-wrap justify-center gap-4">
+                        <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.privacy_policy">
+                            <a href="#" @click.prevent="openModal('privacy')" class="underline" :class="paletteClass('accentText')">Polityka Prywatności</a>
+                        </template>
+                        <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.terms">
+                            <a href="#" @click.prevent="openModal('terms')" class="underline" :class="paletteClass('accentText')">Regulamin</a>
+                        </template>
+                    </div>
+                    <p>&copy; <span x-text="new Date().getFullYear()"></span> <span x-text="content[lang].hero.name"></span>. Wszelkie prawa zastrzeżone.</p>
+                </div>
+            </footer>
 
         </div>
     </template>

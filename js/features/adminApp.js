@@ -1324,6 +1324,17 @@
         return (cfg.accentByPreset && cfg.accentByPreset[presetId]) || '#a1a1aa';
       },
 
+      /** Aktywny preset w panelu — gastro/care używają `color_palette`, pozostałe `color_preset`. */
+      isColorPresetActive(preset) {
+        if (!preset?.id || !this.content?.pl?.settings) return false;
+        const s = this.content.pl.settings;
+        const theme = this.showWizard ? this.wizardTheme || this.theme : this.theme;
+        if (theme === 'gastro' || theme === 'care') {
+          return (s.color_palette || s.color_preset) === preset.id;
+        }
+        return s.color_preset === preset.id;
+      },
+
       selectColorPreset(preset) {
         if (!preset?.id || !this.content?.pl?.settings) return;
         this.content.pl.settings.color_preset = preset.id;
@@ -2029,9 +2040,14 @@
       applyStyleBundle() {
         const bundle = this.styleBundles.find((b) => b.id === this.selectedStyleBundle);
         if (!bundle || !this.content?.pl?.settings) return;
-        this.content.pl.settings.color_preset = bundle.color_preset;
-        if (bundle.color_palette) {
+        if (bundle.color_palette && (this.theme === 'gastro' || this.theme === 'care')) {
+          this.content.pl.settings.color_preset = bundle.color_palette;
           this.content.pl.settings.color_palette = bundle.color_palette;
+        } else {
+          this.content.pl.settings.color_preset = bundle.color_preset;
+          if (bundle.color_palette) {
+            this.content.pl.settings.color_palette = bundle.color_palette;
+          }
         }
         this.content.pl.settings.background_style = bundle.background_style;
         this.content.pl.settings.font_preset = bundle.font_preset;

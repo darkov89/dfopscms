@@ -133,6 +133,18 @@
       forest: '#22c55e',
       ocean: '#38bdf8',
       wine: '#e11d48',
+      /** Gastro — publicSiteApp GASTRO_PALETTES */
+      dark_gold: '#f59e0b',
+      warm_terracotta: '#c2410c',
+      modern_mint: '#059669',
+      burgundy_noir: '#be123c',
+      espresso_cream: '#78350f',
+      /** Care — publicSiteApp CARE_PALETTES */
+      medical_blue: '#2563eb',
+      eco_green: '#0d9488',
+      elegant_plum: '#6b21a8',
+      warm_trust: '#0284c7',
+      calm_coral: '#f43f5e',
     },
     /**
      * Paleta publiczna dla motywu `services` (jak consultantPresetPalette).
@@ -269,14 +281,18 @@
         { id: 'wine', label: 'Wine (bordowy)' },
       ],
       gastro: [
-        { id: 'dark_gold', label: 'Dark gold' },
-        { id: 'warm_terracotta', label: 'Warm terracotta' },
-        { id: 'modern_mint', label: 'Modern mint' },
+        { id: 'dark_gold', label: 'Ciemny + złoto (fine dining, steakhouse)' },
+        { id: 'warm_terracotta', label: 'Terrakota (włoska, pizza, śródziemnomorska)' },
+        { id: 'modern_mint', label: 'Mięta (healthy, brunch, kawiarnia)' },
+        { id: 'burgundy_noir', label: 'Bordowy (wine bar, koktajle, wieczór)' },
+        { id: 'espresso_cream', label: 'Espresso + krem (kawiarnia, cukiernia)' },
       ],
       care: [
-        { id: 'medical_blue', label: 'Medical blue' },
-        { id: 'eco_green', label: 'Eco green' },
-        { id: 'elegant_plum', label: 'Elegant plum' },
+        { id: 'medical_blue', label: 'Medyczny niebieski (gabinet, stomatologia)' },
+        { id: 'eco_green', label: 'Eco zielony (wellness, holistyczna opieka)' },
+        { id: 'elegant_plum', label: 'Śliwkowy (psychologia, coaching premium)' },
+        { id: 'warm_trust', label: 'Ciepły zaufania (fizjo, rehab, osteopatia)' },
+        { id: 'calm_coral', label: 'Koralowy (pediatria, rodzinna, przyjazny gabinet)' },
       ],
     },
     backgroundByStyle: {
@@ -331,14 +347,18 @@
         { id: 'svc-trades', label: 'Rzemiosło (navy + pomarańcz)', color_preset: 'trades-navy', background_style: 'clean', font_preset: 'inter' },
       ],
       gastro: [
-        { id: 'gastro-wine', label: 'Dark gold', color_preset: 'wine', color_palette: 'dark_gold', background_style: 'smoky', font_preset: 'elegant' },
-        { id: 'gastro-terracotta', label: 'Warm terracotta', color_preset: 'forest', color_palette: 'warm_terracotta', background_style: 'soft', font_preset: 'poppins' },
-        { id: 'gastro-mint', label: 'Modern mint', color_preset: 'forest-mint', color_palette: 'modern_mint', background_style: 'clean', font_preset: 'inter' },
+        { id: 'gastro-dark-gold', label: 'Fine dining (ciemny + złoto)', color_preset: 'dark_gold', color_palette: 'dark_gold', background_style: 'smoky', font_preset: 'elegant' },
+        { id: 'gastro-terracotta', label: 'Włoska terrakota', color_preset: 'warm_terracotta', color_palette: 'warm_terracotta', background_style: 'soft', font_preset: 'poppins' },
+        { id: 'gastro-mint', label: 'Nowoczesna mięta', color_preset: 'modern_mint', color_palette: 'modern_mint', background_style: 'clean', font_preset: 'inter' },
+        { id: 'gastro-burgundy', label: 'Wine bar (bordowy)', color_preset: 'burgundy_noir', color_palette: 'burgundy_noir', background_style: 'smoky', font_preset: 'elegant' },
+        { id: 'gastro-espresso', label: 'Kawiarnia espresso', color_preset: 'espresso_cream', color_palette: 'espresso_cream', background_style: 'soft', font_preset: 'poppins' },
       ],
       care: [
-        { id: 'care-ocean', label: 'Medical blue', color_preset: 'ocean', color_palette: 'medical_blue', background_style: 'clean', font_preset: 'inter' },
-        { id: 'care-teal', label: 'Eco green', color_preset: 'emerald', color_palette: 'eco_green', background_style: 'soft', font_preset: 'inter' },
-        { id: 'care-plum', label: 'Elegant plum', color_preset: 'wine', color_palette: 'elegant_plum', background_style: 'soft', font_preset: 'elegant' },
+        { id: 'care-medical', label: 'Gabinet medyczny', color_preset: 'medical_blue', color_palette: 'medical_blue', background_style: 'clean', font_preset: 'inter' },
+        { id: 'care-eco', label: 'Wellness eco', color_preset: 'eco_green', color_palette: 'eco_green', background_style: 'soft', font_preset: 'inter' },
+        { id: 'care-plum', label: 'Psychologia premium', color_preset: 'elegant_plum', color_palette: 'elegant_plum', background_style: 'soft', font_preset: 'elegant' },
+        { id: 'care-physio', label: 'Fizjo i rehab', color_preset: 'warm_trust', color_palette: 'warm_trust', background_style: 'clean', font_preset: 'inter' },
+        { id: 'care-family', label: 'Rodzinny gabinet', color_preset: 'calm_coral', color_palette: 'calm_coral', background_style: 'soft', font_preset: 'poppins' },
       ],
     },
   };

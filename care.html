@@ -82,134 +82,217 @@
     <template x-if="dataLoaded && !trialBlocked && content && content.pl">
         <div x-transition.opacity.duration.1000ms>
 
-        <nav class="fixed w-full z-50 backdrop-blur border-b" :class="paletteClass('nav')">
-            <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center gap-4">
-                <a href="#" class="flex items-center min-w-0 shrink-0" aria-label="Strona główna">
-                    <template x-if="content[lang].nav?.logoImage">
-                        <img :src="content[lang].nav.logoImage" alt="Logo" class="h-11 object-contain">
-                    </template>
-                    <template x-if="!content[lang].nav?.logoImage">
-                        <div class="text-lg font-bold truncate" :class="paletteClass('logo')" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].nav.logo)"></div>
-                    </template>
-                </a>
-                <div class="hidden md:flex items-center gap-6 text-sm font-semibold">
-                    <a href="#o-mnie" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.about || 'O mnie'"></a>
-                    <a href="#pomoc" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.help || 'Obszary pomocy'"></a>
-                    <a href="#cennik" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.pricing || 'Cennik'"></a>
-                    <a href="#kontakt" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></a>
-                </div>
-            </div>
-        </nav>
-
-        <header class="pt-28 pb-16 md:pt-32 md:pb-24 px-6" :class="paletteClass('hero')">
-            <div class="max-w-5xl mx-auto grid md:grid-cols-[1fr_auto] gap-10 items-center reveal">
-                <div>
-                    <p class="text-sm font-bold uppercase tracking-widest mb-3" :class="paletteClass('tagline')" x-text="content[lang].manifesto?.label || 'Gabinet'"></p>
-                    <h1 class="text-4xl md:text-5xl font-bold leading-tight mb-2" :class="paletteClass('heading')" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].hero.headline)"></h1>
-                    <h2 class="text-xl md:text-2xl font-medium mb-6" :class="paletteClass('name')" x-text="content[lang].hero.name"></h2>
-                    <p class="text-lg leading-relaxed max-w-xl" :class="paletteClass('body')" x-text="content[lang].hero.description"></p>
-                </div>
-                <div class="flex justify-center md:justify-end">
-                    <div class="w-48 h-48 md:w-56 md:h-56 rounded-full overflow-hidden border-4 border-white shadow-xl ring-4 shrink-0 bg-slate-100" :class="paletteClass('ring')">
-                        <template x-if="content[lang].hero?.image">
-                            <img :src="content[lang].hero.image" :alt="content[lang].hero.name || 'Zdjęcie profilowe'" class="w-full h-full object-cover">
+            <!-- NAV -->
+            <nav class="fixed w-full z-50 backdrop-blur border-b" :class="paletteClass('nav')">
+                <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center gap-4">
+                    <a href="#" class="flex items-center min-w-0 shrink-0" aria-label="Strona główna">
+                        <template x-if="content[lang].nav?.logoImage">
+                            <img :src="content[lang].nav.logoImage" alt="Logo" class="h-11 object-contain">
                         </template>
-                        <template x-if="!content[lang].hero?.image">
-                            <div class="w-full h-full flex items-center justify-center text-sm text-center px-4" :class="paletteClass('muted')">Zdjęcie profilowe</div>
+                        <template x-if="!content[lang].nav?.logoImage">
+                            <div class="text-lg font-bold truncate" :class="paletteClass('logo')" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].nav.logo)"></div>
+                        </template>
+                    </a>
+                    <div class="hidden lg:flex items-center gap-7 text-sm font-semibold">
+                        <a href="#profil" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.about || 'O mnie'"></a>
+                        <a href="#pomoc" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.help || 'Obszary pomocy'"></a>
+                        <a href="#cennik" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.pricing || 'Cennik'"></a>
+                        <a href="#kontakt" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></a>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- HERO (asymetryczny, 2 kolumny) -->
+            <header class="pt-28 pb-16 md:pt-32 md:pb-24 px-6" :class="paletteClass('hero')">
+                <div class="max-w-6xl mx-auto grid lg:grid-cols-[1.1fr_.9fr] gap-10 lg:gap-14 items-center reveal">
+                    <div>
+                        <p class="text-sm font-bold uppercase tracking-widest mb-3" :class="paletteClass('tagline')" x-text="content[lang].manifesto?.label || 'Gabinet'"></p>
+                        <h1 class="text-4xl md:text-5xl font-bold leading-tight mb-3" :class="paletteClass('heading')" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].hero.headline)"></h1>
+                        <p class="text-lg md:text-xl font-medium mb-6" :class="paletteClass('name')" x-text="content[lang].hero.name"></p>
+                        <p class="text-lg leading-relaxed max-w-xl" :class="paletteClass('body')" x-text="content[lang].hero.description"></p>
+
+                        <div class="mt-9 flex flex-col sm:flex-row gap-3">
+                            <a
+                                :href="resolveBookingUrl() || '#kontakt'"
+                                :target="ctaLinkTarget(resolveBookingUrl())"
+                                :rel="ctaLinkRel(resolveBookingUrl())"
+                                class="inline-flex items-center justify-center px-10 py-5 rounded-xl text-lg font-bold shadow-lg hover:-translate-y-0.5 transition-all"
+                                :class="[paletteClass('accentBg'), paletteClass('accentBgHover'), paletteClass('btnOnAccent'), paletteClass('shadowCta')]"
+                            >
+                                Umów wizytę
+                            </a>
+                            <a href="#cennik"
+                               class="inline-flex items-center justify-center px-10 py-5 rounded-xl border-2 text-lg font-bold transition-colors"
+                               :class="[paletteClass('borderAccent') || 'border-current', paletteClass('accentText')]">
+                                Zobacz cennik
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Miejsce na zdjęcie profilowe -->
+                    <div class="flex justify-center lg:justify-end">
+                        <div class="w-full max-w-md">
+                            <div class="rounded-3xl border bg-white/70 overflow-hidden shadow-xl ring-1 ring-black/5">
+                                <div class="aspect-[4/5] w-full bg-slate-50 flex items-center justify-center">
+                                    <template x-if="content[lang].hero?.image">
+                                        <img :src="content[lang].hero.image" :alt="content[lang].hero.name || 'Zdjęcie profilowe'" class="w-full h-full object-cover">
+                                    </template>
+                                    <template x-if="!content[lang].hero?.image">
+                                        <div class="w-full h-full flex items-center justify-center text-sm text-center px-6" :class="paletteClass('muted')">
+                                            Zdjęcie profilowe specjalisty
+                                        </div>
+                                    </template>
+                                </div>
+                                <div class="p-5 border-t">
+                                    <p class="text-xs uppercase tracking-widest font-bold" :class="paletteClass('accentText')">Profesjonalna opieka</p>
+                                    <p class="text-sm mt-1" :class="paletteClass('muted')">Spokojnie, konkretnie, z planem dalszych kroków.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- PROFIL / O MNIE -->
+            <section id="profil" class="py-16 md:py-24 px-6 border-t" :class="paletteClass('section')" x-show="content[lang].settings?.showManifesto !== false">
+                <div class="max-w-5xl mx-auto grid lg:grid-cols-2 gap-10 items-start reveal">
+                    <div>
+                        <h2 class="text-3xl font-bold mb-6" :class="paletteClass('heading')" x-text="content[lang].manifesto?.title || 'O mnie'"></h2>
+                        <p class="text-lg leading-relaxed" :class="paletteClass('body')" x-text="content[lang].manifesto?.text"></p>
+                    </div>
+                    <div class="rounded-2xl border p-6" :class="paletteClass('cert')" x-show="(content[lang].certificates || []).length">
+                        <p class="text-sm font-bold uppercase tracking-widest mb-4" :class="paletteClass('accentText')">Kwalifikacje</p>
+                        <div class="space-y-3">
+                            <template x-for="(cert, ci) in (content[lang].certificates || [])" :key="'cert'+ci">
+                                <div class="border-b pb-3 last:border-b-0 last:pb-0" :class="paletteClass('borderMuted')">
+                                    <p class="font-bold text-sm" :class="paletteClass('heading')" x-text="cert.title"></p>
+                                    <p class="text-xs mt-1 opacity-80" :class="paletteClass('muted')" x-text="cert.issuer"></p>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- OBSZARY POMOCY: 3–4 kafelki z ikonami -->
+            <section id="pomoc" class="py-16 md:py-24 px-6" :class="paletteClass('sectionAlt')">
+                <div class="max-w-6xl mx-auto">
+                    <div class="text-center mb-12 reveal">
+                        <p class="text-sm font-bold uppercase tracking-widest mb-2" :class="paletteClass('accentText')">W czym pomagam</p>
+                        <h2 class="text-3xl font-bold" :class="paletteClass('heading')" x-text="content[lang].nav?.menu?.help || 'Obszary pomocy'"></h2>
+                    </div>
+
+                    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                        <template x-for="(area, ai) in (content[lang].help_areas || [])" :key="'ha'+ai">
+                            <article class="reveal rounded-2xl border p-6 shadow-sm transition-all" :class="paletteClass('card')">
+                                <div class="flex items-start gap-4">
+                                    <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" :class="paletteClass('cardBadge')">
+                                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 20l9-8-9-8-9 8 9 8z" />
+                                        </svg>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <h3 class="text-base font-bold mb-1" :class="paletteClass('heading')" x-text="area.title"></h3>
+                                        <p class="text-sm leading-relaxed" :class="paletteClass('muted')" x-text="area.desc"></p>
+                                    </div>
+                                </div>
+                            </article>
                         </template>
                     </div>
                 </div>
-            </div>
-        </header>
+            </section>
 
-        <section id="o-mnie" class="py-16 md:py-24 px-6 border-t" :class="paletteClass('section')" x-show="content[lang].settings?.showManifesto !== false">
-            <div class="max-w-3xl mx-auto reveal">
-                <h2 class="text-3xl font-bold mb-6 text-center" :class="paletteClass('heading')" x-text="content[lang].manifesto?.title || 'O mnie'"></h2>
-                <p class="text-lg leading-relaxed text-center mb-10" :class="paletteClass('body')" x-text="content[lang].manifesto?.text"></p>
-                <div class="grid sm:grid-cols-2 gap-4" x-show="(content[lang].certificates || []).length">
-                    <template x-for="(cert, ci) in (content[lang].certificates || [])" :key="ci">
-                        <div class="rounded-xl border px-5 py-4" :class="paletteClass('cert')">
-                            <p class="font-bold text-sm" x-text="cert.title"></p>
-                            <p class="text-xs mt-1 opacity-80" x-text="cert.issuer"></p>
-                        </div>
-                    </template>
-                </div>
-            </div>
-        </section>
+            <!-- CENNIK: minimalistyczna tabela (Nazwa ........ Cena) + CTA na dole -->
+            <section id="cennik" class="py-16 md:py-24 px-6 border-t" :class="paletteClass('section')" x-show="content[lang].settings?.showServices !== false">
+                <div class="max-w-4xl mx-auto">
+                    <div class="text-center mb-12 reveal">
+                        <h2 class="text-3xl font-bold" :class="paletteClass('heading')" x-text="content[lang].nav?.menu?.pricing || 'Cennik'"></h2>
+                        <p class="mt-3 text-sm" :class="paletteClass('muted')">Przejrzyste zasady — bez niespodzianek.</p>
+                    </div>
 
-        <section id="pomoc" class="py-16 md:py-24 px-6" :class="paletteClass('sectionAlt')">
-            <div class="max-w-5xl mx-auto">
-                <div class="text-center mb-12 reveal">
-                    <p class="text-sm font-bold uppercase tracking-widest mb-2" :class="paletteClass('accentText')">W czym pomagam</p>
-                    <h2 class="text-3xl font-bold" :class="paletteClass('heading')" x-text="content[lang].nav?.menu?.help || 'Obszary pomocy'"></h2>
-                </div>
-                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                    <template x-for="(area, ai) in (content[lang].help_areas || [])" :key="ai">
-                        <article class="reveal rounded-2xl border p-6 shadow-sm transition-all" :class="paletteClass('card')">
-                            <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mb-4" :class="paletteClass('cardBadge')" x-text="String(ai + 1)"></div>
-                            <h3 class="text-lg font-bold mb-2" :class="paletteClass('heading')" x-text="area.title"></h3>
-                            <p class="text-sm leading-relaxed" :class="paletteClass('muted')" x-text="area.desc"></p>
-                        </article>
-                    </template>
-                </div>
-            </div>
-        </section>
-
-        <section id="cennik" class="py-16 md:py-24 px-6 border-t" :class="paletteClass('section')" x-show="content[lang].settings?.showServices !== false">
-            <div class="max-w-3xl mx-auto">
-                <div class="text-center mb-12 reveal">
-                    <h2 class="text-3xl font-bold" :class="paletteClass('heading')" x-text="content[lang].nav?.menu?.pricing || 'Cennik usług'"></h2>
-                </div>
-                <div class="space-y-4">
-                    <template x-for="(service, si) in (content[lang].services || [])" :key="si">
-                        <div class="reveal flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-5 rounded-xl border transition-colors" :class="paletteClass('card')">
-                            <div>
-                                <h3 class="font-bold" :class="paletteClass('heading')" x-text="service.title"></h3>
-                                <p class="text-sm mt-1" :class="paletteClass('muted')" x-text="service.desc"></p>
-                                <p class="text-xs mt-1 opacity-75" x-show="service.duration" :class="paletteClass('muted')" x-text="service.duration"></p>
+                    <div class="rounded-2xl border overflow-hidden" :class="paletteClass('card')">
+                        <template x-for="(service, si) in (content[lang].services || [])" :key="'srv'+si">
+                            <div class="px-6 py-5 border-b last:border-b-0" :class="paletteClass('borderMuted')">
+                                <div class="flex items-baseline gap-3">
+                                    <p class="font-semibold" :class="paletteClass('heading')" x-text="service.title"></p>
+                                    <span class="flex-1 border-b border-dotted opacity-40" :class="paletteClass('borderMuted')"></span>
+                                    <p class="font-bold tabular-nums whitespace-nowrap" :class="paletteClass('accentText')" x-text="service.price"></p>
+                                </div>
+                                <p class="text-sm mt-2" :class="paletteClass('muted')" x-text="service.desc"></p>
+                                <p class="text-xs mt-1 opacity-80" x-show="service.duration" :class="paletteClass('muted')" x-text="service.duration"></p>
                             </div>
-                            <p class="text-xl font-bold tabular-nums shrink-0" :class="paletteClass('accentText')" x-text="service.price"></p>
+                        </template>
+                    </div>
+
+                    <div class="mt-10 text-center reveal">
+                        <a
+                            :href="resolveBookingUrl() || '#kontakt'"
+                            :target="ctaLinkTarget(resolveBookingUrl())"
+                            :rel="ctaLinkRel(resolveBookingUrl())"
+                            class="inline-flex items-center justify-center min-w-[280px] px-12 py-5 rounded-xl text-lg font-bold shadow-lg hover:-translate-y-0.5 transition-all"
+                            :class="[paletteClass('accentBg'), paletteClass('accentBgHover'), paletteClass('btnOnAccent'), paletteClass('shadowCta')]"
+                        >
+                            Umów wizytę
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- KONTAKT + MAPA -->
+            <section id="kontakt" class="py-16 md:py-24 px-6 border-t" :class="paletteClass('contact')">
+                <div class="max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 items-start reveal">
+                    <div class="rounded-2xl border overflow-hidden" :class="paletteClass('mapBorder')">
+                        <div class="aspect-[4/3] w-full flex items-center justify-center" :class="paletteClass('mapPlaceholder')">
+                            <template x-if="content[lang].contact?.map_embed_url">
+                                <iframe class="w-full h-full" loading="lazy" referrerpolicy="no-referrer-when-downgrade" :src="content[lang].contact.map_embed_url"></iframe>
+                            </template>
+                            <template x-if="!content[lang].contact?.map_embed_url">
+                                <p class="text-sm px-6 text-center">Mapa pojawi się po dodaniu adresu w panelu CMS.</p>
+                            </template>
                         </div>
+                    </div>
+
+                    <div class="rounded-2xl border p-8" :class="paletteClass('card')">
+                        <h2 class="text-3xl font-bold mb-4" :class="paletteClass('heading')" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></h2>
+                        <p class="mb-4" :class="paletteClass('muted')" x-text="content[lang].contact?.address"></p>
+                        <div class="space-y-2" :class="paletteClass('muted')">
+                            <p x-show="content[lang].contact?.phone">
+                                Tel:
+                                <a :href="'tel:' + (content[lang].contact.phone || '').replace(/\\s/g, '')" class="font-semibold hover:underline" :class="paletteClass('accentText')" x-text="content[lang].contact.phone"></a>
+                            </p>
+                            <p x-show="content[lang].contact?.email">
+                                E-mail:
+                                <a :href="'mailto:' + content[lang].contact.email" class="hover:underline" :class="paletteClass('accentText')" x-text="content[lang].contact.email"></a>
+                            </p>
+                        </div>
+
+                        <div class="mt-8">
+                            <a
+                                :href="resolveBookingUrl() || '#kontakt'"
+                                :target="ctaLinkTarget(resolveBookingUrl())"
+                                :rel="ctaLinkRel(resolveBookingUrl())"
+                                class="inline-flex items-center justify-center w-full px-10 py-5 rounded-xl text-lg font-bold shadow-lg hover:-translate-y-0.5 transition-all"
+                                :class="[paletteClass('accentBg'), paletteClass('accentBgHover'), paletteClass('btnOnAccent'), paletteClass('shadowCta')]"
+                            >
+                                Umów wizytę
+                            </a>
+                            <p class="text-xs mt-4 text-center" :class="paletteClass('muted')">W nagłych przypadkach skontaktuj się z odpowiednimi służbami.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="border-t py-8 px-6 text-center text-sm" :class="[paletteClass('footer'), paletteClass('footerMuted')]">
+                <div class="flex flex-wrap justify-center gap-4 mb-3">
+                    <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.privacy_policy">
+                        <a href="#" @click.prevent="openModal('privacy')" class="underline" :class="paletteClass('accentText')">Polityka Prywatności</a>
+                    </template>
+                    <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.terms">
+                        <a href="#" @click.prevent="openModal('terms')" class="underline" :class="paletteClass('accentText')">Regulamin</a>
                     </template>
                 </div>
-            </div>
-        </section>
-
-        <section id="kontakt" class="py-16 md:py-24 px-6 border-t" :class="paletteClass('contact')">
-            <div class="max-w-3xl mx-auto text-center reveal">
-                <h2 class="text-3xl font-bold mb-4" :class="paletteClass('heading')" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></h2>
-                <p class="mb-2" :class="paletteClass('muted')" x-text="content[lang].contact?.address"></p>
-                <p class="mb-8" x-show="content[lang].contact?.phone" :class="paletteClass('muted')">
-                    Tel:
-                    <a :href="'tel:' + (content[lang].contact.phone || '').replace(/\s/g, '')" class="font-semibold hover:underline" :class="paletteClass('accentText')" x-text="content[lang].contact.phone"></a>
-                </p>
-                <a
-                    :href="resolveBookingUrl() || '#kontakt'"
-                    :target="ctaLinkTarget(resolveBookingUrl())"
-                    :rel="ctaLinkRel(resolveBookingUrl())"
-                    class="inline-flex items-center justify-center min-w-[260px] px-10 py-5 rounded-xl text-lg font-bold shadow-lg hover:-translate-y-0.5 transition-all"
-                    :class="[paletteClass('accentBg'), paletteClass('accentBgHover'), paletteClass('btnOnAccent'), paletteClass('shadowCta')]"
-                >
-                    Umów wizytę
-                </a>
-                <p class="text-xs mt-6" x-show="content[lang].contact?.email" :class="paletteClass('muted')">
-                    lub napisz:
-                    <a :href="'mailto:' + content[lang].contact.email" class="hover:underline" :class="paletteClass('accentText')" x-text="content[lang].contact.email"></a>
-                </p>
-            </div>
-        </section>
-
-        <footer class="border-t py-8 px-6 text-center text-sm" :class="[paletteClass('footer'), paletteClass('footerMuted')]">
-            <div class="flex flex-wrap justify-center gap-4 mb-3">
-                <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.privacy_policy">
-                    <a href="#" @click.prevent="openModal('privacy')" class="underline" :class="paletteClass('accentText')">Polityka Prywatności</a>
-                </template>
-                <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.terms">
-                    <a href="#" @click.prevent="openModal('terms')" class="underline" :class="paletteClass('accentText')">Regulamin</a>
-                </template>
-            </div>
-            <p>&copy; <span x-text="new Date().getFullYear()"></span> <span x-text="content[lang].hero.name"></span>. Wszelkie prawa zastrzeżone.</p>
-        </footer>
+                <p>&copy; <span x-text="new Date().getFullYear()"></span> <span x-text="content[lang].hero.name"></span>. Wszelkie prawa zastrzeżone.</p>
+            </footer>
 
         </div>
     </template>

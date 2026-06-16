@@ -140,8 +140,9 @@ function applySecurityHeaders(request, response) {
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' https: blob:",
-      "connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://*.ingest.sentry.io https://*.sentry.io",
       "frame-src https://www.google.com",
+      "connect-src 'self' https://*.supabase.co https://*.sentry.io https://js-de.sentry-cdn.com",
+      "worker-src 'self' blob:",
     ].join('; ');
     headers.set('Content-Security-Policy', csp);
 
