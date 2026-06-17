@@ -184,10 +184,23 @@ function escapeAttr(s) {
 async function fetchPageRow(supabaseUrl, anonKey, slugTrimmed, hostnameNorm) {
   const safeSlug = String(slugTrimmed || '').trim().toLowerCase();
   const safeHost = String(hostnameNorm || '').trim().toLowerCase();
+  const billingGraceCutoff = new Date(Date.now() - 14 * 86400000).toISOString();
 
-  const restUrl = safeSlug
-    ? `${supabaseUrl}/rest/v1/pages?slug=ilike.${encodeURIComponent(safeSlug)}&select=content,theme`
-    : `${supabaseUrl}/rest/v1/pages?custom_domain=ilike.${encodeURIComponent(safeHost)}&select=content,theme`;
+  if (!safeSlug && !safeHost) return null;
+
+  const params = new URLSearchParams({
+    select: 'content,theme',
+    content: 'not.is.null',
+    trial_blocked_at: 'is.null',
+    or: `(billing_failed_at.is.null,billing_failed_at.gt.${billingGraceCutoff})`,
+    limit: '1',
+  });
+  if (safeSlug) {
+    params.set('slug', `eq.${safeSlug}`);
+  } else {
+    params.set('custom_domain', `eq.${safeHost}`);
+  }
+  const restUrl = `${supabaseUrl}/rest/v1/pages?${params.toString()}`;
 
   const supaRes = await fetch(restUrl, {
     headers: {
@@ -200,7 +213,7 @@ async function fetchPageRow(supabaseUrl, anonKey, slugTrimmed, hostnameNorm) {
   if (!supaRes.ok) return null;
 
   const rows = await supaRes.json();
-  return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+  return Array.isArray(rows) && rows.length === 1 ? rows[0] : null;
 }
 
 async function fetchThemeAsset(env, request, theme, url, hostnameNorm) {

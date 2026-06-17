@@ -347,12 +347,28 @@
     }
   }
 
+  /**
+   * Publiczny odczyt strony: nie pobieramy rekordów bez opublikowanej treści,
+   * zablokowanych przez trial ani po zakończonym okresie łaski dla failed billing.
+   * RLS nadal jest źródłem bezpieczeństwa, a te filtry zawężają anonimowe zapytania.
+   */
+  function publicReadablePageQuery() {
+    const billingGraceCutoff = new Date(Date.now() - 14 * 86400000).toISOString();
+    return supabase()
+      .from('pages')
+      .select('slug, theme, content, color_preset, custom_domain, trial_blocked_at, billing_failed_at, billing_plan')
+      .not('content', 'is', null)
+      .is('trial_blocked_at', null)
+      .or(`billing_failed_at.is.null,billing_failed_at.gt.${billingGraceCutoff}`);
+  }
+
   async function getPageBySlug(slug) {
     const slugTrimmed = typeof slug === 'string' ? slug.trim().toLowerCase() : '';
-    const { data, error } = await supabase()
-      .from('pages')
-      .select('slug, theme, content, color_preset, custom_domain, user_id, trial_blocked_at, billing_failed_at, billing_plan')
-      .ilike('slug', slugTrimmed)
+    if (!slugTrimmed) return { data: null, error: null };
+
+    const { data, error } = await publicReadablePageQuery()
+      .eq('slug', slugTrimmed)
+      .limit(1)
       .maybeSingle();
 
     if (!data && isLocalDemoSeedHost() && DEMO_SEED_SLUG_RE.test(slugTrimmed)) {
@@ -380,6 +396,7 @@
       .select('draft_content')
       .eq('slug', slugTrimmed)
       .eq('user_id', user.id)
+      .limit(1)
       .maybeSingle();
     return { data: data?.draft_content || null, error };
   }
@@ -390,16 +407,22 @@
    */
   async function getPageByCustomDomain(domain) {
     const normalized = typeof domain === 'string' ? normalizeHostname(domain).trim() : domain;
-    const { data, error } = await supabase()
-      .from('pages')
-      .select('*')
+    if (!normalized) return { data: null, error: null };
+
+    const { data, error } = await publicReadablePageQuery()
       .eq('custom_domain', normalized)
+      .limit(1)
       .maybeSingle();
     return { data, error };
   }
 
   async function isSlugAvailable(slug) {
-    const { data, error } = await supabase().from('pages').select('slug').eq('slug', slug).maybeSingle();
+    const { data, error } = await supabase()
+      .from('pages')
+      .select('slug')
+      .eq('slug', slug)
+      .limit(1)
+      .maybeSingle();
     if (error) return { available: false, error };
     return { available: !data, error: null };
   }
@@ -409,6 +432,7 @@
       .from('pages')
       .select('id, slug, theme, content, draft_content, color_preset, custom_domain, custom_domain_status, trial_blocked_at, billing_failed_at, billing_plan')
       .eq('user_id', userId)
+      .limit(1)
       .maybeSingle();
     return { data: data || null, error };
   }

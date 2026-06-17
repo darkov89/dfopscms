@@ -88,6 +88,7 @@ serve(async (req) => {
       .from("pages")
       .select("id, user_id")
       .eq("id", pageId)
+      .limit(1)
       .maybeSingle();
 
     if (pageErr) throw pageErr;

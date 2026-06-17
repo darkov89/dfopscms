@@ -395,6 +395,7 @@ export async function findPageByUserId(
     .from("pages")
     .select("id, user_id, billing_failed_at, trial_blocked_at, billing_plan")
     .eq("user_id", userId)
+    .limit(1)
     .maybeSingle();
   if (error) {
     console.error("findPageByUserId", error);
