@@ -24,11 +24,7 @@
     document.body.appendChild(wrap);
   }
 
-  function normalizeHostname(hostname) {
-    return String(hostname || '')
-      .replace(/^www\./i, '')
-      .toLowerCase();
-  }
+  const normalizeHostname = window.DFOPS_normalizeHostname;
 
   function mergeBaseDomains(cfg) {
     const merged = BASE_DOMAINS.concat((cfg && cfg.systemDomains) || []);

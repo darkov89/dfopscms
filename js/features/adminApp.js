@@ -2565,13 +2565,12 @@
       },
       cleanDomainInput(raw) {
         if (raw == null || typeof raw !== 'string') return '';
-        return raw
+        const withoutProtocolAndPath = raw
           .trim()
           .replace(/^https?:\/\//i, '')
           .replace(/\/.*$/, '')
-          .replace(/[?#].*$/, '')
-          .replace(/^www\./i, '')
-          .toLowerCase();
+          .replace(/[?#].*$/, '');
+        return window.DFOPS_normalizeHostname(withoutProtocolAndPath);
       },
 
       async verifyAndSaveDomain() {

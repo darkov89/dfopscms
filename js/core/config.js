@@ -19,11 +19,7 @@
   const PRODUCTION_PAGES_DEV_HOSTS = ['dfopscms.pages.dev'];
   const STAGING_HOST_PATTERNS = [/\.pages\.dev$/i];
 
-  function normalizeHostname(hostname) {
-    return String(hostname || '')
-      .replace(/^www\./i, '')
-      .toLowerCase();
-  }
+  const normalizeHostname = window.DFOPS_normalizeHostname;
 
   /**
    * @returns {'staging' | 'production'}
@@ -369,7 +365,7 @@
    */
   function panelPreviewUsesSameOrigin() {
     if (typeof window === 'undefined' || !window.location?.hostname) return false;
-    const h = String(window.location.hostname).replace(/^www\./i, '').toLowerCase();
+    const h = normalizeHostname(window.location.hostname);
     const appDomain = String(APP_CONFIG.appDomain || 'dfcms.pl').toLowerCase();
     if (h === appDomain) return false;
     const hosts = APP_CONFIG.previewSameOriginHosts || [];

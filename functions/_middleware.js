@@ -1,3 +1,5 @@
+import '../js/core/utils.js';
+
 /**
  * Cloudflare Pages — globalny middleware (SEO + edge routing szablonów + HTMLRewriter + Supabase).
  * Zmienne: SUPABASE_URL, SUPABASE_ANON_KEY
@@ -12,6 +14,7 @@ const STATIC_EXT = /\.(css|js|mjs|png|jpg|jpeg|gif|svg|ico|webp|woff2?|ttf|eot|m
 
 const PLATFORM_BASE_DOMAINS = ['dfcms.pl', 'dfopscms.pl', 'dfopscms.pages.dev', 'localhost', '127.0.0.1'];
 const ALLOWED_THEMES = new Set(['beauty', 'consultant', 'fitness', 'services', 'gastro', 'care']);
+const normalizeHostname = globalThis.DFOPS_normalizeHostname;
 const EDGE_ROUTE_PATHS = new Set([
   '/',
   '/index.html',
@@ -19,12 +22,6 @@ const EDGE_ROUTE_PATHS = new Set([
   '/router.html',
   '/router',
 ]);
-
-function normalizeHostname(hostname) {
-  return String(hostname || '')
-    .replace(/^www\./i, '')
-    .toLowerCase();
-}
 
 /** Host z nagłówka (subdomeny SaaS) ma pierwszeństwo przed url.hostname po wewnętrznym rewrite CF. */
 function parseForwardedHost(request) {
@@ -125,7 +122,7 @@ function applySecurityHeaders(request, response) {
     headers.set('X-Frame-Options', 'DENY');
 
     if (url.protocol === 'https:') {
-      headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+      headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     }
 
     const csp = [
@@ -136,17 +133,20 @@ function applySecurityHeaders(request, response) {
       "form-action 'self'",
       "upgrade-insecure-requests",
       "block-all-mixed-content",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://js-de.sentry-cdn.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://maps.googleapis.com https://js.stripe.com https://js-de.sentry-cdn.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' https: blob:",
-      "frame-src https://www.google.com",
-      "connect-src 'self' https://*.supabase.co https://*.sentry.io https://js-de.sentry-cdn.com",
+      "img-src 'self' data: https: blob: https://maps.gstatic.com https://maps.googleapis.com",
+      "frame-src 'self' https://www.google.com https://www.google.com/maps/ https://js.stripe.com https://calendly.com",
+      "connect-src 'self' https://*.supabase.co https://api.stripe.com https://maps.googleapis.com https://*.sentry.io https://js-de.sentry-cdn.com",
       "worker-src 'self' blob:",
     ].join('; ');
     headers.set('Content-Security-Policy', csp);
 
-    headers.set('Cache-Control', 'private, no-store, must-revalidate');
+    const contentType = headers.get('Content-Type') || '';
+    if (contentType.includes('text/html')) {
+      headers.set('Cache-Control', 'private, no-store, must-revalidate');
+    }
     headers.set('Vary', 'Host, Accept-Encoding');
 
     return new Response(response.body, {
@@ -300,11 +300,11 @@ export async function onRequest(context) {
   const siteParam = url.searchParams.get('site');
 
   if (STATIC_EXT.test(url.pathname)) {
-    return next();
+    return applySecurityHeaders(request, await next());
   }
 
   if (url.pathname.startsWith('/api/')) {
-    return next();
+    return applySecurityHeaders(request, await next());
   }
 
   let debugTrace = 'START';

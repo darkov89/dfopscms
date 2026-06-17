@@ -1,5 +1,6 @@
 ;(function () {
   const MS_PER_DAY = 86400000;
+  const normalizeHostname = window.DFOPS_normalizeHostname;
   /** Zgodnie z public.expire_trial_pages() — blok po 14 dniach od trial_started_at bez płatności. */
   const TRIAL_PUBLIC_BLOCK_AFTER_DAYS = 14;
   /** Zgodnie z billing_targets w expire_trial_pages — 14 dni po billing_failed_at. */
@@ -339,7 +340,7 @@
   function resolveSiteContext() {
     const urlParams = new URLSearchParams(window.location.search);
     const siteParam = urlParams.get('site');
-    const hostname = window.location.hostname.replace(/^www\./i, '').toLowerCase();
+    const hostname = normalizeHostname(window.location.hostname);
 
     let currentSlug = '';
     let currentCustomDomain = '';
@@ -379,7 +380,7 @@
       const u = new URL(window.location.href);
       const siteQs = u.searchParams.get('site');
       if (!siteQs || !String(siteQs).trim()) return;
-      const h = u.hostname.replace(/^www\./i, '').toLowerCase();
+      const h = normalizeHostname(u.hostname);
       const bareRoots = {
         'dfcms.pl': 1,
         'dfopscms.pl': 1,
@@ -935,7 +936,7 @@
       },
       buildThemePageUrl(page) {
         const baseDomain = (cfg.appDomain || 'dfcms.pl').toLowerCase();
-        const host = window.location.hostname.replace(/^www\./, '').toLowerCase();
+        const host = normalizeHostname(window.location.hostname);
         const isLocal = (cfg.localHosts || []).includes(window.location.hostname);
         const theme = page.theme;
         const slug = page.slug;
@@ -958,7 +959,7 @@
       async init() {
         try {
           const urlParams = new URLSearchParams(window.location.search);
-          const hostname = window.location.hostname.replace(/^www\./i, '').toLowerCase();
+          const hostname = normalizeHostname(window.location.hostname);
           const { currentSlug, currentCustomDomain } = resolveSiteContext();
 
           if (!currentSlug && !currentCustomDomain) {

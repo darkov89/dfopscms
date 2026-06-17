@@ -98,7 +98,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 
 **Onboarding:** modal powitalny, Driver.js, kreator (wizard), `welcome_onboarding_completed` / `onboarding_completed` w `pages.content`.
 
-**Security (skrót):** forced password reset, DOMPurify, Stripe webhook tylko Edge, Google Places/Maps klucz tylko Edge, `billing_profiles` SoT rozliczeń, draft preview tylko dla właściciela.
+**Security (skrót):** forced password reset, DOMPurify, CSP/HSTS/XFO/nosniff w `functions/_middleware.js`, Stripe webhook tylko Edge, Google Places/Maps klucz tylko Edge, `billing_profiles` SoT rozliczeń, draft preview tylko dla właściciela.
 
 **Luki:** brak obowiązkowego E2E/CI dla Edge; wildcard `*.dfcms.pl` w Cloudflare Pages; RLS anon read wymaga GRANT + polityki; brak historii wersji treści.
 
@@ -119,6 +119,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 - **Stripe:** webhook secret tylko Edge; `billing_profiles` zapis `service_role`.
 - **Google Reviews Edge:** sesja wymagana; klucz `GOOGLE_MAPS_API_KEY` tylko serwer; panel autocomplete → `place_id`.
 - **Smart Booking:** `settings.booking_mode` + `contact.booking_url`; Booksy embed — ostrzeżenie X-Frame-Options.
+- **Nagłówki HTTP:** Cloudflare middleware dokleja CSP (Supabase/Stripe/Google Maps/CDN/Sentry/Calendly), `X-Content-Type-Options`, `X-Frame-Options: DENY`, HSTS dla HTTPS, Referrer/Permissions Policy.
 - **Widoczność sekcji:** toggles per zakładka (`showGallery`, `showGoogleReviews`, …); hero bez toggle.
 
 ### 1.7 User journey (skrót)
@@ -265,6 +266,7 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
+| **2026-06-17** | **Security/DRY/tooling:** CSP + HSTS/XFO/nosniff w `functions/_middleware.js`; wspólny `js/core/utils.js` (`DFOPS_normalizeHostname`); `.prettierrc`, `.eslintrc.json`, `.vscode/settings.json`. |
 | **2026-06-16** | **Demo katalog:** `demo-gastro`, `demo-care`, `demo-consultant` w `demo_pages.json` + migracja seed; landing — wszystkie nisze z linkiem „Zobacz demo”. |
 | **2026-06-16** | **Gastro/Care:** nowe layouty publiczne, 5 palet branżowych, fix panelu kolorów. |
 | **2026-06-16** | **Cron trial:** `expire-trial-pages` — powiadomienia **Telegram** (Markdown) zamiast Resend; alert −7 dni + raport ręcznej kasacji; `AUTO_PURGE_ENABLED` domyślnie off. |

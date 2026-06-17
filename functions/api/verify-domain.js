@@ -1,3 +1,5 @@
+import '../../js/core/utils.js';
+
 /**
  * GET /api/verify-domain?domain=klient.pl
  * Sprawdza rekord CNAME domeny klienta (Cloudflare DNS over HTTPS).
@@ -19,6 +21,7 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'Content-Type',
   'Cache-Control': 'no-store',
 };
+const normalizeHostname = globalThis.DFOPS_normalizeHostname;
 
 function jsonResponse(body, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -43,13 +46,13 @@ function parseDomainParam(raw) {
   let domain = raw.trim();
   if (!domain) return null;
 
-  domain = domain
-    .replace(/^https?:\/\//i, '')
-    .replace(/\/.*$/, '')
-    .replace(/[?#].*$/, '')
-    .replace(/:\d+$/, '')
-    .replace(/^www\./i, '')
-    .toLowerCase();
+  domain = normalizeHostname(
+    domain
+      .replace(/^https?:\/\//i, '')
+      .replace(/\/.*$/, '')
+      .replace(/[?#].*$/, '')
+      .replace(/:\d+$/, '')
+  );
 
   if (!domain || domain.length > 253) return null;
   if (/[^a-z0-9.-]/.test(domain)) return null;

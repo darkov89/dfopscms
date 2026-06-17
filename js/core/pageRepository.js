@@ -1,4 +1,6 @@
 ;(function () {
+  const normalizeHostname = window.DFOPS_normalizeHostname;
+
   function supabase() {
     return window.DFOPS_getSupabaseClient();
   }
@@ -387,10 +389,7 @@
    * Hostname bez www — normalizuj przed wywołaniem (np. w routerze).
    */
   async function getPageByCustomDomain(domain) {
-    const normalized =
-      typeof domain === 'string'
-        ? domain.replace(/^www\./i, '').toLowerCase().trim()
-        : domain;
+    const normalized = typeof domain === 'string' ? normalizeHostname(domain).trim() : domain;
     const { data, error } = await supabase()
       .from('pages')
       .select('*')
