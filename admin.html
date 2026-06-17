@@ -30,8 +30,9 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <script defer src="js/core/utils.js?v=20260617a"></script>
-    <script defer src="js/core/config.js?v=20260601c"></script>
+    <script defer src="js/core/config.js?v=20260617t"></script>
     <script defer src="js/core/supabaseClient.js?v=20260403t"></script>
     <script defer src="js/templates/registry.js?v=20260404c"></script>
     <script defer src="js/core/contentSchema.js?v=20260404c"></script>
@@ -43,7 +44,7 @@
     <script defer src="js/core/googlePlacesSync.js?v=20260522d"></script>
     <script defer src="js/core/analytics.js?v=20260403t"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260616a"></script>
+    <script defer src="js/features/adminApp.js?v=20260617t"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -2518,6 +2519,12 @@
                                 </div>
                             </article>
                             </div>
+                        </div>
+
+                        <div x-show="subscriptionPlan === 'trial'" class="mt-8 max-w-2xl rounded-xl border border-slate-200/80 bg-white p-5 shadow-panel ring-1 ring-slate-900/5">
+                            <p class="mb-3 text-xs font-bold uppercase tracking-widest text-slate-500">Ochrona płatności</p>
+                            <div class="cf-turnstile" data-sitekey="0x4AAAAAADmt_cmVRzWtvglX"></div>
+                            <p class="mt-2 text-xs leading-relaxed text-slate-500">Przed przekierowaniem do Stripe potwierdzamy, że żądanie pochodzi od człowieka.</p>
                         </div>
 
                         <div id="dfops-platnosci-info" class="mt-8 max-w-2xl scroll-mt-24 border-t border-slate-200/80 pt-6">

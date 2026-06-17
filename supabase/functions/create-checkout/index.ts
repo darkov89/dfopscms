@@ -2,6 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "npm:stripe@^14.0.0";
 import { createClient } from "npm:@supabase/supabase-js@^2.39.0";
+import { verifyTurnstileToken } from "../_shared/turnstileVerification.ts";
 
 /** Deno global - available at runtime in Supabase Edge Functions. */
 declare const Deno: { env: { get: (k: string) => string | undefined } };
@@ -94,6 +95,18 @@ serve(async (req) => {
   }
 
   try {
+    const body = await req.json().catch(() => ({}));
+    const turnstile = await verifyTurnstileToken(
+      typeof body?.turnstileToken === "string" ? body.turnstileToken : "",
+      req.headers.get("CF-Connecting-IP"),
+    );
+    if (!turnstile.success) {
+      return new Response(JSON.stringify({ error: "Turnstile verification failed" }), {
+        status: 403,
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
+    }
+
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       throw new Error("Brak autoryzacji");
@@ -171,7 +184,6 @@ serve(async (req) => {
     const pricePro = Deno.env.get("STRIPE_PRICE_PRO") ?? "";
     const priceProYearly = Deno.env.get("STRIPE_PRICE_PRO_YEARLY") ?? "";
 
-    const body = await req.json().catch(() => ({}));
     const plan = typeof body?.plan === "string" ? body.plan.trim().toLowerCase() : "";
     const intervalRaw = typeof body?.interval === "string" ? body.interval.trim().toLowerCase() : "monthly";
     const interval = intervalRaw === "yearly" || intervalRaw === "annual" || intervalRaw === "year"

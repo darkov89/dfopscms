@@ -98,7 +98,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 
 **Onboarding:** modal powitalny, Driver.js, kreator (wizard), `welcome_onboarding_completed` / `onboarding_completed` w `pages.content`.
 
-**Security (skrót):** forced password reset, DOMPurify, CSP/HSTS/XFO/nosniff w `functions/_middleware.js`, publiczny odczyt `pages` zawężony query+RLS+grantami kolumnowymi, Stripe webhook tylko Edge, Google Places/Maps klucz tylko Edge, `billing_profiles` SoT rozliczeń, draft preview tylko dla właściciela.
+**Security (skrót):** forced password reset, DOMPurify, Cloudflare Turnstile dla rejestracji/custom inquiry/checkout, CSP/HSTS/XFO/nosniff w `functions/_middleware.js`, publiczny odczyt `pages` zawężony query+RLS+grantami kolumnowymi, Stripe webhook tylko Edge, Google Places/Maps klucz tylko Edge, `billing_profiles` SoT rozliczeń, draft preview tylko dla właściciela.
 
 **Luki:** brak obowiązkowego E2E/CI dla Edge; wildcard `*.dfcms.pl` w Cloudflare Pages; RLS anon read wymaga GRANT + polityki; brak historii wersji treści.
 
@@ -120,6 +120,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 - **Google Reviews Edge:** sesja wymagana; klucz `GOOGLE_MAPS_API_KEY` tylko serwer; panel autocomplete → `place_id`.
 - **Smart Booking:** `settings.booking_mode` + `contact.booking_url`; Booksy embed — ostrzeżenie X-Frame-Options.
 - **Nagłówki HTTP:** Cloudflare middleware dokleja CSP (Supabase/Stripe/Google Maps/CDN/Sentry/Calendly), `X-Content-Type-Options`, `X-Frame-Options: DENY`, HSTS dla HTTPS, Referrer/Permissions Policy.
+- **Anti-abuse:** Turnstile widget w `rejestracja.html`, `zapytanie-custom.html` i panelu subskrypcji; `create-checkout` weryfikuje `turnstileToken` przez `_shared/turnstileVerification.ts` przed Supabase/Stripe. Secrets: `PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`.
 - **Publiczny odczyt stron:** `pageRepository` i `functions/_middleware.js` pobierają wyłącznie konkretny `slug`/`custom_domain`, z `limit=1`, `content IS NOT NULL`, `trial_blocked_at IS NULL` i grace 14 dni dla `billing_failed_at`; migracja `20260617221000` usuwa szerokie `SELECT true` i grant `ALL` dla `anon` na `pages`.
 - **Widoczność sekcji:** toggles per zakładka (`showGallery`, `showGoogleReviews`, …); hero bez toggle.
 
@@ -267,6 +268,7 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
+| **2026-06-17** | **Turnstile:** widgety antyspamowe dla rejestracji, formularza Custom i checkoutu; `_shared/turnstileVerification.ts`; `create-checkout` → 403 przed Supabase/Stripe gdy token nieważny. |
 | **2026-06-17** | **Security audit:** limitowane publiczne zapytania `pages`, dokładne `eq` zamiast `ilike`, RLS/granty kolumnowe dla anon, `.env.example` z podziałem PUBLIC/SECRET, `SECURITY.md`. |
 | **2026-06-17** | **Security/DRY/tooling:** CSP + HSTS/XFO/nosniff w `functions/_middleware.js`; wspólny `js/core/utils.js` (`DFOPS_normalizeHostname`); `.prettierrc`, `.eslintrc.json`, `.vscode/settings.json`. |
 | **2026-06-16** | **Demo katalog:** `demo-gastro`, `demo-care`, `demo-consultant` w `demo_pages.json` + migracja seed; landing — wszystkie nisze z linkiem „Zobacz demo”. |

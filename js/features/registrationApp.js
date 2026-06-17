@@ -32,9 +32,21 @@
       accepted: false,
       rememberMe: false,
       form: { email: '', password: '', slug: '' },
+      turnstileSiteKey: cfg.turnstileSiteKey || '0x4AAAAAADmt_cmVRzWtvglX',
 
       init() {
         this.supabase = window.DFOPS_getSupabaseClient();
+      },
+
+      getTurnstileToken() {
+        const input = document.querySelector('input[name="cf-turnstile-response"]');
+        return input && typeof input.value === 'string' ? input.value.trim() : '';
+      },
+
+      resetTurnstile() {
+        if (window.turnstile && typeof window.turnstile.reset === 'function') {
+          window.turnstile.reset();
+        }
       },
 
       formatSlug() {
@@ -71,6 +83,10 @@
           }
           const okSlug = await this.checkSlugUnique();
           if (!okSlug) throw new Error('Popraw slug (unikalny, format twoja-nazwa).');
+          const turnstileToken = this.getTurnstileToken();
+          if (!turnstileToken) {
+            throw new Error('Potwierdź, że nie jesteś botem.');
+          }
 
           localStorage.setItem('dfops_remember', String(!!this.rememberMe));
           if (typeof window.DFOPS_resetSupabaseClient === 'function') {
@@ -85,6 +101,7 @@
             options: {
               data: { slug: slugTrimmed },
               emailRedirectTo: origin ? `${origin}/admin.html` : undefined,
+              captchaToken: turnstileToken,
             },
           });
           if (authError) throw authError;
@@ -118,6 +135,7 @@
           );
         } catch (e) {
           this.errorMessage = formatRegistrationAuthError(e);
+          this.resetTurnstile();
         } finally {
           this.loading = false;
         }

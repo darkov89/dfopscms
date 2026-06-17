@@ -9,6 +9,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="js/core/utils.js?v=20260617a"></script>
+    <script defer src="js/core/config.js?v=20260617t"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <script>
         tailwind.config = {
             theme: {
@@ -62,6 +65,10 @@
                           class="w-full resize-y rounded-xl border border-white/10 bg-zinc-900/60 px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-[#D4AF37]/50 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30"
                           placeholder="Opisz zakres, integracje, terminy…"></textarea>
             </div>
+            <div class="cf-turnstile" data-sitekey="0x4AAAAAADmt_cmVRzWtvglX"></div>
+            <p id="turnstile-error" class="hidden rounded-lg border border-red-400/20 bg-red-400/10 px-3 py-2 text-sm font-semibold text-red-300">
+                Potwierdź, że nie jesteś botem.
+            </p>
             <button type="submit"
                     class="w-full rounded-2xl bg-[#D4AF37] py-3.5 text-center text-sm font-bold text-zinc-900 shadow-lg shadow-[#D4AF37]/20 transition hover:bg-[#c9a432]">
                 Otwórz wiadomość e-mail
@@ -75,6 +82,14 @@
     <script>
         document.getElementById('dfcms-custom-inquiry').addEventListener('submit', function (e) {
             e.preventDefault();
+            var turnstileTokenInput = document.querySelector('input[name="cf-turnstile-response"]');
+            var turnstileToken = turnstileTokenInput && turnstileTokenInput.value ? turnstileTokenInput.value.trim() : '';
+            var turnstileError = document.getElementById('turnstile-error');
+            if (!turnstileToken) {
+                if (turnstileError) turnstileError.classList.remove('hidden');
+                return;
+            }
+            if (turnstileError) turnstileError.classList.add('hidden');
             var name = document.getElementById('inq-name').value.trim();
             var email = document.getElementById('inq-email').value.trim();
             var company = document.getElementById('inq-company').value.trim();

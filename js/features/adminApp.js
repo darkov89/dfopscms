@@ -2054,6 +2054,15 @@
         this.appearancePickerHex = '';
         this.applyThemeStylingFromContent();
       },
+      getTurnstileToken() {
+        const input = document.querySelector('input[name="cf-turnstile-response"]');
+        return input && typeof input.value === 'string' ? input.value.trim() : '';
+      },
+      resetTurnstile() {
+        if (window.turnstile && typeof window.turnstile.reset === 'function') {
+          window.turnstile.reset();
+        }
+      },
       validateWizardStep(step) {
         const pl = this.content?.pl;
         if (!pl) return '';
@@ -2484,6 +2493,11 @@
           this.showToast('Błąd sesji. Wyloguj się i zaloguj ponownie.', 'error');
           return;
         }
+        const turnstileToken = this.getTurnstileToken();
+        if (!turnstileToken) {
+          this.showToast('Potwierdź, że nie jesteś botem, a potem ponów płatność.', 'error');
+          return;
+        }
         this.checkoutLoading = true;
         try {
           const returnUrlObj = new URL(window.location.href);
@@ -2499,6 +2513,7 @@
                 interval,
                 returnUrl,
                 userEmail: this.user?.email || '',
+                turnstileToken,
               },
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -2527,6 +2542,7 @@
           }
         } catch (e) {
           console.error(e);
+          this.resetTurnstile();
           const msg = e && typeof e === 'object' && 'message' in e ? String(e.message) : '';
           if (msg.includes('HAS_STRIPE_SUBSCRIPTION') || /subskrypcję Stripe/i.test(msg)) {
             this.showToast(

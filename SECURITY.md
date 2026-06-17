@@ -13,8 +13,14 @@ We aim to acknowledge serious reports within 72 hours.
 ## Secret Handling
 
 - Browser-safe values: Supabase URL and anon/publishable keys may appear in static frontend code.
+- Cloudflare Turnstile site keys are public; Turnstile secret keys are server-only.
 - Server-only secrets must never be committed or exposed in browser JavaScript.
 - Store service role keys, Stripe secrets, Cloudflare tokens, Google API keys, Telegram tokens, cron secrets, and wFirma credentials only in Supabase Edge Function secrets or protected Cloudflare environment variables.
+
+## Anti-Abuse
+
+- Public forms and sensitive Edge Function calls should include a Cloudflare Turnstile token.
+- Edge Functions must verify Turnstile tokens before calling Supabase service role clients, Stripe, Cloudflare APIs, or other paid/external services.
 
 ## Public Data Access
 

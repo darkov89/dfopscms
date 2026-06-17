@@ -86,6 +86,8 @@
       standardYearly: 'price_1TaLW3I2mNLYIaHUZed0PXND',
     },
     appDomain: 'dfcms.pl',
+    /** Cloudflare Turnstile — publiczny site key (bezpieczny do frontu). Podmień per środowisko. */
+    turnstileSiteKey: '0x4AAAAAADmt_cmVRzWtvglX',
     /**
      * Motywy premium (freemium): edycja i podgląd dozwolone na każdym planie,
      * ale PUBLIKACJA na żywo wymaga planu płatnego. Pusta lista = brak ograniczeń

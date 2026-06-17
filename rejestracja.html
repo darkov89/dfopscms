@@ -6,13 +6,14 @@
     <title>DFCMS — Załóż stronę</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <script defer src="js/core/utils.js"></script>
     <script defer src="js/core/config.js"></script>
     <script defer src="js/core/supabaseClient.js"></script>
     <script defer src="js/core/pageRepository.js"></script>
     <script defer src="js/templates/registry.js"></script>
     <script defer src="js/core/contentSchema.js"></script>
-    <script defer src="js/features/registrationApp.js?v=20260525a"></script>
+    <script defer src="js/features/registrationApp.js?v=20260617t"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <style>[x-cloak]{display:none!important}</style>
 </head>
@@ -80,6 +81,8 @@
                 <input type="checkbox" x-model="rememberMe" class="rounded border-gray-600 bg-[#1e1e1e] text-[#D4AF37] focus:ring-[#D4AF37]">
                 <span class="text-sm text-gray-500">Zapamiętaj mnie na tym urządzeniu</span>
             </label>
+
+            <div class="cf-turnstile" data-sitekey="0x4AAAAAADmt_cmVRzWtvglX"></div>
 
             <button type="submit" :disabled="!accepted || loading" class="w-full bg-[#D4AF37] hover:bg-white text-[#121212] px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-[0_0_20px_rgba(212,175,55,0.15)] mt-4 disabled:opacity-50 disabled:cursor-not-allowed">
                 <span x-show="!loading">Utwórz konto i stronę</span>
