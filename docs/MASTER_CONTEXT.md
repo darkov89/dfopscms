@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-06-19 — landing Concierge premium SaaS, checkout Turnstile w modalu intencji, mobile-first panel
+**Ostatnia aktualizacja treści:** 2026-06-19 — landing dark-mode SaaS czarno-złoty, odblokowany katalog demo, checkout Turnstile w modalu
 
 ---
 
@@ -73,7 +73,7 @@ Użytkownik → Auth → pages.content + pages.billing_plan + billing_profiles
 
 | Warstwa | Kluczowe artefakty |
 |--------|---------------------|
-| **Front publiczny** | `index.html` (landing concierge: hero 60s, `#silnik`, `#porownanie`, `#nisze` 6 branż, `#cennik`, SEO + `favicon.svg`), demo `?site=demo-*` (beauty/fitness/services). Szablony: `beauty`, `consultant`, `fitness`, `services`, `gastro`, `care`, `setup`. `landingPricing.js` — plany, porównanie, nisze, moduły silnika. |
+| **Front publiczny** | `index.html` (dark-mode SaaS landing spójny z admin/rejestracją: `#121212` + `#D4AF37`; hero 3 min, `#jak`, `#wyposazenie`, `#spokoj`, `#demo`, `#cennik`, SEO + `favicon.svg`), demo przez `router.html?site=demo-*` (beauty/services/care/gastro/fitness/consultant). Szablony: `beauty`, `consultant`, `fitness`, `services`, `gastro`, `care`, `setup`. `landingPricing.js` — plany cennika i dane landingowe. |
 | **Panel CMS** | `admin.html`, `adminApp.js`. Draft vs published: `pages.draft_content` / `pages.content`. Subskrypcja: Starter/Standard/Custom, `billingInterval`, Stripe Checkout + Portal. Smart Booking: `settings.booking_mode` + `contact.booking_url`. |
 | **Backend** | `pages`, `billing_profiles`, RLS. Schemat baseline: `20260603072317_remote_schema.sql`. |
 | **Płatności** | Starter `tier0`, Standard `tier1`, Custom poza Stripe. Secrets: `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_STARTER_YEARLY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_PRO_YEARLY`. wFirma: `WFIRMA_*`, ledger `wfirma_invoice_ledger`. |
@@ -268,7 +268,9 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
-| **2026-06-19** | **Landing Concierge:** `index.html` przepozycjonowany na usługę Concierge dla lokalnego biznesu; dark hero, jasnoszare sekcje, porównanie Wix/home.pl, nisze, kroki, FAQ i cennik premium SaaS. |
+| **2026-06-19** | **Demo katalog:** landing pokazuje 6 template i prowadzi przez `router.html?site=demo-*`; demo katalogowe nie blokuje się przez trial (`is_demo_catalog`) + migracja ustawia `billing_plan=tier1` i czyści flagi blokady dla demo rekordów. |
+| **2026-06-19** | **Landing dark-mode SaaS:** `index.html` przepisany na ekskluzywny ciemny landing produktowy: hero 3 minuty, proste 3 kroki, wyposażenie wizytówki, sekcja „Święty spokój”, kafelki demo i ciemny cennik glassmorphism. |
+| **2026-06-19** | **Landing Concierge:** `index.html` przepisany na empatyczny, jasny przekaz do lokalnych firm; sekcja mitu AI, Tabela Szczerości, relacje z klientami, branże i lekki cennik z pomarańczowymi akcentami. |
 | **2026-06-19** | **Checkout Turnstile:** widget nie jest stałym elementem Subskrypcji; po kliknięciu aktywacji planu otwiera się modal, Turnstile renderuje się jawnie i callback automatycznie uruchamia `executeStripeCheckout(token)`. |
 | **2026-06-19** | **Panel admin mobile:** top bar układa się mobile-first, hamburger steruje `mobileMenuOpen`, zamknięty sidebar ma `pointer-events-none` i nie blokuje kliknięć w treść. |
 | **2026-06-19** | **Panel admin / Checkout:** CSP dopuszcza `browser.sentry-cdn.com`, `cdn.jsdelivr.net`, `cdnjs.cloudflare.com`; Turnstile w Subskrypcji renderowany jawnie po aktywacji widoku; `supabaseClient` utrzymuje jeden `GoTrueClient` z dynamicznym storage. |

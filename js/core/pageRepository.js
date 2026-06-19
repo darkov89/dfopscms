@@ -341,6 +341,7 @@
         user_id: null,
         trial_blocked_at: null,
         billing_failed_at: null,
+        billing_plan: 'tier1',
       };
     } catch {
       return null;
