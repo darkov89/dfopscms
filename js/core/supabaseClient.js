@@ -1,7 +1,5 @@
 ;(function () {
   let client = null;
-  /** Ostatnia wartość „Zapamiętaj mnie” użyta przy tworzeniu klienta — przy zmianie trzeba odświeżyć storage Auth. */
-  let cachedAuthRemember = null;
 
   function readRememberFlag() {
     try {
@@ -32,11 +30,25 @@
     return false;
   }
 
+  function selectedAuthStorage() {
+    return readRememberFlag() ? window.localStorage : window.sessionStorage;
+  }
+
+  const authStorage = {
+    getItem(key) {
+      return selectedAuthStorage().getItem(key);
+    },
+    setItem(key, value) {
+      selectedAuthStorage().setItem(key, value);
+    },
+    removeItem(key) {
+      window.localStorage.removeItem(key);
+      window.sessionStorage.removeItem(key);
+    },
+  };
+
   function getSupabaseClient() {
-    if (maybeExpireRememberedSession()) {
-      client = null;
-      cachedAuthRemember = null;
-    }
+    maybeExpireRememberedSession();
     const cfg = window.DFOPS_CONFIG;
     if (!cfg) throw new Error('Brak DFOPS_CONFIG');
     const url = typeof cfg.supabaseUrl === 'string' ? cfg.supabaseUrl.trim() : '';
@@ -47,13 +59,10 @@
       );
     }
     if (!window.supabase || !window.supabase.createClient) throw new Error('Brak supabase-js');
-    const remember = readRememberFlag();
-    if (client && cachedAuthRemember === remember) return client;
-    client = null;
-    cachedAuthRemember = remember;
+    if (client) return client;
     client = window.supabase.createClient(url, key, {
       auth: {
-        storage: remember ? window.localStorage : window.sessionStorage,
+        storage: authStorage,
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true,
@@ -63,8 +72,8 @@
   }
 
   function resetSupabaseClient() {
-    client = null;
-    cachedAuthRemember = null;
+    // Zachowujemy kompatybilność z istniejącymi call-site'ami bez tworzenia kolejnego GoTrueClient.
+    maybeExpireRememberedSession();
   }
 
   window.DFOPS_getSupabaseClient = getSupabaseClient;

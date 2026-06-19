@@ -391,6 +391,8 @@
       draftSavedOnce: false,
       upgrading: false,
       checkoutLoading: false,
+      turnstileToken: '',
+      turnstileWidgetId: null,
       /** Okres rozliczenia na ekranie pakietów: monthly | yearly */
       billingInterval: 'monthly',
       stripeSyncLoading: false,
@@ -864,6 +866,7 @@
         this.sidebarOpen = false;
         replaceAdminUrlHashForTab(tab);
         this.maybeSyncSubscriptionTabFromStripe();
+        if (tab === 'subscription') this.renderTurnstileWhenReady();
         if (tab === 'google_reviews') this.syncGoogleReviewsPlaceInputFromContent();
       },
 
@@ -1445,6 +1448,7 @@
           if (t) {
             this.activeTab = t;
             this.ensureActiveTabForTheme();
+            if (this.activeTab === 'subscription') this.renderTurnstileWhenReady();
             return;
           }
           if (window.location.hash === '' || window.location.hash === '#') {
@@ -1903,6 +1907,7 @@
           this.ensureActiveTabForTheme();
           replaceAdminUrlHashForTab(this.activeTab);
           this.maybeSyncSubscriptionTabFromStripe();
+          if (this.activeTab === 'subscription') this.renderTurnstileWhenReady();
 
           if (!this.isEmailVerified) {
             this.showWizard = false;
@@ -2055,12 +2060,57 @@
         this.applyThemeStylingFromContent();
       },
       getTurnstileToken() {
+        if (!this.turnstileToken) this.renderTurnstileWhenReady();
+        if (typeof this.turnstileToken === 'string' && this.turnstileToken.trim()) {
+          return this.turnstileToken.trim();
+        }
         const input = document.querySelector('input[name="cf-turnstile-response"]');
         return input && typeof input.value === 'string' ? input.value.trim() : '';
       },
+      renderTurnstileWhenReady(attempt = 0) {
+        if (this.activeTab !== 'subscription' || this.subscriptionPlan !== 'trial') return;
+        if (this.turnstileWidgetId !== null) return;
+
+        const sitekey = cfg?.turnstileSiteKey;
+        const container = document.getElementById('turnstile-container');
+        const turnstile = window.turnstile;
+        const ready =
+          sitekey &&
+          container &&
+          container.offsetParent !== null &&
+          turnstile &&
+          typeof turnstile.render === 'function';
+
+        if (!ready) {
+          if (attempt < 30) {
+            window.setTimeout(() => this.renderTurnstileWhenReady(attempt + 1), 150);
+          }
+          return;
+        }
+
+        try {
+          this.turnstileToken = '';
+          this.turnstileWidgetId = turnstile.render('#turnstile-container', {
+            sitekey,
+            callback: (token) => {
+              this.turnstileToken = typeof token === 'string' ? token.trim() : '';
+            },
+            'expired-callback': () => {
+              this.turnstileToken = '';
+            },
+            'error-callback': () => {
+              this.turnstileToken = '';
+            },
+          });
+        } catch (e) {
+          console.warn('Turnstile render failed', e);
+        }
+      },
       resetTurnstile() {
+        this.turnstileToken = '';
         if (window.turnstile && typeof window.turnstile.reset === 'function') {
-          window.turnstile.reset();
+          if (this.turnstileWidgetId !== null) window.turnstile.reset(this.turnstileWidgetId);
+          else window.turnstile.reset();
         }
       },
       validateWizardStep(step) {
