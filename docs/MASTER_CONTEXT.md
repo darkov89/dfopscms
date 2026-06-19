@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-06-19 — panel admin: CSP dla Sentry sourcemaps/CDN, Turnstile explicit render, Supabase singleton
+**Ostatnia aktualizacja treści:** 2026-06-19 — panel admin: checkout Turnstile w modalu intencji, mobile-first top bar/sidebar, CSP Sentry
 
 ---
 
@@ -268,6 +268,8 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
+| **2026-06-19** | **Checkout Turnstile:** widget nie jest stałym elementem Subskrypcji; po kliknięciu aktywacji planu otwiera się modal, Turnstile renderuje się jawnie i callback automatycznie uruchamia `executeStripeCheckout(token)`. |
+| **2026-06-19** | **Panel admin mobile:** top bar układa się mobile-first, hamburger steruje `mobileMenuOpen`, zamknięty sidebar ma `pointer-events-none` i nie blokuje kliknięć w treść. |
 | **2026-06-19** | **Panel admin / Checkout:** CSP dopuszcza `browser.sentry-cdn.com`, `cdn.jsdelivr.net`, `cdnjs.cloudflare.com`; Turnstile w Subskrypcji renderowany jawnie po aktywacji widoku; `supabaseClient` utrzymuje jeden `GoTrueClient` z dynamicznym storage. |
 | **2026-06-17** | **Turnstile:** widgety antyspamowe dla rejestracji, formularza Custom i checkoutu; `_shared/turnstileVerification.ts`; `create-checkout` → 403 przed Supabase/Stripe gdy token nieważny. |
 | **2026-06-17** | **Security audit:** limitowane publiczne zapytania `pages`, dokładne `eq` zamiast `ilike`, RLS/granty kolumnowe dla anon, `.env.example` z podziałem PUBLIC/SECRET, `SECURITY.md`. |

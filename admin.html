@@ -44,12 +44,12 @@
     <script defer src="js/core/googlePlacesSync.js?v=20260522d"></script>
     <script defer src="js/core/analytics.js?v=20260403t"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260619a"></script>
+    <script defer src="js/features/adminApp.js?v=20260619c"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
 </head>
-<body class="dfops-admin-app flex min-h-screen flex-col bg-slate-50 font-sans text-slate-800 antialiased" x-data="typeof DFOPS_adminAlpineState === 'function' ? DFOPS_adminAlpineState() : { sidebarOpen: false, isLoading: false, content: { pl: { nav: { menu: {} }, hero: {}, manifesto: {}, services: [], faq: [], contact: {}, settings: {} } } }">
+<body class="dfops-admin-app flex min-h-screen flex-col bg-slate-50 font-sans text-slate-800 antialiased" x-data="typeof DFOPS_adminAlpineState === 'function' ? DFOPS_adminAlpineState() : { sidebarOpen: false, mobileMenuOpen: false, isLoading: false, content: { pl: { nav: { menu: {} }, hero: {}, manifesto: {}, services: [], faq: [], contact: {}, settings: {} } } }">
 
     <div x-show="showWizard" x-cloak class="fixed inset-0 z-[100] overflow-y-auto bg-slate-50" x-transition.opacity>
         <div x-show="wizardStep === 0" id="dfcms-onboarding-wizard-step0" class="min-h-screen flex flex-col items-center justify-center p-6 max-w-5xl mx-auto" x-transition>
@@ -496,6 +496,22 @@
             </div>
         </div>
 
+        <div x-show="showCheckoutModal" x-cloak class="fixed inset-0 z-[265] flex items-center justify-center bg-slate-950/65 p-4 backdrop-blur-[2px]" @click.self="closeCheckoutModal()" role="dialog" aria-modal="true" aria-labelledby="dfops-checkout-modal-title">
+            <div class="relative w-full max-w-sm rounded-2xl bg-white p-5 text-center shadow-2xl ring-1 ring-slate-900/10 sm:p-6" @click.stop>
+                <button type="button" class="absolute right-3 top-3 text-xl leading-none text-slate-400 transition-colors hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-40" @click="closeCheckoutModal()" :disabled="checkoutLoading" aria-label="Zamknij">×</button>
+                <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 text-white shadow-inner">
+                    <svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                </div>
+                <h2 id="dfops-checkout-modal-title" class="text-base font-bold tracking-tight text-slate-900">Przygotowujemy bezpieczną płatność Stripe...</h2>
+                <p class="mt-2 text-sm leading-relaxed text-slate-600">Potwierdź krótko, że jesteś człowiekiem. Po weryfikacji od razu przeniesiemy Cię do Stripe.</p>
+                <div id="turnstile-checkout-container" class="my-4 flex justify-center"></div>
+                <p class="text-xs leading-relaxed text-slate-500">To zabezpieczenie chroni panel przed botami i przypadkowymi próbami płatności.</p>
+            </div>
+        </div>
+
         <!-- Globalny confirm() → Promise<boolean> (async/await) -->
         <div x-show="confirmDialog && confirmDialog.open" x-cloak class="fixed inset-0 z-[266] flex items-center justify-center p-4 bg-black/55 backdrop-blur-[2px]"
              @click.self="resolveConfirmDialog(false)" @keydown.escape.window="resolveConfirmDialog(false)" role="dialog" aria-modal="true" aria-labelledby="dfops-confirm-title">
@@ -564,23 +580,19 @@
             </div>
         </div>
 
-        <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false" class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-[2px] transition-opacity lg:hidden" x-transition.opacity></div>
+        <div x-show="mobileMenuOpen" x-cloak @click="mobileMenuOpen = false" class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-[2px] transition-opacity md:hidden" x-transition.opacity></div>
 
-        <div class="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-slate-200/80 bg-white/90 px-6 backdrop-blur-md lg:hidden">
-            <span class="text-lg font-black tracking-widest text-slate-900">DF<span class="text-accent">CMS</span></span>
-            <button type="button" @click="sidebarOpen = true" class="-mr-2 rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Otwórz menu">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-            </button>
-        </div>
-
-        <header class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 shadow-sm backdrop-blur-md lg:z-50">
-            <div class="mx-auto flex min-h-16 w-full max-w-[1600px] flex-col gap-3 px-6 py-3 sm:px-8 lg:h-16 lg:flex-row lg:flex-nowrap lg:items-center lg:justify-between lg:gap-8 lg:py-0 xl:px-10">
-                <div class="flex min-w-0 flex-1 items-center gap-3 text-sm text-slate-700 sm:gap-4 lg:gap-5">
-                    <div class="hidden h-8 shrink-0 items-center border-r border-slate-200/90 pr-5 lg:flex" aria-hidden="false">
+        <header class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 shadow-sm backdrop-blur-md">
+            <div class="mx-auto flex min-h-16 w-full max-w-[1600px] flex-col items-stretch gap-2 px-4 py-3 md:h-16 md:flex-row md:items-center md:justify-between md:gap-6 md:px-8 md:py-0 xl:px-10">
+                <div class="flex min-w-0 flex-1 items-center gap-3 text-sm text-slate-700 md:gap-5">
+                    <button type="button" @click="mobileMenuOpen = !mobileMenuOpen" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-xl leading-none text-slate-700 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 md:hidden" :aria-expanded="mobileMenuOpen ? 'true' : 'false'" aria-controls="dfops-admin-sidebar" aria-label="Otwórz menu">
+                        ☰
+                    </button>
+                    <div class="hidden h-8 shrink-0 items-center border-r border-slate-200/90 pr-5 md:flex" aria-hidden="false">
                         <span class="text-sm font-semibold tracking-[0.18em] text-slate-900">DF<span class="text-accent">CMS</span></span>
                     </div>
-                    <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1.5 leading-none lg:flex-nowrap lg:items-center">
-                        <span class="w-full text-xs font-medium uppercase tracking-wider text-slate-400 lg:hidden">Witaj, <span x-text="user?.email"></span></span>
+                    <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1.5 leading-none md:flex-nowrap md:items-center">
+                        <span class="w-full min-w-0 truncate text-xs font-medium uppercase tracking-wider text-slate-400 md:hidden">Witaj, <span x-text="user?.email"></span></span>
                         <div class="flex min-w-0 items-baseline gap-2">
                             <span class="shrink-0 text-slate-500">Motyw</span>
                             <span class="truncate font-medium uppercase tracking-wide text-slate-900" x-text="theme"></span>
@@ -596,10 +608,10 @@
                     </div>
                 </div>
 
-                <p class="hidden max-w-[min(100%,13rem)] shrink-0 truncate text-sm font-medium text-slate-500 lg:block xl:max-w-[16rem]" title="Zalogowany użytkownik">Witaj, <span x-text="user?.email"></span></p>
+                <p class="hidden max-w-[min(100%,13rem)] shrink-0 truncate text-sm font-medium text-slate-500 md:block xl:max-w-[16rem]" title="Zalogowany użytkownik">Witaj, <span x-text="user?.email"></span></p>
 
-                <div class="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-end lg:w-auto lg:max-w-none lg:shrink-0">
-                    <div class="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 sm:gap-x-5">
+                <div class="flex w-full min-w-0 flex-col gap-2 md:w-auto md:max-w-none md:shrink-0 md:flex-row md:items-center md:justify-end">
+                    <div class="grid w-full min-w-0 grid-cols-2 items-center gap-2 sm:flex sm:flex-wrap sm:justify-end sm:gap-x-5 sm:gap-y-2 md:w-auto">
                         <span x-show="content && panelContentReady" x-cloak class="hidden items-center gap-1.5 text-xs text-slate-400 sm:inline-flex" aria-live="polite">
                             <span x-show="draftSaving" class="inline-flex items-center gap-1.5 animate-pulse"><span class="h-1.5 w-1.5 rounded-full bg-amber-400"></span>Zapisuję roboczo…</span>
                             <span x-show="!draftSaving && !hasUnsavedChanges && draftSavedOnce" class="inline-flex items-center gap-1.5"><span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>Zapisano roboczo</span>
@@ -610,19 +622,19 @@
                            @click="stashDraftForPreview()"
                            :title="previewUsesHtmlFallback ? 'Podgląd tymczasowo używa szablonu Beauty (tryb lokalny).' : 'Otwiera podgląd wersji roboczej — nic nie publikuje na stronie'"
                            target="_blank" rel="noopener noreferrer"
-                           class="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900">Podgląd strony</a>
+                           class="inline-flex min-w-0 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-center text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900 sm:border-0 sm:bg-transparent sm:px-0">Podgląd strony</a>
 
                         <button @click="revertChanges()" x-show="content && panelContentReady" type="button"
                                 :disabled="saving"
                                 title="Odrzuć zmiany robocze i przywróć aktualnie opublikowaną wersję"
-                                class="inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/50 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                class="inline-flex min-w-0 shrink-0 items-center justify-center whitespace-nowrap rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/50 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4">
                             Odrzuć zmiany
                         </button>
 
                         <button @click="requestPublish()" x-show="content && panelContentReady" type="button"
                                 :disabled="saving"
                                 :title="isPublishBlockedByPlan ? 'Publikacja tego motywu wymaga planu Premium' : 'Skopiuj stan roboczy do wersji publicznej (na żywo)'"
-                                class="inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-slate-800 bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60">
+                                class="col-span-2 inline-flex min-w-0 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-slate-800 bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-1 sm:px-5">
                             <span x-show="isPublishBlockedByPlan" x-cloak aria-hidden="true">🔒</span>
                             <span x-show="!saving">Publikuj zmiany</span>
                             <span x-show="saving" x-cloak class="animate-pulse">Zapisywanie…</span>
@@ -630,9 +642,9 @@
 
                         <div class="hidden h-8 w-px shrink-0 bg-slate-200 sm:block" aria-hidden="true"></div>
 
-                        <div class="flex shrink-0 items-center gap-4 whitespace-nowrap sm:gap-5">
-                            <button type="button" @click="setTab('subscription'); $nextTick(() => { const el = document.getElementById('dfops-platnosci-info'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); })" class="text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:text-accent lg:text-[11px]">Warunki</button>
-                            <button type="button" @click="logout()" class="text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:text-red-600 lg:text-[11px]">Wyloguj</button>
+                        <div class="col-span-2 flex shrink-0 items-center justify-center gap-4 whitespace-nowrap sm:col-span-1 sm:gap-5">
+                            <button type="button" @click="setTab('subscription'); $nextTick(() => { const el = document.getElementById('dfops-platnosci-info'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); })" class="text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:text-accent md:text-[11px]">Warunki</button>
+                            <button type="button" @click="logout()" class="text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:text-red-600 md:text-[11px]">Wyloguj</button>
                         </div>
                     </div>
                 </div>
@@ -682,13 +694,14 @@
                 </button>
             </div>
 
-            <div class="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-10">
+            <div class="relative flex flex-col gap-6 md:flex-row md:items-start md:gap-8 lg:gap-10">
                 <aside
-                    class="fixed inset-y-0 left-0 z-50 flex w-64 max-w-[min(100vw,18rem)] transform flex-col overflow-hidden border-r border-slate-200/80 bg-white shadow-panel-md transition-transform duration-300 ease-out lg:relative lg:inset-auto lg:z-auto lg:w-1/4 lg:max-w-none lg:translate-x-0 lg:flex-shrink-0 lg:overflow-visible lg:rounded-xl lg:border lg:border-slate-200/70 lg:shadow-[4px_0_28px_-8px_rgba(15,23,42,0.09)] lg:ring-1 lg:ring-slate-900/[0.045] lg:sticky lg:top-4 lg:self-start"
-                    :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+                    id="dfops-admin-sidebar"
+                    class="fixed inset-y-0 left-0 z-50 flex w-64 max-w-[min(100vw,18rem)] transform flex-col overflow-hidden border-r border-slate-200/80 bg-white shadow-panel-md transition-[transform,opacity] duration-300 ease-out md:sticky md:top-20 md:z-auto md:w-1/4 md:max-w-none md:translate-x-0 md:flex-shrink-0 md:overflow-visible md:rounded-xl md:border md:border-slate-200/70 md:opacity-100 md:shadow-[4px_0_28px_-8px_rgba(15,23,42,0.09)] md:ring-1 md:ring-slate-900/[0.045] md:self-start md:pointer-events-auto"
+                    :class="mobileMenuOpen ? 'translate-x-0 opacity-100 pointer-events-auto' : '-translate-x-full opacity-0 pointer-events-none md:translate-x-0 md:opacity-100 md:pointer-events-auto'"
                 >
                     <div class="dfops-admin-sidebar-scroll flex flex-col px-2 pb-4 pt-3">
-                        <button type="button" id="dfcms-onboarding-wizard-btn" @click="openWizardFromStudio()" class="mb-4 flex w-full items-center gap-3 rounded-xl bg-accent/10 px-4 py-3 text-left font-bold text-accent transition-colors hover:bg-accent/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2">
+                        <button type="button" id="dfcms-onboarding-wizard-btn" @click="mobileMenuOpen = false; openWizardFromStudio()" class="mb-4 flex w-full items-center gap-3 rounded-xl bg-accent/10 px-4 py-3 text-left font-bold text-accent transition-colors hover:bg-accent/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2">
                             <span class="text-xl shrink-0" aria-hidden="true">🪄</span>
                             <span class="min-w-0 flex-1 leading-snug">Uruchom Kreator</span>
                             <span x-show="incompleteOnboardingChecks.length && !showWizard" x-cloak class="inline-flex h-6 min-w-[1.5rem] shrink-0 items-center justify-center rounded-full bg-amber-200/90 px-1.5 text-[11px] font-bold tabular-nums text-amber-950" x-text="incompleteOnboardingChecks.length"></span>
@@ -952,7 +965,7 @@
                     </div>
                 </aside>
 
-                <div class="w-full min-w-0 overflow-hidden rounded-xl border border-slate-200/70 border-l-slate-200/80 bg-white p-4 shadow-panel ring-1 ring-slate-900/5 md:p-8 lg:w-3/4 lg:border-l lg:border-l-slate-200 lg:pl-8 lg:shadow-[2px_0_24px_-10px_rgba(15,23,42,0.07)]">
+                <div class="w-full min-w-0 overflow-hidden rounded-xl border border-slate-200/70 border-l-slate-200/80 bg-white px-4 py-5 shadow-panel ring-1 ring-slate-900/5 md:w-3/4 md:p-8 md:border-l md:border-l-slate-200 md:pl-8 md:shadow-[2px_0_24px_-10px_rgba(15,23,42,0.07)]">
 
                     <div x-show="!showWizard && isEmailVerified && content?.pl?.settings?.onboarding_completed === false && incompleteOnboardingChecks.length > 0"
                          x-transition
@@ -962,7 +975,7 @@
                                 <h3 class="text-sm font-bold text-slate-900">Co warto jeszcze dopracować</h3>
                                 <p class="mt-1 max-w-xl text-xs text-slate-600">Lista dotyczy podstaw: szablon, nazwa w menu, kontakt. Kliknij pozycję albo otwórz pełny kreator — resztę dopracujesz później w zakładkach.</p>
                             </div>
-                            <button type="button" @click="openWizardFromStudio(); sidebarOpen = false" class="shrink-0 self-start rounded-lg border border-accent/30 bg-white px-3 py-2 text-xs font-bold uppercase tracking-widest text-accent transition-colors hover:bg-accent/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                            <button type="button" @click="openWizardFromStudio(); sidebarOpen = false; mobileMenuOpen = false" class="shrink-0 self-start rounded-lg border border-accent/30 bg-white px-3 py-2 text-xs font-bold uppercase tracking-widest text-accent transition-colors hover:bg-accent/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
                                 Pełny kreator
                             </button>
                         </div>
@@ -2521,23 +2534,15 @@
                             </div>
                         </div>
 
-                        <div x-show="subscriptionPlan === 'trial'" class="mt-8 max-w-2xl rounded-xl border border-slate-200/80 bg-white p-5 shadow-panel ring-1 ring-slate-900/5">
-                            <p class="mb-3 text-xs font-bold uppercase tracking-widest text-slate-500">Ochrona płatności</p>
-                            <div id="turnstile-container"></div>
-                            <p class="mt-2 text-xs leading-relaxed text-slate-500">Przed przekierowaniem do Stripe potwierdzamy, że żądanie pochodzi od człowieka.</p>
-                        </div>
-
                         <div id="dfops-platnosci-info" class="mt-8 max-w-2xl scroll-mt-24 border-t border-slate-200/80 pt-6">
                             <h3 class="mb-4 text-sm font-semibold text-slate-900">Warunki rozliczeń i zasady subskrypcji</h3>
-                            <ul class="list-inside list-disc space-y-2 text-xs leading-relaxed text-slate-500">
-                                <li><strong class="text-slate-700">Ceny i Podatek VAT:</strong> Prezentowane w panelu ceny pakietów są kwotami netto (dla podmiotów B2B). W przypadku zakupu przez konsumenta (B2C) lub wyboru określonych jurysdykcji podatkowych, do ceny netto zostanie doliczony podatek VAT zgodnie z obowiązującymi przepisami (standardowo 23% dla Polski) bezpośrednio w oknie płatności Stripe.</li>
-                                <li><strong class="text-slate-700">Bezpieczeństwo:</strong> Płatności cykliczne realizowane są przez certyfikowaną bramkę Stripe. Faktury są generowane automatycznie przez system wFirma (w tym via KSeF).</li>
-                                <li><strong class="text-slate-700">Okres próbny (Trial):</strong> Trwa 14 dni. Pełne, produkcyjne konto rozliczeniowe powstaje po zaksięgowaniu pierwszej opłaty subskrypcyjnej.</li>
-                                <li><strong class="text-slate-700">Zmiana planu:</strong> Zmiana planu na wyższy (Upgrade) następuje natychmiast, a karta zostanie obciążona proporcjonalną dopłatą (prorata). Zmiana planu na niższy (Downgrade) wchodzi w życie od nowego cyklu rozliczeniowego.</li>
-                                <li><strong class="text-slate-700">Brak płatności (Grace Period):</strong> W przypadku problemów z pobraniem środków przy odnowieniu, system daje 14 dni na uregulowanie zaległości. Po tym terminie widok publiczny strony zostaje automatycznie ukryty.</li>
-                                <li><strong class="text-slate-700">Asystent DFCMS (Concierge):</strong> Godzinowe wsparcie techniczne: w pakiecie Standard od 100 zł/h netto, w pakiecie Custom – wycena indywidualna.</li>
+                            <ul class="space-y-2 text-xs leading-relaxed text-slate-500">
+                                <li><strong class="text-slate-700">Cena:</strong> w panelu pokazujemy kwoty netto; Stripe dolicza właściwy VAT przed płatnością.</li>
+                                <li><strong class="text-slate-700">Płatność:</strong> karta, faktury i subskrypcja są obsługiwane w bezpiecznym portalu Stripe.</li>
+                                <li><strong class="text-slate-700">Trial:</strong> masz 14 dni na test. Po braku płatności widok publiczny może zostać ukryty.</li>
+                                <li><strong class="text-slate-700">Zmiany:</strong> plan możesz zmienić lub anulować w Stripe; dostęp działa do końca opłaconego okresu.</li>
                             </ul>
-                            <p class="mt-4 text-xs text-slate-400">Pełną treść zobowiązań prawnych oraz zasady RODO znajdziesz w <a href="/regulamin.html" target="_blank" rel="noopener noreferrer" class="text-slate-500 underline decoration-slate-300 underline-offset-2 hover:text-accent">Regulaminie</a> na stronie głównej. Masz pytania? Napisz: <a href="mailto:kontakt@dfops.eu" class="text-slate-500 underline decoration-slate-300 underline-offset-2 hover:text-accent">kontakt@dfops.eu</a></p>
+                            <p class="mt-4 text-xs text-slate-400">Pełne zasady są w <a href="/regulamin.html" target="_blank" rel="noopener noreferrer" class="text-slate-500 underline decoration-slate-300 underline-offset-2 hover:text-accent">Regulaminie</a> i <a href="/polityka.html" target="_blank" rel="noopener noreferrer" class="text-slate-500 underline decoration-slate-300 underline-offset-2 hover:text-accent">Polityce Prywatności</a>. Pytania: <a href="mailto:kontakt@dfops.eu" class="text-slate-500 underline decoration-slate-300 underline-offset-2 hover:text-accent">kontakt@dfops.eu</a>.</p>
                         </div>
 
                         <div class="mt-10 max-w-2xl border-t border-slate-200/80 pt-8">

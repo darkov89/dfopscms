@@ -366,6 +366,7 @@
       showDnsInstructions: false,
       showTemplateSwitcher: false,
       activeTab: 'hero',
+      mobileMenuOpen: false,
       saving: false,
       uploadingImage: false,
       uploadingMessage: '',
@@ -391,6 +392,11 @@
       draftSavedOnce: false,
       upgrading: false,
       checkoutLoading: false,
+      showCheckoutModal: false,
+      pendingCheckoutPlan: '',
+      pendingCheckoutPlanType: '',
+      pendingCheckoutTier: '',
+      pendingCheckoutInterval: '',
       turnstileToken: '',
       turnstileWidgetId: null,
       /** Okres rozliczenia na ekranie pakietów: monthly | yearly */
@@ -864,9 +870,9 @@
       setTab(tab) {
         this.activeTab = tab;
         this.sidebarOpen = false;
+        this.mobileMenuOpen = false;
         replaceAdminUrlHashForTab(tab);
         this.maybeSyncSubscriptionTabFromStripe();
-        if (tab === 'subscription') this.renderTurnstileWhenReady();
         if (tab === 'google_reviews') this.syncGoogleReviewsPlaceInputFromContent();
       },
 
@@ -1448,7 +1454,6 @@
           if (t) {
             this.activeTab = t;
             this.ensureActiveTabForTheme();
-            if (this.activeTab === 'subscription') this.renderTurnstileWhenReady();
             return;
           }
           if (window.location.hash === '' || window.location.hash === '#') {
@@ -1907,7 +1912,6 @@
           this.ensureActiveTabForTheme();
           replaceAdminUrlHashForTab(this.activeTab);
           this.maybeSyncSubscriptionTabFromStripe();
-          if (this.activeTab === 'subscription') this.renderTurnstileWhenReady();
 
           if (!this.isEmailVerified) {
             this.showWizard = false;
@@ -2059,58 +2063,69 @@
         this.appearancePickerHex = '';
         this.applyThemeStylingFromContent();
       },
-      getTurnstileToken() {
-        if (!this.turnstileToken) this.renderTurnstileWhenReady();
-        if (typeof this.turnstileToken === 'string' && this.turnstileToken.trim()) {
-          return this.turnstileToken.trim();
-        }
-        const input = document.querySelector('input[name="cf-turnstile-response"]');
-        return input && typeof input.value === 'string' ? input.value.trim() : '';
-      },
-      renderTurnstileWhenReady(attempt = 0) {
-        if (this.activeTab !== 'subscription' || this.subscriptionPlan !== 'trial') return;
-        if (this.turnstileWidgetId !== null) return;
-
-        const sitekey = cfg?.turnstileSiteKey;
-        const container = document.getElementById('turnstile-container');
+      clearCheckoutTurnstile() {
+        this.turnstileToken = '';
         const turnstile = window.turnstile;
-        const ready =
-          sitekey &&
-          container &&
-          container.offsetParent !== null &&
-          turnstile &&
-          typeof turnstile.render === 'function';
+        if (turnstile && typeof turnstile.remove === 'function') {
+          try {
+            if (this.turnstileWidgetId !== null) turnstile.remove(this.turnstileWidgetId);
+            else turnstile.remove('#turnstile-checkout-container');
+          } catch (e) {
+            /* ignore */
+          }
+        }
+        this.turnstileWidgetId = null;
+        const container = document.getElementById('turnstile-checkout-container');
+        if (container) container.innerHTML = '';
+      },
+      closeCheckoutModal(force = false) {
+        if (this.checkoutLoading && !force) return;
+        this.showCheckoutModal = false;
+        this.pendingCheckoutPlan = '';
+        this.pendingCheckoutPlanType = '';
+        this.pendingCheckoutTier = '';
+        this.pendingCheckoutInterval = '';
+        this.clearCheckoutTurnstile();
+      },
+      renderCheckoutTurnstile(attempt = 0) {
+        if (!this.showCheckoutModal) return;
+        const sitekey = cfg?.turnstileSiteKey;
+        const container = document.getElementById('turnstile-checkout-container');
+        const turnstile = window.turnstile;
+        const ready = sitekey && container && turnstile && typeof turnstile.render === 'function';
 
         if (!ready) {
           if (attempt < 30) {
-            window.setTimeout(() => this.renderTurnstileWhenReady(attempt + 1), 150);
+            window.setTimeout(() => this.renderCheckoutTurnstile(attempt + 1), 150);
+          } else {
+            this.showToast('Nie udało się załadować weryfikacji płatności. Odśwież stronę i spróbuj ponownie.', 'error');
+            this.closeCheckoutModal();
           }
           return;
         }
 
+        this.clearCheckoutTurnstile();
         try {
-          this.turnstileToken = '';
-          this.turnstileWidgetId = turnstile.render('#turnstile-container', {
+          this.turnstileWidgetId = turnstile.render('#turnstile-checkout-container', {
             sitekey,
             callback: (token) => {
-              this.turnstileToken = typeof token === 'string' ? token.trim() : '';
+              const value = typeof token === 'string' ? token.trim() : '';
+              if (!value || this.checkoutLoading) return;
+              this.turnstileToken = value;
+              void this.executeStripeCheckout(value);
             },
             'expired-callback': () => {
               this.turnstileToken = '';
             },
             'error-callback': () => {
               this.turnstileToken = '';
+              this.showToast('Weryfikacja nie powiodła się. Spróbuj ponownie.', 'error');
             },
           });
         } catch (e) {
           console.warn('Turnstile render failed', e);
-        }
-      },
-      resetTurnstile() {
-        this.turnstileToken = '';
-        if (window.turnstile && typeof window.turnstile.reset === 'function') {
-          if (this.turnstileWidgetId !== null) window.turnstile.reset(this.turnstileWidgetId);
-          else window.turnstile.reset();
+          this.showToast('Nie udało się uruchomić weryfikacji płatności.', 'error');
+          this.closeCheckoutModal();
         }
       },
       validateWizardStep(step) {
@@ -2285,6 +2300,7 @@
         const self = this;
         const ensureSidebarForTour = (driver) => {
           self.sidebarOpen = true;
+          self.mobileMenuOpen = true;
           self.$nextTick(() => {
             requestAnimationFrame(() => {
               if (driver && typeof driver.refresh === 'function') driver.refresh();
@@ -2432,6 +2448,7 @@
         this.wizardFieldWarning = '';
         this.showWizard = true;
         this.sidebarOpen = false;
+        this.mobileMenuOpen = false;
         await new Promise((resolve) => this.$nextTick(resolve));
         await this.startOnboardingTour();
       },
@@ -2445,6 +2462,7 @@
         this.wizardFieldWarning = '';
         this.showWizard = true;
         this.sidebarOpen = false;
+        this.mobileMenuOpen = false;
         this.persistWizardUiState();
         if (typeof window.DFOPS_trackEvent === 'function') {
           window.DFOPS_trackEvent('onboarding_reopened', { slug: this.slug });
@@ -2482,6 +2500,7 @@
         if (item.openWizard) this.openWizardFromStudio();
         else if (item.tab) this.setTab(item.tab);
         this.sidebarOpen = false;
+        this.mobileMenuOpen = false;
       },
       closeWizardDismissModal() {
         this.showWizardDismissModal = false;
@@ -2530,25 +2549,62 @@
           return;
         }
 
+        this.pendingCheckoutPlan = plan;
+        this.pendingCheckoutPlanType = planType;
+        this.pendingCheckoutTier = tier;
+        this.pendingCheckoutInterval = interval;
+        this.turnstileToken = '';
+        this.showCheckoutModal = true;
+        this.$nextTick(() => {
+          this.renderCheckoutTurnstile();
+        });
+      },
+      async executeStripeCheckout(turnstileToken) {
+        const plan = String(this.pendingCheckoutPlan || '').trim();
+        const planType = String(this.pendingCheckoutPlanType || plan).trim();
+        const tier = String(this.pendingCheckoutTier || '').trim();
+        const interval = this.pendingCheckoutInterval === 'yearly' ? 'yearly' : 'monthly';
+
+        if (!plan || !tier || (plan !== 'starter' && plan !== 'standard')) {
+          this.showToast('Nieprawidłowy plan płatności. Wybierz pakiet jeszcze raz.', 'error');
+          this.closeCheckoutModal();
+          return;
+        }
+        if (!turnstileToken) {
+          this.showToast('Potwierdź, że nie jesteś botem, a potem ponów płatność.', 'error');
+          return;
+        }
+        if (!this.user?.id) {
+          this.showToast('Zaloguj się, aby wykupić subskrypcję.', 'error');
+          this.closeCheckoutModal();
+          return;
+        }
+        if (!this.content?.pl?.settings) {
+          this.showToast('Nie udało się odczytać ustawień strony. Odśwież panel i spróbuj ponownie.', 'error');
+          this.closeCheckoutModal(true);
+          return;
+        }
+
+        this.checkoutLoading = true;
         if (!this.content.pl.settings.subscription) {
           this.content.pl.settings.subscription = { plan: 'trial', trial_started_at: new Date().toISOString() };
         }
         this.content.pl.settings.subscription.selected_plan = tier;
         const saved = await this.saveData({ silentSuccess: true });
-        if (!saved) return;
+        if (!saved) {
+          this.checkoutLoading = false;
+          this.closeCheckoutModal(true);
+          return;
+        }
 
         const { data: sessionData } = await this.supabase.auth.getSession();
         const token = sessionData?.session?.access_token;
         if (!token) {
           this.showToast('Błąd sesji. Wyloguj się i zaloguj ponownie.', 'error');
+          this.checkoutLoading = false;
+          this.closeCheckoutModal(true);
           return;
         }
-        const turnstileToken = this.getTurnstileToken();
-        if (!turnstileToken) {
-          this.showToast('Potwierdź, że nie jesteś botem, a potem ponów płatność.', 'error');
-          return;
-        }
-        this.checkoutLoading = true;
         try {
           const returnUrlObj = new URL(window.location.href);
           returnUrlObj.searchParams.set('payment', 'success');
@@ -2582,6 +2638,8 @@
             if (planType === 'starter' && typeof window.DFOPS_trackEvent === 'function') {
               window.DFOPS_trackEvent('starter_checkout_started', { slug: this.slug });
             }
+            this.showCheckoutModal = false;
+            this.clearCheckoutTurnstile();
             window.location.href = url;
           } else {
             const errMsg =
@@ -2592,7 +2650,7 @@
           }
         } catch (e) {
           console.error(e);
-          this.resetTurnstile();
+          this.clearCheckoutTurnstile();
           const msg = e && typeof e === 'object' && 'message' in e ? String(e.message) : '';
           if (msg.includes('HAS_STRIPE_SUBSCRIPTION') || /subskrypcję Stripe/i.test(msg)) {
             this.showToast(
@@ -2602,6 +2660,7 @@
           } else {
             this.showToast(msg || 'Błąd podczas łączenia z systemem płatności.', 'error');
           }
+          this.closeCheckoutModal(true);
         } finally {
           this.checkoutLoading = false;
         }
@@ -3210,6 +3269,7 @@
 
     // Mutujemy oryginalny obiekt, aby zachować gettery (spread niszczyłby je przy inicjalizacji).
     fromApp.sidebarOpen = false;
+    fromApp.mobileMenuOpen = false;
     fromApp.content =
       fromApp.content && typeof fromApp.content === 'object' && fromApp.content.pl
         ? fromApp.content
