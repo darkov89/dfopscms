@@ -181,12 +181,25 @@ function escapeAttr(s) {
     .replace(/</g, '&lt;');
 }
 
+function isSafeSlugValue(value) {
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(value || ''));
+}
+
+function isSafeHostnameValue(value) {
+  const host = String(value || '');
+  if (host.length < 1 || host.length > 253) return false;
+  if (host.includes('..')) return false;
+  return /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(host);
+}
+
 async function fetchPageRow(supabaseUrl, anonKey, slugTrimmed, hostnameNorm) {
   const safeSlug = String(slugTrimmed || '').trim().toLowerCase();
   const safeHost = String(hostnameNorm || '').trim().toLowerCase();
   const billingGraceCutoff = new Date(Date.now() - 14 * 86400000).toISOString();
 
   if (!safeSlug && !safeHost) return null;
+  if (safeSlug && !isSafeSlugValue(safeSlug)) return null;
+  if (!safeSlug && !isSafeHostnameValue(safeHost)) return null;
 
   const params = new URLSearchParams({
     select: 'content,theme',
@@ -206,14 +219,15 @@ async function fetchPageRow(supabaseUrl, anonKey, slugTrimmed, hostnameNorm) {
     headers: {
       apikey: anonKey,
       Authorization: `Bearer ${anonKey}`,
-      Accept: 'application/json',
+      Accept: 'application/vnd.pgrst.object+json',
     },
   });
 
+  if (supaRes.status === 406) return null;
   if (!supaRes.ok) return null;
 
-  const rows = await supaRes.json();
-  return Array.isArray(rows) && rows.length === 1 ? rows[0] : null;
+  const row = await supaRes.json();
+  return row && typeof row === 'object' ? row : null;
 }
 
 async function fetchThemeAsset(env, request, theme, url, hostnameNorm) {

@@ -214,6 +214,38 @@
     return true;
   }
 
+  const SRC_URL_KEYS = new Set([
+    'image',
+    'logoImage',
+    'ogImage',
+    'profile_photo_url',
+    'qrImage',
+  ]);
+
+  const HREF_URL_KEYS = new Set([
+    'booking_url',
+    'bookingUrl',
+    'booksyUrl',
+    'booksyIframeUrl',
+    'button_url',
+    'facebook',
+    'href',
+    'instagram',
+    'linkedin',
+    'tiktok',
+    'twitter',
+    'url',
+    'youtube',
+  ]);
+
+  function sanitizeUrlField(raw, attrName) {
+    if (raw == null) return '';
+    const value = String(raw).trim();
+    if (!value) return '';
+    if (attrName === 'href' && value.startsWith('#')) return value;
+    return isSafeUrlForAttr(attrName, value) ? value : '';
+  }
+
   function sanitizeHtml(htmlString) {
     if (htmlString == null) return '';
     const input = typeof htmlString === 'string' ? htmlString : String(htmlString);
@@ -287,6 +319,8 @@
       if (keyHint === 'embed_url') return sanitizeGoogleReviewsEmbedField(obj);
       if (keyHint === 'gtm_id') return sanitizeGtmContainerId(obj);
       if (keyHint === 'fb_pixel_id') return sanitizeFbPixelIdField(obj);
+      if (SRC_URL_KEYS.has(keyHint)) return sanitizeUrlField(obj, 'src');
+      if (HREF_URL_KEYS.has(keyHint)) return sanitizeUrlField(obj, 'href');
       return sanitizeHtml(obj);
     }
     if (Array.isArray(obj)) return obj.map((x) => sanitizeContent(x));
@@ -301,6 +335,14 @@
       return out;
     }
     return obj;
+  }
+
+  function sanitizePageRow(row) {
+    if (!row || typeof row !== 'object') return row || null;
+    const safe = { ...row };
+    if (safe.content) safe.content = sanitizeContent(safe.content);
+    if (safe.draft_content) safe.draft_content = sanitizeContent(safe.draft_content);
+    return safe;
   }
 
   /** Lokalnie — bez wierszy w Supabase dla demo-* nadal pokazujemy treść z data/seeds/demo_pages.json. */
@@ -374,10 +416,10 @@
 
     if (!data && isLocalDemoSeedHost() && DEMO_SEED_SLUG_RE.test(slugTrimmed)) {
       const demo = await loadDemoSeedAsPageRow(slugTrimmed);
-      if (demo) return { data: demo, error: null };
+      if (demo) return { data: sanitizePageRow(demo), error: null };
     }
 
-    return { data, error };
+    return { data: sanitizePageRow(data), error };
   }
 
   /**
@@ -399,7 +441,7 @@
       .eq('user_id', user.id)
       .limit(1)
       .maybeSingle();
-    return { data: data?.draft_content || null, error };
+    return { data: data?.draft_content ? sanitizeContent(data.draft_content) : null, error };
   }
 
   /**
@@ -414,7 +456,7 @@
       .eq('custom_domain', normalized)
       .limit(1)
       .maybeSingle();
-    return { data, error };
+    return { data: sanitizePageRow(data), error };
   }
 
   async function isSlugAvailable(slug) {
@@ -435,7 +477,7 @@
       .eq('user_id', userId)
       .limit(1)
       .maybeSingle();
-    return { data: data || null, error };
+    return { data: sanitizePageRow(data), error };
   }
 
   async function saveCurrentUserPage(userId, payload) {
@@ -449,14 +491,14 @@
       .eq('user_id', userId)
       .select()
       .maybeSingle();
-    return { data, error };
+    return { data: sanitizePageRow(data), error };
   }
 
   async function createPage(payload) {
     const safe = { ...payload };
     if (safe.content) safe.content = sanitizeContent(safe.content);
     const { data, error } = await supabase().from('pages').insert(safe).select().maybeSingle();
-    return { data, error };
+    return { data: sanitizePageRow(data), error };
   }
 
   window.DFOPS_pageRepository = {
