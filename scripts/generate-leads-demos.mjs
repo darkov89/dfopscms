@@ -10,6 +10,7 @@ const outputFile = path.join(root, 'data', 'seeds', 'demo_pages.json');
 
 const ALLOWED_THEMES = new Set(['beauty', 'fitness', 'services', 'consultant']);
 const MAX_DEMO_LEADS = 40;
+const MAX_DEMO_SLUG_LENGTH = 60;
 const HERO_PLACEHOLDER = '/img/demo-your-photo.svg';
 const GALLERY_PLACEHOLDERS = ['/img/demo-gallery-photo-1.svg', '/img/demo-gallery-photo-2.svg'];
 
@@ -22,25 +23,37 @@ function mapCategoryToTheme(categories) {
   const cats = Array.isArray(categories) ? categories.map((c) => normalizeText(c).toLowerCase()) : [];
   if (cats.some((c) => c.includes('fryzjer') || c.includes('kosmety') || c.includes('beauty'))) return 'beauty';
   if (cats.some((c) => c.includes('trener') || c.includes('siłow') || c.includes('sport') || c.includes('fizjo'))) return 'fitness';
-  if (cats.some((c) => c.includes('złota rączka') || c.includes('hydraulik') || c.includes('budowlan') || c.includes('elektryk'))) return 'services';
+  if (
+    cats.some((c) =>
+      c.includes('złota rączka') ||
+      c.includes('hydraulik') ||
+      c.includes('budowlan') ||
+      c.includes('elektryk') ||
+      c.includes('drzew') ||
+      c.includes('ogrod') ||
+      c.includes('ogród') ||
+      c.includes('wycin')
+    )
+  ) return 'services';
   if (cats.some((c) => c.includes('psycholog') || c.includes('coach') || c.includes('terapeuta'))) return 'consultant';
   return 'consultant';
 }
 
 function generateSlug(name) {
-  return (
-    'demo-' +
-    normalizeText(name)
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/ł/g, 'l')
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .substring(0, 40)
-      .replace(/-$/, '')
-  );
+  const normalized = normalizeText(name)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/ł/g, 'l')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+  if (normalized.length <= MAX_DEMO_SLUG_LENGTH) return `demo-${normalized}`;
+  let trimmed = normalized.substring(0, MAX_DEMO_SLUG_LENGTH).replace(/-$/, '');
+  const lastDash = trimmed.lastIndexOf('-');
+  if (lastDash > 20) trimmed = trimmed.substring(0, lastDash);
+  return `demo-${trimmed}`;
 }
 
 function isPortalWebsite(website) {
@@ -95,6 +108,39 @@ function resolveSocialLinks(website) {
   };
 }
 
+function cleanBusinessName(name) {
+  const original = normalizeText(name);
+  if (!original) return '';
+  let cleaned = original
+    .replace(/\bWrocław\b/gi, '')
+    .replace(/\bul\.\s*/gi, '')
+    .replace(/\+?\d[\d\s().-]{6,}\d/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\s+([,|–-])/g, '$1')
+    .replace(/([,|–-])\s+/g, '$1 ')
+    .replace(/^[,|–\-\s]+|[,|–\-\s]+$/g, '')
+    .trim();
+
+  if (cleaned.length >= 30 && /[,|–-]/.test(cleaned)) {
+    const parts = cleaned
+      .split(/[,|–-]/)
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .filter((part) => !/^wrocław$/i.test(part));
+    const brandish = parts.find((part) => {
+      const lower = part.toLowerCase();
+      return (
+        part.length >= 3 &&
+        part.length <= 36 &&
+        !/^(hydraulik|fryzjer|barber|trener|kosmetyczka|psycholog|coach|wycinanie|drzew|drzewa|przycinanie|żywopłotu|zywoplotu|krzewów|krzewow|usługi|uslugi|serwis)$/i.test(lower)
+      );
+    });
+    cleaned = brandish || cleaned;
+  }
+
+  return cleaned || original;
+}
+
 function uniqueBySlug(seeds) {
   const seen = new Map();
   for (const seed of seeds) {
@@ -110,6 +156,47 @@ function uniqueBySlug(seeds) {
   return Array.from(seen.values());
 }
 
+function gtmProfileForTheme(theme, barber) {
+  if (theme === 'beauty' && barber) {
+    return {
+      color_preset: 'black-gold',
+      background_style: 'smoky',
+      font_preset: 'barber',
+      subtitle: 'Twój salon zasługuje na stronę premium.',
+    };
+  }
+  if (theme === 'beauty') {
+    return {
+      color_preset: 'rosewood',
+      background_style: 'clean',
+      font_preset: 'elegant',
+      subtitle: 'Twój salon zasługuje na stronę premium.',
+    };
+  }
+  if (theme === 'fitness') {
+    return {
+      color_preset: 'neon-lime',
+      background_style: 'glow',
+      font_preset: 'inter',
+      subtitle: 'Skup się na treningu, my zadbamy o klientów.',
+    };
+  }
+  if (theme === 'services') {
+    return {
+      color_preset: 'trades-navy',
+      background_style: 'clean',
+      font_preset: 'inter',
+      subtitle: 'Profesjonalne usługi, nowoczesna wizytówka.',
+    };
+  }
+  return {
+    color_preset: 'dfops-tech',
+    background_style: 'glow',
+    font_preset: 'inter',
+    subtitle: 'Buduj autorytet i zdobywaj nowych klientów.',
+  };
+}
+
 function leadQualitySort(a, b) {
   const scoreDiff = Number(b.totalScore || 0) - Number(a.totalScore || 0);
   if (scoreDiff !== 0) return scoreDiff;
@@ -119,39 +206,8 @@ function leadQualitySort(a, b) {
 }
 
 function styleSettingsForLead(lead, theme) {
-  if (theme === 'beauty' && isBarberLead(lead)) {
-    return {
-      color_preset: 'black-gold',
-      background_style: 'smoky',
-      font_preset: 'barber',
-    };
-  }
-  if (theme === 'beauty') {
-    return {
-      color_preset: 'rosewood',
-      background_style: 'clean',
-      font_preset: 'elegant',
-    };
-  }
-  if (theme === 'fitness') {
-    return {
-      color_preset: 'neon-lime',
-      background_style: 'glow',
-      font_preset: 'inter',
-    };
-  }
-  if (theme === 'services') {
-    return {
-      color_preset: 'trades-navy',
-      background_style: 'clean',
-      font_preset: 'inter',
-    };
-  }
-  return {
-    color_preset: 'dfops-tech',
-    background_style: 'glow',
-    font_preset: 'inter',
-  };
+  const { subtitle, ...settings } = gtmProfileForTheme(theme, isBarberLead(lead));
+  return settings;
 }
 
 function servicesForTheme(theme, barber) {
@@ -226,6 +282,7 @@ function fallbackReviewsForLead(lead, theme) {
 
 function buildSeed(lead) {
   const title = normalizeText(lead.title || lead.name);
+  const heroTitle = cleanBusinessName(title);
   const city = normalizeText(lead.city) || 'Wrocław';
   const theme = mapCategoryToTheme(lead.categories || []);
   const placeQuery = `${title}, ${city}`;
@@ -233,6 +290,7 @@ function buildSeed(lead) {
   const address = normalizeText(lead.address || lead.street || city);
   const barber = isBarberLead(lead);
   const styleSettings = styleSettingsForLead(lead, theme);
+  const gtmProfile = gtmProfileForTheme(theme, barber);
   const bookingUrl = resolveBookingUrl(lead.website);
   const social = resolveSocialLinks(lead.website);
 
@@ -259,10 +317,11 @@ function buildSeed(lead) {
           },
         },
         hero: {
+          title: heroTitle,
           name: title,
           headline: `${title}<br /><i>w nowej odsłonie online.</i>`,
-          subheadline: '',
-          description: 'Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.',
+          subheadline: gtmProfile.subtitle,
+          description: 'Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.',
           button: bookingUrl ? 'Umów termin' : 'Skontaktuj się',
           button_url: bookingUrl || '#kontakt',
           image: HERO_PLACEHOLDER,
