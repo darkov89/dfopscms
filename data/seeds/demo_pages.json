@@ -2,7 +2,7 @@
   "meta": {
     "purpose": "Demo pages wygenerowane z leadów Google Places / Apify.",
     "source": "dataset_crawler-google-places_2026-06-10_05-51-45-009.json",
-    "generated_at": "2026-06-22T15:56:57.079Z",
+    "generated_at": "2026-06-22T16:12:23.208Z",
     "count": 40
   },
   "seeds": [
@@ -56,7 +56,20 @@
               "price": "od 60 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Świetny klimat miejsca, sprawny kontakt i efekt, który warto pokazać nowym klientom.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Stały klient",
+              "content": "Opinie z Google pomagają zbudować zaufanie jeszcze zanim klient zadzwoni albo umówi termin.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -94,7 +107,9 @@
             "embed_url": "",
             "place_query": "Stacja BarberShop Daniel Miecznik, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 201
           },
           "gallery": {
             "title": "Fotele, detale i klimat miejsca",
@@ -125,7 +140,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.072Z"
+              "trial_started_at": "2026-06-22T16:12:23.204Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -194,7 +209,20 @@
               "price": "od 120 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Profesjonalne podejście, świetny kontakt i dużo dobrej energii. Takie opinie pomagają szybciej podjąć decyzję o pierwszej wizycie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Nowy klient",
+              "content": "Sekcja opinii pokazuje społeczny dowód słuszności już w pierwszym widoku demo.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -224,7 +252,7 @@
             }
           },
           "social": {
-            "facebook": "",
+            "facebook": "https://www.facebook.com/profesjonalnytrener",
             "instagram": "",
             "tiktok": ""
           },
@@ -232,7 +260,9 @@
             "embed_url": "",
             "place_query": "Trener personalny MMA - Łukasz Słówko, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 112
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -263,7 +293,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.074Z"
+              "trial_started_at": "2026-06-22T16:12:23.205Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -332,7 +362,20 @@
               "price": "do ustalenia"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Szybki kontakt, konkretna informacja i jasne warunki współpracy. To dokładnie te elementy, które warto pokazać na stronie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Lokalny klient",
+              "content": "Dobra opinia z Google od razu buduje zaufanie. Właściciel może później podmienić te przykłady na realne recenzje.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy można szybko zadzwonić?",
@@ -370,7 +413,9 @@
             "embed_url": "",
             "place_query": "HydroJan Instal Janusz Ziomek, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 91
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -401,7 +446,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.074Z"
+              "trial_started_at": "2026-06-22T16:12:23.205Z"
             },
             "is_demo_catalog": true,
             "theme": "services",
@@ -463,7 +508,20 @@
               "price": "od 150 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Profesjonalne podejście i łatwy kontakt. Taka sekcja pomaga pokazać wiarygodność specjalisty.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Osoba polecająca",
+              "content": "Czytelna strona z opiniami, mapą i szybkim formularzem skraca drogę do kontaktu.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -501,7 +559,9 @@
             "embed_url": "",
             "place_query": "Wycinanie-Drzew-Przycinanie-Żywopłotu-Krzewów, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 88
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -532,7 +592,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.075Z"
+              "trial_started_at": "2026-06-22T16:12:23.205Z"
             },
             "is_demo_catalog": true,
             "theme": "consultant",
@@ -601,7 +661,20 @@
               "price": "od 120 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Profesjonalne podejście, świetny kontakt i dużo dobrej energii. Takie opinie pomagają szybciej podjąć decyzję o pierwszej wizycie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Nowy klient",
+              "content": "Sekcja opinii pokazuje społeczny dowód słuszności już w pierwszym widoku demo.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -632,14 +705,16 @@
           },
           "social": {
             "facebook": "",
-            "instagram": "",
+            "instagram": "https://instagram.com/krajeek?igshid=MzRlODBiNWFlZA==",
             "tiktok": ""
           },
           "google_reviews": {
             "embed_url": "",
             "place_query": "Bartek Krajewski - Trener Personalny, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 79
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -670,7 +745,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.075Z"
+              "trial_started_at": "2026-06-22T16:12:23.205Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -739,7 +814,20 @@
               "price": "od 80 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Świetny klimat miejsca, sprawny kontakt i efekt, który warto pokazać nowym klientom.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Stały klient",
+              "content": "Opinie z Google pomagają zbudować zaufanie jeszcze zanim klient zadzwoni albo umówi termin.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -769,7 +857,7 @@
             }
           },
           "social": {
-            "facebook": "",
+            "facebook": "http://www.facebook.com/SalonEmiliaReszko",
             "instagram": "",
             "tiktok": ""
           },
@@ -777,7 +865,9 @@
             "embed_url": "",
             "place_query": "EMILIA RESZKO Salon Kosmetologiczny | Kosmetolog Wrocław, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 76
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -808,7 +898,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.075Z"
+              "trial_started_at": "2026-06-22T16:12:23.206Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -877,7 +967,20 @@
               "price": "od 80 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Świetny klimat miejsca, sprawny kontakt i efekt, który warto pokazać nowym klientom.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Stały klient",
+              "content": "Opinie z Google pomagają zbudować zaufanie jeszcze zanim klient zadzwoni albo umówi termin.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -907,7 +1010,7 @@
             }
           },
           "social": {
-            "facebook": "",
+            "facebook": "https://www.facebook.com/Czarny-KOT-Salon-Fryzjerski-Wroc%C5%82aw-106250947893247",
             "instagram": "",
             "tiktok": ""
           },
@@ -915,7 +1018,9 @@
             "embed_url": "",
             "place_query": "Czarny Kot, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 73
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -946,7 +1051,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.075Z"
+              "trial_started_at": "2026-06-22T16:12:23.206Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -1015,7 +1120,20 @@
               "price": "do ustalenia"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Szybki kontakt, konkretna informacja i jasne warunki współpracy. To dokładnie te elementy, które warto pokazać na stronie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Lokalny klient",
+              "content": "Dobra opinia z Google od razu buduje zaufanie. Właściciel może później podmienić te przykłady na realne recenzje.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy można szybko zadzwonić?",
@@ -1045,7 +1163,7 @@
             }
           },
           "social": {
-            "facebook": "",
+            "facebook": "https://www.facebook.com/profile.php?id=61558330317720",
             "instagram": "",
             "tiktok": ""
           },
@@ -1053,7 +1171,9 @@
             "embed_url": "",
             "place_query": "Ap Hydraulik, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 71
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -1084,7 +1204,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.075Z"
+              "trial_started_at": "2026-06-22T16:12:23.206Z"
             },
             "is_demo_catalog": true,
             "theme": "services",
@@ -1153,7 +1273,20 @@
               "price": "od 120 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Profesjonalne podejście, świetny kontakt i dużo dobrej energii. Takie opinie pomagają szybciej podjąć decyzję o pierwszej wizycie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Nowy klient",
+              "content": "Sekcja opinii pokazuje społeczny dowód słuszności już w pierwszym widoku demo.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -1191,7 +1324,9 @@
             "embed_url": "",
             "place_query": "Trener Oliwier Młyński, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 62
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -1222,7 +1357,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.075Z"
+              "trial_started_at": "2026-06-22T16:12:23.206Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -1291,7 +1426,20 @@
               "price": "od 120 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Profesjonalne podejście, świetny kontakt i dużo dobrej energii. Takie opinie pomagają szybciej podjąć decyzję o pierwszej wizycie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Nowy klient",
+              "content": "Sekcja opinii pokazuje społeczny dowód słuszności już w pierwszym widoku demo.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -1321,7 +1469,7 @@
             }
           },
           "social": {
-            "facebook": "",
+            "facebook": "https://www.facebook.com/StudioTreningowPersonalnychKB17/",
             "instagram": "",
             "tiktok": ""
           },
@@ -1329,7 +1477,9 @@
             "embed_url": "",
             "place_query": "Studio Treningów Personalnych KB17, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 60
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -1360,7 +1510,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.075Z"
+              "trial_started_at": "2026-06-22T16:12:23.206Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -1429,7 +1579,20 @@
               "price": "od 120 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Profesjonalne podejście, świetny kontakt i dużo dobrej energii. Takie opinie pomagają szybciej podjąć decyzję o pierwszej wizycie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Nowy klient",
+              "content": "Sekcja opinii pokazuje społeczny dowód słuszności już w pierwszym widoku demo.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -1460,14 +1623,16 @@
           },
           "social": {
             "facebook": "",
-            "instagram": "",
+            "instagram": "https://instagram.com/bwojciechowski_",
             "tiktok": ""
           },
           "google_reviews": {
             "embed_url": "",
             "place_query": "Trener Personalny Wrocław - Bartosz Wojciechowski, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 53
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -1498,7 +1663,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.075Z"
+              "trial_started_at": "2026-06-22T16:12:23.206Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -1567,7 +1732,20 @@
               "price": "od 120 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Profesjonalne podejście, świetny kontakt i dużo dobrej energii. Takie opinie pomagają szybciej podjąć decyzję o pierwszej wizycie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Nowy klient",
+              "content": "Sekcja opinii pokazuje społeczny dowód słuszności już w pierwszym widoku demo.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -1605,7 +1783,9 @@
             "embed_url": "",
             "place_query": "Justyna Bieć Medyczny trener personalny, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 52
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -1636,7 +1816,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.075Z"
+              "trial_started_at": "2026-06-22T16:12:23.206Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -1705,7 +1885,20 @@
               "price": "od 120 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Profesjonalne podejście, świetny kontakt i dużo dobrej energii. Takie opinie pomagają szybciej podjąć decyzję o pierwszej wizycie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Nowy klient",
+              "content": "Sekcja opinii pokazuje społeczny dowód słuszności już w pierwszym widoku demo.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -1735,7 +1928,7 @@
             }
           },
           "social": {
-            "facebook": "",
+            "facebook": "https://www.facebook.com/trenerpersonalnyteam",
             "instagram": "",
             "tiktok": ""
           },
@@ -1743,7 +1936,9 @@
             "embed_url": "",
             "place_query": "TRENER PERSONALNY „FIT ZONE”, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 52
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -1774,7 +1969,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.076Z"
+              "trial_started_at": "2026-06-22T16:12:23.206Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -1843,7 +2038,20 @@
               "price": "od 80 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Świetny klimat miejsca, sprawny kontakt i efekt, który warto pokazać nowym klientom.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Stały klient",
+              "content": "Opinie z Google pomagają zbudować zaufanie jeszcze zanim klient zadzwoni albo umówi termin.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -1873,7 +2081,7 @@
             }
           },
           "social": {
-            "facebook": "",
+            "facebook": "https://www.facebook.com/lusiakademiafryzur",
             "instagram": "",
             "tiktok": ""
           },
@@ -1881,7 +2089,9 @@
             "embed_url": "",
             "place_query": "Fryzjer Lusi Akademia Fryzur, Studio Urody Primrose ul.Litewska 2a, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 50
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -1912,7 +2122,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.076Z"
+              "trial_started_at": "2026-06-22T16:12:23.207Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -1981,7 +2191,20 @@
               "price": "od 80 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Świetny klimat miejsca, sprawny kontakt i efekt, który warto pokazać nowym klientom.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Stały klient",
+              "content": "Opinie z Google pomagają zbudować zaufanie jeszcze zanim klient zadzwoni albo umówi termin.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -2019,7 +2242,9 @@
             "embed_url": "",
             "place_query": "Salon kosmetyczny, masażu Nature Look Paulina Wojtaszyn, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 48
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -2050,7 +2275,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.076Z"
+              "trial_started_at": "2026-06-22T16:12:23.207Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -2119,7 +2344,20 @@
               "price": "od 80 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Świetny klimat miejsca, sprawny kontakt i efekt, który warto pokazać nowym klientom.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Stały klient",
+              "content": "Opinie z Google pomagają zbudować zaufanie jeszcze zanim klient zadzwoni albo umówi termin.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -2157,7 +2395,9 @@
             "embed_url": "",
             "place_query": "Anna, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 43
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -2188,7 +2428,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.076Z"
+              "trial_started_at": "2026-06-22T16:12:23.207Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -2257,7 +2497,20 @@
               "price": "do ustalenia"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Szybki kontakt, konkretna informacja i jasne warunki współpracy. To dokładnie te elementy, które warto pokazać na stronie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Lokalny klient",
+              "content": "Dobra opinia z Google od razu buduje zaufanie. Właściciel może później podmienić te przykłady na realne recenzje.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy można szybko zadzwonić?",
@@ -2295,7 +2548,9 @@
             "embed_url": "",
             "place_query": "MacWood Stolarnia, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 43
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -2326,7 +2581,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.076Z"
+              "trial_started_at": "2026-06-22T16:12:23.207Z"
             },
             "is_demo_catalog": true,
             "theme": "services",
@@ -2395,7 +2650,20 @@
               "price": "od 80 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Świetny klimat miejsca, sprawny kontakt i efekt, który warto pokazać nowym klientom.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Stały klient",
+              "content": "Opinie z Google pomagają zbudować zaufanie jeszcze zanim klient zadzwoni albo umówi termin.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -2433,7 +2701,9 @@
             "embed_url": "",
             "place_query": "Salon Kosmetologii Estetycznej Beauty Point, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 41
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -2464,7 +2734,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.076Z"
+              "trial_started_at": "2026-06-22T16:12:23.207Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -2533,7 +2803,20 @@
               "price": "od 120 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Profesjonalne podejście, świetny kontakt i dużo dobrej energii. Takie opinie pomagają szybciej podjąć decyzję o pierwszej wizycie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Nowy klient",
+              "content": "Sekcja opinii pokazuje społeczny dowód słuszności już w pierwszym widoku demo.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -2564,14 +2847,16 @@
           },
           "social": {
             "facebook": "",
-            "instagram": "",
+            "instagram": "https://www.instagram.com/work_with_mat/",
             "tiktok": ""
           },
           "google_reviews": {
             "embed_url": "",
             "place_query": "Trener Personalny - Mateusz Kujawa, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 41
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -2602,7 +2887,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.077Z"
+              "trial_started_at": "2026-06-22T16:12:23.207Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -2671,7 +2956,20 @@
               "price": "od 80 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Świetny klimat miejsca, sprawny kontakt i efekt, który warto pokazać nowym klientom.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Stały klient",
+              "content": "Opinie z Google pomagają zbudować zaufanie jeszcze zanim klient zadzwoni albo umówi termin.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -2709,7 +3007,9 @@
             "embed_url": "",
             "place_query": "Corner Hair Markus, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 40
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -2740,7 +3040,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.078Z"
+              "trial_started_at": "2026-06-22T16:12:23.207Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -2809,7 +3109,20 @@
               "price": "od 80 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Świetny klimat miejsca, sprawny kontakt i efekt, który warto pokazać nowym klientom.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Stały klient",
+              "content": "Opinie z Google pomagają zbudować zaufanie jeszcze zanim klient zadzwoni albo umówi termin.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -2847,7 +3160,9 @@
             "embed_url": "",
             "place_query": "MS BEAUTY SALON KOSMETYCZNY, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 38
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -2878,7 +3193,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.078Z"
+              "trial_started_at": "2026-06-22T16:12:23.207Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -2947,7 +3262,20 @@
               "price": "do ustalenia"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Szybki kontakt, konkretna informacja i jasne warunki współpracy. To dokładnie te elementy, które warto pokazać na stronie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Lokalny klient",
+              "content": "Dobra opinia z Google od razu buduje zaufanie. Właściciel może później podmienić te przykłady na realne recenzje.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy można szybko zadzwonić?",
@@ -2977,7 +3305,7 @@
             }
           },
           "social": {
-            "facebook": "",
+            "facebook": "https://www.facebook.com/damos.glazurnik",
             "instagram": "",
             "tiktok": ""
           },
@@ -2985,7 +3313,9 @@
             "embed_url": "",
             "place_query": "Usługi glazurnicze, kompleksowe remonty łazienek Damos-bud, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 38
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -3016,7 +3346,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.078Z"
+              "trial_started_at": "2026-06-22T16:12:23.207Z"
             },
             "is_demo_catalog": true,
             "theme": "services",
@@ -3085,7 +3415,20 @@
               "price": "od 80 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Świetny klimat miejsca, sprawny kontakt i efekt, który warto pokazać nowym klientom.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Stały klient",
+              "content": "Opinie z Google pomagają zbudować zaufanie jeszcze zanim klient zadzwoni albo umówi termin.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -3123,7 +3466,9 @@
             "embed_url": "",
             "place_query": "Look At You, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 37
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -3154,7 +3499,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.078Z"
+              "trial_started_at": "2026-06-22T16:12:23.207Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -3223,7 +3568,20 @@
               "price": "do ustalenia"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Szybki kontakt, konkretna informacja i jasne warunki współpracy. To dokładnie te elementy, które warto pokazać na stronie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Lokalny klient",
+              "content": "Dobra opinia z Google od razu buduje zaufanie. Właściciel może później podmienić te przykłady na realne recenzje.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy można szybko zadzwonić?",
@@ -3261,7 +3619,9 @@
             "embed_url": "",
             "place_query": "Very Nice Walls, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 37
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -3292,7 +3652,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.078Z"
+              "trial_started_at": "2026-06-22T16:12:23.207Z"
             },
             "is_demo_catalog": true,
             "theme": "services",
@@ -3361,7 +3721,20 @@
               "price": "od 80 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Świetny klimat miejsca, sprawny kontakt i efekt, który warto pokazać nowym klientom.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Stały klient",
+              "content": "Opinie z Google pomagają zbudować zaufanie jeszcze zanim klient zadzwoni albo umówi termin.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -3399,7 +3772,9 @@
             "embed_url": "",
             "place_query": "Lena Studio Fryzjerskie, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 36
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -3430,7 +3805,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.078Z"
+              "trial_started_at": "2026-06-22T16:12:23.207Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -3499,7 +3874,20 @@
               "price": "od 80 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Świetny klimat miejsca, sprawny kontakt i efekt, który warto pokazać nowym klientom.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Stały klient",
+              "content": "Opinie z Google pomagają zbudować zaufanie jeszcze zanim klient zadzwoni albo umówi termin.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -3530,14 +3918,16 @@
           },
           "social": {
             "facebook": "",
-            "instagram": "",
+            "instagram": "https://www.instagram.com/pani_kosmetyczka_?igsh=MTJpamM2dDlueGdxZA==",
             "tiktok": ""
           },
           "google_reviews": {
             "embed_url": "",
             "place_query": "Pani Kosmetyczka Weronika Czubak, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 36
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -3568,7 +3958,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.078Z"
+              "trial_started_at": "2026-06-22T16:12:23.207Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -3637,7 +4027,20 @@
               "price": "od 120 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Profesjonalne podejście, świetny kontakt i dużo dobrej energii. Takie opinie pomagają szybciej podjąć decyzję o pierwszej wizycie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Nowy klient",
+              "content": "Sekcja opinii pokazuje społeczny dowód słuszności już w pierwszym widoku demo.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -3675,7 +4078,9 @@
             "embed_url": "",
             "place_query": "Iron Gym Wrocław, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 32
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -3706,7 +4111,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.078Z"
+              "trial_started_at": "2026-06-22T16:12:23.207Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -3775,7 +4180,20 @@
               "price": "do ustalenia"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Szybki kontakt, konkretna informacja i jasne warunki współpracy. To dokładnie te elementy, które warto pokazać na stronie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Lokalny klient",
+              "content": "Dobra opinia z Google od razu buduje zaufanie. Właściciel może później podmienić te przykłady na realne recenzje.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy można szybko zadzwonić?",
@@ -3813,7 +4231,9 @@
             "embed_url": "",
             "place_query": "MikMat Instal Usługi Hydrauliczne - diagnoza wycieków., Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 32
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -3844,7 +4264,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.078Z"
+              "trial_started_at": "2026-06-22T16:12:23.207Z"
             },
             "is_demo_catalog": true,
             "theme": "services",
@@ -3913,7 +4333,20 @@
               "price": "od 120 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Profesjonalne podejście, świetny kontakt i dużo dobrej energii. Takie opinie pomagają szybciej podjąć decyzję o pierwszej wizycie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Nowy klient",
+              "content": "Sekcja opinii pokazuje społeczny dowód słuszności już w pierwszym widoku demo.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -3951,7 +4384,9 @@
             "embed_url": "",
             "place_query": "Dominik Kozłowski - Trener Personalny, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 29
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -3982,7 +4417,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.078Z"
+              "trial_started_at": "2026-06-22T16:12:23.207Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -4051,7 +4486,20 @@
               "price": "od 80 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Świetny klimat miejsca, sprawny kontakt i efekt, który warto pokazać nowym klientom.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Stały klient",
+              "content": "Opinie z Google pomagają zbudować zaufanie jeszcze zanim klient zadzwoni albo umówi termin.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -4089,7 +4537,9 @@
             "embed_url": "",
             "place_query": "Ritual Studio Beauty - Salon Kosmetyczny, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 29
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -4120,7 +4570,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.078Z"
+              "trial_started_at": "2026-06-22T16:12:23.207Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -4182,7 +4632,20 @@
               "price": "od 150 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Profesjonalne podejście i łatwy kontakt. Taka sekcja pomaga pokazać wiarygodność specjalisty.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Osoba polecająca",
+              "content": "Czytelna strona z opiniami, mapą i szybkim formularzem skraca drogę do kontaktu.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -4213,14 +4676,16 @@
           },
           "social": {
             "facebook": "",
-            "instagram": "",
+            "instagram": "https://www.instagram.com/projektywnetrz_sowa/",
             "tiktok": ""
           },
           "google_reviews": {
             "embed_url": "",
             "place_query": "Sowa Design, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 29
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -4251,7 +4716,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.078Z"
+              "trial_started_at": "2026-06-22T16:12:23.207Z"
             },
             "is_demo_catalog": true,
             "theme": "consultant",
@@ -4320,7 +4785,20 @@
               "price": "od 120 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Profesjonalne podejście, świetny kontakt i dużo dobrej energii. Takie opinie pomagają szybciej podjąć decyzję o pierwszej wizycie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Nowy klient",
+              "content": "Sekcja opinii pokazuje społeczny dowód słuszności już w pierwszym widoku demo.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -4358,7 +4836,9 @@
             "embed_url": "",
             "place_query": "Trener personalny Wrocław Paweł Augustynowicz, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 29
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -4389,7 +4869,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.078Z"
+              "trial_started_at": "2026-06-22T16:12:23.207Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -4458,7 +4938,20 @@
               "price": "od 120 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Profesjonalne podejście, świetny kontakt i dużo dobrej energii. Takie opinie pomagają szybciej podjąć decyzję o pierwszej wizycie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Nowy klient",
+              "content": "Sekcja opinii pokazuje społeczny dowód słuszności już w pierwszym widoku demo.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -4496,7 +4989,9 @@
             "embed_url": "",
             "place_query": "Dawid Wika - Trener Personalny Wrocław, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 28
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -4527,7 +5022,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.078Z"
+              "trial_started_at": "2026-06-22T16:12:23.207Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -4596,7 +5091,20 @@
               "price": "do ustalenia"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Szybki kontakt, konkretna informacja i jasne warunki współpracy. To dokładnie te elementy, które warto pokazać na stronie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Lokalny klient",
+              "content": "Dobra opinia z Google od razu buduje zaufanie. Właściciel może później podmienić te przykłady na realne recenzje.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy można szybko zadzwonić?",
@@ -4626,7 +5134,7 @@
             }
           },
           "social": {
-            "facebook": "",
+            "facebook": "http://www.facebook.com/EMBUDkonrad",
             "instagram": "",
             "tiktok": ""
           },
@@ -4634,7 +5142,9 @@
             "embed_url": "",
             "place_query": "Remonty,Wykończenia mieszkań, Układanie płytek wielkoformatowych, Wrocław–EmbudKonrad, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 26
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -4665,7 +5175,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.078Z"
+              "trial_started_at": "2026-06-22T16:12:23.208Z"
             },
             "is_demo_catalog": true,
             "theme": "services",
@@ -4734,7 +5244,20 @@
               "price": "od 60 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Świetny klimat miejsca, sprawny kontakt i efekt, który warto pokazać nowym klientom.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Stały klient",
+              "content": "Opinie z Google pomagają zbudować zaufanie jeszcze zanim klient zadzwoni albo umówi termin.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -4772,7 +5295,9 @@
             "embed_url": "",
             "place_query": "VENOM Barbershop & Tattoo, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 26
           },
           "gallery": {
             "title": "Fotele, detale i klimat miejsca",
@@ -4803,7 +5328,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.078Z"
+              "trial_started_at": "2026-06-22T16:12:23.208Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -4872,7 +5397,20 @@
               "price": "od 120 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Profesjonalne podejście, świetny kontakt i dużo dobrej energii. Takie opinie pomagają szybciej podjąć decyzję o pierwszej wizycie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Nowy klient",
+              "content": "Sekcja opinii pokazuje społeczny dowód słuszności już w pierwszym widoku demo.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -4902,7 +5440,7 @@
             }
           },
           "social": {
-            "facebook": "",
+            "facebook": "https://m.facebook.com/nowikadietatrening",
             "instagram": "",
             "tiktok": ""
           },
@@ -4910,7 +5448,9 @@
             "embed_url": "",
             "place_query": "Nowika.Move Trener Personalny, Dietetyk, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 25
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -4941,7 +5481,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.078Z"
+              "trial_started_at": "2026-06-22T16:12:23.208Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -5010,7 +5550,20 @@
               "price": "od 80 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Świetny klimat miejsca, sprawny kontakt i efekt, który warto pokazać nowym klientom.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Stały klient",
+              "content": "Opinie z Google pomagają zbudować zaufanie jeszcze zanim klient zadzwoni albo umówi termin.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -5040,7 +5593,7 @@
             }
           },
           "social": {
-            "facebook": "",
+            "facebook": "https://m.facebook.com/GabinetKosmetycznyDrBelterWroclaw/",
             "instagram": "",
             "tiktok": ""
           },
@@ -5048,7 +5601,9 @@
             "embed_url": "",
             "place_query": "Dr. Belter. Firmowy gabinet kosmetyczny, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 23
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -5079,7 +5634,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.078Z"
+              "trial_started_at": "2026-06-22T16:12:23.208Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -5148,7 +5703,20 @@
               "price": "do ustalenia"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Szybki kontakt, konkretna informacja i jasne warunki współpracy. To dokładnie te elementy, które warto pokazać na stronie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Lokalny klient",
+              "content": "Dobra opinia z Google od razu buduje zaufanie. Właściciel może później podmienić te przykłady na realne recenzje.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy można szybko zadzwonić?",
@@ -5178,7 +5746,7 @@
             }
           },
           "social": {
-            "facebook": "",
+            "facebook": "https://www.facebook.com/share/14eN2qhrViC/",
             "instagram": "",
             "tiktok": ""
           },
@@ -5186,7 +5754,9 @@
             "embed_url": "",
             "place_query": "Hydraulik, Impact Jakub Bauer, Wrocław, CO, Gaz, Wod-Kan, Montaż Kotłów, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 23
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -5217,7 +5787,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.078Z"
+              "trial_started_at": "2026-06-22T16:12:23.208Z"
             },
             "is_demo_catalog": true,
             "theme": "services",
@@ -5286,7 +5856,20 @@
               "price": "od 120 zł"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Profesjonalne podejście, świetny kontakt i dużo dobrej energii. Takie opinie pomagają szybciej podjąć decyzję o pierwszej wizycie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Nowy klient",
+              "content": "Sekcja opinii pokazuje społeczny dowód słuszności już w pierwszym widoku demo.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy mogę podmienić zdjęcia?",
@@ -5317,14 +5900,16 @@
           },
           "social": {
             "facebook": "",
-            "instagram": "",
+            "instagram": "https://www.instagram.com/michal.skold/",
             "tiktok": ""
           },
           "google_reviews": {
             "embed_url": "",
             "place_query": "Michał Skołd - Trener Personalny Wrocław Śródmieście, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 23
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -5355,7 +5940,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.078Z"
+              "trial_started_at": "2026-06-22T16:12:23.208Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -5424,7 +6009,20 @@
               "price": "do ustalenia"
             }
           ],
-          "reviews": [],
+          "reviews": [
+            {
+              "author": "Klient Google",
+              "content": "Szybki kontakt, konkretna informacja i jasne warunki współpracy. To dokładnie te elementy, które warto pokazać na stronie.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Lokalny klient",
+              "content": "Dobra opinia z Google od razu buduje zaufanie. Właściciel może później podmienić te przykłady na realne recenzje.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
           "faq": [
             {
               "question": "Czy można szybko zadzwonić?",
@@ -5454,7 +6052,7 @@
             }
           },
           "social": {
-            "facebook": "",
+            "facebook": "https://www.facebook.com/AWREMONTY",
             "instagram": "",
             "tiktok": ""
           },
@@ -5462,7 +6060,9 @@
             "embed_url": "",
             "place_query": "AW REMONTY Kompleksowe remonty i wykończenia wnętrz, Wrocław",
             "max_reviews": 5,
-            "title": "Opinie klientów"
+            "title": "Opinie klientów",
+            "cached_place_rating": 5,
+            "cached_user_rating_count": 21
           },
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
@@ -5493,7 +6093,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:56:57.078Z"
+              "trial_started_at": "2026-06-22T16:12:23.208Z"
             },
             "is_demo_catalog": true,
             "theme": "services",

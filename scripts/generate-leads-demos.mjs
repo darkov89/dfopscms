@@ -85,6 +85,16 @@ function resolveBookingUrl(website) {
   return web;
 }
 
+function resolveSocialLinks(website) {
+  const web = normalizeText(website);
+  const lower = web.toLowerCase();
+  return {
+    facebook: lower.includes('facebook.com') ? web : '',
+    instagram: lower.includes('instagram.com') ? web : '',
+    tiktok: lower.includes('tiktok.com') ? web : '',
+  };
+}
+
 function uniqueBySlug(seeds) {
   const seen = new Map();
   for (const seed of seeds) {
@@ -187,6 +197,33 @@ function faqForTheme(theme) {
   ];
 }
 
+function fallbackReviewsForLead(lead, theme) {
+  const score = Number(lead.totalScore || 5);
+  const stars = score >= 4.5 ? 5 : Math.max(4, Math.round(score));
+  if (theme === 'services') {
+    return [
+      { author: 'Klient Google', content: 'Szybki kontakt, konkretna informacja i jasne warunki współpracy. To dokładnie te elementy, które warto pokazać na stronie.', logoImage: '', stars },
+      { author: 'Lokalny klient', content: 'Dobra opinia z Google od razu buduje zaufanie. Właściciel może później podmienić te przykłady na realne recenzje.', logoImage: '', stars: 5 },
+    ];
+  }
+  if (theme === 'fitness') {
+    return [
+      { author: 'Klient Google', content: 'Profesjonalne podejście, świetny kontakt i dużo dobrej energii. Takie opinie pomagają szybciej podjąć decyzję o pierwszej wizycie.', logoImage: '', stars },
+      { author: 'Nowy klient', content: 'Sekcja opinii pokazuje społeczny dowód słuszności już w pierwszym widoku demo.', logoImage: '', stars: 5 },
+    ];
+  }
+  if (theme === 'beauty') {
+    return [
+      { author: 'Klient Google', content: 'Świetny klimat miejsca, sprawny kontakt i efekt, który warto pokazać nowym klientom.', logoImage: '', stars },
+      { author: 'Stały klient', content: 'Opinie z Google pomagają zbudować zaufanie jeszcze zanim klient zadzwoni albo umówi termin.', logoImage: '', stars: 5 },
+    ];
+  }
+  return [
+    { author: 'Klient Google', content: 'Profesjonalne podejście i łatwy kontakt. Taka sekcja pomaga pokazać wiarygodność specjalisty.', logoImage: '', stars },
+    { author: 'Osoba polecająca', content: 'Czytelna strona z opiniami, mapą i szybkim formularzem skraca drogę do kontaktu.', logoImage: '', stars: 5 },
+  ];
+}
+
 function buildSeed(lead) {
   const title = normalizeText(lead.title || lead.name);
   const city = normalizeText(lead.city) || 'Wrocław';
@@ -197,6 +234,7 @@ function buildSeed(lead) {
   const barber = isBarberLead(lead);
   const styleSettings = styleSettingsForLead(lead, theme);
   const bookingUrl = resolveBookingUrl(lead.website);
+  const social = resolveSocialLinks(lead.website);
 
   if (!ALLOWED_THEMES.has(theme)) {
     throw new Error(`Nieobsługiwany motyw dla ${title}: ${theme}`);
@@ -237,7 +275,7 @@ function buildSeed(lead) {
           text: 'To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym.',
         },
         services: servicesForTheme(theme, barber),
-        reviews: [],
+        reviews: fallbackReviewsForLead(lead, theme),
         faq: faqForTheme(theme),
         contact: {
           email: '',
@@ -259,16 +297,14 @@ function buildSeed(lead) {
             button_url: bookingUrl || '#kontakt',
           },
         },
-        social: {
-          facebook: '',
-          instagram: '',
-          tiktok: '',
-        },
+        social,
         google_reviews: {
           embed_url: '',
           place_query: placeQuery,
           max_reviews: 5,
           title: 'Opinie klientów',
+          cached_place_rating: Number.isFinite(Number(lead.totalScore)) ? Number(lead.totalScore) : null,
+          cached_user_rating_count: Number.isFinite(Number(lead.reviewsCount)) ? Number(lead.reviewsCount) : null,
         },
         gallery: {
           title: barber ? 'Fotele, detale i klimat miejsca' : 'Twoje zdjęcia i realizacje',
