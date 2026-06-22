@@ -207,8 +207,9 @@
         return false;
       }
     }
-    // Dodatkowo: dla img/src wymagamy https/http.
+    // Dodatkowo: dla img/src dopuszczamy https/http oraz ścieżki względne/same-origin.
     if (attrName === 'src') {
+      if (/^\/(?!\/)/.test(raw) || /^\.{0,2}\//.test(raw)) return true;
       if (!/^https?:\/\//i.test(raw)) return false;
     }
     return true;

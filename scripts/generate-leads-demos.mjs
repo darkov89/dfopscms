@@ -10,6 +10,8 @@ const outputFile = path.join(root, 'data', 'seeds', 'demo_pages.json');
 
 const ALLOWED_THEMES = new Set(['beauty', 'fitness', 'services', 'consultant']);
 const MAX_DEMO_LEADS = 40;
+const HERO_PLACEHOLDER = '/img/demo-your-photo.svg';
+const GALLERY_PLACEHOLDERS = ['/img/demo-gallery-photo-1.svg', '/img/demo-gallery-photo-2.svg'];
 
 function normalizeText(value) {
   return String(value || '').trim();
@@ -53,6 +55,36 @@ function isPortalWebsite(website) {
   );
 }
 
+function includesAny(value, needles) {
+  const text = normalizeText(value).toLowerCase();
+  return needles.some((needle) => text.includes(needle));
+}
+
+function isBarberLead(lead) {
+  const haystack = [
+    lead.title,
+    lead.categoryName,
+    ...(Array.isArray(lead.categories) ? lead.categories : []),
+  ].join(' ');
+  return includesAny(haystack, ['barber', 'barbershop', 'barber-shop', 'broda', 'męsk']);
+}
+
+function buildMapEmbedUrl(placeQuery) {
+  return `https://www.google.com/maps?q=${encodeURIComponent(placeQuery)}&output=embed`;
+}
+
+function resolveBookingMode(website) {
+  const web = normalizeText(website).toLowerCase();
+  if (!web) return 'schedule';
+  return 'button';
+}
+
+function resolveBookingUrl(website) {
+  const web = normalizeText(website);
+  if (!web) return '';
+  return web;
+}
+
 function uniqueBySlug(seeds) {
   const seen = new Map();
   for (const seed of seeds) {
@@ -76,6 +108,85 @@ function leadQualitySort(a, b) {
   return normalizeText(a.title || a.name).localeCompare(normalizeText(b.title || b.name), 'pl');
 }
 
+function styleSettingsForLead(lead, theme) {
+  if (theme === 'beauty' && isBarberLead(lead)) {
+    return {
+      color_preset: 'black-gold',
+      background_style: 'smoky',
+      font_preset: 'barber',
+    };
+  }
+  if (theme === 'beauty') {
+    return {
+      color_preset: 'rosewood',
+      background_style: 'clean',
+      font_preset: 'elegant',
+    };
+  }
+  if (theme === 'fitness') {
+    return {
+      color_preset: 'neon-lime',
+      background_style: 'glow',
+      font_preset: 'inter',
+    };
+  }
+  if (theme === 'services') {
+    return {
+      color_preset: 'trades-navy',
+      background_style: 'clean',
+      font_preset: 'inter',
+    };
+  }
+  return {
+    color_preset: 'dfops-tech',
+    background_style: 'glow',
+    font_preset: 'inter',
+  };
+}
+
+function servicesForTheme(theme, barber) {
+  if (theme === 'beauty' && barber) {
+    return [
+      { title: 'Strzyżenie męskie', desc: 'Precyzyjne cięcie dopasowane do stylu klienta.', details: 'Placeholder oferty demo — właściciel może podmienić opis w panelu.', duration: '45 min', price: 'od 90 zł' },
+      { title: 'Broda i kontur', desc: 'Modelowanie brody, kontur i wykończenie.', details: 'Sekcja korzysta z modułu usług i cen w adminie.', duration: '30 min', price: 'od 60 zł' },
+    ];
+  }
+  if (theme === 'beauty') {
+    return [
+      { title: 'Usługa premium', desc: 'Najczęściej wybierana usługa w salonie.', details: 'Placeholder oferty demo — do edycji w panelu.', duration: '60 min', price: 'od 120 zł' },
+      { title: 'Konsultacja i dobór zabiegu', desc: 'Krótka rozmowa i rekomendacja kolejnych kroków.', details: 'Sekcja pokazuje moduł usług oraz cennika.', duration: '30 min', price: 'od 80 zł' },
+    ];
+  }
+  if (theme === 'fitness') {
+    return [
+      { title: 'Trening personalny', desc: 'Indywidualna praca nad celem i techniką.', details: 'Demo modułu usług dla trenerów i studiów fitness.', duration: '60 min', price: 'od 150 zł' },
+      { title: 'Plan startowy', desc: 'Pierwsza konsultacja, analiza celu i plan działania.', details: 'Do edycji z poziomu admina.', duration: '45 min', price: 'od 120 zł' },
+    ];
+  }
+  if (theme === 'services') {
+    return [
+      { title: 'Szybka wycena', desc: 'Kontakt, opis problemu i orientacyjny koszt.', details: 'Moduł usług pokazuje zakres pracy oraz sposób kontaktu.', duration: '15 min', price: 'bezpłatnie' },
+      { title: 'Realizacja usługi', desc: 'Termin, dojazd i wykonanie zlecenia.', details: 'Treści można dopasować w panelu DFCMS.', duration: 'wg zakresu', price: 'do ustalenia' },
+    ];
+  }
+  return [
+    { title: 'Konsultacja wstępna', desc: 'Rozmowa o potrzebach i możliwych rozwiązaniach.', details: 'Placeholder oferty demo.', duration: '30 min', price: 'od 150 zł' },
+  ];
+}
+
+function faqForTheme(theme) {
+  if (theme === 'services') {
+    return [
+      { question: 'Czy można szybko zadzwonić?', answer: 'Tak — numer telefonu jest widoczny w sekcji kontaktu i w przyciskach CTA.' },
+      { question: 'Czy dojazd jest widoczny na mapie?', answer: 'Tak, demo ma wpiętą mapę Google wygenerowaną z adresu i nazwy firmy.' },
+    ];
+  }
+  return [
+    { question: 'Czy mogę podmienić zdjęcia?', answer: 'Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu.' },
+    { question: 'Czy opinie Google są automatyczne?', answer: 'Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS.' },
+  ];
+}
+
 function buildSeed(lead) {
   const title = normalizeText(lead.title || lead.name);
   const city = normalizeText(lead.city) || 'Wrocław';
@@ -83,6 +194,9 @@ function buildSeed(lead) {
   const placeQuery = `${title}, ${city}`;
   const phone = normalizeText(lead.phone);
   const address = normalizeText(lead.address || lead.street || city);
+  const barber = isBarberLead(lead);
+  const styleSettings = styleSettingsForLead(lead, theme);
+  const bookingUrl = resolveBookingUrl(lead.website);
 
   if (!ALLOWED_THEMES.has(theme)) {
     throw new Error(`Nieobsługiwany motyw dla ${title}: ${theme}`);
@@ -95,33 +209,55 @@ function buildSeed(lead) {
       pl: {
         nav: {
           logo: title,
-          cta: 'Kontakt',
+          cta: bookingUrl ? 'Umów termin' : 'Kontakt',
           logoImage: '',
-          menu: {},
+          menu: {
+            about: 'O nas',
+            pricing: theme === 'services' ? 'Zakres usług' : 'Oferta',
+            gallery: 'Galeria',
+            reviews: 'Opinie',
+            faq: 'FAQ',
+            contact: 'Kontakt',
+          },
         },
         hero: {
           name: title,
           headline: `${title}<br /><i>w nowej odsłonie online.</i>`,
           subheadline: '',
           description: 'Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.',
-          button: 'Skontaktuj się',
-          image: '',
+          button: bookingUrl ? 'Umów termin' : 'Skontaktuj się',
+          button_url: bookingUrl || '#kontakt',
+          image: HERO_PLACEHOLDER,
           qrText: '',
           qrImage: '',
         },
-        services: [],
+        manifesto: {
+          label: barber ? 'Barber demo' : 'Demo DFCMS',
+          title: barber ? 'Mocny styl, szybki kontakt i opinie Google' : 'Gotowa wizytówka do personalizacji',
+          text: 'To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym.',
+        },
+        services: servicesForTheme(theme, barber),
         reviews: [],
-        faq: [],
+        faq: faqForTheme(theme),
         contact: {
           email: '',
           phone,
           address,
-          booking_url: '',
-          bookingUrl: '',
-          booksyUrl: '',
+          booking_url: bookingUrl,
+          bookingUrl: bookingUrl,
+          booksyUrl: bookingUrl && bookingUrl.toLowerCase().includes('booksy') ? bookingUrl : '',
           booksyIframeUrl: '',
-          map_embed_url: '',
+          map_embed_url: buildMapEmbedUrl(placeQuery),
           map_place_id: '',
+          cta: {
+            enabled: true,
+            title: bookingUrl ? 'Umów wizytę online' : 'Skontaktuj się bezpośrednio',
+            description: bookingUrl
+              ? 'Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.'
+              : 'Zadzwoń lub sprawdź trasę dojazdu na mapie Google.',
+            button_text: bookingUrl ? 'Otwórz rezerwację' : 'Zadzwoń',
+            button_url: bookingUrl || '#kontakt',
+          },
         },
         social: {
           facebook: '',
@@ -135,8 +271,8 @@ function buildSeed(lead) {
           title: 'Opinie klientów',
         },
         gallery: {
-          title: 'Galeria',
-          images: [],
+          title: barber ? 'Fotele, detale i klimat miejsca' : 'Twoje zdjęcia i realizacje',
+          images: GALLERY_PLACEHOLDERS,
         },
         seo: {
           title: `${title} — ${city}`,
@@ -153,14 +289,21 @@ function buildSeed(lead) {
           terms: '',
         },
         settings: {
-          color_preset: 'gold',
+          ...styleSettings,
+          booking_mode: resolveBookingMode(lead.website),
           subscription: {
             plan: 'tier1',
             payment_completed: true,
             trial_started_at: new Date().toISOString(),
           },
           is_demo_catalog: true,
+          theme,
+          business_name: title,
+          template_version: 3,
+          darkMode: theme === 'fitness' || (theme === 'beauty' && barber),
+          showManifesto: true,
           showServices: true,
+          showProof: true,
           showGallery: true,
           showGoogleReviews: true,
           showFaq: true,

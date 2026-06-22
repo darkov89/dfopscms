@@ -2,7 +2,7 @@
   "meta": {
     "purpose": "Demo pages wygenerowane z leadów Google Places / Apify.",
     "source": "dataset_crawler-google-places_2026-06-10_05-51-45-009.json",
-    "generated_at": "2026-06-22T15:00:25.958Z",
+    "generated_at": "2026-06-22T15:56:57.079Z",
     "count": 40
   },
   "seeds": [
@@ -13,33 +13,77 @@
         "pl": {
           "nav": {
             "logo": "Stacja BarberShop Daniel Miecznik",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Stacja BarberShop Daniel Miecznik",
             "headline": "Stacja BarberShop Daniel Miecznik<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "https://booksy.com/pl-pl/239775_stacja-barbershop-daniel-miecznik_barber-shop_13750_wroclaw#ba_s=sr_1",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Barber demo",
+            "title": "Mocny styl, szybki kontakt i opinie Google",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Strzyżenie męskie",
+              "desc": "Precyzyjne cięcie dopasowane do stylu klienta.",
+              "details": "Placeholder oferty demo — właściciel może podmienić opis w panelu.",
+              "duration": "45 min",
+              "price": "od 90 zł"
+            },
+            {
+              "title": "Broda i kontur",
+              "desc": "Modelowanie brody, kontur i wykończenie.",
+              "details": "Sekcja korzysta z modułu usług i cen w adminie.",
+              "duration": "30 min",
+              "price": "od 60 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 733 728 899",
             "address": "Dobroszycka 2, Dz 1/3",
-            "booking_url": "",
-            "bookingUrl": "",
-            "booksyUrl": "",
+            "booking_url": "https://booksy.com/pl-pl/239775_stacja-barbershop-daniel-miecznik_barber-shop_13750_wroclaw#ba_s=sr_1",
+            "bookingUrl": "https://booksy.com/pl-pl/239775_stacja-barbershop-daniel-miecznik_barber-shop_13750_wroclaw#ba_s=sr_1",
+            "booksyUrl": "https://booksy.com/pl-pl/239775_stacja-barbershop-daniel-miecznik_barber-shop_13750_wroclaw#ba_s=sr_1",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Stacja%20BarberShop%20Daniel%20Miecznik%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "https://booksy.com/pl-pl/239775_stacja-barbershop-daniel-miecznik_barber-shop_13750_wroclaw#ba_s=sr_1"
+            }
           },
           "social": {
             "facebook": "",
@@ -53,8 +97,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Fotele, detale i klimat miejsca",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Stacja BarberShop Daniel Miecznik — Wrocław",
@@ -71,14 +118,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "black-gold",
+            "background_style": "smoky",
+            "font_preset": "barber",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.955Z"
+              "trial_started_at": "2026-06-22T15:56:57.072Z"
             },
             "is_demo_catalog": true,
+            "theme": "beauty",
+            "business_name": "Stacja BarberShop Daniel Miecznik",
+            "template_version": 3,
+            "darkMode": true,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -95,33 +151,77 @@
         "pl": {
           "nav": {
             "logo": "Trener personalny MMA - Łukasz Słówko",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Trener personalny MMA - Łukasz Słówko",
             "headline": "Trener personalny MMA - Łukasz Słówko<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "https://www.facebook.com/profesjonalnytrener",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Trening personalny",
+              "desc": "Indywidualna praca nad celem i techniką.",
+              "details": "Demo modułu usług dla trenerów i studiów fitness.",
+              "duration": "60 min",
+              "price": "od 150 zł"
+            },
+            {
+              "title": "Plan startowy",
+              "desc": "Pierwsza konsultacja, analiza celu i plan działania.",
+              "details": "Do edycji z poziomu admina.",
+              "duration": "45 min",
+              "price": "od 120 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 667 486 067",
             "address": "Krakowska 98",
-            "booking_url": "",
-            "bookingUrl": "",
+            "booking_url": "https://www.facebook.com/profesjonalnytrener",
+            "bookingUrl": "https://www.facebook.com/profesjonalnytrener",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Trener%20personalny%20MMA%20-%20%C5%81ukasz%20S%C5%82%C3%B3wko%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "https://www.facebook.com/profesjonalnytrener"
+            }
           },
           "social": {
             "facebook": "",
@@ -135,8 +235,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Trener personalny MMA - Łukasz Słówko — Wrocław",
@@ -153,14 +256,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "neon-lime",
+            "background_style": "glow",
+            "font_preset": "inter",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.956Z"
+              "trial_started_at": "2026-06-22T15:56:57.074Z"
             },
             "is_demo_catalog": true,
+            "theme": "fitness",
+            "business_name": "Trener personalny MMA - Łukasz Słówko",
+            "template_version": 3,
+            "darkMode": true,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -179,7 +291,14 @@
             "logo": "HydroJan Instal Janusz Ziomek",
             "cta": "Kontakt",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Zakres usług",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "HydroJan Instal Janusz Ziomek",
@@ -187,13 +306,43 @@
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
             "button": "Skontaktuj się",
-            "image": "",
+            "button_url": "#kontakt",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Szybka wycena",
+              "desc": "Kontakt, opis problemu i orientacyjny koszt.",
+              "details": "Moduł usług pokazuje zakres pracy oraz sposób kontaktu.",
+              "duration": "15 min",
+              "price": "bezpłatnie"
+            },
+            {
+              "title": "Realizacja usługi",
+              "desc": "Termin, dojazd i wykonanie zlecenia.",
+              "details": "Treści można dopasować w panelu DFCMS.",
+              "duration": "wg zakresu",
+              "price": "do ustalenia"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy można szybko zadzwonić?",
+              "answer": "Tak — numer telefonu jest widoczny w sekcji kontaktu i w przyciskach CTA."
+            },
+            {
+              "question": "Czy dojazd jest widoczny na mapie?",
+              "answer": "Tak, demo ma wpiętą mapę Google wygenerowaną z adresu i nazwy firmy."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 737 398 397",
@@ -202,8 +351,15 @@
             "bookingUrl": "",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=HydroJan%20Instal%20Janusz%20Ziomek%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Skontaktuj się bezpośrednio",
+              "description": "Zadzwoń lub sprawdź trasę dojazdu na mapie Google.",
+              "button_text": "Zadzwoń",
+              "button_url": "#kontakt"
+            }
           },
           "social": {
             "facebook": "",
@@ -217,8 +373,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "HydroJan Instal Janusz Ziomek — Wrocław",
@@ -235,14 +394,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "trades-navy",
+            "background_style": "clean",
+            "font_preset": "inter",
+            "booking_mode": "schedule",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.956Z"
+              "trial_started_at": "2026-06-22T15:56:57.074Z"
             },
             "is_demo_catalog": true,
+            "theme": "services",
+            "business_name": "HydroJan Instal Janusz Ziomek",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -261,7 +429,14 @@
             "logo": "Wycinanie-Drzew-Przycinanie-Żywopłotu-Krzewów",
             "cta": "Kontakt",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Wycinanie-Drzew-Przycinanie-Żywopłotu-Krzewów",
@@ -269,13 +444,36 @@
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
             "button": "Skontaktuj się",
-            "image": "",
+            "button_url": "#kontakt",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Konsultacja wstępna",
+              "desc": "Rozmowa o potrzebach i możliwych rozwiązaniach.",
+              "details": "Placeholder oferty demo.",
+              "duration": "30 min",
+              "price": "od 150 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 883 559 402",
@@ -284,8 +482,15 @@
             "bookingUrl": "",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Wycinanie-Drzew-Przycinanie-%C5%BBywop%C5%82otu-Krzew%C3%B3w%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Skontaktuj się bezpośrednio",
+              "description": "Zadzwoń lub sprawdź trasę dojazdu na mapie Google.",
+              "button_text": "Zadzwoń",
+              "button_url": "#kontakt"
+            }
           },
           "social": {
             "facebook": "",
@@ -299,8 +504,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Wycinanie-Drzew-Przycinanie-Żywopłotu-Krzewów — Wrocław",
@@ -317,14 +525,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "dfops-tech",
+            "background_style": "glow",
+            "font_preset": "inter",
+            "booking_mode": "schedule",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.956Z"
+              "trial_started_at": "2026-06-22T15:56:57.075Z"
             },
             "is_demo_catalog": true,
+            "theme": "consultant",
+            "business_name": "Wycinanie-Drzew-Przycinanie-Żywopłotu-Krzewów",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -341,33 +558,77 @@
         "pl": {
           "nav": {
             "logo": "Bartek Krajewski - Trener Personalny",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Bartek Krajewski - Trener Personalny",
             "headline": "Bartek Krajewski - Trener Personalny<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "https://instagram.com/krajeek?igshid=MzRlODBiNWFlZA==",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Trening personalny",
+              "desc": "Indywidualna praca nad celem i techniką.",
+              "details": "Demo modułu usług dla trenerów i studiów fitness.",
+              "duration": "60 min",
+              "price": "od 150 zł"
+            },
+            {
+              "title": "Plan startowy",
+              "desc": "Pierwsza konsultacja, analiza celu i plan działania.",
+              "details": "Do edycji z poziomu admina.",
+              "duration": "45 min",
+              "price": "od 120 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 600 389 102",
             "address": "Wiwulskiego 12",
-            "booking_url": "",
-            "bookingUrl": "",
+            "booking_url": "https://instagram.com/krajeek?igshid=MzRlODBiNWFlZA==",
+            "bookingUrl": "https://instagram.com/krajeek?igshid=MzRlODBiNWFlZA==",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Bartek%20Krajewski%20-%20Trener%20Personalny%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "https://instagram.com/krajeek?igshid=MzRlODBiNWFlZA=="
+            }
           },
           "social": {
             "facebook": "",
@@ -381,8 +642,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Bartek Krajewski - Trener Personalny — Wrocław",
@@ -399,14 +663,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "neon-lime",
+            "background_style": "glow",
+            "font_preset": "inter",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.956Z"
+              "trial_started_at": "2026-06-22T15:56:57.075Z"
             },
             "is_demo_catalog": true,
+            "theme": "fitness",
+            "business_name": "Bartek Krajewski - Trener Personalny",
+            "template_version": 3,
+            "darkMode": true,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -423,33 +696,77 @@
         "pl": {
           "nav": {
             "logo": "EMILIA RESZKO Salon Kosmetologiczny | Kosmetolog Wrocław",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "EMILIA RESZKO Salon Kosmetologiczny | Kosmetolog Wrocław",
             "headline": "EMILIA RESZKO Salon Kosmetologiczny | Kosmetolog Wrocław<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "http://www.facebook.com/SalonEmiliaReszko",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Usługa premium",
+              "desc": "Najczęściej wybierana usługa w salonie.",
+              "details": "Placeholder oferty demo — do edycji w panelu.",
+              "duration": "60 min",
+              "price": "od 120 zł"
+            },
+            {
+              "title": "Konsultacja i dobór zabiegu",
+              "desc": "Krótka rozmowa i rekomendacja kolejnych kroków.",
+              "details": "Sekcja pokazuje moduł usług oraz cennika.",
+              "duration": "30 min",
+              "price": "od 80 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 450 005 525",
             "address": "Marca Polo 47a",
-            "booking_url": "",
-            "bookingUrl": "",
+            "booking_url": "http://www.facebook.com/SalonEmiliaReszko",
+            "bookingUrl": "http://www.facebook.com/SalonEmiliaReszko",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=EMILIA%20RESZKO%20Salon%20Kosmetologiczny%20%7C%20Kosmetolog%20Wroc%C5%82aw%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "http://www.facebook.com/SalonEmiliaReszko"
+            }
           },
           "social": {
             "facebook": "",
@@ -463,8 +780,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "EMILIA RESZKO Salon Kosmetologiczny | Kosmetolog Wrocław — Wrocław",
@@ -481,14 +801,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "rosewood",
+            "background_style": "clean",
+            "font_preset": "elegant",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.956Z"
+              "trial_started_at": "2026-06-22T15:56:57.075Z"
             },
             "is_demo_catalog": true,
+            "theme": "beauty",
+            "business_name": "EMILIA RESZKO Salon Kosmetologiczny | Kosmetolog Wrocław",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -505,33 +834,77 @@
         "pl": {
           "nav": {
             "logo": "Czarny Kot",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Czarny Kot",
             "headline": "Czarny Kot<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "https://www.facebook.com/Czarny-KOT-Salon-Fryzjerski-Wroc%C5%82aw-106250947893247",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Usługa premium",
+              "desc": "Najczęściej wybierana usługa w salonie.",
+              "details": "Placeholder oferty demo — do edycji w panelu.",
+              "duration": "60 min",
+              "price": "od 120 zł"
+            },
+            {
+              "title": "Konsultacja i dobór zabiegu",
+              "desc": "Krótka rozmowa i rekomendacja kolejnych kroków.",
+              "details": "Sekcja pokazuje moduł usług oraz cennika.",
+              "duration": "30 min",
+              "price": "od 80 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 884 666 733",
             "address": "Promień 33",
-            "booking_url": "",
-            "bookingUrl": "",
+            "booking_url": "https://www.facebook.com/Czarny-KOT-Salon-Fryzjerski-Wroc%C5%82aw-106250947893247",
+            "bookingUrl": "https://www.facebook.com/Czarny-KOT-Salon-Fryzjerski-Wroc%C5%82aw-106250947893247",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Czarny%20Kot%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "https://www.facebook.com/Czarny-KOT-Salon-Fryzjerski-Wroc%C5%82aw-106250947893247"
+            }
           },
           "social": {
             "facebook": "",
@@ -545,8 +918,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Czarny Kot — Wrocław",
@@ -563,14 +939,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "rosewood",
+            "background_style": "clean",
+            "font_preset": "elegant",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.956Z"
+              "trial_started_at": "2026-06-22T15:56:57.075Z"
             },
             "is_demo_catalog": true,
+            "theme": "beauty",
+            "business_name": "Czarny Kot",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -587,33 +972,77 @@
         "pl": {
           "nav": {
             "logo": "Ap Hydraulik",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Zakres usług",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Ap Hydraulik",
             "headline": "Ap Hydraulik<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "https://www.facebook.com/profile.php?id=61558330317720",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Szybka wycena",
+              "desc": "Kontakt, opis problemu i orientacyjny koszt.",
+              "details": "Moduł usług pokazuje zakres pracy oraz sposób kontaktu.",
+              "duration": "15 min",
+              "price": "bezpłatnie"
+            },
+            {
+              "title": "Realizacja usługi",
+              "desc": "Termin, dojazd i wykonanie zlecenia.",
+              "details": "Treści można dopasować w panelu DFCMS.",
+              "duration": "wg zakresu",
+              "price": "do ustalenia"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy można szybko zadzwonić?",
+              "answer": "Tak — numer telefonu jest widoczny w sekcji kontaktu i w przyciskach CTA."
+            },
+            {
+              "question": "Czy dojazd jest widoczny na mapie?",
+              "answer": "Tak, demo ma wpiętą mapę Google wygenerowaną z adresu i nazwy firmy."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 784 639 305",
             "address": "plac Marszałka Józefa Piłsudskiego 7A/2",
-            "booking_url": "",
-            "bookingUrl": "",
+            "booking_url": "https://www.facebook.com/profile.php?id=61558330317720",
+            "bookingUrl": "https://www.facebook.com/profile.php?id=61558330317720",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Ap%20Hydraulik%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "https://www.facebook.com/profile.php?id=61558330317720"
+            }
           },
           "social": {
             "facebook": "",
@@ -627,8 +1056,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Ap Hydraulik — Wrocław",
@@ -645,14 +1077,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "trades-navy",
+            "background_style": "clean",
+            "font_preset": "inter",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.957Z"
+              "trial_started_at": "2026-06-22T15:56:57.075Z"
             },
             "is_demo_catalog": true,
+            "theme": "services",
+            "business_name": "Ap Hydraulik",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -671,7 +1112,14 @@
             "logo": "Trener Oliwier Młyński",
             "cta": "Kontakt",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Trener Oliwier Młyński",
@@ -679,13 +1127,43 @@
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
             "button": "Skontaktuj się",
-            "image": "",
+            "button_url": "#kontakt",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Trening personalny",
+              "desc": "Indywidualna praca nad celem i techniką.",
+              "details": "Demo modułu usług dla trenerów i studiów fitness.",
+              "duration": "60 min",
+              "price": "od 150 zł"
+            },
+            {
+              "title": "Plan startowy",
+              "desc": "Pierwsza konsultacja, analiza celu i plan działania.",
+              "details": "Do edycji z poziomu admina.",
+              "duration": "45 min",
+              "price": "od 120 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "",
@@ -694,8 +1172,15 @@
             "bookingUrl": "",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Trener%20Oliwier%20M%C5%82y%C5%84ski%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Skontaktuj się bezpośrednio",
+              "description": "Zadzwoń lub sprawdź trasę dojazdu na mapie Google.",
+              "button_text": "Zadzwoń",
+              "button_url": "#kontakt"
+            }
           },
           "social": {
             "facebook": "",
@@ -709,8 +1194,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Trener Oliwier Młyński — Wrocław",
@@ -727,14 +1215,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "neon-lime",
+            "background_style": "glow",
+            "font_preset": "inter",
+            "booking_mode": "schedule",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.957Z"
+              "trial_started_at": "2026-06-22T15:56:57.075Z"
             },
             "is_demo_catalog": true,
+            "theme": "fitness",
+            "business_name": "Trener Oliwier Młyński",
+            "template_version": 3,
+            "darkMode": true,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -751,33 +1248,77 @@
         "pl": {
           "nav": {
             "logo": "Studio Treningów Personalnych KB17",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Studio Treningów Personalnych KB17",
             "headline": "Studio Treningów Personalnych KB17<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "https://www.facebook.com/StudioTreningowPersonalnychKB17/",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Trening personalny",
+              "desc": "Indywidualna praca nad celem i techniką.",
+              "details": "Demo modułu usług dla trenerów i studiów fitness.",
+              "duration": "60 min",
+              "price": "od 150 zł"
+            },
+            {
+              "title": "Plan startowy",
+              "desc": "Pierwsza konsultacja, analiza celu i plan działania.",
+              "details": "Do edycji z poziomu admina.",
+              "duration": "45 min",
+              "price": "od 120 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 518 525 141",
             "address": "Kluczborska 17",
-            "booking_url": "",
-            "bookingUrl": "",
+            "booking_url": "https://www.facebook.com/StudioTreningowPersonalnychKB17/",
+            "bookingUrl": "https://www.facebook.com/StudioTreningowPersonalnychKB17/",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Studio%20Trening%C3%B3w%20Personalnych%20KB17%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "https://www.facebook.com/StudioTreningowPersonalnychKB17/"
+            }
           },
           "social": {
             "facebook": "",
@@ -791,8 +1332,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Studio Treningów Personalnych KB17 — Wrocław",
@@ -809,14 +1353,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "neon-lime",
+            "background_style": "glow",
+            "font_preset": "inter",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.957Z"
+              "trial_started_at": "2026-06-22T15:56:57.075Z"
             },
             "is_demo_catalog": true,
+            "theme": "fitness",
+            "business_name": "Studio Treningów Personalnych KB17",
+            "template_version": 3,
+            "darkMode": true,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -833,33 +1386,77 @@
         "pl": {
           "nav": {
             "logo": "Trener Personalny Wrocław - Bartosz Wojciechowski",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Trener Personalny Wrocław - Bartosz Wojciechowski",
             "headline": "Trener Personalny Wrocław - Bartosz Wojciechowski<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "https://instagram.com/bwojciechowski_",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Trening personalny",
+              "desc": "Indywidualna praca nad celem i techniką.",
+              "details": "Demo modułu usług dla trenerów i studiów fitness.",
+              "duration": "60 min",
+              "price": "od 150 zł"
+            },
+            {
+              "title": "Plan startowy",
+              "desc": "Pierwsza konsultacja, analiza celu i plan działania.",
+              "details": "Do edycji z poziomu admina.",
+              "duration": "45 min",
+              "price": "od 120 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 607 718 827",
             "address": "Fitness Academy, plac Dominikański 3",
-            "booking_url": "",
-            "bookingUrl": "",
+            "booking_url": "https://instagram.com/bwojciechowski_",
+            "bookingUrl": "https://instagram.com/bwojciechowski_",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Trener%20Personalny%20Wroc%C5%82aw%20-%20Bartosz%20Wojciechowski%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "https://instagram.com/bwojciechowski_"
+            }
           },
           "social": {
             "facebook": "",
@@ -873,8 +1470,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Trener Personalny Wrocław - Bartosz Wojciechowski — Wrocław",
@@ -891,14 +1491,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "neon-lime",
+            "background_style": "glow",
+            "font_preset": "inter",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.957Z"
+              "trial_started_at": "2026-06-22T15:56:57.075Z"
             },
             "is_demo_catalog": true,
+            "theme": "fitness",
+            "business_name": "Trener Personalny Wrocław - Bartosz Wojciechowski",
+            "template_version": 3,
+            "darkMode": true,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -915,33 +1524,77 @@
         "pl": {
           "nav": {
             "logo": "Justyna Bieć Medyczny trener personalny",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Justyna Bieć Medyczny trener personalny",
             "headline": "Justyna Bieć Medyczny trener personalny<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "http://remove.booksy.com/a/",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Trening personalny",
+              "desc": "Indywidualna praca nad celem i techniką.",
+              "details": "Demo modułu usług dla trenerów i studiów fitness.",
+              "duration": "60 min",
+              "price": "od 150 zł"
+            },
+            {
+              "title": "Plan startowy",
+              "desc": "Pierwsza konsultacja, analiza celu i plan działania.",
+              "details": "Do edycji z poziomu admina.",
+              "duration": "45 min",
+              "price": "od 120 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "",
             "address": "Podwale 61/1",
-            "booking_url": "",
-            "bookingUrl": "",
-            "booksyUrl": "",
+            "booking_url": "http://remove.booksy.com/a/",
+            "bookingUrl": "http://remove.booksy.com/a/",
+            "booksyUrl": "http://remove.booksy.com/a/",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Justyna%20Bie%C4%87%20Medyczny%20trener%20personalny%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "http://remove.booksy.com/a/"
+            }
           },
           "social": {
             "facebook": "",
@@ -955,8 +1608,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Justyna Bieć Medyczny trener personalny — Wrocław",
@@ -973,14 +1629,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "neon-lime",
+            "background_style": "glow",
+            "font_preset": "inter",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.957Z"
+              "trial_started_at": "2026-06-22T15:56:57.075Z"
             },
             "is_demo_catalog": true,
+            "theme": "fitness",
+            "business_name": "Justyna Bieć Medyczny trener personalny",
+            "template_version": 3,
+            "darkMode": true,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -997,33 +1662,77 @@
         "pl": {
           "nav": {
             "logo": "TRENER PERSONALNY „FIT ZONE”",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "TRENER PERSONALNY „FIT ZONE”",
             "headline": "TRENER PERSONALNY „FIT ZONE”<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "https://www.facebook.com/trenerpersonalnyteam",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Trening personalny",
+              "desc": "Indywidualna praca nad celem i techniką.",
+              "details": "Demo modułu usług dla trenerów i studiów fitness.",
+              "duration": "60 min",
+              "price": "od 150 zł"
+            },
+            {
+              "title": "Plan startowy",
+              "desc": "Pierwsza konsultacja, analiza celu i plan działania.",
+              "details": "Do edycji z poziomu admina.",
+              "duration": "45 min",
+              "price": "od 120 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 730 278 027",
             "address": "Międzyleska 4",
-            "booking_url": "",
-            "bookingUrl": "",
+            "booking_url": "https://www.facebook.com/trenerpersonalnyteam",
+            "bookingUrl": "https://www.facebook.com/trenerpersonalnyteam",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=TRENER%20PERSONALNY%20%E2%80%9EFIT%20ZONE%E2%80%9D%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "https://www.facebook.com/trenerpersonalnyteam"
+            }
           },
           "social": {
             "facebook": "",
@@ -1037,8 +1746,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "TRENER PERSONALNY „FIT ZONE” — Wrocław",
@@ -1055,14 +1767,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "neon-lime",
+            "background_style": "glow",
+            "font_preset": "inter",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.957Z"
+              "trial_started_at": "2026-06-22T15:56:57.076Z"
             },
             "is_demo_catalog": true,
+            "theme": "fitness",
+            "business_name": "TRENER PERSONALNY „FIT ZONE”",
+            "template_version": 3,
+            "darkMode": true,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -1079,33 +1800,77 @@
         "pl": {
           "nav": {
             "logo": "Fryzjer Lusi Akademia Fryzur, Studio Urody Primrose ul.Litewska 2a",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Fryzjer Lusi Akademia Fryzur, Studio Urody Primrose ul.Litewska 2a",
             "headline": "Fryzjer Lusi Akademia Fryzur, Studio Urody Primrose ul.Litewska 2a<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "https://www.facebook.com/lusiakademiafryzur",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Usługa premium",
+              "desc": "Najczęściej wybierana usługa w salonie.",
+              "details": "Placeholder oferty demo — do edycji w panelu.",
+              "duration": "60 min",
+              "price": "od 120 zł"
+            },
+            {
+              "title": "Konsultacja i dobór zabiegu",
+              "desc": "Krótka rozmowa i rekomendacja kolejnych kroków.",
+              "details": "Sekcja pokazuje moduł usług oraz cennika.",
+              "duration": "30 min",
+              "price": "od 80 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 690 819 460",
             "address": "Wrocław",
-            "booking_url": "",
-            "bookingUrl": "",
+            "booking_url": "https://www.facebook.com/lusiakademiafryzur",
+            "bookingUrl": "https://www.facebook.com/lusiakademiafryzur",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Fryzjer%20Lusi%20Akademia%20Fryzur%2C%20Studio%20Urody%20Primrose%20ul.Litewska%202a%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "https://www.facebook.com/lusiakademiafryzur"
+            }
           },
           "social": {
             "facebook": "",
@@ -1119,8 +1884,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Fryzjer Lusi Akademia Fryzur, Studio Urody Primrose ul.Litewska 2a — Wrocław",
@@ -1137,14 +1905,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "rosewood",
+            "background_style": "clean",
+            "font_preset": "elegant",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.957Z"
+              "trial_started_at": "2026-06-22T15:56:57.076Z"
             },
             "is_demo_catalog": true,
+            "theme": "beauty",
+            "business_name": "Fryzjer Lusi Akademia Fryzur, Studio Urody Primrose ul.Litewska 2a",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -1163,7 +1940,14 @@
             "logo": "Salon kosmetyczny, masażu Nature Look Paulina Wojtaszyn",
             "cta": "Kontakt",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Salon kosmetyczny, masażu Nature Look Paulina Wojtaszyn",
@@ -1171,13 +1955,43 @@
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
             "button": "Skontaktuj się",
-            "image": "",
+            "button_url": "#kontakt",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Usługa premium",
+              "desc": "Najczęściej wybierana usługa w salonie.",
+              "details": "Placeholder oferty demo — do edycji w panelu.",
+              "duration": "60 min",
+              "price": "od 120 zł"
+            },
+            {
+              "title": "Konsultacja i dobór zabiegu",
+              "desc": "Krótka rozmowa i rekomendacja kolejnych kroków.",
+              "details": "Sekcja pokazuje moduł usług oraz cennika.",
+              "duration": "30 min",
+              "price": "od 80 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 692 190 853",
@@ -1186,8 +2000,15 @@
             "bookingUrl": "",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Salon%20kosmetyczny%2C%20masa%C5%BCu%20Nature%20Look%20Paulina%20Wojtaszyn%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Skontaktuj się bezpośrednio",
+              "description": "Zadzwoń lub sprawdź trasę dojazdu na mapie Google.",
+              "button_text": "Zadzwoń",
+              "button_url": "#kontakt"
+            }
           },
           "social": {
             "facebook": "",
@@ -1201,8 +2022,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Salon kosmetyczny, masażu Nature Look Paulina Wojtaszyn — Wrocław",
@@ -1219,14 +2043,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "rosewood",
+            "background_style": "clean",
+            "font_preset": "elegant",
+            "booking_mode": "schedule",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.957Z"
+              "trial_started_at": "2026-06-22T15:56:57.076Z"
             },
             "is_demo_catalog": true,
+            "theme": "beauty",
+            "business_name": "Salon kosmetyczny, masażu Nature Look Paulina Wojtaszyn",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -1245,7 +2078,14 @@
             "logo": "Anna",
             "cta": "Kontakt",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Anna",
@@ -1253,13 +2093,43 @@
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
             "button": "Skontaktuj się",
-            "image": "",
+            "button_url": "#kontakt",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Usługa premium",
+              "desc": "Najczęściej wybierana usługa w salonie.",
+              "details": "Placeholder oferty demo — do edycji w panelu.",
+              "duration": "60 min",
+              "price": "od 120 zł"
+            },
+            {
+              "title": "Konsultacja i dobór zabiegu",
+              "desc": "Krótka rozmowa i rekomendacja kolejnych kroków.",
+              "details": "Sekcja pokazuje moduł usług oraz cennika.",
+              "duration": "30 min",
+              "price": "od 80 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 607 388 285",
@@ -1268,8 +2138,15 @@
             "bookingUrl": "",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Anna%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Skontaktuj się bezpośrednio",
+              "description": "Zadzwoń lub sprawdź trasę dojazdu na mapie Google.",
+              "button_text": "Zadzwoń",
+              "button_url": "#kontakt"
+            }
           },
           "social": {
             "facebook": "",
@@ -1283,8 +2160,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Anna — Wrocław",
@@ -1301,14 +2181,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "rosewood",
+            "background_style": "clean",
+            "font_preset": "elegant",
+            "booking_mode": "schedule",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.957Z"
+              "trial_started_at": "2026-06-22T15:56:57.076Z"
             },
             "is_demo_catalog": true,
+            "theme": "beauty",
+            "business_name": "Anna",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -1327,7 +2216,14 @@
             "logo": "MacWood Stolarnia",
             "cta": "Kontakt",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Zakres usług",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "MacWood Stolarnia",
@@ -1335,13 +2231,43 @@
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
             "button": "Skontaktuj się",
-            "image": "",
+            "button_url": "#kontakt",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Szybka wycena",
+              "desc": "Kontakt, opis problemu i orientacyjny koszt.",
+              "details": "Moduł usług pokazuje zakres pracy oraz sposób kontaktu.",
+              "duration": "15 min",
+              "price": "bezpłatnie"
+            },
+            {
+              "title": "Realizacja usługi",
+              "desc": "Termin, dojazd i wykonanie zlecenia.",
+              "details": "Treści można dopasować w panelu DFCMS.",
+              "duration": "wg zakresu",
+              "price": "do ustalenia"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy można szybko zadzwonić?",
+              "answer": "Tak — numer telefonu jest widoczny w sekcji kontaktu i w przyciskach CTA."
+            },
+            {
+              "question": "Czy dojazd jest widoczny na mapie?",
+              "answer": "Tak, demo ma wpiętą mapę Google wygenerowaną z adresu i nazwy firmy."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 728 975 123",
@@ -1350,8 +2276,15 @@
             "bookingUrl": "",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=MacWood%20Stolarnia%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Skontaktuj się bezpośrednio",
+              "description": "Zadzwoń lub sprawdź trasę dojazdu na mapie Google.",
+              "button_text": "Zadzwoń",
+              "button_url": "#kontakt"
+            }
           },
           "social": {
             "facebook": "",
@@ -1365,8 +2298,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "MacWood Stolarnia — Wrocław",
@@ -1383,14 +2319,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "trades-navy",
+            "background_style": "clean",
+            "font_preset": "inter",
+            "booking_mode": "schedule",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.957Z"
+              "trial_started_at": "2026-06-22T15:56:57.076Z"
             },
             "is_demo_catalog": true,
+            "theme": "services",
+            "business_name": "MacWood Stolarnia",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -1409,7 +2354,14 @@
             "logo": "Salon Kosmetologii Estetycznej Beauty Point",
             "cta": "Kontakt",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Salon Kosmetologii Estetycznej Beauty Point",
@@ -1417,13 +2369,43 @@
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
             "button": "Skontaktuj się",
-            "image": "",
+            "button_url": "#kontakt",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Usługa premium",
+              "desc": "Najczęściej wybierana usługa w salonie.",
+              "details": "Placeholder oferty demo — do edycji w panelu.",
+              "duration": "60 min",
+              "price": "od 120 zł"
+            },
+            {
+              "title": "Konsultacja i dobór zabiegu",
+              "desc": "Krótka rozmowa i rekomendacja kolejnych kroków.",
+              "details": "Sekcja pokazuje moduł usług oraz cennika.",
+              "duration": "30 min",
+              "price": "od 80 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 669 426 785",
@@ -1432,8 +2414,15 @@
             "bookingUrl": "",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Salon%20Kosmetologii%20Estetycznej%20Beauty%20Point%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Skontaktuj się bezpośrednio",
+              "description": "Zadzwoń lub sprawdź trasę dojazdu na mapie Google.",
+              "button_text": "Zadzwoń",
+              "button_url": "#kontakt"
+            }
           },
           "social": {
             "facebook": "",
@@ -1447,8 +2436,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Salon Kosmetologii Estetycznej Beauty Point — Wrocław",
@@ -1465,14 +2457,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "rosewood",
+            "background_style": "clean",
+            "font_preset": "elegant",
+            "booking_mode": "schedule",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.957Z"
+              "trial_started_at": "2026-06-22T15:56:57.076Z"
             },
             "is_demo_catalog": true,
+            "theme": "beauty",
+            "business_name": "Salon Kosmetologii Estetycznej Beauty Point",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -1489,33 +2490,77 @@
         "pl": {
           "nav": {
             "logo": "Trener Personalny - Mateusz Kujawa",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Trener Personalny - Mateusz Kujawa",
             "headline": "Trener Personalny - Mateusz Kujawa<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "https://www.instagram.com/work_with_mat/",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Trening personalny",
+              "desc": "Indywidualna praca nad celem i techniką.",
+              "details": "Demo modułu usług dla trenerów i studiów fitness.",
+              "duration": "60 min",
+              "price": "od 150 zł"
+            },
+            {
+              "title": "Plan startowy",
+              "desc": "Pierwsza konsultacja, analiza celu i plan działania.",
+              "details": "Do edycji z poziomu admina.",
+              "duration": "45 min",
+              "price": "od 120 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "",
             "address": "Plac Grunwaldzki 22",
-            "booking_url": "",
-            "bookingUrl": "",
+            "booking_url": "https://www.instagram.com/work_with_mat/",
+            "bookingUrl": "https://www.instagram.com/work_with_mat/",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Trener%20Personalny%20-%20Mateusz%20Kujawa%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "https://www.instagram.com/work_with_mat/"
+            }
           },
           "social": {
             "facebook": "",
@@ -1529,8 +2574,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Trener Personalny - Mateusz Kujawa — Wrocław",
@@ -1547,14 +2595,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "neon-lime",
+            "background_style": "glow",
+            "font_preset": "inter",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.957Z"
+              "trial_started_at": "2026-06-22T15:56:57.077Z"
             },
             "is_demo_catalog": true,
+            "theme": "fitness",
+            "business_name": "Trener Personalny - Mateusz Kujawa",
+            "template_version": 3,
+            "darkMode": true,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -1573,7 +2630,14 @@
             "logo": "Corner Hair Markus",
             "cta": "Kontakt",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Corner Hair Markus",
@@ -1581,13 +2645,43 @@
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
             "button": "Skontaktuj się",
-            "image": "",
+            "button_url": "#kontakt",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Usługa premium",
+              "desc": "Najczęściej wybierana usługa w salonie.",
+              "details": "Placeholder oferty demo — do edycji w panelu.",
+              "duration": "60 min",
+              "price": "od 120 zł"
+            },
+            {
+              "title": "Konsultacja i dobór zabiegu",
+              "desc": "Krótka rozmowa i rekomendacja kolejnych kroków.",
+              "details": "Sekcja pokazuje moduł usług oraz cennika.",
+              "duration": "30 min",
+              "price": "od 80 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 537 189 999",
@@ -1596,8 +2690,15 @@
             "bookingUrl": "",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Corner%20Hair%20Markus%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Skontaktuj się bezpośrednio",
+              "description": "Zadzwoń lub sprawdź trasę dojazdu na mapie Google.",
+              "button_text": "Zadzwoń",
+              "button_url": "#kontakt"
+            }
           },
           "social": {
             "facebook": "",
@@ -1611,8 +2712,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Corner Hair Markus — Wrocław",
@@ -1629,14 +2733,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "rosewood",
+            "background_style": "clean",
+            "font_preset": "elegant",
+            "booking_mode": "schedule",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.957Z"
+              "trial_started_at": "2026-06-22T15:56:57.078Z"
             },
             "is_demo_catalog": true,
+            "theme": "beauty",
+            "business_name": "Corner Hair Markus",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -1653,33 +2766,77 @@
         "pl": {
           "nav": {
             "logo": "MS BEAUTY SALON KOSMETYCZNY",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "MS BEAUTY SALON KOSMETYCZNY",
             "headline": "MS BEAUTY SALON KOSMETYCZNY<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "https://booksy.com/pl-pl/dl/show-business/186033",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Usługa premium",
+              "desc": "Najczęściej wybierana usługa w salonie.",
+              "details": "Placeholder oferty demo — do edycji w panelu.",
+              "duration": "60 min",
+              "price": "od 120 zł"
+            },
+            {
+              "title": "Konsultacja i dobór zabiegu",
+              "desc": "Krótka rozmowa i rekomendacja kolejnych kroków.",
+              "details": "Sekcja pokazuje moduł usług oraz cennika.",
+              "duration": "30 min",
+              "price": "od 80 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 795 922 478",
             "address": "Jedności Narodowej 101",
-            "booking_url": "",
-            "bookingUrl": "",
-            "booksyUrl": "",
+            "booking_url": "https://booksy.com/pl-pl/dl/show-business/186033",
+            "bookingUrl": "https://booksy.com/pl-pl/dl/show-business/186033",
+            "booksyUrl": "https://booksy.com/pl-pl/dl/show-business/186033",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=MS%20BEAUTY%20SALON%20KOSMETYCZNY%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "https://booksy.com/pl-pl/dl/show-business/186033"
+            }
           },
           "social": {
             "facebook": "",
@@ -1693,8 +2850,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "MS BEAUTY SALON KOSMETYCZNY — Wrocław",
@@ -1711,14 +2871,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "rosewood",
+            "background_style": "clean",
+            "font_preset": "elegant",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.957Z"
+              "trial_started_at": "2026-06-22T15:56:57.078Z"
             },
             "is_demo_catalog": true,
+            "theme": "beauty",
+            "business_name": "MS BEAUTY SALON KOSMETYCZNY",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -1735,33 +2904,77 @@
         "pl": {
           "nav": {
             "logo": "Usługi glazurnicze, kompleksowe remonty łazienek Damos-bud",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Zakres usług",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Usługi glazurnicze, kompleksowe remonty łazienek Damos-bud",
             "headline": "Usługi glazurnicze, kompleksowe remonty łazienek Damos-bud<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "https://www.facebook.com/damos.glazurnik",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Szybka wycena",
+              "desc": "Kontakt, opis problemu i orientacyjny koszt.",
+              "details": "Moduł usług pokazuje zakres pracy oraz sposób kontaktu.",
+              "duration": "15 min",
+              "price": "bezpłatnie"
+            },
+            {
+              "title": "Realizacja usługi",
+              "desc": "Termin, dojazd i wykonanie zlecenia.",
+              "details": "Treści można dopasować w panelu DFCMS.",
+              "duration": "wg zakresu",
+              "price": "do ustalenia"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy można szybko zadzwonić?",
+              "answer": "Tak — numer telefonu jest widoczny w sekcji kontaktu i w przyciskach CTA."
+            },
+            {
+              "question": "Czy dojazd jest widoczny na mapie?",
+              "answer": "Tak, demo ma wpiętą mapę Google wygenerowaną z adresu i nazwy firmy."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 503 926 237",
             "address": "Życzliwa 16",
-            "booking_url": "",
-            "bookingUrl": "",
+            "booking_url": "https://www.facebook.com/damos.glazurnik",
+            "bookingUrl": "https://www.facebook.com/damos.glazurnik",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Us%C5%82ugi%20glazurnicze%2C%20kompleksowe%20remonty%20%C5%82azienek%20Damos-bud%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "https://www.facebook.com/damos.glazurnik"
+            }
           },
           "social": {
             "facebook": "",
@@ -1775,8 +2988,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Usługi glazurnicze, kompleksowe remonty łazienek Damos-bud — Wrocław",
@@ -1793,14 +3009,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "trades-navy",
+            "background_style": "clean",
+            "font_preset": "inter",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.957Z"
+              "trial_started_at": "2026-06-22T15:56:57.078Z"
             },
             "is_demo_catalog": true,
+            "theme": "services",
+            "business_name": "Usługi glazurnicze, kompleksowe remonty łazienek Damos-bud",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -1819,7 +3044,14 @@
             "logo": "Look At You",
             "cta": "Kontakt",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Look At You",
@@ -1827,13 +3059,43 @@
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
             "button": "Skontaktuj się",
-            "image": "",
+            "button_url": "#kontakt",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Usługa premium",
+              "desc": "Najczęściej wybierana usługa w salonie.",
+              "details": "Placeholder oferty demo — do edycji w panelu.",
+              "duration": "60 min",
+              "price": "od 120 zł"
+            },
+            {
+              "title": "Konsultacja i dobór zabiegu",
+              "desc": "Krótka rozmowa i rekomendacja kolejnych kroków.",
+              "details": "Sekcja pokazuje moduł usług oraz cennika.",
+              "duration": "30 min",
+              "price": "od 80 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 720 888 488",
@@ -1842,8 +3104,15 @@
             "bookingUrl": "",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Look%20At%20You%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Skontaktuj się bezpośrednio",
+              "description": "Zadzwoń lub sprawdź trasę dojazdu na mapie Google.",
+              "button_text": "Zadzwoń",
+              "button_url": "#kontakt"
+            }
           },
           "social": {
             "facebook": "",
@@ -1857,8 +3126,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Look At You — Wrocław",
@@ -1875,14 +3147,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "rosewood",
+            "background_style": "clean",
+            "font_preset": "elegant",
+            "booking_mode": "schedule",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.957Z"
+              "trial_started_at": "2026-06-22T15:56:57.078Z"
             },
             "is_demo_catalog": true,
+            "theme": "beauty",
+            "business_name": "Look At You",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -1901,7 +3182,14 @@
             "logo": "Very Nice Walls",
             "cta": "Kontakt",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Zakres usług",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Very Nice Walls",
@@ -1909,13 +3197,43 @@
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
             "button": "Skontaktuj się",
-            "image": "",
+            "button_url": "#kontakt",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Szybka wycena",
+              "desc": "Kontakt, opis problemu i orientacyjny koszt.",
+              "details": "Moduł usług pokazuje zakres pracy oraz sposób kontaktu.",
+              "duration": "15 min",
+              "price": "bezpłatnie"
+            },
+            {
+              "title": "Realizacja usługi",
+              "desc": "Termin, dojazd i wykonanie zlecenia.",
+              "details": "Treści można dopasować w panelu DFCMS.",
+              "duration": "wg zakresu",
+              "price": "do ustalenia"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy można szybko zadzwonić?",
+              "answer": "Tak — numer telefonu jest widoczny w sekcji kontaktu i w przyciskach CTA."
+            },
+            {
+              "question": "Czy dojazd jest widoczny na mapie?",
+              "answer": "Tak, demo ma wpiętą mapę Google wygenerowaną z adresu i nazwy firmy."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "",
@@ -1924,8 +3242,15 @@
             "bookingUrl": "",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Very%20Nice%20Walls%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Skontaktuj się bezpośrednio",
+              "description": "Zadzwoń lub sprawdź trasę dojazdu na mapie Google.",
+              "button_text": "Zadzwoń",
+              "button_url": "#kontakt"
+            }
           },
           "social": {
             "facebook": "",
@@ -1939,8 +3264,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Very Nice Walls — Wrocław",
@@ -1957,14 +3285,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "trades-navy",
+            "background_style": "clean",
+            "font_preset": "inter",
+            "booking_mode": "schedule",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.957Z"
+              "trial_started_at": "2026-06-22T15:56:57.078Z"
             },
             "is_demo_catalog": true,
+            "theme": "services",
+            "business_name": "Very Nice Walls",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -1981,33 +3318,77 @@
         "pl": {
           "nav": {
             "logo": "Lena Studio Fryzjerskie",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Lena Studio Fryzjerskie",
             "headline": "Lena Studio Fryzjerskie<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "https://booksy.com/pl-pl/3327_lena-studio-fryzjerskie_fryzjer_13750_wroclaw",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Usługa premium",
+              "desc": "Najczęściej wybierana usługa w salonie.",
+              "details": "Placeholder oferty demo — do edycji w panelu.",
+              "duration": "60 min",
+              "price": "od 120 zł"
+            },
+            {
+              "title": "Konsultacja i dobór zabiegu",
+              "desc": "Krótka rozmowa i rekomendacja kolejnych kroków.",
+              "details": "Sekcja pokazuje moduł usług oraz cennika.",
+              "duration": "30 min",
+              "price": "od 80 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 514 744 740",
             "address": "Zygmunta Wróblewskiego 29",
-            "booking_url": "",
-            "bookingUrl": "",
-            "booksyUrl": "",
+            "booking_url": "https://booksy.com/pl-pl/3327_lena-studio-fryzjerskie_fryzjer_13750_wroclaw",
+            "bookingUrl": "https://booksy.com/pl-pl/3327_lena-studio-fryzjerskie_fryzjer_13750_wroclaw",
+            "booksyUrl": "https://booksy.com/pl-pl/3327_lena-studio-fryzjerskie_fryzjer_13750_wroclaw",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Lena%20Studio%20Fryzjerskie%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "https://booksy.com/pl-pl/3327_lena-studio-fryzjerskie_fryzjer_13750_wroclaw"
+            }
           },
           "social": {
             "facebook": "",
@@ -2021,8 +3402,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Lena Studio Fryzjerskie — Wrocław",
@@ -2039,14 +3423,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "rosewood",
+            "background_style": "clean",
+            "font_preset": "elegant",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.958Z"
+              "trial_started_at": "2026-06-22T15:56:57.078Z"
             },
             "is_demo_catalog": true,
+            "theme": "beauty",
+            "business_name": "Lena Studio Fryzjerskie",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -2063,33 +3456,77 @@
         "pl": {
           "nav": {
             "logo": "Pani Kosmetyczka Weronika Czubak",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Pani Kosmetyczka Weronika Czubak",
             "headline": "Pani Kosmetyczka Weronika Czubak<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "https://www.instagram.com/pani_kosmetyczka_?igsh=MTJpamM2dDlueGdxZA==",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Usługa premium",
+              "desc": "Najczęściej wybierana usługa w salonie.",
+              "details": "Placeholder oferty demo — do edycji w panelu.",
+              "duration": "60 min",
+              "price": "od 120 zł"
+            },
+            {
+              "title": "Konsultacja i dobór zabiegu",
+              "desc": "Krótka rozmowa i rekomendacja kolejnych kroków.",
+              "details": "Sekcja pokazuje moduł usług oraz cennika.",
+              "duration": "30 min",
+              "price": "od 80 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 578 662 429",
             "address": "Piękna 27A/13",
-            "booking_url": "",
-            "bookingUrl": "",
+            "booking_url": "https://www.instagram.com/pani_kosmetyczka_?igsh=MTJpamM2dDlueGdxZA==",
+            "bookingUrl": "https://www.instagram.com/pani_kosmetyczka_?igsh=MTJpamM2dDlueGdxZA==",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Pani%20Kosmetyczka%20Weronika%20Czubak%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "https://www.instagram.com/pani_kosmetyczka_?igsh=MTJpamM2dDlueGdxZA=="
+            }
           },
           "social": {
             "facebook": "",
@@ -2103,8 +3540,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Pani Kosmetyczka Weronika Czubak — Wrocław",
@@ -2121,14 +3561,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "rosewood",
+            "background_style": "clean",
+            "font_preset": "elegant",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.958Z"
+              "trial_started_at": "2026-06-22T15:56:57.078Z"
             },
             "is_demo_catalog": true,
+            "theme": "beauty",
+            "business_name": "Pani Kosmetyczka Weronika Czubak",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -2147,7 +3596,14 @@
             "logo": "Iron Gym Wrocław",
             "cta": "Kontakt",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Iron Gym Wrocław",
@@ -2155,13 +3611,43 @@
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
             "button": "Skontaktuj się",
-            "image": "",
+            "button_url": "#kontakt",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Trening personalny",
+              "desc": "Indywidualna praca nad celem i techniką.",
+              "details": "Demo modułu usług dla trenerów i studiów fitness.",
+              "duration": "60 min",
+              "price": "od 150 zł"
+            },
+            {
+              "title": "Plan startowy",
+              "desc": "Pierwsza konsultacja, analiza celu i plan działania.",
+              "details": "Do edycji z poziomu admina.",
+              "duration": "45 min",
+              "price": "od 120 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 888 444 336",
@@ -2170,8 +3656,15 @@
             "bookingUrl": "",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Iron%20Gym%20Wroc%C5%82aw%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Skontaktuj się bezpośrednio",
+              "description": "Zadzwoń lub sprawdź trasę dojazdu na mapie Google.",
+              "button_text": "Zadzwoń",
+              "button_url": "#kontakt"
+            }
           },
           "social": {
             "facebook": "",
@@ -2185,8 +3678,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Iron Gym Wrocław — Wrocław",
@@ -2203,14 +3699,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "neon-lime",
+            "background_style": "glow",
+            "font_preset": "inter",
+            "booking_mode": "schedule",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.958Z"
+              "trial_started_at": "2026-06-22T15:56:57.078Z"
             },
             "is_demo_catalog": true,
+            "theme": "fitness",
+            "business_name": "Iron Gym Wrocław",
+            "template_version": 3,
+            "darkMode": true,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -2229,7 +3734,14 @@
             "logo": "MikMat Instal Usługi Hydrauliczne - diagnoza wycieków.",
             "cta": "Kontakt",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Zakres usług",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "MikMat Instal Usługi Hydrauliczne - diagnoza wycieków.",
@@ -2237,13 +3749,43 @@
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
             "button": "Skontaktuj się",
-            "image": "",
+            "button_url": "#kontakt",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Szybka wycena",
+              "desc": "Kontakt, opis problemu i orientacyjny koszt.",
+              "details": "Moduł usług pokazuje zakres pracy oraz sposób kontaktu.",
+              "duration": "15 min",
+              "price": "bezpłatnie"
+            },
+            {
+              "title": "Realizacja usługi",
+              "desc": "Termin, dojazd i wykonanie zlecenia.",
+              "details": "Treści można dopasować w panelu DFCMS.",
+              "duration": "wg zakresu",
+              "price": "do ustalenia"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy można szybko zadzwonić?",
+              "answer": "Tak — numer telefonu jest widoczny w sekcji kontaktu i w przyciskach CTA."
+            },
+            {
+              "question": "Czy dojazd jest widoczny na mapie?",
+              "answer": "Tak, demo ma wpiętą mapę Google wygenerowaną z adresu i nazwy firmy."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 791 935 567",
@@ -2252,8 +3794,15 @@
             "bookingUrl": "",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=MikMat%20Instal%20Us%C5%82ugi%20Hydrauliczne%20-%20diagnoza%20wyciek%C3%B3w.%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Skontaktuj się bezpośrednio",
+              "description": "Zadzwoń lub sprawdź trasę dojazdu na mapie Google.",
+              "button_text": "Zadzwoń",
+              "button_url": "#kontakt"
+            }
           },
           "social": {
             "facebook": "",
@@ -2267,8 +3816,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "MikMat Instal Usługi Hydrauliczne - diagnoza wycieków. — Wrocław",
@@ -2285,14 +3837,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "trades-navy",
+            "background_style": "clean",
+            "font_preset": "inter",
+            "booking_mode": "schedule",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.958Z"
+              "trial_started_at": "2026-06-22T15:56:57.078Z"
             },
             "is_demo_catalog": true,
+            "theme": "services",
+            "business_name": "MikMat Instal Usługi Hydrauliczne - diagnoza wycieków.",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -2311,7 +3872,14 @@
             "logo": "Dominik Kozłowski - Trener Personalny",
             "cta": "Kontakt",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Dominik Kozłowski - Trener Personalny",
@@ -2319,13 +3887,43 @@
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
             "button": "Skontaktuj się",
-            "image": "",
+            "button_url": "#kontakt",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Trening personalny",
+              "desc": "Indywidualna praca nad celem i techniką.",
+              "details": "Demo modułu usług dla trenerów i studiów fitness.",
+              "duration": "60 min",
+              "price": "od 150 zł"
+            },
+            {
+              "title": "Plan startowy",
+              "desc": "Pierwsza konsultacja, analiza celu i plan działania.",
+              "details": "Do edycji z poziomu admina.",
+              "duration": "45 min",
+              "price": "od 120 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 784 327 767",
@@ -2334,8 +3932,15 @@
             "bookingUrl": "",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Dominik%20Koz%C5%82owski%20-%20Trener%20Personalny%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Skontaktuj się bezpośrednio",
+              "description": "Zadzwoń lub sprawdź trasę dojazdu na mapie Google.",
+              "button_text": "Zadzwoń",
+              "button_url": "#kontakt"
+            }
           },
           "social": {
             "facebook": "",
@@ -2349,8 +3954,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Dominik Kozłowski - Trener Personalny — Wrocław",
@@ -2367,14 +3975,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "neon-lime",
+            "background_style": "glow",
+            "font_preset": "inter",
+            "booking_mode": "schedule",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.958Z"
+              "trial_started_at": "2026-06-22T15:56:57.078Z"
             },
             "is_demo_catalog": true,
+            "theme": "fitness",
+            "business_name": "Dominik Kozłowski - Trener Personalny",
+            "template_version": 3,
+            "darkMode": true,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -2391,33 +4008,77 @@
         "pl": {
           "nav": {
             "logo": "Ritual Studio Beauty - Salon Kosmetyczny",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Ritual Studio Beauty - Salon Kosmetyczny",
             "headline": "Ritual Studio Beauty - Salon Kosmetyczny<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "https://booksy.com/pl-pl/190847_ritualstudio_brwi-i-rzesy_13750_wroclaw",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Usługa premium",
+              "desc": "Najczęściej wybierana usługa w salonie.",
+              "details": "Placeholder oferty demo — do edycji w panelu.",
+              "duration": "60 min",
+              "price": "od 120 zł"
+            },
+            {
+              "title": "Konsultacja i dobór zabiegu",
+              "desc": "Krótka rozmowa i rekomendacja kolejnych kroków.",
+              "details": "Sekcja pokazuje moduł usług oraz cennika.",
+              "duration": "30 min",
+              "price": "od 80 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 537 266 166",
             "address": "Gen. Antoniego Madalińskiego 9/3",
-            "booking_url": "",
-            "bookingUrl": "",
-            "booksyUrl": "",
+            "booking_url": "https://booksy.com/pl-pl/190847_ritualstudio_brwi-i-rzesy_13750_wroclaw",
+            "bookingUrl": "https://booksy.com/pl-pl/190847_ritualstudio_brwi-i-rzesy_13750_wroclaw",
+            "booksyUrl": "https://booksy.com/pl-pl/190847_ritualstudio_brwi-i-rzesy_13750_wroclaw",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Ritual%20Studio%20Beauty%20-%20Salon%20Kosmetyczny%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "https://booksy.com/pl-pl/190847_ritualstudio_brwi-i-rzesy_13750_wroclaw"
+            }
           },
           "social": {
             "facebook": "",
@@ -2431,8 +4092,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Ritual Studio Beauty - Salon Kosmetyczny — Wrocław",
@@ -2449,14 +4113,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "rosewood",
+            "background_style": "clean",
+            "font_preset": "elegant",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.958Z"
+              "trial_started_at": "2026-06-22T15:56:57.078Z"
             },
             "is_demo_catalog": true,
+            "theme": "beauty",
+            "business_name": "Ritual Studio Beauty - Salon Kosmetyczny",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -2473,33 +4146,70 @@
         "pl": {
           "nav": {
             "logo": "Sowa Design",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Sowa Design",
             "headline": "Sowa Design<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "https://www.instagram.com/projektywnetrz_sowa/",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Konsultacja wstępna",
+              "desc": "Rozmowa o potrzebach i możliwych rozwiązaniach.",
+              "details": "Placeholder oferty demo.",
+              "duration": "30 min",
+              "price": "od 150 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 697 667 761",
             "address": "Wykładowa",
-            "booking_url": "",
-            "bookingUrl": "",
+            "booking_url": "https://www.instagram.com/projektywnetrz_sowa/",
+            "bookingUrl": "https://www.instagram.com/projektywnetrz_sowa/",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Sowa%20Design%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "https://www.instagram.com/projektywnetrz_sowa/"
+            }
           },
           "social": {
             "facebook": "",
@@ -2513,8 +4223,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Sowa Design — Wrocław",
@@ -2531,14 +4244,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "dfops-tech",
+            "background_style": "glow",
+            "font_preset": "inter",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.958Z"
+              "trial_started_at": "2026-06-22T15:56:57.078Z"
             },
             "is_demo_catalog": true,
+            "theme": "consultant",
+            "business_name": "Sowa Design",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -2557,7 +4279,14 @@
             "logo": "Trener personalny Wrocław Paweł Augustynowicz",
             "cta": "Kontakt",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Trener personalny Wrocław Paweł Augustynowicz",
@@ -2565,13 +4294,43 @@
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
             "button": "Skontaktuj się",
-            "image": "",
+            "button_url": "#kontakt",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Trening personalny",
+              "desc": "Indywidualna praca nad celem i techniką.",
+              "details": "Demo modułu usług dla trenerów i studiów fitness.",
+              "duration": "60 min",
+              "price": "od 150 zł"
+            },
+            {
+              "title": "Plan startowy",
+              "desc": "Pierwsza konsultacja, analiza celu i plan działania.",
+              "details": "Do edycji z poziomu admina.",
+              "duration": "45 min",
+              "price": "od 120 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 691 641 720",
@@ -2580,8 +4339,15 @@
             "bookingUrl": "",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Trener%20personalny%20Wroc%C5%82aw%20Pawe%C5%82%20Augustynowicz%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Skontaktuj się bezpośrednio",
+              "description": "Zadzwoń lub sprawdź trasę dojazdu na mapie Google.",
+              "button_text": "Zadzwoń",
+              "button_url": "#kontakt"
+            }
           },
           "social": {
             "facebook": "",
@@ -2595,8 +4361,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Trener personalny Wrocław Paweł Augustynowicz — Wrocław",
@@ -2613,14 +4382,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "neon-lime",
+            "background_style": "glow",
+            "font_preset": "inter",
+            "booking_mode": "schedule",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.958Z"
+              "trial_started_at": "2026-06-22T15:56:57.078Z"
             },
             "is_demo_catalog": true,
+            "theme": "fitness",
+            "business_name": "Trener personalny Wrocław Paweł Augustynowicz",
+            "template_version": 3,
+            "darkMode": true,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -2639,7 +4417,14 @@
             "logo": "Dawid Wika - Trener Personalny Wrocław",
             "cta": "Kontakt",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Dawid Wika - Trener Personalny Wrocław",
@@ -2647,13 +4432,43 @@
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
             "button": "Skontaktuj się",
-            "image": "",
+            "button_url": "#kontakt",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Trening personalny",
+              "desc": "Indywidualna praca nad celem i techniką.",
+              "details": "Demo modułu usług dla trenerów i studiów fitness.",
+              "duration": "60 min",
+              "price": "od 150 zł"
+            },
+            {
+              "title": "Plan startowy",
+              "desc": "Pierwsza konsultacja, analiza celu i plan działania.",
+              "details": "Do edycji z poziomu admina.",
+              "duration": "45 min",
+              "price": "od 120 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 697 530 265",
@@ -2662,8 +4477,15 @@
             "bookingUrl": "",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Dawid%20Wika%20-%20Trener%20Personalny%20Wroc%C5%82aw%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Skontaktuj się bezpośrednio",
+              "description": "Zadzwoń lub sprawdź trasę dojazdu na mapie Google.",
+              "button_text": "Zadzwoń",
+              "button_url": "#kontakt"
+            }
           },
           "social": {
             "facebook": "",
@@ -2677,8 +4499,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Dawid Wika - Trener Personalny Wrocław — Wrocław",
@@ -2695,14 +4520,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "neon-lime",
+            "background_style": "glow",
+            "font_preset": "inter",
+            "booking_mode": "schedule",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.958Z"
+              "trial_started_at": "2026-06-22T15:56:57.078Z"
             },
             "is_demo_catalog": true,
+            "theme": "fitness",
+            "business_name": "Dawid Wika - Trener Personalny Wrocław",
+            "template_version": 3,
+            "darkMode": true,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -2719,33 +4553,77 @@
         "pl": {
           "nav": {
             "logo": "Remonty,Wykończenia mieszkań, Układanie płytek wielkoformatowych, Wrocław–EmbudKonrad",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Zakres usług",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Remonty,Wykończenia mieszkań, Układanie płytek wielkoformatowych, Wrocław–EmbudKonrad",
             "headline": "Remonty,Wykończenia mieszkań, Układanie płytek wielkoformatowych, Wrocław–EmbudKonrad<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "http://www.facebook.com/EMBUDkonrad",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Szybka wycena",
+              "desc": "Kontakt, opis problemu i orientacyjny koszt.",
+              "details": "Moduł usług pokazuje zakres pracy oraz sposób kontaktu.",
+              "duration": "15 min",
+              "price": "bezpłatnie"
+            },
+            {
+              "title": "Realizacja usługi",
+              "desc": "Termin, dojazd i wykonanie zlecenia.",
+              "details": "Treści można dopasować w panelu DFCMS.",
+              "duration": "wg zakresu",
+              "price": "do ustalenia"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy można szybko zadzwonić?",
+              "answer": "Tak — numer telefonu jest widoczny w sekcji kontaktu i w przyciskach CTA."
+            },
+            {
+              "question": "Czy dojazd jest widoczny na mapie?",
+              "answer": "Tak, demo ma wpiętą mapę Google wygenerowaną z adresu i nazwy firmy."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 570 861 247",
             "address": "Rynek",
-            "booking_url": "",
-            "bookingUrl": "",
+            "booking_url": "http://www.facebook.com/EMBUDkonrad",
+            "bookingUrl": "http://www.facebook.com/EMBUDkonrad",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Remonty%2CWyko%C5%84czenia%20mieszka%C5%84%2C%20Uk%C5%82adanie%20p%C5%82ytek%20wielkoformatowych%2C%20Wroc%C5%82aw%E2%80%93EmbudKonrad%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "http://www.facebook.com/EMBUDkonrad"
+            }
           },
           "social": {
             "facebook": "",
@@ -2759,8 +4637,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Remonty,Wykończenia mieszkań, Układanie płytek wielkoformatowych, Wrocław–EmbudKonrad — Wrocław",
@@ -2777,14 +4658,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "trades-navy",
+            "background_style": "clean",
+            "font_preset": "inter",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.958Z"
+              "trial_started_at": "2026-06-22T15:56:57.078Z"
             },
             "is_demo_catalog": true,
+            "theme": "services",
+            "business_name": "Remonty,Wykończenia mieszkań, Układanie płytek wielkoformatowych, Wrocław–EmbudKonrad",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -2801,33 +4691,77 @@
         "pl": {
           "nav": {
             "logo": "VENOM Barbershop & Tattoo",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "VENOM Barbershop & Tattoo",
             "headline": "VENOM Barbershop & Tattoo<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "http://blokbarbershop.booksy.com/a/",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Barber demo",
+            "title": "Mocny styl, szybki kontakt i opinie Google",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Strzyżenie męskie",
+              "desc": "Precyzyjne cięcie dopasowane do stylu klienta.",
+              "details": "Placeholder oferty demo — właściciel może podmienić opis w panelu.",
+              "duration": "45 min",
+              "price": "od 90 zł"
+            },
+            {
+              "title": "Broda i kontur",
+              "desc": "Modelowanie brody, kontur i wykończenie.",
+              "details": "Sekcja korzysta z modułu usług i cen w adminie.",
+              "duration": "30 min",
+              "price": "od 60 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 883 413 424",
             "address": "Bierutowska 13",
-            "booking_url": "",
-            "bookingUrl": "",
-            "booksyUrl": "",
+            "booking_url": "http://blokbarbershop.booksy.com/a/",
+            "bookingUrl": "http://blokbarbershop.booksy.com/a/",
+            "booksyUrl": "http://blokbarbershop.booksy.com/a/",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=VENOM%20Barbershop%20%26%20Tattoo%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "http://blokbarbershop.booksy.com/a/"
+            }
           },
           "social": {
             "facebook": "",
@@ -2841,8 +4775,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Fotele, detale i klimat miejsca",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "VENOM Barbershop & Tattoo — Wrocław",
@@ -2859,14 +4796,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "black-gold",
+            "background_style": "smoky",
+            "font_preset": "barber",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.958Z"
+              "trial_started_at": "2026-06-22T15:56:57.078Z"
             },
             "is_demo_catalog": true,
+            "theme": "beauty",
+            "business_name": "VENOM Barbershop & Tattoo",
+            "template_version": 3,
+            "darkMode": true,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -2883,33 +4829,77 @@
         "pl": {
           "nav": {
             "logo": "Nowika.Move Trener Personalny, Dietetyk",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Nowika.Move Trener Personalny, Dietetyk",
             "headline": "Nowika.Move Trener Personalny, Dietetyk<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "https://m.facebook.com/nowikadietatrening",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Trening personalny",
+              "desc": "Indywidualna praca nad celem i techniką.",
+              "details": "Demo modułu usług dla trenerów i studiów fitness.",
+              "duration": "60 min",
+              "price": "od 150 zł"
+            },
+            {
+              "title": "Plan startowy",
+              "desc": "Pierwsza konsultacja, analiza celu i plan działania.",
+              "details": "Do edycji z poziomu admina.",
+              "duration": "45 min",
+              "price": "od 120 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 664 977 314",
             "address": "Dąbrowskiego 36/3U",
-            "booking_url": "",
-            "bookingUrl": "",
+            "booking_url": "https://m.facebook.com/nowikadietatrening",
+            "bookingUrl": "https://m.facebook.com/nowikadietatrening",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Nowika.Move%20Trener%20Personalny%2C%20Dietetyk%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "https://m.facebook.com/nowikadietatrening"
+            }
           },
           "social": {
             "facebook": "",
@@ -2923,8 +4913,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Nowika.Move Trener Personalny, Dietetyk — Wrocław",
@@ -2941,14 +4934,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "neon-lime",
+            "background_style": "glow",
+            "font_preset": "inter",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.958Z"
+              "trial_started_at": "2026-06-22T15:56:57.078Z"
             },
             "is_demo_catalog": true,
+            "theme": "fitness",
+            "business_name": "Nowika.Move Trener Personalny, Dietetyk",
+            "template_version": 3,
+            "darkMode": true,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -2965,33 +4967,77 @@
         "pl": {
           "nav": {
             "logo": "Dr. Belter. Firmowy gabinet kosmetyczny",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Dr. Belter. Firmowy gabinet kosmetyczny",
             "headline": "Dr. Belter. Firmowy gabinet kosmetyczny<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "https://m.facebook.com/GabinetKosmetycznyDrBelterWroclaw/",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Usługa premium",
+              "desc": "Najczęściej wybierana usługa w salonie.",
+              "details": "Placeholder oferty demo — do edycji w panelu.",
+              "duration": "60 min",
+              "price": "od 120 zł"
+            },
+            {
+              "title": "Konsultacja i dobór zabiegu",
+              "desc": "Krótka rozmowa i rekomendacja kolejnych kroków.",
+              "details": "Sekcja pokazuje moduł usług oraz cennika.",
+              "duration": "30 min",
+              "price": "od 80 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 508 240 554",
             "address": "Bolesława Drobnera 32",
-            "booking_url": "",
-            "bookingUrl": "",
+            "booking_url": "https://m.facebook.com/GabinetKosmetycznyDrBelterWroclaw/",
+            "bookingUrl": "https://m.facebook.com/GabinetKosmetycznyDrBelterWroclaw/",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Dr.%20Belter.%20Firmowy%20gabinet%20kosmetyczny%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "https://m.facebook.com/GabinetKosmetycznyDrBelterWroclaw/"
+            }
           },
           "social": {
             "facebook": "",
@@ -3005,8 +5051,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Dr. Belter. Firmowy gabinet kosmetyczny — Wrocław",
@@ -3023,14 +5072,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "rosewood",
+            "background_style": "clean",
+            "font_preset": "elegant",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.958Z"
+              "trial_started_at": "2026-06-22T15:56:57.078Z"
             },
             "is_demo_catalog": true,
+            "theme": "beauty",
+            "business_name": "Dr. Belter. Firmowy gabinet kosmetyczny",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -3047,33 +5105,77 @@
         "pl": {
           "nav": {
             "logo": "Hydraulik, Impact Jakub Bauer, Wrocław, CO, Gaz, Wod-Kan, Montaż Kotłów",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Zakres usług",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Hydraulik, Impact Jakub Bauer, Wrocław, CO, Gaz, Wod-Kan, Montaż Kotłów",
             "headline": "Hydraulik, Impact Jakub Bauer, Wrocław, CO, Gaz, Wod-Kan, Montaż Kotłów<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "https://www.facebook.com/share/14eN2qhrViC/",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Szybka wycena",
+              "desc": "Kontakt, opis problemu i orientacyjny koszt.",
+              "details": "Moduł usług pokazuje zakres pracy oraz sposób kontaktu.",
+              "duration": "15 min",
+              "price": "bezpłatnie"
+            },
+            {
+              "title": "Realizacja usługi",
+              "desc": "Termin, dojazd i wykonanie zlecenia.",
+              "details": "Treści można dopasować w panelu DFCMS.",
+              "duration": "wg zakresu",
+              "price": "do ustalenia"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy można szybko zadzwonić?",
+              "answer": "Tak — numer telefonu jest widoczny w sekcji kontaktu i w przyciskach CTA."
+            },
+            {
+              "question": "Czy dojazd jest widoczny na mapie?",
+              "answer": "Tak, demo ma wpiętą mapę Google wygenerowaną z adresu i nazwy firmy."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 508 614 817",
             "address": "Wincentego Witosa",
-            "booking_url": "",
-            "bookingUrl": "",
+            "booking_url": "https://www.facebook.com/share/14eN2qhrViC/",
+            "bookingUrl": "https://www.facebook.com/share/14eN2qhrViC/",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Hydraulik%2C%20Impact%20Jakub%20Bauer%2C%20Wroc%C5%82aw%2C%20CO%2C%20Gaz%2C%20Wod-Kan%2C%20Monta%C5%BC%20Kot%C5%82%C3%B3w%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "https://www.facebook.com/share/14eN2qhrViC/"
+            }
           },
           "social": {
             "facebook": "",
@@ -3087,8 +5189,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Hydraulik, Impact Jakub Bauer, Wrocław, CO, Gaz, Wod-Kan, Montaż Kotłów — Wrocław",
@@ -3105,14 +5210,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "trades-navy",
+            "background_style": "clean",
+            "font_preset": "inter",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.958Z"
+              "trial_started_at": "2026-06-22T15:56:57.078Z"
             },
             "is_demo_catalog": true,
+            "theme": "services",
+            "business_name": "Hydraulik, Impact Jakub Bauer, Wrocław, CO, Gaz, Wod-Kan, Montaż Kotłów",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -3129,33 +5243,77 @@
         "pl": {
           "nav": {
             "logo": "Michał Skołd - Trener Personalny Wrocław Śródmieście",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Oferta",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "Michał Skołd - Trener Personalny Wrocław Śródmieście",
             "headline": "Michał Skołd - Trener Personalny Wrocław Śródmieście<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "https://www.instagram.com/michal.skold/",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Trening personalny",
+              "desc": "Indywidualna praca nad celem i techniką.",
+              "details": "Demo modułu usług dla trenerów i studiów fitness.",
+              "duration": "60 min",
+              "price": "od 150 zł"
+            },
+            {
+              "title": "Plan startowy",
+              "desc": "Pierwsza konsultacja, analiza celu i plan działania.",
+              "details": "Do edycji z poziomu admina.",
+              "duration": "45 min",
+              "price": "od 120 zł"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy mogę podmienić zdjęcia?",
+              "answer": "Tak, placeholdery „Twoje zdjęcie” można zastąpić własnymi fotografiami w panelu."
+            },
+            {
+              "question": "Czy opinie Google są automatyczne?",
+              "answer": "Tak, strona używa Google Place Query i pobiera opinie przez istniejący moduł DFCMS."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 730 995 561",
             "address": "Wrocław",
-            "booking_url": "",
-            "bookingUrl": "",
+            "booking_url": "https://www.instagram.com/michal.skold/",
+            "bookingUrl": "https://www.instagram.com/michal.skold/",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=Micha%C5%82%20Sko%C5%82d%20-%20Trener%20Personalny%20Wroc%C5%82aw%20%C5%9Ar%C3%B3dmie%C5%9Bcie%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "https://www.instagram.com/michal.skold/"
+            }
           },
           "social": {
             "facebook": "",
@@ -3169,8 +5327,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "Michał Skołd - Trener Personalny Wrocław Śródmieście — Wrocław",
@@ -3187,14 +5348,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "neon-lime",
+            "background_style": "glow",
+            "font_preset": "inter",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.958Z"
+              "trial_started_at": "2026-06-22T15:56:57.078Z"
             },
             "is_demo_catalog": true,
+            "theme": "fitness",
+            "business_name": "Michał Skołd - Trener Personalny Wrocław Śródmieście",
+            "template_version": 3,
+            "darkMode": true,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,
@@ -3211,33 +5381,77 @@
         "pl": {
           "nav": {
             "logo": "AW REMONTY Kompleksowe remonty i wykończenia wnętrz",
-            "cta": "Kontakt",
+            "cta": "Umów termin",
             "logoImage": "",
-            "menu": {}
+            "menu": {
+              "about": "O nas",
+              "pricing": "Zakres usług",
+              "gallery": "Galeria",
+              "reviews": "Opinie",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
           },
           "hero": {
             "name": "AW REMONTY Kompleksowe remonty i wykończenia wnętrz",
             "headline": "AW REMONTY Kompleksowe remonty i wykończenia wnętrz<br /><i>w nowej odsłonie online.</i>",
             "subheadline": "",
             "description": "Nowoczesna, szybka strona wizytówkowa z opiniami Google, mapą dojazdu i prostym kontaktem.",
-            "button": "Skontaktuj się",
-            "image": "",
+            "button": "Umów termin",
+            "button_url": "https://www.facebook.com/AWREMONTY",
+            "image": "/img/demo-your-photo.svg",
             "qrText": "",
             "qrImage": ""
           },
-          "services": [],
+          "manifesto": {
+            "label": "Demo DFCMS",
+            "title": "Gotowa wizytówka do personalizacji",
+            "text": "To demo pokazuje układ, który właściciel może uzupełnić własnymi zdjęciami, ofertą i treścią w panelu administracyjnym."
+          },
+          "services": [
+            {
+              "title": "Szybka wycena",
+              "desc": "Kontakt, opis problemu i orientacyjny koszt.",
+              "details": "Moduł usług pokazuje zakres pracy oraz sposób kontaktu.",
+              "duration": "15 min",
+              "price": "bezpłatnie"
+            },
+            {
+              "title": "Realizacja usługi",
+              "desc": "Termin, dojazd i wykonanie zlecenia.",
+              "details": "Treści można dopasować w panelu DFCMS.",
+              "duration": "wg zakresu",
+              "price": "do ustalenia"
+            }
+          ],
           "reviews": [],
-          "faq": [],
+          "faq": [
+            {
+              "question": "Czy można szybko zadzwonić?",
+              "answer": "Tak — numer telefonu jest widoczny w sekcji kontaktu i w przyciskach CTA."
+            },
+            {
+              "question": "Czy dojazd jest widoczny na mapie?",
+              "answer": "Tak, demo ma wpiętą mapę Google wygenerowaną z adresu i nazwy firmy."
+            }
+          ],
           "contact": {
             "email": "",
             "phone": "+48 517 227 716",
             "address": "Barycka 4",
-            "booking_url": "",
-            "bookingUrl": "",
+            "booking_url": "https://www.facebook.com/AWREMONTY",
+            "bookingUrl": "https://www.facebook.com/AWREMONTY",
             "booksyUrl": "",
             "booksyIframeUrl": "",
-            "map_embed_url": "",
-            "map_place_id": ""
+            "map_embed_url": "https://www.google.com/maps?q=AW%20REMONTY%20Kompleksowe%20remonty%20i%20wyko%C5%84czenia%20wn%C4%99trz%2C%20Wroc%C5%82aw&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Umów wizytę online",
+              "description": "Przycisk prowadzi do zewnętrznego systemu rezerwacji lub profilu firmy.",
+              "button_text": "Otwórz rezerwację",
+              "button_url": "https://www.facebook.com/AWREMONTY"
+            }
           },
           "social": {
             "facebook": "",
@@ -3251,8 +5465,11 @@
             "title": "Opinie klientów"
           },
           "gallery": {
-            "title": "Galeria",
-            "images": []
+            "title": "Twoje zdjęcia i realizacje",
+            "images": [
+              "/img/demo-gallery-photo-1.svg",
+              "/img/demo-gallery-photo-2.svg"
+            ]
           },
           "seo": {
             "title": "AW REMONTY Kompleksowe remonty i wykończenia wnętrz — Wrocław",
@@ -3269,14 +5486,23 @@
             "terms": ""
           },
           "settings": {
-            "color_preset": "gold",
+            "color_preset": "trades-navy",
+            "background_style": "clean",
+            "font_preset": "inter",
+            "booking_mode": "button",
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T15:00:25.958Z"
+              "trial_started_at": "2026-06-22T15:56:57.078Z"
             },
             "is_demo_catalog": true,
+            "theme": "services",
+            "business_name": "AW REMONTY Kompleksowe remonty i wykończenia wnętrz",
+            "template_version": 3,
+            "darkMode": false,
+            "showManifesto": true,
             "showServices": true,
+            "showProof": true,
             "showGallery": true,
             "showGoogleReviews": true,
             "showFaq": true,

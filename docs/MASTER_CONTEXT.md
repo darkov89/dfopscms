@@ -270,6 +270,7 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
+| **2026-06-22** | **Demo lead catalog v2:** 40 top leadów z Apify/Google Places; każdy slug `demo-*`, `billing_plan=tier1`, Google `place_query`, mapa `map_embed_url`, placeholdery `/img/demo-your-photo.svg` i `/img/demo-gallery-photo-{1,2}.svg`; barberzy używają beauty `black-gold`/`smoky`/`barber`. |
 | **2026-06-22** | **Prawo & Bezpieczeństwo:** nowa odsłona zakładki `legal` w panelu; `pages.content.pl.privacy` (`default/custom`); publiczny route `/polityka-prywatnosci` z generowaną polityką, custom tekstem po DOMPurify i obowiązkową klauzulą DFCMS/Supabase/Cloudflare. |
 | **2026-06-19** | **Security hardening:** `fetchPageRow` na Cloudflare edge waliduje slug/hostname i pobiera pojedynczy obiekt PostgREST; `pageRepository` sanitizuje `content`/`draft_content` na zapisie i odczycie, w tym pola URL używane w `href/src`, żeby blokować `javascript:`/`data:` i stare złośliwe rekordy. |
 | **2026-06-19** | **Demo katalog:** landing pokazuje 6 template i prowadzi przez `router.html?site=demo-*`; demo katalogowe nie blokuje się przez trial (`is_demo_catalog`) + migracja ustawia `billing_plan=tier1` i czyści flagi blokady dla demo rekordów. |
