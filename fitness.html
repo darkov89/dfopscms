@@ -52,13 +52,13 @@
     <script defer src="js/core/utils.js?v=20260617a"></script>
     <script defer src="js/core/config.js?v=20260602b"></script>
     <script defer src="js/core/supabaseClient.js"></script>
-    <script defer src="js/templates/registry.js"></script>
+    <script defer src="js/templates/registry.js?v=20260622a"></script>
     <script defer src="js/core/contentSchema.js"></script>
-    <script defer src="js/core/contentUpgrader.js"></script>
+    <script defer src="js/core/contentUpgrader.js?v=20260622a"></script>
     <script defer src="js/core/themeStyling.js"></script>
     <script defer src="js/core/pageRepository.js?v=20260619d"></script>
     <script defer src="js/core/planUtils.js?v=20260602b"></script>
-    <script defer src="js/features/publicSiteApp.js?v=20260619c"></script>
+    <script defer src="js/features/publicSiteApp.js?v=20260622a"></script>
     <script defer src="js/features/googleReviewsApp.js"></script>
     <script defer src="js/features/cookieConsentApp.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
@@ -465,8 +465,8 @@
                 </template>
 
             <div class="max-w-5xl mx-auto border-t border-gray-700 pt-4 text-center text-xs text-gray-400 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
-                <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.privacy_policy">
-                    <a href="#" @click.prevent="openModal('privacy')" class="underline hover:text-primary transition-colors">Polityka Prywatności</a>
+                <template x-if="true">
+                    <a :href="privacyPolicyUrl()" class="underline hover:text-primary transition-colors">Polityka Prywatności</a>
                 </template>
                 <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.terms">
                     <a href="#" @click.prevent="openModal('terms')" class="underline hover:text-primary transition-colors">Regulamin</a>

@@ -83,6 +83,7 @@
           description: 'Trwa konfiguracja serwisu. Właściciel może zalogować się do panelu i dokończyć stronę w Kreatorze.',
           ogImage: '',
         },
+        privacy: { mode: 'default', customText: '' },
         legal: { enabled: false, privacy_policy: '', terms: '' },
         settings: {
           template_version: 3,
@@ -154,6 +155,7 @@
           ogImage: ""
         },
         footer: { quote: "", copyright: "", privacy: "" },
+        privacy: { mode: "default", customText: "" },
         legal: { enabled: true, privacy_policy: "", terms: "" },
         cookies: { text: "Ta strona używa plików cookies w celach funkcjonalnych.", accept: "Akceptuję" },
         settings: {
@@ -225,6 +227,7 @@
             "Profesjonalne zabiegi kosmetyczne, barber i relaks w jednym miejscu. Sprawdź cennik, przeczytaj opinie i umów wizytę w kilka kliknięć.",
           ogImage: ""
         },
+        privacy: { mode: "default", customText: "" },
         legal: { enabled: true, privacy_policy: "", terms: "" },
         settings: {
           subscription: { plan: "trial", trial_started_at: new Date().toISOString() },
@@ -325,6 +328,7 @@
           description: "Treningi personalne, grafik zajęć i zapisy online. Sprawdź ofertę i zacznij dziś.",
           ogImage: "",
         },
+        privacy: { mode: "default", customText: "" },
         legal: { enabled: true, privacy_policy: "", terms: "" },
         settings: {
           subscription: { plan: "trial", trial_started_at: new Date().toISOString() },
@@ -448,6 +452,7 @@
             "Szybki kontakt, uczciwa wycena, dojazd. Hydraulik, elektryk, mechanik i drobne naprawy w Twojej okolicy.",
           ogImage: "",
         },
+        privacy: { mode: "default", customText: "" },
         legal: { enabled: true, privacy_policy: "", terms: "" },
         settings: {
           subscription: { plan: "trial", trial_started_at: new Date().toISOString() },
@@ -515,6 +520,7 @@
           description: 'Sprawdź kartę dań, godziny otwarcia i zarezerwuj stolik. Sezonowe menu i lokalne składniki.',
           ogImage: '',
         },
+        privacy: { mode: 'default', customText: '' },
         legal: { enabled: true, privacy_policy: '', terms: '' },
         settings: {
           subscription: { plan: 'trial', trial_started_at: new Date().toISOString() },
@@ -585,6 +591,7 @@
           description: 'Profesjonalna opieka, przejrzysty cennik i łatwy kontakt. Zaufaj specjaliście w Twojej okolicy.',
           ogImage: '',
         },
+        privacy: { mode: 'default', customText: '' },
         legal: { enabled: true, privacy_policy: '', terms: '' },
         settings: {
           subscription: { plan: 'trial', trial_started_at: new Date().toISOString() },

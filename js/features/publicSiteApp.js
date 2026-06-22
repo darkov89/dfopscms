@@ -155,6 +155,96 @@
     return (d.textContent || d.innerText || '').trim();
   }
 
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function isPrivacyPolicyPath() {
+    try {
+      const path = String(window.location.pathname || '').replace(/\/+$/, '') || '/';
+      return path === '/polityka-prywatnosci';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function infrastructurePrivacyHtml() {
+    return `
+      <div class="mt-8 pt-8 border-t border-gray-200">
+        <h3 class="text-lg font-bold mb-4">Informacja o przetwarzaniu danych w systemie informatycznym</h3>
+        <p class="mb-4">W celu zapewnienia prawidłowego działania strony internetowej, szybkiego ładowania treści oraz obsługi formularzy (kontaktowych, rezerwacyjnych, cenników), Administrator korzysta z usług zewnętrznego dostawcy technologii.</p>
+        <p class="mb-4">Strona została uruchomiona i jest utrzymywana przy użyciu platformy DFCMS, dostarczanej przez firmę Dragonfly Operations Sp. z o.o. z siedzibą w Korzeczniku (Podmiot Przetwarzający). W celu zagwarantowania najwyższego poziomu bezpieczeństwa i niezawodności, dane użytkowników są przechowywane w bezpiecznej i zaszyfrowanej architekturze chmurowej u certyfikowanych podwykonawców technologicznych:</p>
+        <ul class="list-disc pl-6 mb-4">
+          <li class="mb-2"><strong>Supabase</strong> (bezpieczne przechowywanie danych w bazie danych z zachowaniem rygorystycznych polityk dostępu, na serwerach zlokalizowanych na terenie Unii Europejskiej).</li>
+          <li class="mb-2"><strong>Cloudflare</strong> (obsługa infrastruktury sieciowej, ochrona przed atakami botów oraz optymalizacja szybkości ładowania strony z poziomu serwerów Edge).</li>
+        </ul>
+        <p>Wszystkie podmioty zaangażowane w utrzymanie techniczne strony spełniają wymogi RODO, stosują zaawansowane środki ochrony kryptograficznej i przetwarzają dane wyłącznie na zlecenie Administratora w celach technicznych.</p>
+      </div>
+    `;
+  }
+
+  function defaultPrivacyPolicyHtml(block) {
+    const businessName = escapeHtml(
+      block?.settings?.business_name || block?.hero?.name || block?.nav?.logo || 'Administrator strony',
+    );
+    const email = escapeHtml(block?.contact?.email || 'adres e-mail podany na stronie');
+    const phone = escapeHtml(block?.contact?.phone || '');
+    const address = escapeHtml(block?.contact?.address || 'adres podany na stronie');
+    const contactLine = phone
+      ? `Kontakt z Administratorem jest możliwy pod adresem e-mail ${email} lub telefonicznie: ${phone}.`
+      : `Kontakt z Administratorem jest możliwy pod adresem e-mail ${email}.`;
+
+    return `
+      <h2 class="text-2xl font-bold mb-4">Polityka Prywatności</h2>
+      <p class="mb-4">Niniejsza Polityka Prywatności opisuje zasady przetwarzania danych osobowych użytkowników strony internetowej prowadzonej przez <strong>${businessName}</strong>.</p>
+      <h3 class="mt-6 mb-3 text-lg font-bold">1. Administrator danych</h3>
+      <p class="mb-4">Administratorem danych osobowych jest <strong>${businessName}</strong>, działający pod adresem: ${address}. ${contactLine}</p>
+      <h3 class="mt-6 mb-3 text-lg font-bold">2. Zakres przetwarzanych danych</h3>
+      <p class="mb-4">Administrator może przetwarzać dane podane dobrowolnie w formularzach kontaktowych, rezerwacyjnych lub w wiadomościach kierowanych przez stronę, w szczególności imię i nazwisko, adres e-mail, numer telefonu oraz treść zapytania.</p>
+      <h3 class="mt-6 mb-3 text-lg font-bold">3. Cele i podstawy przetwarzania</h3>
+      <p class="mb-4">Dane są przetwarzane w celu obsługi zapytań, kontaktu z użytkownikiem, realizacji usług, prowadzenia korespondencji oraz zapewnienia bezpieczeństwa i prawidłowego działania strony. Podstawą przetwarzania jest prawnie uzasadniony interes Administratora, wykonanie umowy lub działania przed jej zawarciem, a w określonych przypadkach zgoda użytkownika.</p>
+      <h3 class="mt-6 mb-3 text-lg font-bold">4. Okres przechowywania danych</h3>
+      <p class="mb-4">Dane są przechowywane przez okres niezbędny do obsługi sprawy, realizacji usług, dochodzenia lub obrony roszczeń oraz spełnienia obowiązków wynikających z przepisów prawa.</p>
+      <h3 class="mt-6 mb-3 text-lg font-bold">5. Prawa użytkownika</h3>
+      <p class="mb-4">Użytkownik ma prawo dostępu do swoich danych, ich sprostowania, usunięcia, ograniczenia przetwarzania, przenoszenia danych, wniesienia sprzeciwu oraz złożenia skargi do Prezesa Urzędu Ochrony Danych Osobowych.</p>
+      <h3 class="mt-6 mb-3 text-lg font-bold">6. Dobrowolność podania danych</h3>
+      <p class="mb-4">Podanie danych jest dobrowolne, ale może być konieczne do udzielenia odpowiedzi, obsługi rezerwacji lub wykonania usługi.</p>
+      <h3 class="mt-6 mb-3 text-lg font-bold">7. Pliki cookies i technologie podobne</h3>
+      <p class="mb-4">Strona może wykorzystywać pliki cookies niezbędne do prawidłowego działania, bezpieczeństwa i zapamiętania ustawień użytkownika. Opcjonalne narzędzia analityczne lub marketingowe mogą być używane wyłącznie zgodnie z konfiguracją zgód na stronie.</p>
+    `;
+  }
+
+  function renderPrivacyPolicyPage(content, lang) {
+    const block = content?.[lang] || content?.pl || {};
+    const privacy = block.privacy || {};
+    const mode = privacy.mode === 'custom' ? 'custom' : 'default';
+    const rawCustom = String(privacy.customText || '').trim();
+    const sanitizer =
+      typeof window.DFOPS_pageRepository?.sanitizeHtml === 'function'
+        ? window.DFOPS_pageRepository.sanitizeHtml
+        : function noSanitizer() { return ''; };
+    const mainHtml =
+      mode === 'custom' && rawCustom
+        ? sanitizer(rawCustom)
+        : defaultPrivacyPolicyHtml(block);
+    const businessName = escapeHtml(block?.settings?.business_name || block?.hero?.name || block?.nav?.logo || 'strony');
+    document.title = `Polityka Prywatności — ${businessName}`;
+    document.body.className = 'min-h-screen bg-slate-50 text-slate-800 antialiased';
+    document.body.innerHTML = `
+      <main class="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
+        <a href="/" class="mb-8 inline-flex text-sm font-semibold text-slate-500 underline decoration-slate-300 underline-offset-4 hover:text-slate-900">← Wróć na stronę</a>
+        <article class="rounded-2xl border border-gray-200 bg-white p-6 leading-relaxed shadow-sm sm:p-8">
+          <div class="prose prose-slate max-w-none">${mainHtml}${infrastructurePrivacyHtml()}</div>
+        </article>
+      </main>
+    `;
+  }
+
   function ensureMetaByName(name, contentAttr) {
     let el = document.querySelector(`meta[name="${name}"]`);
     if (!el) {
@@ -318,6 +408,7 @@
         google_reviews: { embed_url: '', place_query: '', place_id: '', max_reviews: 6, title: 'Opinie z Google' },
         reviews: [],
         seo: { title: '', description: '', ogImage: '' },
+        privacy: { mode: 'default', customText: '' },
         legal: { enabled: false, privacy_policy: '', terms: '' },
         settings: {
           analytics: { gtm_id: '', fb_pixel_id: '' },
@@ -898,6 +989,14 @@
       ctaLinkRel(url) {
         return this.ctaOpensNewTab(url) ? 'noopener noreferrer' : null;
       },
+      privacyPolicyUrl() {
+        const slug = this.slug || this.getSiteSlug();
+        const params = new URLSearchParams(window.location.search || '');
+        if (slug && params.get('site')) {
+          return `/polityka-prywatnosci?site=${encodeURIComponent(slug)}`;
+        }
+        return '/polityka-prywatnosci';
+      },
       injectAnalyticsTracking() {
         try {
           const self = this;
@@ -1061,6 +1160,11 @@
 
           const userLang = navigator.language.slice(0, 2);
           this.lang = this.content[userLang] ? userLang : (Object.keys(this.content)[0] || 'pl');
+
+          if (isPrivacyPolicyPath()) {
+            renderPrivacyPolicyPage(this.content, this.lang);
+            return;
+          }
 
           applyDocumentSeo(this.content, this.lang);
           initWatermark(page.billing_plan || 'trial');

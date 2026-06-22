@@ -236,6 +236,17 @@
       if (block.legal.enabled === undefined) block.legal.enabled = true;
       if (block.legal.privacy_policy === undefined) block.legal.privacy_policy = '';
       if (block.legal.terms === undefined) block.legal.terms = '';
+      if (!block.privacy || typeof block.privacy !== 'object' || Array.isArray(block.privacy)) {
+        const legacyPrivacy = String(block.legal.privacy_policy || '').trim();
+        block.privacy = {
+          mode: legacyPrivacy ? 'custom' : 'default',
+          customText: legacyPrivacy,
+        };
+      }
+      if (block.privacy.mode !== 'custom') block.privacy.mode = 'default';
+      if (block.privacy.customText === undefined || block.privacy.customText === null) {
+        block.privacy.customText = '';
+      }
     }
 
     const contactCtaDefaultsByTheme = {

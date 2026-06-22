@@ -34,9 +34,9 @@
     <script defer src="js/core/utils.js?v=20260617a"></script>
     <script defer src="js/core/config.js?v=20260617t"></script>
     <script defer src="js/core/supabaseClient.js?v=20260619a"></script>
-    <script defer src="js/templates/registry.js?v=20260404c"></script>
+    <script defer src="js/templates/registry.js?v=20260622a"></script>
     <script defer src="js/core/contentSchema.js?v=20260404c"></script>
-    <script defer src="js/core/contentUpgrader.js?v=20260404c"></script>
+    <script defer src="js/core/contentUpgrader.js?v=20260622a"></script>
     <script defer src="js/core/themeStyling.js?v=20260404c"></script>
     <script defer src="js/core/pageRepository.js?v=20260619d"></script>
     <script defer src="js/core/planUtils.js?v=20260522e"></script>
@@ -49,7 +49,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
 </head>
-<body class="dfops-admin-app flex min-h-screen flex-col bg-slate-50 font-sans text-slate-800 antialiased" x-data="typeof DFOPS_adminAlpineState === 'function' ? DFOPS_adminAlpineState() : { sidebarOpen: false, mobileMenuOpen: false, isLoading: false, content: { pl: { nav: { menu: {} }, hero: {}, manifesto: {}, services: [], faq: [], contact: {}, settings: {} } } }">
+<body class="dfops-admin-app flex min-h-screen flex-col bg-slate-50 font-sans text-slate-800 antialiased" x-data="typeof DFOPS_adminAlpineState === 'function' ? DFOPS_adminAlpineState() : { sidebarOpen: false, mobileMenuOpen: false, isLoading: false, content: { pl: { nav: { menu: {} }, hero: {}, manifesto: {}, services: [], faq: [], contact: {}, privacy: { mode: 'default', customText: '' }, settings: {} } } }">
 
     <div x-show="showWizard" x-cloak class="fixed inset-0 z-[100] overflow-y-auto bg-slate-50" x-transition.opacity>
         <div x-show="wizardStep === 0" id="dfcms-onboarding-wizard-step0" class="min-h-screen flex flex-col items-center justify-center p-6 max-w-5xl mx-auto" x-transition>
@@ -921,14 +921,14 @@
                         <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'legal' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
                             <button type="button" @click="setTab('legal')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 flex items-center gap-2">
                                 <svg class="w-4 h-4 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                                <span :class="activeTab === 'legal' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Prawne / RODO</span>
+                                <span :class="activeTab === 'legal' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Regulamin / RODO</span>
                             </button>
                             <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
                                 <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: dokumenty prawne">
                                     <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 17h6M9 13h4"/></svg>
                                 </button>
                                 <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
-                                    Regulamin i polityka prywatności w stopce — spokój dla Ciebie i dla klientów.
+                                    Polityka prywatności, RODO i obowiązkowe informacje techniczne dla gości strony.
                                     <div class="absolute -top-2 right-4 h-0 w-0 border-x-[7px] border-x-transparent border-b-[8px] border-b-slate-900" aria-hidden="true"></div>
                                 </div>
                             </div>
@@ -2213,34 +2213,47 @@
 
                     <div x-show="activeTab === 'legal'" x-transition.opacity x-cloak>
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
-                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Prawne / RODO</h2>
-                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-4">Tu ustawiasz regulamin i politykę prywatności widoczne na <strong>Twojej stronie</strong> — goście otwierają je linkiem na dole. Możesz zostawić gotowe treści albo dopisać własne.</p>
-                            <div class="rounded-lg border border-slate-200/70 bg-slate-50/90 p-4 mb-6 max-w-2xl">
-                                <p class="text-sm font-semibold text-slate-800 mb-1.5">Kto stoi za serwisem DFCMS?</p>
-                                <p class="text-sm text-slate-600 leading-relaxed">Panel i platformę udostępnia <strong class="text-slate-800">Dragonfly Operations Sp. z o.o.</strong> — firma, która stworzyła i utrzymuje DFCMS. To dostawca narzędzia, z którego korzystasz; <strong>nie zastępuje Twojej firmy</strong> (salonu, warsztatu, gabinetu). Relację z klientami na stronie prowadzisz Ty — Dragonfly odpowiada za działanie samego systemu.</p>
-                                <p class="text-xs text-slate-500 mt-3 leading-relaxed">Pytania o konto, płatności lub panel:
-                                    <a href="mailto:kontakt@dfops.eu" class="font-medium text-accent underline decoration-accent/40 underline-offset-2 hover:text-accent-soft">kontakt@dfops.eu</a>.
-                                    Maile automatyczne (np. reset hasła) mogą przychodzić z adresu <strong class="text-slate-700">notifications@dfops.eu</strong>.</p>
-                            </div>
-                            <label class="flex items-center gap-4 cursor-pointer">
-                                <div class="relative shrink-0">
-                                    <input type="checkbox" id="legal-enabled" x-model="content.pl.legal.enabled" class="sr-only peer">
-                                    <div class="w-12 h-7 bg-gray-200 rounded-full peer-focus:outline-none transition-colors peer-checked:bg-emerald-500"></div>
-                                    <div class="absolute left-0.5 top-0.5 w-6 h-6 bg-white rounded-full shadow border border-gray-200 transition-transform peer-checked:translate-x-5"></div>
+                            <div class="flex items-start gap-4">
+                                <div class="hidden h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-accent/10 text-accent sm:flex" aria-hidden="true">
+                                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.75h-.152c-3.196 0-6.1-1.248-8.25-3.286Z"/></svg>
                                 </div>
-                                <span class="text-base font-semibold text-slate-900">Włącz sekcję dokumentów prawnych w stopce</span>
-                            </label>
-                        </div>
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Polityka Prywatności</label>
-                                <textarea x-model="content.pl.legal.privacy_policy" rows="16" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white resize-y font-mono"></textarea>
-                                <p class="text-xs text-slate-500 mt-2 leading-relaxed">Treść widoczna dla gości po kliknięciu „Polityka prywatności” na dole strony. Możesz wyróżniać nagłówki prostym formatowaniem.</p>
+                                <div>
+                                    <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Regulamin / RODO</h2>
+                                    <p class="text-sm text-slate-600 leading-relaxed max-w-3xl">DFCMS dba o Twoje bezpieczeństwo prawne. Wybierz sposób generowania Polityki Prywatności dla Twojej strony.</p>
+                                </div>
                             </div>
-                            <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Regulamin</label>
-                                <textarea x-model="content.pl.legal.terms" rows="16" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white resize-y font-mono"></textarea>
-                                <p class="text-xs text-slate-500 mt-2 leading-relaxed">Treść widoczna dla gości po kliknięciu „Regulamin” na dole strony. Możesz wyróżniać nagłówki prostym formatowaniem.</p>
+                        </div>
+
+                        <div class="max-w-4xl space-y-6">
+                            <section class="rounded-xl border border-slate-200/80 bg-white p-5 shadow-panel ring-1 ring-slate-900/5 md:p-6">
+                                <fieldset class="space-y-4">
+                                    <legend class="text-xs font-bold uppercase tracking-widest text-slate-500">Sposób generowania Polityki Prywatności</legend>
+
+                                    <label class="flex cursor-pointer gap-4 rounded-xl border p-4 transition-colors" :class="content.pl.privacy.mode === 'default' ? 'border-accent bg-amber-50/70 ring-1 ring-accent/20' : 'border-slate-200 hover:bg-slate-50'">
+                                        <input type="radio" name="privacy-mode" value="default" x-model="content.pl.privacy.mode" class="mt-1 border-slate-300 text-accent focus:ring-accent/40">
+                                        <span>
+                                            <span class="block text-sm font-bold text-slate-900">Użyj standardowej Polityki DFCMS (Zalecane)</span>
+                                            <span class="mt-1 block text-sm leading-relaxed text-slate-600">System automatycznie wygeneruje stronę z bezpiecznym, standardowym wzorem dostosowanym do małego biznesu.</span>
+                                        </span>
+                                    </label>
+
+                                    <label class="flex cursor-pointer gap-4 rounded-xl border p-4 transition-colors" :class="content.pl.privacy.mode === 'custom' ? 'border-accent bg-amber-50/70 ring-1 ring-accent/20' : 'border-slate-200 hover:bg-slate-50'">
+                                        <input type="radio" name="privacy-mode" value="custom" x-model="content.pl.privacy.mode" class="mt-1 border-slate-300 text-accent focus:ring-accent/40">
+                                        <span>
+                                            <span class="block text-sm font-bold text-slate-900">Mam własny dokument</span>
+                                            <span class="mt-1 block text-sm leading-relaxed text-slate-600">Wklej własną treść Polityki Prywatności. Zostanie oczyszczona przed publikacją.</span>
+                                        </span>
+                                    </label>
+                                </fieldset>
+
+                                <div x-show="content.pl.privacy.mode === 'custom'" x-transition.opacity class="mt-6" x-cloak>
+                                    <label for="privacy-custom-text" class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Własna Polityka Prywatności</label>
+                                    <textarea id="privacy-custom-text" x-model="content.pl.privacy.customText" rows="18" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 font-mono text-sm outline-none transition-all resize-y focus:border-transparent focus:ring-2 focus:ring-accent/30" placeholder="Wklej tutaj własny dokument..."></textarea>
+                                </div>
+                            </section>
+
+                            <div class="rounded-xl border border-amber-200/80 bg-amber-50 p-4 text-sm leading-relaxed text-amber-950 ring-1 ring-amber-900/5">
+                                Zgodnie z wymogami RODO, do Twojej polityki automatycznie dodamy obowiązkową klauzulę o infrastrukturze technologicznej (DFCMS, Supabase, Cloudflare).
                             </div>
                         </div>
                     </div>

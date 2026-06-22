@@ -240,6 +240,7 @@
         schedule: [],
         trust: { title: '', quote: '', author: '', subtitle: '', stars: 5 },
         seo: { title: '', description: '', ogImage: '' },
+        privacy: { mode: 'default', customText: '' },
         legal: { enabled: false, privacy_policy: '', terms: '' },
         cookies: { text: '', accept: '' },
         footer: { quote: '', copyright: '', privacy: '' },
@@ -1990,6 +1991,7 @@
           const savedContact = JSON.parse(JSON.stringify(this.content?.pl?.contact || {}));
           const savedLogo = this.content?.pl?.nav?.logo ?? '';
           const savedLogoImage = this.content?.pl?.nav?.logoImage ?? '';
+          const savedPrivacy = JSON.parse(JSON.stringify(this.content?.pl?.privacy || { mode: 'default', customText: '' }));
           const savedSubscription = JSON.parse(
             JSON.stringify(this.content?.pl?.settings?.subscription || {}),
           );
@@ -2002,6 +2004,7 @@
 
           const merged = window.DFOPS_mergeContentWithTemplate(id, {});
           merged.pl.contact = savedContact;
+          merged.pl.privacy = savedPrivacy;
           if (!merged.pl.nav) merged.pl.nav = {};
           merged.pl.nav.logo = savedLogo;
           merged.pl.nav.logoImage = savedLogoImage;
@@ -2189,6 +2192,7 @@
           const savedContact = JSON.parse(JSON.stringify(this.content?.pl?.contact || {}));
           const savedLogo = this.content?.pl?.nav?.logo ?? '';
           const savedLogoImage = this.content?.pl?.nav?.logoImage ?? '';
+          const savedPrivacy = JSON.parse(JSON.stringify(this.content?.pl?.privacy || { mode: 'default', customText: '' }));
           const savedSubscription = JSON.parse(
             JSON.stringify(this.content?.pl?.settings?.subscription || {}),
           );
@@ -2199,6 +2203,7 @@
 
           const merged = window.DFOPS_mergeContentWithTemplate(this.wizardTheme, {});
           merged.pl.contact = savedContact;
+          merged.pl.privacy = savedPrivacy;
           if (!merged.pl.nav) merged.pl.nav = {};
           merged.pl.nav.logo = savedLogo;
           merged.pl.nav.logoImage = savedLogoImage;

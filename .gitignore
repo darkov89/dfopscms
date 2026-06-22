@@ -12,6 +12,9 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+## Local lead datasets / crawler exports
+dataset_crawler-google-places_*.json
+
 ## Env / secrets (nigdy w repo)
 .env
 .env.local

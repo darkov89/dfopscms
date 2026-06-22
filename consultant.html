@@ -39,13 +39,13 @@
     <script defer src="js/core/utils.js?v=20260617a"></script>
     <script defer src="js/core/config.js?v=20260602b"></script>
     <script defer src="js/core/supabaseClient.js"></script>
-    <script defer src="js/templates/registry.js"></script>
+    <script defer src="js/templates/registry.js?v=20260622a"></script>
     <script defer src="js/core/contentSchema.js"></script>
-    <script defer src="js/core/contentUpgrader.js"></script>
+    <script defer src="js/core/contentUpgrader.js?v=20260622a"></script>
     <script defer src="js/core/themeStyling.js"></script>
     <script defer src="js/core/pageRepository.js?v=20260619d"></script>
     <script defer src="js/core/planUtils.js?v=20260602b"></script>
-    <script defer src="js/features/publicSiteApp.js?v=20260619c"></script>
+    <script defer src="js/features/publicSiteApp.js?v=20260622a"></script>
     <script defer src="js/features/googleReviewsApp.js"></script>
     <script defer src="js/features/cookieConsentApp.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
@@ -558,13 +558,13 @@
             </div>
             
             <div class="flex flex-wrap items-center justify-center gap-3 text-sm">
-                <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.privacy_policy">
-                    <a href="#" @click.prevent="openModal('privacy')" class="underline text-sattva-text/80 hover:text-sattva-brand transition-colors">Polityka Prywatności</a>
+                <template x-if="true">
+                    <a :href="privacyPolicyUrl()" class="underline text-sattva-text/80 hover:text-sattva-brand transition-colors">Polityka Prywatności</a>
                 </template>
                 <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.terms">
                     <a href="#" @click.prevent="openModal('terms')" class="underline text-sattva-text/80 hover:text-sattva-brand transition-colors">Regulamin</a>
                 </template>
-                <span class="text-sattva-text/60" x-show="content[lang]?.legal?.enabled !== false && (content[lang]?.legal?.privacy_policy || content[lang]?.legal?.terms)">|</span>
+                <span class="text-sattva-text/60">|</span>
                 <p class="text-xs text-sattva-text/80 tracking-widest">© <span x-text="new Date().getFullYear()"></span> <span x-text="content[lang].hero?.name || 'Twoja Firma'"></span>. Wszelkie prawa zastrzeżone.</p>
             </div>
         </footer>

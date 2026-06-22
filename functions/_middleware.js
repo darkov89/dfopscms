@@ -21,6 +21,8 @@ const EDGE_ROUTE_PATHS = new Set([
   '/index',
   '/router.html',
   '/router',
+  '/polityka-prywatnosci',
+  '/polityka-prywatnosci/',
 ]);
 
 /** Host z nagłówka (subdomeny SaaS) ma pierwszeństwo przed url.hostname po wewnętrznym rewrite CF. */

@@ -60,8 +60,8 @@ const sql = `-- Demo: strony katalogowe (linki z index.html → ?site=demo-*).
 -- Źródło: data/seeds/demo_pages.json (regeneruj: node scripts/generate-demo-pages-migration.mjs)
 -- Wymaga UNIQUE na public.pages.slug (ON CONFLICT).
 
-INSERT INTO public.pages (slug, theme, color_preset, content, user_id, trial_blocked_at, billing_failed_at)
-SELECT slug, theme, color_preset, content, NULL::uuid, NULL::timestamptz, NULL::timestamptz
+INSERT INTO public.pages (slug, theme, color_preset, content, user_id, trial_blocked_at, billing_failed_at, billing_plan)
+SELECT slug, theme, color_preset, content, NULL::uuid, NULL::timestamptz, NULL::timestamptz, 'tier1'::text
 FROM (${parts.join('\n  UNION ALL\n  ')}) AS seeds
 ON CONFLICT (slug)
 DO UPDATE SET
@@ -69,7 +69,8 @@ DO UPDATE SET
   color_preset = EXCLUDED.color_preset,
   content = EXCLUDED.content,
   trial_blocked_at = NULL,
-  billing_failed_at = NULL;
+  billing_failed_at = NULL,
+  billing_plan = 'tier1';
 `;
 
 fs.writeFileSync(outFile, sql, 'utf8');
