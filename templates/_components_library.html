@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DFCMS — biblioteka komponentów template</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ink: '#121212',
+                        gold: '#D4AF37',
+                    },
+                    boxShadow: {
+                        panel: '0 18px 60px -30px rgba(15, 23, 42, 0.35)',
+                    },
+                },
+            },
+        };
+    </script>
+</head>
+<body class="bg-slate-100 px-6 py-10 font-sans text-slate-900">
+    <main class="mx-auto max-w-5xl space-y-10">
+        <header>
+            <p class="text-xs font-bold uppercase tracking-[0.3em] text-gold">DFCMS Templates</p>
+            <h1 class="mt-3 text-4xl font-black tracking-tight">Mini biblioteka komponentów</h1>
+            <p class="mt-3 max-w-2xl text-slate-600">Plik pomocniczy do lokalnego kopiowania klocków UI przy tworzeniu nowych szablonów branżowych.</p>
+        </header>
+
+        <section class="rounded-3xl bg-white p-8 shadow-panel">
+            <h2 class="text-xl font-bold">Przyciski</h2>
+            <div class="mt-6 flex flex-wrap gap-4">
+                <a href="#" class="inline-flex rounded-full bg-ink px-6 py-3 text-sm font-bold uppercase tracking-widest text-white transition hover:bg-gold hover:text-ink">Primary CTA</a>
+                <a href="#" class="inline-flex rounded-full border border-slate-300 px-6 py-3 text-sm font-bold uppercase tracking-widest text-slate-700 transition hover:border-gold hover:text-ink">Secondary CTA</a>
+            </div>
+        </section>
+
+        <section class="rounded-3xl bg-white p-8 shadow-panel">
+            <h2 class="text-xl font-bold">Karta cennika / usługi</h2>
+            <article class="mt-6 max-w-sm rounded-2xl border border-slate-200 bg-slate-50 p-6">
+                <p class="text-xs font-bold uppercase tracking-[0.25em] text-gold">Najczęściej wybierane</p>
+                <h3 class="mt-4 text-2xl font-black">Nazwa usługi</h3>
+                <p class="mt-3 text-sm leading-relaxed text-slate-600">Krótki opis usługi, efektu albo zakresu pracy. Tekst podmieniany z `content.pl.services`.</p>
+                <div class="mt-6 flex items-end justify-between gap-4">
+                    <span class="text-2xl font-black">od 120 zł</span>
+                    <span class="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-500">60 min</span>
+                </div>
+            </article>
+        </section>
+
+        <section class="rounded-3xl bg-white p-8 shadow-panel">
+            <h2 class="text-xl font-bold">Sekcja FAQ</h2>
+            <div class="mt-6 divide-y divide-slate-200 rounded-2xl border border-slate-200">
+                <details class="group p-5" open>
+                    <summary class="cursor-pointer list-none font-bold">Czy mogę podmienić treści?</summary>
+                    <p class="mt-3 text-sm leading-relaxed text-slate-600">Tak. Pytania i odpowiedzi pochodzą z `content.pl.faq` i są edytowalne w panelu.</p>
+                </details>
+                <details class="group p-5">
+                    <summary class="cursor-pointer list-none font-bold">Czy sekcję można ukryć?</summary>
+                    <p class="mt-3 text-sm leading-relaxed text-slate-600">Tak. Widoczność sekcji sterowana jest flagami `settings.showFaq`, `showGallery`, `showGoogleReviews` itd.</p>
+                </details>
+            </div>
+        </section>
+
+        <section class="rounded-3xl bg-ink p-8 text-white shadow-panel">
+            <h2 class="text-xl font-bold">Kontener ciemnej sekcji</h2>
+            <p class="mt-3 max-w-2xl text-white/70">Dobry punkt startowy dla hero, opinii albo mocnego pre-footera. Akcent: `#D4AF37`.</p>
+        </section>
+    </main>
+</body>
+</html>

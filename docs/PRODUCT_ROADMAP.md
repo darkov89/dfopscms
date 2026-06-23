@@ -150,7 +150,7 @@ Lista gotowa do Trello / Jira / GitHub Issues.
 
 | # | Ticket | DoD | Pliki |
 |---|--------|-----|-------|
-| 10 | **Focus management modali** | Focus trap, ESC, powrót fokusu | `consultant.html`, `beauty.html`, opcj. `admin.html` |
+| 10 | **Focus management modali** | Focus trap, ESC, powrót fokusu | `templates/consultant.html`, `templates/beauty.html`, opcj. `admin.html` |
 | 11 | **Widoczne focus ringi** | Test klawiaturą przechodzi | `css/styles.css`, HTML |
 | 12 | **Inline field errors w rejestracji** | Błędy przy polach, `aria-describedby`, invalid | `rejestracja.html`, `registrationApp.js` |
 | 13 | **Spójne mikrocopy planów** | Kiedy znika watermark; co daje domena | `index.html`, `admin.html`, szablony publiczne |

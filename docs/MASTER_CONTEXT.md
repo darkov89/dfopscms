@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-06-22 — moduł Prawo & Bezpieczeństwo, polityka prywatności per strona, hardening XSS/fetchPageRow
+**Ostatnia aktualizacja treści:** 2026-06-23 — porządek root: szablony w `/templates/`, media statyczne w `/assets/images/`
 
 ---
 
@@ -73,7 +73,7 @@ Użytkownik → Auth → pages.content + pages.billing_plan + billing_profiles
 
 | Warstwa | Kluczowe artefakty |
 |--------|---------------------|
-| **Front publiczny** | `index.html` (dark-mode SaaS landing spójny z admin/rejestracją: `#121212` + `#D4AF37`; hero 3 min, `#jak`, `#wyposazenie`, `#spokoj`, `#demo`, `#cennik`, SEO + `favicon.svg`), demo przez `router.html?site=demo-*` (beauty/services/care/gastro/fitness/consultant). Szablony: `beauty`, `consultant`, `fitness`, `services`, `gastro`, `care`, `setup`. `landingPricing.js` — plany cennika i dane landingowe. |
+| **Front publiczny** | `index.html` (dark-mode SaaS landing spójny z admin/rejestracją: `#121212` + `#D4AF37`; hero 3 min, `#jak`, `#wyposazenie`, `#spokoj`, `#demo`, `#cennik`, SEO + `favicon.svg`), demo przez `router.html?site=demo-*` (beauty/services/care/gastro/fitness/consultant). Szablony branżowe HTML są w `/templates/` (`beauty`, `consultant`, `fitness`, `services`, `gastro`, `care`); media statyczne przenoszone z root trafiają do `/assets/images/`; boilerplate nowych szablonów: `/templates/_base_template.html`; klocki UI: `/templates/_components_library.html`. `setup.html` zostaje w root. `landingPricing.js` — plany cennika i dane landingowe. |
 | **Panel CMS** | `admin.html`, `adminApp.js`. Draft vs published: `pages.draft_content` / `pages.content`. Subskrypcja: Starter/Standard/Custom, `billingInterval`, Stripe Checkout + Portal. Smart Booking: `settings.booking_mode` + `contact.booking_url`. |
 | **Backend** | `pages`, `billing_profiles`, RLS. Schemat baseline: `20260603072317_remote_schema.sql`. |
 | **Płatności** | Starter `tier0`, Standard `tier1`, Custom poza Stripe. Secrets: `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_STARTER_YEARLY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_PRO_YEARLY`. wFirma: `WFIRMA_*`, ledger `wfirma_invoice_ledger`. |
@@ -132,7 +132,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 2. **`rejestracja.html`** → `signUp` → trigger `handle_new_user` (slug w metadata; kolizja → rollback)
 3. Potwierdzenie e-mail → baner w panelu bez pełnego onboardingu
 4. **`admin.html`** → modal/Driver → edycja + kreator
-5. Podgląd `{motyw}.html?site=&dfcms_preview=1`
+5. Podgląd `/templates/{motyw}.html?site=&dfcms_preview=1`
 6. Subskrypcja → Checkout/Portal → webhook → `billing_profiles`
 7. Opcjonalnie domena → `add-custom-domain` + verify CNAME API
 8. Recovery hasła → izolatka resetu
@@ -259,6 +259,7 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 | Plany / watermark | `js/core/planUtils.js` |
 | Profil Stripe | `billingProfileView.js`, `loadBillingProfile()` |
 | Oficjalne demo | `supabase/migrations/20260616150000_seed_demo_catalog_pages.sql` |
+| Szablony publiczne | `templates/{beauty,fitness,services,consultant,gastro,care}.html`, boilerplate `templates/_base_template.html` |
 | Rejestracja | `rejestracja.html`, `registrationApp.js`, trigger `handle_new_user` |
 | Edge Stripe | `create-checkout`, `stripe-webhook`, `sync-stripe-subscription`, `_shared/stripeBilling.ts` |
 
@@ -270,6 +271,8 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
+| **2026-06-23** | **Root cleanup assets:** utworzono `/assets/images/` jako miejsce na statyczne logotypy/obrazy przenoszone z root; audyt ścieżek nie wykazał aktywnych referencji do `dfops-dark.svg`, `dfops-light.svg` ani `dragonfly_ops_logo.svg`. |
+| **2026-06-23** | **Frontend templates refactor:** branżowe HTML przeniesione z root do `/templates/`; Cloudflare middleware serwuje `/templates/{theme}.html` z zachowaniem starych tras `/{theme}.html`; panel preview i publiczne redirecty używają `/templates/`; dodano `_base_template.html` i `_components_library.html`. |
 | **2026-06-23** | **Cleanup lead demo DB:** migracja `20260623083000_cleanup_lead_demo_pages.sql` usuwa z `public.pages` wygenerowane leadowe `demo-*`, zostawiając oficjalne `demo-beauty`, `demo-fitness`, `demo-services`, `demo-gastro`, `demo-care`, `demo-consultant`. |
 | **2026-06-23** | **GTM pivot:** porzucono generowanie 40 osobnych wizytówek leadowych w głównym repo. Lead-gen przeniesiony do `_lead-generator-export`; CSV prowadzi do oficjalnych demo DFCMS per `theme`; główne `data/seeds` i leadowe migracje usunięte z runtime. |
 | **2026-06-22** | **Demo lead catalog v2:** 40 top leadów z Apify/Google Places; każdy slug `demo-*`, `billing_plan=tier1`, Google `place_query`, mapa `map_embed_url`, fallbackowe opinie, social media z datasetu, placeholder hero `/img/Twoje%20zdjecie.jpg` i galeria `/img/galeria1.jpg`–`/img/galeria4.jpg`; barberzy używają beauty `black-gold`/`smoky`/`barber`. |

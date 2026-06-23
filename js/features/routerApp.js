@@ -5,7 +5,7 @@
   const BASE_DOMAINS = ['dfcms.pl', 'dfopscms.pl', 'dfopscms.pages.dev', 'localhost', '127.0.0.1'];
 
   /**
-   * Router przekierowuje na plik `{theme}.html` (np. beauty, consultant, fitness).
+   * Router przekierowuje na plik `/templates/{theme}.html` (np. beauty, consultant, fitness).
    * Na domenach systemowych bez ?site= → index.html (landing marketingowy).
    * Na niestandardowej domenie (np. mojsalon.pl) → getPageByCustomDomain.
    */
@@ -105,7 +105,7 @@
         window.location.replace('/?' + qs + url.hash);
         return;
       }
-      let target = page.theme + '.html';
+      let target = '/templates/' + page.theme + '.html';
       if (isLocal || isHostUnderBaseDomain(hostname, baseDomains)) {
         target += '?site=' + encodeURIComponent(page.slug);
       }

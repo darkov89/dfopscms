@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DFCMS — Architecture and Flow</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --ink: #121212;
+            --muted: #64748b;
+            --line: #e2e8f0;
+            --gold: #D4AF37;
+            --panel: #f8fafc;
+        }
+        body {
+            margin: 0;
+            background: #fff;
+            color: var(--ink);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            line-height: 1.65;
+        }
+        main {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 56px 24px;
+        }
+        h1, h2 {
+            line-height: 1.15;
+        }
+        h1 {
+            margin: 0 0 12px;
+            font-size: clamp(2.2rem, 6vw, 4rem);
+            letter-spacing: -0.05em;
+        }
+        h2 {
+            margin: 36px 0 12px;
+            font-size: 1.45rem;
+        }
+        p {
+            color: var(--muted);
+        }
+        code {
+            border-radius: 8px;
+            background: var(--panel);
+            padding: 2px 6px;
+            font-size: 0.92em;
+        }
+        ul {
+            padding-left: 22px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        .badge {
+            display: inline-flex;
+            border: 1px solid color-mix(in srgb, var(--gold), #fff 45%);
+            border-radius: 999px;
+            padding: 6px 12px;
+            color: #8a6a10;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+        .panel {
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            background: var(--panel);
+            padding: 24px;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <span class="badge">DFCMS Frontend</span>
+        <h1>Architecture and Flow</h1>
+        <p>Aktualny skrót architektury publicznego frontendu DFCMS. Źródłem prawdy dla pełnego kontekstu pozostaje <code>docs/MASTER_CONTEXT.md</code>.</p>
+
+        <section class="panel">
+            <h2>Publiczny routing</h2>
+            <ul>
+                <li><code>index.html</code>, <code>admin.html</code>, <code>router.html</code> i <code>setup.html</code> pozostają w root projektu.</li>
+                <li>Wszystkie branżowe szablony publiczne znajdują się w <code>/templates/</code>: <code>beauty.html</code>, <code>fitness.html</code>, <code>services.html</code>, <code>consultant.html</code>, <code>gastro.html</code>, <code>care.html</code>.</li>
+                <li><code>functions/_middleware.js</code> wykrywa stronę po parametrze <code>?site=</code>, subdomenie albo custom domenie, pobiera rekord <code>pages</code> z Supabase i serwuje właściwy plik <code>/templates/{theme}.html</code>.</li>
+                <li>Dla kompatybilności stare adresy <code>/{theme}.html?site=...</code> nadal są obsługiwane przez middleware i przepisywane na asset z <code>/templates/</code>.</li>
+            </ul>
+        </section>
+
+        <section class="panel">
+            <h2>Tworzenie nowych szablonów</h2>
+            <ul>
+                <li>Punktem startowym jest <code>templates/_base_template.html</code>. To plik do kopiowania, z gotowym <code>&lt;head&gt;</code>, Tailwindem, Alpine.js i skryptami DFCMS.</li>
+                <li>Pomocnicze klocki UI są w <code>templates/_components_library.html</code>: przyciski, karta cennika/usługi, FAQ i ciemny kontener sekcji.</li>
+                <li>Nowy template powinien używać absolutnych ścieżek do assetów, np. <code>/js/core/pageRepository.js</code> i <code>/css/styles.css</code>, żeby działał zarówno bezpośrednio z <code>/templates/</code>, jak i po edge rewrite.</li>
+            </ul>
+        </section>
+
+        <section class="panel">
+            <h2>Flow użytkownika</h2>
+            <ul>
+                <li>Landing prowadzi do demo przez <code>router.html?site=demo-*</code>.</li>
+                <li>Panel administratora otwiera podgląd draftu na tym samym originie: <code>/templates/{theme}.html?site={slug}&amp;dfcms_preview=1</code>.</li>
+                <li>Opublikowane strony klientów działają pod subdomeną <code>{slug}.dfcms.pl</code> albo custom domeną i dostają właściwy szablon z danych <code>theme</code>.</li>
+            </ul>
+        </section>
+    </main>
+</body>
+</html>

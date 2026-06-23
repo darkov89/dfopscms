@@ -764,10 +764,10 @@
 
         // Podgląd wersji roboczej MUSI być na tym samym originie co panel — inaczej handoff draftu
         // (`localStorage` `dfops_preview_draft:{slug}`) i sesja właściciela nie są dostępne w nowej karcie
-        // (subdomena `{slug}.dfcms.pl` to inny origin). Dlatego zawsze otwieramy `/{motyw}.html?site=…`.
+        // (subdomena `{slug}.dfcms.pl` to inny origin). Dlatego zawsze otwieramy `/templates/{motyw}.html?site=…`.
         const isLocalhost =
           window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const path = `/${this.previewHtmlBasename}.html?${siteQs}`;
+        const path = `/templates/${this.previewHtmlBasename}.html?${siteQs}`;
         if (isLocalhost) return path;
         const origin = String(window.location.origin || '').replace(/\/$/, '');
         return origin ? `${origin}${path}` : path;
@@ -780,7 +780,7 @@
           window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         if (isLocalhost) {
           const qs = `site=${encodeURIComponent(this.slug)}`;
-          return `/${this.previewHtmlBasename}.html?${qs}`;
+          return `/templates/${this.previewHtmlBasename}.html?${qs}`;
         }
         const hostCustom = typeof this.customDomain === 'string' ? this.customDomain.trim() : '';
         if (hostCustom && this.customDomainStatus === 'active') {

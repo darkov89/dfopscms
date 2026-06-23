@@ -109,7 +109,10 @@ function resolveSlug(siteParam, hostnameNorm, altHostnameNorm) {
 
 function isEdgeRoutePath(pathname) {
   if (EDGE_ROUTE_PATHS.has(pathname)) return true;
-  const bare = pathname.replace(/\.html$/i, '').replace(/^\//, '');
+  const bare = pathname
+    .replace(/\.html$/i, '')
+    .replace(/^\/templates\//i, '')
+    .replace(/^\//, '');
   return ALLOWED_THEMES.has(bare);
 }
 
@@ -234,7 +237,7 @@ async function fetchPageRow(supabaseUrl, anonKey, slugTrimmed, hostnameNorm) {
 
 async function fetchThemeAsset(env, request, theme, url, hostnameNorm) {
   if (!env.ASSETS) return null;
-  const paths = [`/${theme}`, `/${theme}.html`];
+  const paths = [`/templates/${theme}.html`, `/templates/${theme}`, `/${theme}.html`, `/${theme}`];
   const assetOrigin = `https://${hostnameNorm || new URL(request.url).hostname}`;
   for (let i = 0; i < paths.length; i++) {
     const themeUrl = new URL(paths[i], assetOrigin);
@@ -384,19 +387,10 @@ export async function onRequest(context) {
       throw new Error(debugTrace);
     }
 
-    // Uproszczone, pancerne pobieranie z env.ASSETS
-    const assetUrl = new URL(`/${theme}.html`, request.url);
-    const assetReqOpts = { method: 'GET', headers: request.headers };
-    let themeResponse = await env.ASSETS.fetch(new Request(assetUrl, assetReqOpts));
-
-    if (!themeResponse.ok) {
-      // Fallback bez .html
-      const assetUrlNoExt = new URL(`/${theme}`, request.url);
-      themeResponse = await env.ASSETS.fetch(new Request(assetUrlNoExt, assetReqOpts));
-      if (!themeResponse.ok) {
-        debugTrace = 'ASSET_404:' + themeResponse.status;
-        throw new Error(debugTrace);
-      }
+    const themeResponse = await fetchThemeAsset(env, request, theme, url, hostnameNorm);
+    if (!themeResponse?.ok) {
+      debugTrace = 'ASSET_404';
+      throw new Error(debugTrace);
     }
 
     debugTrace = 'SUCCESS_REWRITE';

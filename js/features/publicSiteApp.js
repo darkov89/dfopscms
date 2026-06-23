@@ -1040,10 +1040,11 @@
         const isLocal = (cfg.localHosts || []).includes(window.location.hostname);
         const theme = page.theme;
         const slug = page.slug;
-        if (!theme || !slug) return `${window.location.origin}/${theme || 'setup'}.html`;
+        if (!theme) return `${window.location.origin}/setup.html`;
+        if (!slug) return `${window.location.origin}/templates/${theme}.html`;
 
         if (isLocal) {
-          return `${window.location.origin}/${theme}.html?site=${encodeURIComponent(slug)}`;
+          return `${window.location.origin}/templates/${theme}.html?site=${encodeURIComponent(slug)}`;
         }
 
         if (host.endsWith(`.${baseDomain}`) && host !== baseDomain) {
@@ -1051,10 +1052,10 @@
         }
 
         if (host !== baseDomain && host !== 'localhost' && host !== '127.0.0.1' && !host.endsWith(`.${baseDomain}`)) {
-          return `${window.location.protocol}//${window.location.host}/${theme}.html`;
+          return `${window.location.protocol}//${window.location.host}/templates/${theme}.html`;
         }
 
-        return `${window.location.origin}/${theme}.html?site=${encodeURIComponent(slug)}`;
+        return `${window.location.origin}/templates/${theme}.html?site=${encodeURIComponent(slug)}`;
       },
       async init() {
         try {
