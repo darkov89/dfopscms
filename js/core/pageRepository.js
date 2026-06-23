@@ -481,6 +481,30 @@
     return { data: sanitizePageRow(data), error };
   }
 
+  async function isCurrentUserSuperadmin(userId) {
+    if (!userId) return { allowed: false, error: null };
+    const { data, error } = await supabase()
+      .from('superadmins')
+      .select('user_id')
+      .eq('user_id', userId)
+      .limit(1)
+      .maybeSingle();
+    if (error) return { allowed: false, error };
+    return { allowed: !!data, error: null };
+  }
+
+  async function getPageBySlugForSuperadmin(slug) {
+    const slugTrimmed = typeof slug === 'string' ? slug.trim().toLowerCase() : '';
+    if (!slugTrimmed) return { data: null, error: null };
+    const { data, error } = await supabase()
+      .from('pages')
+      .select('id, created_at, slug, user_id, theme, content, draft_content, color_preset, custom_domain, custom_domain_status, trial_blocked_at, billing_failed_at, billing_plan')
+      .eq('slug', slugTrimmed)
+      .limit(1)
+      .maybeSingle();
+    return { data: sanitizePageRow(data), error };
+  }
+
   async function saveCurrentUserPage(userId, payload) {
     const safe = { ...payload };
     // Sanityzacja dotyczy obu wariantów treści: publikowanej (`content`) oraz roboczej (`draft_content`).
@@ -490,6 +514,19 @@
       .from('pages')
       .update(safe)
       .eq('user_id', userId)
+      .select()
+      .maybeSingle();
+    return { data: sanitizePageRow(data), error };
+  }
+
+  async function savePageByIdForSuperadmin(pageId, payload) {
+    const safe = { ...payload };
+    if (safe.content) safe.content = sanitizeContent(safe.content);
+    if (safe.draft_content) safe.draft_content = sanitizeContent(safe.draft_content);
+    const { data, error } = await supabase()
+      .from('pages')
+      .update(safe)
+      .eq('id', pageId)
       .select()
       .maybeSingle();
     return { data: sanitizePageRow(data), error };
@@ -508,7 +545,10 @@
     getPageByCustomDomain,
     isSlugAvailable,
     getCurrentUserPage,
+    isCurrentUserSuperadmin,
+    getPageBySlugForSuperadmin,
     saveCurrentUserPage,
+    savePageByIdForSuperadmin,
     createPage,
     sanitizeHtml,
   };

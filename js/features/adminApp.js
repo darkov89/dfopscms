@@ -114,6 +114,12 @@
     }
   }
 
+  function normalizePageSlug(raw) {
+    const slug = typeof raw === 'string' ? raw.trim().toLowerCase() : '';
+    if (!slug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return '';
+    return slug;
+  }
+
   function readWizardStateFromStorage(slug) {
     try {
       if (!slug || typeof localStorage === 'undefined') return null;
@@ -342,6 +348,11 @@
       /** Sesja z linku recovery — pełny panel ukryty do ustawienia nowego hasła. */
       isForcedPasswordReset: false,
       slug: new URLSearchParams(window.location.search).get('site') || '',
+      hasImpersonateParam: new URLSearchParams(window.location.search).has('impersonate'),
+      impersonateSlug: normalizePageSlug(new URLSearchParams(window.location.search).get('impersonate')),
+      isSuperadmin: false,
+      isImpersonating: false,
+      impersonatedPageOwnerId: null,
       lang: 'pl',
       theme: '',
       isLoading: false,
@@ -808,6 +819,7 @@
       },
 
       subscriptionPaymentActive() {
+        if (this.isImpersonating) return false;
         return this.hasActivePaidSubscription;
       },
 
@@ -1736,6 +1748,9 @@
         this._passwordRecoveryUiHandled = false;
         this.isForcedPasswordReset = false;
         this.assignAuthUser(null);
+        this.isSuperadmin = false;
+        this.isImpersonating = false;
+        this.impersonatedPageOwnerId = null;
         this.content = createAdminContentShell();
         this.pageId = null;
         this.isLoading = false;
@@ -1838,25 +1853,53 @@
           if (this.user) {
             await this.syncAuthUserFromServer();
           }
-          let { data, error } = await repo.getCurrentUserPage(this.user.id);
-          if (error) {
-            this.showError('Nie udało się wczytać strony.');
+          if (this.hasImpersonateParam && !this.impersonateSlug) {
+            window.location.href = 'index.html';
             return;
           }
-          if (!data) {
-            const created = await this.ensurePageFromRegistrationMetadata();
-            if (!created) {
+          let data = null;
+          let error = null;
+          if (this.impersonateSlug) {
+            const access = await repo.isCurrentUserSuperadmin(this.user?.id);
+            if (access.error || !access.allowed) {
+              window.location.href = 'index.html';
               return;
             }
-            const retry = await repo.getCurrentUserPage(this.user.id);
-            if (retry.error || !retry.data) {
-              this.showError('Nie znaleziono Twojej strony.');
+            this.isSuperadmin = true;
+            this.isImpersonating = true;
+            ({ data, error } = await repo.getPageBySlugForSuperadmin(this.impersonateSlug));
+            if (error) {
+              this.showError('Nie udało się wczytać strony klienta.');
               return;
             }
-            data = retry.data;
+            if (!data) {
+              this.showError('Nie znaleziono strony klienta o podanym slugu.');
+              return;
+            }
+          } else {
+            this.isImpersonating = false;
+            this.impersonatedPageOwnerId = null;
+            ({ data, error } = await repo.getCurrentUserPage(this.user.id));
+            if (error) {
+              this.showError('Nie udało się wczytać strony.');
+              return;
+            }
+            if (!data) {
+              const created = await this.ensurePageFromRegistrationMetadata();
+              if (!created) {
+                return;
+              }
+              const retry = await repo.getCurrentUserPage(this.user.id);
+              if (retry.error || !retry.data) {
+                this.showError('Nie znaleziono Twojej strony.');
+                return;
+              }
+              data = retry.data;
+            }
           }
           this.pageId = data.id;
           this.slug = data.slug;
+          this.impersonatedPageOwnerId = this.isImpersonating ? (data.user_id || null) : null;
           this.trialBlockedAt = data.trial_blocked_at ?? null;
           this.showTrialSuspendedModal = !!this.trialBlockedAt;
           this.customDomain = data.custom_domain || '';
@@ -1895,7 +1938,11 @@
               this.content.pl.settings.subscription,
             );
           }
-          await this.loadBillingProfile();
+          if (this.isImpersonating) {
+            this.billingProfile = null;
+          } else {
+            await this.loadBillingProfile();
+          }
           this.billingProfileReady = true;
           this.currentTemplateVersion = Number(this.content.pl.settings.template_version || 1);
           this.updateAvailable = this.currentTemplateVersion < this.latestTemplateVersion;
@@ -2511,6 +2558,10 @@
         this.showWizardDismissModal = false;
       },
       async subscribe(planType) {
+        if (this.isImpersonating) {
+          this.showToast('W trybie God Mode płatności klienta nie są obsługiwane z sesji superadmina.', 'error');
+          return;
+        }
         if (planType === 'premium') {
           this.showError('Pakiet Premium nie jest już dostępny. Wybierz Starter lub Standard.');
           return;
@@ -2738,7 +2789,7 @@
 
           const dbStatus = result.status === 'verified' ? 'active' : 'pending';
 
-          const { error } = await repo.saveCurrentUserPage(this.user.id, {
+          const { error } = await this.saveActivePage({
             custom_domain: cleanDomain,
             custom_domain_status: dbStatus,
           });
@@ -2784,13 +2835,26 @@
         this.scheduleDraftAutosave();
       },
 
+      async saveActivePage(payload) {
+        if (!this.pageId || !this.user?.id) {
+          return { data: null, error: new Error('missing active page') };
+        }
+        if (this.isImpersonating) {
+          if (!this.isSuperadmin) {
+            return { data: null, error: new Error('superadmin access required') };
+          }
+          return repo.savePageByIdForSuperadmin(this.pageId, payload);
+        }
+        return repo.saveCurrentUserPage(this.user.id, payload);
+      },
+
       /** Zapis WYŁĄCZNIE stanu roboczego (`draft_content`) — nic nie trafia na stronę publiczną. */
       async _persistDraft(opts) {
         const options = opts && typeof opts === 'object' ? opts : {};
         if (!this.content?.pl || !this.pageId || !this.user?.id) return false;
         normalizeBookingSettings(this.content.pl);
         if (this.content.pl.settings) this.content.pl.settings.theme = this.theme;
-        const { error } = await repo.saveCurrentUserPage(this.user.id, { draft_content: this.content });
+        const { error } = await this.saveActivePage({ draft_content: this.content });
         if (error) {
           if (!options.silent) console.error(error);
           return false;
@@ -2922,7 +2986,7 @@
             payload.trial_blocked_at = null;
             payload.billing_failed_at = null;
           }
-          const { error } = await repo.saveCurrentUserPage(this.user.id, payload);
+          const { error } = await this.saveActivePage(payload);
           if (error) throw error;
           if (this.isCustomDomainLocked) this.customDomain = '';
           if (this.subscriptionPaymentActive()) {
