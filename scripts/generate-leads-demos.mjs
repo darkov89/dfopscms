@@ -11,8 +11,13 @@ const outputFile = path.join(root, 'data', 'seeds', 'demo_pages.json');
 const ALLOWED_THEMES = new Set(['beauty', 'fitness', 'services', 'consultant']);
 const MAX_DEMO_LEADS = 40;
 const MAX_DEMO_SLUG_LENGTH = 60;
-const HERO_PLACEHOLDER = '/img/demo-your-photo.svg';
-const GALLERY_PLACEHOLDERS = ['/img/demo-gallery-photo-1.svg', '/img/demo-gallery-photo-2.svg'];
+const HERO_PLACEHOLDER = '/img/Twoje%20zdjecie.jpg';
+const GALLERY_PLACEHOLDERS = [
+  '/img/galeria1.jpg',
+  '/img/galeria2.jpg',
+  '/img/galeria3.jpg',
+  '/img/galeria4.jpg',
+];
 
 function normalizeText(value) {
   return String(value || '').trim();

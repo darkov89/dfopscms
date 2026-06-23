@@ -2,7 +2,7 @@
   "meta": {
     "purpose": "Demo pages wygenerowane z leadów Google Places / Apify.",
     "source": "dataset_crawler-google-places_2026-06-10_05-51-45-009.json",
-    "generated_at": "2026-06-22T16:37:06.531Z",
+    "generated_at": "2026-06-23T06:00:45.119Z",
     "count": 40
   },
   "seeds": [
@@ -32,7 +32,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "https://booksy.com/pl-pl/239775_stacja-barbershop-daniel-miecznik_barber-shop_13750_wroclaw#ba_s=sr_1",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -115,8 +115,10 @@
           "gallery": {
             "title": "Fotele, detale i klimat miejsca",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -141,7 +143,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.526Z"
+              "trial_started_at": "2026-06-23T06:00:45.114Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -186,7 +188,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "https://www.facebook.com/profesjonalnytrener",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -269,8 +271,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -295,7 +299,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.528Z"
+              "trial_started_at": "2026-06-23T06:00:45.115Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -340,7 +344,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Skontaktuj się",
             "button_url": "#kontakt",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -423,8 +427,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -449,7 +455,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.528Z"
+              "trial_started_at": "2026-06-23T06:00:45.116Z"
             },
             "is_demo_catalog": true,
             "theme": "services",
@@ -494,7 +500,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Skontaktuj się",
             "button_url": "#kontakt",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -577,8 +583,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -603,7 +611,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.528Z"
+              "trial_started_at": "2026-06-23T06:00:45.116Z"
             },
             "is_demo_catalog": true,
             "theme": "services",
@@ -648,7 +656,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "https://instagram.com/krajeek?igshid=MzRlODBiNWFlZA==",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -731,8 +739,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -757,7 +767,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.528Z"
+              "trial_started_at": "2026-06-23T06:00:45.116Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -802,7 +812,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "http://www.facebook.com/SalonEmiliaReszko",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -885,8 +895,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -911,7 +923,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.528Z"
+              "trial_started_at": "2026-06-23T06:00:45.116Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -956,7 +968,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "https://www.facebook.com/Czarny-KOT-Salon-Fryzjerski-Wroc%C5%82aw-106250947893247",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -1039,8 +1051,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -1065,7 +1079,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.528Z"
+              "trial_started_at": "2026-06-23T06:00:45.116Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -1110,7 +1124,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "https://www.facebook.com/profile.php?id=61558330317720",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -1193,8 +1207,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -1219,7 +1235,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.528Z"
+              "trial_started_at": "2026-06-23T06:00:45.116Z"
             },
             "is_demo_catalog": true,
             "theme": "services",
@@ -1264,7 +1280,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Skontaktuj się",
             "button_url": "#kontakt",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -1347,8 +1363,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -1373,7 +1391,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.529Z"
+              "trial_started_at": "2026-06-23T06:00:45.117Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -1418,7 +1436,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "https://www.facebook.com/StudioTreningowPersonalnychKB17/",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -1501,8 +1519,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -1527,7 +1547,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.529Z"
+              "trial_started_at": "2026-06-23T06:00:45.117Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -1572,7 +1592,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "https://instagram.com/bwojciechowski_",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -1655,8 +1675,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -1681,7 +1703,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.117Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -1726,7 +1748,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "http://remove.booksy.com/a/",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -1809,8 +1831,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -1835,7 +1859,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.117Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -1880,7 +1904,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "https://www.facebook.com/trenerpersonalnyteam",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -1963,8 +1987,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -1989,7 +2015,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.117Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -2034,7 +2060,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "https://www.facebook.com/lusiakademiafryzur",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -2117,8 +2143,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -2143,7 +2171,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.117Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -2188,7 +2216,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Skontaktuj się",
             "button_url": "#kontakt",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -2271,8 +2299,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -2297,7 +2327,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.117Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -2342,7 +2372,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Skontaktuj się",
             "button_url": "#kontakt",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -2425,8 +2455,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -2451,7 +2483,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.117Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -2496,7 +2528,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Skontaktuj się",
             "button_url": "#kontakt",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -2579,8 +2611,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -2605,7 +2639,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "services",
@@ -2650,7 +2684,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Skontaktuj się",
             "button_url": "#kontakt",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -2733,8 +2767,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -2759,7 +2795,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -2804,7 +2840,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "https://www.instagram.com/work_with_mat/",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -2887,8 +2923,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -2913,7 +2951,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -2958,7 +2996,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Skontaktuj się",
             "button_url": "#kontakt",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -3041,8 +3079,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -3067,7 +3107,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -3112,7 +3152,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "https://booksy.com/pl-pl/dl/show-business/186033",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -3195,8 +3235,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -3221,7 +3263,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -3266,7 +3308,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "https://www.facebook.com/damos.glazurnik",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -3349,8 +3391,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -3375,7 +3419,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "services",
@@ -3420,7 +3464,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Skontaktuj się",
             "button_url": "#kontakt",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -3503,8 +3547,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -3529,7 +3575,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -3574,7 +3620,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Skontaktuj się",
             "button_url": "#kontakt",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -3657,8 +3703,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -3683,7 +3731,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "services",
@@ -3728,7 +3776,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "https://booksy.com/pl-pl/3327_lena-studio-fryzjerskie_fryzjer_13750_wroclaw",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -3811,8 +3859,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -3837,7 +3887,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -3882,7 +3932,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "https://www.instagram.com/pani_kosmetyczka_?igsh=MTJpamM2dDlueGdxZA==",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -3965,8 +4015,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -3991,7 +4043,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -4036,7 +4088,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Skontaktuj się",
             "button_url": "#kontakt",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -4119,8 +4171,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -4145,7 +4199,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -4190,7 +4244,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Skontaktuj się",
             "button_url": "#kontakt",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -4273,8 +4327,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -4299,7 +4355,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "services",
@@ -4344,7 +4400,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Skontaktuj się",
             "button_url": "#kontakt",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -4427,8 +4483,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -4453,7 +4511,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -4498,7 +4556,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "https://booksy.com/pl-pl/190847_ritualstudio_brwi-i-rzesy_13750_wroclaw",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -4581,8 +4639,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -4607,7 +4667,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -4652,7 +4712,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "https://www.instagram.com/projektywnetrz_sowa/",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -4728,8 +4788,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -4754,7 +4816,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "consultant",
@@ -4799,7 +4861,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Skontaktuj się",
             "button_url": "#kontakt",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -4882,8 +4944,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -4908,7 +4972,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -4953,7 +5017,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Skontaktuj się",
             "button_url": "#kontakt",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -5036,8 +5100,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -5062,7 +5128,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.530Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -5107,7 +5173,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "http://www.facebook.com/EMBUDkonrad",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -5190,8 +5256,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -5216,7 +5284,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.531Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "services",
@@ -5261,7 +5329,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "http://blokbarbershop.booksy.com/a/",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -5344,8 +5412,10 @@
           "gallery": {
             "title": "Fotele, detale i klimat miejsca",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -5370,7 +5440,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.531Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -5415,7 +5485,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "https://m.facebook.com/nowikadietatrening",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -5498,8 +5568,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -5524,7 +5596,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.531Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -5569,7 +5641,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "https://m.facebook.com/GabinetKosmetycznyDrBelterWroclaw/",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -5652,8 +5724,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -5678,7 +5752,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.531Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "beauty",
@@ -5723,7 +5797,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "https://www.facebook.com/share/14eN2qhrViC/",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -5806,8 +5880,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -5832,7 +5908,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.531Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "services",
@@ -5877,7 +5953,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "https://www.instagram.com/michal.skold/",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -5960,8 +6036,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -5986,7 +6064,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.531Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "fitness",
@@ -6031,7 +6109,7 @@
             "description": "Nowoczesna wizytówka premium z opiniami Google, mapą dojazdu, ofertą i szybkim kontaktem w jednym miejscu.",
             "button": "Umów termin",
             "button_url": "https://www.facebook.com/AWREMONTY",
-            "image": "/img/demo-your-photo.svg",
+            "image": "/img/Twoje%20zdjecie.jpg",
             "qrText": "",
             "qrImage": ""
           },
@@ -6114,8 +6192,10 @@
           "gallery": {
             "title": "Twoje zdjęcia i realizacje",
             "images": [
-              "/img/demo-gallery-photo-1.svg",
-              "/img/demo-gallery-photo-2.svg"
+              "/img/galeria1.jpg",
+              "/img/galeria2.jpg",
+              "/img/galeria3.jpg",
+              "/img/galeria4.jpg"
             ]
           },
           "seo": {
@@ -6140,7 +6220,7 @@
             "subscription": {
               "plan": "tier1",
               "payment_completed": true,
-              "trial_started_at": "2026-06-22T16:37:06.531Z"
+              "trial_started_at": "2026-06-23T06:00:45.118Z"
             },
             "is_demo_catalog": true,
             "theme": "services",

@@ -270,7 +270,7 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
-| **2026-06-22** | **Demo lead catalog v2:** 40 top leadów z Apify/Google Places; każdy slug `demo-*`, `billing_plan=tier1`, Google `place_query`, mapa `map_embed_url`, fallbackowe opinie, social media z datasetu, placeholdery `/img/demo-your-photo.svg` i `/img/demo-gallery-photo-{1,2}.svg`; barberzy używają beauty `black-gold`/`smoky`/`barber`. |
+| **2026-06-22** | **Demo lead catalog v2:** 40 top leadów z Apify/Google Places; każdy slug `demo-*`, `billing_plan=tier1`, Google `place_query`, mapa `map_embed_url`, fallbackowe opinie, social media z datasetu, placeholder hero `/img/Twoje%20zdjecie.jpg` i galeria `/img/galeria1.jpg`–`/img/galeria4.jpg`; barberzy używają beauty `black-gold`/`smoky`/`barber`. |
 | **2026-06-22** | **GTM Polish demo:** `scripts/generate-leads-demos.mjs` sortuje top 40, generuje slugi `demo-*` do 60 znaków bez cięcia słów, mapuje drzew/ogród/wycinka do `services`, dodaje branżowe podtytuły i presety oraz `hero.title` po `cleanBusinessName()` przy zachowaniu pełnej nazwy w Google `place_query`. |
 | **2026-06-22** | **Prawo & Bezpieczeństwo:** nowa odsłona zakładki `legal` w panelu; `pages.content.pl.privacy` (`default/custom`); publiczny route `/polityka-prywatnosci` z generowaną polityką, custom tekstem po DOMPurify i obowiązkową klauzulą DFCMS/Supabase/Cloudflare. |
 | **2026-06-19** | **Security hardening:** `fetchPageRow` na Cloudflare edge waliduje slug/hostname i pobiera pojedynczy obiekt PostgREST; `pageRepository` sanitizuje `content`/`draft_content` na zapisie i odczycie, w tym pola URL używane w `href/src`, żeby blokować `javascript:`/`data:` i stare złośliwe rekordy. |
