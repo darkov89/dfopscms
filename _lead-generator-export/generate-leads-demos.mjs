@@ -4,9 +4,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const root = path.join(__dirname, '..');
+const root = __dirname;
 const inputFile = path.join(root, 'dataset_crawler-google-places_2026-06-10_05-51-45-009.json');
-const outputFile = path.join(root, 'data', 'seeds', 'demo_pages.json');
+const outputFile = path.join(root, 'demo_pages.json');
 
 const ALLOWED_THEMES = new Set(['beauty', 'fitness', 'services', 'consultant']);
 const MAX_DEMO_LEADS = 40;

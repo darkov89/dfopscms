@@ -179,7 +179,7 @@ npm run dev   # http://localhost:3000 — pakiet serve
 - localhost → **Supabase Staging** (`asxrsdsprrbvjvgcsckh`).
 - W Supabase Staging → Auth → URL Configuration: `http://localhost:3000/admin.html`.
 - Nie otwieraj `admin.html` z `file://`.
-- Demo bez wiersza w DB: slugi `demo-*` z `data/seeds/demo_pages.json`.
+- Oficjalne demo (`demo-beauty`, `demo-fitness`, `demo-services`, `demo-gastro`, `demo-care`, `demo-consultant`) są utrzymywane przez bazową migrację demo w Supabase; lead-gen nie jest częścią głównego runtime.
 
 ### 3.2 Przełączanie projektu Supabase CLI
 
@@ -217,7 +217,7 @@ supabase link --project-ref tawywecinkubmouyprab
 supabase db push
 ```
 
-**Baseline:** `supabase/migrations/20260603072317_remote_schema.sql`. Seed demo: `node scripts/generate-demo-pages-migration.mjs` ← `data/seeds/demo_pages.json`.
+**Baseline:** `supabase/migrations/20260603072317_remote_schema.sql`. Oficjalny seed demo: `supabase/migrations/20260616150000_seed_demo_catalog_pages.sql`.
 
 **Database Webhooks (Telegram):** Dashboard → Database Webhooks → `…/functions/v1/telegram-webhook`. **Nie** commituj triggerów SQL z `http_request`.
 
@@ -258,7 +258,7 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 | Panel subskrypcja | `admin.html`, `adminApp.js` |
 | Plany / watermark | `js/core/planUtils.js` |
 | Profil Stripe | `billingProfileView.js`, `loadBillingProfile()` |
-| Demo seed | `data/seeds/demo_pages.json` |
+| Oficjalne demo | `supabase/migrations/20260616150000_seed_demo_catalog_pages.sql` |
 | Rejestracja | `rejestracja.html`, `registrationApp.js`, trigger `handle_new_user` |
 | Edge Stripe | `create-checkout`, `stripe-webhook`, `sync-stripe-subscription`, `_shared/stripeBilling.ts` |
 
@@ -270,6 +270,8 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
+| **2026-06-23** | **Cleanup lead demo DB:** migracja `20260623083000_cleanup_lead_demo_pages.sql` usuwa z `public.pages` wygenerowane leadowe `demo-*`, zostawiając oficjalne `demo-beauty`, `demo-fitness`, `demo-services`, `demo-gastro`, `demo-care`, `demo-consultant`. |
+| **2026-06-23** | **GTM pivot:** porzucono generowanie 40 osobnych wizytówek leadowych w głównym repo. Lead-gen przeniesiony do `_lead-generator-export`; CSV prowadzi do oficjalnych demo DFCMS per `theme`; główne `data/seeds` i leadowe migracje usunięte z runtime. |
 | **2026-06-22** | **Demo lead catalog v2:** 40 top leadów z Apify/Google Places; każdy slug `demo-*`, `billing_plan=tier1`, Google `place_query`, mapa `map_embed_url`, fallbackowe opinie, social media z datasetu, placeholder hero `/img/Twoje%20zdjecie.jpg` i galeria `/img/galeria1.jpg`–`/img/galeria4.jpg`; barberzy używają beauty `black-gold`/`smoky`/`barber`. |
 | **2026-06-22** | **GTM Polish demo:** `scripts/generate-leads-demos.mjs` sortuje top 40, generuje slugi `demo-*` do 60 znaków bez cięcia słów, mapuje drzew/ogród/wycinka do `services`, dodaje branżowe podtytuły i presety oraz `hero.title` po `cleanBusinessName()` przy zachowaniu pełnej nazwy w Google `place_query`. |
 | **2026-06-22** | **Prawo & Bezpieczeństwo:** nowa odsłona zakładki `legal` w panelu; `pages.content.pl.privacy` (`default/custom`); publiczny route `/polityka-prywatnosci` z generowaną polityką, custom tekstem po DOMPurify i obowiązkową klauzulą DFCMS/Supabase/Cloudflare. |
