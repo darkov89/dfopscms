@@ -351,6 +351,7 @@
       hasImpersonateParam: new URLSearchParams(window.location.search).has('impersonate'),
       impersonateSlug: normalizePageSlug(new URLSearchParams(window.location.search).get('impersonate')),
       isSuperadmin: false,
+      isSuperAdmin: false,
       isImpersonating: false,
       impersonatedPageOwnerId: null,
       lang: 'pl',
@@ -1629,6 +1630,25 @@
         }
       },
 
+      async refreshSuperadminStatus() {
+        if (!this.user?.id || !repo || typeof repo.isCurrentUserSuperadmin !== 'function') {
+          this.isSuperadmin = false;
+          this.isSuperAdmin = false;
+          return false;
+        }
+        try {
+          const access = await repo.isCurrentUserSuperadmin(this.user.id);
+          const allowed = !!(!access.error && access.allowed);
+          this.isSuperadmin = allowed;
+          this.isSuperAdmin = allowed;
+          return allowed;
+        } catch {
+          this.isSuperadmin = false;
+          this.isSuperAdmin = false;
+          return false;
+        }
+      },
+
       async bootstrapAdminSession() {
         try {
           await this.consumeEmailConfirmParamsFromUrl();
@@ -1644,6 +1664,7 @@
         const { data: { session } } = await this.supabase.auth.getSession();
         this.assignAuthUser(session?.user || null);
         await this.syncAuthUserFromServer();
+        if (this.user) await this.refreshSuperadminStatus();
         const paymentRefreshScheduled = !!this.user && this.schedulePostPaymentDataRefresh();
         const portalRefreshScheduled =
           !!this.user && !paymentRefreshScheduled && this.schedulePostPortalBillingRefresh();
@@ -1727,6 +1748,7 @@
           this.isLoading = true;
           this.assignAuthUser(data.user);
           await this.syncAuthUserFromServer();
+          await this.refreshSuperadminStatus();
           if (!this.schedulePostPaymentDataRefresh()) {
             await this.loadData();
           }
@@ -1749,6 +1771,7 @@
         this.isForcedPasswordReset = false;
         this.assignAuthUser(null);
         this.isSuperadmin = false;
+        this.isSuperAdmin = false;
         this.isImpersonating = false;
         this.impersonatedPageOwnerId = null;
         this.content = createAdminContentShell();
@@ -1866,6 +1889,7 @@
               return;
             }
             this.isSuperadmin = true;
+            this.isSuperAdmin = true;
             this.isImpersonating = true;
             ({ data, error } = await repo.getPageBySlugForSuperadmin(this.impersonateSlug));
             if (error) {

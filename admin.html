@@ -38,13 +38,13 @@
     <script defer src="js/core/contentSchema.js?v=20260404c"></script>
     <script defer src="js/core/contentUpgrader.js?v=20260622a"></script>
     <script defer src="js/core/themeStyling.js?v=20260404c"></script>
-    <script defer src="js/core/pageRepository.js?v=20260623g"></script>
+    <script defer src="js/core/pageRepository.js?v=20260623h"></script>
     <script defer src="js/core/planUtils.js?v=20260522e"></script>
     <script defer src="js/core/billingProfileView.js?v=20260523a"></script>
     <script defer src="js/core/googlePlacesSync.js?v=20260522d"></script>
     <script defer src="js/core/analytics.js?v=20260403t"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260623g"></script>
+    <script defer src="js/features/adminApp.js?v=20260623h"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -712,6 +712,10 @@
                             <span class="min-w-0 flex-1 leading-snug">Uruchom Kreator</span>
                             <span x-show="incompleteOnboardingChecks.length && !showWizard" x-cloak class="inline-flex h-6 min-w-[1.5rem] shrink-0 items-center justify-center rounded-full bg-amber-200/90 px-1.5 text-[11px] font-bold tabular-nums text-amber-950" x-text="incompleteOnboardingChecks.length"></span>
                         </button>
+                        <a x-show="isSuperAdmin" x-cloak href="/godmode.html" class="mb-4 flex w-full items-center gap-3 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-left font-bold text-amber-950 shadow-panel transition-colors hover:border-accent hover:bg-amber-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2">
+                            <span class="text-xl shrink-0" aria-hidden="true">👑</span>
+                            <span class="min-w-0 flex-1 leading-snug">Master Dashboard</span>
+                        </a>
 
                         <div class="mb-4 rounded-xl bg-slate-900 px-3 py-3 shadow-inner ring-1 ring-slate-800/90" role="region" aria-label="Postęp ukończenia strony">
                             <div class="mb-2 flex items-center justify-between gap-2">

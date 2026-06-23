@@ -113,7 +113,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 - **Kreator:** szablony Beauty/Konsultant/Fitness; stan w `localStorage` (`dfops_wizard_state_v1:{slug}`); czyszczenie po `finishWizard` / `switchTemplate`.
 - **Draft vs published:** auto-save debounce 1000ms → `draft_content`; `publishChanges()` → `content`; preview tylko właściciel (`dfcms_preview=1`); `revertChanges()` z `_publishedContentRaw`.
 - **Subskrypcja panel:** `hasActivePaidSubscription` / `isSubscriptionCanceledButValid` — tylko Stripe (`billing_profiles`), nie samo `payment_completed` w JSON.
-- **God Mode:** `godmode.html` wymaga sesji i widocznego własnego wpisu w `superadmins`; lista pobiera wszystkie `pages`. Przycisk „Zarządzaj” otwiera `admin.html?impersonate={slug}`. W impersonacji panel zapisuje konkretny rekord po `pages.id`, pomija profil billingowy superadmina i blokuje checkout z sesji operatora.
+- **God Mode:** `godmode.html` wymaga sesji i widocznego własnego wpisu w `superadmins`; lista pobiera wszystkie `pages`. Panel po zalogowaniu sprawdza `superadmins` i pokazuje w sidebarze „Master Dashboard” tylko superadminom. Przycisk „Zarządzaj” otwiera `admin.html?impersonate={slug}`. W impersonacji panel zapisuje konkretny rekord po `pages.id`, pomija profil billingowy superadmina i blokuje checkout z sesji operatora.
 
 ### 1.6 Security (szczegóły)
 
@@ -276,6 +276,7 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 | Data | Co |
 |------|-----|
 | **2026-06-23** | **God Mode / Master Admin:** migracja `20260623100512_add_god_mode.sql` dodaje `superadmins` i polityki RLS dla pełnego SELECT/UPDATE/DELETE na `pages` oraz `analytics_events`; `godmode.html` listuje wszystkie strony superadminom; `admin.html?impersonate={slug}` ładuje i zapisuje rekord klienta po `pages.id`, bez użycia billing profilu operatora. |
+| **2026-06-23** | **God Mode UX fix:** `godmode.html` ładuje zależności w tej samej kolejności co `admin.html` (`utils` przed config/repo), a `adminApp.js` po sesji ustawia `isSuperAdmin` i pokazuje link „Master Dashboard” w sidebarze tylko superadminom. |
 | **2026-06-23** | **Root cleanup assets:** utworzono `/assets/images/` jako miejsce na statyczne logotypy/obrazy przenoszone z root; audyt ścieżek nie wykazał aktywnych referencji do `dfops-dark.svg`, `dfops-light.svg` ani `dragonfly_ops_logo.svg`. |
 | **2026-06-23** | **Frontend templates refactor:** branżowe HTML przeniesione z root do `/templates/`; Cloudflare middleware serwuje `/templates/{theme}.html` z zachowaniem starych tras `/{theme}.html`; panel preview i publiczne redirecty używają `/templates/`; dodano `_base_template.html` i `_components_library.html`. |
 | **2026-06-23** | **Cleanup lead demo DB:** migracja `20260623083000_cleanup_lead_demo_pages.sql` usuwa z `public.pages` wygenerowane leadowe `demo-*`, zostawiając oficjalne `demo-beauty`, `demo-fitness`, `demo-services`, `demo-gastro`, `demo-care`, `demo-consultant`. |
