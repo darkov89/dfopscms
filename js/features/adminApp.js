@@ -63,6 +63,8 @@
   }
 
   const WIZARD_STATE_STORAGE_PREFIX = 'dfops_wizard_state_v1:';
+  const WIZARD_STATE_VERSION = 2;
+  const WIZARD_STEP_COUNT = 6;
 
   /** Zakładki Studia — zgodnie z przyciskami w `admin.html` (hash w URL przy `setTab`). */
   const ADMIN_TAB_IDS = new Set([
@@ -129,7 +131,10 @@
       if (!data || typeof data !== 'object') return null;
       const step = Number(data.step);
       const theme = typeof data.theme === 'string' ? data.theme : '';
-      if (!Number.isFinite(step) || step < 0 || step > 4) return null;
+      if (!Number.isFinite(step) || step < 0 || step > WIZARD_STEP_COUNT) return null;
+      if (data.v !== WIZARD_STATE_VERSION && step >= 4) {
+        step = WIZARD_STEP_COUNT;
+      }
       if (theme && theme !== 'beauty' && theme !== 'consultant' && theme !== 'fitness' && theme !== 'services') return null;
       return {
         step,
@@ -153,6 +158,7 @@
       localStorage.setItem(
         WIZARD_STATE_STORAGE_PREFIX + slug,
         JSON.stringify({
+          v: WIZARD_STATE_VERSION,
           step,
           theme:
             theme === 'consultant'
@@ -190,7 +196,7 @@
       s = 1;
     }
     if (s < 0) s = 0;
-    if (s > 4) s = 4;
+    if (s > WIZARD_STEP_COUNT) s = WIZARD_STEP_COUNT;
     const allowed = new Set(WIZARD_TEMPLATE_IDS);
     let wt = 'beauty';
     if (pageTheme && allowed.has(pageTheme)) {
@@ -199,6 +205,200 @@
       wt = wizardTheme;
     }
     return { step: s, theme: wt };
+  }
+
+  const WIZARD_SEO_SUFFIX = {
+    beauty: 'salon beauty i zabiegi',
+    consultant: 'konsultacje i coaching',
+    fitness: 'trening personalny i fitness',
+    services: 'usługi lokalne',
+  };
+
+  function getWizardTemplatePl(theme) {
+    const getT = window.DFOPS_getTemplate;
+    if (typeof getT !== 'function') return null;
+    const resolve =
+      typeof window.DFOPS_resolveTemplateKeyForMerge === 'function'
+        ? window.DFOPS_resolveTemplateKeyForMerge
+        : function (t) {
+            return t;
+          };
+    const base = getT(resolve(theme));
+    return base?.pl || null;
+  }
+
+  function normWizardText(v) {
+    return String(v || '')
+      .replace(/<[^>]*>/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+  }
+
+  function isWizardPlaceholder(current, templateVal) {
+    const c = normWizardText(current);
+    if (!c) return true;
+    const t = normWizardText(templateVal);
+    if (t && c === t) return true;
+    return false;
+  }
+
+  function servicesMatchTemplate(services, tmplServices) {
+    if (!Array.isArray(tmplServices) || tmplServices.length === 0) {
+      return !Array.isArray(services) || services.length === 0;
+    }
+    if (!Array.isArray(services) || services.length !== tmplServices.length) return false;
+    return services.every((s, i) => {
+      const t = tmplServices[i] || {};
+      return (
+        normWizardText(s?.title) === normWizardText(t.title) &&
+        normWizardText(s?.desc) === normWizardText(t.desc) &&
+        normWizardText(s?.price) === normWizardText(t.price)
+      );
+    });
+  }
+
+  function schedulesMatchTemplate(schedule, tmplSchedule) {
+    if (!Array.isArray(tmplSchedule) || tmplSchedule.length === 0) {
+      return !Array.isArray(schedule) || schedule.length === 0;
+    }
+    if (!Array.isArray(schedule) || schedule.length !== tmplSchedule.length) return false;
+    return schedule.every((row, i) => {
+      const t = tmplSchedule[i] || {};
+      return (
+        normWizardText(row?.day) === normWizardText(t.day) &&
+        normWizardText(row?.time) === normWizardText(t.time) &&
+        normWizardText(row?.note) === normWizardText(t.note)
+      );
+    });
+  }
+
+  function emptyWizardService(theme) {
+    return {
+      title: '',
+      desc: '',
+      price: '',
+      duration: '',
+      details: '',
+      icon: theme === 'services' ? 'wrench' : '',
+    };
+  }
+
+  function syncWizardDerivedFields(pl, theme) {
+    if (!pl) return;
+    const tmpl = getWizardTemplatePl(theme);
+    const name = String(pl.nav?.logo || '').trim();
+    if (!pl.settings) pl.settings = {};
+    if (!pl.hero) pl.hero = {};
+    if (!pl.seo) pl.seo = { title: '', description: '', ogImage: '' };
+
+    if (name) {
+      if (isWizardPlaceholder(pl.settings.business_name, tmpl?.settings?.business_name)) {
+        pl.settings.business_name = name;
+      }
+      if (isWizardPlaceholder(pl.hero.name, tmpl?.hero?.name)) {
+        pl.hero.name = name;
+      }
+    }
+
+    const heroDesc = String(pl.hero?.description || '').trim();
+    if (heroDesc && isWizardPlaceholder(pl.seo.description, tmpl?.seo?.description)) {
+      pl.seo.description = heroDesc;
+    }
+
+    const suffix = WIZARD_SEO_SUFFIX[theme] || 'strona firmowa';
+    if (name && isWizardPlaceholder(pl.seo.title, tmpl?.seo?.title)) {
+      pl.seo.title = `${name} — ${suffix}`;
+    }
+  }
+
+  function prepareWizardServicesStep(pl, theme) {
+    const tmpl = getWizardTemplatePl(theme);
+    const tmplServices = tmpl?.services;
+    if (servicesMatchTemplate(pl.services, tmplServices)) {
+      pl.services = [emptyWizardService(theme), emptyWizardService(theme)];
+    } else if (!Array.isArray(pl.services) || pl.services.length === 0) {
+      pl.services = [emptyWizardService(theme)];
+    }
+  }
+
+  function prepareWizardManifestoStep(pl, theme) {
+    const tmpl = getWizardTemplatePl(theme);
+    if (!pl.manifesto) pl.manifesto = { label: '', title: '', text: '' };
+    if (isWizardPlaceholder(pl.manifesto.text, tmpl?.manifesto?.text)) {
+      pl.manifesto.text = '';
+    }
+    if (isWizardPlaceholder(pl.manifesto.title, tmpl?.manifesto?.title)) {
+      pl.manifesto.title = '';
+    }
+  }
+
+  function finalizeWizardContent(pl, theme) {
+    if (!pl?.settings) return;
+    const tmpl = getWizardTemplatePl(theme);
+    syncWizardDerivedFields(pl, theme);
+
+    if (Array.isArray(pl.services)) {
+      pl.services = pl.services.filter((s) => normWizardText(s?.title));
+    }
+
+    const hasServices =
+      Array.isArray(pl.services) && pl.services.some((s) => normWizardText(s?.title));
+    pl.settings.showServices = hasServices;
+
+    const hasManifesto = !!normWizardText(pl.manifesto?.text);
+    pl.settings.showManifesto = hasManifesto;
+
+    const galleryImages = pl.gallery?.images;
+    pl.settings.showGallery = Array.isArray(galleryImages) && galleryImages.length > 0;
+
+    const gr = pl.google_reviews || {};
+    const hasGoogleReviews =
+      String(gr.place_query || gr.embed_url || '').trim().length > 0 ||
+      String(pl.contact?.map_place_id || '').trim().length > 0;
+    pl.settings.showGoogleReviews = hasGoogleReviews;
+
+    pl.settings.showFaq =
+      Array.isArray(pl.faq) && pl.faq.some((f) => normWizardText(f?.q || f?.question));
+
+    if (theme === 'services') {
+      const trustQuote = normWizardText(pl.trust?.quote);
+      const tmplQuote = normWizardText(tmpl?.trust?.quote);
+      if (!trustQuote || trustQuote === tmplQuote) {
+        pl.settings.showTrust = false;
+      }
+    }
+
+    if (theme === 'fitness' && schedulesMatchTemplate(pl.schedule, tmpl?.schedule)) {
+      pl.schedule = [];
+    }
+
+    const cta = pl.contact?.cta;
+    if (cta && typeof cta === 'object') {
+      const url = String(cta.button_url || '').trim().toLowerCase();
+      if (
+        !url ||
+        url === 'https://calendly.com/' ||
+        url === 'https://calendly.com' ||
+        isWizardPlaceholder(cta.button_url, tmpl?.contact?.cta?.button_url)
+      ) {
+        cta.enabled = false;
+        if (!String(pl.contact?.booking_url || '').trim()) {
+          cta.button_url = '';
+        }
+      }
+    }
+
+    if (pl.contact) {
+      const booking = String(pl.contact.booking_url || pl.contact.bookingUrl || '').trim();
+      if (booking) {
+        pl.contact.booking_url = booking;
+        pl.contact.bookingUrl = booking;
+        pl.contact.booksyUrl = booking;
+      }
+    }
+
+    pl.settings.showReviews = Array.isArray(pl.reviews) && pl.reviews.length > 0;
   }
 
   function createAdminContentShell() {
@@ -584,6 +784,14 @@
         const norm = normalizeWizardRestore(saved.step, saved.theme, pageTheme);
         this.wizardStep = norm.step;
         this.wizardTheme = norm.theme;
+        const pl = this.content?.pl;
+        const theme = this.wizardTheme || pageTheme;
+        if (pl && this.wizardStep === 4) {
+          prepareWizardServicesStep(pl, theme);
+        }
+        if (pl && this.wizardStep === 5) {
+          prepareWizardManifestoStep(pl, theme);
+        }
       },
       /**
        * Aktywna opłacona subskrypcja Stripe (`billing_profiles` → billingSubscriptionView).
@@ -2215,7 +2423,28 @@
             return 'Podaj nazwę firmy — wyświetli się w menu i buduje rozpoznawalność marki.';
           }
         }
+        if (step === 3) {
+          const tmpl = getWizardTemplatePl(this.wizardTheme || this.theme);
+          if (isWizardPlaceholder(pl.hero?.headline, tmpl?.hero?.headline)) {
+            return 'Podaj główne hasło na stronie — zastąp przykładowy tekst z szablonu.';
+          }
+          if (isWizardPlaceholder(pl.hero?.description, tmpl?.hero?.description)) {
+            return 'Napisz krótki opis pod nagłówkiem — goście muszą wiedzieć, czym się zajmujesz.';
+          }
+        }
         if (step === 4) {
+          const hasService =
+            Array.isArray(pl.services) && pl.services.some((s) => normWizardText(s?.title));
+          if (!hasService) {
+            return 'Dodaj co najmniej jedną usługę z nazwą — klienci muszą wiedzieć, co oferujesz.';
+          }
+        }
+        if (step === 5) {
+          if (!normWizardText(pl.manifesto?.text)) {
+            return 'Napisz kilka zdań o sobie lub swojej firmie — sekcja „O nas” nie może zostać pusta.';
+          }
+        }
+        if (step === 6) {
           const phone = String(pl.contact?.phone || '').trim();
           const email = String(pl.contact?.email || '').trim();
           if (!phone && !email) {
@@ -2254,6 +2483,18 @@
           return;
         }
         this.wizardFieldWarning = '';
+
+        const pl = this.content?.pl;
+        const activeTheme = this.wizardTheme || this.theme;
+        if (pl && (this.wizardStep === 2 || this.wizardStep === 3)) {
+          syncWizardDerivedFields(pl, activeTheme);
+        }
+        if (pl && this.wizardStep === 3) {
+          prepareWizardServicesStep(pl, activeTheme);
+        }
+        if (pl && this.wizardStep === 4) {
+          prepareWizardManifestoStep(pl, activeTheme);
+        }
 
         if (this.wizardStep === 1 && this.wizardTheme !== this.theme) {
           if (typeof window.DFOPS_mergeContentWithTemplate !== 'function') {
@@ -2307,13 +2548,21 @@
           return;
         }
 
-        if (this.wizardStep < 4) {
+        if (this.wizardStep < WIZARD_STEP_COUNT) {
           if (typeof window.DFOPS_trackEvent === 'function') {
             window.DFOPS_trackEvent('onboarding_step_completed', { step: this.wizardStep });
           }
           this.wizardStep++;
         }
         this.persistWizardUiState();
+      },
+      wizardAddServiceRow() {
+        const pl = this.content?.pl;
+        if (!pl) return;
+        if (!Array.isArray(pl.services)) pl.services = [];
+        if (pl.services.length >= 3) return;
+        const theme = this.wizardTheme || this.theme || 'beauty';
+        pl.services.push(emptyWizardService(theme));
       },
       prevWizardStep() {
         this.wizardFieldWarning = '';
@@ -2322,12 +2571,18 @@
       },
       async finishWizard() {
         if (!this.content?.[this.lang]?.settings) return;
-        const err = this.validateWizardStep(4);
+        const err = this.validateWizardStep(WIZARD_STEP_COUNT);
         if (err) {
           this.wizardFieldWarning = err;
           return;
         }
         this.wizardFieldWarning = '';
+        const pl = this.content.pl;
+        const activeTheme = this.wizardTheme || this.theme;
+        if (pl) {
+          finalizeWizardContent(pl, activeTheme);
+          normalizeBookingSettings(pl);
+        }
         this.content[this.lang].settings.onboarding_completed = true;
         /** Koniec kreatora = pierwsza publikacja na żywo (przycisk „Opublikuj moją stronę”). */
         const ok = await this.publishChanges({ silentSuccess: true });

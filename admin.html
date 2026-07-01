@@ -44,7 +44,7 @@
     <script defer src="js/core/googlePlacesSync.js?v=20260522d"></script>
     <script defer src="js/core/analytics.js?v=20260403t"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260623h"></script>
+    <script defer src="js/features/adminApp.js?v=20260701a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -83,17 +83,17 @@
             </div>
         </div>
 
-        <div x-show="wizardStep >= 1 && wizardStep <= 4" class="mx-auto flex min-h-screen max-w-2xl flex-col justify-center p-4 sm:p-6" x-transition.opacity>
+        <div x-show="wizardStep >= 1 && wizardStep <= 6" class="mx-auto flex min-h-screen max-w-2xl flex-col justify-center p-4 sm:p-6" x-transition.opacity>
             <div class="mb-8">
                 <div class="mb-2 flex justify-between text-xs font-bold uppercase tracking-widest text-slate-400">
-                    <span>Krok <span x-text="wizardStep"></span> z 4</span>
+                    <span>Krok <span x-text="wizardStep"></span> z 6</span>
                     <button type="button" @click="skipWizard()" title="Zapisuje postęp — przy „Uruchom Kreator” wrócisz do tego kroku" class="rounded-md px-2 py-1 text-right text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
                         <span class="block text-[11px] font-bold uppercase tracking-widest">Wrócę później</span>
                         <span class="block text-[10px] font-normal normal-case tracking-normal text-slate-400">bez utraty kroku</span>
                     </button>
                 </div>
                 <div class="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
-                    <div class="h-full rounded-full bg-accent transition-all duration-500 ease-out" :style="'width: ' + ((wizardStep / 4) * 100) + '%'"></div>
+                    <div class="h-full rounded-full bg-accent transition-all duration-500 ease-out" :style="'width: ' + ((wizardStep / 6) * 100) + '%'"></div>
                 </div>
             </div>
 
@@ -208,7 +208,7 @@
                                 <template x-if="!content.pl.nav.logoImage"><span class="text-[10px] text-slate-400">BRAK</span></template>
                             </div>
                             <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-accent/35 bg-amber-50/80 px-3 py-2 text-xs font-semibold text-accent-soft transition-colors hover:bg-amber-50 focus-within:ring-2 focus-within:ring-accent/30">
-                                Dodaj swoje piękne zdjęcie
+                                Wgraj logo (opcjonalnie)
                                 <input type="file" accept="image/*" class="sr-only" @change="uploadImage($event, 'nav', 'logoImage')">
                             </label>
                         </div>
@@ -231,14 +231,14 @@
                         </div>
                     </div>
                     <div class="mt-6">
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Twoja główna wizytówka (Pierwsze wrażenie)</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Zdjęcie na banerze (opcjonalnie)</label>
                         <div class="flex flex-wrap items-center gap-4">
                             <div class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-slate-200 bg-slate-50">
                                 <template x-if="content.pl.hero.image"><img :src="content.pl.hero.image" class="h-full w-full object-cover" alt=""></template>
                                 <template x-if="!content.pl.hero.image"><span class="text-[10px] text-slate-400">BRAK</span></template>
                             </div>
                             <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-accent/35 bg-amber-50/80 px-3 py-2 text-xs font-semibold text-accent-soft transition-colors hover:bg-amber-50 focus-within:ring-2 focus-within:ring-accent/30">
-                                Dodaj swoje piękne zdjęcie
+                                Dodaj zdjęcie na baner
                                 <input type="file" accept="image/*" class="sr-only" @change="uploadImage($event, 'hero', 'image')">
                             </label>
                         </div>
@@ -247,8 +247,64 @@
                 </div>
 
                 <div x-show="wizardStep === 4" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+                    <h2 class="text-3xl font-black text-slate-900 mb-2">Twoja oferta 💼</h2>
+                    <p class="text-sm text-slate-500 mb-8">Dodaj usługi, które chcesz pokazać na stronie — minimum jedną pozycję z nazwą.</p>
+
+                    <div class="space-y-4">
+                        <template x-for="(service, index) in (content.pl.services || []).slice(0, 3)" :key="'wz-svc-' + index">
+                            <div class="rounded-xl border border-slate-200/80 bg-slate-50/50 p-4">
+                                <p class="mb-3 text-[11px] font-bold uppercase tracking-widest text-slate-400">Usługa <span x-text="index + 1"></span></p>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Nazwa</label>
+                                        <input type="text" x-model="service.title" placeholder="np. Manicure hybrydowy" class="w-full rounded-lg border border-slate-200 px-3 py-3 text-sm font-semibold outline-none focus:border-transparent focus:ring-2 focus:ring-accent/30 bg-white">
+                                    </div>
+                                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Cena</label>
+                                            <input type="text" x-model="service.price" placeholder="np. od 120 zł" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-accent/30 bg-white">
+                                        </div>
+                                        <div x-show="['beauty','fitness','services'].includes(wizardTheme || theme)">
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Czas / zakres</label>
+                                            <input type="text" x-model="service.duration" placeholder="np. 60 min" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-accent/30 bg-white">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Krótki opis</label>
+                                        <input type="text" x-model="service.desc" placeholder="Jedno zdanie o tej usłudze" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-accent/30 bg-white">
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                        <button type="button" x-show="(content.pl.services || []).length < 3" @click="wizardAddServiceRow()" class="w-full rounded-lg border-2 border-dashed border-slate-300 py-3 text-xs font-bold uppercase tracking-widest text-slate-600 transition-colors hover:border-accent hover:text-accent">
+                            + Dodaj kolejną usługę
+                        </button>
+                    </div>
+                </div>
+
+                <div x-show="wizardStep === 5" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+                    <h2 class="text-3xl font-black text-slate-900 mb-2">Kilka słów o Tobie ✍️</h2>
+                    <p class="text-sm text-slate-500 mb-8">Sekcja „O nas” na stronie — kim jesteś, co Cię wyróżnia, dla kogo pracujesz.</p>
+
+                    <div class="space-y-4">
+                        <div x-show="['fitness','services'].includes(wizardTheme || theme)">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Mała etykieta nad tytułem</label>
+                            <input type="text" x-model="content.pl.manifesto.label" placeholder="np. Dlaczego my" class="w-full rounded-lg border border-slate-200 px-4 py-3 outline-none focus:border-transparent focus:ring-2 focus:ring-accent/30">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tytuł sekcji</label>
+                            <input type="text" x-model="content.pl.manifesto.title" placeholder="np. Kilka słów o nas" class="w-full rounded-lg border border-slate-200 px-4 py-3 outline-none focus:border-transparent focus:ring-2 focus:ring-accent/30">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Treść (O nas)</label>
+                            <textarea x-model="content.pl.manifesto.text" rows="5" placeholder="Opisz swoją markę, doświadczenie i podejście do klientów…" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-accent/30 bg-white resize-y"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div x-show="wizardStep === 6" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
                     <h2 class="text-3xl font-black text-slate-900 mb-2">Złapmy kontakt 📞</h2>
-                    <p class="text-sm text-slate-500 mb-8">Jak nowi klienci mogą się z Tobą umówić?</p>
+                    <p class="text-sm text-slate-500 mb-8">Jak nowi klienci mogą się z Tobą skontaktować lub umówić?</p>
 
                     <div class="space-y-6">
                         <template x-if="content.pl.contact">
@@ -267,6 +323,11 @@
                                     <div>
                                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Adres stacjonarny</label>
                                         <input type="text" x-model="content.pl.contact.address" placeholder="ul. Piękna 12, Warszawa" class="w-full rounded-lg border border-slate-200 px-4 py-3 outline-none focus:border-transparent focus:ring-2 focus:ring-accent/30">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Rezerwacja online (opcjonalnie)</label>
+                                        <input type="text" x-model="content.pl.contact.booking_url" placeholder="Booksy, Calendly, ZnanyLekarz…" class="w-full rounded-lg border border-slate-200 px-4 py-3 outline-none focus:border-transparent focus:ring-2 focus:ring-accent/30 text-sm">
+                                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Link do systemu rezerwacji — jeśli go nie masz, zostaw puste.</p>
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Mapa Google</label>
@@ -294,7 +355,7 @@
                                             <button type="button" x-show="mapPlaceSelectedId" @click="confirmMapPlaceSelection()" class="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold uppercase text-white shadow-panel transition-colors hover:bg-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 focus-visible:ring-offset-2">Użyj wybranej lokalizacji</button>
                                             <button type="button" x-show="content.pl.contact?.map_place_id" @click="clearMapPlaceSelection()" class="rounded-lg border border-slate-200 px-4 py-2 text-xs font-bold uppercase text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/50">Usuń mapę z wyszukiwarki</button>
                                         </div>
-                                        <p x-show="content.pl.contact?.map_place_id" class="text-xs text-emerald-800 mb-3">Lokalizacja zapisana — kliknij <strong>Publikuj zmiany</strong>, aby mapa była widoczna na stronie.</p>
+                                        <p x-show="content.pl.contact?.map_place_id" class="text-xs text-emerald-800 mb-3">Lokalizacja zapisana — mapa pojawi się na stronie po publikacji.</p>
                                     </div>
                                 </div>
                             </div>
@@ -303,18 +364,18 @@
                 </div>
 
                 <p class="mt-6 border-t border-slate-200/70 pt-4 text-center text-[11px] leading-relaxed text-slate-500 sm:text-left">
-                    Po kliknięciu <strong class="font-semibold text-slate-700">Dalej</strong> bieżący krok jest <strong class="font-semibold text-slate-700">zapisywany w bazie</strong> (także teksty startowe z szablonu — jeśli ich nie zmienisz, na stronie zostaną domyślne). Na końcu „Opublikuj moją stronę” kończy konfigurację startową.
+                    Po kliknięciu <strong class="font-semibold text-slate-700">Dalej</strong> bieżący krok jest <strong class="font-semibold text-slate-700">zapisywany w bazie</strong>. Na końcu „Opublikuj moją stronę” ukryjemy puste sekcje i opublikujesz stronę bez tekstów z szablonu.
                 </p>
                 <div class="mt-4 flex items-center justify-between gap-4 border-t border-slate-200/70 pt-6 sm:mt-6">
                     <div class="flex min-h-[44px] items-center">
                         <button type="button" @click="prevWizardStep()" :disabled="saving" x-show="wizardStep > 1" class="rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 disabled:cursor-not-allowed disabled:opacity-50">← Wróć</button>
                     </div>
                     <div class="flex flex-1 items-center justify-end gap-3">
-                        <button type="button" @click="nextWizardStep()" :disabled="saving" x-show="wizardStep < 4" class="rounded-lg bg-accent-fg px-6 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-panel transition-all duration-200 hover:bg-accent hover:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:px-8 sm:py-4">
+                        <button type="button" @click="nextWizardStep()" :disabled="saving" x-show="wizardStep < 6" class="rounded-lg bg-accent-fg px-6 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-panel transition-all duration-200 hover:bg-accent hover:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:px-8 sm:py-4">
                             <span x-show="!saving">Dalej →</span>
                             <span x-show="saving" x-cloak class="animate-pulse">Zapisywanie…</span>
                         </button>
-                        <button type="button" @click="finishWizard()" x-show="wizardStep === 4" class="rounded-lg bg-emerald-600 px-6 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-panel-md shadow-emerald-600/25 transition-all duration-200 animate-pulse hover:bg-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/45 focus-visible:ring-offset-2 sm:px-8 sm:py-4">
+                        <button type="button" @click="finishWizard()" x-show="wizardStep === 6" class="rounded-lg bg-emerald-600 px-6 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-panel-md shadow-emerald-600/25 transition-all duration-200 animate-pulse hover:bg-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/45 focus-visible:ring-offset-2 sm:px-8 sm:py-4">
                             ✨ Opublikuj moją stronę
                         </button>
                     </div>

@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-06-30 — regulamin i polityka: domeny (samodzielne + managed), multi-site, podprocesorzy
+**Ostatnia aktualizacja treści:** 2026-07-01 — kreator onboardingu: 6 kroków, sync pól, ukrywanie dummy content
 
 ---
 
@@ -110,7 +110,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 
 - **Modal powitalny** (`showWelcomeModal`): warunek — `welcome_onboarding_completed` w `content.pl.settings`.
 - **Driver.js** (CDN 1.4.0): tour → kreator (krok 0) → podgląd → menu Treść/Konfiguracja/Subskrypcja.
-- **Kreator:** szablony Beauty/Konsultant/Fitness; stan w `localStorage` (`dfops_wizard_state_v1:{slug}`); czyszczenie po `finishWizard` / `switchTemplate`.
+- **Kreator:** 6 kroków (szablon → marka → hero → usługi → O nas → kontakt); sync `nav.logo` → `business_name` / `hero.name` / SEO; przy wejściu w usługi czyści demo-cennik szablonu; `finishWizard` → `finalizeWizardContent` (ukrywa puste sekcje, trust/schedule/Calendly dummy); stan w `localStorage` (`dfops_wizard_state_v1:{slug}`, `v:2`); czyszczenie po `finishWizard` / `switchTemplate`.
 - **Draft vs published:** auto-save debounce 1000ms → `draft_content`; `publishChanges()` → `content`; preview tylko właściciel (`dfcms_preview=1`); `revertChanges()` z `_publishedContentRaw`.
 - **Subskrypcja panel:** `hasActivePaidSubscription` / `isSubscriptionCanceledButValid` — tylko Stripe (`billing_profiles`), nie samo `payment_completed` w JSON.
 - **God Mode:** `godmode.html` wymaga sesji i widocznego własnego wpisu w `superadmins`; lista pobiera wszystkie `pages`. Panel po zalogowaniu sprawdza `superadmins` i pokazuje w sidebarze „Master Dashboard” tylko superadminom. Przycisk „Zarządzaj” otwiera `admin.html?impersonate={slug}`. W impersonacji panel zapisuje konkretny rekord po `pages.id`, pomija profil billingowy superadmina i blokuje checkout z sesji operatora.
@@ -275,6 +275,7 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
+| **2026-07-01** | **Kreator onboardingu (zero dummy):** 6 kroków — dodano usługi i O nas; walidacja hero/usług/manifesto/kontaktu; auto-sync nazwy i SEO; `finalizeWizardContent` wyłącza sekcje z pustym lub szablonowym contentem (galeria, opinie Google, trust, grafik fitness, Calendly placeholder). |
 | **2026-06-30** | **Regulamin i polityka (audyt prawny):** `regulamin.html` — trial 14 dni, pakiety, managed domain vs CNAME, plan multi-site, managed services; `polityka.html` — role admin/procesor, rozszerzone kategorie danych, podprocesorzy Supabase+Cloudflare+Google+Sentry, cookies bez GA/Meta na dfcms.pl (opcjonalnie w przyszłości). |
 | **2026-06-26** | **Regulamin domen niestandardowych:** `regulamin.html` zawiera nowy punkt o rejestracji, utrzymaniu, wygaśnięciu prawa korzystania i opcjonalnej cesji custom domains; kolejne punkty regulaminu przenumerowane. |
 | **2026-06-23** | **God Mode / Master Admin:** migracja `20260623100512_add_god_mode.sql` dodaje `superadmins` i polityki RLS dla pełnego SELECT/UPDATE/DELETE na `pages` oraz `analytics_events`; `godmode.html` listuje wszystkie strony superadminom; `admin.html?impersonate={slug}` ładuje i zapisuje rekord klienta po `pages.id`, bez użycia billing profilu operatora. |
