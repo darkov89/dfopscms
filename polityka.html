@@ -37,30 +37,38 @@
             <p class="text-gray-700 leading-relaxed mb-4">W sprawach związanych z RODO i ochroną prywatności kontaktuj się pod adresem: <a href="mailto:kontakt@dfops.eu" class="text-[#D4AF37] underline hover:no-underline">kontakt@dfops.eu</a>.</p>
 
             <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">2. Jakie dane zbieramy i po co?</h2>
+            <p class="text-gray-700 leading-relaxed mb-4">Niniejsza polityka dotyczy danych osób zakładających konto i korzystających z Serwisu DFCMS (panel, subskrypcja, rozliczenia). Osobne zasady przetwarzania danych gości stron utworzonych w DFCMS opisuje polityka prywatności publikowana na tych stronach — tam administratorem jest właściciel danej wizytówki, a Dragonfly Operations Sp. z o.o. występuje jako podmiot przetwarzający.</p>
             <ul class="list-disc list-inside space-y-2 text-gray-700 leading-relaxed mb-4">
-                <li><strong>Rejestracja i logowanie:</strong> Adres e-mail oraz zahaszowane hasło (cel: realizacja umowy, art. 6 ust. 1 lit. b RODO).</li>
-                <li><strong>Fakturowanie i Księgowość:</strong> NIP, nazwa firmy, adres, dane z systemu e-Faktur (cel: wypełnienie obowiązku prawnego, art. 6 ust. 1 lit. c RODO).</li>
-                <li><strong>Płatności:</strong> Płatności w modelu subskrypcyjnym są przetwarzane bezpośrednio przez <strong>Stripe</strong>. DFCMS nie ma dostępu do Twojego pełnego numeru karty płatniczej.</li>
+                <li><strong>Rejestracja i logowanie:</strong> adres e-mail, zahaszowane hasło, identyfikator konta (cel: realizacja umowy, art. 6 ust. 1 lit. b RODO).</li>
+                <li><strong>Strona w Serwisie:</strong> wybrany adres (slug), treść strony, ustawienia, przesłane zdjęcia i pliki graficzne, dane konfiguracyjne integracji (np. mapa, opinie Google, link rezerwacji) — w zakresie, w jakim wprowadzasz je w panelu (cel: realizacja umowy, art. 6 ust. 1 lit. b RODO).</li>
+                <li><strong>Fakturowanie i księgowość:</strong> NIP, nazwa firmy, adres, dane z systemu e-Faktur (cel: wypełnienie obowiązku prawnego, art. 6 ust. 1 lit. c RODO).</li>
+                <li><strong>Płatności:</strong> płatności subskrypcyjne obsługuje <strong>Stripe</strong> (m.in. identyfikator klienta, status subskrypcji). DFCMS nie przechowuje pełnego numeru karty płatniczej.</li>
+                <li><strong>Bezpieczeństwo i diagnostyka:</strong> dane techniczne związane z działaniem panelu (np. komunikaty o błędach) — w zakresie niezbędnym do utrzymania Serwisu (cel: prawnie uzasadniony interes administratora, art. 6 ust. 1 lit. f RODO).</li>
+            </ul>
+            <p class="text-gray-700 leading-relaxed mb-4">Planujemy umożliwienie prowadzenia <strong>wielu stron pod jednym kontem</strong>. Po uruchomieniu tej funkcji zakres przetwarzanych danych może obejmować dodatkowe identyfikatory stron i rozliczeń — zaktualizujemy wtedy niniejszą politykę.</p>
+
+            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">3. Odbiorcy danych i lokalizacja serwerów</h2>
+            <p class="text-gray-700 leading-relaxed mb-4">Stosujemy środki techniczne i organizacyjne odpowiednie do ryzyka związanego z przetwarzaniem danych. Główne bazy danych i magazyn plików Serwisu (Supabase) znajdują się na terenie <strong>Unii Europejskiej</strong> (m.in. Francja / Irlandia).</p>
+            <p class="text-gray-700 leading-relaxed mb-4">W celu świadczenia usługi powierzamy przetwarzanie danych następującym <strong>podmiotom przetwarzającym</strong>:</p>
+            <ul class="list-disc list-inside space-y-2 text-gray-700 leading-relaxed mb-4">
+                <li><strong>Supabase Inc.</strong> – baza danych PostgreSQL, uwierzytelnianie użytkowników, magazyn plików (zdjęcia i grafiki wgrywane w panelu); infrastruktura w UE.</li>
+                <li><strong>Cloudflare, Inc.</strong> – hosting i dystrybucja treści (CDN), ochrona przed nadużyciami, weryfikacja antyspamowa (Turnstile), obsługa niestandardowych domen klientów (Custom Hostnames).</li>
+                <li><strong>Google LLC</strong> – wyłącznie w zakresie funkcji wybranych przez Użytkownika: osadzanie map (Google Maps) oraz pobieranie publicznych opinii miejsca (Google Places API) na stronie klienta.</li>
+                <li><strong>wFirma (Web INnovative Software Sp. z o.o.)</strong> – polski system ERP/CRM, automatyczne wystawianie faktur i integracja z KSeF; dane adresowe i NIP wyłącznie do dokumentów księgowych.</li>
+                <li><strong>Stripe Inc.</strong> – operator płatności; dane mogą być przekazywane poza EOG na podstawie standardowych klauzul umownych (m.in. do USA).</li>
+                <li><strong>Sentry (Functional Software, Inc.)</strong> – rejestrowanie błędów panelu administracyjnego w celu diagnostyki i poprawy stabilności Serwisu.</li>
             </ul>
 
-            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">3. Odbiorcy danych i Lokalizacja Serwerów</h2>
-            <p class="text-gray-700 leading-relaxed mb-4">Twoje dane są u nas w pełni bezpieczne. Główne serwery i bazy danych Serwisu (Supabase) znajdują się na terenie <strong>Unii Europejskiej (Francja / Irlandia)</strong>, co gwarantuje pełną zgodność z unijnymi przepisami o ochronie danych.</p>
-            <p class="text-gray-700 leading-relaxed mb-4">Do zautomatyzowania procesów, powierzamy przetwarzanie danych (Sub-procesorom) następującym podmiotom:</p>
-            <ul class="list-disc list-inside space-y-2 text-gray-700 leading-relaxed mb-4">
-                <li><strong>Supabase</strong> – infrastruktura chmurowa, uwierzytelnianie (UE).</li>
-                <li><strong>wFirma (Web INnovative Software Sp. z o.o.)</strong> – polski system ERP/CRM, automatyczne wystawianie faktur i integracja z KSeF. Twoje dane adresowe oraz NIP są tam przesyłane wyłącznie w celu wystawienia dokumentu księgowego.</li>
-                <li><strong>Stripe Inc.</strong> – operator płatności (dane mogą być transferowane bezpiecznymi kanałami na podstawie standardowych klauzul umownych do USA).</li>
-            </ul>
+            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">4. Umowa powierzenia przetwarzania (DPA dla B2B)</h2>
+            <p class="text-gray-700 leading-relaxed mb-4">Jeśli jesteś przedsiębiorcą i zbierasz dane swoich klientów na stronie stworzonej w DFCMS (np. w formularzu kontaktowym lub przy rezerwacji), występujesz jako administrator danych tych osób. Założenie konta i akceptacja Regulaminu stanowi prawnie wiążące zawarcie <strong>umowy powierzenia przetwarzania danych osobowych</strong>, w której Dragonfly Operations Sp. z o.o. występuje jako podmiot przetwarzający. Lista podprocesorów technologicznych (m.in. Supabase, Cloudflare) obejmuje również dane przetwarzane na rzecz gości Twojej strony — w zakresie niezbędnym do jej działania.</p>
 
-            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">4. Umowa Powierzenia Przetwarzania (DPA dla B2B)</h2>
-            <p class="text-gray-700 leading-relaxed mb-4">Jeśli jesteś przedsiębiorcą i zbierasz dane swoich klientów na stronie stworzonej w DFCMS (np. w formularzu), występujesz jako Administrator Danych. Założenie konta i akceptacja Regulaminu stanowi prawnie wiążące zawarcie <strong>Umowy Powierzenia Przetwarzania Danych Osobowych</strong>, w której Dragonfly Operations Sp. z o.o. występuje jako Procesor.</p>
-
-            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">5. Pliki Cookies i Skrypty Śledzące</h2>
-            <p class="text-gray-700 leading-relaxed mb-4">Nasz Serwis wykorzystuje różne rodzaje plików cookies i podobnych technologii:</p>
+            <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">5. Pliki cookies i technologie podobne</h2>
+            <p class="text-gray-700 leading-relaxed mb-4">Serwis DFCMS (dfcms.pl, panel, rejestracja) wykorzystuje następujące kategorie plików cookies i podobnych technologii:</p>
             <ul class="list-disc list-inside space-y-2 text-gray-700 leading-relaxed mb-4">
-                <li><strong>Niezbędne:</strong> Ciasteczka sesyjne wymagane do zalogowania się do Panelu oraz skrypty zabezpieczające płatności (Stripe). Są one załadowane domyślnie i nie wymagają zgody.</li>
-                <li><strong>Funkcjonalne:</strong> Elementy zewnętrzne ułatwiające działanie strony (np. integracja map Google Maps czy opinie Google Reviews).</li>
-                <li><strong>Analityczne i Marketingowe (Opcjonalne):</strong> W celach optymalizacji reklam i analizy ruchu docelowo możemy korzystać z narzędzi takich jak Google Ads czy Meta Pixel. Zostaną one uruchomione w Twojej przeglądarce <strong>wyłącznie po wyrażeniu przez Ciebie dobrowolnej zgody</strong> in oknie ustawień cookies.</li>
+                <li><strong>Niezbędne:</strong> ciasteczka sesyjne wymagane do zalogowania do panelu, utrzymania sesji oraz skrypty zabezpieczające (m.in. Stripe Checkout, Cloudflare Turnstile przy rejestracji i płatności). Ładowane domyślnie, bez wymogu zgody.</li>
+                <li><strong>Funkcjonalne:</strong> zapamiętanie ustawień w panelu oraz — na stronach klientów — elementy zewnętrzne wybrane przez właściciela strony (np. mapa Google, opinie Google).</li>
+                <li><strong>Analityczne i marketingowe (opcjonalne, obecnie nieużywane na dfcms.pl):</strong> na dzień publikacji niniejszej polityki <strong>nie uruchamiamy</strong> na głównej witrynie Serwisu narzędzi takich jak Google Analytics, Google Tag Manager ani Meta Pixel. Możemy je wprowadzić w przyszłości — wyłącznie po uprzedniej aktualizacji polityki i, jeśli wymagają tego przepisy, po uzyskaniu zgody w banerze cookies.</li>
+                <li><strong>Na stronach utworzonych przez Użytkowników:</strong> właściciel strony może skonfigurować w panelu identyfikatory Google Tag Manager lub Meta Pixel; skrypty te uruchamiają się u gości <strong>dopiero po wyrażeniu zgody</strong> w banerze cookies na danej stronie.</li>
             </ul>
 
             <h2 class="font-serif text-2xl text-[#D4AF37] mt-10 mb-4">6. Twoje prawa</h2>
