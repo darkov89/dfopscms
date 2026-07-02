@@ -12,6 +12,47 @@
     care: { name: 'Care', desc: 'Gabinet medyczny, psychologia, fizjoterapia' },
   };
 
+  /** Kafelki kreatora (krok 1) — wizualne akcenty; nowy motyw dostaje domyślny styl. */
+  const WIZARD_TILE_UI = {
+    beauty: { badge: 'BEAUTY', tileBg: 'bg-pink-50', tileBadge: 'text-pink-300' },
+    consultant: { badge: 'BIZNES', tileBg: 'bg-blue-50', tileBadge: 'text-blue-300' },
+    fitness: { badge: 'FIT', tileBg: 'bg-zinc-900', tileBadge: 'text-lime-400' },
+    services: { badge: 'USŁUGI', tileBg: 'bg-slate-900', tileBadge: 'text-amber-400' },
+    gastro: { badge: 'GASTR', tileBg: 'bg-amber-950', tileBadge: 'text-amber-300' },
+    care: { badge: 'CARE', tileBg: 'bg-sky-50', tileBadge: 'text-sky-500' },
+  };
+
+  const DEFAULT_WIZARD_TILE_UI = {
+    badge: '',
+    tileBg: 'bg-slate-100',
+    tileBadge: 'text-slate-400',
+  };
+
+  /**
+   * Opublikowane motywy = klucze w templatesV3 poza `setup`.
+   * Dodanie wpisu w registry + pliku `/templates/{id}.html` odblokowuje routing, kreator i przełącznik w panelu.
+   */
+  function getPublishedThemeIds() {
+    return Object.keys(templatesV3).filter((id) => id !== 'setup');
+  }
+
+  function isPublishedTheme(theme) {
+    const id = typeof theme === 'string' ? theme.trim().toLowerCase() : '';
+    return id && id !== 'setup' && Object.prototype.hasOwnProperty.call(templatesV3, id);
+  }
+
+  /** Wszystkie opublikowane motywy są dostępne w kreatorze onboardingu. */
+  function getWizardThemeIds() {
+    return getPublishedThemeIds();
+  }
+
+  /** gastro / care używają `color_palette` zamiast samego `color_preset`. */
+  function themeUsesColorPalette(theme) {
+    const id = typeof theme === 'string' ? theme.trim().toLowerCase() : '';
+    const settings = templatesV3[id]?.pl?.settings;
+    return !!(settings && settings.color_palette);
+  }
+
   /**
    * Merge treści z szablonem w DFOPS_mergeContentWithTemplate: dopóki nie ma pełnego JSON szablonu,
    * spadamy na `beauty`, żeby nie rzucać „Unknown theme” przy odczycie z bazy (Epik 3).
@@ -22,16 +63,36 @@
     return 'beauty';
   }
 
-  /** Kafelki w panelu: Wygląd → motyw branżowy (available = możliwa zmiana już teraz). */
+  /** Kafelki w panelu: Wygląd → motyw branżowy (available = opublikowany w registry). */
   function getTemplateCatalog() {
-    return [
-      { id: 'beauty', name: 'Beauty', desc: 'Salon, spa, usługi lokalne', available: true },
-      { id: 'consultant', name: 'Konsultant', desc: 'Ekspert, freelancer, B2B', available: true },
-      { id: 'fitness', name: 'Fitness', desc: 'Studio, trening, sport', available: true },
-      { id: 'services', name: 'Usługi', desc: 'Rzemiosło, naprawy, lokalnie', available: true },
-      { id: 'gastro', name: 'Gastro', desc: 'Restauracja, kawiarnia', available: true },
-      { id: 'care', name: 'Care', desc: 'Medycyna, psychologia, fizjoterapia', available: true },
-    ];
+    return getPublishedThemeIds().map((id) => {
+      const label = TEMPLATE_LABELS[id] || { name: id, desc: '' };
+      return {
+        id,
+        name: label.name,
+        desc: label.desc,
+        available: true,
+      };
+    });
+  }
+
+  /** Krok 1 kreatora — lista motywów z etykietami i stylami kafelków. */
+  function getWizardTemplateCatalog() {
+    return getWizardThemeIds().map((id) => {
+      const label = TEMPLATE_LABELS[id] || { name: id, desc: '' };
+      const ui = WIZARD_TILE_UI[id] || {
+        ...DEFAULT_WIZARD_TILE_UI,
+        badge: String(id).slice(0, 6).toUpperCase(),
+      };
+      return {
+        id,
+        name: label.name,
+        desc: label.desc,
+        badge: ui.badge,
+        tileBg: ui.tileBg,
+        tileBadge: ui.tileBadge,
+      };
+    });
   }
 
   const templatesV3 = {
@@ -641,5 +702,10 @@
   window.DFOPS_buildNewSiteContent = buildNewSiteContent;
   window.DFOPS_resolveTemplateKeyForMerge = resolveTemplateKeyForMerge;
   window.DFOPS_getTemplateCatalog = getTemplateCatalog;
+  window.DFOPS_getPublishedThemeIds = getPublishedThemeIds;
+  window.DFOPS_getWizardThemeIds = getWizardThemeIds;
+  window.DFOPS_getWizardTemplateCatalog = getWizardTemplateCatalog;
+  window.DFOPS_isPublishedTheme = isPublishedTheme;
+  window.DFOPS_themeUsesColorPalette = themeUsesColorPalette;
 })();
 

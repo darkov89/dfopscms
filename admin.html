@@ -34,7 +34,7 @@
     <script defer src="js/core/utils.js?v=20260617a"></script>
     <script defer src="js/core/config.js?v=20260617t"></script>
     <script defer src="js/core/supabaseClient.js?v=20260619a"></script>
-    <script defer src="js/templates/registry.js?v=20260622a"></script>
+    <script defer src="js/templates/registry.js?v=20260701a"></script>
     <script defer src="js/core/contentSchema.js?v=20260404c"></script>
     <script defer src="js/core/contentUpgrader.js?v=20260622a"></script>
     <script defer src="js/core/themeStyling.js?v=20260404c"></script>
@@ -105,69 +105,23 @@
                     <p class="text-sm text-slate-500 mb-8">Od tego zaczniemy. Nie martw się — zmienisz to później w ustawieniach.</p>
 
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <label class="group relative block cursor-pointer">
-                            <input type="radio" x-model="wizardTheme" value="beauty" @change="persistWizardUiState()" class="peer sr-only">
-                            <div class="overflow-hidden rounded-xl border-2 border-slate-200/80 transition-all peer-checked:border-accent peer-checked:ring-2 peer-checked:ring-accent/35">
-                                <div class="h-32 bg-pink-50 relative flex items-center justify-center">
-                                    <span class="text-pink-300 font-bold text-xl uppercase tracking-widest">BEAUTY</span>
+                        <template x-for="t in wizardTemplateCatalog" :key="t.id">
+                            <label class="group relative block cursor-pointer">
+                                <input type="radio" x-model="wizardTheme" :value="t.id" @change="persistWizardUiState()" class="peer sr-only">
+                                <div class="overflow-hidden rounded-xl border-2 border-slate-200/80 transition-all peer-checked:border-accent peer-checked:ring-2 peer-checked:ring-accent/35">
+                                    <div class="h-32 relative flex items-center justify-center" :class="t.tileBg">
+                                        <span class="font-bold text-xl uppercase tracking-widest" :class="t.tileBadge" x-text="t.badge"></span>
+                                    </div>
+                                    <div class="p-4 bg-white">
+                                        <h3 class="font-bold text-slate-900" x-text="t.name"></h3>
+                                        <p class="text-xs text-slate-500 mt-1" x-text="t.desc"></p>
+                                    </div>
                                 </div>
-                                <div class="p-4 bg-white">
-                                    <h3 class="font-bold text-slate-900">Salon Urody</h3>
-                                    <p class="text-xs text-slate-500 mt-1">Dla kosmetyczek, spa i fryzjerów.</p>
+                                <div class="pointer-events-none absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-accent text-white opacity-0 shadow-panel transition-opacity peer-checked:opacity-100">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                                 </div>
-                            </div>
-                            <div class="pointer-events-none absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-accent text-white opacity-0 shadow-panel transition-opacity peer-checked:opacity-100">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                            </div>
-                        </label>
-
-                        <label class="group relative block cursor-pointer">
-                            <input type="radio" x-model="wizardTheme" value="consultant" @change="persistWizardUiState()" class="peer sr-only">
-                            <div class="overflow-hidden rounded-xl border-2 border-slate-200/80 transition-all peer-checked:border-accent peer-checked:ring-2 peer-checked:ring-accent/35">
-                                <div class="h-32 bg-blue-50 relative flex items-center justify-center">
-                                    <span class="text-blue-300 font-bold text-xl uppercase tracking-widest">BIZNES</span>
-                                </div>
-                                <div class="p-4 bg-white">
-                                    <h3 class="font-bold text-slate-900">Konsultant</h3>
-                                    <p class="text-xs text-slate-500 mt-1">Dla doradców, prawników i freelancerów.</p>
-                                </div>
-                            </div>
-                            <div class="pointer-events-none absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-accent text-white opacity-0 shadow-panel transition-opacity peer-checked:opacity-100">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                            </div>
-                        </label>
-
-                        <label class="group relative block cursor-pointer md:col-span-1">
-                            <input type="radio" x-model="wizardTheme" value="fitness" @change="persistWizardUiState()" class="peer sr-only">
-                            <div class="overflow-hidden rounded-xl border-2 border-slate-200/80 transition-all peer-checked:border-accent peer-checked:ring-2 peer-checked:ring-accent/35">
-                                <div class="h-32 bg-zinc-900 relative flex items-center justify-center">
-                                    <span class="text-lime-400 font-bold text-xl uppercase tracking-widest">FIT</span>
-                                </div>
-                                <div class="p-4 bg-white">
-                                    <h3 class="font-bold text-slate-900">Fitness</h3>
-                                    <p class="text-xs text-slate-500 mt-1">Trener, studio, siłownia — ciemny neon.</p>
-                                </div>
-                            </div>
-                            <div class="pointer-events-none absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-accent text-white opacity-0 shadow-panel transition-opacity peer-checked:opacity-100">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                            </div>
-                        </label>
-
-                        <label class="group relative block cursor-pointer md:col-span-1">
-                            <input type="radio" x-model="wizardTheme" value="services" @change="persistWizardUiState()" class="peer sr-only">
-                            <div class="overflow-hidden rounded-xl border-2 border-slate-200/80 transition-all peer-checked:border-accent peer-checked:ring-2 peer-checked:ring-accent/35">
-                                <div class="h-32 bg-slate-900 relative flex items-center justify-center">
-                                    <span class="text-amber-400 font-bold text-xl uppercase tracking-widest">USŁUGI</span>
-                                </div>
-                                <div class="p-4 bg-white">
-                                    <h3 class="font-bold text-slate-900">Usługi lokalne</h3>
-                                    <p class="text-xs text-slate-500 mt-1">Hydraulik, elektryk, złota rączka — granat i kontakt.</p>
-                                </div>
-                            </div>
-                            <div class="pointer-events-none absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-accent text-white opacity-0 shadow-panel transition-opacity peer-checked:opacity-100">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                            </div>
-                        </label>
+                            </label>
+                        </template>
                     </div>
                 </div>
 

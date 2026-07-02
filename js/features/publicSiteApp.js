@@ -438,7 +438,10 @@
     let currentCustomDomain = '';
 
     if (siteParam && String(siteParam).trim()) {
-      currentSlug = String(siteParam).trim().toLowerCase();
+      const raw = String(siteParam).trim().toLowerCase();
+      if (!raw.includes('://') && !raw.includes('/') && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(raw)) {
+        currentSlug = raw;
+      }
     } else if (
       hostname.includes('dfcms.pl') ||
       hostname.includes('dfopscms.pl') ||

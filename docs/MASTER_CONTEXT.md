@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-07-01 — kreator onboardingu: 6 kroków, sync pól, ukrywanie dummy content
+**Ostatnia aktualizacja treści:** 2026-07-01 — rejestr szablonów (auto-odblokowanie), routing subdomen, kreator 6 kroków
 
 ---
 
@@ -59,7 +59,7 @@ W konsoli: `window.DFOPS_DEPLOY_ENVIRONMENT` → `'staging'` | `'production'`.
 2. **Publikacja treści** — panel kopiuje `draft_content` → `content`; strony publiczne czytają wyłącznie `content` (preview: `dfcms_preview=1` + właściciel).
 3. **Płatność** — panel → `create-checkout` → Stripe Checkout → `stripe-webhook` / `sync-stripe-subscription` → `billing_profiles` + lustrzane `pages.billing_plan`.
 4. **Własna domena** — panel → `add-custom-domain` + `GET /api/verify-domain?domain=…` (Pages Function, DoH CNAME) → Cloudflare Custom Hostname → `pages.custom_domain`.
-5. **Routing publiczny** — `functions/_middleware.js` + shim `/?site=slug` na subdomenach (worker często widzi `dfopscms.pages.dev`); `publicSiteApp.cleanTenantPublicUrl()` — czysty URL bez query.
+5. **Routing publiczny** — `functions/_middleware.js` (slug z nagłówka `Host` / kandydatów, nie tylko `pages.dev`); subdomeny `{slug}.dfcms.pl` → szablon bez `?site=`; apex `dfcms.pl?site=slug` tylko preview/demo; nieistniejący tenant → 404 HTML (nie landing); `?site=` tylko bezpieczny slug `[a-z0-9-]+`; `publicSiteApp.cleanTenantPublicUrl()` usuwa ewentualny query na subdomenie.
 6. **Alerty** — Sentry / Database Webhooks / cron → Telegram (**bez** triggerów SQL `http_request` w migracjach).
 
 ```
@@ -271,6 +271,8 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
+| **2026-07-01** | **Rejestr szablonów (auto-odblokowanie):** `js/templates/registry.js` eksportuje `DFOPS_getPublishedThemeIds` / `getWizardTemplateCatalog` — nowy motyw w `templatesV3` + `/templates/{id}.html` automatycznie w middleware, kreatorze i przełączniku panelu; gastro/care w kreatorze onboardingu. |
+| **2026-07-01** | **Routing subdomen tenantów:** middleware skanuje kandydatów hosta (`Host` pierwszy), slug z subdomeny bez shim `/?site=`; `index.html` i `routerApp.js` — subdomena → `router.html` / szablon bez query; walidacja `?site=` (odrzucenie URL-i); nieistniejący tenant na `*.dfcms.pl` → 404 zamiast marketingu. |
 | **2026-07-01** | **Kreator onboardingu (zero dummy):** 6 kroków — dodano usługi i O nas; walidacja hero/usług/manifesto/kontaktu; auto-sync nazwy i SEO; `finalizeWizardContent` wyłącza sekcje z pustym lub szablonowym contentem (galeria, opinie Google, trust, grafik fitness, Calendly placeholder). |
 | **2026-06-30** | **Regulamin i polityka (audyt prawny):** `regulamin.html` — trial 14 dni, pakiety, managed domain vs CNAME, plan multi-site, managed services; `polityka.html` — role admin/procesor, rozszerzone kategorie danych, podprocesorzy Supabase+Cloudflare+Google+Sentry, cookies bez GA/Meta na dfcms.pl (opcjonalnie w przyszłości). |
 | **2026-06-26** | **Regulamin domen niestandardowych:** `regulamin.html` zawiera nowy punkt o rejestracji, utrzymaniu, wygaśnięciu prawa korzystania i opcjonalnej cesji custom domains; kolejne punkty regulaminu przenumerowane. |

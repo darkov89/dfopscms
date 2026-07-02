@@ -24,6 +24,19 @@
     document.body.appendChild(wrap);
   }
 
+  function isSafeSlugValue(value) {
+    return /^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(String(value || '').trim());
+  }
+
+  function isApexOrStagingRoot(hostname) {
+    return (
+      hostname === 'dfcms.pl' ||
+      hostname === 'dfopscms.pl' ||
+      hostname === 'dfopscms.pages.dev' ||
+      hostname === 'staging.dfcms.pl'
+    );
+  }
+
   const normalizeHostname = window.DFOPS_normalizeHostname;
 
   function mergeBaseDomains(cfg) {
@@ -77,10 +90,14 @@
 
       if (isHostUnderBaseDomain(hostname, baseDomains)) {
         let slug = params.get('site')?.trim();
+        if (slug && !isSafeSlugValue(slug)) {
+          window.location.replace('index.html');
+          return;
+        }
         if (!slug) {
           slug = extractSubdomainAsSlug(hostname, baseDomains);
         }
-        if (!slug) {
+        if (!slug || !isSafeSlugValue(slug)) {
           window.location.replace('index.html');
           return;
         }
@@ -97,16 +114,8 @@
 
       const localHosts = cfg.localHosts || [];
       const isLocal = localHosts.indexOf(window.location.hostname) !== -1;
-      const slugFromSub = extractSubdomainAsSlug(hostname, baseDomains);
-      if (slugFromSub) {
-        var qs = 'site=' + encodeURIComponent(page.slug);
-        var extra = url.search ? url.search.replace(/^\?/, '&') : '';
-        if (extra && !extra.includes('site=')) qs += extra;
-        window.location.replace('/?' + qs + url.hash);
-        return;
-      }
       let target = '/templates/' + page.theme + '.html';
-      if (isLocal || isHostUnderBaseDomain(hostname, baseDomains)) {
+      if (isLocal || hostname.includes('pages.dev') || isApexOrStagingRoot(hostname)) {
         target += '?site=' + encodeURIComponent(page.slug);
       }
       window.location.replace(target);

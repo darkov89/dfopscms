@@ -1,4 +1,5 @@
 import '../js/core/utils.js';
+import '../js/templates/registry.js';
 
 /**
  * Cloudflare Pages — globalny middleware (SEO + edge routing szablonów + HTMLRewriter + Supabase).
@@ -13,7 +14,11 @@ import '../js/core/utils.js';
 const STATIC_EXT = /\.(css|js|mjs|png|jpg|jpeg|gif|svg|ico|webp|woff2?|ttf|eot|map|json|xml|txt|pdf|webmanifest)$/i;
 
 const PLATFORM_BASE_DOMAINS = ['dfcms.pl', 'dfopscms.pl', 'dfopscms.pages.dev', 'localhost', '127.0.0.1'];
-const ALLOWED_THEMES = new Set(['beauty', 'consultant', 'fitness', 'services', 'gastro', 'care']);
+const ALLOWED_THEMES = new Set(
+  typeof globalThis.DFOPS_getPublishedThemeIds === 'function'
+    ? globalThis.DFOPS_getPublishedThemeIds()
+    : ['beauty', 'consultant', 'fitness', 'services', 'gastro', 'care'],
+);
 const normalizeHostname = globalThis.DFOPS_normalizeHostname;
 const EDGE_ROUTE_PATHS = new Set([
   '/',
@@ -35,13 +40,13 @@ function parseForwardedHost(request) {
 
 function collectHostCandidates(request, url, cf) {
   const raw = [
-    url.hostname,
     request.headers.get('Host'),
     request.headers.get('X-Forwarded-Host'),
     request.headers.get('X-Original-Host'),
     parseForwardedHost(request),
     cf && cf.hostMetadata && cf.hostMetadata.httpHost,
     cf && cf.hostname,
+    url.hostname,
   ];
   const seen = new Set();
   const out = [];
@@ -95,16 +100,66 @@ function extractSubdomainSlug(hostnameNorm) {
   return '';
 }
 
-function resolveSlug(siteParam, hostnameNorm, altHostnameNorm) {
-  if (siteParam != null && String(siteParam).trim()) {
-    return String(siteParam).trim().toLowerCase();
+function resolveSlug(siteParam, hostnameNorm, altHostnameNorm, candidates) {
+  const safeSite = normalizeSiteParam(siteParam);
+  if (safeSite) return safeSite;
+  const hosts = [];
+  const seen = new Set();
+  for (const h of [hostnameNorm, altHostnameNorm].concat(candidates || [])) {
+    const norm = normalizeHostname(h);
+    if (!norm || seen.has(norm)) continue;
+    seen.add(norm);
+    hosts.push(norm);
   }
-  for (const host of [hostnameNorm, altHostnameNorm]) {
+  for (const host of hosts) {
     if (!host || !isPlatformHost(host)) continue;
     const fromSub = extractSubdomainSlug(host);
     if (fromSub) return fromSub;
   }
   return '';
+}
+
+function normalizeSiteParam(siteParam) {
+  const raw = String(siteParam || '').trim();
+  if (!raw) return '';
+  if (raw.includes('://') || raw.includes('/') || raw.includes('?') || raw.includes('&')) return '';
+  const slug = raw.toLowerCase();
+  return isSafeSlugValue(slug) ? slug : '';
+}
+
+/** Subdomena tenantowa *.dfcms.pl (nie apex, nie staging). */
+function isTenantSubdomain(hostnameNorm) {
+  if (!hostnameNorm || !hostnameNorm.endsWith('.dfcms.pl')) return false;
+  if (hostnameNorm === 'dfcms.pl' || hostnameNorm === 'staging.dfcms.pl') return false;
+  return !!extractSubdomainSlug(hostnameNorm);
+}
+
+function tenantNotFoundHtml() {
+  return `<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Strona nie istnieje — DFCMS</title>
+</head>
+<body style="margin:0;padding:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#121212;font-family:system-ui,sans-serif">
+  <div style="text-align:center;padding:2rem;max-width:28rem">
+    <h1 style="font-size:3.5rem;color:#D4AF37;letter-spacing:0.2em;margin:0 0 1rem">404</h1>
+    <p style="font-size:1.125rem;color:#9ca3af;margin:0 0 2rem;font-weight:300;line-height:1.5">Ta strona nie istnieje lub nie została jeszcze opublikowana.</p>
+    <a href="https://dfcms.pl/rejestracja.html" style="display:inline-block;padding:1rem 2rem;background:#D4AF37;color:#121212;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;font-size:0.875rem;text-decoration:none;border-radius:2px">Załóż własną stronę na DFCMS</a>
+  </div>
+</body>
+</html>`;
+}
+
+function tenantNotFoundResponse(request) {
+  return applySecurityHeaders(
+    request,
+    new Response(tenantNotFoundHtml(), {
+      status: 404,
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    }),
+  );
 }
 
 function isEdgeRoutePath(pathname) {
@@ -327,6 +382,7 @@ async function serveThemedPage(request, env, row, slugTrimmed, hostnameNorm, url
 export async function onRequest(context) {
   const { request, env, next, cf } = context;
   const url = new URL(request.url);
+  const hostCandidates = collectHostCandidates(request, url, cf);
   const hostname = getRequestHostname(request, url, cf);
   const urlHostname = normalizeHostname(url.hostname);
   const siteParam = url.searchParams.get('site');
@@ -356,7 +412,8 @@ export async function onRequest(context) {
     }
 
     const hostnameNorm = hostname || urlHostname;
-    const slugTrimmed = resolveSlug(siteParam, hostname, urlHostname);
+    const slugTrimmed = resolveSlug(siteParam, hostname, urlHostname, hostCandidates);
+    const tenantSub = isTenantSubdomain(hostnameNorm);
 
     if (!slugTrimmed && !hostnameNorm) {
       debugTrace = 'NO_SLUG_OR_HOST';
@@ -367,6 +424,9 @@ export async function onRequest(context) {
     const row = await fetchPageRow(supabaseUrl, anonKey, slugTrimmed, hostnameNorm);
 
     if (!row) {
+      if (tenantSub || (slugTrimmed && isSafeSlugValue(slugTrimmed))) {
+        return tenantNotFoundResponse(request);
+      }
       debugTrace = `NO_ROW|slug:[${slugTrimmed}]|host:[${hostnameNorm}]`;
       throw new Error(debugTrace);
     }

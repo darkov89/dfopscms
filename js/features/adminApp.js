@@ -123,23 +123,16 @@
       if (!raw) return null;
       const data = JSON.parse(raw);
       if (!data || typeof data !== 'object') return null;
-      const step = Number(data.step);
+      let step = Number(data.step);
       const theme = typeof data.theme === 'string' ? data.theme : '';
       if (!Number.isFinite(step) || step < 0 || step > WIZARD_STEP_COUNT) return null;
       if (data.v !== WIZARD_STATE_VERSION && step >= 4) {
         step = WIZARD_STEP_COUNT;
       }
-      if (theme && theme !== 'beauty' && theme !== 'consultant' && theme !== 'fitness' && theme !== 'services') return null;
+      if (theme && !getWizardTemplateIds().includes(theme)) return null;
       return {
         step,
-        theme:
-          theme === 'consultant'
-            ? 'consultant'
-            : theme === 'fitness'
-              ? 'fitness'
-              : theme === 'services'
-                ? 'services'
-                : 'beauty',
+        theme: normalizeWizardTheme(theme),
       };
     } catch {
       return null;
@@ -154,14 +147,7 @@
         JSON.stringify({
           v: WIZARD_STATE_VERSION,
           step,
-          theme:
-            theme === 'consultant'
-              ? 'consultant'
-              : theme === 'fitness'
-                ? 'fitness'
-                : theme === 'services'
-                  ? 'services'
-                  : 'beauty',
+          theme: normalizeWizardTheme(theme),
           ts: Date.now(),
         }),
       );
@@ -180,9 +166,39 @@
   }
 
   /** Przywrócony krok musi być spójny z `pages.theme` (np. nie krok 3–4, gdy szablon w DB wciąż `setup`). */
-  const WIZARD_TEMPLATE_IDS = ['beauty', 'consultant', 'fitness', 'services'];
-  /** Motywy dostępne w przełączniku „Wybierz inny szablon” (Wygląd). */
-  const SWITCHABLE_TEMPLATE_IDS = ['beauty', 'consultant', 'fitness', 'services', 'gastro', 'care'];
+  function getWizardTemplateIds() {
+    if (typeof window.DFOPS_getWizardThemeIds === 'function') {
+      return window.DFOPS_getWizardThemeIds();
+    }
+    return ['beauty', 'consultant', 'fitness', 'services', 'gastro', 'care'];
+  }
+
+  function getSwitchableTemplateIds() {
+    if (typeof window.DFOPS_getPublishedThemeIds === 'function') {
+      return window.DFOPS_getPublishedThemeIds();
+    }
+    return ['beauty', 'consultant', 'fitness', 'services', 'gastro', 'care'];
+  }
+
+  function themeUsesColorPalette(theme) {
+    if (typeof window.DFOPS_themeUsesColorPalette === 'function') {
+      return window.DFOPS_themeUsesColorPalette(theme);
+    }
+    const t = String(theme || '').trim().toLowerCase();
+    return t === 'gastro' || t === 'care';
+  }
+
+  function isPublishedTheme(theme) {
+    if (typeof window.DFOPS_isPublishedTheme === 'function') {
+      return window.DFOPS_isPublishedTheme(theme);
+    }
+    return getSwitchableTemplateIds().includes(String(theme || '').trim().toLowerCase());
+  }
+
+  function normalizeWizardTheme(theme) {
+    const id = String(theme || '').trim().toLowerCase();
+    return getWizardTemplateIds().includes(id) ? id : 'beauty';
+  }
 
   function normalizeWizardRestore(step, wizardTheme, pageTheme) {
     let s = step;
@@ -191,7 +207,7 @@
     }
     if (s < 0) s = 0;
     if (s > WIZARD_STEP_COUNT) s = WIZARD_STEP_COUNT;
-    const allowed = new Set(WIZARD_TEMPLATE_IDS);
+    const allowed = new Set(getWizardTemplateIds());
     let wt = 'beauty';
     if (pageTheme && allowed.has(pageTheme)) {
       wt = pageTheme;
@@ -206,6 +222,8 @@
     consultant: 'konsultacje i coaching',
     fitness: 'trening personalny i fitness',
     services: 'usługi lokalne',
+    gastro: 'restauracja i menu online',
+    care: 'gabinet i opieka zdrowotna',
   };
 
   function getWizardTemplatePl(theme) {
@@ -896,44 +914,25 @@
       /** Na localhost podgląd wskazuje plik .html — brak pliku = proxy (Epik 3). */
       get previewHtmlBasename() {
         const t = String(this.theme || 'beauty').trim().toLowerCase();
-        if (
-          t === 'beauty' ||
-          t === 'consultant' ||
-          t === 'setup' ||
-          t === 'fitness' ||
-          t === 'services' ||
-          t === 'gastro' ||
-          t === 'care'
-        ) {
-          return t;
-        }
+        if (t === 'setup' || isPublishedTheme(t)) return t;
         return 'beauty';
       },
       get previewUsesHtmlFallback() {
         const t = String(this.theme || '').trim().toLowerCase();
-        if (!t) return false;
-        return !(
-          t === 'beauty' ||
-          t === 'consultant' ||
-          t === 'setup' ||
-          t === 'fitness' ||
-          t === 'services' ||
-          t === 'gastro' ||
-          t === 'care'
-        );
+        if (!t || t === 'setup') return false;
+        return !isPublishedTheme(t);
       },
       get templateCatalog() {
         if (typeof window.DFOPS_getTemplateCatalog === 'function') {
           return window.DFOPS_getTemplateCatalog();
         }
-        return [
-          { id: 'beauty', name: 'Beauty', desc: 'Salon, spa, usługi lokalne', available: true },
-          { id: 'consultant', name: 'Konsultant', desc: 'Ekspert, freelancer, B2B', available: true },
-          { id: 'fitness', name: 'Fitness', desc: 'Studio, trening, sport', available: true },
-          { id: 'services', name: 'Usługi', desc: 'Rzemiosło, naprawy, lokalnie', available: true },
-          { id: 'gastro', name: 'Gastro', desc: 'Restauracja, kawiarnia', available: true },
-          { id: 'care', name: 'Care', desc: 'Medycyna, psychologia, fizjoterapia', available: true },
-        ];
+        return [];
+      },
+      get wizardTemplateCatalog() {
+        if (typeof window.DFOPS_getWizardTemplateCatalog === 'function') {
+          return window.DFOPS_getWizardTemplateCatalog();
+        }
+        return this.templateCatalog;
       },
       onTemplateTileClick(entry) {
         if (!entry || this.saving) return;
@@ -1547,7 +1546,7 @@
         if (!preset?.id || !this.content?.pl?.settings) return false;
         const s = this.content.pl.settings;
         const theme = this.showWizard ? this.wizardTheme || this.theme : this.theme;
-        if (theme === 'gastro' || theme === 'care') {
+        if (themeUsesColorPalette(theme)) {
           return (s.color_palette || s.color_preset) === preset.id;
         }
         return s.color_preset === preset.id;
@@ -1556,7 +1555,7 @@
       selectColorPreset(preset) {
         if (!preset?.id || !this.content?.pl?.settings) return;
         this.content.pl.settings.color_preset = preset.id;
-        if (this.theme === 'gastro' || this.theme === 'care') {
+        if (themeUsesColorPalette(this.theme)) {
           this.content.pl.settings.color_palette = preset.id;
         }
         this.appearancePickerHex = '';
@@ -2181,7 +2180,7 @@
 
       async switchTemplate(newTemplateId) {
         const id = String(newTemplateId || '').trim().toLowerCase();
-        if (!SWITCHABLE_TEMPLATE_IDS.includes(id)) return;
+        if (!getSwitchableTemplateIds().includes(id)) return;
         if (this.theme === id) return;
         const confirmed = await this.confirmAsync({
           title: 'Zmienić szablon?',
@@ -2233,7 +2232,7 @@
           if (presets.length && !presets.some((p) => p.id === cp)) {
             this.content.pl.settings.color_preset = presets[0].id;
           }
-          if (id === 'gastro' || id === 'care') {
+          if (themeUsesColorPalette(id)) {
             this.content.pl.settings.color_palette =
               this.content.pl.settings.color_palette || this.content.pl.settings.color_preset;
           }
@@ -2260,7 +2259,7 @@
       applyStyleBundle() {
         const bundle = this.styleBundles.find((b) => b.id === this.selectedStyleBundle);
         if (!bundle || !this.content?.pl?.settings) return;
-        if (bundle.color_palette && (this.theme === 'gastro' || this.theme === 'care')) {
+        if (bundle.color_palette && themeUsesColorPalette(this.theme)) {
           this.content.pl.settings.color_preset = bundle.color_palette;
           this.content.pl.settings.color_palette = bundle.color_palette;
         } else {
@@ -2343,8 +2342,8 @@
         const pl = this.content?.pl;
         if (!pl) return '';
         if (step === 1) {
-          if (!WIZARD_TEMPLATE_IDS.includes(this.wizardTheme)) {
-            return 'Wybierz szablon (Salon, Konsultant, Fitness lub Usługi).';
+          if (!getWizardTemplateIds().includes(this.wizardTheme)) {
+            return 'Wybierz szablon branżowy.';
           }
         }
         if (step === 2) {
