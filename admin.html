@@ -38,7 +38,7 @@
     <script defer src="js/core/contentSchema.js?v=20260404c"></script>
     <script defer src="js/core/contentUpgrader.js?v=20260622a"></script>
     <script defer src="js/core/themeStyling.js?v=20260404c"></script>
-    <script defer src="js/core/pageRepository.js?v=20260622b"></script>
+    <script defer src="js/core/pageRepository.js?v=20260623h"></script>
     <script defer src="js/core/planUtils.js?v=20260522e"></script>
     <script defer src="js/core/billingProfileView.js?v=20260523a"></script>
     <script defer src="js/core/googlePlacesSync.js?v=20260522d"></script>
@@ -433,6 +433,12 @@
                 <span x-show="resendConfirmLoading" x-cloak>Wysyłam…</span>
             </button>
         </div>
+        <div x-show="isImpersonating" x-cloak class="w-full bg-slate-950 px-4 py-3 text-center text-sm text-amber-50 shadow-panel" role="status">
+            <span class="font-semibold uppercase tracking-widest text-accent">God Mode</span>
+            <span class="mx-2 text-slate-500">/</span>
+            <span>Edytujesz stronę klienta: <strong class="font-semibold text-white" x-text="slug"></strong></span>
+            <a href="godmode.html" class="ml-3 inline-flex rounded-md border border-white/15 px-3 py-1 text-xs font-bold uppercase tracking-widest text-white transition-colors hover:bg-white/10">Wróć do listy</a>
+        </div>
         <div x-show="trialBlockedAt" class="w-full bg-red-900 text-white text-sm py-3 px-4 text-center flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 shrink-0" x-cloak role="alert">
             <span>Strona publiczna jest <strong>zablokowana</strong> (wygasły trial lub brak płatności po terminie). Goście widzą komunikat z wezwaniem dla administratora.</span>
             <button type="button" @click="setTab('subscription'); showTrialSuspendedModal = false" class="shrink-0 underline font-bold hover:no-underline text-white">Przejdź do subskrypcji</button>
@@ -721,6 +727,10 @@
                             <span class="min-w-0 flex-1 leading-snug">Uruchom Kreator</span>
                             <span x-show="incompleteOnboardingChecks.length && !showWizard" x-cloak class="inline-flex h-6 min-w-[1.5rem] shrink-0 items-center justify-center rounded-full bg-amber-200/90 px-1.5 text-[11px] font-bold tabular-nums text-amber-950" x-text="incompleteOnboardingChecks.length"></span>
                         </button>
+                        <a x-show="isSuperAdmin" x-cloak href="/godmode.html" class="mb-4 flex w-full items-center gap-3 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-left font-bold text-amber-950 shadow-panel transition-colors hover:border-accent hover:bg-amber-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2">
+                            <span class="text-xl shrink-0" aria-hidden="true">👑</span>
+                            <span class="min-w-0 flex-1 leading-snug">Master Dashboard</span>
+                        </a>
 
                         <div class="mb-4 rounded-xl bg-slate-900 px-3 py-3 shadow-inner ring-1 ring-slate-800/90" role="region" aria-label="Postęp ukończenia strony">
                             <div class="mb-2 flex items-center justify-between gap-2">

@@ -74,8 +74,8 @@ Użytkownik → Auth → pages.content + pages.billing_plan + billing_profiles
 | Warstwa | Kluczowe artefakty |
 |--------|---------------------|
 | **Front publiczny** | `index.html` (dark-mode SaaS landing spójny z admin/rejestracją: `#121212` + `#D4AF37`; hero 3 min, `#jak`, `#wyposazenie`, `#spokoj`, `#demo`, `#cennik`, SEO + `favicon.svg`), demo przez `router.html?site=demo-*` (beauty/services/care/gastro/fitness/consultant). Szablony branżowe HTML są w `/templates/` (`beauty`, `consultant`, `fitness`, `services`, `gastro`, `care`); media statyczne przenoszone z root trafiają do `/assets/images/`; boilerplate nowych szablonów: `/templates/_base_template.html`; klocki UI: `/templates/_components_library.html`. `setup.html` zostaje w root. `landingPricing.js` — plany cennika i dane landingowe. |
-| **Panel CMS** | `admin.html`, `adminApp.js`. Draft vs published: `pages.draft_content` / `pages.content`. Subskrypcja: Starter/Standard/Custom, `billingInterval`, Stripe Checkout + Portal. Smart Booking: `settings.booking_mode` + `contact.booking_url`. |
-| **Backend** | `pages`, `billing_profiles`, RLS. Schemat baseline: `20260603072317_remote_schema.sql`. |
+| **Panel CMS** | `admin.html`, `adminApp.js`. Draft vs published: `pages.draft_content` / `pages.content`. Subskrypcja: Starter/Standard/Custom, `billingInterval`, Stripe Checkout + Portal. Smart Booking: `settings.booking_mode` + `contact.booking_url`. God Mode: `godmode.html` → `admin.html?impersonate={slug}` dla superadminów. |
+| **Backend** | `pages`, `billing_profiles`, `superadmins`, RLS. Schemat baseline: `20260603072317_remote_schema.sql`; God Mode: `20260623100512_add_god_mode.sql`. |
 | **Płatności** | Starter `tier0`, Standard `tier1`, Custom poza Stripe. Secrets: `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_STARTER_YEARLY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_PRO_YEARLY`. wFirma: `WFIRMA_*`, ledger `wfirma_invoice_ledger`. |
 
 **Model pakietów:**
@@ -100,7 +100,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 
 **Prawo & Bezpieczeństwo:** panel `admin.html#legal` zarządza `pages.content.pl.privacy` (`mode: 'default' | 'custom'`, `customText`). Publiczny route `/polityka-prywatnosci` renderuje standardową politykę DFCMS albo własny dokument użytkownika przez DOMPurify i zawsze dokleja klauzulę infrastruktury DFCMS/Supabase/Cloudflare.
 
-**Security (skrót):** forced password reset, DOMPurify, sanitizacja URL-like pól `pages.content` na zapisie i odczycie, Cloudflare Turnstile dla rejestracji/custom inquiry/checkout, CSP/HSTS/XFO/nosniff w `functions/_middleware.js`, publiczny odczyt `pages` zawężony query+RLS+grantami kolumnowymi, Stripe webhook tylko Edge, Google Places/Maps klucz tylko Edge, `billing_profiles` SoT rozliczeń, draft preview tylko dla właściciela.
+**Security (skrót):** forced password reset, DOMPurify, sanitizacja URL-like pól `pages.content` na zapisie i odczycie, Cloudflare Turnstile dla rejestracji/custom inquiry/checkout, CSP/HSTS/XFO/nosniff w `functions/_middleware.js`, publiczny odczyt `pages` zawężony query+RLS+grantami kolumnowymi, Stripe webhook tylko Edge, Google Places/Maps klucz tylko Edge, `billing_profiles` SoT rozliczeń, draft preview tylko dla właściciela. Superadmini są wyłącznie w `public.superadmins`; RLS dodaje im SELECT/UPDATE/DELETE na `pages` i `analytics_events`, bez zmiany polityk właścicielskich.
 
 **Luki:** brak obowiązkowego E2E/CI dla Edge; wildcard `*.dfcms.pl` w Cloudflare Pages; RLS anon read wymaga GRANT + polityki; brak historii wersji treści.
 
@@ -113,6 +113,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 - **Kreator:** 6 kroków (szablon → marka → hero → usługi → O nas → kontakt); sync `nav.logo` → `business_name` / `hero.name` / SEO; przy wejściu w usługi czyści demo-cennik szablonu; `finishWizard` → `finalizeWizardContent` (ukrywa puste sekcje, trust/schedule/Calendly dummy); stan w `localStorage` (`dfops_wizard_state_v1:{slug}`, `v:2`); czyszczenie po `finishWizard` / `switchTemplate`.
 - **Draft vs published:** auto-save debounce 1000ms → `draft_content`; `publishChanges()` → `content`; preview tylko właściciel (`dfcms_preview=1`); `revertChanges()` z `_publishedContentRaw`.
 - **Subskrypcja panel:** `hasActivePaidSubscription` / `isSubscriptionCanceledButValid` — tylko Stripe (`billing_profiles`), nie samo `payment_completed` w JSON.
+- **God Mode:** `godmode.html` wymaga sesji i widocznego własnego wpisu w `superadmins`; lista pobiera wszystkie `pages`. Panel po zalogowaniu sprawdza `superadmins` i pokazuje w sidebarze „Master Dashboard” tylko superadminom. Przycisk „Zarządzaj” otwiera `admin.html?impersonate={slug}`. W impersonacji panel zapisuje konkretny rekord po `pages.id`, pomija profil billingowy superadmina i blokuje checkout z sesji operatora.
 
 ### 1.6 Security (szczegóły)
 
@@ -124,6 +125,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 - **Nagłówki HTTP:** Cloudflare middleware dokleja CSP (Supabase/Stripe/Google Maps/CDN/Sentry/Calendly), `X-Content-Type-Options`, `X-Frame-Options: DENY`, HSTS dla HTTPS, Referrer/Permissions Policy.
 - **Anti-abuse:** Turnstile widget w `rejestracja.html`, `zapytanie-custom.html` i panelu subskrypcji; `create-checkout` weryfikuje `turnstileToken` przez `_shared/turnstileVerification.ts` przed Supabase/Stripe. Secrets: `PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`.
 - **Publiczny odczyt stron:** `pageRepository` i `functions/_middleware.js` pobierają wyłącznie konkretny `slug`/`custom_domain`, z `limit=1`, `content IS NOT NULL`, `trial_blocked_at IS NULL` i grace 14 dni dla `billing_failed_at`; edge `fetchPageRow` waliduje format slug/host i używa pojedynczej odpowiedzi PostgREST; migracja `20260617221000` usuwa szerokie `SELECT true` i grant `ALL` dla `anon` na `pages`.
+- **God Mode RLS:** `superadmins` ma SELECT tylko własnego wiersza dla `authenticated`; wpisy dodaje/usuwa operacyjnie `service_role`. Polityki superadminów na `pages` i `analytics_events` są dodatkowymi OR-ścieżkami RLS, nie zastępują dostępu właściciela.
 - **Widoczność sekcji:** toggles per zakładka (`showGallery`, `showGoogleReviews`, …); hero bez toggle.
 
 ### 1.7 User journey (skrót)
@@ -132,10 +134,11 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 2. **`rejestracja.html`** → `signUp` → trigger `handle_new_user` (slug w metadata; kolizja → rollback)
 3. Potwierdzenie e-mail → baner w panelu bez pełnego onboardingu
 4. **`admin.html`** → modal/Driver → edycja + kreator
-5. Podgląd `/templates/{motyw}.html?site=&dfcms_preview=1`
-6. Subskrypcja → Checkout/Portal → webhook → `billing_profiles`
-7. Opcjonalnie domena → `add-custom-domain` + verify CNAME API
-8. Recovery hasła → izolatka resetu
+5. **God Mode:** superadmin → `godmode.html` → `admin.html?impersonate={slug}` → edycja rekordu klienta po `pages.id`
+6. Podgląd `/templates/{motyw}.html?site=&dfcms_preview=1`
+7. Subskrypcja → Checkout/Portal → webhook → `billing_profiles`
+8. Opcjonalnie domena → `add-custom-domain` + verify CNAME API
+9. Recovery hasła → izolatka resetu
 
 ### 1.8 Stripe / webhook (szczegóły)
 
@@ -256,6 +259,7 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 | Konfiguracja klienta / ceny fallback | `js/core/config.js` |
 | Landing + cennik | `index.html#cennik`, `js/features/landingPricing.js` |
 | Panel subskrypcja | `admin.html`, `adminApp.js` |
+| God Mode / superadmin | `godmode.html`, `admin.html?impersonate={slug}`, `20260623100512_add_god_mode.sql` |
 | Plany / watermark | `js/core/planUtils.js` |
 | Profil Stripe | `billingProfileView.js`, `loadBillingProfile()` |
 | Oficjalne demo | `supabase/migrations/20260616150000_seed_demo_catalog_pages.sql` |
@@ -276,6 +280,8 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 | **2026-07-01** | **Kreator onboardingu (zero dummy):** 6 kroków — dodano usługi i O nas; walidacja hero/usług/manifesto/kontaktu; auto-sync nazwy i SEO; `finalizeWizardContent` wyłącza sekcje z pustym lub szablonowym contentem (galeria, opinie Google, trust, grafik fitness, Calendly placeholder). |
 | **2026-06-30** | **Regulamin i polityka (audyt prawny):** `regulamin.html` — trial 14 dni, pakiety, managed domain vs CNAME, plan multi-site, managed services; `polityka.html` — role admin/procesor, rozszerzone kategorie danych, podprocesorzy Supabase+Cloudflare+Google+Sentry, cookies bez GA/Meta na dfcms.pl (opcjonalnie w przyszłości). |
 | **2026-06-26** | **Regulamin domen niestandardowych:** `regulamin.html` zawiera nowy punkt o rejestracji, utrzymaniu, wygaśnięciu prawa korzystania i opcjonalnej cesji custom domains; kolejne punkty regulaminu przenumerowane. |
+| **2026-06-23** | **God Mode / Master Admin:** migracja `20260623100512_add_god_mode.sql` dodaje `superadmins` i polityki RLS dla pełnego SELECT/UPDATE/DELETE na `pages` oraz `analytics_events`; `godmode.html` listuje wszystkie strony superadminom; `admin.html?impersonate={slug}` ładuje i zapisuje rekord klienta po `pages.id`, bez użycia billing profilu operatora. |
+| **2026-06-23** | **God Mode UX fix:** `godmode.html` ładuje zależności w tej samej kolejności co `admin.html` (`utils` przed config/repo), a `adminApp.js` po sesji ustawia `isSuperAdmin` i pokazuje link „Master Dashboard” w sidebarze tylko superadminom. |
 | **2026-06-23** | **Root cleanup assets:** utworzono `/assets/images/` jako miejsce na statyczne logotypy/obrazy przenoszone z root; audyt ścieżek nie wykazał aktywnych referencji do `dfops-dark.svg`, `dfops-light.svg` ani `dragonfly_ops_logo.svg`. |
 | **2026-06-23** | **Frontend templates refactor:** branżowe HTML przeniesione z root do `/templates/`; Cloudflare middleware serwuje `/templates/{theme}.html` z zachowaniem starych tras `/{theme}.html`; panel preview i publiczne redirecty używają `/templates/`; dodano `_base_template.html` i `_components_library.html`. |
 | **2026-06-23** | **Cleanup lead demo DB:** migracja `20260623083000_cleanup_lead_demo_pages.sql` usuwa z `public.pages` wygenerowane leadowe `demo-*`, zostawiając oficjalne `demo-beauty`, `demo-fitness`, `demo-services`, `demo-gastro`, `demo-care`, `demo-consultant`. |
