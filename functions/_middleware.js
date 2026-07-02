@@ -1,5 +1,5 @@
 import '../js/core/utils.js';
-import '../js/templates/registry.js';
+import '../js/core/publishedThemes.js';
 
 /**
  * Cloudflare Pages — globalny middleware (SEO + edge routing szablonów + HTMLRewriter + Supabase).

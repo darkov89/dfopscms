@@ -30,7 +30,7 @@
 
   /**
    * Opublikowane motywy = klucze w templatesV3 poza `setup`.
-   * Dodanie wpisu w registry + pliku `/templates/{id}.html` odblokowuje routing, kreator i przełącznik w panelu.
+   * Edge: `js/core/publishedThemes.js` (Workers-safe) — przy nowym szablonie dodaj id w obu miejscach.
    */
   function getPublishedThemeIds() {
     return Object.keys(templatesV3).filter((id) => id !== 'setup');
@@ -696,16 +696,17 @@
     return c;
   }
 
-  window.DFOPS_LATEST_TEMPLATE_VERSION = LATEST_TEMPLATE_VERSION;
-  window.DFOPS_getTemplate = getTemplate;
-  window.DFOPS_getTemplateLabel = getTemplateLabel;
-  window.DFOPS_buildNewSiteContent = buildNewSiteContent;
-  window.DFOPS_resolveTemplateKeyForMerge = resolveTemplateKeyForMerge;
-  window.DFOPS_getTemplateCatalog = getTemplateCatalog;
-  window.DFOPS_getPublishedThemeIds = getPublishedThemeIds;
-  window.DFOPS_getWizardThemeIds = getWizardThemeIds;
-  window.DFOPS_getWizardTemplateCatalog = getWizardTemplateCatalog;
-  window.DFOPS_isPublishedTheme = isPublishedTheme;
-  window.DFOPS_themeUsesColorPalette = themeUsesColorPalette;
+  const g = typeof globalThis !== 'undefined' ? globalThis : window;
+  g.DFOPS_LATEST_TEMPLATE_VERSION = LATEST_TEMPLATE_VERSION;
+  g.DFOPS_getTemplate = getTemplate;
+  g.DFOPS_getTemplateLabel = getTemplateLabel;
+  g.DFOPS_buildNewSiteContent = buildNewSiteContent;
+  g.DFOPS_resolveTemplateKeyForMerge = resolveTemplateKeyForMerge;
+  g.DFOPS_getTemplateCatalog = getTemplateCatalog;
+  g.DFOPS_getPublishedThemeIds = getPublishedThemeIds;
+  g.DFOPS_getWizardThemeIds = getWizardThemeIds;
+  g.DFOPS_getWizardTemplateCatalog = getWizardTemplateCatalog;
+  g.DFOPS_isPublishedTheme = isPublishedTheme;
+  g.DFOPS_themeUsesColorPalette = themeUsesColorPalette;
 })();
 

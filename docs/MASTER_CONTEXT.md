@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-07-01 — rejestr szablonów (auto-odblokowanie), routing subdomen, kreator 6 kroków
+**Ostatnia aktualizacja treści:** 2026-07-02 — fix deploy middleware (publishedThemes.js, bez window w Workers)
 
 ---
 
@@ -275,7 +275,7 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
-| **2026-07-01** | **Rejestr szablonów (auto-odblokowanie):** `js/templates/registry.js` eksportuje `DFOPS_getPublishedThemeIds` / `getWizardTemplateCatalog` — nowy motyw w `templatesV3` + `/templates/{id}.html` automatycznie w middleware, kreatorze i przełączniku panelu; gastro/care w kreatorze onboardingu. |
+| **2026-07-02** | **Fix deploy Pages Functions:** middleware importuje `js/core/publishedThemes.js` zamiast `registry.js` (Workers nie mają `window`); bez tego produkcja zostawała na starym fallbacku bez edge routingu. |
 | **2026-07-01** | **Routing subdomen tenantów:** middleware skanuje kandydatów hosta (`Host` pierwszy), slug z subdomeny bez shim `/?site=`; `index.html` i `routerApp.js` — subdomena → `router.html` / szablon bez query; walidacja `?site=` (odrzucenie URL-i); nieistniejący tenant na `*.dfcms.pl` → 404 zamiast marketingu. |
 | **2026-07-01** | **Kreator onboardingu (zero dummy):** 6 kroków — dodano usługi i O nas; walidacja hero/usług/manifesto/kontaktu; auto-sync nazwy i SEO; `finalizeWizardContent` wyłącza sekcje z pustym lub szablonowym contentem (galeria, opinie Google, trust, grafik fitness, Calendly placeholder). |
 | **2026-06-30** | **Regulamin i polityka (audyt prawny):** `regulamin.html` — trial 14 dni, pakiety, managed domain vs CNAME, plan multi-site, managed services; `polityka.html` — role admin/procesor, rozszerzone kategorie danych, podprocesorzy Supabase+Cloudflare+Google+Sentry, cookies bez GA/Meta na dfcms.pl (opcjonalnie w przyszłości). |
