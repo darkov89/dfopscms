@@ -35,6 +35,7 @@
     <script defer src="js/core/config.js?v=20260617t"></script>
     <script defer src="js/core/supabaseClient.js?v=20260619a"></script>
     <script defer src="js/templates/registry.js?v=20260701a"></script>
+    <script defer src="js/core/themeConfig.js?v=20260702a"></script>
     <script defer src="js/core/contentSchema.js?v=20260404c"></script>
     <script defer src="js/core/contentUpgrader.js?v=20260622a"></script>
     <script defer src="js/core/themeStyling.js?v=20260404c"></script>
@@ -44,7 +45,7 @@
     <script defer src="js/core/googlePlacesSync.js?v=20260522d"></script>
     <script defer src="js/core/analytics.js?v=20260403t"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260701a"></script>
+    <script defer src="js/features/adminApp.js?v=20260702a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -83,24 +84,24 @@
             </div>
         </div>
 
-        <div x-show="wizardStep >= 1 && wizardStep <= 6" class="mx-auto flex min-h-screen max-w-2xl flex-col justify-center p-4 sm:p-6" x-transition.opacity>
+        <div x-show="wizardStep >= 1 && wizardStep <= wizardStepCount" class="mx-auto flex min-h-screen max-w-2xl flex-col justify-center p-4 sm:p-6" x-transition.opacity>
             <div class="mb-8">
                 <div class="mb-2 flex justify-between text-xs font-bold uppercase tracking-widest text-slate-400">
-                    <span>Krok <span x-text="wizardStep"></span> z 6</span>
+                    <span>Krok <span x-text="wizardStep"></span> z <span x-text="wizardStepCount"></span></span>
                     <button type="button" @click="skipWizard()" title="Zapisuje postęp — przy „Uruchom Kreator” wrócisz do tego kroku" class="rounded-md px-2 py-1 text-right text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
                         <span class="block text-[11px] font-bold uppercase tracking-widest">Wrócę później</span>
                         <span class="block text-[10px] font-normal normal-case tracking-normal text-slate-400">bez utraty kroku</span>
                     </button>
                 </div>
                 <div class="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
-                    <div class="h-full rounded-full bg-accent transition-all duration-500 ease-out" :style="'width: ' + ((wizardStep / 6) * 100) + '%'"></div>
+                    <div class="h-full rounded-full bg-accent transition-all duration-500 ease-out" :style="'width: ' + ((wizardStep / wizardStepCount) * 100) + '%'"></div>
                 </div>
             </div>
 
             <div x-show="wizardFieldWarning" class="mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 p-3 text-sm text-amber-950 shadow-panel ring-1 ring-amber-900/5" x-text="wizardFieldWarning"></div>
 
             <div class="rounded-2xl border border-slate-200/70 bg-white p-6 shadow-panel-md ring-1 ring-slate-900/5 sm:p-8 md:p-10">
-                <div x-show="wizardStep === 1" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+                <div x-show="wizardStepId === 'template'" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
                     <h2 class="text-3xl font-black text-slate-900 mb-2">Wybierz swój styl 🎨</h2>
                     <p class="text-sm text-slate-500 mb-8">Od tego zaczniemy. Nie martw się — zmienisz to później w ustawieniach.</p>
 
@@ -125,7 +126,7 @@
                     </div>
                 </div>
 
-                <div x-show="wizardStep === 2" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+                <div x-show="wizardStepId === 'brand'" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
                     <h2 class="text-3xl font-black text-slate-900 mb-2">Jak mają Cię zapamiętać? 💅</h2>
                     <p class="text-sm text-slate-500 mb-8">Zacznijmy od najważniejszego — nazwy, koloru i znaku rozpoznawczego. To pierwszy krok, by zostać w pamięci.</p>
 
@@ -170,7 +171,7 @@
                     </div>
                 </div>
 
-                <div x-show="wizardStep === 3" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+                <div x-show="wizardStepId === 'hero'" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
                     <h2 class="text-3xl font-black text-slate-900 mb-2">Pierwsze wrażenie ✨</h2>
                     <p class="text-sm text-slate-500 mb-8">To sekcja widoczna od razu po wejściu na stronę. Zróbmy z niej wizytówkę.</p>
 
@@ -200,14 +201,14 @@
                     </div>
                 </div>
 
-                <div x-show="wizardStep === 4" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
-                    <h2 class="text-3xl font-black text-slate-900 mb-2">Twoja oferta 💼</h2>
-                    <p class="text-sm text-slate-500 mb-8">Dodaj usługi, które chcesz pokazać na stronie — minimum jedną pozycję z nazwą.</p>
+                <div x-show="wizardStepId === 'offer'" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+                    <h2 class="text-3xl font-black text-slate-900 mb-2" x-text="wizardOfferCopy.title + ' 💼'"></h2>
+                    <p class="text-sm text-slate-500 mb-8" x-text="wizardOfferCopy.lead"></p>
 
-                    <div class="space-y-4">
+                    <div x-show="themeHasSection('services')" class="space-y-4">
                         <template x-for="(service, index) in (content.pl.services || []).slice(0, 3)" :key="'wz-svc-' + index">
                             <div class="rounded-xl border border-slate-200/80 bg-slate-50/50 p-4">
-                                <p class="mb-3 text-[11px] font-bold uppercase tracking-widest text-slate-400">Usługa <span x-text="index + 1"></span></p>
+                                <p class="mb-3 text-[11px] font-bold uppercase tracking-widest text-slate-400"><span x-text="wizardOfferCopy.itemLabel"></span> <span x-text="index + 1"></span></p>
                                 <div class="space-y-3">
                                     <div>
                                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Nazwa</label>
@@ -218,7 +219,7 @@
                                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Cena</label>
                                             <input type="text" x-model="service.price" placeholder="np. od 120 zł" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-accent/30 bg-white">
                                         </div>
-                                        <div x-show="['beauty','fitness','services'].includes(wizardTheme || theme)">
+                                        <div x-show="themeHasSection('services') && ['beauty','fitness','services','care'].includes(wizardTheme || theme)">
                                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Czas / zakres</label>
                                             <input type="text" x-model="service.duration" placeholder="np. 60 min" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-accent/30 bg-white">
                                         </div>
@@ -230,18 +231,49 @@
                                 </div>
                             </div>
                         </template>
-                        <button type="button" x-show="(content.pl.services || []).length < 3" @click="wizardAddServiceRow()" class="w-full rounded-lg border-2 border-dashed border-slate-300 py-3 text-xs font-bold uppercase tracking-widest text-slate-600 transition-colors hover:border-accent hover:text-accent">
-                            + Dodaj kolejną usługę
+                        <button type="button" x-show="(content.pl.services || []).length < 3" @click="wizardAddServiceRow()" class="w-full rounded-lg border-2 border-dashed border-slate-300 py-3 text-xs font-bold uppercase tracking-widest text-slate-600 transition-colors hover:border-accent hover:text-accent" x-text="wizardOfferCopy.addRow"></button>
+                    </div>
+
+                    <div x-show="themeHasSection('menu')" class="space-y-4" x-init="ensureMenuContentShape()">
+                        <template x-for="(item, index) in (content.pl.menu_items || []).slice(0, 4)" :key="'wz-menu-' + index">
+                            <div class="rounded-xl border border-slate-200/80 bg-slate-50/50 p-4">
+                                <p class="mb-3 text-[11px] font-bold uppercase tracking-widest text-slate-400">Danie <span x-text="index + 1"></span></p>
+                                <div class="space-y-3">
+                                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Kategoria</label>
+                                            <input type="text" x-model="item.category" placeholder="np. Przystawki" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-accent/30 bg-white">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Nazwa dania</label>
+                                            <input type="text" x-model="item.name" placeholder="np. Bruschetta" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-accent/30 bg-white">
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Składniki / opis</label>
+                                            <input type="text" x-model="item.ingredients" placeholder="Krótki opis" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-accent/30 bg-white">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Cena</label>
+                                            <input type="text" x-model="item.price" placeholder="np. 24 zł" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-accent/30 bg-white">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                        <button type="button" x-show="(content.pl.menu_items || []).length < 4" @click="wizardAddMenuRow()" class="w-full rounded-lg border-2 border-dashed border-slate-300 py-3 text-xs font-bold uppercase tracking-widest text-slate-600 transition-colors hover:border-accent hover:text-accent">
+                            + Dodaj kolejne danie
                         </button>
                     </div>
                 </div>
 
-                <div x-show="wizardStep === 5" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+                <div x-show="wizardStepId === 'about'" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
                     <h2 class="text-3xl font-black text-slate-900 mb-2">Kilka słów o Tobie ✍️</h2>
                     <p class="text-sm text-slate-500 mb-8">Sekcja „O nas” na stronie — kim jesteś, co Cię wyróżnia, dla kogo pracujesz.</p>
 
                     <div class="space-y-4">
-                        <div x-show="['fitness','services'].includes(wizardTheme || theme)">
+                        <div x-show="themeHasSection('manifesto') && ['fitness','services'].includes(wizardTheme || theme)">
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Mała etykieta nad tytułem</label>
                             <input type="text" x-model="content.pl.manifesto.label" placeholder="np. Dlaczego my" class="w-full rounded-lg border border-slate-200 px-4 py-3 outline-none focus:border-transparent focus:ring-2 focus:ring-accent/30">
                         </div>
@@ -256,7 +288,7 @@
                     </div>
                 </div>
 
-                <div x-show="wizardStep === 6" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+                <div x-show="wizardStepId === 'contact'" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
                     <h2 class="text-3xl font-black text-slate-900 mb-2">Złapmy kontakt 📞</h2>
                     <p class="text-sm text-slate-500 mb-8">Jak nowi klienci mogą się z Tobą skontaktować lub umówić?</p>
 
@@ -325,11 +357,11 @@
                         <button type="button" @click="prevWizardStep()" :disabled="saving" x-show="wizardStep > 1" class="rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 disabled:cursor-not-allowed disabled:opacity-50">← Wróć</button>
                     </div>
                     <div class="flex flex-1 items-center justify-end gap-3">
-                        <button type="button" @click="nextWizardStep()" :disabled="saving" x-show="wizardStep < 6" class="rounded-lg bg-accent-fg px-6 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-panel transition-all duration-200 hover:bg-accent hover:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:px-8 sm:py-4">
+                        <button type="button" @click="nextWizardStep()" :disabled="saving" x-show="wizardStep < wizardStepCount" class="rounded-lg bg-accent-fg px-6 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-panel transition-all duration-200 hover:bg-accent hover:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:px-8 sm:py-4">
                             <span x-show="!saving">Dalej →</span>
                             <span x-show="saving" x-cloak class="animate-pulse">Zapisywanie…</span>
                         </button>
-                        <button type="button" @click="finishWizard()" x-show="wizardStep === 6" class="rounded-lg bg-emerald-600 px-6 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-panel-md shadow-emerald-600/25 transition-all duration-200 animate-pulse hover:bg-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/45 focus-visible:ring-offset-2 sm:px-8 sm:py-4">
+                        <button type="button" @click="finishWizard()" x-show="wizardStep === wizardStepCount" class="rounded-lg bg-emerald-600 px-6 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-panel-md shadow-emerald-600/25 transition-all duration-200 animate-pulse hover:bg-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/45 focus-visible:ring-offset-2 sm:px-8 sm:py-4">
                             ✨ Opublikuj moją stronę
                         </button>
                     </div>
@@ -773,7 +805,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'services' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                        <div x-show="adminTabVisible('services')" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'services' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
                             <button type="button" @click="setTab('services')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
                                 <span :class="activeTab === 'services' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Usługi i ceny</span>
                             </button>
@@ -787,7 +819,12 @@
                                 </div>
                             </div>
                         </div>
-                        <div x-show="theme === 'services'" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'trust' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                        <div x-show="adminTabVisible('menu')" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'menu' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                            <button type="button" @click="setTab('menu')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                <span :class="activeTab === 'menu' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Karta dań / Cennik</span>
+                            </button>
+                        </div>
+                        <div x-show="adminTabVisible('trust')" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'trust' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
                             <button type="button" @click="setTab('trust')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
                                 <span :class="activeTab === 'trust' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Zaufanie</span>
                             </button>
@@ -801,7 +838,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div x-show="theme === 'fitness'" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'schedule' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                        <div x-show="adminTabVisible('schedule')" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'schedule' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
                             <button type="button" @click="setTab('schedule')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
                                 <span :class="activeTab === 'schedule' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Grafik zajęć</span>
                             </button>
@@ -815,7 +852,12 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'booking' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                        <div x-show="adminTabVisible('care_profile')" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'care_profile' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                            <button type="button" @click="setTab('care_profile')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                <span :class="activeTab === 'care_profile' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Informacje o gabinecie</span>
+                            </button>
+                        </div>
+                        <div x-show="adminTabVisible('booking')" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'booking' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
                             <button type="button" @click="setTab('booking')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
                                 <span :class="activeTab === 'booking' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Rezerwacje online</span>
                             </button>
@@ -829,7 +871,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div x-show="['beauty','fitness','services'].includes(theme)" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'gallery' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                        <div x-show="adminTabVisible('gallery')" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'gallery' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
                             <button type="button" @click="setTab('gallery')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
                                 <span :class="activeTab === 'gallery' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Galeria zdjęć</span>
                             </button>
@@ -857,7 +899,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div x-show="['beauty','consultant','fitness','services'].includes(theme)" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'faq' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                        <div x-show="adminTabVisible('faq')" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'faq' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
                             <button type="button" @click="setTab('faq')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
                                 <span :class="activeTab === 'faq' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Pytania i odpowiedzi</span>
                             </button>
@@ -885,7 +927,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div x-show="theme === 'consultant'" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'reviews' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                        <div x-show="adminTabVisible('reviews')" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'reviews' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
                             <button type="button" @click="setTab('reviews')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
                                 <span :class="activeTab === 'reviews' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Opinie własne</span>
                             </button>
@@ -1059,137 +1101,18 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div x-show="theme === 'beauty'" class="pt-2 border-t border-gray-100">
-                                        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Etykiety w menu (Beauty)</h4>
+                                    <div x-show="themeHasSection('nav_labels')" class="pt-2 border-t border-gray-100">
+                                        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Napisy w górnym menu strony</h4>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">O nas</label>
-                                                <input type="text" x-model="content.pl.nav.menu.about" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Cennik</label>
-                                                <input type="text" x-model="content.pl.nav.menu.pricing" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Galeria</label>
-                                                <input type="text" x-model="content.pl.nav.menu.gallery" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Opinie</label>
-                                                <input type="text" x-model="content.pl.nav.menu.reviews" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                            </div>
-                                            <div class="md:col-span-2">
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Pytania i odpowiedzi</label>
-                                                <input type="text" x-model="content.pl.nav.menu.faq" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="np. Pytania i odpowiedzi">
-                                                <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">Ten sam tekst pojawia się w <strong>menu</strong> i jako <strong>nagłówek sekcji</strong> nad listą pytań — możesz go skrócić lub rozwinąć, by brzmiał po twojemu.</p>
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Kontakt</label>
-                                                <input type="text" x-model="content.pl.nav.menu.contact" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                            </div>
+                                            <template x-for="field in navMenuFields" :key="'nav-' + field.key">
+                                                <div :class="field.key === 'faq' ? 'md:col-span-2' : ''">
+                                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2" x-text="field.label"></label>
+                                                    <input type="text" x-model="content.pl.nav.menu[field.key]" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                                    <p x-show="field.key === 'faq'" class="text-xs text-slate-500 mt-1.5 leading-relaxed">Ten sam tekst w menu i jako nagłówek sekcji pytań.</p>
+                                                </div>
+                                            </template>
                                         </div>
-                                        <p class="text-xs text-slate-500 mt-2">Tylko tekst linków — kolejność sekcji wynika z szablonu.</p>
-                                    </div>
-                                    <div x-show="theme === 'consultant'" class="pt-2 border-t border-gray-100">
-                                        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Etykiety w menu (Konsultant)</h4>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">O nas</label>
-                                                <input type="text" x-model="content.pl.nav.menu.about" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Usługi</label>
-                                                <input type="text" x-model="content.pl.nav.menu.pricing" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                            </div>
-                                            <div class="md:col-span-2">
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Pytania i odpowiedzi</label>
-                                                <input type="text" x-model="content.pl.nav.menu.faq" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="np. Pytania i odpowiedzi">
-                                                <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">Ten sam tekst w <strong>menu</strong> i jako <strong>nagłówek sekcji</strong> nad listą pytań.</p>
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Opinie</label>
-                                                <input type="text" x-model="content.pl.nav.menu.reviews" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Kontakt</label>
-                                                <input type="text" x-model="content.pl.nav.menu.contact" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                            </div>
-                                        </div>
-                                        <p class="text-xs text-slate-500 mt-2">Tylko tekst linków w górnym menu — spójny z sekcjami na stronie.</p>
-                                    </div>
-                                    <div x-show="theme === 'fitness'" class="pt-2 border-t border-gray-100">
-                                        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Etykiety w menu (Fitness)</h4>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">O mnie / O nas</label>
-                                                <input type="text" x-model="content.pl.nav.menu.about" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Treningi / oferta</label>
-                                                <input type="text" x-model="content.pl.nav.menu.pricing" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Grafik</label>
-                                                <input type="text" x-model="content.pl.nav.menu.schedule" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Galeria</label>
-                                                <input type="text" x-model="content.pl.nav.menu.gallery" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Opinie</label>
-                                                <input type="text" x-model="content.pl.nav.menu.reviews" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">FAQ</label>
-                                                <input type="text" x-model="content.pl.nav.menu.faq" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                            </div>
-                                            <div class="md:col-span-2">
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Kontakt</label>
-                                                <input type="text" x-model="content.pl.nav.menu.contact" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                            </div>
-                                        </div>
-                                        <p class="text-xs text-slate-500 mt-2">Kolejność sekcji wynika z szablonu Fitness — edytujesz tylko napisy linków.</p>
-                                    </div>
-                                    <div x-show="theme === 'services'" class="pt-2 border-t border-gray-100">
-                                        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Etykiety w menu (Usługi)</h4>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">O nas</label>
-                                                <input type="text" x-model="content.pl.nav.menu.about" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Zakres usług</label>
-                                                <input type="text" x-model="content.pl.nav.menu.pricing" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Realizacje / galeria</label>
-                                                <input type="text" x-model="content.pl.nav.menu.gallery" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Zaufanie</label>
-                                                <input type="text" x-model="content.pl.nav.menu.trust" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="np. Zaufanie">
-                                                <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">Widoczny, gdy sekcja Zaufanie jest włączona i jest cytat.</p>
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Opinie z Google</label>
-                                                <input type="text" x-model="content.pl.nav.menu.reviews" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                            </div>
-                                            <div class="md:col-span-2">
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Pytania i odpowiedzi (FAQ)</label>
-                                                <input type="text" x-model="content.pl.nav.menu.faq" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="np. FAQ">
-                                            </div>
-                                            <div class="md:col-span-2">
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Kontakt</label>
-                                                <input type="text" x-model="content.pl.nav.menu.contact" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                            </div>
-                                            <div class="md:col-span-2">
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Przycisk na pierwszym ekranie (Powitanie)</label>
-                                                <input type="text" x-model="content.pl.nav.cta" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="np. Zadzwoń">
-                                                <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">Ten sam tekst co główny przycisk na pierwszym ekranie w szablonie Usługi.</p>
-                                            </div>
-                                        </div>
-                                        <p class="text-xs text-slate-500 mt-2">Tylko teksty linków i przycisku — kolejność sekcji wynika z szablonu.</p>
+                                        <p class="text-xs text-slate-500 mt-2">Tylko teksty linków — kolejność sekcji wynika z wybranego szablonu.</p>
                                     </div>
                                 </div>
                             </section>
@@ -1666,7 +1589,7 @@
                             </div>
                         </div>
 
-                        <div class="mt-8 pt-6 border-t border-gray-100" x-show="['beauty','consultant','fitness','services'].includes(theme)">
+                        <div class="mt-8 pt-6 border-t border-gray-100" x-show="themeHasSection('manifesto')">
                             <h3 class="text-sm font-bold text-slate-900 mb-4">Sekcja O nas</h3>
                             <div class="mb-4" x-show="['fitness','services'].includes(theme)">
                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Mała etykieta nad tytułem</label>
@@ -1683,7 +1606,7 @@
                             </div>
                         </div>
 
-                        <div class="mt-8 pt-6 border-t border-gray-100" x-show="theme === 'beauty'">
+                        <div class="mt-8 pt-6 border-t border-gray-100" x-show="themeHasSection('qr_code')">
                             <h3 class="text-sm font-bold text-slate-900 mb-4">Kod QR do rezerwacji</h3>
                             <div class="mb-4">
                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tekst nad kodem QR</label>
@@ -1713,7 +1636,148 @@
                         </div>
                     </div>
 
-                    <div x-show="activeTab === 'services'" x-transition.opacity x-cloak>
+                    <div x-show="activeTab === 'care_profile' && adminTabVisible('care_profile')" x-transition.opacity x-cloak>
+                        <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
+                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Informacje o gabinecie</h2>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl">Obszary pomocy i certyfikaty widoczne w szablonie Care — puste sekcje znikają ze strony.</p>
+                        </div>
+                        <div class="space-y-8">
+                            <div x-show="themeHasSection('help_areas')">
+                                <h3 class="text-sm font-bold text-slate-900 mb-4">Obszary pomocy</h3>
+                                <template x-for="(area, index) in (content.pl.help_areas || [])" :key="'ha-'+index">
+                                    <div class="bg-gray-50 p-5 rounded-lg border mb-4 relative">
+                                        <button type="button" @click="content.pl.help_areas.splice(index, 1)" class="absolute top-3 right-3 text-red-400 text-xs">Usuń</button>
+                                        <div class="space-y-3 pr-10">
+                                            <input type="text" x-model="area.title" placeholder="Tytuł" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm font-bold bg-white outline-none focus:ring-2 focus:ring-accent/30">
+                                            <textarea x-model="area.desc" rows="2" placeholder="Krótki opis" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-accent/30 resize-y"></textarea>
+                                        </div>
+                                    </div>
+                                </template>
+                                <button type="button" @click="(content.pl.help_areas = content.pl.help_areas || []).push({ title: '', desc: '' })" class="w-full border-2 border-dashed border-gray-300 text-slate-600 text-sm py-3 rounded-sm hover:border-accent">+ Dodaj obszar pomocy</button>
+                            </div>
+                            <div x-show="themeHasSection('certificates')">
+                                <h3 class="text-sm font-bold text-slate-900 mb-4">Certyfikaty i uprawnienia</h3>
+                                <template x-for="(cert, index) in (content.pl.certificates || [])" :key="'cert-'+index">
+                                    <div class="bg-gray-50 p-5 rounded-lg border mb-4 relative">
+                                        <button type="button" @click="content.pl.certificates.splice(index, 1)" class="absolute top-3 right-3 text-red-400 text-xs">Usuń</button>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pr-10">
+                                            <input type="text" x-model="cert.title" placeholder="Nazwa" class="rounded-lg border border-slate-200 px-4 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-accent/30">
+                                            <input type="text" x-model="cert.issuer" placeholder="Wydawca / rok" class="rounded-lg border border-slate-200 px-4 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-accent/30">
+                                        </div>
+                                    </div>
+                                </template>
+                                <button type="button" @click="(content.pl.certificates = content.pl.certificates || []).push({ title: '', issuer: '' })" class="w-full border-2 border-dashed border-gray-300 text-slate-600 text-sm py-3 rounded-sm hover:border-accent">+ Dodaj certyfikat</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div x-show="activeTab === 'menu' && adminTabVisible('menu')" x-transition.opacity x-cloak x-init="ensureMenuContentShape()">
+                        <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
+                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Karta dań / Cennik</h2>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Wybierz, jak chcesz pokazać menu na stronie — link, zdjęcie lub wpisane pozycje.</p>
+                            <div class="space-y-3">
+                                <label class="flex items-center gap-3 cursor-pointer rounded-lg border border-slate-200 px-4 py-3 hover:bg-slate-50">
+                                    <input type="radio" value="link" x-model="content.pl.menu_mode" class="text-accent focus:ring-accent/30">
+                                    <span class="text-sm text-slate-800">Dodaj odnośnik do swojego menu online</span>
+                                </label>
+                                <label class="flex items-center gap-3 cursor-pointer rounded-lg border border-slate-200 px-4 py-3 hover:bg-slate-50">
+                                    <input type="radio" value="image" x-model="content.pl.menu_mode" class="text-accent focus:ring-accent/30">
+                                    <span class="text-sm text-slate-800">Wgraj zdjęcie lub kod QR menu</span>
+                                </label>
+                                <label class="flex items-center gap-3 cursor-pointer rounded-lg border border-slate-200 px-4 py-3 hover:bg-slate-50">
+                                    <input type="radio" value="manual" x-model="content.pl.menu_mode" class="text-accent focus:ring-accent/30">
+                                    <span class="text-sm text-slate-800">Wpisz pozycje ręcznie na stronie</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div x-show="content.pl.menu_mode === 'link'" class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Adres strony z menu</label>
+                            <input type="text" x-model="content.pl.menu_link" placeholder="np. https://twoja-restauracja.pl/menu" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent/30">
+                            <p class="text-xs text-slate-500 mt-2">Goście przejdą pod ten adres po kliknięciu przycisku na stronie.</p>
+                        </div>
+
+                        <div x-show="content.pl.menu_mode === 'image'" class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Wybierz plik ze zdjęciem swojego menu</label>
+                            <div class="flex flex-wrap items-start gap-6">
+                                <div class="w-32 h-40 rounded-lg border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden bg-slate-50">
+                                    <template x-if="content.pl.menu_image"><img :src="content.pl.menu_image" class="w-full h-full object-contain" alt=""></template>
+                                    <template x-if="!content.pl.menu_image"><span class="text-[10px] text-slate-400 text-center px-2">Brak pliku</span></template>
+                                </div>
+                                <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-accent/35 bg-amber-50/80 px-4 py-2.5 text-xs font-semibold text-accent-soft hover:bg-amber-50">
+                                    Wybierz plik
+                                    <input type="file" accept="image/*" class="sr-only" @change="uploadImage($event, 'menu', 'menu_image')">
+                                </label>
+                            </div>
+                            <p x-show="uploadingImage" x-text="uploadingMessage" class="text-xs text-accent mt-2 font-bold animate-pulse"></p>
+                        </div>
+
+                        <div x-show="content.pl.menu_mode === 'manual'" class="space-y-6">
+                            <template x-for="(item, index) in (content.pl.menu_items || [])" :key="'menu-'+index">
+                                <div class="bg-gray-50 p-6 rounded-lg border relative">
+                                    <button type="button" @click="content.pl.menu_items.splice(index, 1)" class="absolute top-4 right-4 text-red-400 hover:text-red-600 text-xs font-medium">Usuń</button>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pr-12">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Kategoria</label>
+                                            <input type="text" x-model="item.category" placeholder="np. Dania główne" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm bg-white focus:ring-2 focus:ring-accent/30 outline-none">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Nazwa dania</label>
+                                            <input type="text" x-model="item.name" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm font-bold bg-white focus:ring-2 focus:ring-accent/30 outline-none">
+                                        </div>
+                                        <div class="md:col-span-2">
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Składniki / krótki opis</label>
+                                            <input type="text" x-model="item.ingredients" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm bg-white focus:ring-2 focus:ring-accent/30 outline-none">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Cena</label>
+                                            <input type="text" x-model="item.price" placeholder="np. 42 zł" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm font-bold text-accent-soft bg-white focus:ring-2 focus:ring-accent/30 outline-none">
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                            <button type="button" @click="addMenuItemRow()" class="w-full border-2 border-dashed border-gray-300 text-slate-600 font-semibold text-sm py-4 rounded-sm hover:bg-[#D4AF37] hover:text-white hover:border-[#D4AF37] transition-all">
+                                + Dodaj pozycję do karty dań
+                            </button>
+                        </div>
+
+                        <div x-show="themeHasSection('opening_hours')" class="mt-8 rounded-xl border border-slate-200/70 bg-white p-6 shadow-panel ring-1 ring-slate-900/5">
+                            <h3 class="text-sm font-bold text-slate-900 mb-4">Godziny otwarcia</h3>
+                            <div class="mb-4">
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Nagłówek sekcji</label>
+                                <input type="text" x-model="content.pl.hours.title" class="w-full rounded-lg border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-accent/30">
+                            </div>
+                            <template x-for="(line, hi) in (content.pl.hours?.lines || [])" :key="'hr-'+hi">
+                                <div class="flex gap-2 mb-2">
+                                    <input type="text" x-model="content.pl.hours.lines[hi]" placeholder="np. Wt–Nd: 12:00 — 22:00" class="flex-1 rounded-lg border border-slate-200 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-accent/30">
+                                    <button type="button" @click="content.pl.hours.lines.splice(hi, 1)" class="text-red-400 text-xs font-bold px-2">Usuń</button>
+                                </div>
+                            </template>
+                            <button type="button" @click="addMenuHourLine()" class="mt-2 text-xs font-bold uppercase tracking-widest text-accent hover:underline">+ Dodaj wiersz godzin</button>
+                        </div>
+
+                        <div x-show="themeHasSection('orders')" class="mt-8 rounded-xl border border-slate-200/70 bg-white p-6 shadow-panel ring-1 ring-slate-900/5 space-y-4">
+                            <h3 class="text-sm font-bold text-slate-900">Zamówienia i rezerwacje</h3>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Mały nagłówek nad sekcją</label>
+                                <input type="text" x-model="content.pl.orders.label" class="w-full rounded-lg border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-accent/30">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tytuł</label>
+                                <input type="text" x-model="content.pl.orders.title" class="w-full rounded-lg border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-accent/30">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Opis</label>
+                                <textarea x-model="content.pl.orders.description" rows="3" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent/30 resize-y"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tekst na przycisku telefonu</label>
+                                <input type="text" x-model="content.pl.orders.call_button" class="w-full rounded-lg border border-slate-200 px-4 py-3 outline-none focus:ring-2 focus:ring-accent/30">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div x-show="activeTab === 'services' && adminTabVisible('services')" x-transition.opacity x-cloak>
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
                             <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Usługi</h2>
                             <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Dostosuj swój cennik i usługi — klienci zobaczą je w przejrzystej formie, gdy włączysz sekcję.</p>
@@ -1778,7 +1842,7 @@
                         </div>
                     </div>
 
-                    <div x-show="activeTab === 'schedule' && theme === 'fitness'" x-transition.opacity x-cloak>
+                    <div x-show="activeTab === 'schedule' && adminTabVisible('schedule')" x-transition.opacity x-cloak>
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
                             <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Grafik zajęć</h2>
                             <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-3">Wiersze wyświetlane w sekcji „Grafik” na stronie (szablon Fitness). Możesz dodać np. dni tygodnia, godziny otwarcia i krótką notatkę.</p>
@@ -1894,7 +1958,7 @@
                         </div>
                     </div>
 
-                    <div x-show="activeTab === 'trust' && theme === 'services'" x-transition.opacity x-cloak>
+                    <div x-show="activeTab === 'trust' && adminTabVisible('trust')" x-transition.opacity x-cloak>
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
                             <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Zaufanie</h2>
                             <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Krótki cytat i ocena — budują wiarygodność przed blokiem z Google. Wyłączona sekcja znika ze strony, ale treści zostają w Studiu.</p>

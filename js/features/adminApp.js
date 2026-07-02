@@ -66,10 +66,62 @@
   const WIZARD_STATE_VERSION = 2;
   const WIZARD_STEP_COUNT = 6;
 
+  function getThemeSections(theme) {
+    if (typeof window.DFOPS_getThemeSections === 'function') {
+      return window.DFOPS_getThemeSections(theme);
+    }
+    return [];
+  }
+
+  function themeHasSection(theme, section) {
+    if (typeof window.DFOPS_themeHasSection === 'function') {
+      return window.DFOPS_themeHasSection(theme, section);
+    }
+    return false;
+  }
+
+  function adminTabVisibleForTheme(theme, tabId) {
+    if (typeof window.DFOPS_adminTabVisible === 'function') {
+      return window.DFOPS_adminTabVisible(theme, tabId);
+    }
+    return true;
+  }
+
+  function getActiveWizardStepIds(theme) {
+    if (typeof window.DFOPS_getActiveWizardStepIds === 'function') {
+      return window.DFOPS_getActiveWizardStepIds(theme);
+    }
+    return ['template', 'brand', 'hero', 'offer', 'about', 'contact'];
+  }
+
+  function wizardStepIdAtIndex(theme, index) {
+    if (typeof window.DFOPS_wizardStepIdAtIndex === 'function') {
+      return window.DFOPS_wizardStepIdAtIndex(theme, index);
+    }
+    const legacy = ['', 'template', 'brand', 'hero', 'offer', 'about', 'contact'];
+    return legacy[index] || 'template';
+  }
+
+  function wizardOfferSection(theme) {
+    if (typeof window.DFOPS_wizardOfferSection === 'function') {
+      return window.DFOPS_wizardOfferSection(theme);
+    }
+    return themeHasSection(theme, 'services') ? 'services' : null;
+  }
+
+  function resolveWizardStepIndex(theme, savedStep) {
+    if (typeof window.DFOPS_resolveWizardStepIndex === 'function') {
+      return window.DFOPS_resolveWizardStepIndex(theme, savedStep);
+    }
+    return savedStep;
+  }
+
   /** Zakładki Studia — zgodnie z przyciskami w `admin.html` (hash w URL przy `setTab`). */
   const ADMIN_TAB_IDS = new Set([
     'hero',
     'services',
+    'menu',
+    'care_profile',
     'trust',
     'schedule',
     'booking',
@@ -135,10 +187,15 @@
       if (data.v !== WIZARD_STATE_VERSION && step >= 4) {
         step = WIZARD_STEP_COUNT;
       }
+      const normTheme = normalizeWizardTheme(theme);
       if (theme && !getWizardTemplateIds().includes(theme)) return null;
+      step = resolveWizardStepIndex(normTheme, step);
+      const maxStep = getActiveWizardStepIds(normTheme).length;
+      if (step < 0) step = 0;
+      if (step > maxStep) step = maxStep;
       return {
         step,
-        theme: normalizeWizardTheme(theme),
+        theme: normTheme,
       };
     } catch {
       return null;
@@ -212,13 +269,17 @@
       s = 1;
     }
     if (s < 0) s = 0;
-    if (s > WIZARD_STEP_COUNT) s = WIZARD_STEP_COUNT;
     const allowed = new Set(getWizardTemplateIds());
     let wt = 'beauty';
     if (pageTheme && allowed.has(pageTheme)) {
       wt = pageTheme;
     } else if (wizardTheme && allowed.has(wizardTheme)) {
       wt = wizardTheme;
+    }
+    if (s > 0) {
+      s = resolveWizardStepIndex(wt, s);
+      const maxStep = getActiveWizardStepIds(wt).length;
+      if (s > maxStep) s = maxStep;
     }
     return { step: s, theme: wt };
   }
@@ -302,6 +363,34 @@
     };
   }
 
+  function emptyWizardMenuItem() {
+    return { category: '', name: '', ingredients: '', price: '' };
+  }
+
+  function menuItemsMatchTemplate(items, tmplItems) {
+    if (!Array.isArray(tmplItems) || tmplItems.length === 0) {
+      return !Array.isArray(items) || items.length === 0;
+    }
+    if (!Array.isArray(items) || items.length !== tmplItems.length) return false;
+    return items.every((row, i) => {
+      const t = tmplItems[i] || {};
+      return (
+        normWizardText(row?.name) === normWizardText(t.name) &&
+        normWizardText(row?.price) === normWizardText(t.price)
+      );
+    });
+  }
+
+  function prepareWizardMenuStep(pl, theme) {
+    const tmpl = getWizardTemplatePl(theme);
+    const tmplItems = tmpl?.menu_items;
+    if (menuItemsMatchTemplate(pl.menu_items, tmplItems)) {
+      pl.menu_items = [emptyWizardMenuItem(), emptyWizardMenuItem()];
+    } else if (!Array.isArray(pl.menu_items) || pl.menu_items.length === 0) {
+      pl.menu_items = [emptyWizardMenuItem()];
+    }
+  }
+
   function syncWizardDerivedFields(pl, theme) {
     if (!pl) return;
     const tmpl = getWizardTemplatePl(theme);
@@ -360,9 +449,15 @@
       pl.services = pl.services.filter((s) => normWizardText(s?.title));
     }
 
+    if (themeHasSection(theme, 'menu') && Array.isArray(pl.menu_items)) {
+      pl.menu_items = pl.menu_items.filter((row) => normWizardText(row?.name));
+    }
+
     const hasServices =
       Array.isArray(pl.services) && pl.services.some((s) => normWizardText(s?.title));
-    pl.settings.showServices = hasServices;
+    if (themeHasSection(theme, 'services')) {
+      pl.settings.showServices = hasServices;
+    }
 
     const hasManifesto = !!normWizardText(pl.manifesto?.text);
     pl.settings.showManifesto = hasManifesto;
@@ -462,6 +557,14 @@
         },
         reviews: [],
         schedule: [],
+        hours: { title: 'Godziny otwarcia', lines: [] },
+        menu_items: [],
+        menu_mode: 'manual',
+        menu_link: '',
+        menu_image: '',
+        orders: { label: '', title: '', description: '', call_button: '' },
+        help_areas: [],
+        certificates: [],
         trust: { title: '', quote: '', author: '', subtitle: '', stars: 5 },
         seo: { title: '', description: '', ogImage: '' },
         privacy: { mode: 'default', customText: '' },
@@ -503,6 +606,7 @@
     if (section === 'hero' && field === 'image') return 'Chwileczkę, dodaję Twoje zdjęcie…';
     if (section === 'hero' && field === 'qrImage') return 'Zapisuję ten detal — kod QR…';
     if (section === 'gallery' && field === 'images') return 'Chwileczkę, dodaję zdjęcie do galerii…';
+    if (section === 'menu' && field === 'menu_image') return 'Zapisuję zdjęcie Twojego menu…';
     if (section === 'reviews' && field === 'logoImage') return 'Przetwarzam ikonkę przy tej opinii…';
     if (section === 'seo' && field === 'ogImage') return 'Zapisuję obrazek do podglądu w mediach…';
     return 'Chwileczkę, dodaję Twoje zdjęcie…';
@@ -763,9 +867,18 @@
           },
           {
             w: 13,
-            ok: () =>
-              Array.isArray(pl.services) &&
-              pl.services.some((s) => s && isNonEmptyContentString(s.title)),
+            ok: () => {
+              if (themeHasSection(this.theme, 'menu')) {
+                return (
+                  Array.isArray(pl.menu_items) &&
+                  pl.menu_items.some((row) => row && isNonEmptyContentString(row.name))
+                );
+              }
+              return (
+                Array.isArray(pl.services) &&
+                pl.services.some((s) => s && isNonEmptyContentString(s.title))
+              );
+            },
           },
           {
             w: 12,
@@ -804,10 +917,12 @@
         this.wizardTheme = norm.theme;
         const pl = this.content?.pl;
         const theme = this.wizardTheme || pageTheme;
-        if (pl && this.wizardStep === 4) {
-          prepareWizardServicesStep(pl, theme);
+        const stepId = wizardStepIdAtIndex(theme, this.wizardStep);
+        if (pl && stepId === 'offer') {
+          if (wizardOfferSection(theme) === 'menu') prepareWizardMenuStep(pl, theme);
+          else prepareWizardServicesStep(pl, theme);
         }
-        if (pl && this.wizardStep === 5) {
+        if (pl && stepId === 'about') {
           prepareWizardManifestoStep(pl, theme);
         }
       },
@@ -945,6 +1060,38 @@
           return window.DFOPS_getWizardTemplateCatalog();
         }
         return this.templateCatalog;
+      },
+      get wizardActiveTheme() {
+        return this.showWizard
+          ? normalizeWizardTheme(this.wizardTheme || this.theme || 'beauty')
+          : normalizeWizardTheme(this.theme || 'beauty');
+      },
+      get activeThemeSections() {
+        return getThemeSections(this.wizardActiveTheme);
+      },
+      themeHasSection(section) {
+        return themeHasSection(this.wizardActiveTheme, section);
+      },
+      adminTabVisible(tabId) {
+        return adminTabVisibleForTheme(this.theme, tabId);
+      },
+      get wizardStepId() {
+        return wizardStepIdAtIndex(this.wizardActiveTheme, this.wizardStep) || 'template';
+      },
+      get wizardStepCount() {
+        return getActiveWizardStepIds(this.wizardActiveTheme).length;
+      },
+      get wizardOfferCopy() {
+        if (typeof window.DFOPS_getWizardOfferCopy === 'function') {
+          return window.DFOPS_getWizardOfferCopy(this.wizardActiveTheme);
+        }
+        return { title: 'Twoja oferta', lead: '', itemLabel: 'Usługa', addRow: '+' };
+      },
+      get navMenuFields() {
+        if (typeof window.DFOPS_getNavMenuFields === 'function') {
+          return window.DFOPS_getNavMenuFields(this.theme);
+        }
+        return [];
       },
       onTemplateTileClick(entry) {
         if (!entry || this.saving) return;
@@ -1101,13 +1248,7 @@
       ensureActiveTabForTheme() {
         const t = String(this.theme || '').trim();
         const tab = this.activeTab;
-        const galleryOk = ['beauty', 'fitness', 'services'].includes(t);
-        const faqOk = ['beauty', 'consultant', 'fitness', 'services'].includes(t);
-        if (tab === 'gallery' && !galleryOk) this.setTab('hero');
-        else if (tab === 'faq' && !faqOk) this.setTab('hero');
-        else if (tab === 'schedule' && t !== 'fitness') this.setTab('hero');
-        else if (tab === 'trust' && t !== 'services') this.setTab('hero');
-        else if (tab === 'reviews' && t !== 'consultant') this.setTab('hero');
+        if (!adminTabVisibleForTheme(t, tab)) this.setTab('hero');
       },
 
       maybeShowPaymentReturnToast() {
@@ -2412,17 +2553,19 @@
       validateWizardStep(step) {
         const pl = this.content?.pl;
         if (!pl) return '';
-        if (step === 1) {
+        const theme = this.wizardActiveTheme;
+        const stepId = wizardStepIdAtIndex(theme, step);
+        if (stepId === 'template') {
           if (!getWizardTemplateIds().includes(this.wizardTheme)) {
             return 'Wybierz szablon branżowy.';
           }
         }
-        if (step === 2) {
+        if (stepId === 'brand') {
           if (!String(pl.nav?.logo || '').trim()) {
             return 'Podaj nazwę firmy — wyświetli się w menu i buduje rozpoznawalność marki.';
           }
         }
-        if (step === 3) {
+        if (stepId === 'hero') {
           const tmpl = getWizardTemplatePl(this.wizardTheme || this.theme);
           if (isWizardPlaceholder(pl.hero?.headline, tmpl?.hero?.headline)) {
             return 'Podaj główne hasło na stronie — zastąp przykładowy tekst z szablonu.';
@@ -2431,19 +2574,28 @@
             return 'Napisz krótki opis pod nagłówkiem — goście muszą wiedzieć, czym się zajmujesz.';
           }
         }
-        if (step === 4) {
-          const hasService =
-            Array.isArray(pl.services) && pl.services.some((s) => normWizardText(s?.title));
-          if (!hasService) {
-            return 'Dodaj co najmniej jedną usługę z nazwą — klienci muszą wiedzieć, co oferujesz.';
+        if (stepId === 'offer') {
+          const offerKind = wizardOfferSection(theme);
+          if (offerKind === 'menu') {
+            const hasMenu =
+              Array.isArray(pl.menu_items) && pl.menu_items.some((row) => normWizardText(row?.name));
+            if (!hasMenu) {
+              return 'Dodaj co najmniej jedno danie z nazwą — goście muszą wiedzieć, co serwujesz.';
+            }
+          } else {
+            const hasService =
+              Array.isArray(pl.services) && pl.services.some((s) => normWizardText(s?.title));
+            if (!hasService) {
+              return 'Dodaj co najmniej jedną usługę z nazwą — klienci muszą wiedzieć, co oferujesz.';
+            }
           }
         }
-        if (step === 5) {
+        if (stepId === 'about') {
           if (!normWizardText(pl.manifesto?.text)) {
             return 'Napisz kilka zdań o sobie lub swojej firmie — sekcja „O nas” nie może zostać pusta.';
           }
         }
-        if (step === 6) {
+        if (stepId === 'contact') {
           const phone = String(pl.contact?.phone || '').trim();
           const email = String(pl.contact?.email || '').trim();
           if (!phone && !email) {
@@ -2485,13 +2637,16 @@
 
         const pl = this.content?.pl;
         const activeTheme = this.wizardTheme || this.theme;
-        if (pl && (this.wizardStep === 2 || this.wizardStep === 3)) {
+        const stepId = wizardStepIdAtIndex(activeTheme, this.wizardStep);
+        if (pl && (stepId === 'brand' || stepId === 'hero')) {
           syncWizardDerivedFields(pl, activeTheme);
         }
-        if (pl && this.wizardStep === 3) {
-          prepareWizardServicesStep(pl, activeTheme);
+        if (pl && stepId === 'hero') {
+          const offerKind = wizardOfferSection(activeTheme);
+          if (offerKind === 'menu') prepareWizardMenuStep(pl, activeTheme);
+          else if (offerKind === 'services') prepareWizardServicesStep(pl, activeTheme);
         }
-        if (pl && this.wizardStep === 4) {
+        if (pl && stepId === 'offer') {
           prepareWizardManifestoStep(pl, activeTheme);
         }
 
@@ -2547,7 +2702,7 @@
           return;
         }
 
-        if (this.wizardStep < WIZARD_STEP_COUNT) {
+        if (this.wizardStep < this.wizardStepCount) {
           if (typeof window.DFOPS_trackEvent === 'function') {
             window.DFOPS_trackEvent('onboarding_step_completed', { step: this.wizardStep });
           }
@@ -2563,6 +2718,34 @@
         const theme = this.wizardTheme || this.theme || 'beauty';
         pl.services.push(emptyWizardService(theme));
       },
+      wizardAddMenuRow() {
+        const pl = this.content?.pl;
+        if (!pl) return;
+        if (!Array.isArray(pl.menu_items)) pl.menu_items = [];
+        if (pl.menu_items.length >= 6) return;
+        pl.menu_items.push(emptyWizardMenuItem());
+      },
+      ensureMenuContentShape() {
+        const pl = this.content?.pl;
+        if (!pl) return;
+        if (!pl.hours || typeof pl.hours !== 'object') {
+          pl.hours = { title: 'Godziny otwarcia', lines: [] };
+        }
+        if (!Array.isArray(pl.hours.lines)) pl.hours.lines = [];
+        if (!Array.isArray(pl.menu_items)) pl.menu_items = [];
+        if (!pl.orders || typeof pl.orders !== 'object') {
+          pl.orders = { label: '', title: '', description: '', call_button: '' };
+        }
+        if (!pl.menu_mode) pl.menu_mode = 'manual';
+      },
+      addMenuHourLine() {
+        this.ensureMenuContentShape();
+        this.content.pl.hours.lines.push('');
+      },
+      addMenuItemRow() {
+        this.ensureMenuContentShape();
+        this.content.pl.menu_items.push(emptyWizardMenuItem());
+      },
       prevWizardStep() {
         this.wizardFieldWarning = '';
         if (this.wizardStep > 1) this.wizardStep--;
@@ -2570,7 +2753,7 @@
       },
       async finishWizard() {
         if (!this.content?.[this.lang]?.settings) return;
-        const err = this.validateWizardStep(WIZARD_STEP_COUNT);
+        const err = this.validateWizardStep(this.wizardStepCount);
         if (err) {
           this.wizardFieldWarning = err;
           return;
@@ -3375,6 +3558,8 @@
             if (!pl.gallery) pl.gallery = { title: 'Nasze realizacje', images: [] };
             if (!Array.isArray(pl.gallery.images)) pl.gallery.images = [];
             pl.gallery.images.push(publicUrlData.publicUrl);
+          } else if (section === 'menu' && field === 'menu_image') {
+            pl.menu_image = publicUrlData.publicUrl;
           } else if (index !== null) {
             const sec = pl[section];
             const el = Array.isArray(sec) ? sec[index] : sec?.[index];

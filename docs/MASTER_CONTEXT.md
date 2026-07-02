@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-07-02 — fix deploy middleware (publishedThemes.js, bez window w Workers)
+**Ostatnia aktualizacja treści:** 2026-07-02 — themeConfig: kontekstowy panel admina i kreator per szablon
 
 ---
 
@@ -74,7 +74,7 @@ Użytkownik → Auth → pages.content + pages.billing_plan + billing_profiles
 | Warstwa | Kluczowe artefakty |
 |--------|---------------------|
 | **Front publiczny** | `index.html` (dark-mode SaaS landing spójny z admin/rejestracją: `#121212` + `#D4AF37`; hero 3 min, `#jak`, `#wyposazenie`, `#spokoj`, `#demo`, `#cennik`, SEO + `favicon.svg`), demo przez `router.html?site=demo-*` (beauty/services/care/gastro/fitness/consultant). Szablony branżowe HTML są w `/templates/` (`beauty`, `consultant`, `fitness`, `services`, `gastro`, `care`); media statyczne przenoszone z root trafiają do `/assets/images/`; boilerplate nowych szablonów: `/templates/_base_template.html`; klocki UI: `/templates/_components_library.html`. `setup.html` zostaje w root. `landingPricing.js` — plany cennika i dane landingowe. |
-| **Panel CMS** | `admin.html`, `adminApp.js`. Draft vs published: `pages.draft_content` / `pages.content`. Subskrypcja: Starter/Standard/Custom, `billingInterval`, Stripe Checkout + Portal. Smart Booking: `settings.booking_mode` + `contact.booking_url`. God Mode: `godmode.html` → `admin.html?impersonate={slug}` dla superadminów. |
+| **Panel CMS** | `admin.html`, `adminApp.js`. **`js/core/themeConfig.js`** — sekcje per `pages.theme` (`DFOPS_themeHasSection`, zakładki, kroki kreatora); pola panelu i kreator widoczne tylko gdy sekcja istnieje w szablonie (np. gastro: karta dań + godziny, bez „Usług”). Draft vs published: `pages.draft_content` / `pages.content`. Subskrypcja: Starter/Standard/Custom, `billingInterval`, Stripe Checkout + Portal. Smart Booking: `settings.booking_mode` + `contact.booking_url`. God Mode: `godmode.html` → `admin.html?impersonate={slug}` dla superadminów. |
 | **Backend** | `pages`, `billing_profiles`, `superadmins`, RLS. Schemat baseline: `20260603072317_remote_schema.sql`; God Mode: `20260623100512_add_god_mode.sql`. |
 | **Płatności** | Starter `tier0`, Standard `tier1`, Custom poza Stripe. Secrets: `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_STARTER_YEARLY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_PRO_YEARLY`. wFirma: `WFIRMA_*`, ledger `wfirma_invoice_ledger`. |
 
@@ -96,7 +96,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 - **Kasacja (30 dni):** RPC `purge_trial_blocked_pages_after_grace()` — **domyślnie wyłączona** w Edge (`AUTO_PURGE_ENABLED` ≠ true); raport do ręcznej kasacji.
 - **Powiadomienia cron:** **Telegram** (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`) — Markdown; **Resend usunięty** z `expire-trial-pages`. Secrets crona: `CRON_SECRET`. Harmonogram: Dashboard → Integrations → Cron → POST `expire-trial-pages`.
 
-**Onboarding:** modal powitalny, Driver.js, kreator (wizard), `welcome_onboarding_completed` / `onboarding_completed` w `pages.content`.
+**Onboarding:** modal powitalny, Driver.js, kreator (wizard) sterowany `themeConfig` — liczba i treść kroków zależy od `pages.theme`; `welcome_onboarding_completed` / `onboarding_completed` w `pages.content`.
 
 **Prawo & Bezpieczeństwo:** panel `admin.html#legal` zarządza `pages.content.pl.privacy` (`mode: 'default' | 'custom'`, `customText`). Publiczny route `/polityka-prywatnosci` renderuje standardową politykę DFCMS albo własny dokument użytkownika przez DOMPurify i zawsze dokleja klauzulę infrastruktury DFCMS/Supabase/Cloudflare.
 
@@ -110,10 +110,42 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 
 - **Modal powitalny** (`showWelcomeModal`): warunek — `welcome_onboarding_completed` w `content.pl.settings`.
 - **Driver.js** (CDN 1.4.0): tour → kreator (krok 0) → podgląd → menu Treść/Konfiguracja/Subskrypcja.
-- **Kreator:** 6 kroków (szablon → marka → hero → usługi → O nas → kontakt); sync `nav.logo` → `business_name` / `hero.name` / SEO; przy wejściu w usługi czyści demo-cennik szablonu; `finishWizard` → `finalizeWizardContent` (ukrywa puste sekcje, trust/schedule/Calendly dummy); stan w `localStorage` (`dfops_wizard_state_v1:{slug}`, `v:2`); czyszczenie po `finishWizard` / `switchTemplate`.
+- **Kreator:** kroki logiczne z `js/core/themeConfig.js` (`template` → `brand` → `hero` → `offer` → `about` → `contact`); aktywna lista per motyw (`DFOPS_getActiveWizardStepIds`) — np. gastro pomija `about`, w `offer` zbiera `menu_items` zamiast `services`; sync `nav.logo` → `business_name` / `hero.name` / SEO; `finishWizard` → `finalizeWizardContent` (ukrywa puste sekcje); stan w `localStorage` (`dfops_wizard_state_v1:{slug}`, `v:2`); czyszczenie po `finishWizard` / `switchTemplate`.
 - **Draft vs published:** auto-save debounce 1000ms → `draft_content`; `publishChanges()` → `content`; preview tylko właściciel (`dfcms_preview=1`); `revertChanges()` z `_publishedContentRaw`.
 - **Subskrypcja panel:** `hasActivePaidSubscription` / `isSubscriptionCanceledButValid` — tylko Stripe (`billing_profiles`), nie samo `payment_completed` w JSON.
 - **God Mode:** `godmode.html` wymaga sesji i widocznego własnego wpisu w `superadmins`; lista pobiera wszystkie `pages`. Panel po zalogowaniu sprawdza `superadmins` i pokazuje w sidebarze „Master Dashboard” tylko superadminom. Przycisk „Zarządzaj” otwiera `admin.html?impersonate={slug}`. W impersonacji panel zapisuje konkretny rekord po `pages.id`, pomija profil billingowy superadmina i blokuje checkout z sesji operatora.
+
+### 1.5.1 Theme-aware panel (`themeConfig`) — wzorzec
+
+**Źródło prawdy:** `js/core/themeConfig.js` (panel + kreator). Szablony treści domyślnej: `js/templates/registry.js` (`templatesV3`). Motywy opublikowane (edge/kreator): `js/core/publishedThemes.js` + klucze w `registry.js`.
+
+**Mapa sekcji** (`THEME_SECTIONS[theme]`): identyfikatory wewnętrzne, np. `services`, `menu`, `opening_hours`, `manifesto`, `gallery`, `faq`, `help_areas`, `certificates`, `nav_labels`. Panel i kreator pokazują UI **tylko** gdy sekcja jest na liście motywu.
+
+**API (global):**
+
+| Funkcja | Zastosowanie |
+|---------|----------------|
+| `DFOPS_getThemeSections(theme)` | tablica sekcji motywu |
+| `DFOPS_themeHasSection(theme, section)` | czy sekcja istnieje w szablonie |
+| `DFOPS_adminTabVisible(theme, tabId)` | czy zakładka sidebaru ma się pokazać |
+| `DFOPS_getNavMenuFields(theme)` | pola etykiet górnego menu (język przedsiębiorcy) |
+| `DFOPS_getActiveWizardStepIds(theme)` | filtrowane kroki kreatora |
+| `DFOPS_wizardOfferSection(theme)` | `'services'` \| `'menu'` \| `null` — typ kroku oferty |
+
+**Alpine w panelu** (`adminApp.js`): `themeHasSection('menu')`, `adminTabVisible('gallery')`, `wizardStepId`, `wizardStepCount`, `navMenuFields`. **Zakaz** nowych warunków `theme === 'beauty'` — rozszerzaj `themeConfig`.
+
+**Nowy motyw (checklist):**
+
+1. `registry.js` — `templatesV3.{id}.pl` + `TEMPLATE_LABELS`; domyślne pola w JSON (np. `menu_items`, `hours`).
+2. `publishedThemes.js` — id na liście opublikowanych (jeśli publiczny).
+3. `themeConfig.js` — `THEME_SECTIONS`, opcjonalnie `NAV_MENU_FIELDS`, `ADMIN_TAB_SECTIONS`.
+4. `templates/{id}.html` — `x-text` / `x-html` z `content[lang].*`; puste sekcje → `x-show` (bez dziur na stronie).
+5. `admin.html` — bloki formularza z `x-show="themeHasSection('…')"`; nowa zakładka tylko jeśli `ADMIN_TAB_SECTIONS` ma wpis.
+6. Kreator — bez zmian w HTML kroków, jeśli wystarczy nowa sekcja w `THEME_SECTIONS` i ewentualnie `offerSections` w `WIZARD_STEP_DEFS`.
+
+**Przykład gastro:** sekcje `menu`, `opening_hours`, `orders`; zakładka „Karta dań / Cennik”; kreator bez `about`; treść `menu_mode` (`link` \| `image` \| `manual`), `menu_items`, `hours`, `orders` w `content.pl`.
+
+**Etykiety panelu:** język przedsiębiorcy (bez żargonu IT w UI) — np. „Karta dań / Cennik”, „Główny ekran”, nie „Hero” / „JSON”.
 
 ### 1.6 Security (szczegóły)
 
@@ -275,6 +307,7 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
+| **2026-07-02** | **Theme-aware panel i kreator:** `js/core/themeConfig.js` definiuje sekcje per motyw (`menu`, `opening_hours`, `services`, `manifesto`, …); `admin.html` używa `themeHasSection()` / `adminTabVisible()` zamiast twardych `theme === 'beauty'`; nowa zakładka „Karta dań / Cennik” (gastro: link / zdjęcie / pozycje ręczne + godziny + zamówienia); kreator pomija krok „O nas” dla gastro i zamienia krok oferty na kartę dań; `templates/gastro.html` — dynamiczne treści z `content.pl` i `x-show` na pustych sekcjach. |
 | **2026-07-02** | **Fix deploy Pages Functions:** middleware importuje `js/core/publishedThemes.js` zamiast `registry.js` (Workers nie mają `window`); bez tego produkcja zostawała na starym fallbacku bez edge routingu. |
 | **2026-07-01** | **Routing subdomen tenantów:** middleware skanuje kandydatów hosta (`Host` pierwszy), slug z subdomeny bez shim `/?site=`; `index.html` i `routerApp.js` — subdomena → `router.html` / szablon bez query; walidacja `?site=` (odrzucenie URL-i); nieistniejący tenant na `*.dfcms.pl` → 404 zamiast marketingu. |
 | **2026-07-01** | **Kreator onboardingu (zero dummy):** 6 kroków — dodano usługi i O nas; walidacja hero/usług/manifesto/kontaktu; auto-sync nazwy i SEO; `finalizeWizardContent` wyłącza sekcje z pustym lub szablonowym contentem (galeria, opinie Google, trust, grafik fitness, Calendly placeholder). |

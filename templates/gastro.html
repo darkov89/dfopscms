@@ -97,7 +97,7 @@
                     </a>
                     <div class="hidden md:flex items-center gap-6 text-sm font-semibold uppercase tracking-widest">
                         <a href="#menu" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.menu || 'Menu'"></a>
-                        <a href="#zamowienia" class="transition-colors" :class="paletteClass('navLink')">Zamówienia</a>
+                        <a href="#zamowienia" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.orders || 'Zamówienia'"></a>
                         <a href="#lokalizacja" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.location || 'Lokalizacja'"></a>
                         <a href="#kontakt" class="transition-colors" :class="paletteClass('navLink')" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></a>
                     </div>
@@ -136,27 +136,41 @@
                     <div class="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
                         <a href="#menu"
                            class="inline-flex items-center justify-center px-8 py-4 rounded-sm font-bold uppercase tracking-widest text-sm transition-colors"
-                           :class="[paletteClass('accentBg'), paletteClass('accentBgHover'), paletteClass('btnOnAccent')]">
-                            Zobacz Menu
+                           :class="[paletteClass('accentBg'), paletteClass('accentBgHover'), paletteClass('btnOnAccent')]"
+                           x-text="content[lang].hero_actions?.menu_button || 'Zobacz Menu'">
                         </a>
                         <a :href="content[lang].contact?.phone ? ('tel:' + (content[lang].contact.phone || '').replace(/\\s/g, '')) : '#kontakt'"
                            class="inline-flex items-center justify-center px-8 py-4 rounded-sm border font-bold uppercase tracking-widest text-sm transition-colors"
-                           :class="[paletteClass('borderAccent'), paletteClass('accentText')]">
-                            Zadzwoń i zamów
+                           :class="[paletteClass('borderAccent'), paletteClass('accentText')]"
+                           x-text="content[lang].hero_actions?.call_button || 'Zadzwoń i zamów'">
                         </a>
                     </div>
                 </div>
             </header>
 
-            <!-- MENU (prawdziwa karta dań, dwie kolumny: opis + cena) -->
-            <section id="menu" class="py-20 md:py-28 px-6 border-t" :class="paletteClass('sectionAlt')">
+            <!-- MENU -->
+            <section id="menu" class="py-20 md:py-28 px-6 border-t" x-show="(content[lang].menu_mode === 'manual' && (content[lang].menu_items || []).some(i => i?.name)) || (content[lang].menu_mode === 'image' && content[lang].menu_image) || (content[lang].menu_mode === 'link' && content[lang].menu_link)" :class="paletteClass('sectionAlt')">
                 <div class="max-w-5xl mx-auto">
                     <div class="text-center mb-14 reveal">
-                        <p class="text-xs font-bold uppercase tracking-[0.3em] mb-2" :class="paletteClass('accentText')">Karta dań</p>
+                        <p class="text-xs font-bold uppercase tracking-[0.3em] mb-2" :class="paletteClass('accentText')" x-text="content[lang].sections?.menu_label || 'Karta dań'"></p>
                         <h2 class="font-display text-4xl md:text-5xl" :class="paletteClass('heading')" x-text="content[lang].nav?.menu?.menu || 'Menu'"></h2>
                     </div>
 
-                    <div class="space-y-10">
+                    <div x-show="content[lang].menu_mode === 'link' && content[lang].menu_link" class="text-center reveal">
+                        <a :href="content[lang].menu_link"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="inline-flex items-center justify-center px-8 py-4 rounded-sm font-bold uppercase tracking-widest text-sm transition-colors"
+                           :class="[paletteClass('accentBg'), paletteClass('accentBgHover'), paletteClass('btnOnAccent')]"
+                           x-text="content[lang].hero_actions?.menu_button || 'Zobacz pełne menu'">
+                        </a>
+                    </div>
+
+                    <div x-show="content[lang].menu_mode === 'image' && content[lang].menu_image" class="max-w-3xl mx-auto reveal">
+                        <img :src="content[lang].menu_image" alt="Karta dań" class="w-full rounded-xl border shadow-lg" :class="paletteClass('mapBorder')">
+                    </div>
+
+                    <div class="space-y-10" x-show="content[lang].menu_mode === 'manual' || !content[lang].menu_mode">
                         <template x-for="(item, index) in (content[lang].menu_items || [])" :key="'mi'+index">
                             <div class="reveal">
                                 <!-- Nagłówek kategorii (raz na zmianę kategorii) -->
@@ -185,17 +199,15 @@
                 </div>
             </section>
 
-            <!-- ZAMÓWIENIA / CTA -->
-            <section id="zamowienia" class="py-16 md:py-20 px-6 border-t" :class="paletteClass('section')">
+            <!-- ZAMÓWIENIA -->
+            <section id="zamowienia" class="py-16 md:py-20 px-6 border-t" x-show="content[lang].orders?.title || content[lang].contact?.phone" :class="paletteClass('section')">
                 <div class="max-w-5xl mx-auto reveal">
                     <div class="rounded-2xl border p-8 md:p-10 backdrop-blur-sm" :class="paletteClass('hoursCard')">
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-8">
                             <div class="max-w-2xl">
-                                <p class="text-xs font-bold uppercase tracking-[0.3em] mb-2" :class="paletteClass('accentText')">Zamówienia i rezerwacje</p>
-                                <h2 class="font-display text-3xl md:text-4xl mb-3" :class="paletteClass('heading')">Zadzwoń — przygotujemy na wynos</h2>
-                                <p class="text-sm md:text-base leading-relaxed" :class="paletteClass('muted')">
-                                    Najszybciej obsłużymy zamówienie telefonicznie. Możesz też skorzystać z rezerwacji online, jeśli masz ustawiony przycisk w panelu.
-                                </p>
+                                <p class="text-xs font-bold uppercase tracking-[0.3em] mb-2" :class="paletteClass('accentText')" x-text="content[lang].orders?.label || 'Zamówienia i rezerwacje'"></p>
+                                <h2 class="font-display text-3xl md:text-4xl mb-3" :class="paletteClass('heading')" x-text="content[lang].orders?.title || ''"></h2>
+                                <p class="text-sm md:text-base leading-relaxed" :class="paletteClass('muted')" x-text="content[lang].orders?.description || ''"></p>
                             </div>
                             <div class="flex flex-col sm:flex-row gap-3 shrink-0">
                                 <template x-if="heroCtaEnabled()">
@@ -208,9 +220,10 @@
                                     </a>
                                 </template>
                                 <a :href="content[lang].contact?.phone ? ('tel:' + (content[lang].contact.phone || '').replace(/\\s/g, '')) : '#kontakt'"
+                                   x-show="content[lang].contact?.phone"
                                    class="inline-flex items-center justify-center px-8 py-4 rounded-sm border font-bold uppercase tracking-widest text-sm transition-colors"
-                                   :class="[paletteClass('borderAccent'), paletteClass('accentText')]">
-                                    Zadzwoń
+                                   :class="[paletteClass('borderAccent'), paletteClass('accentText')]"
+                                   x-text="content[lang].orders?.call_button || 'Zadzwoń'">
                                 </a>
                             </div>
                         </div>
@@ -218,10 +231,10 @@
                 </div>
             </section>
 
-            <!-- SEKCJA ZAMÓWIEŃ / MAPA (adres + mapa obok danych kontaktowych) -->
-            <section id="lokalizacja" class="py-20 md:py-28 px-6 border-t" :class="paletteClass('section')">
+            <!-- LOKALIZACJA -->
+            <section id="lokalizacja" class="py-20 md:py-28 px-6 border-t" x-show="content[lang].contact?.address || content[lang].contact?.map_embed_url || content[lang].contact?.phone" :class="paletteClass('section')">
                 <div class="max-w-5xl mx-auto reveal">
-                    <p class="text-xs font-bold uppercase tracking-[0.3em] mb-2" :class="paletteClass('accentText')">Dojazd</p>
+                    <p class="text-xs font-bold uppercase tracking-[0.3em] mb-2" :class="paletteClass('accentText')" x-text="content[lang].sections?.location_label || 'Dojazd'"></p>
                     <h2 class="font-display text-4xl mb-10" :class="paletteClass('heading')" x-text="content[lang].nav?.menu?.location || 'Lokalizacja'"></h2>
 
                     <div class="grid lg:grid-cols-2 gap-8 items-stretch">
@@ -237,9 +250,9 @@
                         </div>
 
                         <div class="rounded-xl border p-6 md:p-8" :class="paletteClass('hoursCard')">
-                            <h3 class="font-display text-2xl mb-4" :class="paletteClass('heading')">Kontakt i adres</h3>
+                            <h3 class="font-display text-2xl mb-4" :class="paletteClass('heading')" x-text="content[lang].sections?.contact_title || 'Kontakt i adres'"></h3>
                             <div class="space-y-4" :class="paletteClass('body')">
-                                <p class="text-lg leading-relaxed" x-text="content[lang].contact?.address || 'Uzupełnij adres w panelu CMS'"></p>
+                                <p class="text-lg leading-relaxed" x-show="content[lang].contact?.address" x-text="content[lang].contact.address"></p>
                                 <div class="space-y-2">
                                     <p x-show="content[lang].contact?.phone">
                                         Telefon:

@@ -540,7 +540,7 @@
           logo: 'RESTAURACJA',
           cta: 'Rezerwuj',
           logoImage: '',
-          menu: { menu: 'Menu', location: 'Lokalizacja', contact: 'Kontakt' },
+          menu: { menu: 'Menu', orders: 'Zamówienia', location: 'Lokalizacja', contact: 'Kontakt' },
         },
         hero: {
           name: 'Nazwa lokalu',
@@ -556,6 +556,25 @@
         hours: {
           title: 'Godziny otwarcia',
           lines: ['Wt–Nd: 12:00 — 22:00', 'Pn: zamknięte', 'Niedziela brunch: 10:00 — 15:00'],
+        },
+        menu_mode: 'manual',
+        menu_link: '',
+        menu_image: '',
+        orders: {
+          label: 'Zamówienia i rezerwacje',
+          title: 'Zadzwoń — przygotujemy na wynos',
+          description:
+            'Najszybciej obsłużymy zamówienie telefonicznie. Możesz też skorzystać z rezerwacji online, jeśli masz ustawiony przycisk w panelu.',
+          call_button: 'Zadzwoń',
+        },
+        sections: {
+          menu_label: 'Karta dań',
+          location_label: 'Dojazd',
+          contact_title: 'Kontakt i adres',
+        },
+        hero_actions: {
+          menu_button: 'Zobacz Menu',
+          call_button: 'Zadzwoń i zamów',
         },
         menu_items: [
           { category: 'Przystawki', name: 'Bruschetta pomidorowa', ingredients: 'pomidory, bazylia, oliwa extra virgin, czosnek', price: '24 zł' },
