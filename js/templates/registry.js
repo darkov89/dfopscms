@@ -135,6 +135,8 @@
           booksyIframeUrl: '',
           map_embed_url: '',
           map_place_id: '',
+          whatsapp: '',
+          messenger: '',
         },
         social: { facebook: '', instagram: '', tiktok: '' },
         google_reviews: { embed_url: '', place_query: '', max_reviews: 6, title: 'Opinie z Google' },
@@ -197,6 +199,8 @@
           booksyIframeUrl: "",
           map_embed_url: "",
           map_place_id: "",
+          whatsapp: "",
+          messenger: "",
           cta: {
             enabled: true,
             title: "Szybki kalendarz",
@@ -271,6 +275,8 @@
           booksyIframeUrl: "",
           map_embed_url: "",
           map_place_id: "",
+          whatsapp: "",
+          messenger: "",
           cta: {
             enabled: false,
             title: "Umów się wygodnie",
@@ -373,6 +379,8 @@
           booksyIframeUrl: "",
           map_embed_url: "",
           map_place_id: "",
+          whatsapp: "",
+          messenger: "",
           cta: {
             enabled: false,
             title: "Umów się wygodnie",
@@ -496,6 +504,8 @@
           booksyIframeUrl: "",
           map_embed_url: "",
           map_place_id: "",
+          whatsapp: "",
+          messenger: "",
           cta: {
             enabled: false,
             title: "Szybki kontakt",
@@ -593,6 +603,8 @@
           bookingUrl: '',
           map_embed_url: '',
           map_place_id: '',
+          whatsapp: '',
+          messenger: '',
         },
         social: { facebook: '', instagram: '', tiktok: '' },
         seo: {
@@ -664,6 +676,8 @@
           bookingUrl: '',
           map_embed_url: '',
           map_place_id: '',
+          whatsapp: '',
+          messenger: '',
         },
         social: { facebook: '', instagram: '', linkedin: '' },
         seo: {

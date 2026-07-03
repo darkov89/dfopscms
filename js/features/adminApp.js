@@ -534,6 +534,8 @@
           booksyIframeUrl: '',
           map_embed_url: '',
           map_place_id: '',
+          whatsapp: '',
+          messenger: '',
           cta: {
             enabled: false,
             title: '',
@@ -1032,6 +1034,14 @@
         }
         const p = this.subscriptionPlan;
         return p === 'trial' || p === 'tier0';
+      },
+
+      /** Opłacony Starter (tier0) — bez przycisku szybkiego kontaktu WhatsApp / Messenger. */
+      get isQuickChatLocked() {
+        if (typeof window.DFOPS_planAllowsQuickChat === 'function') {
+          return !window.DFOPS_planAllowsQuickChat(this.subscriptionPlan);
+        }
+        return this.subscriptionPlan === 'tier0';
       },
 
       get appearancePickerAccentHex() {
@@ -1756,6 +1766,25 @@
         this.showAppearanceUpgradeModal = true;
       },
 
+      promptQuickChatUpgrade() {
+        this.setTab('subscription');
+      },
+
+      onQuickChatInputGuard() {
+        if (!this.isQuickChatLocked) return;
+        if (this.content?.pl?.contact) {
+          this.content.pl.contact.whatsapp = '';
+          this.content.pl.contact.messenger = '';
+        }
+        this.promptQuickChatUpgrade();
+      },
+
+      enforceQuickChatForStarter() {
+        if (!this.isQuickChatLocked || !this.content?.pl?.contact) return;
+        this.content.pl.contact.whatsapp = '';
+        this.content.pl.contact.messenger = '';
+      },
+
       goAppearanceUpgrade() {
         this.showAppearanceUpgradeModal = false;
         this.setTab('subscription');
@@ -2321,6 +2350,7 @@
           this.syncUserPlanFromBilling();
           this.applyThemeStylingFromContent();
           this.enforceColorPresetForStarter();
+          this.enforceQuickChatForStarter();
 
           /** Pierwsze wejście po migracji (draft pusty): utrwalamy spójny stan roboczy = opublikowana treść. */
           if (!usingDraft && this.pageId && this.user?.id) {
@@ -2452,6 +2482,7 @@
           this.selectedStyleBundle = '';
           this.syncUserPlanFromBilling();
           this.enforceColorPresetForStarter();
+          this.enforceQuickChatForStarter();
           this.applyThemeStylingFromContent();
 
           const ok = await this.saveData({ silentSuccess: true });
@@ -2691,6 +2722,7 @@
           this.selectedStyleBundle = '';
           this.syncUserPlanFromBilling();
           this.enforceColorPresetForStarter();
+          this.enforceQuickChatForStarter();
           this.applyThemeStylingFromContent();
         }
 
@@ -3190,6 +3222,7 @@
           this.content = upgraded;
           this.syncUserPlanFromBilling();
           this.enforceColorPresetForStarter();
+          this.enforceQuickChatForStarter();
           this.applyThemeStylingFromContent();
           const ok = await this._persistDraft({ silent: false });
           if (!ok) throw new Error('template upgrade draft save failed');

@@ -403,6 +403,8 @@
           booksyIframeUrl: '',
           map_embed_url: '',
           map_place_id: '',
+          whatsapp: '',
+          messenger: '',
         },
         social: { linkedin: '', facebook: '', instagram: '', tiktok: '' },
         google_reviews: { embed_url: '', place_query: '', place_id: '', max_reviews: 6, title: 'Opinie z Google' },
@@ -868,6 +870,8 @@
     return {
       lang: 'pl',
       dataLoaded: false,
+      billingPlan: 'trial',
+      fabBubbleVisible: false,
       content: createPublicContentShell(),
       bazaBlad: false,
       /** Widok publiczny zablokowany (cron trial_blocked_at lub logika shouldBlockPublicPageView). */
@@ -991,6 +995,57 @@
       },
       ctaLinkRel(url) {
         return this.ctaOpensNewTab(url) ? 'noopener noreferrer' : null;
+      },
+      quickChatPlanAllowed() {
+        if (typeof window.DFOPS_planAllowsQuickChat === 'function') {
+          return window.DFOPS_planAllowsQuickChat(this.billingPlan);
+        }
+        return String(this.billingPlan || 'trial').trim() !== 'tier0';
+      },
+      quickChatWhatsApp() {
+        if (!this.quickChatPlanAllowed()) return '';
+        return String(this.getContentBlock().contact?.whatsapp || '').trim();
+      },
+      quickChatMessenger() {
+        if (!this.quickChatPlanAllowed()) return '';
+        return String(this.getContentBlock().contact?.messenger || '').trim();
+      },
+      quickChatActive() {
+        return !!(this.quickChatWhatsApp() || this.quickChatMessenger());
+      },
+      quickChatHref() {
+        const wa = this.quickChatWhatsApp();
+        if (wa) {
+          const digits = wa.replace(/\D/g, '');
+          return digits ? `https://wa.me/${digits}` : '';
+        }
+        const raw = this.quickChatMessenger();
+        if (!raw) return '';
+        if (/^https?:\/\//i.test(raw)) return raw;
+        const slug = raw.replace(/^@/, '').replace(/^m\.me\//i, '').replace(/\/$/, '');
+        return slug ? `https://m.me/${slug}` : '';
+      },
+      quickChatIsWhatsApp() {
+        return !!this.quickChatWhatsApp();
+      },
+      quickChatLabel() {
+        return this.quickChatIsWhatsApp() ? 'Napisz na WhatsApp' : 'Napisz na Messengerze';
+      },
+      quickChatFabOffsetClass() {
+        if (
+          typeof window.DFOPS_planShowsWatermark === 'function' &&
+          window.DFOPS_planShowsWatermark(this.billingPlan)
+        ) {
+          return 'bottom-16 sm:bottom-20';
+        }
+        return 'bottom-5 sm:bottom-6';
+      },
+      initQuickChatFab() {
+        this.fabBubbleVisible = false;
+        if (!this.quickChatActive()) return;
+        setTimeout(() => {
+          this.fabBubbleVisible = true;
+        }, 1400);
       },
       privacyPolicyUrl() {
         const slug = this.slug || this.getSiteSlug();
@@ -1171,9 +1226,11 @@
           }
 
           applyDocumentSeo(this.content, this.lang);
-          initWatermark(page.billing_plan || 'trial');
+          this.billingPlan = page.billing_plan || 'trial';
+          initWatermark(this.billingPlan);
           this.injectAnalyticsTracking();
           this.dataLoaded = true;
+          this.initQuickChatFab();
           cleanTenantPublicUrl(page.slug);
         } catch (error) {
           console.error('Błąd krytyczny aplikacji:', error);

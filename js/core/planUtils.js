@@ -25,6 +25,11 @@
     return p === 'trial' || p === 'tier0';
   }
 
+  /** Przycisk szybkiego kontaktu (WhatsApp / Messenger) — niedostępny na opłaconym Starterze (tier0). */
+  function planAllowsQuickChat(plan) {
+    return normalizePlan(plan) !== 'tier0';
+  }
+
   function planDisplayName(plan) {
     const p = normalizePlan(plan);
     if (p === 'trial') return 'Okres próbny (14 dni)';
@@ -135,6 +140,7 @@
 
   window.DFOPS_planAllowsCustomDomain = planAllowsCustomDomain;
   window.DFOPS_planAllowsCustomAppearance = planAllowsCustomAppearance;
+  window.DFOPS_planAllowsQuickChat = planAllowsQuickChat;
   window.DFOPS_planShowsWatermark = planShowsWatermark;
   window.DFOPS_planDisplayName = planDisplayName;
   window.DFOPS_subscriptionDisplayName = subscriptionDisplayName;

@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-07-02 — themeConfig: kontekstowy panel admina i kreator per szablon
+**Ostatnia aktualizacja treści:** 2026-07-03 — FAB szybkiego kontaktu WhatsApp / Messenger (publiczny front + panel Kontakt)
 
 ---
 
@@ -73,8 +73,8 @@ Użytkownik → Auth → pages.content + pages.billing_plan + billing_profiles
 
 | Warstwa | Kluczowe artefakty |
 |--------|---------------------|
-| **Front publiczny** | `index.html` (dark-mode SaaS landing spójny z admin/rejestracją: `#121212` + `#D4AF37`; hero 3 min, `#jak`, `#wyposazenie`, `#spokoj`, `#demo`, `#cennik`, SEO + `favicon.svg`), demo przez `router.html?site=demo-*` (beauty/services/care/gastro/fitness/consultant). Szablony branżowe HTML są w `/templates/` (`beauty`, `consultant`, `fitness`, `services`, `gastro`, `care`); media statyczne przenoszone z root trafiają do `/assets/images/`; boilerplate nowych szablonów: `/templates/_base_template.html`; klocki UI: `/templates/_components_library.html`. `setup.html` zostaje w root. `landingPricing.js` — plany cennika i dane landingowe. |
-| **Panel CMS** | `admin.html`, `adminApp.js`. **`js/core/themeConfig.js`** — sekcje per `pages.theme` (`DFOPS_themeHasSection`, zakładki, kroki kreatora); pola panelu i kreator widoczne tylko gdy sekcja istnieje w szablonie (np. gastro: karta dań + godziny, bez „Usług”). Draft vs published: `pages.draft_content` / `pages.content`. Subskrypcja: Starter/Standard/Custom, `billingInterval`, Stripe Checkout + Portal. Smart Booking: `settings.booking_mode` + `contact.booking_url`. God Mode: `godmode.html` → `admin.html?impersonate={slug}` dla superadminów. |
+| **Front publiczny** | `index.html` (dark-mode SaaS landing spójny z admin/rejestracją: `#121212` + `#D4AF37`; hero 3 min, `#jak`, `#wyposazenie`, `#spokoj`, `#demo`, `#cennik`, SEO + `favicon.svg`), demo przez `router.html?site=demo-*` (beauty/services/care/gastro/fitness/consultant). Szablony branżowe HTML są w `/templates/` (`beauty`, `consultant`, `fitness`, `services`, `gastro`, `care`); media statyczne przenoszone z root trafiają do `/assets/images/`; boilerplate nowych szablonów: `/templates/_base_template.html`; klocki UI: `/templates/_components_library.html`; partial FAB czatu: `/templates/_partials/quick_chat_fab.html`. `setup.html` zostaje w root. `landingPricing.js` — plany cennika i dane landingowe. **Szybki kontakt:** pływający przycisk WhatsApp (`contact.whatsapp` → `wa.me`) lub Messenger (`contact.messenger` → `m.me`) — `publicSiteApp` + Alpine `x-show`; brak na opłaconym Starterze (`tier0`, `DFOPS_planAllowsQuickChat`). |
+| **Panel CMS** | `admin.html`, `adminApp.js`. **`js/core/themeConfig.js`** — sekcje per `pages.theme` (`DFOPS_themeHasSection`, zakładki, kroki kreatora); pola panelu i kreator widoczne tylko gdy sekcja istnieje w szablonie (np. gastro: karta dań + godziny, bez „Usług”). Draft vs published: `pages.draft_content` / `pages.content`. Subskrypcja: Starter/Standard/Custom, `billingInterval`, Stripe Checkout + Portal. Smart Booking: `settings.booking_mode` + `contact.booking_url`. **Szybki kontakt:** zakładka Kontakt — `contact.whatsapp` / `contact.messenger` (zablokowane na `tier0`). God Mode: `godmode.html` → `admin.html?impersonate={slug}` dla superadminów. |
 | **Backend** | `pages`, `billing_profiles`, `superadmins`, RLS. Schemat baseline: `20260603072317_remote_schema.sql`; God Mode: `20260623100512_add_god_mode.sql`. |
 | **Płatności** | Starter `tier0`, Standard `tier1`, Custom poza Stripe. Secrets: `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_STARTER_YEARLY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_PRO_YEARLY`. wFirma: `WFIRMA_*`, ledger `wfirma_invoice_ledger`. |
 
@@ -189,6 +189,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 | `create-checkout` | Sesja Stripe Checkout (`plan`, `interval`); Stripe Tax opcjonalnie (`STRIPE_AUTOMATIC_TAX`); returning customer reuse `cus_…` |
 | `create-portal-session` | Stripe Customer Portal; deep link `subscription_update` |
 | `stripe-webhook` | Zdarzenia Stripe → `billing_profiles` + `pages`; wFirma faktury (`WFIRMA_*`) |
+| `retry-wfirma-invoice` | Ręczny retry FV wFirma (`POST` + `Bearer CRON_SECRET`, `checkoutSessionId` lub `stripeInvoiceId`) |
 | `sync-stripe-subscription` | Ręczna synchronizacja statusu subskrypcji |
 | `add-custom-domain` | Cloudflare Custom Hostname + zapis w DB |
 | `get-google-reviews` | Places / opinie (klucz tylko na Edge); wymaga sesji użytkownika |
@@ -307,6 +308,9 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
+| **2026-07-03** | **Szybki kontakt (WhatsApp / Messenger):** partial `templates/_partials/quick_chat_fab.html` we wszystkich szablonach publicznych — FAB z dymkiem „Masz pytanie? Napisz!”, kropką `animate-ping` i linkiem `wa.me` / `m.me` (bez modala). Panel → Kontakt: `contact.whatsapp` / `contact.messenger`; gating Starter (`tier0`, `DFOPS_planAllowsQuickChat` / `isQuickChatLocked`). Logika URL w `publicSiteApp.js`. |
+| **2026-07-02** | **wFirma retry:** `stripe-webhook` `await` na wFirma (nie `void` — Edge mógł zabić task przed końcem); ledger `failed` zawsze ponawia; nowa funkcja `retry-wfirma-invoice` (`POST` + `Bearer CRON_SECRET`, body `checkoutSessionId` / `stripeInvoiceId`) — retry bez Resend ze Stripe. |
+| **2026-07-02** | **Fix billing webhook → zły user + spam Telegram:** `findPageByAuthUserEmail` używał błędnego filtra `email.eq.…` w `listUsers` (GoTrue oczekuje samego emaila + dopasowanie 1:1); `invoice.paid` / `subscription.updated` mogły przypisać subskrypcję najnowszemu kontu w bazie. Dodano `subscription_data.metadata.supabase_user_id` w Checkout, priorytet metadanych w `resolvePageForStripeSubscription`, reset trialu przy `releaseStaleStripeUniqueKeys`, filtr istotnych pól w `telegram-webhook` (bez alertów przy samym `updated_at`). Naprawiono zombie profil `sirdin3k@gmail.com` na prod. |
 | **2026-07-02** | **Theme-aware panel i kreator:** `js/core/themeConfig.js` definiuje sekcje per motyw (`menu`, `opening_hours`, `services`, `manifesto`, …); `admin.html` używa `themeHasSection()` / `adminTabVisible()` zamiast twardych `theme === 'beauty'`; nowa zakładka „Karta dań / Cennik” (gastro: link / zdjęcie / pozycje ręczne + godziny + zamówienia); kreator pomija krok „O nas” dla gastro i zamienia krok oferty na kartę dań; `templates/gastro.html` — dynamiczne treści z `content.pl` i `x-show` na pustych sekcjach. |
 | **2026-07-02** | **Fix deploy Pages Functions:** middleware importuje `js/core/publishedThemes.js` zamiast `registry.js` (Workers nie mają `window`); bez tego produkcja zostawała na starym fallbacku bez edge routingu. |
 | **2026-07-01** | **Routing subdomen tenantów:** middleware skanuje kandydatów hosta (`Host` pierwszy), slug z subdomeny bez shim `/?site=`; `index.html` i `routerApp.js` — subdomena → `router.html` / szablon bez query; walidacja `?site=` (odrzucenie URL-i); nieistniejący tenant na `*.dfcms.pl` → 404 zamiast marketingu. |

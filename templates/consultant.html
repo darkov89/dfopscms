@@ -44,8 +44,8 @@
     <script defer src="/js/core/contentUpgrader.js?v=20260622a"></script>
     <script defer src="/js/core/themeStyling.js"></script>
     <script defer src="/js/core/pageRepository.js?v=20260622b"></script>
-    <script defer src="/js/core/planUtils.js?v=20260602b"></script>
-    <script defer src="/js/features/publicSiteApp.js?v=20260622a"></script>
+    <script defer src="/js/core/planUtils.js?v=20260703a"></script>
+    <script defer src="/js/features/publicSiteApp.js?v=20260703a"></script>
     <script defer src="/js/features/googleReviewsApp.js"></script>
     <script defer src="/js/features/cookieConsentApp.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
@@ -637,5 +637,76 @@
                  x-html="DFOPS_pageRepository.sanitizeHtml(activeModal === 'privacy' ? (content[lang]?.legal?.privacy_policy || '') : (content[lang]?.legal?.terms || ''))"></div>
         </div>
     </div>
+<!-- Szybki kontakt: WhatsApp / Messenger FAB — partial do wklejenia przed </body> -->
+<div
+    x-show="dataLoaded && quickChatActive() && quickChatHref()"
+    x-cloak
+    class="fixed right-4 z-[200] sm:right-6"
+    :class="quickChatFabOffsetClass()"
+>
+    <a
+        :href="quickChatHref()"
+        target="_blank"
+        rel="noopener noreferrer"
+        :aria-label="quickChatLabel()"
+        class="group flex flex-col items-end gap-2.5 no-underline outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-500 rounded-2xl"
+    >
+        <div
+            x-show="fabBubbleVisible"
+            x-transition:enter="transition ease-out duration-500"
+            x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+            class="relative max-w-[11.5rem] sm:max-w-[13rem]"
+        >
+            <div class="rounded-2xl bg-white px-3.5 py-2.5 text-[13px] font-semibold leading-snug text-slate-800 shadow-lg ring-1 ring-slate-200/80">
+                Masz pytanie? Napisz!
+            </div>
+            <span
+                class="absolute -bottom-1.5 right-5 h-3 w-3 rotate-45 bg-white ring-1 ring-slate-200/80"
+                aria-hidden="true"
+            ></span>
+        </div>
+
+        <div class="relative">
+            <span class="pointer-events-none absolute -right-0.5 -top-0.5 z-10 flex h-3.5 w-3.5">
+                <span
+                    class="absolute inline-flex h-full w-full rounded-full opacity-75 motion-reduce:animate-none"
+                    :class="quickChatIsWhatsApp() ? 'animate-ping bg-emerald-400' : 'animate-ping bg-sky-400'"
+                ></span>
+                <span
+                    class="relative inline-flex h-3.5 w-3.5 rounded-full ring-2 ring-white"
+                    :class="quickChatIsWhatsApp() ? 'bg-emerald-500' : 'bg-sky-500'"
+                ></span>
+            </span>
+
+            <div
+                class="flex h-14 w-14 items-center justify-center rounded-full text-white shadow-xl transition-transform duration-200 group-hover:scale-105 group-active:scale-95 sm:h-[3.75rem] sm:w-[3.75rem]"
+                :class="quickChatIsWhatsApp()
+                    ? 'bg-[#25D366] shadow-[#25D366]/30'
+                    : 'bg-gradient-to-br from-[#0084FF] to-[#006AFF] shadow-blue-500/30'"
+            >
+                <svg
+                    x-show="quickChatIsWhatsApp()"
+                    class="h-7 w-7"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                >
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.884 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+                <svg
+                    x-show="!quickChatIsWhatsApp()"
+                    class="h-7 w-7"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                >
+                    <path d="M12 0C5.373 0 0 4.975 0 11.111c0 3.497 1.745 6.616 4.472 8.652V24l4.086-2.243c1.09.3 2.246.464 3.442.464 6.627 0 12-4.975 12-11.111S18.627 0 12 0zm.193 4.963c3.298 0 5.973 2.675 5.973 5.973 0 3.298-2.675 5.973-5.973 5.973a5.92 5.92 0 01-2.812-.705l-3.099.812.823-3.017a5.9 5.9 0 01-.884-3.063c0-3.298 2.675-5.973 5.973-5.973z"/>
+                </svg>
+            </div>
+        </div>
+    </a>
+</div>
+
 </body>
 </html>

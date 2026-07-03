@@ -40,7 +40,7 @@
     <script defer src="js/core/contentUpgrader.js?v=20260622a"></script>
     <script defer src="js/core/themeStyling.js?v=20260404c"></script>
     <script defer src="js/core/pageRepository.js?v=20260623h"></script>
-    <script defer src="js/core/planUtils.js?v=20260522e"></script>
+    <script defer src="js/core/planUtils.js?v=20260703a"></script>
     <script defer src="js/core/billingProfileView.js?v=20260523a"></script>
     <script defer src="js/core/googlePlacesSync.js?v=20260522d"></script>
     <script defer src="js/core/analytics.js?v=20260403t"></script>
@@ -2068,6 +2068,26 @@
                                     <div class="mb-4">
                                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Adres</label>
                                         <input type="text" x-model="content.pl.contact.address" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                    </div>
+
+                                    <div class="pt-6 border-t border-gray-100">
+                                        <h3 class="text-sm font-bold text-slate-900 mb-1">Szybki kontakt (WhatsApp / Messenger)</h3>
+                                        <p class="text-xs text-slate-500 mb-4 leading-relaxed">Pływający przycisk w prawym dolnym rogu strony — jedno kliknięcie otwiera czat w aplikacji. Wpisz <strong>numer WhatsApp</strong> albo <strong>link Messenger</strong> (nie oba naraz).</p>
+                                        <div class="relative rounded-xl border border-slate-200/80 bg-slate-50/60 p-4 space-y-4" :class="isQuickChatLocked ? 'opacity-60' : ''">
+                                            <div :class="isQuickChatLocked ? 'pointer-events-none' : ''">
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Numer WhatsApp</label>
+                                                <input type="text" x-model="content.pl.contact.whatsapp" @focus="onQuickChatInputGuard()" autocomplete="off" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="+48 600 123 456">
+                                                <p class="text-xs text-slate-400 mt-1.5">Z prefiksem kraju — np. +48…</p>
+                                            </div>
+                                            <div :class="isQuickChatLocked ? 'pointer-events-none' : ''">
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Link Messenger</label>
+                                                <input type="text" x-model="content.pl.contact.messenger" @focus="onQuickChatInputGuard()" autocomplete="off" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="https://m.me/TwojaStrona lub nazwa profilu">
+                                            </div>
+                                            <button type="button" x-show="isQuickChatLocked" x-cloak @click="promptQuickChatUpgrade()" class="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/40 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40" aria-label="Odblokuj szybki kontakt — przejdź na Standard">
+                                                <span class="rounded-full bg-white px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-800 shadow-md ring-1 ring-slate-200">Niedostępne w Starterze</span>
+                                            </button>
+                                        </div>
+                                        <p x-show="isQuickChatLocked" x-cloak class="text-xs text-amber-700 mt-3">Przycisk szybkiego kontaktu nie jest dostępny w pakiecie <strong>Starter</strong>. Przejdź na <strong>Standard</strong> — <button type="button" @click="setTab('subscription')" class="font-bold underline text-amber-900 hover:text-slate-900">Zobacz plany</button>.</p>
                                     </div>
 
                                     <div class="pt-6 border-t border-gray-100" x-show="['beauty','consultant','fitness','services'].includes(theme)">
