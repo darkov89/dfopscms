@@ -88,7 +88,6 @@ function recordForDbEvent(
   return isObject(rec) ? rec : null;
 }
 
-/** ID, email, user_id, slug — cokolwiek jest w wierszu. */
 function appendRecordContext(
   lines: string[],
   rec: Record<string, unknown> | null,
@@ -112,6 +111,43 @@ function appendRecordContext(
   }
 }
 
+function recordFieldString(rec: Record<string, unknown> | null, key: string): string {
+  if (!rec) return "";
+  const v = rec[key];
+  return typeof v === "string" ? v.trim() : v == null ? "" : String(v).trim();
+}
+
+/** Pomija szum: czyszczenie kluczy Stripe, samo `updated_at`, itp. */
+function billingProfileUpdateIsMeaningful(
+  payload: Record<string, unknown>,
+): boolean {
+  const type = getString(payload, "type");
+  if (type !== "UPDATE") return true;
+  const rec = recordForDbEvent(type, payload);
+  const oldRaw = payload.old_record;
+  const old = isObject(oldRaw) ? oldRaw : null;
+  if (!rec) return false;
+
+  const keys = [
+    "plan",
+    "status",
+    "stripe_customer_id",
+    "stripe_subscription_id",
+    "current_period_end",
+    "cancel_at_period_end",
+  ] as const;
+  for (const key of keys) {
+    if (key === "cancel_at_period_end") {
+      const a = rec[key] === true;
+      const b = old ? old[key] === true : false;
+      if (a !== b) return true;
+      continue;
+    }
+    if (recordFieldString(rec, key) !== recordFieldString(old, key)) return true;
+  }
+  return false;
+}
+
 function buildMessageFromDatabaseWebhook(payload: Record<string, unknown>) {
   if (!isDatabaseWebhook(payload)) return null;
 
@@ -131,6 +167,7 @@ function buildMessageFromDatabaseWebhook(payload: Record<string, unknown>) {
   } else if (table === "pages" && type === "DELETE") {
     headline = "🗑️ <b>Usunięto stronę.</b>";
   } else if (table === "billing_profiles" && type === "UPDATE") {
+    if (!billingProfileUpdateIsMeaningful(payload)) return null;
     headline = "💳 <b>Zmiana w płatnościach!</b> Profil bilingowy zaktualizowany.";
   }
 
@@ -144,12 +181,18 @@ function buildMessageFromDatabaseWebhook(payload: Record<string, unknown>) {
   return lines.join("\n");
 }
 
-function routeWebhookMessage(payload: Record<string, unknown>): string {
+function routeWebhookMessage(payload: Record<string, unknown>): string | null {
   const msgSentry = buildMessageFromSentry(payload);
   if (msgSentry) return msgSentry;
 
   const msgDb = buildMessageFromDatabaseWebhook(payload);
   if (msgDb) return msgDb;
+
+  if (isDatabaseWebhook(payload)) {
+    const table = getString(payload, "table");
+    const type = getString(payload, "type");
+    if (table === "billing_profiles" && type === "UPDATE") return null;
+  }
 
   const msgSb = buildMessageFromSupabaseAlert(payload);
   if (msgSb) return msgSb;
@@ -239,7 +282,14 @@ serve(async (req) => {
     : { raw: raw ?? "non_json_body" };
 
   try {
-    await sendTelegram(routeWebhookMessage(payload));
+    const message = routeWebhookMessage(payload);
+    if (!message) {
+      return new Response(JSON.stringify({ ok: true, skipped: true }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    await sendTelegram(message);
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

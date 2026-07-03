@@ -150,8 +150,12 @@ serve(async (req) => {
     }
 
     if (!subscription && user.email) {
+      const wantMail = user.email.trim().toLowerCase();
       const customers = await stripe.customers.list({ email: user.email, limit: 5 });
-      const cid = storedCustId || customers.data[0]?.id;
+      const matched = customers.data.find(
+        (c) => typeof c.email === "string" && c.email.trim().toLowerCase() === wantMail,
+      );
+      const cid = storedCustId || matched?.id;
       if (cid) {
         const subs = await stripe.subscriptions.list({
           customer: cid,

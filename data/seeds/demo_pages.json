@@ -1,0 +1,849 @@
+{
+  "meta": {
+    "description": "Oficjalne demo katalogowe DFCMS (6 szablonów).",
+    "source_migration": "supabase/migrations/20260616150000_seed_demo_catalog_pages.sql",
+    "updated": "2026-07-03",
+    "regenerate": "node scripts/extract-demo-seeds-from-migration.mjs"
+  },
+  "seeds": [
+    {
+      "slug": "demo-beauty",
+      "theme": "beauty",
+      "content": {
+        "pl": {
+          "nav": {
+            "logo": "Aura Beauty",
+            "cta": "Rezerwuj online",
+            "logoImage": "",
+            "menu": {
+              "about": "O nas",
+              "pricing": "Cennik",
+              "gallery": "Galeria",
+              "faq": "FAQ",
+              "contact": "Kontakt",
+              "reviews": "Opinie"
+            }
+          },
+          "hero": {
+            "name": "Aura Beauty",
+            "headline": "Spokój i blask<br /><i>dla Twojej skóry.</i>",
+            "subheadline": "",
+            "description": "Kameralny gabinet urody przy ul. Korzecznik. Delikatny design, przemyślany cennik i przestrzeń, w której czujesz się swobodnie — bez pośpiechu.",
+            "button": "Umów wizytę",
+            "image": "",
+            "qrText": "",
+            "qrImage": ""
+          },
+          "manifesto": {
+            "label": "Filozofia",
+            "title": "Harmonia i profesjonalizm",
+            "text": "Wybrane kosmetyki, sterylna przestrzeń i czas wyłącznie dla Ciebie. Nie obiecujemy cudów — pracujemy systematycznie, by efekty były trwałe i naturalne."
+          },
+          "services": [
+            {
+              "title": "Manicure hybrydowy",
+              "desc": "Opracowanie płytki, baza wzmacniająca, kolor premium.",
+              "details": "Dbałość o kontur i trwały połysk do 3 tygodni. Zdejmowanie starej hybrydy w cenie usługi.",
+              "duration": "75 min",
+              "price": "od 120 zł"
+            },
+            {
+              "title": "Masaż relaksacyjny",
+              "desc": "Klasyczny masaż pleców, karku i obręczy barkowej.",
+              "details": "Rozluźnienie napięć po biurze. Aromaterapia na życzenie — dyskretnie i bez pośpiechu.",
+              "duration": "60 min",
+              "price": "od 149 zł"
+            }
+          ],
+          "reviews": [
+            {
+              "author": "Anna M.",
+              "content": "Świetna obsługa od wejścia — panie wiedzą, co robią, zero nachalnego sprzedażowego nacisku. Polecam manicure!",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Tomasz K.",
+              "content": "Pełen profesjonalizm. Masaż uratował mnie po deadlinesach w pracy — już mam kolejny termin.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Katarzyna W.",
+              "content": "Cudowny, spokojny klimat. W końcu miejsce, gdzie można oddychać i wyjść naprawdę zrelaksowaną.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
+          "faq": [
+            {
+              "question": "Czy muszę rezerwować z wyprzedzeniem?",
+              "answer": "Tak, prosimy o wcześniejszy kontakt — dbamy o to, by każda klientka miała pełny, niepodzielony slot."
+            },
+            {
+              "question": "Czy robicie zabiegi u alergików?",
+              "answer": "Na pierwszej wizycie przeprowadzamy wywiad skórny — informujcie nas o nietolerancjach; dobieramy produkty bezpiecznie."
+            }
+          ],
+          "contact": {
+            "email": "hello@aura-beauty.demo",
+            "phone": "+48 52 601 42 81",
+            "address": "ul. Korzecznik 16, Kłodawa",
+            "booksyUrl": "",
+            "map_embed_url": "https://www.google.com/maps?q=Korzecznik+16%2C+62-650+K%C5%82odawa%2C+Polska&output=embed",
+            "map_place_id": ""
+          },
+          "social": {
+            "facebook": "",
+            "instagram": "",
+            "tiktok": ""
+          },
+          "google_reviews": {
+            "embed_url": "",
+            "place_query": "",
+            "max_reviews": 6,
+            "title": "Opinie klientów"
+          },
+          "gallery": {
+            "title": "Nasze wnętrze i realizacje",
+            "images": []
+          },
+          "seo": {
+            "title": "Aura Beauty — salon urody Kłodawa",
+            "description": "Manicure, masaż relaksacyjny. ul. Korzecznik 16, Kłodawa. Zarezerwuj wizytę online.",
+            "ogImage": ""
+          },
+          "legal": {
+            "enabled": true,
+            "privacy_policy": "",
+            "terms": ""
+          },
+          "settings": {
+            "theme": "beauty",
+            "business_name": "Aura Beauty",
+            "welcome_onboarding_completed": true,
+            "onboarding_completed": true,
+            "template_version": 3,
+            "color_preset": "beige",
+            "background_style": "soft",
+            "font_preset": "poppins",
+            "subscription": {
+              "plan": "tier1",
+              "payment_completed": true,
+              "trial_started_at": "2026-05-01T08:00:00.000Z"
+            },
+            "is_demo_catalog": true,
+            "showManifesto": true,
+            "showServices": true,
+            "showFaq": true,
+            "showContact": true
+          }
+        }
+      }
+    },
+    {
+      "slug": "demo-fitness",
+      "theme": "fitness",
+      "content": {
+        "pl": {
+          "nav": {
+            "logo": "IRON CORE",
+            "cta": "Zapisz się",
+            "logoImage": "",
+            "menu": {
+              "about": "Studio",
+              "pricing": "Oferta",
+              "schedule": "Grafik",
+              "gallery": "Galeria",
+              "faq": "FAQ",
+              "contact": "Kontakt",
+              "reviews": "Opinie"
+            }
+          },
+          "hero": {
+            "name": "Iron Core Fitness",
+            "headline": "SILNIEJ.<br /><span class=\"text-lime-400\">MĄDRZEJ.</span>",
+            "subheadline": "Trening bazuje na liczbach — nie na zgadywaniu.",
+            "description": "Crossfit w małej grupie, trening siłowy pod nadzorem i miejsce, gdzie technika jest ważniejsza niż selfie. Zapraszamy — ul. Korzecznik 16, Kłodawa.",
+            "button": "Umów konsultację",
+            "image": "",
+            "qrText": "",
+            "qrImage": ""
+          },
+          "manifesto": {
+            "label": "Metoda",
+            "title": "Progres, który da się zmierzyć",
+            "text": "Rozpisujemy plan na tygodnie: siła, metabolicznie, mobilność. Każdy tydzień to krok naprzód — zamiast rozpraszaczy panują struktura i ekipa motywująca do kolejnego wejścia."
+          },
+          "services": [
+            {
+              "title": "Crossfit (small group)",
+              "desc": "WOD pod okiem trenera; skalowanie dla każdego poziomu.",
+              "details": "Kompleks główny, ringi, kettle — różnorodnie i bezpiecznie technicznie.",
+              "duration": "60 min",
+              "price": "45 zł / wejście"
+            },
+            {
+              "title": "Trening siłowy 1:1",
+              "desc": "Czysty progres squat / bench / deadlift i akcesoria.",
+              "details": "Video analiza powtórzeń na życzenie, plan dostajesz mailowo po sesji.",
+              "duration": "55 min",
+              "price": "od 139 zł"
+            }
+          ],
+          "schedule": [
+            {
+              "day": "Poniedziałek — Środa — Piątek",
+              "time": "06:30, 17:45",
+              "note": "Crossfit · zapisy przez SMS / komunikator"
+            },
+            {
+              "day": "Wtorek — Czwartek",
+              "time": "07:00 — 09:30",
+              "note": "Trening siłowy · sloty osobiste"
+            },
+            {
+              "day": "Sobota",
+              "time": "10:00",
+              "note": "Open gym + rozgrzewka zbiorowa"
+            }
+          ],
+          "reviews": [
+            {
+              "author": "Anna M.",
+              "content": "Crossfit prowadzą jak trzeba — technika wyjaśniona krok po kroku. Pierwszy raz nie czułam się zagubiona przy sztangach.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Tomasz K.",
+              "content": "Solidny zestaw wag i sprzęt. Świetna atmosfera, zero lukusu za który się przepłaca — tu się po prostu ciężko pracuje.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Piotr Ł.",
+              "content": "Trening siłowy 1:1 podbił mi rekord w przysiadzie bez bólu w lędźwiach. Pełen profesjonalizm i konkret.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
+          "faq": [
+            {
+              "question": "Czy początkujący dadzą radę na Crossfecie?",
+              "answer": "Tak — każde ćwiczenie jest skalowane. Pierwszą wizytę rekomendujemy jako konsultację, żeby dobrać obciążenie i tempo."
+            },
+            {
+              "question": "Czy mogę przyjść tylko na Open Gym?",
+              "answer": "Tak w wyznaczonych slotach sobotnich — ustalenie telefoniczne lub przez formularz w panelu zapisy."
+            }
+          ],
+          "contact": {
+            "email": "trening@ironcore-fitness.demo",
+            "phone": "+48 72 938 51 06",
+            "address": "ul. Korzecznik 16, Kłodawa",
+            "booksyUrl": "",
+            "map_embed_url": "https://www.google.com/maps?q=Korzecznik+16%2C+62-650+K%C5%82odawa%2C+Polska&output=embed",
+            "map_place_id": ""
+          },
+          "social": {
+            "facebook": "",
+            "instagram": "",
+            "tiktok": ""
+          },
+          "google_reviews": {
+            "embed_url": "",
+            "place_query": "",
+            "max_reviews": 6,
+            "title": "Oceny z treningów"
+          },
+          "gallery": {
+            "title": "Z sali treningowej",
+            "images": []
+          },
+          "seo": {
+            "title": "Iron Core Fitness — Crossfit i trening siłowy, Kłodawa",
+            "description": "Crossfit małogrupowy, siłownia z trenerem. ul. Korzecznik 16, Kłodawa.",
+            "ogImage": ""
+          },
+          "legal": {
+            "enabled": true,
+            "privacy_policy": "",
+            "terms": ""
+          },
+          "settings": {
+            "theme": "fitness",
+            "business_name": "Iron Core Fitness",
+            "welcome_onboarding_completed": true,
+            "onboarding_completed": true,
+            "template_version": 3,
+            "color_preset": "neon-lime",
+            "background_style": "glow",
+            "font_preset": "inter",
+            "subscription": {
+              "plan": "tier1",
+              "payment_completed": true,
+              "trial_started_at": "2026-05-01T08:00:00.000Z"
+            },
+            "is_demo_catalog": true,
+            "showManifesto": true,
+            "showServices": true,
+            "showFaq": true,
+            "showContact": true
+          }
+        }
+      }
+    },
+    {
+      "slug": "demo-services",
+      "theme": "services",
+      "content": {
+        "pl": {
+          "nav": {
+            "logo": "Szybki Klucz",
+            "cta": "Zadzwoń",
+            "logoImage": "",
+            "menu": {
+              "about": "O firmie",
+              "pricing": "Usługi",
+              "gallery": "Realizacje",
+              "trust": "Zaufanie",
+              "reviews": "Opinie Google",
+              "faq": "FAQ",
+              "contact": "Kontakt"
+            }
+          },
+          "hero": {
+            "name": "Szybki Klucz — Usługi",
+            "headline": "Hydraulika i elektryka<br /><span class=\"text-amber-500\">na tip-top.</span>",
+            "subheadline": "",
+            "description": "Jasna wycena po oględzinach, dojazd na terenie gminy Kłodawa i okolic. Krótki kontakt SMS/tel — nie zostawimy Cię z przeciekającą armatką ani bez światła w rozdzielnicy.",
+            "button": "Poproś o kontakt",
+            "image": "",
+            "qrText": "",
+            "qrImage": ""
+          },
+          "manifesto": {
+            "label": "Dlaczego my",
+            "title": "Solidnie, punktualnie",
+            "text": "Pracujemy na sprawdzonych materiałach i zostawiamy porządek po sobie. Jedno biuro przy ul. Korzecznik 16 — jasny telefon kontaktowy, bez kolejek call-center."
+          },
+          "trust": {
+            "title": "Polecają nas sąsiedzi",
+            "quote": "Przyjechali wieczorem, zamknęli przeciek, rano mogłam normalnie włączyć pralkę — bez kombinacji i kosmicznego rachunku.",
+            "author": "Magdalena S.",
+            "subtitle": "Awarie hydrauliczne · Klient lokalny",
+            "stars": 5
+          },
+          "services": [
+            {
+              "title": "Hydraulika",
+              "desc": "Udrażnianie rur, przecieki przy złączach, wymiana baterii/korków.",
+              "details": "Części standardowe lub z gwarancją producenta — decyzja po koszcie kosztorysu.",
+              "duration": "1–4 h",
+              "price": "wycena ustalana",
+              "icon": "droplet"
+            },
+            {
+              "title": "Elektryka",
+              "desc": "Gniazda, przyłączenia, przegląd instalacji przy remoncie.",
+              "details": "Protokoły i dokumentacja foto po zakończeniu prac.",
+              "duration": "wizyta",
+              "price": "od 180 zł",
+              "icon": "bolt"
+            }
+          ],
+          "reviews": [
+            {
+              "author": "Anna M.",
+              "content": "Świetna obsługa — panowie przyjechały punktualnie, wszystko wytłumaczyły. Elektryka naprawiona w jeden dzień.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Tomasz K.",
+              "content": "Hydraulika po sąsiedzku: pełen profesjonalizm, porządek w piwnicy zostawiony lepszy niż zastał.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Jan R.",
+              "content": "Kontakt prosty jak drut — żadnych ukrytych dopłat. Odsyłam znajomych z całego bloku przy Korzeczniku.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
+          "faq": [
+            {
+              "question": "Czy przyjeżdżacie w weekendy przy awarii?",
+              "answer": "Tak przy pilnych przeciekach elektrycznych / wodnych — dodatkowy dojazd ustalamy w rozmowie."
+            },
+            {
+              "question": "Czy dostanę pisemną wycenę?",
+              "answer": "Po oględzinach dostajesz prosty zakres i orientacyjny koszt materiałów + robocizny — dopiero wtedy ruszamy w prace."
+            }
+          ],
+          "contact": {
+            "email": "zlecenia@szybkiklucz.demo",
+            "phone": "+48 604 928 773",
+            "address": "ul. Korzecznik 16, Kłodawa",
+            "booksyUrl": "",
+            "map_embed_url": "https://www.google.com/maps?q=Korzecznik+16%2C+62-650+K%C5%82odawa%2C+Polska&output=embed",
+            "map_place_id": ""
+          },
+          "social": {
+            "facebook": "",
+            "instagram": "",
+            "tiktok": ""
+          },
+          "google_reviews": {
+            "embed_url": "",
+            "place_query": "",
+            "max_reviews": 8,
+            "title": "Opinie sąsiadów (Google)"
+          },
+          "gallery": {
+            "title": "Przykładowe realizacje",
+            "images": []
+          },
+          "seo": {
+            "title": "Szybki Klucz — hydraulik i elektryk, Kłodawa",
+            "description": "Awarie hydrauliczne, elektryka remontowa. ul. Korzecznik 16, Kłodawa.",
+            "ogImage": ""
+          },
+          "legal": {
+            "enabled": true,
+            "privacy_policy": "",
+            "terms": ""
+          },
+          "settings": {
+            "theme": "services",
+            "business_name": "Szybki Klucz — Usługi",
+            "welcome_onboarding_completed": true,
+            "onboarding_completed": true,
+            "template_version": 3,
+            "color_preset": "trades-navy",
+            "background_style": "clean",
+            "font_preset": "inter",
+            "subscription": {
+              "plan": "tier1",
+              "payment_completed": true,
+              "trial_started_at": "2026-05-01T08:00:00.000Z"
+            },
+            "is_demo_catalog": true,
+            "showManifesto": true,
+            "showServices": true,
+            "showTrust": true,
+            "showFaq": true,
+            "showContact": true
+          }
+        }
+      }
+    },
+    {
+      "slug": "demo-gastro",
+      "theme": "gastro",
+      "content": {
+        "pl": {
+          "nav": {
+            "logo": "Ognisko Korzecznik",
+            "cta": "Rezerwuj",
+            "logoImage": "",
+            "menu": {
+              "menu": "Menu",
+              "location": "Lokalizacja",
+              "contact": "Kontakt"
+            }
+          },
+          "hero": {
+            "name": "Ognisko Korzecznik",
+            "headline": "Smak, który <em>zostaje w pamięci</em>",
+            "subheadline": "Kuchnia autorska · sezonowe menu",
+            "description": "Sezonowe składniki z lokalnych gospodarstw, domowe wypieki i ciepła atmosfera przy ul. Korzecznik. Lunch, kolacja i niedzielny brunch.",
+            "button": "Zarezerwuj stolik",
+            "button_enabled": true,
+            "button_url": "",
+            "image": ""
+          },
+          "manifesto": {
+            "label": "Gastronomia",
+            "title": "",
+            "text": ""
+          },
+          "hours": {
+            "title": "Godziny otwarcia",
+            "lines": [
+              "Wt–Czw: 12:00 — 22:00",
+              "Pt–So: 12:00 — 23:00",
+              "Nd brunch: 10:00 — 15:00",
+              "Pn: zamknięte"
+            ]
+          },
+          "menu_items": [
+            {
+              "category": "Przystawki",
+              "name": "Bruschetta pomidorowa",
+              "ingredients": "pomidory, bazylia, oliwa extra virgin",
+              "price": "24 zł"
+            },
+            {
+              "category": "Przystawki",
+              "name": "Carpaccio wołowe",
+              "ingredients": "rukola, parmezan, kapary",
+              "price": "38 zł"
+            },
+            {
+              "category": "Dania główne",
+              "name": "Tagliatelle z borowikami",
+              "ingredients": "makaron świeży, borowiki, śmietana",
+              "price": "46 zł"
+            },
+            {
+              "category": "Dania główne",
+              "name": "Stek z polędwicy",
+              "ingredients": "200 g, masło ziołowe, frytki",
+              "price": "72 zł"
+            },
+            {
+              "category": "Desery",
+              "name": "Tiramisu",
+              "ingredients": "mascarpone, espresso, kakao",
+              "price": "22 zł"
+            }
+          ],
+          "services": [],
+          "faq": [],
+          "contact": {
+            "email": "rezerwacja@ognisko-korzecznik.demo",
+            "phone": "+48 52 601 88 20",
+            "address": "ul. Korzecznik 16, Kłodawa",
+            "booking_url": "",
+            "bookingUrl": "",
+            "map_embed_url": "https://www.google.com/maps?q=Korzecznik+16%2C+62-650+K%C5%82odawa%2C+Polska&output=embed",
+            "map_place_id": ""
+          },
+          "social": {
+            "facebook": "",
+            "instagram": "",
+            "tiktok": ""
+          },
+          "seo": {
+            "title": "Ognisko Korzecznik — restauracja Kłodawa",
+            "description": "Sezonowe menu, brunch i rezerwacje. ul. Korzecznik 16, Kłodawa.",
+            "ogImage": ""
+          },
+          "legal": {
+            "enabled": true,
+            "privacy_policy": "",
+            "terms": ""
+          },
+          "settings": {
+            "theme": "gastro",
+            "business_name": "Ognisko Korzecznik",
+            "welcome_onboarding_completed": true,
+            "onboarding_completed": true,
+            "template_version": 3,
+            "color_preset": "wine",
+            "color_palette": "dark_gold",
+            "booking_mode": "button",
+            "background_style": "smoky",
+            "font_preset": "elegant",
+            "subscription": {
+              "plan": "tier1",
+              "payment_completed": true,
+              "trial_started_at": "2026-05-01T08:00:00.000Z"
+            },
+            "is_demo_catalog": true,
+            "showManifesto": false,
+            "showServices": false,
+            "showContact": true
+          }
+        }
+      }
+    },
+    {
+      "slug": "demo-care",
+      "theme": "care",
+      "content": {
+        "pl": {
+          "nav": {
+            "logo": "Centrum Rehabilitacji Korzecznik",
+            "cta": "Umów wizytę",
+            "logoImage": "",
+            "menu": {
+              "about": "O mnie",
+              "help": "Obszary pomocy",
+              "pricing": "Cennik",
+              "contact": "Kontakt"
+            }
+          },
+          "hero": {
+            "name": "mgr Anna Kowalska",
+            "headline": "Fizjoterapeutka · rehabilitacja po urazach",
+            "subheadline": "Gabinet przy ul. Korzecznik",
+            "description": "Indywidualny plan terapii, spokojna przestrzeń i metody oparte na dowodach — od pierwszej wizyty wiesz, co dalej.",
+            "button": "Umów wizytę",
+            "button_enabled": true,
+            "button_url": "",
+            "image": ""
+          },
+          "manifesto": {
+            "label": "Gabinet",
+            "title": "O mnie",
+            "text": "Pracuję z pacjentami po urazach sportowych, z bólem kręgosłupa i zaburzeniami postawy. Łączę terapię manualną z ćwiczeniami domowymi — efekty, które zostają."
+          },
+          "help_areas": [
+            {
+              "title": "Ból kręgosłupa",
+              "desc": "Diagnoza funkcjonalna, terapia manualna i plan ćwiczeń."
+            },
+            {
+              "title": "Rehabilitacja po urazie",
+              "desc": "Powrót do sportu pod okiem specjalisty."
+            },
+            {
+              "title": "Profilaktyka i ergonomia",
+              "desc": "Korekta wzorca ruchu i edukacja pacjenta."
+            }
+          ],
+          "certificates": [
+            {
+              "title": "Dyplom fizjoterapii",
+              "issuer": "AWF Warszawa · 2016"
+            },
+            {
+              "title": "Terapia manualna — poziom zaawansowany",
+              "issuer": "Osteo Academy · 2021"
+            }
+          ],
+          "services": [
+            {
+              "title": "Konsultacja wstępna",
+              "desc": "Wywiad, badanie, plan terapii",
+              "duration": "60 min",
+              "price": "180 zł"
+            },
+            {
+              "title": "Wizyta kontrolna",
+              "desc": "Kontynuacja terapii",
+              "duration": "45 min",
+              "price": "140 zł"
+            },
+            {
+              "title": "Pakiet 5 wizyt",
+              "desc": "Program rehabilitacyjny",
+              "duration": "5 × 45 min",
+              "price": "620 zł"
+            }
+          ],
+          "faq": [],
+          "contact": {
+            "email": "gabinet@rehab-korzecznik.demo",
+            "phone": "+48 601 442 918",
+            "address": "ul. Korzecznik 16, Kłodawa",
+            "booking_url": "",
+            "bookingUrl": "",
+            "map_embed_url": "https://www.google.com/maps?q=Korzecznik+16%2C+62-650+K%C5%82odawa%2C+Polska&output=embed",
+            "map_place_id": ""
+          },
+          "social": {
+            "facebook": "",
+            "instagram": "",
+            "linkedin": ""
+          },
+          "seo": {
+            "title": "Centrum Rehabilitacji Korzecznik — fizjoterapia Kłodawa",
+            "description": "Fizjoterapia, rehabilitacja po urazach. Umów wizytę online. ul. Korzecznik 16.",
+            "ogImage": ""
+          },
+          "legal": {
+            "enabled": true,
+            "privacy_policy": "",
+            "terms": ""
+          },
+          "settings": {
+            "theme": "care",
+            "business_name": "Centrum Rehabilitacji Korzecznik",
+            "welcome_onboarding_completed": true,
+            "onboarding_completed": true,
+            "template_version": 3,
+            "color_preset": "ocean",
+            "color_palette": "medical_blue",
+            "booking_mode": "button",
+            "background_style": "clean",
+            "font_preset": "inter",
+            "subscription": {
+              "plan": "tier1",
+              "payment_completed": true,
+              "trial_started_at": "2026-05-01T08:00:00.000Z"
+            },
+            "is_demo_catalog": true,
+            "showManifesto": true,
+            "showServices": true,
+            "showContact": true
+          }
+        }
+      }
+    },
+    {
+      "slug": "demo-consultant",
+      "theme": "consultant",
+      "content": {
+        "pl": {
+          "nav": {
+            "logo": "Northline Advisory",
+            "cta": "",
+            "logoImage": "",
+            "menu": {
+              "about": "O nas",
+              "pricing": "Usługi",
+              "faq": "FAQ",
+              "reviews": "Opinie",
+              "contact": "Kontakt"
+            }
+          },
+          "hero": {
+            "name": "Northline Advisory",
+            "headline": "Strategia operacyjna <span class='text-brand-gold italic'>bez chaosu</span>",
+            "subheadline": "Doradztwo dla MŚP i zespołów produktowych",
+            "description": "Pomagamy uporządkować procesy, wdrożyć narzędzia i przejść z „gaszenia pożarów” do przewidywalnego wzrostu. Kłodawa i cała Polska — spotkania online i na miejscu.",
+            "button": "Umów rozmowę wstępną",
+            "button_enabled": true,
+            "button_url": "",
+            "image": ""
+          },
+          "manifesto": {
+            "label": "Podejście",
+            "title": "Mniej slajdów, więcej wdrożenia",
+            "text": "Nie dostarczamy grubych PDF-ów, które lądują w szufladzie. Pracujemy w sprintach: diagnoza, plan 90 dni, wdrożenie z Twoim zespołem i mierzalne KPI."
+          },
+          "services": [
+            {
+              "title": "Audyt operacyjny",
+              "desc": "Mapa procesów, wąskie gardła i priorytety na 90 dni.",
+              "price": "od 4 900 zł"
+            },
+            {
+              "title": "Wdrożenie CRM / narzędzi",
+              "desc": "Konfiguracja, szkolenie zespołu, pierwsze automatyzacje.",
+              "price": "wycena"
+            },
+            {
+              "title": "Mentoring dla founderów",
+              "desc": "Comiesięczne sesje 1:1 — decyzje, zespół, skalowanie.",
+              "price": "od 1 200 zł / msc"
+            }
+          ],
+          "proof": {
+            "label": "W liczbach",
+            "title": "Zaufanie budowane wynikami",
+            "text": "Współpracujemy z firmami usługowymi, produkcyjnymi i software house'ami — od 5 do 80 osób w zespole.",
+            "statNumber": "12+",
+            "statLabel": "lat doświadczenia",
+            "statDesc": "Łącznie w transformacjach operacyjnych i produktowych"
+          },
+          "faq": [
+            {
+              "question": "Czy pracujecie zdalnie?",
+              "answer": "Tak — większość projektów zaczynamy online. Warsztaty stacjonarne organizujemy po uzgodnieniu."
+            },
+            {
+              "question": "Jak wygląda pierwsza rozmowa?",
+              "answer": "15 minut bezpłatnej konsultacji — ustalamy cel i czy to dobry moment na współpracę."
+            }
+          ],
+          "reviews": [
+            {
+              "author": "Marek P., CEO software house",
+              "content": "Wreszcie ktoś, kto nie tylko doradza, ale siedzi z nami przy wdrożeniu CRM. Efekt w 6 tygodni.",
+              "logoImage": "",
+              "stars": 5
+            },
+            {
+              "author": "Joanna L., właścicielka salonu",
+              "content": "Uporządkowaliśmy rezerwacje i marketing w jednym planie. Spokój głowy bezcenny.",
+              "logoImage": "",
+              "stars": 5
+            }
+          ],
+          "contact": {
+            "email": "hello@northline-advisory.demo",
+            "phone": "+48 512 880 441",
+            "address": "ul. Korzecznik 16, Kłodawa",
+            "booking_url": "https://calendly.com/",
+            "bookingUrl": "https://calendly.com/",
+            "booksyUrl": "",
+            "booksyIframeUrl": "",
+            "map_embed_url": "https://www.google.com/maps?q=Korzecznik+16%2C+62-650+K%C5%82odawa%2C+Polska&output=embed",
+            "map_place_id": "",
+            "cta": {
+              "enabled": true,
+              "title": "Szybki kalendarz",
+              "description": "Wybierz dogodny termin na 15-minutową konsultację wstępną.",
+              "button_text": "Wybierz termin na Calendly",
+              "button_url": "https://calendly.com/"
+            }
+          },
+          "social": {
+            "linkedin": "https://linkedin.com",
+            "facebook": "",
+            "instagram": "",
+            "tiktok": "",
+            "twitter": "",
+            "youtube": ""
+          },
+          "google_reviews": {
+            "embed_url": "",
+            "place_query": "",
+            "max_reviews": 6,
+            "title": "Opinie z Google"
+          },
+          "gallery": {
+            "title": "Realizacje",
+            "images": []
+          },
+          "seo": {
+            "title": "Northline Advisory — doradztwo operacyjne",
+            "description": "Strategia, wdrożenia i mentoring dla MŚP. ul. Korzecznik 16, Kłodawa.",
+            "ogImage": ""
+          },
+          "footer": {
+            "quote": "",
+            "copyright": "",
+            "privacy": ""
+          },
+          "legal": {
+            "enabled": true,
+            "privacy_policy": "",
+            "terms": ""
+          },
+          "settings": {
+            "theme": "consultant",
+            "business_name": "Northline Advisory",
+            "welcome_onboarding_completed": true,
+            "onboarding_completed": true,
+            "darkMode": true,
+            "template_version": 3,
+            "color_preset": "dfops-tech",
+            "booking_mode": "button",
+            "background_style": "glow",
+            "font_preset": "inter",
+            "subscription": {
+              "plan": "tier1",
+              "payment_completed": true,
+              "trial_started_at": "2026-05-01T08:00:00.000Z"
+            },
+            "is_demo_catalog": true,
+            "showManifesto": true,
+            "showServices": true,
+            "showProof": true,
+            "showGoogleReviews": true,
+            "showFaq": true,
+            "showReviews": true,
+            "showContact": true
+          }
+        }
+      }
+    }
+  ]
+}

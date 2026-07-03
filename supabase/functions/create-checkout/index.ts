@@ -240,6 +240,12 @@ serve(async (req) => {
         billing_interval: interval,
         plan: checkoutPlan,
       },
+      subscription_data: {
+        metadata: {
+          supabase_user_id: userId,
+          plan: checkoutPlan,
+        },
+      },
     };
 
     /** Wymaga Stripe Tax + rejestracji PL w Dashboard; włącz Secret STRIPE_AUTOMATIC_TAX=true. */

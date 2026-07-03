@@ -26,7 +26,7 @@ Front: **http://localhost:3000** (`serve`). Nie otwieraj `admin.html` z `file://
 |--------|-----------|
 | `admin.html`, `router.html`, `index.html`, `*.html` | Wejścia aplikacji i szablony (korzeń — ścieżki Cloudflare) |
 | `js/core/`, `js/features/` | Logika klienta (`config.js`, `pageRepository.js`, `adminApp.js`, …) |
-| `data/seeds/demo_pages.json` | Treść demo (`demo-beauty`, `demo-fitness`, `demo-services`, `demo-gastro`, `demo-care`, `demo-consultant`) |
+| `data/seeds/demo_pages.json` | 6 demo katalogowych (`demo-beauty` … `demo-consultant`) — fallback na **localhost** gdy brak wiersza w Staging DB; SoT w migracji `20260616150000_*` |
 | `functions/_middleware.js` | Middleware **Cloudflare Pages** |
 | `supabase/functions/` | **Supabase Edge Functions** (Deno) |
 | `supabase/migrations/` | Migracje DB (baseline: `20260603072317_remote_schema.sql`) |
@@ -53,14 +53,11 @@ Pełna checklista: [`docs/MASTER_CONTEXT.md`](docs/MASTER_CONTEXT.md) §3.5.
 
 ## Demo katalogowe
 
-- Źródło JSON: [`data/seeds/demo_pages.json`](data/seeds/demo_pages.json).
-- Na **localhost** bez wiersza w `pages` — `pageRepository` ładuje seed z tego pliku.
-- Na **Staging/Production** — rekordy w bazie (w baseline `remote_schema` lub nowa migracja z generatora):
-
-  ```bash
-  node scripts/generate-demo-pages-migration.mjs
-  npm run deploy:db:staging   # po review
-  ```
+- **Źródło prawdy (DB):** migracja [`supabase/migrations/20260616150000_seed_demo_catalog_pages.sql`](supabase/migrations/20260616150000_seed_demo_catalog_pages.sql).
+- **Localhost bez wiersza w Supabase:** [`data/seeds/demo_pages.json`](data/seeds/demo_pages.json) — `pageRepository.loadDemoSeedAsPageRow()` (tylko `demo-beauty`, `demo-fitness`, `demo-services`, `demo-gastro`, `demo-care`, `demo-consultant`).
+- **Regeneracja JSON z migracji:** `node scripts/extract-demo-seeds-from-migration.mjs`
+- **Regeneracja migracji z JSON:** `node scripts/generate-demo-pages-migration.mjs`
+- Na **Staging/Production** demo działają z tabeli `pages` (nie z pliku JSON).
 
 ## Licencja
 

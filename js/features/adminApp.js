@@ -118,7 +118,9 @@
 
   /** Zakładki Studia — zgodnie z przyciskami w `admin.html` (hash w URL przy `setTab`). */
   const ADMIN_TAB_IDS = new Set([
+    'dashboard',
     'hero',
+    'manifesto',
     'services',
     'menu',
     'care_profile',
@@ -138,6 +140,25 @@
     'subscription',
   ]);
 
+  const THEME_DISPLAY_LABELS = {
+    beauty: 'Beauty & Wellness',
+    consultant: 'Coaching & Biznes',
+    fitness: 'Fitness',
+    services: 'Usługi lokalne',
+    gastro: 'Gastro',
+    care: 'Care',
+    setup: 'Konfiguracja',
+  };
+
+  /** Stare hashe / aliasy → aktualna zakładka panelu. */
+  function normalizeAdminTabId(tab) {
+    const id = typeof tab === 'string' ? tab.trim().toLowerCase() : '';
+    if (id === 'google_reviews') return 'reviews';
+    if (id === 'booking') return 'contact';
+    if (id === 'leady') return 'dashboard';
+    return id;
+  }
+
   function parseAdminTabFromHash() {
     try {
       const h = window.location.hash;
@@ -151,7 +172,8 @@
       }
       id = decodeURIComponent(id).trim().toLowerCase();
       if (!id || !/^[a-z][a-z0-9_]*$/.test(id)) return null;
-      return ADMIN_TAB_IDS.has(id) ? id : null;
+      if (!ADMIN_TAB_IDS.has(id)) return null;
+      return normalizeAdminTabId(id);
     } catch {
       return null;
     }
@@ -159,9 +181,10 @@
 
   function replaceAdminUrlHashForTab(tab) {
     try {
-      if (!tab || typeof tab !== 'string' || !ADMIN_TAB_IDS.has(tab)) return;
+      const norm = normalizeAdminTabId(tab);
+      if (!norm || !ADMIN_TAB_IDS.has(norm)) return;
       const u = new URL(window.location.href);
-      u.hash = tab === 'hero' ? '' : `#${encodeURIComponent(tab)}`;
+      u.hash = norm === 'dashboard' ? '' : `#${encodeURIComponent(norm)}`;
       window.history.replaceState(null, '', u.pathname + u.search + u.hash);
     } catch {
       /* ignore */
@@ -702,8 +725,12 @@
       domainError: '',
       showDnsInstructions: false,
       showTemplateSwitcher: false,
-      activeTab: 'hero',
+      activeTab: 'dashboard',
       mobileMenuOpen: false,
+      headerMoreMenuOpen: false,
+      navGroupStart: true,
+      navGroupMore: false,
+      navGroupSettings: false,
       saving: false,
       uploadingImage: false,
       uploadingMessage: '',
@@ -831,6 +858,61 @@
        * szablon (dopóki motyw `setup`), nazwa w menu, minimum kontaktu (tel. lub e-mail).
        * Nagłówek hero nie jest wymuszany — uzupełnisz go w kreatorze lub w zakładce powitalnej.
        */
+      get themeDisplayLabel() {
+        const id = String(this.theme || '').trim().toLowerCase();
+        if (typeof window.DFOPS_getTemplateCatalog === 'function') {
+          const cat = window.DFOPS_getTemplateCatalog().find((t) => t.id === id);
+          if (cat?.name) return cat.name;
+        }
+        return THEME_DISPLAY_LABELS[id] || id || '—';
+      },
+      /** Checklista na ekranie startowym — proste kroki dla właściciela firmy. */
+      get dashboardStartTasks() {
+        const pl = this.content?.pl;
+        if (!pl) return [];
+        const tasks = [];
+        const phone = String(pl.contact?.phone || '').trim();
+        const email = String(pl.contact?.email || '').trim();
+        if (!phone && !email) {
+          tasks.push({ id: 'phone', label: 'Dodaj numer telefonu', tab: 'contact', done: false });
+        } else {
+          tasks.push({ id: 'phone', label: 'Dodaj numer telefonu', tab: 'contact', done: true });
+        }
+        let hasOffer = false;
+        if (themeHasSection(this.theme, 'menu')) {
+          hasOffer =
+            Array.isArray(pl.menu_items) &&
+            pl.menu_items.some((row) => row && isNonEmptyContentString(row.name));
+        } else if (themeHasSection(this.theme, 'services')) {
+          hasOffer =
+            Array.isArray(pl.services) &&
+            pl.services.some((s) => s && isNonEmptyContentString(s.title));
+        }
+        tasks.push({
+          id: 'offer',
+          label: themeHasSection(this.theme, 'menu')
+            ? 'Wpisz choć jedną pozycję menu'
+            : 'Wpisz choć jedną usługę',
+          tab: themeHasSection(this.theme, 'menu') ? 'menu' : 'services',
+          done: hasOffer,
+        });
+        const hasHeroImage =
+          isNonEmptyContentString(pl.hero?.image) || isNonEmptyContentString(pl.nav?.logoImage);
+        tasks.push({
+          id: 'heroimg',
+          label: 'Wgraj zdjęcie banera',
+          tab: 'hero',
+          done: hasHeroImage,
+        });
+        const hasHeadline = isNonEmptyContentString(pl.hero?.headline);
+        tasks.push({
+          id: 'headline',
+          label: 'Uzupełnij nagłówek na banerze',
+          tab: 'hero',
+          done: hasHeadline,
+        });
+        return tasks;
+      },
       get incompleteOnboardingChecks() {
         if (!this.content?.pl?.settings || this.content.pl.settings.onboarding_completed === true) return [];
         const pl = this.content.pl;
@@ -1246,19 +1328,51 @@
       },
 
       setTab(tab) {
-        this.activeTab = tab;
+        const norm = normalizeAdminTabId(tab);
+        this.activeTab = norm;
         this.sidebarOpen = false;
         this.mobileMenuOpen = false;
-        replaceAdminUrlHashForTab(tab);
+        replaceAdminUrlHashForTab(norm);
         this.maybeSyncSubscriptionTabFromStripe();
-        if (tab === 'google_reviews') this.syncGoogleReviewsPlaceInputFromContent();
+        if (norm === 'reviews') this.syncGoogleReviewsPlaceInputFromContent();
+      },
+
+      isSidebarNavActive(tab) {
+        const t = this.activeTab;
+        if (tab === 'reviews') return t === 'reviews' || t === 'google_reviews';
+        if (tab === 'offer') return t === 'services' || t === 'menu';
+        if (tab === 'about') return t === 'manifesto' || t === 'care_profile';
+        if (tab === 'contact') return t === 'contact' || t === 'booking';
+        return t === tab;
+      },
+
+      adminManifestoTabVisible() {
+        return themeHasSection(this.theme, 'manifesto');
       },
 
       /** Gdy zmieni się motyw (lub wczytano stronę), ukryte zakładki nie zostawiają pustego widoku. */
       ensureActiveTabForTheme() {
         const t = String(this.theme || '').trim();
         const tab = this.activeTab;
-        if (!adminTabVisibleForTheme(t, tab)) this.setTab('hero');
+        if (tab === 'dashboard') return;
+        if (tab === 'manifesto' && !themeHasSection(t, 'manifesto')) {
+          this.setTab('dashboard');
+          return;
+        }
+        if (tab === 'care_profile' && !adminTabVisibleForTheme(t, 'care_profile')) {
+          this.setTab('dashboard');
+          return;
+        }
+        if (tab === 'reviews') {
+          if (!adminTabVisibleForTheme(t, 'google_reviews') && !adminTabVisibleForTheme(t, 'reviews')) {
+            this.setTab('dashboard');
+          }
+          return;
+        }
+        if (tab === 'manifesto') return;
+        if (!adminTabVisibleForTheme(t, tab) && tab !== 'settings' && tab !== 'seo' && tab !== 'legal' && tab !== 'account' && tab !== 'subscription') {
+          this.setTab('dashboard');
+        }
       },
 
       maybeShowPaymentReturnToast() {
@@ -1848,7 +1962,7 @@
             return;
           }
           if (window.location.hash === '' || window.location.hash === '#') {
-            this.activeTab = 'hero';
+            this.activeTab = 'dashboard';
           }
         });
         document.addEventListener('visibilitychange', () => {
@@ -2359,6 +2473,7 @@
 
           const fromHash = parseAdminTabFromHash();
           if (fromHash) this.activeTab = fromHash;
+          else this.activeTab = 'dashboard';
           this.ensureActiveTabForTheme();
           replaceAdminUrlHashForTab(this.activeTab);
           this.maybeSyncSubscriptionTabFromStripe();
@@ -2812,7 +2927,7 @@
       },
       closeStudioWelcomeModal() {
         this.showStudioWelcomeModal = false;
-        this.setTab('hero');
+        this.setTab('dashboard');
       },
 
       resolveDriverFactory() {
@@ -2864,7 +2979,7 @@
         };
         const closeWizardForTour = (driver) => {
           self.showWizard = false;
-          self.setTab('hero');
+          self.setTab('dashboard');
           self.$nextTick(() => {
             requestAnimationFrame(() => {
               if (driver && typeof driver.refresh === 'function') driver.refresh();
@@ -2927,11 +3042,11 @@
               },
             },
             {
-              element: '#dfcms-onboarding-category-tresc',
+              element: '#dfops-admin-sidebar',
               popover: {
-                title: 'Treść strony',
+                title: 'Menu po lewej',
                 description:
-                  'Tu edytujesz to, co widzą goście: powitanie, usługi, galeria, kontakt, FAQ… Na końcu opublikuj zmiany w nagłówku.',
+                  '„Na start” to najważniejsze sekcje strony. Reszta jest w „Więcej treści” i „Ustawieniach”. Na końcu kliknij Opublikuj zmiany w górnym pasku.',
                 side: 'right',
                 align: 'start',
               },
@@ -2940,13 +3055,13 @@
               },
             },
             {
-              element: '#dfcms-onboarding-category-konfiguracja',
+              element: '#dfcms-onboarding-wizard-btn',
               popover: {
-                title: 'Konfiguracja',
+                title: 'Pomocnik krok po kroku',
                 description:
-                  'Szablon, kolory, integracje, dokumenty, konto — „rama” witryny obok pojedynczych sekcji treści.',
+                  'Gdy utkniesz — uruchom pomocnika. Przeprowadzi Cię przez wybór szablonu i podstawowe treści.',
                 side: 'right',
-                align: 'start',
+                align: 'center',
               },
               onHighlightStarted: (element, step, { driver }) => {
                 ensureSidebarForTour(driver);

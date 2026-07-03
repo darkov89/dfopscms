@@ -426,6 +426,11 @@ export async function resolvePageForStripeSubscription(
   supabase: SupabaseClient,
   sub: Stripe.Subscription,
 ): Promise<PageRowMini | null> {
+  const metaUserId = supabaseUserIdFromStripeMetadata(sub.metadata);
+  if (metaUserId) {
+    const byMeta = await findPageBySupabaseUserId(supabase, metaUserId);
+    if (byMeta) return byMeta;
+  }
   const cid = customerIdString(sub.customer);
   if (cid) {
     const byCust = await findPageByStripeCustomerId(supabase, cid);
@@ -440,6 +445,23 @@ export async function resolvePageForStripeSubscription(
  * Zwalnia unikalne klucze Stripe na innych wierszach — powrót klienta z nową subskrypcją
  * (stary `stripe_subscription_id` w DB nie blokuje upsertu po `user_id`).
  */
+async function resetPagesBillingTrialForUser(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<void> {
+  const uid = userId.trim();
+  if (!uid) return;
+  const { error } = await supabase
+    .from("pages")
+    .update({ billing_plan: "trial" })
+    .eq("user_id", uid)
+    .neq("billing_plan", "trial");
+  if (error) {
+    console.warn("resetPagesBillingTrialForUser", uid, error.message);
+  }
+}
+
+/** Czyści błędnie przypisane klucze Stripe na innych wierszach + przywraca trial. */
 async function releaseStaleStripeUniqueKeys(
   supabase: SupabaseClient,
   row: BillingProfileUpsert,
@@ -447,25 +469,64 @@ async function releaseStaleStripeUniqueKeys(
   const subId =
     typeof row.stripe_subscription_id === "string" ? row.stripe_subscription_id.trim() : "";
   if (subId) {
+    const { data: staleSubs, error: selSubErr } = await supabase
+      .from("billing_profiles")
+      .select("user_id")
+      .eq("stripe_subscription_id", subId)
+      .neq("user_id", row.user_id);
+    if (selSubErr) {
+      console.warn("releaseStaleStripeUniqueKeys subscription select", subId, selSubErr.message);
+    }
     const { error } = await supabase
       .from("billing_profiles")
-      .update({ stripe_subscription_id: null })
+      .update({
+        stripe_subscription_id: null,
+        plan: "trial",
+        status: null,
+        current_period_end: null,
+        cancel_at_period_end: false,
+      })
       .eq("stripe_subscription_id", subId)
       .neq("user_id", row.user_id);
     if (error) {
       console.warn("releaseStaleStripeUniqueKeys subscription", subId, error.message);
+    } else {
+      for (const stale of staleSubs ?? []) {
+        const uid = typeof stale?.user_id === "string" ? stale.user_id : "";
+        if (uid) await resetPagesBillingTrialForUser(supabase, uid);
+      }
     }
   }
   const cid =
     typeof row.stripe_customer_id === "string" ? row.stripe_customer_id.trim() : "";
   if (cid) {
+    const { data: staleCusts, error: selCustErr } = await supabase
+      .from("billing_profiles")
+      .select("user_id")
+      .eq("stripe_customer_id", cid)
+      .neq("user_id", row.user_id);
+    if (selCustErr) {
+      console.warn("releaseStaleStripeUniqueKeys customer select", cid, selCustErr.message);
+    }
     const { error } = await supabase
       .from("billing_profiles")
-      .update({ stripe_customer_id: null })
+      .update({
+        stripe_customer_id: null,
+        stripe_subscription_id: null,
+        plan: "trial",
+        status: null,
+        current_period_end: null,
+        cancel_at_period_end: false,
+      })
       .eq("stripe_customer_id", cid)
       .neq("user_id", row.user_id);
     if (error) {
       console.warn("releaseStaleStripeUniqueKeys customer", cid, error.message);
+    } else {
+      for (const stale of staleCusts ?? []) {
+        const uid = typeof stale?.user_id === "string" ? stale.user_id : "";
+        if (uid) await resetPagesBillingTrialForUser(supabase, uid);
+      }
     }
   }
 }
@@ -759,22 +820,51 @@ export async function resolveInvoiceSubscriptionId(
   return "";
 }
 
+/** GoTrue `listUsers` filter to partial email — wymaga dokładnego dopasowania po stronie kodu. */
+export async function findAuthUserIdByEmail(
+  supabase: SupabaseClient,
+  email: string,
+): Promise<string | null> {
+  const e = String(email || "").trim();
+  if (!e || !e.includes("@")) return null;
+  const { data, error } = await supabase.auth.admin.listUsers({
+    page: 1,
+    perPage: 50,
+    filter: e,
+  });
+  if (error) {
+    console.error("findAuthUserIdByEmail", error);
+    return null;
+  }
+  const want = e.toLowerCase();
+  const match = (data?.users ?? []).find(
+    (u) => typeof u.email === "string" && u.email.trim().toLowerCase() === want,
+  );
+  return match?.id ?? null;
+}
+
 export async function findPageByAuthUserEmail(
   supabase: SupabaseClient,
   email: string,
 ): Promise<PageRowMini | null> {
-  const e = String(email || "").trim();
-  if (!e) return null;
-  const { data, error } = await supabase.auth.admin.listUsers({
-    page: 1,
-    perPage: 1,
-    filter: `email.eq.${e}`,
-  });
-  if (error) {
-    console.error("findPageByAuthUserEmail", error);
-    return null;
-  }
-  const uid = data?.users?.[0]?.id;
+  const uid = await findAuthUserIdByEmail(supabase, email);
+  if (!uid) return null;
+  return findPageByUserId(supabase, uid);
+}
+
+/** `subscription.metadata.supabase_user_id` z Checkout — pewniejsze niż email. */
+export function supabaseUserIdFromStripeMetadata(
+  meta: Stripe.Metadata | null | undefined,
+): string {
+  const raw = meta && typeof meta.supabase_user_id === "string" ? meta.supabase_user_id.trim() : "";
+  return raw;
+}
+
+export async function findPageBySupabaseUserId(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<PageRowMini | null> {
+  const uid = String(userId || "").trim();
   if (!uid) return null;
   return findPageByUserId(supabase, uid);
 }

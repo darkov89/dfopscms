@@ -46,7 +46,7 @@ function isStalePending(updatedAt: string): boolean {
   return Date.now() - new Date(updatedAt).getTime() > STALE_PENDING_MS;
 }
 
-async function markLedgerPending(
+export async function markLedgerPending(
   supabase: SupabaseClient,
   ledgerId: string,
   grossPaidPln?: number,
@@ -87,7 +87,23 @@ export async function claimWfirmaInvoiceLedger(
     };
   }
 
+  /** `failed` — zawsze ponów (np. po poprawie WFIRMA_* lub ręcznym retry). */
+  if (existing?.status === "failed") {
+    await markLedgerPending(supabase, existing.id, grossPaidPln);
+    return { action: "proceed", ledgerId: existing.id };
+  }
+
   if (existing?.status === "pending" && !isStalePending(existing.updated_at)) {
+    console.log(
+      JSON.stringify({
+        tag: "wfirma-ledger",
+        action: "skip",
+        reason: "in_progress",
+        stripe_source: source,
+        stripe_reference: reference,
+        updated_at: existing.updated_at,
+      }),
+    );
     return { action: "skip", reason: "in_progress" };
   }
 
@@ -115,6 +131,43 @@ export async function claimWfirmaInvoiceLedger(
   }
 
   return { action: "proceed", ledgerId: (inserted as { id: string }).id };
+}
+
+/** Ręczny retry — odblokuj `pending` / `failed` bez fałszywego `in_progress`. */
+export async function prepareLedgerForForcedRetry(
+  supabase: SupabaseClient,
+  ledgerId: string,
+): Promise<{ skip: boolean; wfirmaInvoiceId?: string | null }> {
+  const { data, error } = await supabase
+    .from("wfirma_invoice_ledger")
+    .select("id, status, wfirma_invoice_id")
+    .eq("id", ledgerId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`wfirma-ledger forced retry select failed: ${error.message}`);
+  }
+  if (!data) return { skip: false };
+
+  const row = data as { status: string; wfirma_invoice_id: string | null };
+  if (row.status === "issued") {
+    return { skip: true, wfirmaInvoiceId: row.wfirma_invoice_id };
+  }
+
+  const { error: updErr } = await supabase
+    .from("wfirma_invoice_ledger")
+    .update({
+      status: "failed",
+      error_message: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", ledgerId);
+
+  if (updErr) {
+    throw new Error(`wfirma-ledger forced retry reset failed: ${updErr.message}`);
+  }
+
+  return { skip: false };
 }
 
 export async function markWfirmaInvoiceLedgerIssued(

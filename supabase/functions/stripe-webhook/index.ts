@@ -218,7 +218,7 @@ async function handleInvoicePaymentSuccess(
       "tier1",
     ),
   );
-  void enqueueWfirmaInvoiceForStripeInvoice(supabase, stripe, invoice, tierForWfirma);
+  await enqueueWfirmaInvoiceForStripeInvoice(supabase, stripe, invoice, tierForWfirma);
 
   return {};
 }
@@ -306,7 +306,7 @@ async function processStripeWebhookEvent(
             "tier1",
           ),
         );
-      void enqueueWfirmaInvoiceForCheckout(supabase, stripe, session, tierForWfirma);
+      await enqueueWfirmaInvoiceForCheckout(supabase, stripe, session, tierForWfirma);
 
       const st = subscription.status;
       if (st === "active" || st === "trialing") {

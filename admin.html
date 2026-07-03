@@ -45,7 +45,7 @@
     <script defer src="js/core/googlePlacesSync.js?v=20260522d"></script>
     <script defer src="js/core/analytics.js?v=20260403t"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260702a"></script>
+    <script defer src="js/features/adminApp.js?v=20260703b"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -636,70 +636,78 @@
         <div x-show="mobileMenuOpen" x-cloak @click="mobileMenuOpen = false" class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-[2px] transition-opacity md:hidden" x-transition.opacity></div>
 
         <header class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 shadow-sm backdrop-blur-md">
-            <div class="mx-auto flex min-h-16 w-full max-w-[1600px] flex-col items-stretch gap-2 px-4 py-3 md:h-16 md:flex-row md:items-center md:justify-between md:gap-6 md:px-8 md:py-0 xl:px-10">
+            <div class="mx-auto flex min-h-16 w-full max-w-[1600px] flex-col items-stretch gap-2 px-4 py-3 md:min-h-16 md:flex-row md:items-center md:justify-between md:gap-6 md:px-8 md:py-0 xl:px-10">
                 <div class="flex min-w-0 flex-1 items-center gap-3 text-sm text-slate-700 md:gap-5">
                     <button type="button" @click="mobileMenuOpen = !mobileMenuOpen" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-xl leading-none text-slate-700 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 md:hidden" :aria-expanded="mobileMenuOpen ? 'true' : 'false'" aria-controls="dfops-admin-sidebar" aria-label="Otwórz menu">
                         ☰
                     </button>
                     <div class="hidden h-8 shrink-0 items-center border-r border-slate-200/90 pr-5 md:flex" aria-hidden="false">
-                        <span class="text-sm font-semibold tracking-[0.18em] text-slate-900">DF<span class="text-accent">CMS</span></span>
+                        <button type="button" @click="setTab('dashboard')" class="text-sm font-semibold tracking-[0.18em] text-slate-900 transition-colors hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2">DF<span class="text-accent">CMS</span></button>
                     </div>
-                    <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1.5 leading-none md:flex-nowrap md:items-center">
-                        <span class="w-full min-w-0 truncate text-xs font-medium uppercase tracking-wider text-slate-400 md:hidden">Witaj, <span x-text="user?.email"></span></span>
+                    <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1.5 leading-snug md:flex-nowrap md:items-center">
                         <div class="flex min-w-0 items-baseline gap-2">
-                            <span class="shrink-0 text-slate-500">Motyw</span>
-                            <span class="truncate font-medium uppercase tracking-wide text-slate-900" x-text="theme"></span>
+                            <span class="shrink-0 text-slate-500">Szablon</span>
+                            <span class="truncate font-medium text-slate-900" x-text="themeDisplayLabel"></span>
                         </div>
                         <span class="hidden h-3.5 w-px shrink-0 self-center bg-slate-200 sm:block" aria-hidden="true"></span>
                         <a :href="getLiveSiteUrl()"
                            target="_blank" rel="noopener noreferrer"
-                           class="group inline-flex min-w-0 items-center gap-1 truncate font-medium tabular-nums text-slate-900 underline decoration-slate-200 underline-offset-4 hover:decoration-slate-400"
-                           title="Otwórz opublikowaną stronę (LIVE) w nowej karcie">
+                           class="group inline-flex min-w-0 items-center gap-1 truncate font-medium text-slate-900 underline decoration-slate-200 underline-offset-4 hover:decoration-slate-400"
+                           title="Otwórz opublikowaną stronę w nowej karcie">
                             <span class="min-w-0 truncate" x-text="slug"></span>
                             <span class="shrink-0 text-slate-400 transition-colors group-hover:text-slate-600" aria-hidden="true">↗</span>
                         </a>
                     </div>
                 </div>
 
-                <p class="hidden max-w-[min(100%,13rem)] shrink-0 truncate text-sm font-medium text-slate-500 md:block xl:max-w-[16rem]" title="Zalogowany użytkownik">Witaj, <span x-text="user?.email"></span></p>
-
-                <div class="flex w-full min-w-0 flex-col gap-2 md:w-auto md:max-w-none md:shrink-0 md:flex-row md:items-center md:justify-end">
-                    <div class="grid w-full min-w-0 grid-cols-2 items-center gap-2 sm:flex sm:flex-wrap sm:justify-end sm:gap-x-5 sm:gap-y-2 md:w-auto">
-                        <span x-show="content && panelContentReady" x-cloak class="hidden items-center gap-1.5 text-xs text-slate-400 sm:inline-flex" aria-live="polite">
-                            <span x-show="draftSaving" class="inline-flex items-center gap-1.5 animate-pulse"><span class="h-1.5 w-1.5 rounded-full bg-amber-400"></span>Zapisuję roboczo…</span>
-                            <span x-show="!draftSaving && !hasUnsavedChanges && draftSavedOnce" class="inline-flex items-center gap-1.5"><span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>Zapisano roboczo</span>
-                        </span>
-
+                <div class="flex w-full min-w-0 flex-col gap-1.5 md:w-auto md:max-w-none md:shrink-0 md:items-end">
+                    <div class="flex w-full min-w-0 items-center justify-end gap-2 sm:gap-3">
                         <a id="dfcms-onboarding-site-preview"
                            :href="getPublicSiteUrl()"
                            @click="stashDraftForPreview()"
                            :title="previewUsesHtmlFallback ? 'Podgląd tymczasowo używa szablonu Beauty (tryb lokalny).' : 'Otwiera podgląd wersji roboczej — nic nie publikuje na stronie'"
                            target="_blank" rel="noopener noreferrer"
-                           class="inline-flex min-w-0 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-center text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900 sm:border-0 sm:bg-transparent sm:px-0">Podgląd strony</a>
-
-                        <button @click="revertChanges()" x-show="content && panelContentReady" type="button"
-                                :disabled="saving"
-                                title="Odrzuć zmiany robocze i przywróć aktualnie opublikowaną wersję"
-                                class="inline-flex min-w-0 shrink-0 items-center justify-center whitespace-nowrap rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/50 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4">
-                            Odrzuć zmiany
-                        </button>
+                           class="inline-flex min-w-0 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900 sm:px-4">
+                            Podgląd strony
+                        </a>
 
                         <button @click="requestPublish()" x-show="content && panelContentReady" type="button"
                                 :disabled="saving"
                                 :title="isPublishBlockedByPlan ? 'Publikacja tego motywu wymaga planu Premium' : 'Skopiuj stan roboczy do wersji publicznej (na żywo)'"
-                                class="col-span-2 inline-flex min-w-0 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-slate-800 bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-1 sm:px-5">
+                                class="inline-flex min-w-0 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-accent bg-accent px-4 py-2.5 text-sm font-bold text-accent-fg shadow-panel transition-colors hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:px-6">
                             <span x-show="isPublishBlockedByPlan" x-cloak aria-hidden="true">🔒</span>
-                            <span x-show="!saving">Publikuj zmiany</span>
+                            <span x-show="!saving">Opublikuj zmiany</span>
                             <span x-show="saving" x-cloak class="animate-pulse">Zapisywanie…</span>
                         </button>
 
-                        <div class="hidden h-8 w-px shrink-0 bg-slate-200 sm:block" aria-hidden="true"></div>
-
-                        <div class="col-span-2 flex shrink-0 items-center justify-center gap-4 whitespace-nowrap sm:col-span-1 sm:gap-5">
-                            <button type="button" @click="setTab('subscription'); $nextTick(() => { const el = document.getElementById('dfops-platnosci-info'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); })" class="text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:text-accent md:text-[11px]">Warunki</button>
-                            <button type="button" @click="logout()" class="text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:text-red-600 md:text-[11px]">Wyloguj</button>
+                        <div class="relative shrink-0" x-data="{ open: false }" @click.outside="open = false">
+                            <button type="button"
+                                    @click="open = !open"
+                                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2"
+                                    :aria-expanded="open ? 'true' : 'false'"
+                                    aria-label="Więcej opcji">
+                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/></svg>
+                            </button>
+                            <div x-show="open" x-cloak x-transition.opacity class="absolute right-0 top-full z-50 mt-1 min-w-[11rem] rounded-xl border border-slate-200/90 bg-white py-1 shadow-panel-md ring-1 ring-slate-900/5">
+                                <p class="px-3 py-2 text-[11px] text-slate-400 truncate border-b border-slate-100" x-text="user?.email" title="Zalogowany użytkownik"></p>
+                                <button type="button" @click="revertChanges(); open = false" x-show="content && panelContentReady" :disabled="saving"
+                                        class="block w-full px-3 py-2.5 text-left text-sm text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50">
+                                    Odrzuć zmiany
+                                </button>
+                                <button type="button" @click="setTab('subscription'); open = false; $nextTick(() => { const el = document.getElementById('dfops-platnosci-info'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); })"
+                                        class="block w-full px-3 py-2.5 text-left text-sm text-slate-700 transition-colors hover:bg-slate-50">
+                                    Warunki i płatności
+                                </button>
+                                <button type="button" @click="logout(); open = false"
+                                        class="block w-full px-3 py-2.5 text-left text-sm text-red-600 transition-colors hover:bg-red-50">
+                                    Wyloguj
+                                </button>
+                            </div>
                         </div>
                     </div>
+                    <p x-show="content && panelContentReady" x-cloak class="text-right text-[11px] leading-snug text-slate-500 max-w-md">
+                        Zmiany zapisane — kliknij <strong class="font-semibold text-slate-600">Opublikuj</strong>, żeby były widoczne dla klientów.
+                    </p>
                 </div>
             </div>
         </header>
@@ -754,312 +762,172 @@
                     :class="mobileMenuOpen ? 'translate-x-0 opacity-100 pointer-events-auto' : '-translate-x-full opacity-0 pointer-events-none md:translate-x-0 md:opacity-100 md:pointer-events-auto'"
                 >
                     <div class="dfops-admin-sidebar-scroll flex flex-col px-2 pb-4 pt-3">
-                        <button type="button" id="dfcms-onboarding-wizard-btn" @click="mobileMenuOpen = false; openWizardFromStudio()" class="mb-4 flex w-full items-center gap-3 rounded-xl bg-accent/10 px-4 py-3 text-left font-bold text-accent transition-colors hover:bg-accent/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2">
-                            <span class="text-xl shrink-0" aria-hidden="true">🪄</span>
-                            <span class="min-w-0 flex-1 leading-snug">Uruchom Kreator</span>
-                            <span x-show="incompleteOnboardingChecks.length && !showWizard" x-cloak class="inline-flex h-6 min-w-[1.5rem] shrink-0 items-center justify-center rounded-full bg-amber-200/90 px-1.5 text-[11px] font-bold tabular-nums text-amber-950" x-text="incompleteOnboardingChecks.length"></span>
-                        </button>
-                        <a x-show="isSuperAdmin" x-cloak href="/godmode.html" class="mb-4 flex w-full items-center gap-3 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-left font-bold text-amber-950 shadow-panel transition-colors hover:border-accent hover:bg-amber-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2">
+                        <a x-show="isSuperAdmin" x-cloak href="/godmode.html" class="mb-3 flex w-full items-center gap-3 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-left font-bold text-amber-950 shadow-panel transition-colors hover:border-accent hover:bg-amber-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2">
                             <span class="text-xl shrink-0" aria-hidden="true">👑</span>
                             <span class="min-w-0 flex-1 leading-snug">Master Dashboard</span>
                         </a>
 
-                        <div class="mb-4 rounded-xl bg-slate-900 px-3 py-3 shadow-inner ring-1 ring-slate-800/90" role="region" aria-label="Postęp ukończenia strony">
-                            <div class="mb-2 flex items-center justify-between gap-2">
-                                <p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Twój postęp</p>
-                                <span x-show="calculateProgress() === 100" x-cloak class="inline-flex shrink-0 items-center text-emerald-400" title="Profil kompletny" aria-hidden="true">
-                                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16.8 5.6 21l2.4-7.2-6-4.8h7.6L12 2z"/></svg>
-                                </span>
-                            </div>
-                            <p class="mb-2.5 text-xs text-slate-300">
-                                Ukończenie profilu: <span class="font-bold tabular-nums text-white" x-text="calculateProgress()"></span>%
-                            </p>
-                            <div
-                                class="h-1.5 w-full overflow-hidden rounded-full bg-slate-800"
-                                role="progressbar"
-                                :aria-valuenow="calculateProgress()"
-                                aria-valuemin="0"
-                                aria-valuemax="100"
-                                :aria-label="'Ukończenie profilu: ' + calculateProgress() + '%'"
-                            >
-                                <div
-                                    class="h-full rounded-full transition-[width] duration-500 ease-out"
-                                    :class="calculateProgress() === 100 ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.45)]' : 'bg-[#D4AF37]'"
-                                    :style="'width: ' + calculateProgress() + '%'"
-                                ></div>
-                            </div>
+                        <div class="mb-2 flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'dashboard' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                            <button type="button" @click="setTab('dashboard')" class="min-w-0 flex-1 rounded-r-lg py-3 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                <span :class="activeTab === 'dashboard' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Twoja strona</span>
+                            </button>
                         </div>
 
-                        <h3 id="dfcms-onboarding-category-tresc" class="dfops-sidebar-section-title mb-2 mt-1">Treść Twojej strony</h3>
-                        <div class="mb-0.5 flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'hero' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
-                            <button type="button" @click="setTab('hero')" class="min-w-0 flex-1 rounded-r-lg py-3 pl-4 pr-1 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-0">
-                                <span :class="activeTab === 'hero' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Powitanie na stronie</span>
+                        <!-- GRUPA 1: Na start -->
+                        <div class="mb-1 mt-2">
+                            <button type="button" @click="navGroupStart = !navGroupStart" class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-bold uppercase tracking-widest text-slate-500 transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35" :aria-expanded="navGroupStart ? 'true' : 'false'">
+                                <span>Na start</span>
+                                <span class="text-slate-400" x-text="navGroupStart ? '▾' : '▸'" aria-hidden="true"></span>
                             </button>
-                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: powitanie na stronie">
-                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                </button>
-                                <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
-                                    Tu ustawiasz pierwszy ekran dla gości: duże zdjęcie, nagłówek i zaproszenie — jak witryna przy wejściu do salonu, tylko w internecie.
-                                    <div class="absolute -top-2 right-4 h-0 w-0 border-x-[7px] border-x-transparent border-b-[8px] border-b-slate-900" aria-hidden="true"></div>
+                            <div x-show="navGroupStart" class="mt-0.5 space-y-0.5">
+                                <div class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('hero') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('hero')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('hero') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Baner — pierwsze co widzi klient</span>
+                                    </button>
                                 </div>
-                            </div>
-                        </div>
-                        <div x-show="adminTabVisible('services')" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'services' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
-                            <button type="button" @click="setTab('services')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
-                                <span :class="activeTab === 'services' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Usługi i ceny</span>
-                            </button>
-                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: usługi i ceny">
-                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5h10M9 12h10M9 19h6M5 5h.01M5 12h.01M5 19h.01"/></svg>
-                                </button>
-                                <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
-                                    Opisujesz, czym się zajmujesz i po jakiej cenie — podobnie jak cennik w gabinecie, tylko na stronie.
-                                    <div class="absolute -top-2 right-4 h-0 w-0 border-x-[7px] border-x-transparent border-b-[8px] border-b-slate-900" aria-hidden="true"></div>
+                                <div x-show="adminTabVisible('services')" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('offer') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('services')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('offer') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Twoja oferta i ceny</span>
+                                    </button>
                                 </div>
-                            </div>
-                        </div>
-                        <div x-show="adminTabVisible('menu')" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'menu' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
-                            <button type="button" @click="setTab('menu')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
-                                <span :class="activeTab === 'menu' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Karta dań / Cennik</span>
-                            </button>
-                        </div>
-                        <div x-show="adminTabVisible('trust')" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'trust' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
-                            <button type="button" @click="setTab('trust')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
-                                <span :class="activeTab === 'trust' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Zaufanie</span>
-                            </button>
-                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: zaufanie">
-                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.291 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                                </button>
-                                <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
-                                    Cytat i gwiazdki — budują wiarygodność przed opiniami z Google.
-                                    <div class="absolute -top-2 right-4 h-0 w-0 border-x-[7px] border-x-transparent border-b-[8px] border-b-slate-900" aria-hidden="true"></div>
+                                <div x-show="adminTabVisible('menu')" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('offer') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('menu')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('offer') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Twoja oferta i ceny</span>
+                                    </button>
                                 </div>
-                            </div>
-                        </div>
-                        <div x-show="adminTabVisible('schedule')" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'schedule' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
-                            <button type="button" @click="setTab('schedule')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
-                                <span :class="activeTab === 'schedule' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Grafik zajęć</span>
-                            </button>
-                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: grafik">
-                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 9h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                </button>
-                                <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
-                                    Dni, godziny i krótkie notatki — jak w szablonie Fitness na stronie.
-                                    <div class="absolute -top-2 right-4 h-0 w-0 border-x-[7px] border-x-transparent border-b-[8px] border-b-slate-900" aria-hidden="true"></div>
+                                <div class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('contact') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('contact')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('contact') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="inline-flex items-center gap-1.5 leading-snug">Telefon, adres, mapa<span x-show="sidebarTabNeedsAttention('contact')" class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[10px] font-bold leading-none text-amber-800" title="Wymaga uwagi">!</span></span>
+                                    </button>
                                 </div>
-                            </div>
-                        </div>
-                        <div x-show="adminTabVisible('care_profile')" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'care_profile' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
-                            <button type="button" @click="setTab('care_profile')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
-                                <span :class="activeTab === 'care_profile' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Informacje o gabinecie</span>
-                            </button>
-                        </div>
-                        <div x-show="adminTabVisible('booking')" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'booking' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
-                            <button type="button" @click="setTab('booking')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
-                                <span :class="activeTab === 'booking' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Rezerwacje online</span>
-                            </button>
-                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: rezerwacje online">
-                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 9h4m-4 4h7M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                </button>
-                                <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
-                                    Kalendarz, przycisk Booksy lub grafik — Ty decydujesz, jak klienci umawiają wizyty.
-                                    <div class="absolute -top-2 right-4 h-0 w-0 border-x-[7px] border-x-transparent border-b-[8px] border-b-slate-900" aria-hidden="true"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div x-show="adminTabVisible('gallery')" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'gallery' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
-                            <button type="button" @click="setTab('gallery')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
-                                <span :class="activeTab === 'gallery' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Galeria zdjęć</span>
-                            </button>
-                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: galeria zdjęć">
-                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01"/></svg>
-                                </button>
-                                <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
-                                    Zdjęcia efektów lub wnętrza — goście chętniej zostają, gdy widzą, czego się spodziewać.
-                                    <div class="absolute -top-2 right-4 h-0 w-0 border-x-[7px] border-x-transparent border-b-[8px] border-b-slate-900" aria-hidden="true"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'contact' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
-                            <button type="button" @click="setTab('contact')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
-                                <span :class="activeTab === 'contact' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="inline-flex items-center gap-1.5 leading-snug">Kontakt<span x-show="sidebarTabNeedsAttention('contact')" class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[10px] font-bold leading-none text-amber-800" title="Wymaga uwagi">!</span></span>
-                            </button>
-                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: kontakt">
-                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-6-7.05-6-11a6 6 0 1112 0c0 3.95-6 11-6 11z"/><circle cx="12" cy="10" r="2.5" fill="none"/></svg>
-                                </button>
-                                <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
-                                    Telefon, adres, mapa Google i profile społecznościowe w stopce.
-                                    <div class="absolute -top-2 right-4 h-0 w-0 border-x-[7px] border-x-transparent border-b-[8px] border-b-slate-900" aria-hidden="true"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div x-show="adminTabVisible('faq')" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'faq' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
-                            <button type="button" @click="setTab('faq')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
-                                <span :class="activeTab === 'faq' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Pytania i odpowiedzi</span>
-                            </button>
-                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: pytania i odpowiedzi">
-                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                </button>
-                                <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
-                                    Krótkie odpowiedzi na częste pytania. Sekcję możesz wyłączyć w dowolnej chwili — teksty zostają bezpieczne w Studiu.
-                                    <div class="absolute -top-2 right-4 h-0 w-0 border-x-[7px] border-x-transparent border-b-[8px] border-b-slate-900" aria-hidden="true"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'google_reviews' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
-                            <button type="button" @click="setTab('google_reviews')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
-                                <span :class="activeTab === 'google_reviews' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Opinie z Google</span>
-                            </button>
-                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: opinie z Google">
-                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 17.273l5.724 4.086-2.086-6.836L21 11.273 14.086 11.09 12 4.728 9.914 11.09 3 11.273l5.362 3.242-2.086 6.837L12 17.274z"/></svg>
-                                </button>
-                                <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
-                                    Wpisz nazwę firmy w Google — opinie budują zaufanie u nowych gości.
-                                    <div class="absolute -top-2 right-4 h-0 w-0 border-x-[7px] border-x-transparent border-b-[8px] border-b-slate-900" aria-hidden="true"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div x-show="adminTabVisible('reviews')" class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'reviews' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
-                            <button type="button" @click="setTab('reviews')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
-                                <span :class="activeTab === 'reviews' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Opinie własne</span>
-                            </button>
-                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: opinie własne">
-                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 20l4.5-1.5L18 8.5l-4-4L4.5 16.5 4 20z"/><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l5 5"/></svg>
-                                </button>
-                                <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
-                                    Cytaty od klientów wpisujesz samodzielnie — pełna kontrola nad treścią i wyglądem.
-                                    <div class="absolute -top-2 right-4 h-0 w-0 border-x-[7px] border-x-transparent border-b-[8px] border-b-slate-900" aria-hidden="true"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'leady' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
-                            <button type="button" @click="setTab('leady')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
-                                <span :class="activeTab === 'leady' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Wiadomości od gości</span>
-                            </button>
-                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: wiadomości od gości">
-                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 4.935a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                                </button>
-                                <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
-                                    Tutaj kiedyś zbierzesz formularze i zapytania od osób, które weszły na stronę.
-                                    <div class="absolute -top-2 right-4 h-0 w-0 border-x-[7px] border-x-transparent border-b-[8px] border-b-slate-900" aria-hidden="true"></div>
+                                <div x-show="adminTabVisible('gallery')" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('gallery') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('gallery')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('gallery') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Zdjęcia Twoich prac</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
-                        <h3 id="dfcms-onboarding-category-konfiguracja" class="dfops-sidebar-section-title mb-2 mt-6 border-t border-slate-200/80 pt-5">Konfiguracja</h3>
-                        <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'settings' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
-                            <button type="button" @click="setTab('settings')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
-                                <span :class="activeTab === 'settings' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="inline-flex items-center gap-1.5 leading-snug">Szablon i kolory<span x-show="sidebarTabNeedsAttention('settings')" class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[10px] font-bold leading-none text-amber-800" title="Wymaga uwagi">!</span></span>
+                        <!-- GRUPA 2: Więcej treści -->
+                        <div class="mb-1 mt-3 border-t border-slate-200/80 pt-3">
+                            <button type="button" @click="navGroupMore = !navGroupMore" class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-bold uppercase tracking-widest text-slate-500 transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35" :aria-expanded="navGroupMore ? 'true' : 'false'">
+                                <span>Więcej treści</span>
+                                <span class="text-slate-400" x-text="navGroupMore ? '▾' : '▸'" aria-hidden="true"></span>
                             </button>
-                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: szablon i kolory">
-                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.311-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                </button>
-                                <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
-                                    Logo, kolory, fonty oraz to, które sekcje są widoczne na stronie — wygląd całej witryny.
-                                    <div class="absolute -top-2 right-4 h-0 w-0 border-x-[7px] border-x-transparent border-b-[8px] border-b-slate-900" aria-hidden="true"></div>
+                            <div x-show="navGroupMore" class="mt-0.5 space-y-0.5">
+                                <div x-show="adminManifestoTabVisible()" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('about') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('manifesto')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('about') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">O nas</span>
+                                    </button>
+                                </div>
+                                <div x-show="adminTabVisible('care_profile')" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('about') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('care_profile')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('about') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">O nas</span>
+                                    </button>
+                                </div>
+                                <div x-show="adminTabVisible('trust')" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('trust') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('trust')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('trust') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Dlaczego warto nas wybrać?</span>
+                                    </button>
+                                </div>
+                                <div x-show="adminTabVisible('faq')" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('faq') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('faq')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('faq') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Pytania klientów</span>
+                                    </button>
+                                </div>
+                                <div x-show="adminTabVisible('google_reviews') || adminTabVisible('reviews')" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('reviews') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('reviews')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('reviews') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Opinie</span>
+                                    </button>
+                                </div>
+                                <div x-show="adminTabVisible('schedule')" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('schedule') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('schedule')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('schedule') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Grafik zajęć</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'seo' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
-                            <button type="button" @click="setTab('seo')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
-                                <span :class="activeTab === 'seo' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">SEO i&nbsp;Analityka</span>
+
+                        <!-- GRUPA 3: Ustawienia -->
+                        <div class="mb-1 mt-3 border-t border-slate-200/80 pt-3">
+                            <button type="button" @click="navGroupSettings = !navGroupSettings" class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-bold uppercase tracking-widest text-slate-500 transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35" :aria-expanded="navGroupSettings ? 'true' : 'false'">
+                                <span>Ustawienia</span>
+                                <span class="text-slate-400" x-text="navGroupSettings ? '▾' : '▸'" aria-hidden="true"></span>
                             </button>
-                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: SEO i Analityka">
-                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                                </button>
-                                <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
-                                    Wyniki Google, udostępnianie linku oraz opcjonalnie statystyki odwiedzin (Google Tag Manager, Meta).
-                                    <div class="absolute -top-2 right-4 h-0 w-0 border-x-[7px] border-x-transparent border-b-[8px] border-b-slate-900" aria-hidden="true"></div>
+                            <div x-show="navGroupSettings" class="mt-0.5 space-y-0.5">
+                                <div class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('settings') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('settings')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('settings') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="inline-flex items-center gap-1.5 leading-snug">Wygląd strony<span x-show="sidebarTabNeedsAttention('settings')" class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[10px] font-bold leading-none text-amber-800" title="Wymaga uwagi">!</span></span>
+                                    </button>
+                                </div>
+                                <div class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('seo') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('seo')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('seo') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Wyszukiwarka Google</span>
+                                    </button>
+                                </div>
+                                <div class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('legal') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('legal')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('legal') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Regulamin i RODO</span>
+                                    </button>
+                                </div>
+                                <div class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('account') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('account')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('account') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Konto i bezpieczeństwo</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'legal' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
-                            <button type="button" @click="setTab('legal')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 flex items-center gap-2">
-                                <svg class="w-4 h-4 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                                <span :class="activeTab === 'legal' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Regulamin / RODO</span>
+
+                        <div class="mt-4 space-y-1 border-t border-slate-200/80 pt-4">
+                            <button type="button" id="dfcms-onboarding-nav-subscription" @click="setTab('subscription')" class="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-slate-600 transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35" :class="activeTab === 'subscription' ? 'bg-amber-50/60 font-bold text-slate-900' : ''">
+                                <span class="leading-snug">Subskrypcja i płatności</span>
                             </button>
-                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: dokumenty prawne">
-                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 17h6M9 13h4"/></svg>
-                                </button>
-                                <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
-                                    Polityka prywatności, RODO i obowiązkowe informacje techniczne dla gości strony.
-                                    <div class="absolute -top-2 right-4 h-0 w-0 border-x-[7px] border-x-transparent border-b-[8px] border-b-slate-900" aria-hidden="true"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex w-full items-stretch mb-0.5 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'account' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
-                            <button type="button" @click="setTab('account')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 flex items-center gap-2">
-                                <svg class="w-4 h-4 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                <span :class="activeTab === 'account' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Konto i bezpieczeństwo</span>
+                            <button type="button" id="dfcms-onboarding-wizard-btn" @click="mobileMenuOpen = false; openWizardFromStudio()" class="flex w-full items-center gap-3 rounded-xl bg-accent/10 px-3 py-2.5 text-left font-bold text-accent transition-colors hover:bg-accent/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2">
+                                <span class="text-lg shrink-0" aria-hidden="true">🪄</span>
+                                <span class="min-w-0 flex-1 leading-snug text-sm">Pomocnik krok po kroku</span>
+                                <span x-show="incompleteOnboardingChecks.length && !showWizard" x-cloak class="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-amber-200/90 px-1.5 text-[10px] font-bold tabular-nums text-amber-950" x-text="incompleteOnboardingChecks.length"></span>
                             </button>
-                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: konto">
-                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                </button>
-                                <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
-                                    Hasło, e-mail logowania i prośba o usunięcie konta.
-                                    <div class="absolute -top-2 right-4 h-0 w-0 border-x-[7px] border-x-transparent border-b-[8px] border-b-slate-900" aria-hidden="true"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="dfcms-onboarding-nav-subscription" class="flex w-full items-stretch mt-2 border-t border-gray-100 pt-3 rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'subscription' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
-                            <button type="button" @click="setTab('subscription')" class="flex-1 min-w-0 text-left pl-4 pr-1 py-3 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
-                                <span :class="activeTab === 'subscription' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Subskrypcja</span>
-                            </button>
-                            <div class="relative group flex items-center pr-2 shrink-0 self-center" @click.stop>
-                                <button type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100/95 text-slate-500 shadow-sm ring-1 ring-slate-900/[0.06] transition-colors hover:bg-amber-50 hover:text-accent hover:ring-accent/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź: subskrypcja">
-                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2" ry="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18"/></svg>
-                                </button>
-                                <div class="absolute top-full right-0 mr-1 z-[60] mt-2 w-60 sm:w-64 rounded-xl bg-slate-900 p-3 text-center text-xs leading-relaxed text-white opacity-0 shadow-panel-md pointer-events-none transition-all invisible group-hover:visible group-hover:opacity-100">
-                                    Pakiet, płatności i dostęp do funkcji — np. własna domena na wyższych planach.
-                                    <div class="absolute -top-2 right-4 h-0 w-0 border-x-[7px] border-x-transparent border-b-[8px] border-b-slate-900" aria-hidden="true"></div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </aside>
 
                 <div class="w-full min-w-0 overflow-hidden rounded-xl border border-slate-200/70 border-l-slate-200/80 bg-white px-4 py-5 shadow-panel ring-1 ring-slate-900/5 md:w-3/4 md:p-8 md:border-l md:border-l-slate-200 md:pl-8 md:shadow-[2px_0_24px_-10px_rgba(15,23,42,0.07)]">
 
-                    <div x-show="!showWizard && isEmailVerified && content?.pl?.settings?.onboarding_completed === false && incompleteOnboardingChecks.length > 0"
-                         x-transition
-                         class="mb-6 rounded-xl border border-amber-200/70 bg-gradient-to-b from-amber-50/80 to-white p-4 ring-1 ring-amber-900/[0.06] md:p-5">
-                        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                            <div>
-                                <h3 class="text-sm font-bold text-slate-900">Co warto jeszcze dopracować</h3>
-                                <p class="mt-1 max-w-xl text-xs text-slate-600">Lista dotyczy podstaw: szablon, nazwa w menu, kontakt. Kliknij pozycję albo otwórz pełny kreator — resztę dopracujesz później w zakładkach.</p>
+                    <div x-show="activeTab === 'dashboard'" x-transition.opacity x-cloak>
+                        <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5 md:p-8">
+                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Twoja strona</h2>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Tu zarządzasz treścią witryny. Zmiany zapisują się automatycznie — na końcu kliknij <strong>Opublikuj zmiany</strong> w górnym pasku, żeby klienci je zobaczyli.</p>
+                            <div class="rounded-xl border border-slate-200/80 bg-slate-50/60 p-5 md:p-6">
+                                <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Adres Twojej strony</p>
+                                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                    <a :href="getLiveSiteUrl()" target="_blank" rel="noopener noreferrer" class="text-lg font-semibold text-slate-900 underline decoration-slate-300 underline-offset-4 hover:decoration-accent break-all" x-text="slug ? (slug + '.dfcms.pl') : '—'"></a>
+                                    <a :href="getPublicSiteUrl()" @click="stashDraftForPreview()" target="_blank" rel="noopener noreferrer" class="inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50">
+                                        Zobacz stronę
+                                    </a>
+                                </div>
                             </div>
-                            <button type="button" @click="openWizardFromStudio(); sidebarOpen = false; mobileMenuOpen = false" class="shrink-0 self-start rounded-lg border border-accent/30 bg-white px-3 py-2 text-xs font-bold uppercase tracking-widest text-accent transition-colors hover:bg-accent/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
-                                Pełny kreator
+                        </div>
+                        <div class="rounded-xl border border-slate-200/70 bg-white p-6 shadow-panel ring-1 ring-slate-900/5 md:p-8">
+                            <h3 class="text-sm font-bold text-slate-900 mb-1">Do zrobienia na start</h3>
+                            <p class="text-xs text-slate-500 mb-4 leading-relaxed">Kliknij pozycję, uzupełnij dane i opublikuj zmiany.</p>
+                            <ul class="space-y-3">
+                                <template x-for="(task, idx) in dashboardStartTasks" :key="task.id">
+                                    <li class="flex items-start gap-3">
+                                        <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold" :class="task.done ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'" x-text="task.done ? '✓' : (idx + 1)"></span>
+                                        <button type="button" @click="setTab(task.tab)" class="text-left text-sm transition-colors" :class="task.done ? 'text-slate-500 line-through decoration-slate-300' : 'font-medium text-accent underline decoration-accent/35 underline-offset-2 hover:decoration-accent'" x-text="task.label"></button>
+                                    </li>
+                                </template>
+                            </ul>
+                            <button type="button" @click="openWizardFromStudio()" class="mt-6 w-full rounded-lg border border-accent/30 bg-accent/5 px-4 py-3 text-sm font-bold text-accent transition-colors hover:bg-accent/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 sm:w-auto">
+                                Uruchom pomocnika krok po kroku
                             </button>
                         </div>
-                        <ul class="mt-4 space-y-2 border-t border-amber-200/50 pt-4">
-                            <template x-for="item in incompleteOnboardingChecks" :key="item.id">
-                                <li class="flex items-start gap-3 text-sm text-slate-800">
-                                    <span class="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[11px] font-bold text-amber-900" aria-hidden="true">!</span>
-                                    <button type="button" class="text-left font-medium text-accent underline decoration-accent/35 underline-offset-2 transition-colors hover:decoration-accent" @click="goToOnboardingItem(item)" x-text="item.label"></button>
-                                </li>
-                            </template>
-                        </ul>
                     </div>
-                    
-                    <div x-show="activeTab === 'settings'" x-transition.opacity>
+
+                    <div x-show="activeTab === 'settings'" x-transition.opacity x-cloak>
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
-                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Szablon i kolory</h2>
-                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl">Najpierw marka w menu, potem wygląd (kolory, tło, fonty), na końcu — jeśli potrzebujesz — zmiana branżowego szablonu, domena i to, które sekcje są widoczne.</p>
+                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Wygląd strony</h2>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl">Nazwa firmy, logo i kolory — to pierwsze, co warto ustawić. Reszta opcji jest w sekcji zaawansowanej poniżej.</p>
                         </div>
 
                         <div class="space-y-8 max-w-4xl">
@@ -1067,10 +935,10 @@
                             <section class="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-panel ring-1 ring-slate-900/5">
                                 <div class="border-b border-slate-200/60 bg-slate-50/80 px-5 py-3.5 flex flex-wrap items-baseline justify-between gap-2">
                                     <div>
-                                        <h3 class="text-sm font-bold text-slate-900 uppercase tracking-widest">Marka w nagłówku</h3>
+                                        <h3 class="text-sm font-bold text-slate-900 uppercase tracking-widest">Nazwa firmy i logo</h3>
                                         <p class="text-xs text-slate-500 mt-1">To widzą goście obok menu — nazwa i opcjonalnie grafika.</p>
                                     </div>
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Krok 1</span>
+                                    
                                 </div>
                                 <div class="p-5 md:p-6 space-y-6">
                                     <div>
@@ -1101,19 +969,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div x-show="themeHasSection('nav_labels')" class="pt-2 border-t border-gray-100">
-                                        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Napisy w górnym menu strony</h4>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <template x-for="field in navMenuFields" :key="'nav-' + field.key">
-                                                <div :class="field.key === 'faq' ? 'md:col-span-2' : ''">
-                                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2" x-text="field.label"></label>
-                                                    <input type="text" x-model="content.pl.nav.menu[field.key]" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                                    <p x-show="field.key === 'faq'" class="text-xs text-slate-500 mt-1.5 leading-relaxed">Ten sam tekst w menu i jako nagłówek sekcji pytań.</p>
-                                                </div>
-                                            </template>
-                                        </div>
-                                        <p class="text-xs text-slate-500 mt-2">Tylko teksty linków — kolejność sekcji wynika z wybranego szablonu.</p>
-                                    </div>
                                 </div>
                             </section>
 
@@ -1124,7 +979,7 @@
                                         <h3 class="text-sm font-bold text-slate-900 uppercase tracking-widest">Kolory i styl</h3>
                                         <p class="text-xs text-slate-500 mt-1">Gotowe zestawy kolorów, tło i czcionki — podgląd w panelu od razu po zmianie.</p>
                                     </div>
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Krok 2</span>
+                                    
                                 </div>
                                 <div class="p-5 md:p-6 space-y-8">
                                     <div>
@@ -1168,7 +1023,24 @@
                                         </div>
                                         <p class="text-xs text-slate-500 mt-2">Jednym klikiem ustawia kolor, tło i fonty — potem możesz dopracować ręcznie (w Standard).</p>
                                     </div>
-                                    <div class="pt-6 border-t border-gray-100">
+                                </div>
+                            </section>
+
+                            <details class="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-panel ring-1 ring-slate-900/5">
+                                <summary class="cursor-pointer border-b border-slate-200/60 bg-slate-50/80 px-5 py-4 text-sm font-bold text-slate-900">Ustawienia zaawansowane dla informatyka</summary>
+                                <div class="space-y-8 p-5 md:p-6">
+                                    <div x-show="themeHasSection('nav_labels')">
+                                        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Napisy w górnym menu strony</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <template x-for="field in navMenuFields" :key="'nav-adv-' + field.key">
+                                                <div :class="field.key === 'faq' ? 'md:col-span-2' : ''">
+                                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2" x-text="field.label"></label>
+                                                    <input type="text" x-model="content.pl.nav.menu[field.key]" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                    <div class="pt-2 border-t border-gray-100">
                                         <h4 class="text-xs font-bold text-slate-700 uppercase tracking-widest mb-3">Własna personalizacja</h4>
                                         <p class="text-xs text-slate-500 mb-4 leading-relaxed">Wybór własnego koloru akcentu, tła i fontów — od pakietu Standard.</p>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:items-start">
@@ -1221,8 +1093,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </section>
 
                             <!-- 3 Zmiana szablonu (ryzykowne) -->
                             <section class="rounded-lg border border-amber-200 bg-amber-50/50 shadow-sm overflow-hidden">
@@ -1342,296 +1212,133 @@
                                     <p x-show="!isCustomDomainLocked" class="text-xs text-slate-500">Adres domeny (np. twojadomena.pl) — wpisy przekierowujące ustawiasz u rejestratora.</p>
                                 </div>
                             </section>
-
-                            <!-- 5 Widoczność -->
-                            <section class="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-panel ring-1 ring-slate-900/5">
-                                <div class="border-b border-slate-200/60 bg-slate-50/80 px-5 py-3.5 flex flex-wrap items-baseline justify-between gap-2">
-                                    <div>
-                                        <h3 class="text-sm font-bold text-slate-900 uppercase tracking-widest">Co widnieje na stronie</h3>
-                                        <p class="text-xs text-slate-500 mt-1">Szybki przegląd całej strony. Te same przełączniki znajdziesz w zakładkach poszczególnych sekcji — działają identycznie.</p>
-                                    </div>
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Krok 3</span>
                                 </div>
-                                <div class="p-5 md:p-6 space-y-6">
-                                    <div x-show="theme === 'consultant'">
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative">
-                                                <input type="checkbox" x-model="content.pl.settings.darkMode" class="sr-only peer">
-                                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div>
-                                            </div>
-                                            <span class="text-sm font-bold text-slate-700 uppercase tracking-widest">Tryb ciemny strony</span>
-                                        </label>
-                                    </div>
-                                    <div x-show="theme === 'consultant'" class="space-y-4 pt-2 border-t border-gray-100">
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showManifesto" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">O mnie</span>
-                                        </label>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showServices" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">Usługi</span>
-                                        </label>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showProof" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">Statystyka / liczby</span>
-                                        </label>
-                                        <div class="flex items-center gap-2">
-                                            <label class="flex items-center gap-3 cursor-pointer flex-1 min-w-0">
-                                                <div class="relative"><input type="checkbox" x-model="content.pl.settings.showFaq" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                                <span class="text-sm font-bold text-slate-700">Pytania (FAQ)</span>
-                                            </label>
-                                            <div class="relative group inline-block shrink-0" @click.stop>
-                                                <button type="button" class="p-0.5 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź o włączaniu sekcji na stronie">
-                                                    <svg class="w-4 h-4 text-slate-400 hover:text-accent transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                                </button>
-                                                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-900 text-white text-xs rounded-xl shadow-panel-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
-                                                    Możesz włączać i wyłączać tę sekcję w dowolnym momencie. Zniknie ze strony, ale Twoje teksty pozostaną bezpieczne w Studiu.
-                                                    <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showReviews" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">Opinie</span>
-                                        </label>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showGoogleReviews" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">Opinie z Google</span>
-                                        </label>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showContact" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">Kontakt</span>
-                                        </label>
-                                    </div>
-                                    <div x-show="theme === 'beauty'" class="space-y-4 pt-2 border-t border-gray-100">
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showManifesto" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">O nas / filozofia</span>
-                                        </label>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showServices" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">Usługi (cennik)</span>
-                                        </label>
-                                        <div class="flex items-center gap-2">
-                                            <label class="flex items-center gap-3 cursor-pointer flex-1 min-w-0">
-                                                <div class="relative"><input type="checkbox" x-model="content.pl.settings.showFaq" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                                <span class="text-sm font-bold text-slate-700">Pytania (FAQ)</span>
-                                            </label>
-                                            <div class="relative group inline-block shrink-0" @click.stop>
-                                                <button type="button" class="p-0.5 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź o włączaniu sekcji na stronie">
-                                                    <svg class="w-4 h-4 text-slate-400 hover:text-accent transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                                </button>
-                                                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-900 text-white text-xs rounded-xl shadow-panel-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
-                                                    Możesz włączać i wyłączać tę sekcję w dowolnym momencie. Zniknie ze strony, ale Twoje teksty pozostaną bezpieczne w Studiu.
-                                                    <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showGallery" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">Galeria zdjęć</span>
-                                        </label>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showGoogleReviews" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">Opinie z Google</span>
-                                        </label>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showContact" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">Kontakt</span>
-                                        </label>
-                                    </div>
-                                    <div x-show="theme === 'fitness'" class="space-y-4 pt-2 border-t border-gray-100">
-                                        <p class="text-xs text-slate-600">Widoczność sekcji na stronie (szablon Fitness) — te same treści edytujesz w zakładkach po lewej.</p>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showManifesto" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">O nas</span>
-                                        </label>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showServices" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">Usługi / treningi</span>
-                                        </label>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showFaq" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">FAQ</span>
-                                        </label>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showGallery" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">Galeria zdjęć</span>
-                                        </label>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showGoogleReviews" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">Opinie z Google</span>
-                                        </label>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showContact" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">Kontakt</span>
-                                        </label>
-                                    </div>
-                                    <div x-show="theme === 'services'" class="space-y-4 pt-2 border-t border-gray-100">
-                                        <p class="text-xs text-slate-600">Widoczność sekcji (szablon Usługi lokalne).</p>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showManifesto" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">O nas</span>
-                                        </label>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showServices" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">Zakres usług</span>
-                                        </label>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showTrust" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">Sekcja Zaufanie (cytat)</span>
-                                        </label>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showFaq" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">FAQ</span>
-                                        </label>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showGallery" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">Galeria / realizacje</span>
-                                        </label>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showGoogleReviews" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">Opinie z Google</span>
-                                        </label>
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <div class="relative"><input type="checkbox" x-model="content.pl.settings.showContact" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div></div>
-                                            <span class="text-sm font-bold text-slate-700">Kontakt</span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </section>
+                            </details>
 
                         </div>
                     </div>
 
                         <div x-show="activeTab === 'hero'" x-transition.opacity x-cloak>
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
-                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Powitanie na stronie</h2>
-                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">To pierwszy ekran dla gości — duże zdjęcie, nagłówek i krótki opis. Poniżej możesz też dopracować sekcję „O nas”.</p>
-                            <div x-show="['beauty','consultant','fitness','services'].includes(theme)" class="flex items-center gap-4 pt-4 border-t border-gray-100">
-                                <label class="flex items-center gap-3 cursor-pointer">
-                                    <div class="relative">
-                                        <input type="checkbox" x-model="content.pl.settings.showManifesto" class="sr-only peer">
-                                        <div class="w-11 h-6 rounded-full transition-colors peer-checked:bg-emerald-500 bg-gray-200"></div>
-                                        <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5 pointer-events-none"></div>
-                                    </div>
-                                    <span class="text-sm font-medium text-slate-900">Włącz sekcję O nas</span>
-                                </label>
-                            </div>
+                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Baner — pierwsze co widzi klient</h2>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl">Główny nagłówek, krótki opis i zdjęcie — to pierwsze wrażenie na stronie.</p>
                         </div>
                         <div class="space-y-6">
                             <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Nazwa marki lub firmy</label>
-                                <input type="text" id="dfcms-first-content-input" x-model="content.pl.settings.business_name" autocomplete="organization" placeholder="np. Twoja marka" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                <p class="text-xs text-slate-500 mt-2 leading-relaxed max-w-2xl">Ułatwia orientację w panelu; poniżej ustawisz teksty widoczne na stronie dla gości.</p>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Przedrostek / Mały tekst nad tytułem</label>
-                                <input type="text" x-model="content.pl.hero.name" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                <p class="text-xs text-slate-500 mt-2 leading-relaxed max-w-2xl">Krótka etykieta nad głównym zdjęciem (np. „Witaj”, nazwa usługi) — buduje kontekst przed dużym nagłówkiem.</p>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Główny Nagłówek</label>
-                                <input type="text" x-model="content.pl.hero.headline" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none text-lg font-bold">
-                                <p class="text-xs text-slate-500 mt-2 leading-relaxed max-w-2xl">Najważniejszy komunikat strony. W szablonie konsultanta można wyróżnić słowo kolorem — użyj znaków <code class="text-[11px] bg-gray-100 px-1 rounded">*</code> na początku i końcu słowa, np. <code class="text-[11px] bg-gray-100 px-1 rounded">*ekspert*</code>.</p>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Główny nagłówek</label>
+                                <input type="text" id="dfcms-first-content-input" x-model="content.pl.hero.headline" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none text-lg font-bold">
+                                <p class="text-xs text-slate-500 mt-2 leading-relaxed max-w-2xl">Najważniejszy komunikat — np. „Profesjonalne układanie płytek w Poznaniu”.</p>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Opis pod nagłówkiem</label>
                                 <textarea x-model="content.pl.hero.description" rows="3" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white"></textarea>
-                                <p class="text-xs text-slate-500 mt-2 leading-relaxed max-w-2xl">2–4 zdania: kim jesteś, dla kogo pracujesz, główna obietnica. Ten tekst często trafia też do podglądu w Google, jeśli nie ustawisz osobnego opisu w zakładce SEO i&nbsp;Analityka.</p>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tekst na przycisku</label>
-                                <input type="text" x-model="content.pl.hero.button" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none text-sm">
-                                <p class="text-xs text-slate-500 mt-2 leading-relaxed max-w-2xl">Krótki tekst zachęty, np. „Umów konsultację”, „Rezerwuj wizytę” — konkretnie i na temat.</p>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Zdjęcie na banerze</label>
+                                <div class="flex flex-wrap items-start gap-6">
+                                    <div class="flex flex-col items-center shrink-0">
+                                        <div class="w-20 h-20 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
+                                            <template x-if="content.pl.hero.image">
+                                                <img :src="content.pl.hero.image" class="w-full h-full object-cover" alt="">
+                                            </template>
+                                            <template x-if="!content.pl.hero.image">
+                                                <span class="text-[10px] text-slate-400 uppercase tracking-widest text-center">Brak</span>
+                                            </template>
+                                        </div>
+                                        <template x-if="content.pl.hero.image">
+                                            <button @click="content.pl.hero.image = ''" type="button" class="mt-2 text-[10px] text-red-500 hover:text-red-700 font-bold uppercase tracking-widest">Usuń zdjęcie</button>
+                                        </template>
+                                    </div>
+                                    <div class="flex-grow min-w-[200px]">
+                                        <label class="inline-flex cursor-pointer items-center gap-2 rounded-sm border border-[#D4AF37]/40 bg-amber-50/50 px-3 py-2 text-xs font-semibold text-[#b8941c] hover:bg-amber-50">
+                                            Dodaj zdjęcie
+                                            <input type="file" accept="image/*" class="sr-only" @change="uploadImage($event, 'hero', 'image')">
+                                        </label>
+                                        <p x-show="uploadingImage" x-text="uploadingMessage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse"></p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="flex items-center gap-4">
+                        </div>
+
+                        <details class="mt-8 border border-slate-200/80 rounded-xl p-4 md:p-5">
+                            <summary class="cursor-pointer text-sm font-bold text-slate-900">Przycisk akcji na banerze (opcjonalnie)</summary>
+                            <div class="mt-4 space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tekst na przycisku</label>
+                                    <input type="text" x-model="content.pl.hero.button" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none text-sm">
+                                </div>
                                 <label class="flex items-center gap-3 cursor-pointer">
                                     <div class="relative">
                                         <input type="checkbox" x-model="content.pl.hero.button_enabled" class="sr-only peer">
                                         <div class="w-11 h-6 rounded-full transition-colors peer-checked:bg-emerald-500 bg-gray-200"></div>
                                         <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5 pointer-events-none"></div>
                                     </div>
-                                    <span class="text-sm font-medium text-slate-900">Pokaż główny przycisk na pierwszym ekranie</span>
+                                    <span class="text-sm font-medium text-slate-900">Pokaż przycisk na banerze</span>
                                 </label>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Link przycisku</label>
+                                    <input type="text" x-model="content.pl.hero.button_url" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none text-sm" placeholder="Zostaw puste — przewinie do kontaktu">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Mały tekst nad nagłówkiem</label>
+                                    <input type="text" x-model="content.pl.hero.name" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Nazwa firmy (tylko w panelu)</label>
+                                    <input type="text" x-model="content.pl.settings.business_name" autocomplete="organization" placeholder="np. Twoja firma" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                </div>
                             </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Link przycisku w nagłówku</label>
-                                <input type="text" x-model="content.pl.hero.button_url" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none text-sm" placeholder="https://booksy.com/… lub zostaw puste">
-                                <p class="text-xs text-slate-500 mt-2 leading-relaxed max-w-2xl">Gdzie prowadzi główny przycisk pod nagłówkiem. Puste = przycisk przewinie stronę do sekcji Rezerwacje.</p>
-                            </div>
-                        </div>
+                        </details>
 
-                        <div class="mt-8 pt-6 border-t border-gray-100">
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Twoja główna wizytówka (Pierwsze wrażenie)</label>
-                            <p class="text-xs text-slate-500 mb-4 leading-relaxed max-w-2xl">Zdjęcie profilowe lub obrazek marki — najlepiej kwadrat lub pion w dobrej rozdzielczości (min. 800px).</p>
-                            <div class="flex flex-wrap items-start gap-6">
-                                <div class="flex flex-col items-center shrink-0">
-                                    <div class="w-20 h-20 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
-                                        <template x-if="content.pl.hero.image">
-                                            <img :src="content.pl.hero.image" class="w-full h-full object-cover">
-                                        </template>
-                                        <template x-if="!content.pl.hero.image">
-                                            <span class="text-[10px] text-slate-400 uppercase tracking-widest text-center">Brak</span>
+                        <details class="mt-4 border border-slate-200/80 rounded-xl p-4 md:p-5" x-show="themeHasSection('qr_code')">
+                            <summary class="cursor-pointer text-sm font-bold text-slate-900">Kod QR do rezerwacji (opcjonalnie)</summary>
+                            <div class="mt-4 space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tekst nad kodem QR</label>
+                                    <input type="text" x-model="content.pl.hero.qrText" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                </div>
+                                <div class="flex items-start gap-6">
+                                    <div class="flex flex-col items-center shrink-0">
+                                        <div class="w-20 h-20 rounded-sm border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50 p-1">
+                                            <template x-if="content.pl.hero.qrImage">
+                                                <img :src="content.pl.hero.qrImage" class="w-full h-full object-contain" alt="">
+                                            </template>
+                                        </div>
+                                        <template x-if="content.pl.hero.qrImage">
+                                            <button @click="content.pl.hero.qrImage = ''" type="button" class="mt-2 text-[10px] text-red-500 hover:text-red-700 font-bold uppercase tracking-widest">Usuń</button>
                                         </template>
                                     </div>
-                                    <template x-if="content.pl.hero.image">
-                                        <button @click="content.pl.hero.image = ''" type="button" class="mt-2 text-[10px] text-red-500 hover:text-red-700 font-bold uppercase tracking-widest">✖ Usuń grafikę</button>
-                                    </template>
-                                </div>
-                                <div class="flex-grow min-w-[200px]">
-                                    <label class="inline-flex cursor-pointer items-center gap-2 rounded-sm border border-[#D4AF37]/40 bg-amber-50/50 px-3 py-2 text-xs font-semibold text-[#b8941c] hover:bg-amber-50">
-                                        Dodaj swoje piękne zdjęcie
-                                        <input type="file" accept="image/*" class="sr-only" @change="uploadImage($event, 'hero', 'image')">
-                                    </label>
-                                    <p x-show="uploadingImage" x-text="uploadingMessage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse"></p>
+                                    <input type="file" accept="image/*" @change="uploadImage($event, 'hero', 'qrImage')" class="text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-sm file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-widest file:bg-[#121212] file:text-[#D4AF37] hover:file:bg-gray-800 cursor-pointer">
                                 </div>
                             </div>
-                        </div>
+                        </details>
+                    </div>
 
-                        <div class="mt-8 pt-6 border-t border-gray-100" x-show="themeHasSection('manifesto')">
-                            <h3 class="text-sm font-bold text-slate-900 mb-4">Sekcja O nas</h3>
-                            <div class="mb-4" x-show="['fitness','services'].includes(theme)">
+                    <div x-show="activeTab === 'manifesto' && adminManifestoTabVisible()" x-transition.opacity x-cloak>
+                        <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
+                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">O nas</h2>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Dłuższy opis firmy — kim jesteś i dlaczego klienci mogą Ci zaufać.</p>
+                            <label class="flex items-center gap-4 cursor-pointer">
+                                <div class="relative">
+                                    <input type="checkbox" x-model="content.pl.settings.showManifesto" class="sr-only peer">
+                                    <div class="w-11 h-6 rounded-full transition-colors peer-checked:bg-emerald-500 bg-gray-200"></div>
+                                    <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5 pointer-events-none"></div>
+                                </div>
+                                <span class="text-sm font-medium text-slate-900">Pokaż sekcję „O nas” na stronie</span>
+                            </label>
+                        </div>
+                        <div class="space-y-6" x-show="themeHasSection('manifesto')">
+                            <div x-show="['fitness','services'].includes(theme)">
                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Mała etykieta nad tytułem</label>
                                 <input type="text" x-model="content.pl.manifesto.label" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="np. Dlaczego my">
-                                <p class="text-xs text-slate-500 mt-1.5">W szablonach Fitness i Usługi pojawia się jako subtelny tekst nad głównym nagłówkiem.</p>
-                            </div>
-                            <div class="mb-2">
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tytuł sekcji</label>
-                                <input type="text" x-model="content.pl.manifesto.title" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="np. Kilka słów">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Treść (O nas)</label>
-                                <textarea x-model="content.pl.manifesto.text" rows="5" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white resize-y" placeholder="Opis Twojej marki, filozofii, oferty..."></textarea>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tytuł sekcji</label>
+                                <input type="text" x-model="content.pl.manifesto.title" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="np. Kilka słów o nas">
                             </div>
-                        </div>
-
-                        <div class="mt-8 pt-6 border-t border-gray-100" x-show="themeHasSection('qr_code')">
-                            <h3 class="text-sm font-bold text-slate-900 mb-4">Kod QR do rezerwacji</h3>
-                            <div class="mb-4">
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tekst nad kodem QR</label>
-                                <input type="text" x-model="content.pl.hero.qrText" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                <p class="text-xs text-slate-500 mt-2 leading-relaxed">Krótki nagłówek nad kodem QR (np. „Zarezerwuj w aplikacji”).</p>
-                            </div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Obrazek kodu QR</label>
-                            <div class="flex items-start gap-6">
-                                <div class="flex flex-col items-center shrink-0">
-                                    <div class="w-20 h-20 rounded-sm border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50 p-1">
-                                        <template x-if="content.pl.hero.qrImage">
-                                            <img :src="content.pl.hero.qrImage" class="w-full h-full object-contain">
-                                        </template>
-                                        <template x-if="!content.pl.hero.qrImage">
-                                            <span class="text-[10px] text-slate-400 uppercase tracking-widest text-center">Brak</span>
-                                        </template>
-                                    </div>
-                                    <template x-if="content.pl.hero.qrImage">
-                                        <button @click="content.pl.hero.qrImage = ''" type="button" class="mt-2 text-[10px] text-red-500 hover:text-red-700 font-bold uppercase tracking-widest">✖ Usuń grafikę</button>
-                                    </template>
-                                </div>
-                                <div class="flex-grow">
-                                    <input type="file" accept="image/*" @change="uploadImage($event, 'hero', 'qrImage')" class="text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-sm file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-widest file:bg-[#121212] file:text-[#D4AF37] hover:file:bg-gray-800 cursor-pointer">
-                                    <p x-show="uploadingImage" x-text="uploadingMessage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse"></p>
-                                </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Treść</label>
+                                <textarea x-model="content.pl.manifesto.text" rows="5" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white resize-y" placeholder="Opis Twojej firmy, doświadczenia, podejścia…"></textarea>
                             </div>
                         </div>
                     </div>
@@ -1874,93 +1581,9 @@
                         </div>
                     </div>
 
-                    <div x-show="activeTab === 'booking'" x-transition.opacity x-cloak>
-                        <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
-                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Grafik i Rezerwacje online</h2>
-                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl">Skonfiguruj, w jaki sposób Twoi klienci mogą zapisywać się na usługi lub sprawdzać dostępność.</p>
-                        </div>
-
-                        <div class="rounded-xl border border-slate-200/70 bg-white p-6 shadow-panel ring-1 ring-slate-900/5 space-y-6 max-w-2xl">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Sposób rezerwacji na stronie</label>
-                                <select x-model="content.pl.settings.booking_mode" @change="syncBookingSettings()" class="w-full rounded-lg border border-slate-200 px-4 py-3 bg-white focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none text-sm">
-                                    <option value="schedule" x-text="theme === 'fitness' ? 'Wyświetlaj tylko mój grafik (tabela dni i godzin)' : 'Bez rezerwacji online (standardowy widok strony)'"></option>
-                                    <option value="embed">Pokaż kalendarz rezerwacji na stronie (np. Calendly)</option>
-                                    <option value="button">Pokaż tylko przycisk rezerwacji (np. Booksy, Google Booking)</option>
-                                    <option value="both" x-text="theme === 'fitness' ? 'Wyświetlaj grafik oraz przycisk rezerwacji pod nim' : 'Standardowy widok oraz przycisk rezerwacji'"></option>
-                                </select>
-                            </div>
-
-                            <div x-show="content.pl.settings.booking_mode !== 'schedule'" x-transition.opacity x-cloak>
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Link do Twojego systemu rezerwacji</label>
-                                <input type="text" x-model="content.pl.contact.booking_url" @blur="syncBookingSettings()" autocomplete="off" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none text-sm" placeholder="https://calendly.com/twoj-profil lub https://booksy.com/pl-pl/12345_salon">
-                                <p class="text-xs text-gray-500 mt-2 leading-relaxed">Wklej pełny adres strony rezerwacji z Booksy, Google Booking, Calendly lub innego systemu.</p>
-                                <p x-show="content.pl.settings.booking_mode === 'embed' && (content.pl.contact.booking_url || '').toLowerCase().includes('booksy')" x-cloak class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-3 leading-relaxed">Booksy nie pozwala pokazać kalendarza bezpośrednio na innej stronie. Wybierz opcję <strong>„Pokaż tylko przycisk rezerwacji”</strong> — klienci przejdą do Booksy jednym kliknięciem.</p>
-                            </div>
-
-                            <p x-show="theme === 'fitness'" x-cloak class="text-xs text-gray-500 leading-relaxed border-t border-slate-100 pt-4">Tabelę dni i godzin edytujesz w zakładce <button type="button" @click="setTab('schedule')" class="font-bold text-accent hover:underline">Grafik zajęć</button>.</p>
-
-                            <div class="border-t border-slate-100 pt-6 space-y-4" x-show="content.pl.settings.booking_mode !== 'schedule'" x-cloak>
-                                <h3 class="text-sm font-bold text-slate-900 uppercase tracking-widest">Teksty sekcji rezerwacji</h3>
-                                <p class="text-xs text-slate-500 leading-relaxed">Nagłówek i opis nad kalendarzem lub przyciskiem rezerwacji w sekcji Rezerwacje na stronie.</p>
-                                <div class="space-y-4">
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tytuł</label>
-                                        <input type="text" x-model="content.pl.contact.cta.title" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm focus:ring-2 focus:ring-accent/30 outline-none" placeholder="np. Umów się online">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Krótki opis</label>
-                                        <textarea x-model="content.pl.contact.cta.description" rows="2" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm focus:ring-2 focus:ring-accent/30 outline-none resize-none" placeholder="Zachęć klienta do rezerwacji…"></textarea>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tekst na przycisku</label>
-                                        <input type="text" x-model="content.pl.contact.cta.button_text" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm focus:ring-2 focus:ring-accent/30 outline-none" placeholder="np. Przejdź do Booksy">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="border-t border-slate-100 pt-6 space-y-4" x-show="content.pl.settings.booking_mode === 'schedule'" x-cloak>
-                                <div class="flex items-start justify-between gap-4">
-                                    <div>
-                                        <h3 class="text-sm font-bold text-slate-900 uppercase tracking-widest">Prosta karta rezerwacji</h3>
-                                        <p class="text-xs text-slate-500 mt-1 leading-relaxed max-w-md">Gdy nie korzystasz z Booksy ani Calendly — własny przycisk w sekcji rezerwacji.</p>
-                                    </div>
-                                    <label class="flex items-center cursor-pointer shrink-0">
-                                        <div class="relative">
-                                            <input type="checkbox" x-model="content.pl.contact.cta.enabled" class="sr-only">
-                                            <div class="block bg-gray-200 w-10 h-6 rounded-full transition" :class="{'bg-[#D4AF37]': content.pl.contact.cta.enabled}"></div>
-                                            <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition" :class="{'transform translate-x-4': content.pl.contact.cta.enabled}"></div>
-                                        </div>
-                                        <span class="ml-3 text-xs text-slate-500 uppercase font-bold tracking-widest">Włącz</span>
-                                    </label>
-                                </div>
-                                <div x-show="content.pl.contact.cta.enabled" class="space-y-4 bg-gray-50 p-6 rounded-xl border border-gray-200" x-transition>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tytuł karty</label>
-                                        <input type="text" x-model="content.pl.contact.cta.title" class="w-full border border-gray-300 rounded px-4 py-2 text-sm focus:ring-2 focus:ring-[#D4AF37] outline-none">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Krótki opis</label>
-                                        <textarea x-model="content.pl.contact.cta.description" rows="2" class="w-full border border-gray-300 rounded px-4 py-2 text-sm focus:ring-2 focus:ring-[#D4AF37] outline-none resize-none"></textarea>
-                                    </div>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tekst na przycisku</label>
-                                            <input type="text" x-model="content.pl.contact.cta.button_text" class="w-full border border-gray-300 rounded px-4 py-2 text-sm focus:ring-2 focus:ring-[#D4AF37] outline-none">
-                                        </div>
-                                        <div>
-                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Link (strona, e-mail lub telefon)</label>
-                                            <input type="text" x-model="content.pl.contact.cta.button_url" placeholder="np. https://booksy.com/..." class="w-full border border-gray-300 rounded px-4 py-2 text-sm focus:ring-2 focus:ring-[#D4AF37] outline-none">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <div x-show="activeTab === 'trust' && adminTabVisible('trust')" x-transition.opacity x-cloak>
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
-                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Zaufanie</h2>
+                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Dlaczego warto nas wybrać?</h2>
                             <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Krótki cytat i ocena — budują wiarygodność przed blokiem z Google. Wyłączona sekcja znika ze strony, ale treści zostają w Studiu.</p>
                             <label class="flex items-center gap-4 cursor-pointer">
                                 <div class="relative">
@@ -1999,7 +1622,7 @@
 
                     <div x-show="activeTab === 'gallery'" x-transition.opacity x-cloak>
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
-                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Galeria</h2>
+                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Zdjęcia Twoich prac</h2>
                             <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Zdjęcia portfolio wyświetlane na stronie. Sekcja pojawia się, gdy jest włączona i zawiera zdjęcia.</p>
                             <label class="flex items-center gap-4 cursor-pointer">
                                 <div class="relative">
@@ -2041,88 +1664,105 @@
                         </div>
                     </div>
 
+
                     <div x-show="activeTab === 'contact'" x-transition.opacity x-cloak>
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
-                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Kontakt</h2>
-                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Telefon, e-mail, adres, mapa Google i profile społecznościowe — pojawią się w danych kontaktowych i na dole strony.</p>
+                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Telefon, adres, mapa</h2>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Dane kontaktowe widoczne na stronie — telefon i e-mail to minimum, resztę możesz dodać później.</p>
                             <label class="flex items-center gap-4 cursor-pointer">
                                 <div class="relative">
                                     <input type="checkbox" x-model="content.pl.settings.showContact" class="sr-only peer">
                                     <div class="w-11 h-6 rounded-full transition-colors peer-checked:bg-emerald-500 bg-gray-200"></div>
                                     <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5 pointer-events-none"></div>
                                 </div>
-                                <span class="text-sm font-medium text-slate-900">Włącz sekcję Kontakt</span>
+                                <span class="text-sm font-medium text-slate-900">Pokaż sekcję kontaktu na stronie</span>
                             </label>
                         </div>
                         <div class="space-y-6">
                             <template x-if="content.pl.contact">
                                 <div>
+                                    <div x-show="adminTabVisible('booking')" class="mb-8 rounded-xl border border-slate-200/70 bg-white p-5 shadow-panel ring-1 ring-slate-900/5 md:p-6 space-y-6">
+                                        <h3 class="text-sm font-bold text-slate-900">Jak klient ma się umówić?</h3>
+                                        <p class="text-xs text-slate-500 leading-relaxed">Booksy, Calendly lub prosty przycisk — wybierz sposób rezerwacji na stronie.</p>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Sposób rezerwacji</label>
+                                            <select x-model="content.pl.settings.booking_mode" @change="syncBookingSettings()" class="w-full rounded-lg border border-slate-200 px-4 py-3 bg-white focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none text-sm">
+                                                <option value="schedule" x-text="theme === 'fitness' ? 'Wyświetlaj tylko mój grafik (tabela dni i godzin)' : 'Bez rezerwacji online (standardowy widok strony)'"></option>
+                                                <option value="embed">Pokaż kalendarz rezerwacji na stronie (np. Calendly)</option>
+                                                <option value="button">Pokaż tylko przycisk rezerwacji (np. Booksy)</option>
+                                                <option value="both" x-text="theme === 'fitness' ? 'Wyświetlaj grafik oraz przycisk rezerwacji pod nim' : 'Standardowy widok oraz przycisk rezerwacji'"></option>
+                                            </select>
+                                        </div>
+                                        <div x-show="content.pl.settings.booking_mode !== 'schedule'" x-transition.opacity x-cloak>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Link do rezerwacji</label>
+                                            <input type="text" x-model="content.pl.contact.booking_url" @blur="syncBookingSettings()" autocomplete="off" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none text-sm" placeholder="https://booksy.com/… lub https://calendly.com/…">
+                                        </div>
+                                        <p x-show="theme === 'fitness'" x-cloak class="text-xs text-slate-500">Grafik edytujesz w sekcji <button type="button" @click="setTab('schedule')" class="font-bold text-accent hover:underline">Grafik zajęć</button>.</p>
+                                    </div>
+
                                     <div class="mb-4">
                                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Telefon</label>
-                                        <input type="text" x-model="content.pl.contact.phone" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                        <input type="text" x-model="content.pl.contact.phone" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="np. +48 600 123 456">
                                     </div>
                                     <div class="mb-4">
                                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">E-mail</label>
-                                        <input type="email" x-model="content.pl.contact.email" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                    </div>
-                                    <div class="mb-4">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Adres</label>
-                                        <input type="text" x-model="content.pl.contact.address" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                        <input type="email" x-model="content.pl.contact.email" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="np. kontakt@twojafirma.pl">
                                     </div>
 
-                                    <div class="pt-6 border-t border-gray-100">
-                                        <h3 class="text-sm font-bold text-slate-900 mb-1">Szybki kontakt (WhatsApp / Messenger)</h3>
-                                        <p class="text-xs text-slate-500 mb-4 leading-relaxed">Pływający przycisk w prawym dolnym rogu strony — jedno kliknięcie otwiera czat w aplikacji. Wpisz <strong>numer WhatsApp</strong> albo <strong>link Messenger</strong> (nie oba naraz).</p>
-                                        <div class="relative rounded-xl border border-slate-200/80 bg-slate-50/60 p-4 space-y-4" :class="isQuickChatLocked ? 'opacity-60' : ''">
+                                    <details class="mb-4 border border-slate-200/80 rounded-xl p-4 md:p-5">
+                                        <summary class="cursor-pointer text-sm font-bold text-slate-900">Adres i mapa Google</summary>
+                                        <div class="mt-4 space-y-4">
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Adres</label>
+                                                <input type="text" x-model="content.pl.contact.address" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                            </div>
+                                            <div x-show="['beauty','consultant','fitness','services'].includes(theme)">
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Mapa Google</label>
+                                                <input type="text" x-model="content.pl.contact.map_embed_url" autocomplete="off" class="w-full rounded-lg border border-slate-200 px-4 py-3 mb-3 outline-none focus:ring-2 focus:ring-[#D4AF37]" placeholder="Link z Google Maps (Udostępnij → Umieść mapę)">
+                                                <div class="flex gap-2 mb-3">
+                                                    <input type="text" x-model="mapPlaceQuery" @keydown.enter.prevent="searchPlacesForMap()" placeholder="Szukaj firmy po nazwie lub adresie" class="flex-1 rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#D4AF37]">
+                                                    <button type="button" @click="searchPlacesForMap()" :disabled="mapPlaceLoading" class="shrink-0 px-5 py-3 bg-[#121212] text-white text-xs font-bold uppercase rounded-sm disabled:opacity-50">Szukaj</button>
+                                                </div>
+                                                <p x-show="mapPlaceError" class="text-xs text-red-600 mb-2" x-text="mapPlaceError"></p>
+                                                <ul x-show="mapPlaceResults.length" class="border border-gray-200 rounded-sm divide-y divide-gray-100 max-h-56 overflow-y-auto mb-3">
+                                                    <template x-for="p in mapPlaceResults" :key="p.id">
+                                                        <li class="flex items-start gap-3 p-3 hover:bg-slate-50/90 cursor-pointer" @click="mapPlaceSelectedId = p.id">
+                                                            <input type="radio" :value="p.id" x-model="mapPlaceSelectedId" class="mt-1">
+                                                            <div class="min-w-0">
+                                                                <div class="text-sm font-semibold text-slate-900" x-text="p.name"></div>
+                                                                <div class="text-xs text-slate-500 mt-0.5" x-text="p.address"></div>
+                                                            </div>
+                                                        </li>
+                                                    </template>
+                                                </ul>
+                                                <div class="flex flex-wrap gap-2">
+                                                    <button type="button" x-show="mapPlaceSelectedId" @click="confirmMapPlaceSelection()" class="px-5 py-2.5 bg-emerald-600 text-white text-xs font-bold uppercase rounded-sm">Użyj lokalizacji</button>
+                                                    <button type="button" x-show="content.pl.contact?.map_place_id" @click="clearMapPlaceSelection()" class="px-5 py-2.5 border border-gray-300 text-xs font-bold uppercase rounded-sm">Usuń mapę</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </details>
+
+                                    <details class="mb-4 border border-slate-200/80 rounded-xl p-4 md:p-5">
+                                        <summary class="cursor-pointer text-sm font-bold text-slate-900">Szybki czat (WhatsApp / Messenger)</summary>
+                                        <div class="relative mt-4 rounded-xl border border-slate-200/80 bg-slate-50/60 p-4 space-y-4" :class="isQuickChatLocked ? 'opacity-60' : ''">
                                             <div :class="isQuickChatLocked ? 'pointer-events-none' : ''">
                                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Numer WhatsApp</label>
                                                 <input type="text" x-model="content.pl.contact.whatsapp" @focus="onQuickChatInputGuard()" autocomplete="off" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="+48 600 123 456">
-                                                <p class="text-xs text-slate-400 mt-1.5">Z prefiksem kraju — np. +48…</p>
                                             </div>
                                             <div :class="isQuickChatLocked ? 'pointer-events-none' : ''">
                                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Link Messenger</label>
-                                                <input type="text" x-model="content.pl.contact.messenger" @focus="onQuickChatInputGuard()" autocomplete="off" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="https://m.me/TwojaStrona lub nazwa profilu">
+                                                <input type="text" x-model="content.pl.contact.messenger" @focus="onQuickChatInputGuard()" autocomplete="off" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="https://m.me/TwojaStrona">
                                             </div>
-                                            <button type="button" x-show="isQuickChatLocked" x-cloak @click="promptQuickChatUpgrade()" class="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/40 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40" aria-label="Odblokuj szybki kontakt — przejdź na Standard">
+                                            <button type="button" x-show="isQuickChatLocked" x-cloak @click="promptQuickChatUpgrade()" class="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/40 cursor-pointer" aria-label="Odblokuj szybki kontakt">
                                                 <span class="rounded-full bg-white px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-800 shadow-md ring-1 ring-slate-200">Niedostępne w Starterze</span>
                                             </button>
                                         </div>
-                                        <p x-show="isQuickChatLocked" x-cloak class="text-xs text-amber-700 mt-3">Przycisk szybkiego kontaktu nie jest dostępny w pakiecie <strong>Starter</strong>. Przejdź na <strong>Standard</strong> — <button type="button" @click="setTab('subscription')" class="font-bold underline text-amber-900 hover:text-slate-900">Zobacz plany</button>.</p>
-                                    </div>
+                                    </details>
 
-                                    <div class="pt-6 border-t border-gray-100" x-show="['beauty','consultant','fitness','services'].includes(theme)">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Mapa Google</label>
-                                        <p class="text-xs text-slate-500 mb-3 leading-relaxed">Wklej link z Google Maps (kliknij <strong>Udostępnij</strong> → <strong>Umieść mapę na stronie</strong> i skopiuj podany link). System sam dopasuje mapę do Twojej strony.</p>
-                                        <input type="text" x-model="content.pl.contact.map_embed_url" autocomplete="off" class="w-full rounded-lg border border-slate-200 px-4 py-3 mb-4 outline-none focus:ring-2 focus:ring-[#D4AF37]" placeholder="https://www.google.com/maps/embed?...">
-                                        <p class="text-xs text-slate-500 mb-3">Albo wyszukaj firmę po nazwie lub adresie:</p>
-                                        <div class="flex gap-2 mb-3">
-                                            <input type="text" x-model="mapPlaceQuery" @keydown.enter.prevent="searchPlacesForMap()" placeholder="np. Warsztat, ul. Kwiatowa 1, Poznań" class="flex-1 rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#D4AF37]">
-                                            <button type="button" @click="searchPlacesForMap()" :disabled="mapPlaceLoading" class="shrink-0 px-5 py-3 bg-[#121212] text-white text-xs font-bold uppercase rounded-sm disabled:opacity-50">Szukaj</button>
-                                        </div>
-                                        <p x-show="mapPlaceError" class="text-xs text-red-600 mb-2" x-text="mapPlaceError"></p>
-                                        <div x-show="mapPlaceLoading" class="text-xs text-slate-500 mb-2">Szukam…</div>
-                                        <ul x-show="mapPlaceResults.length" class="border border-gray-200 rounded-sm divide-y divide-gray-100 max-h-56 overflow-y-auto mb-3">
-                                            <template x-for="p in mapPlaceResults" :key="p.id">
-                                                <li class="flex items-start gap-3 p-3 hover:bg-slate-50/90 cursor-pointer" @click="mapPlaceSelectedId = p.id">
-                                                    <input type="radio" :value="p.id" x-model="mapPlaceSelectedId" class="mt-1">
-                                                    <div class="min-w-0">
-                                                        <div class="text-sm font-semibold text-slate-900" x-text="p.name"></div>
-                                                        <div class="text-xs text-slate-500 mt-0.5" x-text="p.address"></div>
-                                                    </div>
-                                                </li>
-                                            </template>
-                                        </ul>
-                                        <div class="flex flex-wrap gap-2 mb-3">
-                                            <button type="button" x-show="mapPlaceSelectedId" @click="confirmMapPlaceSelection()" class="px-5 py-2.5 bg-emerald-600 text-white text-xs font-bold uppercase rounded-sm tracking-wide">Użyj wybranej lokalizacji</button>
-                                            <button type="button" x-show="content.pl.contact?.map_place_id" @click="clearMapPlaceSelection()" class="px-5 py-2.5 border border-gray-300 text-xs font-bold uppercase rounded-sm">Usuń mapę z wyszukiwarki</button>
-                                        </div>
-                                        <p x-show="content.pl.contact?.map_place_id" class="text-xs text-emerald-800 mb-3">Lokalizacja zapisana — kliknij <strong>Publikuj zmiany</strong>, aby mapa była widoczna na stronie.</p>
-                                    </div>
-
-                                    <div class="mt-8 pt-6 border-t border-gray-100">
-                                        <h3 class="text-sm font-bold text-slate-900 mb-2">Media społecznościowe</h3>
-                                        <p class="text-xs text-slate-500 mb-4 leading-relaxed">Linki do profili — pojawią się w danych kontaktowych i na dole strony. Rezerwacje online konfigurujesz w zakładce <button type="button" @click="setTab('booking')" class="font-bold text-accent hover:underline">Rezerwacje online</button>.</p>
-                                        <div class="space-y-4">
+                                    <details class="border border-slate-200/80 rounded-xl p-4 md:p-5">
+                                        <summary class="cursor-pointer text-sm font-bold text-slate-900">Media społecznościowe</summary>
+                                        <div class="mt-4 space-y-4">
                                             <div x-show="theme === 'consultant'">
                                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">LinkedIn</label>
                                                 <input type="url" x-model="content.pl.social.linkedin" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="https://linkedin.com/in/...">
@@ -2148,7 +1788,7 @@
                                                 <input type="url" x-model="content.pl.social.youtube" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="https://youtube.com/@...">
                                             </div>
                                         </div>
-                                    </div>
+                                    </details>
 
                                 </div>
                             </template>
@@ -2157,7 +1797,7 @@
 
                     <div x-show="activeTab === 'faq'" x-transition.opacity x-cloak>
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
-                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Pytania i odpowiedzi</h2>
+                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Pytania klientów</h2>
                             <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Częste pytania gości — każde rozwija się jak mała zakładka, żeby strona była czytelna.</p>
                             <div class="flex items-center gap-3 flex-wrap">
                                 <label class="flex items-center gap-4 cursor-pointer">
@@ -2203,19 +1843,64 @@
                         </div>
                     </div>
 
-                    <div x-show="activeTab === 'reviews'" x-transition.opacity x-cloak>
+                    <div x-show="activeTab === 'reviews' || activeTab === 'google_reviews'" x-transition.opacity x-cloak>
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
-                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Opinie Klientów</h2>
-                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Własne opinie z logo klientów (szablon Consultant).</p>
-                            <label class="flex items-center gap-4 cursor-pointer">
-                                <div class="relative">
-                                    <input type="checkbox" x-model="content.pl.settings.showReviews" class="sr-only peer">
-                                    <div class="w-11 h-6 rounded-full transition-colors peer-checked:bg-emerald-500 bg-gray-200"></div>
-                                    <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5 pointer-events-none"></div>
-                                </div>
-                                <span class="text-sm font-medium text-slate-900">Włącz sekcję Opinie</span>
-                            </label>
+                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Opinie</h2>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl">Opinie z Google (zalecane) lub wpisane ręcznie — budują zaufanie nowych klientów.</p>
                         </div>
+
+                        <div x-show="adminTabVisible('google_reviews')" class="mb-10 space-y-6">
+                            <div class="rounded-xl border border-slate-200/70 bg-white p-6 shadow-panel ring-1 ring-slate-900/5">
+                                <h3 class="text-sm font-bold text-slate-900 mb-4">Opinie z Google</h3>
+                                <p class="text-sm text-slate-600 leading-relaxed mb-4">Wpisz nazwę firmy i miasto — po publikacji opinie pojawią się na stronie.</p>
+                                <label class="flex items-center gap-4 cursor-pointer mb-6">
+                                    <div class="relative">
+                                        <input type="checkbox" x-model="content.pl.settings.showGoogleReviews" class="sr-only peer">
+                                        <div class="w-11 h-6 rounded-full transition-colors peer-checked:bg-emerald-500 bg-gray-200"></div>
+                                        <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5 pointer-events-none"></div>
+                                    </div>
+                                    <span class="text-sm font-medium text-slate-900">Pokaż opinie z Google na stronie</span>
+                                </label>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tytuł sekcji</label>
+                                <input type="text" x-model="content.pl.google_reviews.title" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none mb-6">
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Twoja firma w Google</label>
+                                <input type="text" x-model="googleReviewsPlaceInput" @input="onGoogleReviewsPlaceInput()" placeholder="np. Kowalski Płytki, Poznań" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                <p x-show="googleReviewsPlaceError" class="text-xs text-red-600 mt-2" x-text="googleReviewsPlaceError"></p>
+                                <p x-show="googleReviewsPlaceLoading" class="text-xs text-slate-500 mt-2">Szukam…</p>
+                                <ul x-show="googleReviewsPlaceResults.length" class="mt-3 max-h-48 divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-200/80 shadow-panel ring-1 ring-slate-900/5">
+                                    <template x-for="p in googleReviewsPlaceResults" :key="p.id">
+                                        <li class="flex items-start gap-2 p-2 hover:bg-slate-50/90 cursor-pointer" @click="selectGoogleReviewsPlace(p)">
+                                            <div class="min-w-0">
+                                                <div class="text-sm font-medium text-slate-900" x-text="p.name"></div>
+                                                <div class="text-xs text-slate-500" x-text="p.address"></div>
+                                            </div>
+                                        </li>
+                                    </template>
+                                </ul>
+                                <p x-show="googleReviewsPlaceSelectedId || content.pl.google_reviews?.place_id" class="text-xs text-emerald-800 mt-3">Wybrano wizytówkę — kliknij <strong>Opublikuj zmiany</strong>, aby pobrać opinie.</p>
+                                <button type="button" x-show="googleReviewsPlaceInput || content.pl.google_reviews?.place_id || content.pl.google_reviews?.place_query" @click="clearGoogleReviewsPlaceSelection()" class="mt-3 rounded-lg border border-slate-200 px-4 py-2 text-xs font-bold uppercase text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/50">Usuń wybór</button>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 mt-6">Maks. liczba opinii</label>
+                                <input type="number" min="1" max="20" x-model.number="content.pl.google_reviews.max_reviews" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                <details class="mt-6 text-xs text-slate-600">
+                                    <summary class="cursor-pointer font-semibold text-slate-700 mb-2">Opcjonalnie: ręczny link (gdy wyszukiwarka nie znajduje firmy)</summary>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 mt-3">Link do opinii z Google</label>
+                                    <input type="url" x-model="content.pl.google_reviews.embed_url" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="https://...">
+                                </details>
+                            </div>
+                        </div>
+
+                        <div x-show="adminTabVisible('reviews')" class="space-y-6">
+                            <div class="rounded-xl border border-slate-200/70 bg-white p-6 shadow-panel ring-1 ring-slate-900/5">
+                                <h3 class="text-sm font-bold text-slate-900 mb-4">Opinie wpisane ręcznie</h3>
+                                <label class="flex items-center gap-4 cursor-pointer">
+                                    <div class="relative">
+                                        <input type="checkbox" x-model="content.pl.settings.showReviews" class="sr-only peer">
+                                        <div class="w-11 h-6 rounded-full transition-colors peer-checked:bg-emerald-500 bg-gray-200"></div>
+                                        <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5 pointer-events-none"></div>
+                                    </div>
+                                    <span class="text-sm font-medium text-slate-900">Pokaż własne opinie na stronie</span>
+                                </label>
+                            </div>
                         <p x-show="uploadingImage" x-text="uploadingMessage" class="text-xs text-[#D4AF37] mb-3 font-bold animate-pulse px-1"></p>
                         <div class="space-y-6">
                             <template x-for="(review, index) in content.pl.reviews" :key="index">
@@ -2254,71 +1939,10 @@
                                 + Dodaj opinię
                             </button>
                         </div>
-                    </div>
-
-                    <div x-show="activeTab === 'google_reviews'" x-transition.opacity x-cloak>
-                        <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
-                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Opinie z Google</h2>
-                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Wpisz dokładną nazwę swojej firmy i miasto, a system automatycznie pobierze i wyświetli Twoje najlepsze opinie z Google. Po ustawieniu kliknij <strong>Publikuj zmiany</strong>.</p>
-                            <label class="flex items-center gap-4 cursor-pointer">
-                                <div class="relative">
-                                    <input type="checkbox" x-model="content.pl.settings.showGoogleReviews" class="sr-only peer">
-                                    <div class="w-11 h-6 rounded-full transition-colors peer-checked:bg-emerald-500 bg-gray-200"></div>
-                                    <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5 pointer-events-none"></div>
-                                </div>
-                                <span class="text-sm font-medium text-slate-900">Włącz sekcję Opinie z Google</span>
-                            </label>
-                        </div>
-                        <div class="space-y-6">
-                            <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tytuł sekcji</label>
-                                <input type="text" x-model="content.pl.google_reviews.title" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                <p class="text-xs text-slate-500 mt-2 leading-relaxed">Np. „Opinie z Google” — nagłówek nad blokiem opinii.</p>
-                            </div>
-                            <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Twoja firma w Google</label>
-                                <p class="text-xs text-slate-500 mb-3 leading-relaxed">Wpisz nazwę firmy i miasto — wybierz właściwy wynik z listy. Po publikacji opinie pojawią się na stronie.</p>
-                                <input type="text" x-model="googleReviewsPlaceInput" @input="onGoogleReviewsPlaceInput()" placeholder="np. Sattva Gabinet Terapii Naturalnych, Wrocław" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                <p x-show="googleReviewsPlaceError" class="text-xs text-red-600 mt-2" x-text="googleReviewsPlaceError"></p>
-                                <p x-show="googleReviewsPlaceLoading" class="text-xs text-slate-500 mt-2">Szukam…</p>
-                                <ul x-show="googleReviewsPlaceResults.length" class="mt-3 max-h-48 divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-200/80 shadow-panel ring-1 ring-slate-900/5">
-                                    <template x-for="p in googleReviewsPlaceResults" :key="p.id">
-                                        <li class="flex items-start gap-2 p-2 hover:bg-slate-50/90 cursor-pointer" @click="selectGoogleReviewsPlace(p)">
-                                            <div class="min-w-0">
-                                                <div class="text-sm font-medium text-slate-900" x-text="p.name"></div>
-                                                <div class="text-xs text-slate-500" x-text="p.address"></div>
-                                            </div>
-                                        </li>
-                                    </template>
-                                </ul>
-                                <p x-show="googleReviewsPlaceSelectedId || content.pl.google_reviews?.place_id" class="text-xs text-emerald-800 mt-3">Wybrano wizytówkę — kliknij <strong>Publikuj zmiany</strong>, aby pobrać opinie.</p>
-                                <button type="button" x-show="googleReviewsPlaceInput || content.pl.google_reviews?.place_id || content.pl.google_reviews?.place_query" @click="clearGoogleReviewsPlaceSelection()" class="mt-3 rounded-lg border border-slate-200 px-4 py-2 text-xs font-bold uppercase text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/50">Usuń wybór</button>
-                            </div>
-                            <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Maks. liczba opinii</label>
-                                <input type="number" min="1" max="20" x-model.number="content.pl.google_reviews.max_reviews" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                            </div>
-                            <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                                <details class="text-xs text-slate-600">
-                                    <summary class="cursor-pointer font-semibold text-slate-700 mb-2">Opcjonalnie: ręczny link (tylko w przypadku problemów z automatycznym wyszukiwaniem)</summary>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 mt-3">Link do opinii z Google</label>
-                                    <input type="url" x-model="content.pl.google_reviews.embed_url" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="https://...">
-                                    <p class="text-xs text-slate-500 mt-2 leading-relaxed">Użyj tylko wtedy, gdy wyszukiwarka nie znajduje Twojej firmy — wklej link skopiowany z profilu Google.</p>
-                                </details>
-                            </div>
                         </div>
                     </div>
 
-                    <div x-show="activeTab === 'leady'" x-transition.opacity x-cloak>
-                        <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Wiadomości od gości</h2>
-                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Zarządzaj zapytaniami z formularza kontaktowego. Ta funkcja będzie dostępna w przyszłej wersji.</p>
-                            <div class="py-12 text-center text-slate-400 border-2 border-dashed border-gray-200 rounded-lg">
-                                <span class="text-4xl block mb-2">📬</span>
-                                <span class="text-sm font-medium uppercase tracking-wider">Wkrótce</span>
-                            </div>
-                        </div>
-                    </div>
+                    <div x-show="activeTab === 'leady'" x-cloak class="hidden" aria-hidden="true"></div>
 
                     <div x-show="activeTab === 'legal'" x-transition.opacity x-cloak>
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
@@ -2682,8 +2306,8 @@
 
                     <div x-show="activeTab === 'seo'" x-transition.opacity x-cloak>
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
-                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">SEO i&nbsp;Analityka</h2>
-                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl">Tytuł i opis strony w Google, obrazek przy udostępnianiu linku oraz — opcjonalnie — Google Tag Manager i Meta&nbsp;Pixel. Wartości zapisujesz przyciskiem <strong>Publikuj zmiany</strong>.</p>
+                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Wyszukiwarka Google</h2>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl">Tytuł i opis strony w wynikach Google oraz opcjonalnie statystyki odwiedzin. Wartości zapisujesz przyciskiem <strong>Opublikuj zmiany</strong>.</p>
                         </div>
 
                         <div class="space-y-6">

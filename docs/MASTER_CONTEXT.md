@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-07-03 — FAB szybkiego kontaktu WhatsApp / Messenger (publiczny front + panel Kontakt)
+**Ostatnia aktualizacja treści:** 2026-07-03 — przywrócono `data/seeds/demo_pages.json` (6 demo katalogowych)
 
 ---
 
@@ -74,7 +74,7 @@ Użytkownik → Auth → pages.content + pages.billing_plan + billing_profiles
 | Warstwa | Kluczowe artefakty |
 |--------|---------------------|
 | **Front publiczny** | `index.html` (dark-mode SaaS landing spójny z admin/rejestracją: `#121212` + `#D4AF37`; hero 3 min, `#jak`, `#wyposazenie`, `#spokoj`, `#demo`, `#cennik`, SEO + `favicon.svg`), demo przez `router.html?site=demo-*` (beauty/services/care/gastro/fitness/consultant). Szablony branżowe HTML są w `/templates/` (`beauty`, `consultant`, `fitness`, `services`, `gastro`, `care`); media statyczne przenoszone z root trafiają do `/assets/images/`; boilerplate nowych szablonów: `/templates/_base_template.html`; klocki UI: `/templates/_components_library.html`; partial FAB czatu: `/templates/_partials/quick_chat_fab.html`. `setup.html` zostaje w root. `landingPricing.js` — plany cennika i dane landingowe. **Szybki kontakt:** pływający przycisk WhatsApp (`contact.whatsapp` → `wa.me`) lub Messenger (`contact.messenger` → `m.me`) — `publicSiteApp` + Alpine `x-show`; brak na opłaconym Starterze (`tier0`, `DFOPS_planAllowsQuickChat`). |
-| **Panel CMS** | `admin.html`, `adminApp.js`. **`js/core/themeConfig.js`** — sekcje per `pages.theme` (`DFOPS_themeHasSection`, zakładki, kroki kreatora); pola panelu i kreator widoczne tylko gdy sekcja istnieje w szablonie (np. gastro: karta dań + godziny, bez „Usług”). Draft vs published: `pages.draft_content` / `pages.content`. Subskrypcja: Starter/Standard/Custom, `billingInterval`, Stripe Checkout + Portal. Smart Booking: `settings.booking_mode` + `contact.booking_url`. **Szybki kontakt:** zakładka Kontakt — `contact.whatsapp` / `contact.messenger` (zablokowane na `tier0`). God Mode: `godmode.html` → `admin.html?impersonate={slug}` dla superadminów. |
+| **Panel CMS** | `admin.html` (~2,5k linii HTML), `adminApp.js` (~4k linii Alpine). **IA (2026-07):** domyślny ekran `dashboard` (adres + checklista); sidebar w 3 grupach zwijanych (Na start / Więcej treści / Ustawienia); nagłówek z CTA „Opublikuj”, menu ⋯; rezerwacje w Kontakcie; scalone Opinie; bez Leady w menu; bez globalnej widoczności sekcji w Wyglądzie — szczegóły §1.5.2. **`js/core/themeConfig.js`** — sekcje per `pages.theme`; **`js/core/contentSchema.js`** + **`contentUpgrader.js`** — kontrakt/migracja pól JSON (`pages.content` / `draft_content`). **`js/templates/registry.js`** — domyślna treść startowa (nie mylić z `templates/*.html`). Draft vs published: `pages.draft_content` / `pages.content`. Subskrypcja, Smart Booking, szybki kontakt, God Mode — jak wcześniej. |
 | **Backend** | `pages`, `billing_profiles`, `superadmins`, RLS. Schemat baseline: `20260603072317_remote_schema.sql`; God Mode: `20260623100512_add_god_mode.sql`. |
 | **Płatności** | Starter `tier0`, Standard `tier1`, Custom poza Stripe. Secrets: `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_STARTER_YEARLY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_PRO_YEARLY`. wFirma: `WFIRMA_*`, ledger `wfirma_invoice_ledger`. |
 
@@ -102,22 +102,48 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 
 **Security (skrót):** forced password reset, DOMPurify, sanitizacja URL-like pól `pages.content` na zapisie i odczycie, Cloudflare Turnstile dla rejestracji/custom inquiry/checkout, CSP/HSTS/XFO/nosniff w `functions/_middleware.js`, publiczny odczyt `pages` zawężony query+RLS+grantami kolumnowymi, Stripe webhook tylko Edge, Google Places/Maps klucz tylko Edge, `billing_profiles` SoT rozliczeń, draft preview tylko dla właściciela. Superadmini są wyłącznie w `public.superadmins`; RLS dodaje im SELECT/UPDATE/DELETE na `pages` i `analytics_events`, bez zmiany polityk właścicielskich.
 
-**Luki:** brak obowiązkowego E2E/CI dla Edge; wildcard `*.dfcms.pl` w Cloudflare Pages; RLS anon read wymaga GRANT + polityki; brak historii wersji treści.
+**Luki:** brak obowiązkowego E2E/CI dla Edge; wildcard `*.dfcms.pl` w Cloudflare Pages; RLS anon read wymaga GRANT + polityki; brak historii wersji treści; monolityczny panel (`admin.html` + `adminApp.js`) utrudnia kolejne zmiany IA.
 
 **TO-DO operacyjne:** tour Driver.js mobile; smoke webhook Stripe; CI deploy Edge; skonfigurować Cron Supabase dla `expire-trial-pages`.
 
 ### 1.5 Onboarding i panel (szczegóły)
 
 - **Modal powitalny** (`showWelcomeModal`): warunek — `welcome_onboarding_completed` w `content.pl.settings`.
-- **Driver.js** (CDN 1.4.0): tour → kreator (krok 0) → podgląd → menu Treść/Konfiguracja/Subskrypcja.
+- **Driver.js** (CDN 1.4.0): tour → kreator (krok 0) → podgląd strony → sidebar (`#dfops-admin-sidebar`) → **Pomocnik krok po kroku** → Subskrypcja. Po tour domyślny widok: **`dashboard`** (nie `hero`).
 - **Kreator:** kroki logiczne z `js/core/themeConfig.js` (`template` → `brand` → `hero` → `offer` → `about` → `contact`); aktywna lista per motyw (`DFOPS_getActiveWizardStepIds`) — np. gastro pomija `about`, w `offer` zbiera `menu_items` zamiast `services`; sync `nav.logo` → `business_name` / `hero.name` / SEO; `finishWizard` → `finalizeWizardContent` (ukrywa puste sekcje); stan w `localStorage` (`dfops_wizard_state_v1:{slug}`, `v:2`); czyszczenie po `finishWizard` / `switchTemplate`.
 - **Draft vs published:** auto-save debounce 1000ms → `draft_content`; `publishChanges()` → `content`; preview tylko właściciel (`dfcms_preview=1`); `revertChanges()` z `_publishedContentRaw`.
 - **Subskrypcja panel:** `hasActivePaidSubscription` / `isSubscriptionCanceledButValid` — tylko Stripe (`billing_profiles`), nie samo `payment_completed` w JSON.
 - **God Mode:** `godmode.html` wymaga sesji i widocznego własnego wpisu w `superadmins`; lista pobiera wszystkie `pages`. Panel po zalogowaniu sprawdza `superadmins` i pokazuje w sidebarze „Master Dashboard” tylko superadminom. Przycisk „Zarządzaj” otwiera `admin.html?impersonate={slug}`. W impersonacji panel zapisuje konkretny rekord po `pages.id`, pomija profil billingowy superadmina i blokuje checkout z sesji operatora.
 
+### 1.5.2 Panel admin — IA (2026-07)
+
+**Cel:** język nietechniczny; progressive disclosure (`<details>`); bez podglądu obok edycji.
+
+**Ekran startowy (`activeTab === 'dashboard'`):** domyślny po logowaniu i po onboardingu; adres strony + „Zobacz stronę”; checklista `dashboardStartTasks` (telefon, oferta, baner, nagłówek); link do pomocnika.
+
+**Sidebar — 3 grupy (Alpine: `navGroupStart` / `navGroupMore` / `navGroupSettings`):**
+
+| Grupa | Domyślnie | Zakładki (`activeTab`) |
+|-------|-----------|-------------------------|
+| **Na start** | rozwinięta | `hero` (Baner), `services`/`menu` (Oferta), `contact` (Telefon/adres/rezerwacje), `gallery` |
+| **Więcej treści** | zwinięta | `manifesto`/`care_profile` (O nas), `trust`, `faq`, `reviews` (Google + ręczne) |
+| **Ustawienia** | zwinięta | `settings` (Wygląd), `seo`, `legal`, `account` |
+
+Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcms-onboarding-wizard-btn`). Link **Twoja strona** → `dashboard`.
+
+**Usunięte z menu (logika/tab nadal w kodzie):** Leady (`leady` → alias na `dashboard`); osobne `booking` (treść w `contact`); osobne `google_reviews` (scalone w `reviews`); pasek „Ukończenie profilu”; globalne przełączniki widoczności sekcji w Wyglądzie — toggles zostają w natywnych zakładkach.
+
+**Nagłówek:** „Szablon: …” (`themeDisplayLabel`); CTA **Opublikuj zmiany**; Podgląd strony; menu ⋯ (Odrzuć, Warunki, Wyloguj); komunikat „Zmiany zapisane — kliknij Opublikuj…”.
+
+**Aliasy hash / `normalizeAdminTabId()`:** `#booking`→`contact`, `#google_reviews`→`reviews`, `#leady`→`dashboard`; pusty hash → `dashboard`.
+
+**Progressive disclosure:** Kontakt (rezerwacje na górze; adres/mapa, WhatsApp, social w `<details>`); Baner (CTA w `<details>`; manifesto → osobna zakładka); Wygląd (logo + presety kolorów; reszta w „Ustawienia zaawansowane…”).
+
+**Implementacja:** całość w monolitach `admin.html` + `adminApp.js` — przy kolejnych zmianach IA rozważyć partials per zakładka (bez bundlera).
+
 ### 1.5.1 Theme-aware panel (`themeConfig`) — wzorzec
 
-**Źródło prawdy:** `js/core/themeConfig.js` (panel + kreator). Szablony treści domyślnej: `js/templates/registry.js` (`templatesV3`). Motywy opublikowane (edge/kreator): `js/core/publishedThemes.js` + klucze w `registry.js`.
+**Źródło prawdy:** `js/core/themeConfig.js` (panel + kreator). **Domyślna treść JSON:** `js/templates/registry.js` (`templatesV3`) — *nie* katalog `templates/` (to HTML witryn). Motywy opublikowane (edge/kreator): `js/core/publishedThemes.js` + klucze w `registry.js`. **Kontrakt pól treści:** `js/core/contentSchema.js` (np. booking), uzupełnianie legacy w `contentUpgrader.js`; nowe pola panelu — najpierw schema/upgrader, potem `admin.html` / szablony.
 
 **Mapa sekcji** (`THEME_SECTIONS[theme]`): identyfikatory wewnętrzne, np. `services`, `menu`, `opening_hours`, `manifesto`, `gallery`, `faq`, `help_areas`, `certificates`, `nav_labels`. Panel i kreator pokazują UI **tylko** gdy sekcja jest na liście motywu.
 
@@ -165,7 +191,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 1. **`index.html`** → rejestracja / `#cennik` / demo `?site=demo-*`
 2. **`rejestracja.html`** → `signUp` → trigger `handle_new_user` (slug w metadata; kolizja → rollback)
 3. Potwierdzenie e-mail → baner w panelu bez pełnego onboardingu
-4. **`admin.html`** → modal/Driver → edycja + kreator
+4. **`admin.html`** → `dashboard` (lub modal/Driver → kreator) → edycja sekcji → **Opublikuj zmiany**
 5. **God Mode:** superadmin → `godmode.html` → `admin.html?impersonate={slug}` → edycja rekordu klienta po `pages.id`
 6. Podgląd `/templates/{motyw}.html?site=&dfcms_preview=1`
 7. Subskrypcja → Checkout/Portal → webhook → `billing_profiles`
@@ -215,7 +241,8 @@ npm run dev   # http://localhost:3000 — pakiet serve
 - localhost → **Supabase Staging** (`asxrsdsprrbvjvgcsckh`).
 - W Supabase Staging → Auth → URL Configuration: `http://localhost:3000/admin.html`.
 - Nie otwieraj `admin.html` z `file://`.
-- Oficjalne demo (`demo-beauty`, `demo-fitness`, `demo-services`, `demo-gastro`, `demo-care`, `demo-consultant`) są utrzymywane przez bazową migrację demo w Supabase; lead-gen nie jest częścią głównego runtime.
+- **Demo katalogowe (localhost):** `data/seeds/demo_pages.json` — 6 slugów (`demo-beauty` … `demo-consultant`); fallback gdy Staging DB nie ma wiersza (`pageRepository.loadDemoSeedAsPageRow`). SoT DB: migracja `20260616150000_*`. Regeneracja JSON: `node scripts/extract-demo-seeds-from-migration.mjs`; migracji z JSON: `node scripts/generate-demo-pages-migration.mjs`.
+- Lead-gen **nie** jest częścią runtime (`_lead-generator-export/` gitignored — §3.7).
 
 ### 3.2 Przełączanie projektu Supabase CLI
 
@@ -285,17 +312,56 @@ Karty testowe: `4242 4242 4242 4242` ([dokumentacja Stripe](https://docs.stripe.
 
 Feature branch → PR do `staging` → po akceptacji merge do `main`.
 
-### 3.7 Szybki indeks plików
+### 3.7 Mapa repozytorium
+
+**Podział logiczny katalogów (bez bundlera):**
+
+| Ścieżka | Rola |
+|---------|------|
+| `*.html` (root) | Wejścia Cloudflare Pages (`admin`, `index`, `router`, `rejestracja`, …) — świadomy kompromis ścieżek URL |
+| `templates/` | **Szablony HTML** witryn klientów + `_base_template.html`, `_partials/` |
+| `js/core/` | Config, Supabase client, `pageRepository`, `themeConfig`, `planUtils`, sanitizacja |
+| `js/features/` | Aplikacje Alpine: `adminApp`, `publicSiteApp`, `routerApp`, … |
+| `js/templates/registry.js` | **Rejestr treści domyślnych** (JSON) — inna warstwa niż `templates/*.html` |
+| `functions/` | Cloudflare Pages Functions (`_middleware.js`, `api/verify-domain.js`) |
+| `supabase/functions/` | Supabase Edge (Deno) — Stripe, domeny, cron, Telegram |
+| `supabase/migrations/` | SoT schematu DB (push na remote) |
+| `css/`, `img/`, `assets/images/` | Statyka; placeholdery demo w `img/`; docelowo logo/obrazy w `assets/images/` |
+| `data/seeds/` | JSON demo katalogowych dla localhost (`demo_pages.json`) — w repo, deployowane na CF Pages |
+| `scripts/` | Generatory (migracja demo, extract seeds) — nie deployowane jako runtime |
+| `docs/` | Dokumentacja (`MASTER_CONTEXT`, roadmap, eksporty architektury) |
+
+**Co jest w repo a co nie (deploy vs archiwum):**
+
+| Kategoria | Przykłady | Uwagi |
+|-----------|-----------|--------|
+| **Deployowane (CF Pages + git)** | `admin.html`, `templates/`, `js/`, `functions/`, `img/` | Push `staging` / `main` |
+| **Deployowane (Supabase CLI)** | `supabase/migrations/`, `supabase/functions/` | Osobno od frontu; secrets w Dashboard |
+| **W repo, nie runtime produktu** | `scripts/`, `docs/DFCMS-Architecture-and-Flow.html` | Tooling / dokumentacja; **nie** wdrażać na Pages |
+| **Gitignored — archiwum GTM (lokalne)** | `_lead-generator-export/` | CSV leadów, dataset Apify, skrypt leadów (40 wizytówek — **nie** demo katalogowe). **Nie ma w świeżym `git clone`**. Demo katalogowe → `data/seeds/demo_pages.json` + migracja `20260616150000_*`. |
+| **Lokalne / pomocnicze** | `supabase/migrations_backup/`, `migrations_local_only/`, `snippets/` | Nie pushować na prod bez review; mogą być puste |
+| **Gitignored** | `.env*`, `node_modules/`, `supabase/.temp/`, `.supabase/`, `dataset_crawler-google-places_*.json` | Sekrety i cache CLI |
+| **Opcjonalne (AI)** | `.agents/skills/` | Instrukcje agentów; nie wpływają na deploy |
+
+**`data/seeds/demo_pages.json`:** w repo (6 demo katalogowych, ~31 KB). Synchronizowany z migracją `20260616150000_*` skryptem `scripts/extract-demo-seeds-from-migration.mjs`. Nie mylić z `_lead-generator-export/demo_pages.json` (40 leadów, gitignored).
+
+**Zależność npm:** pakiet `stripe` w `package.json` — pod skrypty/tooling; front ładuje JS z CDN/bez bundlera.
+
+### 3.8 Szybki indeks plików
 
 | Temat | Plik |
 |-------|------|
 | Konfiguracja klienta / ceny fallback | `js/core/config.js` |
 | Landing + cennik | `index.html#cennik`, `js/features/landingPricing.js` |
+| Panel — IA / logika tabów | `admin.html`, `js/features/adminApp.js` (§1.5.2) |
+| Kontrakt JSON treści | `js/core/contentSchema.js`, `js/core/contentUpgrader.js` |
+| Domyślna treść motywów | `js/templates/registry.js` |
 | Panel subskrypcja | `admin.html`, `adminApp.js` |
 | God Mode / superadmin | `godmode.html`, `admin.html?impersonate={slug}`, `20260623100512_add_god_mode.sql` |
 | Plany / watermark | `js/core/planUtils.js` |
 | Profil Stripe | `billingProfileView.js`, `loadBillingProfile()` |
-| Oficjalne demo | `supabase/migrations/20260616150000_seed_demo_catalog_pages.sql` |
+| Demo seeds (localhost fallback) | `data/seeds/demo_pages.json`, `scripts/extract-demo-seeds-from-migration.mjs` |
+| Demo seeds (DB / prod) | `supabase/migrations/20260616150000_seed_demo_catalog_pages.sql` |
 | Szablony publiczne | `templates/{beauty,fitness,services,consultant,gastro,care}.html`, boilerplate `templates/_base_template.html` |
 | Rejestracja | `rejestracja.html`, `registrationApp.js`, trigger `handle_new_user` |
 | Edge Stripe | `create-checkout`, `stripe-webhook`, `sync-stripe-subscription`, `_shared/stripeBilling.ts` |
@@ -308,6 +374,10 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
+| **2026-07-03** | **Repo — `data/seeds/demo_pages.json`:** przywrócone 6 demo katalogowych z migracji `20260616150000_*`; skrypt `extract-demo-seeds-from-migration.mjs`; README + MASTER §3.1/§3.7; localhost fallback demo bez wiersza w Staging DB. |
+| **2026-07-03** | **Repo — `_lead-generator-export/` gitignored:** archiwum GTM poza śledzeniem git (lokalna kopia / osobne repo); MASTER §3.7 zaktualizowany; pliki usunięte z indeksu git, pozostają na dysku. |
+| **2026-07-03** | **MASTER_CONTEXT — mapa repo i IA panelu:** §1.5.2 (dashboard, grupy sidebaru, aliasy hash, progressive disclosure); §3.7 mapa katalogów deploy/archiwum/gitignore; doprecyzowanie `registry.js` vs `templates/`; kontrakt `contentSchema.js`; znany dług `data/seeds`; poprawiony opis tour Driver.js. |
+| **2026-07-03** | **Panel admin — UX dla nietechnicznych:** domyślny ekran `dashboard` (adres strony + checklista startowa); sidebar w 3 grupach (Na start / Więcej treści / Ustawienia); scalone Opinie (`reviews` + `google_reviews`), rezerwacje w Kontakcie; usunięte Leady z menu i widoczność sekcji z Wyglądu; akordeony `<details>` w hero/kontakt/settings; nagłówek z CTA „Opublikuj”, menu ⋯ (Odrzuć/Warunki/Wyloguj); aliasy hash `#booking`→`contact`, `#google_reviews`→`reviews`, `#leady`→`dashboard`. |
 | **2026-07-03** | **Szybki kontakt (WhatsApp / Messenger):** partial `templates/_partials/quick_chat_fab.html` we wszystkich szablonach publicznych — FAB z dymkiem „Masz pytanie? Napisz!”, kropką `animate-ping` i linkiem `wa.me` / `m.me` (bez modala). Panel → Kontakt: `contact.whatsapp` / `contact.messenger`; gating Starter (`tier0`, `DFOPS_planAllowsQuickChat` / `isQuickChatLocked`). Logika URL w `publicSiteApp.js`. |
 | **2026-07-02** | **wFirma retry:** `stripe-webhook` `await` na wFirma (nie `void` — Edge mógł zabić task przed końcem); ledger `failed` zawsze ponawia; nowa funkcja `retry-wfirma-invoice` (`POST` + `Bearer CRON_SECRET`, body `checkoutSessionId` / `stripeInvoiceId`) — retry bez Resend ze Stripe. |
 | **2026-07-02** | **Fix billing webhook → zły user + spam Telegram:** `findPageByAuthUserEmail` używał błędnego filtra `email.eq.…` w `listUsers` (GoTrue oczekuje samego emaila + dopasowanie 1:1); `invoice.paid` / `subscription.updated` mogły przypisać subskrypcję najnowszemu kontu w bazie. Dodano `subscription_data.metadata.supabase_user_id` w Checkout, priorytet metadanych w `resolvePageForStripeSubscription`, reset trialu przy `releaseStaleStripeUniqueKeys`, filtr istotnych pól w `telegram-webhook` (bez alertów przy samym `updated_at`). Naprawiono zombie profil `sirdin3k@gmail.com` na prod. |

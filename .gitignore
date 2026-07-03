@@ -4,6 +4,7 @@
 .vscode/*
 !.vscode/settings.json
 .idea/
+.agents/
 
 ## Logs
 *.log
@@ -14,6 +15,9 @@ pnpm-debug.log*
 
 ## Local lead datasets / crawler exports
 dataset_crawler-google-places_*.json
+
+# GTM lead-gen archiwum (lokalne; nie część runtime DFCMS — §3.7 MASTER_CONTEXT)
+_lead-generator-export/
 
 ## Env / secrets (nigdy w repo)
 .env
