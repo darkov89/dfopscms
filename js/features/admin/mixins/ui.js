@@ -16,14 +16,6 @@ function adminMixinUi(ctx) {
       },
       get accentColor() { return cfg.accentByPreset[this.content?.pl?.settings?.color_preset] || '#D4AF37'; },
       get styleBundles() { return cfg.bundlesByTheme[this.theme] || []; },
-      get billingSubscriptionView() {
-        const trialSub = this.content?.pl?.settings?.subscription;
-        return billingRowToSubscriptionView(
-          snapshotBillingProfileRow(this.billingProfile),
-          trialSub,
-          this.pageBillingPlan,
-        );
-      },
       /** Panel gotowy do renderu (treść + profil billing po zalogowaniu). */
       get panelContentReady() {
         if (this.loadingAuth || this.isLoading) return false;
@@ -188,19 +180,23 @@ function adminMixinUi(ctx) {
       /** Zapisuje krok i motyw kreatora lokalnie (per slug), żeby po ponownym otwarciu nie zaczynać od zera. */
       get hasActivePaidSubscription() {
         const sub = this.billingSubscriptionView;
-        if (typeof window.DFOPS_hasPaidSubscriptionAccess === 'function') {
-          return window.DFOPS_hasPaidSubscriptionAccess(sub);
-        }
         if (!sub || typeof sub !== 'object') return false;
         if (sub.payment_completed === true) return true;
-        const p = String(sub.plan || '').trim().toLowerCase();
-        const st = typeof sub.status === 'string' ? sub.status.trim().toLowerCase() : '';
-        if ((p === 'tier0' || p === 'tier1') && (!st || st === 'active' || st === 'trialing' || st === 'past_due' || st === 'unpaid')) {
-          return true;
+        let p = String(sub.plan || '').trim().toLowerCase();
+        if (p === 'tier2' || p === 'premium') p = 'tier1';
+        if (p === 'tier0' || p === 'tier1') {
+          const st = String(sub.status || '').trim().toLowerCase();
+          if (!st || st === 'active' || st === 'trialing' || st === 'past_due' || st === 'unpaid') {
+            return true;
+          }
+        }
+        if (typeof window.DFOPS_hasPaidSubscriptionAccess === 'function') {
+          return window.DFOPS_hasPaidSubscriptionAccess(sub);
         }
         const sid =
           typeof sub.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
         if (!sid) return false;
+        const st = typeof sub.status === 'string' ? sub.status.trim().toLowerCase() : '';
         return st === 'active' || st === 'trialing';
       },
       /**

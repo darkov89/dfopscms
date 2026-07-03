@@ -677,16 +677,42 @@ function normalizePageBillingPlan(plan) {
   return raw;
 }
 
-/** Plain object — omija Alpine Proxy przy odczycie pól z Supabase. */
-function snapshotBillingProfileRow(bp) {
-  if (!bp || typeof bp !== 'object' || Array.isArray(bp)) return null;
+function emptyBillingSubscriptionView() {
   return {
-    plan: bp.plan,
-    status: bp.status,
-    stripe_customer_id: bp.stripe_customer_id,
-    stripe_subscription_id: bp.stripe_subscription_id,
-    current_period_end: bp.current_period_end,
-    cancel_at_period_end: bp.cancel_at_period_end,
+    plan: 'trial',
+    status: '',
+    payment_completed: false,
+    stripe_customer_id: '',
+    stripe_subscription_id: '',
+    current_period_end: '',
+    cancel_at_period_end: false,
+    cancel_at: null,
+    trial_started_at: null,
+    selected_plan: null,
+  };
+}
+
+/** Plain object — omija Alpine Proxy / getters Supabase przy odczycie pól. */
+function snapshotBillingProfileRow(bp) {
+  if (bp == null) return null;
+  if (typeof bp !== 'object' || Array.isArray(bp)) return null;
+  let raw = bp;
+  try {
+    raw = typeof structuredClone === 'function' ? structuredClone(bp) : JSON.parse(JSON.stringify(bp));
+  } catch {
+    raw = bp;
+  }
+  const plan = raw.plan ?? raw['plan'] ?? null;
+  const status = raw.status ?? raw['status'] ?? null;
+  const stripeSubscriptionId = raw.stripe_subscription_id ?? raw['stripe_subscription_id'] ?? '';
+  if (plan == null && status == null && !String(stripeSubscriptionId).trim()) return null;
+  return {
+    plan,
+    status,
+    stripe_customer_id: String(raw.stripe_customer_id ?? raw['stripe_customer_id'] ?? '').trim(),
+    stripe_subscription_id: String(stripeSubscriptionId).trim(),
+    current_period_end: raw.current_period_end ?? raw['current_period_end'] ?? '',
+    cancel_at_period_end: raw.cancel_at_period_end === true || raw['cancel_at_period_end'] === true,
   };
 }
 
@@ -751,6 +777,18 @@ function billingRowToSubscriptionView(billing, trialSub, pageBillingPlan) {
   };
 }
 
+/** Jawnie ustawia `ctx.billingSubscriptionView` (Alpine śledzi przypisanie, nie getter). */
+function applyBillingSubscriptionView(ctx) {
+  const trialSub = ctx.content?.pl?.settings?.subscription;
+  const view = billingRowToSubscriptionView(
+    snapshotBillingProfileRow(ctx.billingProfile),
+    trialSub,
+    ctx.pageBillingPlan,
+  );
+  ctx.billingSubscriptionView = view;
+  return view;
+}
+
 function stripBillingFromContentSubscription(sub) {
   const trial = sub && typeof sub === 'object' ? sub : {};
   const out = {
@@ -763,6 +801,15 @@ function stripBillingFromContentSubscription(sub) {
   };
   if (trial.payment_completed === true) out.payment_completed = true;
   return out;
+}
+
+function billingDebugEnabledFromLocation() {
+  try {
+    if (new URLSearchParams(window.location.search).get('billing_debug') === '1') return true;
+    return localStorage.getItem('dfcms_billing_debug') === '1';
+  } catch {
+    return false;
+  }
 }
 
 function adminMixinUi(ctx) {
@@ -783,14 +830,6 @@ function adminMixinUi(ctx) {
       },
       get accentColor() { return cfg.accentByPreset[this.content?.pl?.settings?.color_preset] || '#D4AF37'; },
       get styleBundles() { return cfg.bundlesByTheme[this.theme] || []; },
-      get billingSubscriptionView() {
-        const trialSub = this.content?.pl?.settings?.subscription;
-        return billingRowToSubscriptionView(
-          snapshotBillingProfileRow(this.billingProfile),
-          trialSub,
-          this.pageBillingPlan,
-        );
-      },
       /** Panel gotowy do renderu (treść + profil billing po zalogowaniu). */
       get panelContentReady() {
         if (this.loadingAuth || this.isLoading) return false;
@@ -955,19 +994,23 @@ function adminMixinUi(ctx) {
       /** Zapisuje krok i motyw kreatora lokalnie (per slug), żeby po ponownym otwarciu nie zaczynać od zera. */
       get hasActivePaidSubscription() {
         const sub = this.billingSubscriptionView;
-        if (typeof window.DFOPS_hasPaidSubscriptionAccess === 'function') {
-          return window.DFOPS_hasPaidSubscriptionAccess(sub);
-        }
         if (!sub || typeof sub !== 'object') return false;
         if (sub.payment_completed === true) return true;
-        const p = String(sub.plan || '').trim().toLowerCase();
-        const st = typeof sub.status === 'string' ? sub.status.trim().toLowerCase() : '';
-        if ((p === 'tier0' || p === 'tier1') && (!st || st === 'active' || st === 'trialing' || st === 'past_due' || st === 'unpaid')) {
-          return true;
+        let p = String(sub.plan || '').trim().toLowerCase();
+        if (p === 'tier2' || p === 'premium') p = 'tier1';
+        if (p === 'tier0' || p === 'tier1') {
+          const st = String(sub.status || '').trim().toLowerCase();
+          if (!st || st === 'active' || st === 'trialing' || st === 'past_due' || st === 'unpaid') {
+            return true;
+          }
+        }
+        if (typeof window.DFOPS_hasPaidSubscriptionAccess === 'function') {
+          return window.DFOPS_hasPaidSubscriptionAccess(sub);
         }
         const sid =
           typeof sub.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
         if (!sid) return false;
+        const st = typeof sub.status === 'string' ? sub.status.trim().toLowerCase() : '';
         return st === 'active' || st === 'trialing';
       },
       /**
@@ -1942,6 +1985,8 @@ function adminMixinAuth(ctx) {
         this.showSuccessModal = false;
         this.billingProfile = null;
         this.pageBillingPlan = 'trial';
+        this.billingSubscriptionView = emptyBillingSubscriptionView();
+        this.billingDebugLog = [];
         this.billingProfileReady = false;
         this._billingStatusToastShown = false;
         this._initialPanelLoadDone = false;
@@ -2207,6 +2252,7 @@ function adminMixinData(ctx) {
           }
           if (this.isImpersonating) {
             this.billingProfile = null;
+            this.refreshBillingSubscriptionView();
           } else {
             await this.loadBillingProfile();
           }
@@ -2214,6 +2260,7 @@ function adminMixinData(ctx) {
           this.currentTemplateVersion = Number(this.content.pl.settings.template_version || 1);
           this.updateAvailable = this.currentTemplateVersion < this.latestTemplateVersion;
           this.syncUserPlanFromBilling();
+          this.logBillingDebugState('loadData');
           this.applyThemeStylingFromContent();
           this.enforceColorPresetForStarter();
           this.enforceQuickChatForStarter();
@@ -2954,6 +3001,19 @@ function adminMixinBilling(ctx) {
             this._loadDataSubscriptionStripeSync = false;
           }
           this.syncUserPlanFromBilling();
+          this.logBillingDebugState('sync-after-loadData');
+          const paid = this.hasActivePaidSubscription;
+          const plan = this.subscriptionPlan;
+          if (!paid && (plan === 'trial' || plan === '')) {
+            this.logBillingDebugState('sync-ui-mismatch');
+            if (!silent) {
+              this.showToast(
+                'Stripe zsynchronizowany, ale panel nadal widzi trial. Dodaj ?billing_debug=1 do URL i sprawdź panel debug.',
+                'error',
+              );
+            }
+            return false;
+          }
           if (!silent) {
             this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
           }
@@ -2976,10 +3036,45 @@ function adminMixinBilling(ctx) {
         else this.userPlan = 'starter';
       },
 
+      billingDebugEnabled() {
+        return billingDebugEnabledFromLocation();
+      },
+
+      refreshBillingSubscriptionView() {
+        applyBillingSubscriptionView(this);
+      },
+
+      logBillingDebugState(tag) {
+        if (!this.billingDebugEnabled()) return;
+        const snap = snapshotBillingProfileRow(this.billingProfile);
+        const entry = {
+          tag: String(tag || 'debug'),
+          at: new Date().toISOString(),
+          pageBillingPlan: this.pageBillingPlan,
+          billingProfileRaw: this.billingProfile
+            ? {
+                plan: this.billingProfile.plan,
+                status: this.billingProfile.status,
+                stripe_subscription_id: this.billingProfile.stripe_subscription_id,
+              }
+            : null,
+          snapshot: snap,
+          billingSubscriptionView: { ...this.billingSubscriptionView },
+          subscriptionPlan: this.subscriptionPlan,
+          hasActivePaidSubscription: this.hasActivePaidSubscription,
+          planUtilsFn: typeof window.DFOPS_hasPaidSubscriptionAccess,
+        };
+        if (!Array.isArray(this.billingDebugLog)) this.billingDebugLog = [];
+        this.billingDebugLog.unshift(entry);
+        if (this.billingDebugLog.length > 15) this.billingDebugLog.length = 15;
+        console.info('[DFCMS billing debug]', entry);
+      },
+
       /** Gotowe palety kolorów — zawsze dostępne (freemium). */
       async loadBillingProfile() {
         if (!this.user?.id || !this.supabase) {
           this.billingProfile = null;
+          this.refreshBillingSubscriptionView();
           return;
         }
         const { data, error } = await this.supabase
@@ -2990,9 +3085,12 @@ function adminMixinBilling(ctx) {
         if (error) {
           console.warn('[DFCMS] loadBillingProfile:', error.message || error);
           this.billingProfile = null;
+          this.refreshBillingSubscriptionView();
           return;
         }
         this.billingProfile = data || null;
+        this.refreshBillingSubscriptionView();
+        this.logBillingDebugState('loadBillingProfile');
       },
 
       clearCheckoutTurnstile() {
@@ -4127,6 +4225,9 @@ function createAdminApp() {
       billingProfile: null,
       /** Lustrzany plan z `pages.billing_plan` — fallback UI gdy brak wiersza billing lub God Mode. */
       pageBillingPlan: 'trial',
+      /** Widok subskrypcji — refreshBillingSubscriptionView(), nie getter (Alpine reactivity). */
+      billingSubscriptionView: emptyBillingSubscriptionView(),
+      billingDebugLog: [],
       /** False do zakończenia pierwszego loadBillingProfile w bieżącej sesji panelu. */
       billingProfileReady: false,
       /** Jednorazowy toast o wygasającej / zakończonej subskrypcji (po pełnym stanie billing). */

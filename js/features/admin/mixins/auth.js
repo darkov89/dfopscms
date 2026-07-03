@@ -347,6 +347,8 @@ function adminMixinAuth(ctx) {
         this.showSuccessModal = false;
         this.billingProfile = null;
         this.pageBillingPlan = 'trial';
+        this.billingSubscriptionView = emptyBillingSubscriptionView();
+        this.billingDebugLog = [];
         this.billingProfileReady = false;
         this._billingStatusToastShown = false;
         this._initialPanelLoadDone = false;

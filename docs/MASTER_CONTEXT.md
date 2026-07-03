@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-07-03 — panel admin: partials + JS mixiny (`build:admin`, `build:admin-js`)
+**Ostatnia aktualizacja treści:** 2026-07-03 — billing UI: jawny `billingSubscriptionView` + panel debug
 
 ---
 
@@ -65,7 +65,7 @@ W konsoli: `window.DFOPS_DEPLOY_ENVIRONMENT` → `'staging'` | `'production'`.
 ```
 Użytkownik → Auth → pages.content + pages.billing_plan + billing_profiles
     → create-checkout → Stripe → stripe-webhook / sync-stripe-subscription
-    → Panel: billingProfileView.js → planUtils (tier0/tier1)
+    → Panel: `js/features/admin/billingView.js` (bundlowane w `adminApp.js`) → `planUtils` (tier0/tier1)
     → add-custom-domain → Cloudflare → pages.custom_domain
 ```
 
@@ -112,7 +112,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 - **Driver.js** (CDN 1.4.0): tour → kreator (krok 0) → podgląd strony → sidebar (`#dfops-admin-sidebar`) → **Pomocnik krok po kroku** → Subskrypcja. Po tour domyślny widok: **`dashboard`** (nie `hero`).
 - **Kreator:** kroki logiczne z `js/core/themeConfig.js` (`template` → `brand` → `hero` → `offer` → `about` → `contact`); aktywna lista per motyw (`DFOPS_getActiveWizardStepIds`) — np. gastro pomija `about`, w `offer` zbiera `menu_items` zamiast `services`; sync `nav.logo` → `business_name` / `hero.name` / SEO; `finishWizard` → `finalizeWizardContent` (ukrywa puste sekcje); stan w `localStorage` (`dfops_wizard_state_v1:{slug}`, `v:2`); czyszczenie po `finishWizard` / `switchTemplate`.
 - **Draft vs published:** auto-save debounce 1000ms → `draft_content`; `publishChanges()` → `content`; preview tylko właściciel (`dfcms_preview=1`); `revertChanges()` z `_publishedContentRaw`.
-- **Subskrypcja panel:** `hasActivePaidSubscription` / `isSubscriptionCanceledButValid` — tylko Stripe (`billing_profiles`), nie samo `payment_completed` w JSON.
+- **Subskrypcja panel:** Źródła: `billing_profiles` + lustrzane `pages.billing_plan`; `content.pl.settings.subscription` zawsze trial (strip przy `loadData`). Widok UI: **`billingSubscriptionView`** — jawne pole Alpine (nie getter), ustawiane przez `refreshBillingSubscriptionView()` / `applyBillingSubscriptionView()` po `loadBillingProfile` i `loadData`. `hasActivePaidSubscription` — tier0/tier1 + `payment_completed` z widoku; sync Stripe: toast sukcesu tylko gdy UI widzi płatny plan, inaczej błąd + log. **Debug:** `?billing_debug=1` lub `localStorage.dfcms_billing_debug=1` → panel na zakładce Subskrypcja + `console.info [DFCMS billing debug]`. Osobny skrypt `js/core/billingProfileView.js` tylko dla `godmode.html`.
 - **God Mode:** `godmode.html` wymaga sesji i widocznego własnego wpisu w `superadmins`; lista pobiera wszystkie `pages`. Panel po zalogowaniu sprawdza `superadmins` i pokazuje w sidebarze „Master Dashboard” tylko superadminom. Przycisk „Zarządzaj” otwiera `admin.html?impersonate={slug}`. W impersonacji panel zapisuje konkretny rekord po `pages.id`, pomija profil billingowy superadmina i blokuje checkout z sesji operatora.
 
 ### 1.5.2 Panel admin — IA (2026-07)
@@ -363,7 +363,7 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 | Panel subskrypcja | `admin.html`, `adminApp.js` |
 | God Mode / superadmin | `godmode.html`, `admin.html?impersonate={slug}`, `20260623100512_add_god_mode.sql` |
 | Plany / watermark | `js/core/planUtils.js` |
-| Profil Stripe | `billingProfileView.js`, `loadBillingProfile()` |
+| Profil Stripe | `js/features/admin/billingView.js` (bundel), `loadBillingProfile()`, `godmode`: `billingProfileView.js` |
 | Demo seeds (localhost fallback) | `data/seeds/demo_pages.json`, `scripts/extract-demo-seeds-from-migration.mjs` |
 | Demo seeds (DB / prod) | `supabase/migrations/20260616150000_seed_demo_catalog_pages.sql` |
 | Szablony publiczne | `templates/{beauty,fitness,services,consultant,gastro,care}.html`, boilerplate `templates/_base_template.html` |
@@ -378,6 +378,7 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
+| **2026-07-03** | **Billing UI panel — reaktywność Alpine:** `billingSubscriptionView` jako jawny stan (nie getter wołający `window`); `js/features/admin/billingView.js` w bundlu `adminApp.js`; `refreshBillingSubscriptionView()` po `loadBillingProfile`/`loadData`; sync Stripe weryfikuje `hasActivePaidSubscription` przed toastem sukcesu; panel debug `?billing_debug=1` na zakładce Subskrypcja. |
 | **2026-07-03** | **Panel admin — JS mixiny:** `js/features/admin/` (shared + 6 mixinów domenowych) + `scripts/build-admin-app.mjs` / `split-admin-app.mjs`; `npm run build:admin-js`; `adminApp.js` generowany (IIFE + `Object.assign`); mixiny dostają `ctx` z `createAdminApp`; `js/features/admin/README.md`. |
 | **2026-07-03** | **Panel admin — partials:** `admin/partials/` (36 plików) + `scripts/build-admin.mjs` / `split-admin-html.mjs`; `npm run build:admin`; `admin.html` generowany z banerem; byte-identyczny rebuild; `admin/README.md`. |
 | **2026-07-03** | **Repo — `data/seeds/demo_pages.json`:** przywrócone 6 demo katalogowych z migracji `20260616150000_*`; skrypt `extract-demo-seeds-from-migration.mjs`; README + MASTER §3.1/§3.7; localhost fallback demo bez wiersza w Staging DB. |

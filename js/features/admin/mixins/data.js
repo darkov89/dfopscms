@@ -251,6 +251,7 @@ function adminMixinData(ctx) {
           }
           if (this.isImpersonating) {
             this.billingProfile = null;
+            this.refreshBillingSubscriptionView();
           } else {
             await this.loadBillingProfile();
           }
@@ -258,6 +259,7 @@ function adminMixinData(ctx) {
           this.currentTemplateVersion = Number(this.content.pl.settings.template_version || 1);
           this.updateAvailable = this.currentTemplateVersion < this.latestTemplateVersion;
           this.syncUserPlanFromBilling();
+          this.logBillingDebugState('loadData');
           this.applyThemeStylingFromContent();
           this.enforceColorPresetForStarter();
           this.enforceQuickChatForStarter();

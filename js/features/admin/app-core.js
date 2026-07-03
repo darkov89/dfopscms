@@ -110,6 +110,9 @@ function createAdminApp() {
       billingProfile: null,
       /** Lustrzany plan z `pages.billing_plan` — fallback UI gdy brak wiersza billing lub God Mode. */
       pageBillingPlan: 'trial',
+      /** Widok subskrypcji — refreshBillingSubscriptionView(), nie getter (Alpine reactivity). */
+      billingSubscriptionView: emptyBillingSubscriptionView(),
+      billingDebugLog: [],
       /** False do zakończenia pierwszego loadBillingProfile w bieżącej sesji panelu. */
       billingProfileReady: false,
       /** Jednorazowy toast o wygasającej / zakończonej subskrypcji (po pełnym stanie billing). */

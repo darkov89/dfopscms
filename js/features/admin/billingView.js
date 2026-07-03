@@ -6,16 +6,42 @@ function normalizePageBillingPlan(plan) {
   return raw;
 }
 
-/** Plain object — omija Alpine Proxy przy odczycie pól z Supabase. */
-function snapshotBillingProfileRow(bp) {
-  if (!bp || typeof bp !== 'object' || Array.isArray(bp)) return null;
+function emptyBillingSubscriptionView() {
   return {
-    plan: bp.plan,
-    status: bp.status,
-    stripe_customer_id: bp.stripe_customer_id,
-    stripe_subscription_id: bp.stripe_subscription_id,
-    current_period_end: bp.current_period_end,
-    cancel_at_period_end: bp.cancel_at_period_end,
+    plan: 'trial',
+    status: '',
+    payment_completed: false,
+    stripe_customer_id: '',
+    stripe_subscription_id: '',
+    current_period_end: '',
+    cancel_at_period_end: false,
+    cancel_at: null,
+    trial_started_at: null,
+    selected_plan: null,
+  };
+}
+
+/** Plain object — omija Alpine Proxy / getters Supabase przy odczycie pól. */
+function snapshotBillingProfileRow(bp) {
+  if (bp == null) return null;
+  if (typeof bp !== 'object' || Array.isArray(bp)) return null;
+  let raw = bp;
+  try {
+    raw = typeof structuredClone === 'function' ? structuredClone(bp) : JSON.parse(JSON.stringify(bp));
+  } catch {
+    raw = bp;
+  }
+  const plan = raw.plan ?? raw['plan'] ?? null;
+  const status = raw.status ?? raw['status'] ?? null;
+  const stripeSubscriptionId = raw.stripe_subscription_id ?? raw['stripe_subscription_id'] ?? '';
+  if (plan == null && status == null && !String(stripeSubscriptionId).trim()) return null;
+  return {
+    plan,
+    status,
+    stripe_customer_id: String(raw.stripe_customer_id ?? raw['stripe_customer_id'] ?? '').trim(),
+    stripe_subscription_id: String(stripeSubscriptionId).trim(),
+    current_period_end: raw.current_period_end ?? raw['current_period_end'] ?? '',
+    cancel_at_period_end: raw.cancel_at_period_end === true || raw['cancel_at_period_end'] === true,
   };
 }
 
@@ -80,6 +106,18 @@ function billingRowToSubscriptionView(billing, trialSub, pageBillingPlan) {
   };
 }
 
+/** Jawnie ustawia `ctx.billingSubscriptionView` (Alpine śledzi przypisanie, nie getter). */
+function applyBillingSubscriptionView(ctx) {
+  const trialSub = ctx.content?.pl?.settings?.subscription;
+  const view = billingRowToSubscriptionView(
+    snapshotBillingProfileRow(ctx.billingProfile),
+    trialSub,
+    ctx.pageBillingPlan,
+  );
+  ctx.billingSubscriptionView = view;
+  return view;
+}
+
 function stripBillingFromContentSubscription(sub) {
   const trial = sub && typeof sub === 'object' ? sub : {};
   const out = {
@@ -92,4 +130,13 @@ function stripBillingFromContentSubscription(sub) {
   };
   if (trial.payment_completed === true) out.payment_completed = true;
   return out;
+}
+
+function billingDebugEnabledFromLocation() {
+  try {
+    if (new URLSearchParams(window.location.search).get('billing_debug') === '1') return true;
+    return localStorage.getItem('dfcms_billing_debug') === '1';
+  } catch {
+    return false;
+  }
 }
