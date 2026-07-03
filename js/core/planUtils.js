@@ -108,6 +108,7 @@
       !!sid &&
       (st === 'active' || st === 'trialing' || st === 'past_due' || st === 'unpaid');
     if (paidPlan && sub.payment_completed === true) return true;
+    if (paidPlan && !st && !subscriptionStripeStatusTerminal(sub)) return true;
     if (stripeLive && (st === 'active' || st === 'trialing')) return true;
     return false;
   }

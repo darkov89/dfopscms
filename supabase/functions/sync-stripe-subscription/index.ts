@@ -166,6 +166,18 @@ serve(async (req) => {
       }
     }
 
+    if (!subscription && user.id) {
+      try {
+        const searchResult = await stripe.subscriptions.search({
+          query: `metadata['supabase_user_id']:'${user.id}'`,
+          limit: 10,
+        });
+        subscription = pickBestSubscription(searchResult.data);
+      } catch (searchErr) {
+        console.warn("sync-stripe-subscription metadata search:", searchErr);
+      }
+    }
+
     if (!subscription) {
       return new Response(
         JSON.stringify({

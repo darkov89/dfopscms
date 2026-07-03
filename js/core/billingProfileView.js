@@ -46,12 +46,16 @@
     }
     const st = String(billing.status || '').trim().toLowerCase();
     const terminated = st === 'canceled' || st === 'cancelled' || st === 'incomplete_expired';
-    let plan = terminated ? 'trial' : (billing.plan || 'trial');
-    if (plan === 'tier2') plan = 'tier1';
+    let plan = terminated ? 'trial' : normalizePageBillingPlan(billing.plan || 'trial');
+    const mirrored = normalizePageBillingPlan(pageBillingPlan);
+    if ((plan === 'trial' || !billing.plan) && (mirrored === 'tier0' || mirrored === 'tier1')) {
+      plan = mirrored;
+    }
     const paidTier = !terminated && (plan === 'tier0' || plan === 'tier1');
+    const effectiveStatus = st || (paidTier ? 'active' : '');
     return {
       plan,
-      status: st,
+      status: effectiveStatus,
       stripe_customer_id: billing.stripe_customer_id || '',
       stripe_subscription_id: billing.stripe_subscription_id || '',
       current_period_end: billing.current_period_end || '',
@@ -61,7 +65,8 @@
       selected_plan: trial.selected_plan ?? null,
       payment_completed:
         paidTier &&
-        (st === 'active' ||
+        (!st ||
+          st === 'active' ||
           st === 'trialing' ||
           st === 'past_due' ||
           st === 'unpaid' ||
