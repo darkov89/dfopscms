@@ -158,15 +158,6 @@ function stripBillingFromContentSubscription(sub) {
   return out;
 }
 
-function billingDebugEnabledFromLocation() {
-  try {
-    if (new URLSearchParams(window.location.search).get('billing_debug') === '1') return true;
-    return localStorage.getItem('dfcms_billing_debug') === '1';
-  } catch {
-    return false;
-  }
-}
-
 function formatSubscriptionRenewalDatePl(raw) {
   if (typeof window.DFOPS_formatSubscriptionPeriodEndPl === 'function') {
     return window.DFOPS_formatSubscriptionPeriodEndPl(raw);

@@ -259,7 +259,6 @@ function adminMixinData(ctx) {
           this.currentTemplateVersion = Number(this.content.pl.settings.template_version || 1);
           this.updateAvailable = this.currentTemplateVersion < this.latestTemplateVersion;
           this.syncUserPlanFromBilling();
-          this.logBillingDebugState('loadData');
           this.applyThemeStylingFromContent();
           this.enforceColorPresetForStarter();
           this.enforceQuickChatForStarter();

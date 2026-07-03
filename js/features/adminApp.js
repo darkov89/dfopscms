@@ -829,15 +829,6 @@ function stripBillingFromContentSubscription(sub) {
   return out;
 }
 
-function billingDebugEnabledFromLocation() {
-  try {
-    if (new URLSearchParams(window.location.search).get('billing_debug') === '1') return true;
-    return localStorage.getItem('dfcms_billing_debug') === '1';
-  } catch {
-    return false;
-  }
-}
-
 function formatSubscriptionRenewalDatePl(raw) {
   if (typeof window.DFOPS_formatSubscriptionPeriodEndPl === 'function') {
     return window.DFOPS_formatSubscriptionPeriodEndPl(raw);
@@ -1990,7 +1981,6 @@ function adminMixinAuth(ctx) {
         this.hasActivePaidSubscription = false;
         this.subscriptionRenewalDateFormatted = '—';
         this.subscriptionRenewalDateBadgeShort = '—';
-        this.billingDebugLog = [];
         this.billingProfileReady = false;
         this._billingStatusToastShown = false;
         this._initialPanelLoadDone = false;
@@ -2264,7 +2254,6 @@ function adminMixinData(ctx) {
           this.currentTemplateVersion = Number(this.content.pl.settings.template_version || 1);
           this.updateAvailable = this.currentTemplateVersion < this.latestTemplateVersion;
           this.syncUserPlanFromBilling();
-          this.logBillingDebugState('loadData');
           this.applyThemeStylingFromContent();
           this.enforceColorPresetForStarter();
           this.enforceQuickChatForStarter();
@@ -3005,14 +2994,12 @@ function adminMixinBilling(ctx) {
             this._loadDataSubscriptionStripeSync = false;
           }
           this.syncUserPlanFromBilling();
-          this.logBillingDebugState('sync-after-loadData');
           const paid = this.hasActivePaidSubscription;
           const plan = this.subscriptionPlan;
           if (!paid && (plan === 'trial' || plan === '')) {
-            this.logBillingDebugState('sync-ui-mismatch');
             if (!silent) {
               this.showToast(
-                'Stripe zsynchronizowany, ale panel nadal widzi trial. Dodaj ?billing_debug=1 do URL i sprawdź panel debug.',
+                'Synchronizacja zakończona, ale plan w panelu nie odświeżył się. Odśwież stronę i spróbuj ponownie.',
                 'error',
               );
             }
@@ -3040,39 +3027,8 @@ function adminMixinBilling(ctx) {
         else this.userPlan = 'starter';
       },
 
-      billingDebugEnabled() {
-        return billingDebugEnabledFromLocation();
-      },
-
       refreshBillingSubscriptionView() {
         applyBillingSubscriptionView(this);
-      },
-
-      logBillingDebugState(tag) {
-        if (!this.billingDebugEnabled()) return;
-        const snap = snapshotBillingProfileRow(this.billingProfile);
-        const entry = {
-          tag: String(tag || 'debug'),
-          at: new Date().toISOString(),
-          pageBillingPlan: this.pageBillingPlan,
-          billingProfileRaw: this.billingProfile
-            ? {
-                plan: this.billingProfile.plan,
-                status: this.billingProfile.status,
-                stripe_subscription_id: this.billingProfile.stripe_subscription_id,
-              }
-            : null,
-          snapshot: snap,
-          billingSubscriptionView: { ...this.billingSubscriptionView },
-          subscriptionPlan: this.subscriptionPlan,
-          hasActivePaidSubscription: this.hasActivePaidSubscription,
-          subscriptionRenewalDateFormatted: this.subscriptionRenewalDateFormatted,
-          planUtilsFn: typeof window.DFOPS_hasPaidSubscriptionAccess,
-        };
-        if (!Array.isArray(this.billingDebugLog)) this.billingDebugLog = [];
-        this.billingDebugLog.unshift(entry);
-        if (this.billingDebugLog.length > 15) this.billingDebugLog.length = 15;
-        console.info('[DFCMS billing debug]', entry);
       },
 
       /** Gotowe palety kolorów — zawsze dostępne (freemium). */
@@ -3095,7 +3051,6 @@ function adminMixinBilling(ctx) {
         }
         this.billingProfile = data || null;
         this.refreshBillingSubscriptionView();
-        this.logBillingDebugState('loadBillingProfile');
       },
 
       clearCheckoutTurnstile() {
@@ -4237,7 +4192,6 @@ function createAdminApp() {
       hasActivePaidSubscription: false,
       subscriptionRenewalDateFormatted: '—',
       subscriptionRenewalDateBadgeShort: '—',
-      billingDebugLog: [],
       /** False do zakończenia pierwszego loadBillingProfile w bieżącej sesji panelu. */
       billingProfileReady: false,
       /** Jednorazowy toast o wygasającej / zakończonej subskrypcji (po pełnym stanie billing). */

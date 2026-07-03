@@ -352,7 +352,6 @@ function adminMixinAuth(ctx) {
         this.hasActivePaidSubscription = false;
         this.subscriptionRenewalDateFormatted = '—';
         this.subscriptionRenewalDateBadgeShort = '—';
-        this.billingDebugLog = [];
         this.billingProfileReady = false;
         this._billingStatusToastShown = false;
         this._initialPanelLoadDone = false;
