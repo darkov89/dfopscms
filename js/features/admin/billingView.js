@@ -106,7 +106,28 @@ function billingRowToSubscriptionView(billing, trialSub, pageBillingPlan) {
   };
 }
 
-/** Jawnie ustawia `ctx.billingSubscriptionView` (Alpine śledzi przypisanie, nie getter). */
+function computeHasActivePaidSubscription(sub) {
+  if (!sub || typeof sub !== 'object') return false;
+  if (sub.payment_completed === true) return true;
+  let p = String(sub.plan || '').trim().toLowerCase();
+  if (p === 'tier2' || p === 'premium') p = 'tier1';
+  if (p === 'tier0' || p === 'tier1') {
+    const st = String(sub.status || '').trim().toLowerCase();
+    if (!st || st === 'active' || st === 'trialing' || st === 'past_due' || st === 'unpaid') {
+      return true;
+    }
+  }
+  if (typeof window.DFOPS_hasPaidSubscriptionAccess === 'function') {
+    return window.DFOPS_hasPaidSubscriptionAccess(sub);
+  }
+  const sid =
+    typeof sub.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
+  if (!sid) return false;
+  const st = typeof sub.status === 'string' ? sub.status.trim().toLowerCase() : '';
+  return st === 'active' || st === 'trialing';
+}
+
+/** Jawnie ustawia pola billing UI (Alpine nie zachowuje getterów z x-data — tylko przypisania). */
 function applyBillingSubscriptionView(ctx) {
   const trialSub = ctx.content?.pl?.settings?.subscription;
   const view = billingRowToSubscriptionView(
@@ -115,6 +136,8 @@ function applyBillingSubscriptionView(ctx) {
     ctx.pageBillingPlan,
   );
   ctx.billingSubscriptionView = view;
+  ctx.subscriptionPlan = view.plan || 'trial';
+  ctx.hasActivePaidSubscription = computeHasActivePaidSubscription(view);
   return view;
 }
 

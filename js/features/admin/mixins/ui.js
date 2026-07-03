@@ -29,9 +29,6 @@ function adminMixinUi(ctx) {
           (!!this.user && !this.isForcedPasswordReset && !this.billingProfileReady)
         );
       },
-      get subscriptionPlan() {
-        return this.billingSubscriptionView?.plan || 'trial';
-      },
       /** Tier zapisany w CMS albo wybrany przed pełnym merge z webhookiem. */
       get activePaidTierForUi() {
         if (!this.hasActivePaidSubscription) return null;
@@ -176,28 +173,6 @@ function adminMixinUi(ctx) {
           }
         }
         return Math.min(100, Math.round(sum));
-      },
-      /** Zapisuje krok i motyw kreatora lokalnie (per slug), żeby po ponownym otwarciu nie zaczynać od zera. */
-      get hasActivePaidSubscription() {
-        const sub = this.billingSubscriptionView;
-        if (!sub || typeof sub !== 'object') return false;
-        if (sub.payment_completed === true) return true;
-        let p = String(sub.plan || '').trim().toLowerCase();
-        if (p === 'tier2' || p === 'premium') p = 'tier1';
-        if (p === 'tier0' || p === 'tier1') {
-          const st = String(sub.status || '').trim().toLowerCase();
-          if (!st || st === 'active' || st === 'trialing' || st === 'past_due' || st === 'unpaid') {
-            return true;
-          }
-        }
-        if (typeof window.DFOPS_hasPaidSubscriptionAccess === 'function') {
-          return window.DFOPS_hasPaidSubscriptionAccess(sub);
-        }
-        const sid =
-          typeof sub.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
-        if (!sid) return false;
-        const st = typeof sub.status === 'string' ? sub.status.trim().toLowerCase() : '';
-        return st === 'active' || st === 'trialing';
       },
       /**
        * Subskrypcja opłacona do końca okresu, ale zaplanowane zamknięcie (nie odnowi się).

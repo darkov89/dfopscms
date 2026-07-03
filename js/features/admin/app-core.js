@@ -112,6 +112,9 @@ function createAdminApp() {
       pageBillingPlan: 'trial',
       /** Widok subskrypcji — refreshBillingSubscriptionView(), nie getter (Alpine reactivity). */
       billingSubscriptionView: emptyBillingSubscriptionView(),
+      /** Ustawiane w applyBillingSubscriptionView — nie gettery (Alpine zamraża je przy init). */
+      subscriptionPlan: 'trial',
+      hasActivePaidSubscription: false,
       billingDebugLog: [],
       /** False do zakończenia pierwszego loadBillingProfile w bieżącej sesji panelu. */
       billingProfileReady: false,
