@@ -217,9 +217,8 @@ function adminMixinBilling(ctx) {
           }
           if (!data || data.ok !== true) {
             if (!silent) {
-              this.showToast('Nieoczekiwana odpowiedź synchronizacji Stripe. Sprawdź konsolę (DFCMS).', 'error');
+              this.showToast('Nieoczekiwana odpowiedź synchronizacji Stripe. Odśwież stronę i spróbuj ponownie.', 'error');
             }
-            console.warn('[DFCMS] sync-stripe unexpected response', data);
             return false;
           }
           this._loadDataSubscriptionStripeSync = true;
@@ -229,33 +228,6 @@ function adminMixinBilling(ctx) {
             this._loadDataSubscriptionStripeSync = false;
           }
           this.syncUserPlanFromBilling();
-          const paidAfter = this.hasActivePaidSubscription;
-          const planAfter = this.subscriptionPlan;
-          if (!paidAfter && planAfter === 'trial') {
-            console.warn('[DFCMS] sync OK, panel nadal trial', {
-              stripe_status: data.stripe_status,
-              subscription_id: data.subscription_id,
-              pageBillingPlan: this.pageBillingPlan,
-              viewPlan: this.billingSubscriptionView?.plan,
-              viewPaid: this.billingSubscriptionView?.payment_completed,
-              mergeFn: typeof window.DFOPS_billingRowToSubscriptionView,
-              paidFn: typeof window.DFOPS_hasPaidSubscriptionAccess,
-              billingProfile: this.billingProfile
-                ? {
-                    plan: this.billingProfile.plan,
-                    status: this.billingProfile.status,
-                    stripe_subscription_id: this.billingProfile.stripe_subscription_id,
-                  }
-                : null,
-            });
-            if (!silent) {
-              this.showToast(
-                'Stripe zsynchronizowany, ale panel nie widzi opłaconego planu. Sprawdź billing_profiles (plan + status) dla tego user_id.',
-                'error',
-              );
-            }
-            return false;
-          }
           if (!silent) {
             this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
           }
@@ -290,14 +262,11 @@ function adminMixinBilling(ctx) {
           .eq('user_id', this.user.id)
           .maybeSingle();
         if (error) {
-          console.warn('[DFCMS] loadBillingProfile:', error.message || error, { userId: this.user?.id });
+          console.warn('[DFCMS] loadBillingProfile:', error.message || error);
           this.billingProfile = null;
           return;
         }
         this.billingProfile = data || null;
-        if (!data && this.user?.id) {
-          console.info('[DFCMS] loadBillingProfile: brak wiersza billing_profiles', { userId: this.user.id });
-        }
       },
 
       clearCheckoutTurnstile() {
