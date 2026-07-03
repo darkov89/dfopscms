@@ -29,4 +29,4 @@ npm run split:admin-js
 
 **Nie edytuj ręcznie** `js/features/adminApp.js` — ma baner `GENERATED`.
 
-W `admin/partials/01-head.html` nadal jeden `<script defer src="js/features/adminApp.js">`.
+W `admin/partials/01-head.html` jeden `<script defer src="js/features/adminApp.js">` (bundel zawiera też `js/core/billingProfileView.js`).

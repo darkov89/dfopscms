@@ -236,6 +236,10 @@ function adminMixinBilling(ctx) {
               stripe_status: data.stripe_status,
               subscription_id: data.subscription_id,
               pageBillingPlan: this.pageBillingPlan,
+              viewPlan: this.billingSubscriptionView?.plan,
+              viewPaid: this.billingSubscriptionView?.payment_completed,
+              mergeFn: typeof window.DFOPS_billingRowToSubscriptionView,
+              paidFn: typeof window.DFOPS_hasPaidSubscriptionAccess,
               billingProfile: this.billingProfile
                 ? {
                     plan: this.billingProfile.plan,
