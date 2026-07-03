@@ -26,6 +26,7 @@ Front: **http://localhost:3000** (`serve`). Nie otwieraj `admin.html` z `file://
 |--------|-----------|
 | `admin.html` (root) | **Generowany** panel CMS — `npm run build:admin` ze źródeł `admin/partials/` |
 | `admin/partials/` | Źródła HTML panelu (36 plików); edytuj tutaj, nie w korzeniu |
+| `js/features/admin/` | Źródła logiki panelu (mixiny); `npm run build:admin-js` → `adminApp.js` |
 | `js/core/`, `js/features/` | Logika klienta (`config.js`, `pageRepository.js`, `adminApp.js`, …) |
 | `data/seeds/demo_pages.json` | 6 demo katalogowych (`demo-beauty` … `demo-consultant`) — fallback na **localhost** gdy brak wiersza w Staging DB; SoT w migracji `20260616150000_*` |
 | `functions/_middleware.js` | Middleware **Cloudflare Pages** |
@@ -33,7 +34,19 @@ Front: **http://localhost:3000** (`serve`). Nie otwieraj `admin.html` z `file://
 | `supabase/migrations/` | Migracje DB (baseline: `20260603072317_remote_schema.sql`) |
 | `docs/MASTER_CONTEXT.md`, `docs/PRODUCT_ROADMAP.md` | Kontekst techniczny i roadmap post-MVP |
 | `index.html`, `router.html`, … (root) | Pozostałe wejścia statyczne (Cloudflare Pages) |
-| `scripts/` | Generatory: demo seeds, **`build:admin`**, `split:admin` |
+| `scripts/` | Generatory: demo seeds, **`build:admin`**, **`build:admin-js`**, `build:panel` |
+
+## Panel CMS — edycja i build przed pushem
+
+Cloudflare Pages serwuje **wygenerowane** pliki z gita (bez kroku build na CI). Przy zmianach panelu:
+
+| Edytujesz | Build | Commituj |
+|-----------|-------|----------|
+| `admin/partials/*.html` | `npm run build:admin` | partials + `admin.html` |
+| `js/features/admin/**` | `npm run build:admin-js` | źródła + `js/features/adminApp.js` |
+| oba | `npm run build:panel` | wszystko powyżej |
+
+**Nie edytuj ręcznie** `admin.html` ani `adminApp.js` w korzeniu — mają baner `GENERATED`.
 
 ## Konfiguracja
 

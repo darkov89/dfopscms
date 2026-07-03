@@ -1,3 +1,4 @@
+/* GENERATED — nie edytuj ręcznie. Źródło: js/features/admin/ → npm run build:admin-js */
 ;(function () {
   /** Pusty szkielet `content` — Alpine nie wywołuje wtedy błędów typu `null.pl` przed `loadData`. */
   function formatResendSignupError(err) {
@@ -668,138 +669,16 @@
     return null;
   }
 
-  function createAdminApp() {
-    const t = window.DFOPS_CONFIG?.timeouts || {};
-    const MS_PER_DAY = t.msPerDay ?? 86400000;
-    const ERROR_MESSAGE_TIMEOUT = t.errorMessage ?? 5000;
-    const SUCCESS_MESSAGE_TIMEOUT = t.successMessage ?? 3000;
-    const UPGRADE_MESSAGE_TIMEOUT = t.upgradeMessage ?? 3500;
-    const cfg = window.DFOPS_CONFIG;
-    const repo = window.DFOPS_pageRepository;
-    return {
-      supabase: null,
-      user: null,
-      loadingAuth: true,
-      email: '',
-      password: '',
-      rememberMe: false,
-      authError: '',
-      /** Logowanie: widok „Nie pamiętam hasła” (ten sam admin.html). */
-      showLoginForgotPassword: false,
-      forgotPasswordEmail: '',
-      forgotPasswordSending: false,
-      forgotPasswordInfo: '',
-      /** Link resetujący hasło (Supabase) — po loadData: izolatka wymuszonego resetu. */
-      _passwordRecoveryPendingUi: false,
-      _passwordRecoveryUiHandled: false,
-      /** Sesja z linku recovery — pełny panel ukryty do ustawienia nowego hasła. */
-      isForcedPasswordReset: false,
-      slug: new URLSearchParams(window.location.search).get('site') || '',
-      hasImpersonateParam: new URLSearchParams(window.location.search).has('impersonate'),
-      impersonateSlug: normalizePageSlug(new URLSearchParams(window.location.search).get('impersonate')),
-      isSuperadmin: false,
-      isSuperAdmin: false,
-      isImpersonating: false,
-      impersonatedPageOwnerId: null,
-      lang: 'pl',
-      theme: '',
-      isLoading: false,
-      /** Pakiet do feature gating (kolory): starter | standard. Po loadData nadpisuje się z subskrypcji. */
-      userPlan: 'starter',
-      content: createAdminContentShell(),
-      showWizard: false,
-      wizardStep: 0,
-      wizardTheme: '',
-      wizardFieldWarning: '',
-      /** Jednorazowy komunikat po „Pomiń kreator” — bez listy „ninja” u góry. */
-      showWizardDismissModal: false,
-      /** Pierwsza konfiguracja: treść bez `business_name` (po normalize — zob. loadData). */
-      showWelcomeModal: false,
-      showStudioWelcomeModal: false,
-      customDomain: '',
-      customDomainStatus: '',
-      domainInput: '',
-      pageId: null,
-      isVerifyingDomain: false,
-      domainMessage: '',
-      domainError: '',
-      showDnsInstructions: false,
-      showTemplateSwitcher: false,
-      activeTab: 'dashboard',
-      mobileMenuOpen: false,
-      headerMoreMenuOpen: false,
-      navGroupStart: true,
-      navGroupMore: false,
-      navGroupSettings: false,
-      saving: false,
-      uploadingImage: false,
-      uploadingMessage: '',
-      message: '',
-      errorMessage: '',
-      toast: { show: false, message: '', type: 'success' },
-      _toastTimer: null,
-      /** Globalny modal confirm() (Promise<boolean>) — zastępuje systemowy `confirm()` w panelu. */
-      confirmDialog: {
-        open: false,
-        title: '',
-        message: '',
-        yesLabel: 'Tak',
-        noLabel: 'Nie',
-        tone: 'default', // default | danger
-      },
-      _confirmDialogResolve: null,
-      hasUnsavedChanges: false,
-      _stopContentWatch: null,
-      /** Cichy auto-save stanu roboczego (draft_content). */
-      _draftAutosaveTimer: null,
-      draftSaving: false,
-      draftSavedOnce: false,
-      upgrading: false,
-      checkoutLoading: false,
-      showCheckoutModal: false,
-      pendingCheckoutPlan: '',
-      pendingCheckoutPlanType: '',
-      pendingCheckoutTier: '',
-      pendingCheckoutInterval: '',
-      turnstileToken: '',
-      turnstileWidgetId: null,
-      /** Okres rozliczenia na ekranie pakietów: monthly | yearly */
-      billingInterval: 'monthly',
-      stripeSyncLoading: false,
-      /** Profil rozliczeniowy z tabeli billing_profiles (źródło prawdy Stripe). */
-      billingProfile: null,
-      /** False do zakończenia pierwszego loadBillingProfile w bieżącej sesji panelu. */
-      billingProfileReady: false,
-      /** Jednorazowy toast o wygasającej / zakończonej subskrypcji (po pełnym stanie billing). */
-      _billingStatusToastShown: false,
-      /** Pierwsze loadData zakończone — dopiero potem silent sync na zakładce Subskrypcja. */
-      _initialPanelLoadDone: false,
-      /** Zapobiega podwójnemu sync przy loadData po syncStripeSubscription. */
-      _loadDataSubscriptionStripeSync: false,
-      /** Jednorazowy silent sync ze Stripe po wejściu w zakładkę Subskrypcja (świeży `cancel_at_period_end`). */
-      _subscriptionTabStripeSynced: false,
-      newPassword: '',
-      newPasswordConfirm: '',
-      /** Podgląd znaków przy zmianie hasła (Konto). */
-      showAccountPassword: false,
-      isPasswordUpdating: false,
-      isPortalLoading: false,
-      latestTemplateVersion: window.DFOPS_LATEST_TEMPLATE_VERSION || 3,
-      currentTemplateVersion: 1,
-      updateAvailable: false,
-      selectedStyleBundle: '',
-      /** Ustawiane z pages.trial_blocked_at — po trialu bez płatności strona publiczna jest zablokowana. */
-      trialBlockedAt: null,
-      showTrialSuspendedModal: true,
-      /** Opcjonalny modal po płatności — główny flow opiera się na toastach + opóźnionym loadData. */
-      showSuccessModal: false,
-      _postPaymentRefreshTimer: null,
-      resendConfirmLoading: false,
-      /**
-       * Z serwera Auth (getUser), nie ze „stale” session.user w JWT.
-       * true = pokaż baner + blokuj kreator do czasu potwierdzenia maila.
-       */
-      needsEmailConfirmation: false,
+function adminMixinUi(ctx) {
+  const {
+    cfg,
+    repo,
+    MS_PER_DAY,
+    ERROR_MESSAGE_TIMEOUT,
+    SUCCESS_MESSAGE_TIMEOUT,
+    UPGRADE_MESSAGE_TIMEOUT,
+  } = ctx;
+  return {
       get availablePresets() {
         const currentTheme = this.showWizard
           ? (this.wizardTheme || this.theme || 'beauty')
@@ -827,10 +706,6 @@
           this.isLoading ||
           (!!this.user && !this.isForcedPasswordReset && !this.billingProfileReady)
         );
-      },
-      billingStripeStatusNormalized() {
-        const sub = this.billingSubscriptionView;
-        return typeof sub?.status === 'string' ? sub.status.trim().toLowerCase() : '';
       },
       get subscriptionPlan() {
         return this.billingSubscriptionView?.plan || 'trial';
@@ -981,39 +856,6 @@
         return Math.min(100, Math.round(sum));
       },
       /** Zapisuje krok i motyw kreatora lokalnie (per slug), żeby po ponownym otwarciu nie zaczynać od zera. */
-      persistWizardUiState() {
-        if (!this.slug || !this.showWizard) return;
-        writeWizardStateToStorage(this.slug, this.wizardStep, this.wizardTheme);
-      },
-      /**
-       * @param {0|1} defaultStepWhenNoSave — gdy brak zapisanego stanu: 0 = ekran wyboru ścieżki, 1 = od razu krok 1 (np. „Uruchom kreator” z checklisty).
-       */
-      restoreWizardUiFromStorage(defaultStepWhenNoSave) {
-        const pageTheme = this.theme || '';
-        const saved = readWizardStateFromStorage(this.slug);
-        if (!saved) {
-          this.wizardStep = defaultStepWhenNoSave === 1 ? 1 : 0;
-          this.wizardTheme = pageTheme === 'setup' ? 'beauty' : pageTheme || 'beauty';
-          return;
-        }
-        const norm = normalizeWizardRestore(saved.step, saved.theme, pageTheme);
-        this.wizardStep = norm.step;
-        this.wizardTheme = norm.theme;
-        const pl = this.content?.pl;
-        const theme = this.wizardTheme || pageTheme;
-        const stepId = wizardStepIdAtIndex(theme, this.wizardStep);
-        if (pl && stepId === 'offer') {
-          if (wizardOfferSection(theme) === 'menu') prepareWizardMenuStep(pl, theme);
-          else prepareWizardServicesStep(pl, theme);
-        }
-        if (pl && stepId === 'about') {
-          prepareWizardManifestoStep(pl, theme);
-        }
-      },
-      /**
-       * Aktywna opłacona subskrypcja Stripe (`billing_profiles` → billingSubscriptionView).
-       * Wyłącznie: niepuste `stripe_subscription_id` + status `active` lub `trialing`.
-       */
       get hasActivePaidSubscription() {
         const sub = this.billingSubscriptionView;
         if (!sub || typeof sub !== 'object') return false;
@@ -1045,25 +887,6 @@
         return st === 'canceled' || st === 'cancelled';
       },
       /** Istniejący klient Stripe (CID lub SID) — nie oznacza aktywnej subskrypcji. */
-      hasStripeBillingCustomer() {
-        const sub = this.billingSubscriptionView;
-        if (!sub || typeof sub !== 'object') return false;
-        const cid = typeof sub.stripe_customer_id === 'string' ? sub.stripe_customer_id.trim() : '';
-        const sid = typeof sub.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
-        return !!(cid || sid);
-      },
-      /** Checkout vs portal — portal tylko: stripe_customer_id + status active | trialing | past_due. */
-      shouldUseStripePortalForPlanChange() {
-        const sub = this.billingSubscriptionView;
-        const cid = typeof sub?.stripe_customer_id === 'string' ? sub.stripe_customer_id.trim() : '';
-        if (!cid) return false;
-        const st = this.billingStripeStatusNormalized();
-        return st === 'active' || st === 'trialing' || st === 'past_due';
-      },
-      /**
-       * True gdy w Stripe wisi jeszcze subskrypcja — wtedy nie udostępniamy prośby o usunięcie konta
-       * (najpierw anulowanie w portalu Stripe).
-       */
       get subscriptionBlocksAccountDeletion() {
         const sub = this.billingSubscriptionView;
         const sid = typeof sub?.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
@@ -1521,314 +1344,6 @@
         }
       },
 
-      closeSuccessModal() {
-        this.showSuccessModal = false;
-      },
-
-      /** Stripe Customer Portal (anulacja / metoda płatności) — Edge Function `create-portal-session`. */
-      openStripeCustomerPortal() {
-        return this.openCustomerPortal();
-      },
-
-      async updatePassword() {
-        if (!this.supabase) {
-          this.showToast('Brak połączenia z serwisem. Odśwież stronę.', 'error');
-          return;
-        }
-        const pw = String(this.newPassword ?? '').trim();
-        const pw2 = String(this.newPasswordConfirm ?? '').trim();
-
-        if (this.isForcedPasswordReset) {
-          const polErr = passwordPolicyErrorForRecovery(pw);
-          if (polErr) {
-            this.showToast(polErr, 'error');
-            return;
-          }
-          if (!pw2) {
-            this.showToast('Wpisz ponownie hasło w polu „Potwierdź”.', 'error');
-            return;
-          }
-          if (pw !== pw2) {
-            this.showToast('Hasła nie są takie same.', 'error');
-            return;
-          }
-        } else {
-          if (pw.length < 6) {
-            this.showToast('Hasło musi mieć co najmniej 6 znaków.', 'error');
-            return;
-          }
-          if (pw !== pw2) {
-            this.showToast('Hasła nie są takie same — wpisz to samo hasło w obu polach.', 'error');
-            return;
-          }
-        }
-
-        this.isPasswordUpdating = true;
-        try {
-          const { error } = await this.supabase.auth.updateUser({
-            password: pw,
-          });
-          if (error) throw error;
-          const exitForced = this.isForcedPasswordReset;
-          this.newPassword = '';
-          this.newPasswordConfirm = '';
-          if (exitForced) {
-            this.isForcedPasswordReset = false;
-            try {
-              window.history.replaceState({}, document.title, window.location.pathname);
-            } catch {
-              /* ignore */
-            }
-            this.showToast('Hasło zostało ustawione. Zaloguj się ponownie.', 'success');
-            await this.logout();
-          } else {
-            this.showToast('Hasło zostało pomyślnie zmienione!', 'success');
-          }
-        } catch (err) {
-          const msg = err && typeof err === 'object' && 'message' in err ? String((err).message) : String(err);
-          this.showToast(msg || 'Nie udało się zmienić hasła.', 'error');
-        } finally {
-          this.isPasswordUpdating = false;
-        }
-      },
-
-      /** Czy deep link do zmiany planu w portalu Stripe ma sens (active/trialing, nie wygasająca). */
-      canOpenPortalPlanChangeFlow() {
-        return (
-          this.shouldUseStripePortalForPlanChange() &&
-          this.hasActivePaidSubscription &&
-          !this.isSubscriptionCanceledButValid
-        );
-      },
-
-      /**
-       * @param {{ subscriptionUpdate?: boolean, subscriptionCancel?: boolean }} [opts]
-       *   subscriptionUpdate — deep link: zmiana planu (upgrade/downgrade).
-       *   subscriptionCancel — deep link: anulowanie subskrypcji w Stripe.
-       */
-      async openCustomerPortal(opts = {}) {
-        if (!this.supabase) {
-          this.showToast('Brak połączenia z serwisem. Odśwież stronę.', 'error');
-          return;
-        }
-        this.isPortalLoading = true;
-        try {
-          const { data: sessionData } = await this.supabase.auth.getSession();
-          const token = sessionData?.session?.access_token;
-          if (!token) throw new Error('Brak autoryzacji');
-          const returnUrlObj = new URL(window.location.href);
-          returnUrlObj.searchParams.set('billing', 'return');
-          returnUrlObj.hash = 'subscription';
-          const returnUrl = returnUrlObj.toString();
-          const sub = this.billingSubscriptionView;
-          const subscriptionId =
-            typeof sub?.stripe_subscription_id === 'string'
-              ? sub.stripe_subscription_id.trim()
-              : '';
-          const portalBody = { returnUrl };
-          if (subscriptionId) portalBody.subscription_id = subscriptionId;
-          if (opts.subscriptionCancel) portalBody.flow = 'subscription_cancel';
-          else if (opts.subscriptionUpdate) portalBody.flow = 'subscription_update';
-          const { data, error } = await this.supabase.functions.invoke('create-portal-session', {
-            body: portalBody,
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (error) throw error;
-          const url = data && typeof data.url === 'string' ? data.url : '';
-          if (url) {
-            window.location.href = url;
-            return;
-          }
-          const errMsg =
-            data && typeof data.error === 'string' ? data.error : 'Brak adresu portalu płatności.';
-          throw new Error(errMsg);
-        } catch (err) {
-          console.error(err);
-          this.showToast('Nie udało się otworzyć portalu płatności. Skontaktuj się z pomocą.', 'error');
-        } finally {
-          this.isPortalLoading = false;
-        }
-      },
-
-      async deleteAccount() {
-        if (this.subscriptionBlocksAccountDeletion) {
-          this.showToast(
-            'Najpierw anuluj subskrypcję w Stripe: zakładka Subskrypcja → „Zarządzaj subskrypcją i fakturami”. Gdy subskrypcja w Stripe będzie anulowana, wróć tu i wyślij prośbę o usunięcie konta.',
-            'error',
-          );
-          return;
-        }
-        const confirmed = await this.confirmAsync({
-          title: 'Usunąć konto?',
-          message: 'Czy na pewno chcesz bezpowrotnie usunąć swoje konto i stronę? Tej operacji nie można cofnąć.',
-          yesLabel: 'Tak, usuń konto',
-          noLabel: 'Nie',
-          tone: 'danger',
-        });
-        if (!confirmed) return;
-        const support =
-          (cfg && typeof cfg.supportEmail === 'string' && cfg.supportEmail.includes('@')
-            ? cfg.supportEmail.trim()
-            : 'pomoc@dfcms.pl');
-        const subj = this.user?.email
-          ? `Usunięcie konta: ${this.user.email}`
-          : 'Usunięcie konta';
-        window.location.href = `mailto:${support}?subject=${encodeURIComponent(subj)}`;
-        this.showToast('Otwarto okno wiadomości. Wyślij prośbę o usunięcie konta.', 'info');
-      },
-
-      /**
-       * Po ?payment=success czekamy na webhook Stripe, potem ponownie loadData (świeży content + trial_blocked_at).
-       * Zwraca true, jeśli zaplanowano opóźnione odświeżenie (pierwsze loadData nie wołamy od razu).
-       */
-      schedulePostPaymentDataRefresh() {
-        try {
-          const u = new URL(window.location.href);
-          if (u.searchParams.get('payment') !== 'success' || !this.user) return false;
-          if (this._postPaymentRefreshTimer != null) {
-            clearTimeout(this._postPaymentRefreshTimer);
-            this._postPaymentRefreshTimer = null;
-          }
-          this.showToast('Przetwarzanie płatności... Odświeżam Twoje konto! ✨', 'success');
-          this.billingProfileReady = false;
-          this.isLoading = true;
-          this._postPaymentRefreshTimer = setTimeout(async () => {
-            this._postPaymentRefreshTimer = null;
-            try {
-              await this.loadData();
-              if (!this.subscriptionPaymentActive()) {
-                await this.syncStripeSubscription({ silent: true });
-                await this.loadData();
-              }
-              if (!this.subscriptionPaymentActive()) {
-                this.showToast(
-                  'Nie widzimy jeszcze potwierdzenia w bazie. Otwórz Subskrypcja → „Synchronizuj ze Stripe” lub poczekaj minutę (webhook Stripe).',
-                  'error',
-                );
-              } else {
-                this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
-              }
-            } catch (e) {
-              console.error(e);
-            } finally {
-              this.showTrialSuspendedModal = false;
-              const clean = new URL(window.location.href);
-              clean.searchParams.delete('payment');
-              const qs = clean.searchParams.toString();
-              window.history.replaceState(
-                {},
-                document.title,
-                clean.pathname + (qs ? `?${qs}` : '') + clean.hash,
-              );
-              this.showSuccessModal = false;
-            }
-          }, 4000);
-          return true;
-        } catch {
-          return false;
-        }
-      },
-
-      /**
-       * Po powrocie z portalu Stripe (`?billing=return`) — sync + loadData + toast o zaktualizowanym planie.
-       */
-      schedulePostPortalBillingRefresh() {
-        try {
-          const u = new URL(window.location.href);
-          if (u.searchParams.get('billing') !== 'return' || !this.user) return false;
-          this.billingProfileReady = false;
-          this.isLoading = true;
-          this.showToast('Odświeżam status subskrypcji…', 'info');
-          void (async () => {
-            try {
-              await this.syncStripeSubscription({ silent: true });
-              await this.loadData();
-              this.setTab('subscription');
-              this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
-            } catch (e) {
-              console.error(e);
-              this.showToast(
-                'Nie udało się odświeżyć planu. Użyj Subskrypcja → „Synchronizuj ze Stripe”.',
-                'error',
-              );
-            } finally {
-              const clean = new URL(window.location.href);
-              clean.searchParams.delete('billing');
-              const qs = clean.searchParams.toString();
-              window.history.replaceState(
-                {},
-                document.title,
-                clean.pathname + (qs ? `?${qs}` : '') + clean.hash,
-              );
-              this.isLoading = false;
-            }
-          })();
-          return true;
-        } catch {
-          return false;
-        }
-      },
-
-      /**
-       * Edge Function sync-stripe-subscription — naprawia opóźniony webhook.
-       * @param {{ silent?: boolean }} opts — `silent: true` bez toastów (retry po checkout).
-       */
-      async syncStripeSubscription(opts) {
-        const options = opts && typeof opts === 'object' ? opts : {};
-        const silent = options.silent === true;
-        if (!this.user?.id || !this.supabase) {
-          if (!silent) this.showToast('Zaloguj się, aby zsynchronizować płatności.', 'error');
-          return false;
-        }
-        const { data: sessionData } = await this.supabase.auth.getSession();
-        const token = sessionData?.session?.access_token;
-        if (!token) {
-          if (!silent) this.showToast('Błąd sesji. Wyloguj się i zaloguj ponownie.', 'error');
-          return false;
-        }
-        this.stripeSyncLoading = true;
-        try {
-          const { data, error } = await this.supabase.functions.invoke('sync-stripe-subscription', {
-            body: {},
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          if (error) throw error;
-          if (data && data.ok === false && typeof data.error === 'string') {
-            if (!silent) this.showToast(data.error, 'error');
-            return false;
-          }
-          this._loadDataSubscriptionStripeSync = true;
-          try {
-            await this.loadData();
-          } finally {
-            this._loadDataSubscriptionStripeSync = false;
-          }
-          this.syncUserPlanFromBilling();
-          if (!silent) {
-            this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
-          }
-          return true;
-        } catch (e) {
-          console.error(e);
-          const msg = e instanceof Error ? e.message : String(e);
-          if (!silent) {
-            this.showToast(msg || 'Nie udało się zsynchronizować. Sprawdź połączenie i czy funkcja jest wdrożona.', 'error');
-          }
-          return false;
-        } finally {
-          this.stripeSyncLoading = false;
-        }
-      },
-
-      syncUserPlanFromBilling() {
-        const p = this.subscriptionPlan;
-        if (p === 'tier1' || p === 'tier2') this.userPlan = 'standard';
-        else this.userPlan = 'starter';
-      },
-
-      /** Gotowe palety kolorów — zawsze dostępne (freemium). */
       isLocked() {
         return false;
       },
@@ -1960,6 +1475,29 @@
         /* Freemium: wszystkie gotowe presety kolorów dostępne na każdym planie. */
       },
 
+      get isPremiumDraftTheme() {
+        const premium = Array.isArray(cfg?.premiumThemes) ? cfg.premiumThemes : [];
+        return premium.includes(String(this.theme || '').trim());
+      },
+      /** Freemium: na darmowym planie (trial/Starter) premium motyw można edytować i podglądać, ale NIE publikować. */
+      get isPublishBlockedByPlan() {
+        return this.isPremiumDraftTheme && this.isCustomAppearanceLocked;
+      },
+
+      /** Po zmianie linku/trybu rezerwacji — normalizacja i cichy auto-save. */
+  };
+}
+
+function adminMixinAuth(ctx) {
+  const {
+    cfg,
+    repo,
+    MS_PER_DAY,
+    ERROR_MESSAGE_TIMEOUT,
+    SUCCESS_MESSAGE_TIMEOUT,
+    UPGRADE_MESSAGE_TIMEOUT,
+  } = ctx;
+  return {
       init() {
         if (typeof window.DFOPS_applyThemeStyling === 'function') {
           window.DFOPS_applyThemeStyling(null, '', 'admin');
@@ -2307,6 +1845,113 @@
           this._postPaymentRefreshTimer = null;
         }
       },
+  };
+}
+
+function adminMixinData(ctx) {
+  const {
+    cfg,
+    repo,
+    MS_PER_DAY,
+    ERROR_MESSAGE_TIMEOUT,
+    SUCCESS_MESSAGE_TIMEOUT,
+    UPGRADE_MESSAGE_TIMEOUT,
+  } = ctx;
+  return {
+      async updatePassword() {
+        if (!this.supabase) {
+          this.showToast('Brak połączenia z serwisem. Odśwież stronę.', 'error');
+          return;
+        }
+        const pw = String(this.newPassword ?? '').trim();
+        const pw2 = String(this.newPasswordConfirm ?? '').trim();
+
+        if (this.isForcedPasswordReset) {
+          const polErr = passwordPolicyErrorForRecovery(pw);
+          if (polErr) {
+            this.showToast(polErr, 'error');
+            return;
+          }
+          if (!pw2) {
+            this.showToast('Wpisz ponownie hasło w polu „Potwierdź”.', 'error');
+            return;
+          }
+          if (pw !== pw2) {
+            this.showToast('Hasła nie są takie same.', 'error');
+            return;
+          }
+        } else {
+          if (pw.length < 6) {
+            this.showToast('Hasło musi mieć co najmniej 6 znaków.', 'error');
+            return;
+          }
+          if (pw !== pw2) {
+            this.showToast('Hasła nie są takie same — wpisz to samo hasło w obu polach.', 'error');
+            return;
+          }
+        }
+
+        this.isPasswordUpdating = true;
+        try {
+          const { error } = await this.supabase.auth.updateUser({
+            password: pw,
+          });
+          if (error) throw error;
+          const exitForced = this.isForcedPasswordReset;
+          this.newPassword = '';
+          this.newPasswordConfirm = '';
+          if (exitForced) {
+            this.isForcedPasswordReset = false;
+            try {
+              window.history.replaceState({}, document.title, window.location.pathname);
+            } catch {
+              /* ignore */
+            }
+            this.showToast('Hasło zostało ustawione. Zaloguj się ponownie.', 'success');
+            await this.logout();
+          } else {
+            this.showToast('Hasło zostało pomyślnie zmienione!', 'success');
+          }
+        } catch (err) {
+          const msg = err && typeof err === 'object' && 'message' in err ? String((err).message) : String(err);
+          this.showToast(msg || 'Nie udało się zmienić hasła.', 'error');
+        } finally {
+          this.isPasswordUpdating = false;
+        }
+      },
+
+      /** Czy deep link do zmiany planu w portalu Stripe ma sens (active/trialing, nie wygasająca). */
+      async deleteAccount() {
+        if (this.subscriptionBlocksAccountDeletion) {
+          this.showToast(
+            'Najpierw anuluj subskrypcję w Stripe: zakładka Subskrypcja → „Zarządzaj subskrypcją i fakturami”. Gdy subskrypcja w Stripe będzie anulowana, wróć tu i wyślij prośbę o usunięcie konta.',
+            'error',
+          );
+          return;
+        }
+        const confirmed = await this.confirmAsync({
+          title: 'Usunąć konto?',
+          message: 'Czy na pewno chcesz bezpowrotnie usunąć swoje konto i stronę? Tej operacji nie można cofnąć.',
+          yesLabel: 'Tak, usuń konto',
+          noLabel: 'Nie',
+          tone: 'danger',
+        });
+        if (!confirmed) return;
+        const support =
+          (cfg && typeof cfg.supportEmail === 'string' && cfg.supportEmail.includes('@')
+            ? cfg.supportEmail.trim()
+            : 'pomoc@dfcms.pl');
+        const subj = this.user?.email
+          ? `Usunięcie konta: ${this.user.email}`
+          : 'Usunięcie konta';
+        window.location.href = `mailto:${support}?subject=${encodeURIComponent(subj)}`;
+        this.showToast('Otwarto okno wiadomości. Wyślij prośbę o usunięcie konta.', 'info');
+      },
+
+      /**
+       * Po ?payment=success czekamy na webhook Stripe, potem ponownie loadData (świeży content + trial_blocked_at).
+       * Zwraca true, jeśli zaplanowano opóźnione odświeżenie (pierwsze loadData nie wołamy od razu).
+       */
       async ensurePageFromRegistrationMetadata() {
         const { data: first } = await repo.getCurrentUserPage(this.user.id);
         if (first) return true;
@@ -2357,24 +2002,6 @@
           return false;
         }
         return true;
-      },
-
-      async loadBillingProfile() {
-        if (!this.user?.id || !this.supabase) {
-          this.billingProfile = null;
-          return;
-        }
-        const { data, error } = await this.supabase
-          .from('billing_profiles')
-          .select('*')
-          .eq('user_id', this.user.id)
-          .maybeSingle();
-        if (error) {
-          console.warn('[DFCMS] loadBillingProfile:', error.message || error);
-          this.billingProfile = null;
-          return;
-        }
-        this.billingProfile = data || null;
       },
 
       async loadData() {
@@ -2649,6 +2276,612 @@
         this.appearancePickerHex = '';
         this.applyThemeStylingFromContent();
       },
+      async upgradeTemplate() {
+        if (!this.content || !this.theme) return;
+        this.upgrading = true;
+        try {
+          const upgraded = window.DFOPS_upgradeContent(this.theme, this.content, this.latestTemplateVersion);
+          this.content = upgraded;
+          this.syncUserPlanFromBilling();
+          this.enforceColorPresetForStarter();
+          this.enforceQuickChatForStarter();
+          this.applyThemeStylingFromContent();
+          const ok = await this._persistDraft({ silent: false });
+          if (!ok) throw new Error('template upgrade draft save failed');
+          this.currentTemplateVersion = this.latestTemplateVersion;
+          this.updateAvailable = false;
+          this.hasUnsavedChanges = false;
+          this.message = `Szablon zaktualizowany do v${this.latestTemplateVersion}. Kliknij „Publikuj zmiany”, aby udostępnić.`;
+          setTimeout(() => { this.message = ''; }, UPGRADE_MESSAGE_TIMEOUT);
+        } catch (e) {
+          console.error(e);
+          this.showError('Upgrade nie powiódł się.');
+        } finally {
+          this.upgrading = false;
+        }
+      },
+      cleanDomainInput(raw) {
+        if (raw == null || typeof raw !== 'string') return '';
+        const withoutProtocolAndPath = raw
+          .trim()
+          .replace(/^https?:\/\//i, '')
+          .replace(/\/.*$/, '')
+          .replace(/[?#].*$/, '');
+        return window.DFOPS_normalizeHostname(withoutProtocolAndPath);
+      },
+
+      async verifyAndSaveDomain() {
+        if (this.isCustomDomainLocked) return;
+        if (window.location.protocol === 'file:') {
+          this.domainError =
+            'Otwórz panel przez adres http:// (np. Live Server na localhost), nie z dysku (file://).';
+          this.domainMessage = '';
+          return;
+        }
+
+        const cleanDomain = this.cleanDomainInput(this.domainInput);
+        this.domainInput = cleanDomain;
+
+        if (!this.pageId || !cleanDomain) {
+          this.domainError = 'Podaj domenę (hostname, np. twojadomena.pl).';
+          this.domainMessage = '';
+          return;
+        }
+
+        this.isVerifyingDomain = true;
+        this.domainMessage = '';
+        this.domainError = '';
+
+        try {
+          const response = await fetch(
+            `/api/verify-domain?domain=${encodeURIComponent(cleanDomain)}`,
+          );
+          const result = await response.json().catch(() => ({}));
+
+          if (result.error === 'INVALID_DOMAIN') {
+            this.domainError = 'Nieprawidłowy adres domeny.';
+            return;
+          }
+
+          const dbStatus = result.status === 'verified' ? 'active' : 'pending';
+
+          const { error } = await this.saveActivePage({
+            custom_domain: cleanDomain,
+            custom_domain_status: dbStatus,
+          });
+          if (error) throw error;
+
+          this.customDomain = cleanDomain;
+          this.customDomainStatus = dbStatus;
+
+          if (dbStatus === 'active') {
+            this.domainMessage = 'Domena zweryfikowana i zapisana.';
+            this.showDnsInstructions = false;
+            this.showToast('Własna domena jest aktywna.', 'success');
+          } else {
+            this.domainMessage =
+              'Domena zapisana. Dodaj rekord CNAME u operatora — po propagacji DNS kliknij „Zapisz i sprawdź” ponownie.';
+            this.showDnsInstructions = true;
+          }
+        } catch (e) {
+          console.error('Błąd weryfikacji domeny:', e);
+          const raw = e instanceof Error ? e.message : String(e);
+          this.domainError =
+            raw === 'Failed to fetch'
+              ? 'Brak połączenia z serwerem. Otwórz panel przez http/https i spróbuj ponownie.'
+              : raw || 'Nie udało się zapisać domeny.';
+        } finally {
+          this.isVerifyingDomain = false;
+        }
+      },
+      /** Czy plan pozwala publikować premium motyw. Premium = lista `cfg.premiumThemes` (domyślnie pusta → brak regresji). */
+      syncBookingSettings() {
+        if (!this.content?.pl) return;
+        normalizeBookingSettings(this.content.pl);
+        this.scheduleDraftAutosave();
+      },
+
+      async saveActivePage(payload) {
+        if (!this.pageId || !this.user?.id) {
+          return { data: null, error: new Error('missing active page') };
+        }
+        if (this.isImpersonating) {
+          if (!this.isSuperadmin) {
+            return { data: null, error: new Error('superadmin access required') };
+          }
+          return repo.savePageByIdForSuperadmin(this.pageId, payload);
+        }
+        return repo.saveCurrentUserPage(this.user.id, payload);
+      },
+
+      /** Zapis WYŁĄCZNIE stanu roboczego (`draft_content`) — nic nie trafia na stronę publiczną. */
+      async _persistDraft(opts) {
+        const options = opts && typeof opts === 'object' ? opts : {};
+        if (!this.content?.pl || !this.pageId || !this.user?.id) return false;
+        normalizeBookingSettings(this.content.pl);
+        if (this.content.pl.settings) this.content.pl.settings.theme = this.theme;
+        const { error } = await this.saveActivePage({ draft_content: this.content });
+        if (error) {
+          if (!options.silent) console.error(error);
+          return false;
+        }
+        return true;
+      },
+
+      /**
+       * Cichy auto-save (debounce) stanu roboczego — jak w Webflow/Framer.
+       * Pisze WYŁĄCZNIE do `draft_content`; publiczne `content` zmienia tylko „Publikuj”.
+       */
+      scheduleDraftAutosave() {
+        if (!this.pageId || !this.user?.id || this.isLoading || this.isForcedPasswordReset) return;
+        if (this._draftAutosaveTimer) clearTimeout(this._draftAutosaveTimer);
+        const delay = (cfg?.timeouts?.draftAutosave) ?? 1000;
+        this._draftAutosaveTimer = setTimeout(() => {
+          this._draftAutosaveTimer = null;
+          void this.autosaveDraftNow();
+        }, delay);
+      },
+
+      async autosaveDraftNow() {
+        if (!this.content?.pl || !this.pageId || !this.user?.id) return;
+        if (this.isLoading || this.saving || this.draftSaving) return;
+        this.draftSaving = true;
+        try {
+          const ok = await this._persistDraft({ silent: true });
+          if (ok) {
+            this.hasUnsavedChanges = false;
+            this.draftSavedOnce = true;
+          }
+        } finally {
+          this.draftSaving = false;
+        }
+      },
+
+      /** Auto-save / zapis roboczy panelu — trafia tylko do `draft_content`. Publikacja: `publishChanges()`. */
+      async saveData(opts) {
+        const options = opts && typeof opts === 'object' ? opts : {};
+        const silentSuccess = options.silentSuccess === true;
+        const successMessage = typeof options.successMessage === 'string' ? options.successMessage : '';
+        if (!this.content?.pl || this.isLoading || !this.pageId) return false;
+        this.saving = true;
+        try {
+          if (Array.isArray(this.content.pl.services)) {
+            this.content.pl.services = this.content.pl.services.filter((s) => s.title && String(s.title).trim() !== '');
+          }
+          this.content.pl.settings.template_version = this.latestTemplateVersion;
+          this.content.pl.settings.theme = this.theme;
+          const ok = await this._persistDraft({ silent: silentSuccess });
+          if (!ok) throw new Error('draft save failed');
+          this.hasUnsavedChanges = false;
+          if (!silentSuccess) {
+            this.message = successMessage || 'Zapisano roboczo. Kliknij „Publikuj zmiany”, aby pokazać je na stronie.';
+            setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
+          }
+          return true;
+        } catch (e) {
+          console.error(e);
+          this.showError('Nie udało się zapisać zmian roboczych. Sprawdź połączenie i spróbuj ponownie.');
+          this.showToast('Nie udało się zapisać zmian. Sprawdź połączenie i spróbuj ponownie.', 'error');
+          return false;
+        } finally {
+          this.saving = false;
+        }
+      },
+
+      /**
+       * Pozytywne tarcie dla głównego przycisku „Publikuj zmiany”: nie strzela od razu do bazy —
+       * najpierw freemium-guard, potem modal potwierdzenia. Właściwy zapis robi dopiero `confirmPublish()`.
+       */
+      requestPublish() {
+        if (!this.content?.pl || this.isLoading || this.saving || !this.pageId) return;
+        if (this.isPublishBlockedByPlan) {
+          this.showPublishUpgradeModal = true;
+          return;
+        }
+        this.showPublishConfirmModal = true;
+      },
+
+      /** Potwierdzenie z modala — uruchamia właściwą publikację; modal znika dopiero po sukcesie. */
+      async confirmPublish() {
+        const ok = await this.publishChanges();
+        if (ok) this.showPublishConfirmModal = false;
+      },
+
+      /** Publikacja: kopiuje stan roboczy do `content` (widok publiczny) + synchronizuje `draft_content`. */
+      async publishChanges(opts) {
+        const options = opts && typeof opts === 'object' ? opts : {};
+        const silentSuccess = options.silentSuccess === true;
+        if (!this.content?.pl || this.isLoading || !this.pageId) return false;
+
+        if (this.isPublishBlockedByPlan) {
+          this.showPublishUpgradeModal = true;
+          return false;
+        }
+
+        this.saving = true;
+        try {
+          const syncFn = window.DFOPS_googlePlacesSync?.syncGooglePlacesForPublish;
+          if (typeof syncFn === 'function' && this.supabase) {
+            const syncResult = await syncFn(this.supabase, this.content.pl);
+            if (syncResult?.warnings?.length) {
+              this.showToast(
+                'Zapisano, ale nie udało się odświeżyć: ' + syncResult.warnings.join(', ') + '. Sprawdź konfigurację Google.',
+                'error',
+              );
+            }
+          }
+          if (Array.isArray(this.content.pl.services)) {
+            this.content.pl.services = this.content.pl.services.filter((s) => s.title && String(s.title).trim() !== '');
+          }
+          normalizeBookingSettings(this.content.pl);
+          this.content.pl.settings.template_version = this.latestTemplateVersion;
+          this.content.pl.settings.theme = this.theme;
+          const payload = {
+            content: this.content,
+            draft_content: this.content,
+            color_preset: this.content.pl.settings.color_preset,
+            theme: this.theme,
+          };
+          if (!this.isCustomDomainLocked) {
+            payload.custom_domain = this.customDomain;
+          } else {
+            payload.custom_domain = null;
+            payload.custom_domain_status = 'none';
+          }
+          if (this.subscriptionPaymentActive()) {
+            payload.trial_blocked_at = null;
+            payload.billing_failed_at = null;
+          }
+          const { error } = await this.saveActivePage(payload);
+          if (error) throw error;
+          if (this.isCustomDomainLocked) this.customDomain = '';
+          if (this.subscriptionPaymentActive()) {
+            this.trialBlockedAt = null;
+          }
+          /** Migawka produkcji po udanej publikacji — żeby „Odrzuć zmiany” wracało do świeżo opublikowanej wersji. */
+          this._publishedContentRaw = JSON.parse(JSON.stringify(this.content));
+          this._publishedTheme = this.theme;
+          this.hasUnsavedChanges = false;
+          if (this._draftAutosaveTimer) {
+            clearTimeout(this._draftAutosaveTimer);
+            this._draftAutosaveTimer = null;
+          }
+          if (!silentSuccess) {
+            this.message = 'Zmiany zostały opublikowane!';
+            this.showToast('Zmiany zostały opublikowane i są widoczne dla klientów.', 'success');
+            setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
+          }
+          return true;
+        } catch (e) {
+          console.error(e);
+          this.showError('Nie udało się opublikować zmian. Sprawdź połączenie i spróbuj ponownie. Jeśli błąd się powtarza, napisz do nas.');
+          this.showToast('Nie udało się opublikować zmian. Sprawdź połączenie i spróbuj ponownie.', 'error');
+          return false;
+        } finally {
+          this.saving = false;
+        }
+      },
+
+      /** Odrzucenie zmian roboczych — przywraca edytor do aktualnie opublikowanej wersji (`content`). */
+      async revertChanges() {
+        if (!this.pageId || !this.user?.id) return;
+        if (!this._publishedContentRaw) {
+          this.showToast('Brak opublikowanej wersji do przywrócenia.', 'error');
+          return;
+        }
+        const confirmed = await this.confirmAsync({
+          title: 'Odrzucić zmiany?',
+          message:
+            'Odrzucić zmiany robocze i przywrócić aktualnie opublikowaną wersję strony? Tej operacji nie można cofnąć.',
+          yesLabel: 'Tak, odrzuć',
+          noLabel: 'Nie',
+          tone: 'danger',
+        });
+        if (!confirmed) return;
+        this.saving = true;
+        try {
+          const publishedTheme =
+            (this._publishedContentRaw?.pl?.settings?.theme &&
+              String(this._publishedContentRaw.pl.settings.theme).trim()) ||
+            this._publishedTheme ||
+            this.theme;
+          this.theme = publishedTheme;
+          this.content = window.DFOPS_normalizeContent(
+            JSON.parse(JSON.stringify(this._publishedContentRaw)),
+            publishedTheme,
+          );
+          if (
+            this.content?.pl?.settings &&
+            typeof window.DFOPS_stripBillingFromContentSubscription === 'function'
+          ) {
+            this.content.pl.settings.subscription = window.DFOPS_stripBillingFromContentSubscription(
+              this.content.pl.settings.subscription,
+            );
+          }
+          this.selectedStyleBundle = '';
+          this.appearancePickerHex = '';
+          this.syncUserPlanFromBilling();
+          this.applyThemeStylingFromContent();
+          const ok = await this._persistDraft({ silent: true });
+          if (!ok) throw new Error('revert persist failed');
+          this.hasUnsavedChanges = false;
+          this.message = 'Przywrócono opublikowaną wersję strony.';
+          setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
+        } catch (e) {
+          console.error(e);
+          this.showError('Nie udało się przywrócić wersji opublikowanej.');
+        } finally {
+          this.saving = false;
+        }
+      },
+  };
+}
+
+function adminMixinBilling(ctx) {
+  const {
+    cfg,
+    repo,
+    MS_PER_DAY,
+    ERROR_MESSAGE_TIMEOUT,
+    SUCCESS_MESSAGE_TIMEOUT,
+    UPGRADE_MESSAGE_TIMEOUT,
+  } = ctx;
+  return {
+      billingStripeStatusNormalized() {
+        const sub = this.billingSubscriptionView;
+        return typeof sub?.status === 'string' ? sub.status.trim().toLowerCase() : '';
+      },
+      hasStripeBillingCustomer() {
+        const sub = this.billingSubscriptionView;
+        if (!sub || typeof sub !== 'object') return false;
+        const cid = typeof sub.stripe_customer_id === 'string' ? sub.stripe_customer_id.trim() : '';
+        const sid = typeof sub.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
+        return !!(cid || sid);
+      },
+      /** Checkout vs portal — portal tylko: stripe_customer_id + status active | trialing | past_due. */
+      shouldUseStripePortalForPlanChange() {
+        const sub = this.billingSubscriptionView;
+        const cid = typeof sub?.stripe_customer_id === 'string' ? sub.stripe_customer_id.trim() : '';
+        if (!cid) return false;
+        const st = this.billingStripeStatusNormalized();
+        return st === 'active' || st === 'trialing' || st === 'past_due';
+      },
+      /**
+       * True gdy w Stripe wisi jeszcze subskrypcja — wtedy nie udostępniamy prośby o usunięcie konta
+       * (najpierw anulowanie w portalu Stripe).
+       */
+      closeSuccessModal() {
+        this.showSuccessModal = false;
+      },
+
+      /** Stripe Customer Portal (anulacja / metoda płatności) — Edge Function `create-portal-session`. */
+      openStripeCustomerPortal() {
+        return this.openCustomerPortal();
+      },
+
+      canOpenPortalPlanChangeFlow() {
+        return (
+          this.shouldUseStripePortalForPlanChange() &&
+          this.hasActivePaidSubscription &&
+          !this.isSubscriptionCanceledButValid
+        );
+      },
+
+      /**
+       * @param {{ subscriptionUpdate?: boolean, subscriptionCancel?: boolean }} [opts]
+       *   subscriptionUpdate — deep link: zmiana planu (upgrade/downgrade).
+       *   subscriptionCancel — deep link: anulowanie subskrypcji w Stripe.
+       */
+      async openCustomerPortal(opts = {}) {
+        if (!this.supabase) {
+          this.showToast('Brak połączenia z serwisem. Odśwież stronę.', 'error');
+          return;
+        }
+        this.isPortalLoading = true;
+        try {
+          const { data: sessionData } = await this.supabase.auth.getSession();
+          const token = sessionData?.session?.access_token;
+          if (!token) throw new Error('Brak autoryzacji');
+          const returnUrlObj = new URL(window.location.href);
+          returnUrlObj.searchParams.set('billing', 'return');
+          returnUrlObj.hash = 'subscription';
+          const returnUrl = returnUrlObj.toString();
+          const sub = this.billingSubscriptionView;
+          const subscriptionId =
+            typeof sub?.stripe_subscription_id === 'string'
+              ? sub.stripe_subscription_id.trim()
+              : '';
+          const portalBody = { returnUrl };
+          if (subscriptionId) portalBody.subscription_id = subscriptionId;
+          if (opts.subscriptionCancel) portalBody.flow = 'subscription_cancel';
+          else if (opts.subscriptionUpdate) portalBody.flow = 'subscription_update';
+          const { data, error } = await this.supabase.functions.invoke('create-portal-session', {
+            body: portalBody,
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (error) throw error;
+          const url = data && typeof data.url === 'string' ? data.url : '';
+          if (url) {
+            window.location.href = url;
+            return;
+          }
+          const errMsg =
+            data && typeof data.error === 'string' ? data.error : 'Brak adresu portalu płatności.';
+          throw new Error(errMsg);
+        } catch (err) {
+          console.error(err);
+          this.showToast('Nie udało się otworzyć portalu płatności. Skontaktuj się z pomocą.', 'error');
+        } finally {
+          this.isPortalLoading = false;
+        }
+      },
+
+      schedulePostPaymentDataRefresh() {
+        try {
+          const u = new URL(window.location.href);
+          if (u.searchParams.get('payment') !== 'success' || !this.user) return false;
+          if (this._postPaymentRefreshTimer != null) {
+            clearTimeout(this._postPaymentRefreshTimer);
+            this._postPaymentRefreshTimer = null;
+          }
+          this.showToast('Przetwarzanie płatności... Odświeżam Twoje konto! ✨', 'success');
+          this.billingProfileReady = false;
+          this.isLoading = true;
+          this._postPaymentRefreshTimer = setTimeout(async () => {
+            this._postPaymentRefreshTimer = null;
+            try {
+              await this.loadData();
+              if (!this.subscriptionPaymentActive()) {
+                await this.syncStripeSubscription({ silent: true });
+                await this.loadData();
+              }
+              if (!this.subscriptionPaymentActive()) {
+                this.showToast(
+                  'Nie widzimy jeszcze potwierdzenia w bazie. Otwórz Subskrypcja → „Synchronizuj ze Stripe” lub poczekaj minutę (webhook Stripe).',
+                  'error',
+                );
+              } else {
+                this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
+              }
+            } catch (e) {
+              console.error(e);
+            } finally {
+              this.showTrialSuspendedModal = false;
+              const clean = new URL(window.location.href);
+              clean.searchParams.delete('payment');
+              const qs = clean.searchParams.toString();
+              window.history.replaceState(
+                {},
+                document.title,
+                clean.pathname + (qs ? `?${qs}` : '') + clean.hash,
+              );
+              this.showSuccessModal = false;
+            }
+          }, 4000);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+
+      /**
+       * Po powrocie z portalu Stripe (`?billing=return`) — sync + loadData + toast o zaktualizowanym planie.
+       */
+      schedulePostPortalBillingRefresh() {
+        try {
+          const u = new URL(window.location.href);
+          if (u.searchParams.get('billing') !== 'return' || !this.user) return false;
+          this.billingProfileReady = false;
+          this.isLoading = true;
+          this.showToast('Odświeżam status subskrypcji…', 'info');
+          void (async () => {
+            try {
+              await this.syncStripeSubscription({ silent: true });
+              await this.loadData();
+              this.setTab('subscription');
+              this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
+            } catch (e) {
+              console.error(e);
+              this.showToast(
+                'Nie udało się odświeżyć planu. Użyj Subskrypcja → „Synchronizuj ze Stripe”.',
+                'error',
+              );
+            } finally {
+              const clean = new URL(window.location.href);
+              clean.searchParams.delete('billing');
+              const qs = clean.searchParams.toString();
+              window.history.replaceState(
+                {},
+                document.title,
+                clean.pathname + (qs ? `?${qs}` : '') + clean.hash,
+              );
+              this.isLoading = false;
+            }
+          })();
+          return true;
+        } catch {
+          return false;
+        }
+      },
+
+      /**
+       * Edge Function sync-stripe-subscription — naprawia opóźniony webhook.
+       * @param {{ silent?: boolean }} opts — `silent: true` bez toastów (retry po checkout).
+       */
+      async syncStripeSubscription(opts) {
+        const options = opts && typeof opts === 'object' ? opts : {};
+        const silent = options.silent === true;
+        if (!this.user?.id || !this.supabase) {
+          if (!silent) this.showToast('Zaloguj się, aby zsynchronizować płatności.', 'error');
+          return false;
+        }
+        const { data: sessionData } = await this.supabase.auth.getSession();
+        const token = sessionData?.session?.access_token;
+        if (!token) {
+          if (!silent) this.showToast('Błąd sesji. Wyloguj się i zaloguj ponownie.', 'error');
+          return false;
+        }
+        this.stripeSyncLoading = true;
+        try {
+          const { data, error } = await this.supabase.functions.invoke('sync-stripe-subscription', {
+            body: {},
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (error) throw error;
+          if (data && data.ok === false && typeof data.error === 'string') {
+            if (!silent) this.showToast(data.error, 'error');
+            return false;
+          }
+          this._loadDataSubscriptionStripeSync = true;
+          try {
+            await this.loadData();
+          } finally {
+            this._loadDataSubscriptionStripeSync = false;
+          }
+          this.syncUserPlanFromBilling();
+          if (!silent) {
+            this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
+          }
+          return true;
+        } catch (e) {
+          console.error(e);
+          const msg = e instanceof Error ? e.message : String(e);
+          if (!silent) {
+            this.showToast(msg || 'Nie udało się zsynchronizować. Sprawdź połączenie i czy funkcja jest wdrożona.', 'error');
+          }
+          return false;
+        } finally {
+          this.stripeSyncLoading = false;
+        }
+      },
+
+      syncUserPlanFromBilling() {
+        const p = this.subscriptionPlan;
+        if (p === 'tier1' || p === 'tier2') this.userPlan = 'standard';
+        else this.userPlan = 'starter';
+      },
+
+      /** Gotowe palety kolorów — zawsze dostępne (freemium). */
+      async loadBillingProfile() {
+        if (!this.user?.id || !this.supabase) {
+          this.billingProfile = null;
+          return;
+        }
+        const { data, error } = await this.supabase
+          .from('billing_profiles')
+          .select('*')
+          .eq('user_id', this.user.id)
+          .maybeSingle();
+        if (error) {
+          console.warn('[DFCMS] loadBillingProfile:', error.message || error);
+          this.billingProfile = null;
+          return;
+        }
+        this.billingProfile = data || null;
+      },
+
       clearCheckoutTurnstile() {
         this.turnstileToken = '';
         const turnstile = window.turnstile;
@@ -2714,6 +2947,216 @@
           this.closeCheckoutModal();
         }
       },
+      async subscribe(planType) {
+        if (this.isImpersonating) {
+          this.showToast('W trybie God Mode płatności klienta nie są obsługiwane z sesji superadmina.', 'error');
+          return;
+        }
+        if (planType === 'premium') {
+          this.showError('Pakiet Premium nie jest już dostępny. Wybierz Starter lub Standard.');
+          return;
+        }
+        const plan = planType === 'pro' ? 'standard' : String(planType || '').trim();
+        if (!plan || plan === 'custom') {
+          this.showError('Pakiet Custom — skorzystaj z formularza zapytania.');
+          return;
+        }
+        const interval = this.billingInterval === 'yearly' ? 'yearly' : 'monthly';
+        if (plan !== 'starter' && plan !== 'standard') {
+          this.showError('Nieprawidłowy plan. Wybierz Starter lub Standard.');
+          return;
+        }
+        if (!this.user?.id) {
+          this.showError('Zaloguj się, aby wykupić subskrypcję.');
+          return;
+        }
+        if (!this.content?.pl?.settings) return;
+        const tier = plan === 'starter' ? 'tier0' : 'tier1';
+        const currentTier =
+          this.subscriptionPlan === 'tier2' ? 'tier1' : this.subscriptionPlan;
+        const isCurrentPaidTier = currentTier === 'tier0' || currentTier === 'tier1';
+
+        if (!this.billingProfileReady) {
+          await this.loadBillingProfile();
+          this.billingProfileReady = true;
+        }
+
+        if (this.shouldUseStripePortalForPlanChange()) {
+          if (isCurrentPaidTier && currentTier === tier) {
+            this.showToast('Masz już wybrany ten plan rozliczeniowy.', 'success');
+            await this.loadData();
+            return;
+          }
+          this.showToast(
+            'Zmianę pakietu wykonasz w portalu Stripe — zobaczysz podsumowanie kosztów i potwierdzisz płatność przed obciążeniem karty.',
+            'info',
+          );
+          await this.openCustomerPortal({ subscriptionUpdate: true });
+          return;
+        }
+
+        this.pendingCheckoutPlan = plan;
+        this.pendingCheckoutPlanType = planType;
+        this.pendingCheckoutTier = tier;
+        this.pendingCheckoutInterval = interval;
+        this.turnstileToken = '';
+        this.showCheckoutModal = true;
+        this.$nextTick(() => {
+          this.renderCheckoutTurnstile();
+        });
+      },
+      async executeStripeCheckout(turnstileToken) {
+        const plan = String(this.pendingCheckoutPlan || '').trim();
+        const planType = String(this.pendingCheckoutPlanType || plan).trim();
+        const tier = String(this.pendingCheckoutTier || '').trim();
+        const interval = this.pendingCheckoutInterval === 'yearly' ? 'yearly' : 'monthly';
+
+        if (!plan || !tier || (plan !== 'starter' && plan !== 'standard')) {
+          this.showToast('Nieprawidłowy plan płatności. Wybierz pakiet jeszcze raz.', 'error');
+          this.closeCheckoutModal();
+          return;
+        }
+        if (!turnstileToken) {
+          this.showToast('Potwierdź, że nie jesteś botem, a potem ponów płatność.', 'error');
+          return;
+        }
+        if (!this.user?.id) {
+          this.showToast('Zaloguj się, aby wykupić subskrypcję.', 'error');
+          this.closeCheckoutModal();
+          return;
+        }
+        if (!this.content?.pl?.settings) {
+          this.showToast('Nie udało się odczytać ustawień strony. Odśwież panel i spróbuj ponownie.', 'error');
+          this.closeCheckoutModal(true);
+          return;
+        }
+
+        this.checkoutLoading = true;
+        if (!this.content.pl.settings.subscription) {
+          this.content.pl.settings.subscription = { plan: 'trial', trial_started_at: new Date().toISOString() };
+        }
+        this.content.pl.settings.subscription.selected_plan = tier;
+        const saved = await this.saveData({ silentSuccess: true });
+        if (!saved) {
+          this.checkoutLoading = false;
+          this.closeCheckoutModal(true);
+          return;
+        }
+
+        const { data: sessionData } = await this.supabase.auth.getSession();
+        const token = sessionData?.session?.access_token;
+        if (!token) {
+          this.showToast('Błąd sesji. Wyloguj się i zaloguj ponownie.', 'error');
+          this.checkoutLoading = false;
+          this.closeCheckoutModal(true);
+          return;
+        }
+        try {
+          const returnUrlObj = new URL(window.location.href);
+          returnUrlObj.searchParams.set('payment', 'success');
+          returnUrlObj.hash = 'subscription';
+          const returnUrl = returnUrlObj.toString();
+
+          const { data, error } = await this.supabase.functions.invoke(
+            'create-checkout',
+            {
+              body: {
+                plan,
+                interval,
+                returnUrl,
+                userEmail: this.user?.email || '',
+                turnstileToken,
+              },
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+          if (error) {
+            const detail =
+              (data && typeof data.error === 'string' && data.error) ||
+              (typeof error.message === 'string' && error.message) ||
+              'Błąd podczas łączenia z systemem płatności.';
+            throw new Error(detail);
+          }
+          const url = data && typeof data.url === 'string' ? data.url : '';
+          if (url) {
+            if (planType === 'starter' && typeof window.DFOPS_trackEvent === 'function') {
+              window.DFOPS_trackEvent('starter_checkout_started', { slug: this.slug });
+            }
+            this.showCheckoutModal = false;
+            this.clearCheckoutTurnstile();
+            window.location.href = url;
+          } else {
+            const errMsg =
+              data && typeof data.error === 'string'
+                ? data.error
+                : 'Brak adresu płatności.';
+            throw new Error(errMsg);
+          }
+        } catch (e) {
+          console.error(e);
+          this.clearCheckoutTurnstile();
+          const msg = e && typeof e === 'object' && 'message' in e ? String(e.message) : '';
+          if (msg.includes('HAS_STRIPE_SUBSCRIPTION') || /subskrypcję Stripe/i.test(msg)) {
+            this.showToast(
+              'Masz już subskrypcję — użyj zmiany planu w panelu albo portalu płatności.',
+              'error',
+            );
+          } else {
+            this.showToast(msg || 'Błąd podczas łączenia z systemem płatności.', 'error');
+          }
+          this.closeCheckoutModal(true);
+        } finally {
+          this.checkoutLoading = false;
+        }
+      },
+  };
+}
+
+function adminMixinWizard(ctx) {
+  const {
+    cfg,
+    repo,
+    MS_PER_DAY,
+    ERROR_MESSAGE_TIMEOUT,
+    SUCCESS_MESSAGE_TIMEOUT,
+    UPGRADE_MESSAGE_TIMEOUT,
+  } = ctx;
+  return {
+      persistWizardUiState() {
+        if (!this.slug || !this.showWizard) return;
+        writeWizardStateToStorage(this.slug, this.wizardStep, this.wizardTheme);
+      },
+      /**
+       * @param {0|1} defaultStepWhenNoSave — gdy brak zapisanego stanu: 0 = ekran wyboru ścieżki, 1 = od razu krok 1 (np. „Uruchom kreator” z checklisty).
+       */
+      restoreWizardUiFromStorage(defaultStepWhenNoSave) {
+        const pageTheme = this.theme || '';
+        const saved = readWizardStateFromStorage(this.slug);
+        if (!saved) {
+          this.wizardStep = defaultStepWhenNoSave === 1 ? 1 : 0;
+          this.wizardTheme = pageTheme === 'setup' ? 'beauty' : pageTheme || 'beauty';
+          return;
+        }
+        const norm = normalizeWizardRestore(saved.step, saved.theme, pageTheme);
+        this.wizardStep = norm.step;
+        this.wizardTheme = norm.theme;
+        const pl = this.content?.pl;
+        const theme = this.wizardTheme || pageTheme;
+        const stepId = wizardStepIdAtIndex(theme, this.wizardStep);
+        if (pl && stepId === 'offer') {
+          if (wizardOfferSection(theme) === 'menu') prepareWizardMenuStep(pl, theme);
+          else prepareWizardServicesStep(pl, theme);
+        }
+        if (pl && stepId === 'about') {
+          prepareWizardManifestoStep(pl, theme);
+        }
+      },
+      /**
+       * Aktywna opłacona subskrypcja Stripe (`billing_profiles` → billingSubscriptionView).
+       * Wyłącznie: niepuste `stripe_subscription_id` + status `active` lub `trialing`.
+       */
       validateWizardStep(step) {
         const pl = this.content?.pl;
         if (!pl) return '';
@@ -3183,518 +3626,19 @@
       closeWizardDismissModal() {
         this.showWizardDismissModal = false;
       },
-      async subscribe(planType) {
-        if (this.isImpersonating) {
-          this.showToast('W trybie God Mode płatności klienta nie są obsługiwane z sesji superadmina.', 'error');
-          return;
-        }
-        if (planType === 'premium') {
-          this.showError('Pakiet Premium nie jest już dostępny. Wybierz Starter lub Standard.');
-          return;
-        }
-        const plan = planType === 'pro' ? 'standard' : String(planType || '').trim();
-        if (!plan || plan === 'custom') {
-          this.showError('Pakiet Custom — skorzystaj z formularza zapytania.');
-          return;
-        }
-        const interval = this.billingInterval === 'yearly' ? 'yearly' : 'monthly';
-        if (plan !== 'starter' && plan !== 'standard') {
-          this.showError('Nieprawidłowy plan. Wybierz Starter lub Standard.');
-          return;
-        }
-        if (!this.user?.id) {
-          this.showError('Zaloguj się, aby wykupić subskrypcję.');
-          return;
-        }
-        if (!this.content?.pl?.settings) return;
-        const tier = plan === 'starter' ? 'tier0' : 'tier1';
-        const currentTier =
-          this.subscriptionPlan === 'tier2' ? 'tier1' : this.subscriptionPlan;
-        const isCurrentPaidTier = currentTier === 'tier0' || currentTier === 'tier1';
+  };
+}
 
-        if (!this.billingProfileReady) {
-          await this.loadBillingProfile();
-          this.billingProfileReady = true;
-        }
-
-        if (this.shouldUseStripePortalForPlanChange()) {
-          if (isCurrentPaidTier && currentTier === tier) {
-            this.showToast('Masz już wybrany ten plan rozliczeniowy.', 'success');
-            await this.loadData();
-            return;
-          }
-          this.showToast(
-            'Zmianę pakietu wykonasz w portalu Stripe — zobaczysz podsumowanie kosztów i potwierdzisz płatność przed obciążeniem karty.',
-            'info',
-          );
-          await this.openCustomerPortal({ subscriptionUpdate: true });
-          return;
-        }
-
-        this.pendingCheckoutPlan = plan;
-        this.pendingCheckoutPlanType = planType;
-        this.pendingCheckoutTier = tier;
-        this.pendingCheckoutInterval = interval;
-        this.turnstileToken = '';
-        this.showCheckoutModal = true;
-        this.$nextTick(() => {
-          this.renderCheckoutTurnstile();
-        });
-      },
-      async executeStripeCheckout(turnstileToken) {
-        const plan = String(this.pendingCheckoutPlan || '').trim();
-        const planType = String(this.pendingCheckoutPlanType || plan).trim();
-        const tier = String(this.pendingCheckoutTier || '').trim();
-        const interval = this.pendingCheckoutInterval === 'yearly' ? 'yearly' : 'monthly';
-
-        if (!plan || !tier || (plan !== 'starter' && plan !== 'standard')) {
-          this.showToast('Nieprawidłowy plan płatności. Wybierz pakiet jeszcze raz.', 'error');
-          this.closeCheckoutModal();
-          return;
-        }
-        if (!turnstileToken) {
-          this.showToast('Potwierdź, że nie jesteś botem, a potem ponów płatność.', 'error');
-          return;
-        }
-        if (!this.user?.id) {
-          this.showToast('Zaloguj się, aby wykupić subskrypcję.', 'error');
-          this.closeCheckoutModal();
-          return;
-        }
-        if (!this.content?.pl?.settings) {
-          this.showToast('Nie udało się odczytać ustawień strony. Odśwież panel i spróbuj ponownie.', 'error');
-          this.closeCheckoutModal(true);
-          return;
-        }
-
-        this.checkoutLoading = true;
-        if (!this.content.pl.settings.subscription) {
-          this.content.pl.settings.subscription = { plan: 'trial', trial_started_at: new Date().toISOString() };
-        }
-        this.content.pl.settings.subscription.selected_plan = tier;
-        const saved = await this.saveData({ silentSuccess: true });
-        if (!saved) {
-          this.checkoutLoading = false;
-          this.closeCheckoutModal(true);
-          return;
-        }
-
-        const { data: sessionData } = await this.supabase.auth.getSession();
-        const token = sessionData?.session?.access_token;
-        if (!token) {
-          this.showToast('Błąd sesji. Wyloguj się i zaloguj ponownie.', 'error');
-          this.checkoutLoading = false;
-          this.closeCheckoutModal(true);
-          return;
-        }
-        try {
-          const returnUrlObj = new URL(window.location.href);
-          returnUrlObj.searchParams.set('payment', 'success');
-          returnUrlObj.hash = 'subscription';
-          const returnUrl = returnUrlObj.toString();
-
-          const { data, error } = await this.supabase.functions.invoke(
-            'create-checkout',
-            {
-              body: {
-                plan,
-                interval,
-                returnUrl,
-                userEmail: this.user?.email || '',
-                turnstileToken,
-              },
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          );
-          if (error) {
-            const detail =
-              (data && typeof data.error === 'string' && data.error) ||
-              (typeof error.message === 'string' && error.message) ||
-              'Błąd podczas łączenia z systemem płatności.';
-            throw new Error(detail);
-          }
-          const url = data && typeof data.url === 'string' ? data.url : '';
-          if (url) {
-            if (planType === 'starter' && typeof window.DFOPS_trackEvent === 'function') {
-              window.DFOPS_trackEvent('starter_checkout_started', { slug: this.slug });
-            }
-            this.showCheckoutModal = false;
-            this.clearCheckoutTurnstile();
-            window.location.href = url;
-          } else {
-            const errMsg =
-              data && typeof data.error === 'string'
-                ? data.error
-                : 'Brak adresu płatności.';
-            throw new Error(errMsg);
-          }
-        } catch (e) {
-          console.error(e);
-          this.clearCheckoutTurnstile();
-          const msg = e && typeof e === 'object' && 'message' in e ? String(e.message) : '';
-          if (msg.includes('HAS_STRIPE_SUBSCRIPTION') || /subskrypcję Stripe/i.test(msg)) {
-            this.showToast(
-              'Masz już subskrypcję — użyj zmiany planu w panelu albo portalu płatności.',
-              'error',
-            );
-          } else {
-            this.showToast(msg || 'Błąd podczas łączenia z systemem płatności.', 'error');
-          }
-          this.closeCheckoutModal(true);
-        } finally {
-          this.checkoutLoading = false;
-        }
-      },
-      async upgradeTemplate() {
-        if (!this.content || !this.theme) return;
-        this.upgrading = true;
-        try {
-          const upgraded = window.DFOPS_upgradeContent(this.theme, this.content, this.latestTemplateVersion);
-          this.content = upgraded;
-          this.syncUserPlanFromBilling();
-          this.enforceColorPresetForStarter();
-          this.enforceQuickChatForStarter();
-          this.applyThemeStylingFromContent();
-          const ok = await this._persistDraft({ silent: false });
-          if (!ok) throw new Error('template upgrade draft save failed');
-          this.currentTemplateVersion = this.latestTemplateVersion;
-          this.updateAvailable = false;
-          this.hasUnsavedChanges = false;
-          this.message = `Szablon zaktualizowany do v${this.latestTemplateVersion}. Kliknij „Publikuj zmiany”, aby udostępnić.`;
-          setTimeout(() => { this.message = ''; }, UPGRADE_MESSAGE_TIMEOUT);
-        } catch (e) {
-          console.error(e);
-          this.showError('Upgrade nie powiódł się.');
-        } finally {
-          this.upgrading = false;
-        }
-      },
-      cleanDomainInput(raw) {
-        if (raw == null || typeof raw !== 'string') return '';
-        const withoutProtocolAndPath = raw
-          .trim()
-          .replace(/^https?:\/\//i, '')
-          .replace(/\/.*$/, '')
-          .replace(/[?#].*$/, '');
-        return window.DFOPS_normalizeHostname(withoutProtocolAndPath);
-      },
-
-      async verifyAndSaveDomain() {
-        if (this.isCustomDomainLocked) return;
-        if (window.location.protocol === 'file:') {
-          this.domainError =
-            'Otwórz panel przez adres http:// (np. Live Server na localhost), nie z dysku (file://).';
-          this.domainMessage = '';
-          return;
-        }
-
-        const cleanDomain = this.cleanDomainInput(this.domainInput);
-        this.domainInput = cleanDomain;
-
-        if (!this.pageId || !cleanDomain) {
-          this.domainError = 'Podaj domenę (hostname, np. twojadomena.pl).';
-          this.domainMessage = '';
-          return;
-        }
-
-        this.isVerifyingDomain = true;
-        this.domainMessage = '';
-        this.domainError = '';
-
-        try {
-          const response = await fetch(
-            `/api/verify-domain?domain=${encodeURIComponent(cleanDomain)}`,
-          );
-          const result = await response.json().catch(() => ({}));
-
-          if (result.error === 'INVALID_DOMAIN') {
-            this.domainError = 'Nieprawidłowy adres domeny.';
-            return;
-          }
-
-          const dbStatus = result.status === 'verified' ? 'active' : 'pending';
-
-          const { error } = await this.saveActivePage({
-            custom_domain: cleanDomain,
-            custom_domain_status: dbStatus,
-          });
-          if (error) throw error;
-
-          this.customDomain = cleanDomain;
-          this.customDomainStatus = dbStatus;
-
-          if (dbStatus === 'active') {
-            this.domainMessage = 'Domena zweryfikowana i zapisana.';
-            this.showDnsInstructions = false;
-            this.showToast('Własna domena jest aktywna.', 'success');
-          } else {
-            this.domainMessage =
-              'Domena zapisana. Dodaj rekord CNAME u operatora — po propagacji DNS kliknij „Zapisz i sprawdź” ponownie.';
-            this.showDnsInstructions = true;
-          }
-        } catch (e) {
-          console.error('Błąd weryfikacji domeny:', e);
-          const raw = e instanceof Error ? e.message : String(e);
-          this.domainError =
-            raw === 'Failed to fetch'
-              ? 'Brak połączenia z serwerem. Otwórz panel przez http/https i spróbuj ponownie.'
-              : raw || 'Nie udało się zapisać domeny.';
-        } finally {
-          this.isVerifyingDomain = false;
-        }
-      },
-      /** Czy plan pozwala publikować premium motyw. Premium = lista `cfg.premiumThemes` (domyślnie pusta → brak regresji). */
-      get isPremiumDraftTheme() {
-        const premium = Array.isArray(cfg?.premiumThemes) ? cfg.premiumThemes : [];
-        return premium.includes(String(this.theme || '').trim());
-      },
-      /** Freemium: na darmowym planie (trial/Starter) premium motyw można edytować i podglądać, ale NIE publikować. */
-      get isPublishBlockedByPlan() {
-        return this.isPremiumDraftTheme && this.isCustomAppearanceLocked;
-      },
-
-      /** Po zmianie linku/trybu rezerwacji — normalizacja i cichy auto-save. */
-      syncBookingSettings() {
-        if (!this.content?.pl) return;
-        normalizeBookingSettings(this.content.pl);
-        this.scheduleDraftAutosave();
-      },
-
-      async saveActivePage(payload) {
-        if (!this.pageId || !this.user?.id) {
-          return { data: null, error: new Error('missing active page') };
-        }
-        if (this.isImpersonating) {
-          if (!this.isSuperadmin) {
-            return { data: null, error: new Error('superadmin access required') };
-          }
-          return repo.savePageByIdForSuperadmin(this.pageId, payload);
-        }
-        return repo.saveCurrentUserPage(this.user.id, payload);
-      },
-
-      /** Zapis WYŁĄCZNIE stanu roboczego (`draft_content`) — nic nie trafia na stronę publiczną. */
-      async _persistDraft(opts) {
-        const options = opts && typeof opts === 'object' ? opts : {};
-        if (!this.content?.pl || !this.pageId || !this.user?.id) return false;
-        normalizeBookingSettings(this.content.pl);
-        if (this.content.pl.settings) this.content.pl.settings.theme = this.theme;
-        const { error } = await this.saveActivePage({ draft_content: this.content });
-        if (error) {
-          if (!options.silent) console.error(error);
-          return false;
-        }
-        return true;
-      },
-
-      /**
-       * Cichy auto-save (debounce) stanu roboczego — jak w Webflow/Framer.
-       * Pisze WYŁĄCZNIE do `draft_content`; publiczne `content` zmienia tylko „Publikuj”.
-       */
-      scheduleDraftAutosave() {
-        if (!this.pageId || !this.user?.id || this.isLoading || this.isForcedPasswordReset) return;
-        if (this._draftAutosaveTimer) clearTimeout(this._draftAutosaveTimer);
-        const delay = (cfg?.timeouts?.draftAutosave) ?? 1000;
-        this._draftAutosaveTimer = setTimeout(() => {
-          this._draftAutosaveTimer = null;
-          void this.autosaveDraftNow();
-        }, delay);
-      },
-
-      async autosaveDraftNow() {
-        if (!this.content?.pl || !this.pageId || !this.user?.id) return;
-        if (this.isLoading || this.saving || this.draftSaving) return;
-        this.draftSaving = true;
-        try {
-          const ok = await this._persistDraft({ silent: true });
-          if (ok) {
-            this.hasUnsavedChanges = false;
-            this.draftSavedOnce = true;
-          }
-        } finally {
-          this.draftSaving = false;
-        }
-      },
-
-      /** Auto-save / zapis roboczy panelu — trafia tylko do `draft_content`. Publikacja: `publishChanges()`. */
-      async saveData(opts) {
-        const options = opts && typeof opts === 'object' ? opts : {};
-        const silentSuccess = options.silentSuccess === true;
-        const successMessage = typeof options.successMessage === 'string' ? options.successMessage : '';
-        if (!this.content?.pl || this.isLoading || !this.pageId) return false;
-        this.saving = true;
-        try {
-          if (Array.isArray(this.content.pl.services)) {
-            this.content.pl.services = this.content.pl.services.filter((s) => s.title && String(s.title).trim() !== '');
-          }
-          this.content.pl.settings.template_version = this.latestTemplateVersion;
-          this.content.pl.settings.theme = this.theme;
-          const ok = await this._persistDraft({ silent: silentSuccess });
-          if (!ok) throw new Error('draft save failed');
-          this.hasUnsavedChanges = false;
-          if (!silentSuccess) {
-            this.message = successMessage || 'Zapisano roboczo. Kliknij „Publikuj zmiany”, aby pokazać je na stronie.';
-            setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
-          }
-          return true;
-        } catch (e) {
-          console.error(e);
-          this.showError('Nie udało się zapisać zmian roboczych. Sprawdź połączenie i spróbuj ponownie.');
-          this.showToast('Nie udało się zapisać zmian. Sprawdź połączenie i spróbuj ponownie.', 'error');
-          return false;
-        } finally {
-          this.saving = false;
-        }
-      },
-
-      /**
-       * Pozytywne tarcie dla głównego przycisku „Publikuj zmiany”: nie strzela od razu do bazy —
-       * najpierw freemium-guard, potem modal potwierdzenia. Właściwy zapis robi dopiero `confirmPublish()`.
-       */
-      requestPublish() {
-        if (!this.content?.pl || this.isLoading || this.saving || !this.pageId) return;
-        if (this.isPublishBlockedByPlan) {
-          this.showPublishUpgradeModal = true;
-          return;
-        }
-        this.showPublishConfirmModal = true;
-      },
-
-      /** Potwierdzenie z modala — uruchamia właściwą publikację; modal znika dopiero po sukcesie. */
-      async confirmPublish() {
-        const ok = await this.publishChanges();
-        if (ok) this.showPublishConfirmModal = false;
-      },
-
-      /** Publikacja: kopiuje stan roboczy do `content` (widok publiczny) + synchronizuje `draft_content`. */
-      async publishChanges(opts) {
-        const options = opts && typeof opts === 'object' ? opts : {};
-        const silentSuccess = options.silentSuccess === true;
-        if (!this.content?.pl || this.isLoading || !this.pageId) return false;
-
-        if (this.isPublishBlockedByPlan) {
-          this.showPublishUpgradeModal = true;
-          return false;
-        }
-
-        this.saving = true;
-        try {
-          const syncFn = window.DFOPS_googlePlacesSync?.syncGooglePlacesForPublish;
-          if (typeof syncFn === 'function' && this.supabase) {
-            const syncResult = await syncFn(this.supabase, this.content.pl);
-            if (syncResult?.warnings?.length) {
-              this.showToast(
-                'Zapisano, ale nie udało się odświeżyć: ' + syncResult.warnings.join(', ') + '. Sprawdź konfigurację Google.',
-                'error',
-              );
-            }
-          }
-          if (Array.isArray(this.content.pl.services)) {
-            this.content.pl.services = this.content.pl.services.filter((s) => s.title && String(s.title).trim() !== '');
-          }
-          normalizeBookingSettings(this.content.pl);
-          this.content.pl.settings.template_version = this.latestTemplateVersion;
-          this.content.pl.settings.theme = this.theme;
-          const payload = {
-            content: this.content,
-            draft_content: this.content,
-            color_preset: this.content.pl.settings.color_preset,
-            theme: this.theme,
-          };
-          if (!this.isCustomDomainLocked) {
-            payload.custom_domain = this.customDomain;
-          } else {
-            payload.custom_domain = null;
-            payload.custom_domain_status = 'none';
-          }
-          if (this.subscriptionPaymentActive()) {
-            payload.trial_blocked_at = null;
-            payload.billing_failed_at = null;
-          }
-          const { error } = await this.saveActivePage(payload);
-          if (error) throw error;
-          if (this.isCustomDomainLocked) this.customDomain = '';
-          if (this.subscriptionPaymentActive()) {
-            this.trialBlockedAt = null;
-          }
-          /** Migawka produkcji po udanej publikacji — żeby „Odrzuć zmiany” wracało do świeżo opublikowanej wersji. */
-          this._publishedContentRaw = JSON.parse(JSON.stringify(this.content));
-          this._publishedTheme = this.theme;
-          this.hasUnsavedChanges = false;
-          if (this._draftAutosaveTimer) {
-            clearTimeout(this._draftAutosaveTimer);
-            this._draftAutosaveTimer = null;
-          }
-          if (!silentSuccess) {
-            this.message = 'Zmiany zostały opublikowane!';
-            this.showToast('Zmiany zostały opublikowane i są widoczne dla klientów.', 'success');
-            setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
-          }
-          return true;
-        } catch (e) {
-          console.error(e);
-          this.showError('Nie udało się opublikować zmian. Sprawdź połączenie i spróbuj ponownie. Jeśli błąd się powtarza, napisz do nas.');
-          this.showToast('Nie udało się opublikować zmian. Sprawdź połączenie i spróbuj ponownie.', 'error');
-          return false;
-        } finally {
-          this.saving = false;
-        }
-      },
-
-      /** Odrzucenie zmian roboczych — przywraca edytor do aktualnie opublikowanej wersji (`content`). */
-      async revertChanges() {
-        if (!this.pageId || !this.user?.id) return;
-        if (!this._publishedContentRaw) {
-          this.showToast('Brak opublikowanej wersji do przywrócenia.', 'error');
-          return;
-        }
-        const confirmed = await this.confirmAsync({
-          title: 'Odrzucić zmiany?',
-          message:
-            'Odrzucić zmiany robocze i przywrócić aktualnie opublikowaną wersję strony? Tej operacji nie można cofnąć.',
-          yesLabel: 'Tak, odrzuć',
-          noLabel: 'Nie',
-          tone: 'danger',
-        });
-        if (!confirmed) return;
-        this.saving = true;
-        try {
-          const publishedTheme =
-            (this._publishedContentRaw?.pl?.settings?.theme &&
-              String(this._publishedContentRaw.pl.settings.theme).trim()) ||
-            this._publishedTheme ||
-            this.theme;
-          this.theme = publishedTheme;
-          this.content = window.DFOPS_normalizeContent(
-            JSON.parse(JSON.stringify(this._publishedContentRaw)),
-            publishedTheme,
-          );
-          if (
-            this.content?.pl?.settings &&
-            typeof window.DFOPS_stripBillingFromContentSubscription === 'function'
-          ) {
-            this.content.pl.settings.subscription = window.DFOPS_stripBillingFromContentSubscription(
-              this.content.pl.settings.subscription,
-            );
-          }
-          this.selectedStyleBundle = '';
-          this.appearancePickerHex = '';
-          this.syncUserPlanFromBilling();
-          this.applyThemeStylingFromContent();
-          const ok = await this._persistDraft({ silent: true });
-          if (!ok) throw new Error('revert persist failed');
-          this.hasUnsavedChanges = false;
-          this.message = 'Przywrócono opublikowaną wersję strony.';
-          setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
-        } catch (e) {
-          console.error(e);
-          this.showError('Nie udało się przywrócić wersji opublikowanej.');
-        } finally {
-          this.saving = false;
-        }
-      },
+function adminMixinIntegrations(ctx) {
+  const {
+    cfg,
+    repo,
+    MS_PER_DAY,
+    ERROR_MESSAGE_TIMEOUT,
+    SUCCESS_MESSAGE_TIMEOUT,
+    UPGRADE_MESSAGE_TIMEOUT,
+  } = ctx;
+  return {
       async uploadImage(event, section, field, index = null) {
         const file = event.target.files?.[0];
         if (!file || !this.slug) return;
@@ -3955,13 +3899,161 @@
         }
         this.mapPlaceSelectedId = null;
       },
-    };
-  }
+  };
+}
 
-  /**
-   * Pełny stan pod `x-data` panelu: zawsze ma `isLoading` i `content.pl` (bez wyścigu z Kreatorem).
-   * Wywoływane w admin.html zamiast `{ ...createAdminApp() }`, żeby cache starego JS nie zostawiał `content: null`.
-   */
+function createAdminApp() {
+    const t = window.DFOPS_CONFIG?.timeouts || {};
+    const MS_PER_DAY = t.msPerDay ?? 86400000;
+    const ERROR_MESSAGE_TIMEOUT = t.errorMessage ?? 5000;
+    const SUCCESS_MESSAGE_TIMEOUT = t.successMessage ?? 3000;
+    const UPGRADE_MESSAGE_TIMEOUT = t.upgradeMessage ?? 3500;
+    const cfg = window.DFOPS_CONFIG;
+    const repo = window.DFOPS_pageRepository;
+  const ctx = {
+    t,
+    MS_PER_DAY,
+    ERROR_MESSAGE_TIMEOUT,
+    SUCCESS_MESSAGE_TIMEOUT,
+    UPGRADE_MESSAGE_TIMEOUT,
+    cfg,
+    repo,
+  };
+  return Object.assign(
+    {
+      supabase: null,
+      user: null,
+      loadingAuth: true,
+      email: '',
+      password: '',
+      rememberMe: false,
+      authError: '',
+      /** Logowanie: widok „Nie pamiętam hasła” (ten sam admin.html). */
+      showLoginForgotPassword: false,
+      forgotPasswordEmail: '',
+      forgotPasswordSending: false,
+      forgotPasswordInfo: '',
+      /** Link resetujący hasło (Supabase) — po loadData: izolatka wymuszonego resetu. */
+      _passwordRecoveryPendingUi: false,
+      _passwordRecoveryUiHandled: false,
+      /** Sesja z linku recovery — pełny panel ukryty do ustawienia nowego hasła. */
+      isForcedPasswordReset: false,
+      slug: new URLSearchParams(window.location.search).get('site') || '',
+      hasImpersonateParam: new URLSearchParams(window.location.search).has('impersonate'),
+      impersonateSlug: normalizePageSlug(new URLSearchParams(window.location.search).get('impersonate')),
+      isSuperadmin: false,
+      isSuperAdmin: false,
+      isImpersonating: false,
+      impersonatedPageOwnerId: null,
+      lang: 'pl',
+      theme: '',
+      isLoading: false,
+      /** Pakiet do feature gating (kolory): starter | standard. Po loadData nadpisuje się z subskrypcji. */
+      userPlan: 'starter',
+      content: createAdminContentShell(),
+      showWizard: false,
+      wizardStep: 0,
+      wizardTheme: '',
+      wizardFieldWarning: '',
+      /** Jednorazowy komunikat po „Pomiń kreator” — bez listy „ninja” u góry. */
+      showWizardDismissModal: false,
+      /** Pierwsza konfiguracja: treść bez `business_name` (po normalize — zob. loadData). */
+      showWelcomeModal: false,
+      showStudioWelcomeModal: false,
+      customDomain: '',
+      customDomainStatus: '',
+      domainInput: '',
+      pageId: null,
+      isVerifyingDomain: false,
+      domainMessage: '',
+      domainError: '',
+      showDnsInstructions: false,
+      showTemplateSwitcher: false,
+      activeTab: 'dashboard',
+      mobileMenuOpen: false,
+      headerMoreMenuOpen: false,
+      navGroupStart: true,
+      navGroupMore: false,
+      navGroupSettings: false,
+      saving: false,
+      uploadingImage: false,
+      uploadingMessage: '',
+      message: '',
+      errorMessage: '',
+      toast: { show: false, message: '', type: 'success' },
+      _toastTimer: null,
+      /** Globalny modal confirm() (Promise<boolean>) — zastępuje systemowy `confirm()` w panelu. */
+      confirmDialog: {
+        open: false,
+        title: '',
+        message: '',
+        yesLabel: 'Tak',
+        noLabel: 'Nie',
+        tone: 'default', // default | danger
+      },
+      _confirmDialogResolve: null,
+      hasUnsavedChanges: false,
+      _stopContentWatch: null,
+      /** Cichy auto-save stanu roboczego (draft_content). */
+      _draftAutosaveTimer: null,
+      draftSaving: false,
+      draftSavedOnce: false,
+      upgrading: false,
+      checkoutLoading: false,
+      showCheckoutModal: false,
+      pendingCheckoutPlan: '',
+      pendingCheckoutPlanType: '',
+      pendingCheckoutTier: '',
+      pendingCheckoutInterval: '',
+      turnstileToken: '',
+      turnstileWidgetId: null,
+      /** Okres rozliczenia na ekranie pakietów: monthly | yearly */
+      billingInterval: 'monthly',
+      stripeSyncLoading: false,
+      /** Profil rozliczeniowy z tabeli billing_profiles (źródło prawdy Stripe). */
+      billingProfile: null,
+      /** False do zakończenia pierwszego loadBillingProfile w bieżącej sesji panelu. */
+      billingProfileReady: false,
+      /** Jednorazowy toast o wygasającej / zakończonej subskrypcji (po pełnym stanie billing). */
+      _billingStatusToastShown: false,
+      /** Pierwsze loadData zakończone — dopiero potem silent sync na zakładce Subskrypcja. */
+      _initialPanelLoadDone: false,
+      /** Zapobiega podwójnemu sync przy loadData po syncStripeSubscription. */
+      _loadDataSubscriptionStripeSync: false,
+      /** Jednorazowy silent sync ze Stripe po wejściu w zakładkę Subskrypcja (świeży `cancel_at_period_end`). */
+      _subscriptionTabStripeSynced: false,
+      newPassword: '',
+      newPasswordConfirm: '',
+      /** Podgląd znaków przy zmianie hasła (Konto). */
+      showAccountPassword: false,
+      isPasswordUpdating: false,
+      isPortalLoading: false,
+      latestTemplateVersion: window.DFOPS_LATEST_TEMPLATE_VERSION || 3,
+      currentTemplateVersion: 1,
+      updateAvailable: false,
+      selectedStyleBundle: '',
+      /** Ustawiane z pages.trial_blocked_at — po trialu bez płatności strona publiczna jest zablokowana. */
+      trialBlockedAt: null,
+      showTrialSuspendedModal: true,
+      /** Opcjonalny modal po płatności — główny flow opiera się na toastach + opóźnionym loadData. */
+      showSuccessModal: false,
+      _postPaymentRefreshTimer: null,
+      resendConfirmLoading: false,
+      /**
+       * Z serwera Auth (getUser), nie ze „stale” session.user w JWT.
+       * true = pokaż baner + blokuj kreator do czasu potwierdzenia maila.
+       */
+      needsEmailConfirmation: false,
+    },
+    adminMixinUi(ctx),
+    adminMixinAuth(ctx),
+    adminMixinData(ctx),
+    adminMixinBilling(ctx),
+    adminMixinWizard(ctx),
+    adminMixinIntegrations(ctx),
+  );
+}
+
   function buildAdminAlpineState() {
     const fromApp = createAdminApp();
 

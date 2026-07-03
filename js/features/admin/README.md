@@ -1,0 +1,32 @@
+# Panel admin — źródła JS
+
+Logika Alpine panelu (`admin.html`) jest podzielona na pliki domenowe i składana w jeden plik ładowany przez przeglądarkę.
+
+## Pliki
+
+| Plik | Zawartość |
+|------|-----------|
+| `shared.js` | Helpery, stałe, `createAdminContentShell`, wizard helpers |
+| `mixins/ui.js` | Gettery, nawigacja, wygląd, toasty, onboarding UI |
+| `mixins/auth.js` | Logowanie, sesja, reset hasła |
+| `mixins/data.js` | load/save/publish, domena, szablony |
+| `mixins/billing.js` | Stripe, checkout, portal |
+| `mixins/wizard.js` | Kreator startowy, tour Driver.js |
+| `mixins/integrations.js` | Media, Google Places, mapa |
+| `app-core.js` | `createAdminApp`, `buildAdminAlpineState`, eksporty |
+
+Mixiny przyjmują `ctx` z closure `createAdminApp` (`cfg`, `repo`, timeouty).
+
+## Komendy
+
+```bash
+# Po edycji źródeł — przebuduj adminApp.js (wymagane przed testem)
+npm run build:admin-js
+
+# Jednorazowy podział z monolitu (nie uruchamiaj na wygenerowanym adminApp.js)
+npm run split:admin-js
+```
+
+**Nie edytuj ręcznie** `js/features/adminApp.js` — ma baner `GENERATED`.
+
+W `admin/partials/01-head.html` nadal jeden `<script defer src="js/features/adminApp.js">`.

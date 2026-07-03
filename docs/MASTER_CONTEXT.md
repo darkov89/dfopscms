@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-07-03 — panel admin: partials + `npm run build:admin`
+**Ostatnia aktualizacja treści:** 2026-07-03 — panel admin: partials + JS mixiny (`build:admin`, `build:admin-js`)
 
 ---
 
@@ -102,7 +102,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 
 **Security (skrót):** forced password reset, DOMPurify, sanitizacja URL-like pól `pages.content` na zapisie i odczycie, Cloudflare Turnstile dla rejestracji/custom inquiry/checkout, CSP/HSTS/XFO/nosniff w `functions/_middleware.js`, publiczny odczyt `pages` zawężony query+RLS+grantami kolumnowymi, Stripe webhook tylko Edge, Google Places/Maps klucz tylko Edge, `billing_profiles` SoT rozliczeń, draft preview tylko dla właściciela. Superadmini są wyłącznie w `public.superadmins`; RLS dodaje im SELECT/UPDATE/DELETE na `pages` i `analytics_events`, bez zmiany polityk właścicielskich.
 
-**Luki:** brak obowiązkowego E2E/CI dla Edge; wildcard `*.dfcms.pl` w Cloudflare Pages; RLS anon read wymaga GRANT + polityki; brak historii wersji treści; monolityczny panel (`admin.html` + `adminApp.js`) utrudnia kolejne zmiany IA.
+**Luki:** brak obowiązkowego E2E/CI dla Edge; wildcard `*.dfcms.pl` w Cloudflare Pages; RLS anon read wymaga GRANT + polityki; brak historii wersji treści; panel JS nadal ~4k linii po buildzie (źródła w mixinach, bez bundlera tree-shaking).
 
 **TO-DO operacyjne:** tour Driver.js mobile; smoke webhook Stripe; CI deploy Edge; skonfigurować Cron Supabase dla `expire-trial-pages`.
 
@@ -139,7 +139,7 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 
 **Progressive disclosure:** Kontakt (rezerwacje na górze; adres/mapa, WhatsApp, social w `<details>`); Baner (CTA w `<details>`; manifesto → osobna zakładka); Wygląd (logo + presety kolorów; reszta w „Ustawienia zaawansowane…”).
 
-**Monolity panelu:** logika w `adminApp.js` (~4k linii); HTML rozbity na `admin/partials/` (2026-07-03). Przy edycji UI panelu: partial → `npm run build:admin` → commit partials + `admin.html`.
+**Monolity panelu:** HTML w `admin/partials/` (2026-07-03); logika w `js/features/admin/` (mixiny: auth, billing, data, wizard, integrations, ui) → **`npm run build:admin-js`** składa `adminApp.js`. Przy edycji UI: partial → `npm run build:admin`; przy logice panelu: mixin → `npm run build:admin-js`.
 
 ### 1.5.1 Theme-aware panel (`themeConfig`) — wzorzec
 
@@ -301,6 +301,8 @@ Karty testowe: `4242 4242 4242 4242` ([dokumentacja Stripe](https://docs.stripe.
 | **DB + Edge** | `link staging` → `db push` / `functions deploy` | `link production` → `db push` / `functions deploy` |
 | **Secrets** | `supabase secrets set` — Test Stripe, CF staging, Telegram, `CRON_SECRET` | Live Stripe, prod CF, Telegram, `CRON_SECRET` |
 
+**Panel CMS przed pushem (brak build na CI):** Cloudflare Pages nie uruchamia `npm run build` — w repo muszą być **wygenerowane** `admin.html` i `js/features/adminApp.js`. Po edycji `admin/partials/` → `npm run build:admin`; po edycji `js/features/admin/` → `npm run build:admin-js`; oba → `npm run build:panel`. Commit: źródła **i** artefakty. Reszta frontu (`templates/`, `js/core/`, …) bez kroku build.
+
 **Checklist prod:** migracje na Staging OK; Edge wdrożone; Secrets Live; Cloudflare Pages prod Supabase; Stripe webhook Live; Cron `expire-trial-pages`; Database Webhooks.
 
 ### 3.6 Gałęzie Git
@@ -320,6 +322,7 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 |---------|------|
 | `*.html` (root) | Wejścia Cloudflare Pages (`index`, `router`, `rejestracja`, …); **`admin.html` generowany** |
 | `admin/partials/` | Źródła HTML panelu CMS (36 plików); `admin/manifest.json` + `npm run build:admin` |
+| `js/features/admin/` | Źródła logiki panelu (shared + mixiny); `npm run build:admin-js` → `adminApp.js` |
 | `templates/` | **Szablony HTML** witryn klientów + `_base_template.html`, `_partials/` |
 | `js/core/` | Config, Supabase client, `pageRepository`, `themeConfig`, `planUtils`, sanitizacja |
 | `js/features/` | Aplikacje Alpine: `adminApp`, `publicSiteApp`, `routerApp`, … |
@@ -354,7 +357,7 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 |-------|------|
 | Konfiguracja klienta / ceny fallback | `js/core/config.js` |
 | Landing + cennik | `index.html#cennik`, `js/features/landingPricing.js` |
-| Panel — IA / logika tabów | `admin/partials/`, `admin.html` (build), `js/features/adminApp.js` (§1.5.2) |
+| Panel — IA / logika tabów | `admin/partials/`, `admin.html` (build), `js/features/admin/` → `adminApp.js` (§1.5.2) |
 | Kontrakt JSON treści | `js/core/contentSchema.js`, `js/core/contentUpgrader.js` |
 | Domyślna treść motywów | `js/templates/registry.js` |
 | Panel subskrypcja | `admin.html`, `adminApp.js` |
@@ -375,6 +378,7 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
+| **2026-07-03** | **Panel admin — JS mixiny:** `js/features/admin/` (shared + 6 mixinów domenowych) + `scripts/build-admin-app.mjs` / `split-admin-app.mjs`; `npm run build:admin-js`; `adminApp.js` generowany (IIFE + `Object.assign`); mixiny dostają `ctx` z `createAdminApp`; `js/features/admin/README.md`. |
 | **2026-07-03** | **Panel admin — partials:** `admin/partials/` (36 plików) + `scripts/build-admin.mjs` / `split-admin-html.mjs`; `npm run build:admin`; `admin.html` generowany z banerem; byte-identyczny rebuild; `admin/README.md`. |
 | **2026-07-03** | **Repo — `data/seeds/demo_pages.json`:** przywrócone 6 demo katalogowych z migracji `20260616150000_*`; skrypt `extract-demo-seeds-from-migration.mjs`; README + MASTER §3.1/§3.7; localhost fallback demo bez wiersza w Staging DB. |
 | **2026-07-03** | **Repo — `_lead-generator-export/` gitignored:** archiwum GTM poza śledzeniem git (lokalna kopia / osobne repo); MASTER §3.7 zaktualizowany; pliki usunięte z indeksu git, pozostają na dysku. |
