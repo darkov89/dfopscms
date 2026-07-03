@@ -7,6 +7,7 @@ Logika Alpine panelu (`admin.html`) jest podzielona na pliki domenowe i składan
 | Plik | Zawartość |
 |------|-----------|
 | `shared.js` | Helpery, stałe, `createAdminContentShell`, wizard helpers |
+| `billingView.js` | Mapowanie `billing_profiles` → widok subskrypcji (w bundlu adminApp) |
 | `mixins/ui.js` | Gettery, nawigacja, wygląd, toasty, onboarding UI |
 | `mixins/auth.js` | Logowanie, sesja, reset hasła |
 | `mixins/data.js` | load/save/publish, domena, szablony |
@@ -29,4 +30,4 @@ npm run split:admin-js
 
 **Nie edytuj ręcznie** `js/features/adminApp.js` — ma baner `GENERATED`.
 
-W `admin/partials/01-head.html` jeden `<script defer src="js/features/adminApp.js">` (bundel zawiera też `js/core/billingProfileView.js`).
+W `admin/partials/01-head.html` jeden `<script defer src="js/features/adminApp.js">` (bundel: shared + billingView + mixiny).

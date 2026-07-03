@@ -170,3 +170,5 @@ function createAdminApp() {
   window.createAdminApp = createAdminApp;
   window.DFOPS_adminAlpineState = buildAdminAlpineState;
   window.DFOPS_createAdminContentShell = createAdminContentShell;
+  window.DFOPS_billingRowToSubscriptionView = billingRowToSubscriptionView;
+  window.DFOPS_stripBillingFromContentSubscription = stripBillingFromContentSubscription;

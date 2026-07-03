@@ -10,13 +10,12 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
 const adminDir = path.join(root, 'js/features/admin');
-const coreDir = path.join(root, 'js/core');
 const outPath = path.join(root, 'js/features/adminApp.js');
 
-/** Kolejność składania — billingProfileView w bundlu, żeby getter nie wpadał w fallback trial z contentu. */
+/** Kolejność składania — billingView w tym samym scope co mixiny (bez zagnieżdżonego IIFE / window). */
 const parts = [
   { file: path.join(adminDir, 'shared.js'), label: 'shared.js' },
-  { file: path.join(coreDir, 'billingProfileView.js'), label: 'billingProfileView.js' },
+  { file: path.join(adminDir, 'billingView.js'), label: 'billingView.js' },
   { file: path.join(adminDir, 'mixins/ui.js'), label: 'mixins/ui.js' },
   { file: path.join(adminDir, 'mixins/auth.js'), label: 'mixins/auth.js' },
   { file: path.join(adminDir, 'mixins/data.js'), label: 'mixins/data.js' },

@@ -669,45 +669,38 @@
     return null;
   }
 
-/**
- * Mapowanie billing_profiles + pól trial z content → kształt zgodny z planUtils.
- */
-;(function () {
-  function normalizePageBillingPlan(plan) {
-    const raw = plan && String(plan).trim() !== '' ? String(plan).trim().toLowerCase() : 'trial';
-    if (raw === 'tier2' || raw === 'premium') return 'tier1';
-    return raw;
-  }
+/** Mapowanie billing_profiles + trial z content — ten sam kontrakt co js/core/billingProfileView.js */
 
-  /**
-   * @param {object|null} billing — wiersz `billing_profiles`
-   * @param {object|null} trialSub — `content.pl.settings.subscription` (tylko trial)
-   * @param {string|null|undefined} pageBillingPlan — lustrzane `pages.billing_plan` (fallback gdy brak profilu / God Mode)
-   */
-  function billingRowToSubscriptionView(billing, trialSub, pageBillingPlan) {
-    const trial = trialSub && typeof trialSub === 'object' ? trialSub : {};
-    if (!billing || typeof billing !== 'object') {
-      const mirrored = normalizePageBillingPlan(pageBillingPlan);
-      if (mirrored === 'tier0' || mirrored === 'tier1') {
-        return {
-          plan: mirrored,
-          trial_started_at: trial.trial_started_at || null,
-          selected_plan: trial.selected_plan ?? null,
-          payment_completed: true,
-          status: 'active',
-          stripe_customer_id: '',
-          stripe_subscription_id: '',
-          current_period_end: '',
-          cancel_at_period_end: false,
-          cancel_at: trial.cancel_at ?? null,
-        };
-      }
+function normalizePageBillingPlan(plan) {
+  const raw = plan && String(plan).trim() !== '' ? String(plan).trim().toLowerCase() : 'trial';
+  if (raw === 'tier2' || raw === 'premium') return 'tier1';
+  return raw;
+}
+
+/** Plain object — omija Alpine Proxy przy odczycie pól z Supabase. */
+function snapshotBillingProfileRow(bp) {
+  if (!bp || typeof bp !== 'object' || Array.isArray(bp)) return null;
+  return {
+    plan: bp.plan,
+    status: bp.status,
+    stripe_customer_id: bp.stripe_customer_id,
+    stripe_subscription_id: bp.stripe_subscription_id,
+    current_period_end: bp.current_period_end,
+    cancel_at_period_end: bp.cancel_at_period_end,
+  };
+}
+
+function billingRowToSubscriptionView(billing, trialSub, pageBillingPlan) {
+  const trial = trialSub && typeof trialSub === 'object' ? trialSub : {};
+  if (!billing || typeof billing !== 'object' || Array.isArray(billing)) {
+    const mirrored = normalizePageBillingPlan(pageBillingPlan);
+    if (mirrored === 'tier0' || mirrored === 'tier1') {
       return {
-        plan: trial.plan || 'trial',
+        plan: mirrored,
         trial_started_at: trial.trial_started_at || null,
         selected_plan: trial.selected_plan ?? null,
-        payment_completed: trial.payment_completed === true,
-        status: '',
+        payment_completed: true,
+        status: 'active',
         stripe_customer_id: '',
         stripe_subscription_id: '',
         current_period_end: '',
@@ -715,54 +708,62 @@
         cancel_at: trial.cancel_at ?? null,
       };
     }
-    const st = String(billing.status || '').trim().toLowerCase();
-    const terminated = st === 'canceled' || st === 'cancelled' || st === 'incomplete_expired';
-    let plan = terminated ? 'trial' : normalizePageBillingPlan(billing.plan || 'trial');
-    const mirrored = normalizePageBillingPlan(pageBillingPlan);
-    if ((plan === 'trial' || !billing.plan) && (mirrored === 'tier0' || mirrored === 'tier1')) {
-      plan = mirrored;
-    }
-    const paidTier = !terminated && (plan === 'tier0' || plan === 'tier1');
-    const effectiveStatus = st || (paidTier ? 'active' : '');
     return {
-      plan,
-      status: effectiveStatus,
-      stripe_customer_id: billing.stripe_customer_id || '',
-      stripe_subscription_id: billing.stripe_subscription_id || '',
-      current_period_end: billing.current_period_end || '',
-      cancel_at_period_end: billing.cancel_at_period_end === true,
+      plan: trial.plan || 'trial',
+      trial_started_at: trial.trial_started_at || null,
+      selected_plan: trial.selected_plan ?? null,
+      payment_completed: trial.payment_completed === true,
+      status: '',
+      stripe_customer_id: '',
+      stripe_subscription_id: '',
+      current_period_end: '',
+      cancel_at_period_end: false,
       cancel_at: trial.cancel_at ?? null,
-      trial_started_at: trial.trial_started_at,
-      selected_plan: trial.selected_plan ?? null,
-      payment_completed:
-        paidTier &&
-        (!st ||
-          st === 'active' ||
-          st === 'trialing' ||
-          st === 'past_due' ||
-          st === 'unpaid' ||
-          trial.payment_completed === true),
     };
   }
-
-  /** Zostaw w JSON tylko pola trial (bez ID Stripe / statusów). */
-  function stripBillingFromContentSubscription(sub) {
-    const trial = sub && typeof sub === 'object' ? sub : {};
-    const out = {
-      plan: 'trial',
-      trial_started_at:
-        typeof trial.trial_started_at === 'string' && trial.trial_started_at.trim()
-          ? trial.trial_started_at.trim()
-          : new Date().toISOString(),
-      selected_plan: trial.selected_plan ?? null,
-    };
-    if (trial.payment_completed === true) out.payment_completed = true;
-    return out;
+  const st = String(billing.status || '').trim().toLowerCase();
+  const terminated = st === 'canceled' || st === 'cancelled' || st === 'incomplete_expired';
+  let plan = terminated ? 'trial' : normalizePageBillingPlan(billing.plan || 'trial');
+  const mirrored = normalizePageBillingPlan(pageBillingPlan);
+  if ((plan === 'trial' || !billing.plan) && (mirrored === 'tier0' || mirrored === 'tier1')) {
+    plan = mirrored;
   }
+  const paidTier = !terminated && (plan === 'tier0' || plan === 'tier1');
+  const effectiveStatus = st || (paidTier ? 'active' : '');
+  return {
+    plan,
+    status: effectiveStatus,
+    stripe_customer_id: billing.stripe_customer_id || '',
+    stripe_subscription_id: billing.stripe_subscription_id || '',
+    current_period_end: billing.current_period_end || '',
+    cancel_at_period_end: billing.cancel_at_period_end === true,
+    cancel_at: trial.cancel_at ?? null,
+    trial_started_at: trial.trial_started_at,
+    selected_plan: trial.selected_plan ?? null,
+    payment_completed:
+      paidTier &&
+      (!st ||
+        st === 'active' ||
+        st === 'trialing' ||
+        st === 'past_due' ||
+        st === 'unpaid' ||
+        trial.payment_completed === true),
+  };
+}
 
-  window.DFOPS_billingRowToSubscriptionView = billingRowToSubscriptionView;
-  window.DFOPS_stripBillingFromContentSubscription = stripBillingFromContentSubscription;
-})();
+function stripBillingFromContentSubscription(sub) {
+  const trial = sub && typeof sub === 'object' ? sub : {};
+  const out = {
+    plan: 'trial',
+    trial_started_at:
+      typeof trial.trial_started_at === 'string' && trial.trial_started_at.trim()
+        ? trial.trial_started_at.trim()
+        : new Date().toISOString(),
+    selected_plan: trial.selected_plan ?? null,
+  };
+  if (trial.payment_completed === true) out.payment_completed = true;
+  return out;
+}
 
 function adminMixinUi(ctx) {
   const {
@@ -784,56 +785,11 @@ function adminMixinUi(ctx) {
       get styleBundles() { return cfg.bundlesByTheme[this.theme] || []; },
       get billingSubscriptionView() {
         const trialSub = this.content?.pl?.settings?.subscription;
-        const merge = window.DFOPS_billingRowToSubscriptionView;
-        if (typeof merge === 'function') {
-          return merge(this.billingProfile, trialSub, this.pageBillingPlan);
-        }
-        const bp = this.billingProfile;
-        const pagePlan = String(this.pageBillingPlan || '').trim().toLowerCase();
-        if (bp && typeof bp === 'object') {
-          const st = String(bp.status || '').trim().toLowerCase();
-          const terminated = st === 'canceled' || st === 'cancelled' || st === 'incomplete_expired';
-          let plan = terminated ? 'trial' : String(bp.plan || pagePlan || 'trial').trim().toLowerCase();
-          if (plan === 'tier2' || plan === 'premium') plan = 'tier1';
-          if ((plan === 'trial' || !bp.plan) && (pagePlan === 'tier0' || pagePlan === 'tier1')) {
-            plan = pagePlan;
-          }
-          const paidTier = !terminated && (plan === 'tier0' || plan === 'tier1');
-          const effectiveStatus = st || (paidTier ? 'active' : '');
-          return {
-            plan,
-            status: effectiveStatus,
-            stripe_customer_id: bp.stripe_customer_id || '',
-            stripe_subscription_id: bp.stripe_subscription_id || '',
-            current_period_end: bp.current_period_end || '',
-            cancel_at_period_end: bp.cancel_at_period_end === true,
-            cancel_at: trialSub?.cancel_at ?? null,
-            trial_started_at: trialSub?.trial_started_at ?? null,
-            selected_plan: trialSub?.selected_plan ?? null,
-            payment_completed:
-              paidTier &&
-              (!st ||
-                st === 'active' ||
-                st === 'trialing' ||
-                st === 'past_due' ||
-                st === 'unpaid'),
-          };
-        }
-        if (pagePlan === 'tier0' || pagePlan === 'tier1') {
-          return {
-            plan: pagePlan,
-            status: 'active',
-            payment_completed: true,
-            stripe_customer_id: '',
-            stripe_subscription_id: '',
-            current_period_end: '',
-            cancel_at_period_end: false,
-            cancel_at: trialSub?.cancel_at ?? null,
-            trial_started_at: trialSub?.trial_started_at ?? null,
-            selected_plan: trialSub?.selected_plan ?? null,
-          };
-        }
-        return trialSub && typeof trialSub === 'object' ? trialSub : { plan: 'trial' };
+        return billingRowToSubscriptionView(
+          snapshotBillingProfileRow(this.billingProfile),
+          trialSub,
+          this.pageBillingPlan,
+        );
       },
       /** Panel gotowy do renderu (treść + profil billing po zalogowaniu). */
       get panelContentReady() {
@@ -4231,4 +4187,6 @@ function createAdminApp() {
   window.createAdminApp = createAdminApp;
   window.DFOPS_adminAlpineState = buildAdminAlpineState;
   window.DFOPS_createAdminContentShell = createAdminContentShell;
+  window.DFOPS_billingRowToSubscriptionView = billingRowToSubscriptionView;
+  window.DFOPS_stripBillingFromContentSubscription = stripBillingFromContentSubscription;
 })();

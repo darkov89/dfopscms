@@ -18,56 +18,11 @@ function adminMixinUi(ctx) {
       get styleBundles() { return cfg.bundlesByTheme[this.theme] || []; },
       get billingSubscriptionView() {
         const trialSub = this.content?.pl?.settings?.subscription;
-        const merge = window.DFOPS_billingRowToSubscriptionView;
-        if (typeof merge === 'function') {
-          return merge(this.billingProfile, trialSub, this.pageBillingPlan);
-        }
-        const bp = this.billingProfile;
-        const pagePlan = String(this.pageBillingPlan || '').trim().toLowerCase();
-        if (bp && typeof bp === 'object') {
-          const st = String(bp.status || '').trim().toLowerCase();
-          const terminated = st === 'canceled' || st === 'cancelled' || st === 'incomplete_expired';
-          let plan = terminated ? 'trial' : String(bp.plan || pagePlan || 'trial').trim().toLowerCase();
-          if (plan === 'tier2' || plan === 'premium') plan = 'tier1';
-          if ((plan === 'trial' || !bp.plan) && (pagePlan === 'tier0' || pagePlan === 'tier1')) {
-            plan = pagePlan;
-          }
-          const paidTier = !terminated && (plan === 'tier0' || plan === 'tier1');
-          const effectiveStatus = st || (paidTier ? 'active' : '');
-          return {
-            plan,
-            status: effectiveStatus,
-            stripe_customer_id: bp.stripe_customer_id || '',
-            stripe_subscription_id: bp.stripe_subscription_id || '',
-            current_period_end: bp.current_period_end || '',
-            cancel_at_period_end: bp.cancel_at_period_end === true,
-            cancel_at: trialSub?.cancel_at ?? null,
-            trial_started_at: trialSub?.trial_started_at ?? null,
-            selected_plan: trialSub?.selected_plan ?? null,
-            payment_completed:
-              paidTier &&
-              (!st ||
-                st === 'active' ||
-                st === 'trialing' ||
-                st === 'past_due' ||
-                st === 'unpaid'),
-          };
-        }
-        if (pagePlan === 'tier0' || pagePlan === 'tier1') {
-          return {
-            plan: pagePlan,
-            status: 'active',
-            payment_completed: true,
-            stripe_customer_id: '',
-            stripe_subscription_id: '',
-            current_period_end: '',
-            cancel_at_period_end: false,
-            cancel_at: trialSub?.cancel_at ?? null,
-            trial_started_at: trialSub?.trial_started_at ?? null,
-            selected_plan: trialSub?.selected_plan ?? null,
-          };
-        }
-        return trialSub && typeof trialSub === 'object' ? trialSub : { plan: 'trial' };
+        return billingRowToSubscriptionView(
+          snapshotBillingProfileRow(this.billingProfile),
+          trialSub,
+          this.pageBillingPlan,
+        );
       },
       /** Panel gotowy do renderu (treść + profil billing po zalogowaniu). */
       get panelContentReady() {
