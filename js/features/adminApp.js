@@ -1350,6 +1350,24 @@
         return themeHasSection(this.theme, 'manifesto');
       },
 
+      /** Czy grupa „Więcej treści” ma choć jedną pozycję (ukryj pusty akordeon, np. gastro). */
+      navGroupMoreHasItems() {
+        return (
+          this.adminManifestoTabVisible() ||
+          this.adminTabVisible('care_profile') ||
+          this.adminTabVisible('trust') ||
+          this.adminTabVisible('faq') ||
+          this.adminTabVisible('google_reviews') ||
+          this.adminTabVisible('reviews') ||
+          this.adminTabVisible('schedule')
+        );
+      },
+
+      /** Etykieta zakładki care_profile w menu — nie duplikuj „O nas” obok manifesto. */
+      careProfileNavLabel() {
+        return this.adminManifestoTabVisible() ? 'Gabinet i certyfikaty' : 'O nas';
+      },
+
       /** Gdy zmieni się motyw (lub wczytano stronę), ukryte zakładki nie zostawiają pustego widoku. */
       ensureActiveTabForTheme() {
         const t = String(this.theme || '').trim();

@@ -46,7 +46,7 @@
     <script defer src="js/core/googlePlacesSync.js?v=20260522d"></script>
     <script defer src="js/core/analytics.js?v=20260403t"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260703b"></script>
+    <script defer src="js/features/adminApp.js?v=20260703c"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -810,20 +810,20 @@
                         </div>
 
                         <!-- GRUPA 2: Więcej treści -->
-                        <div class="mb-1 mt-3 border-t border-slate-200/80 pt-3">
+                        <div x-show="navGroupMoreHasItems()" x-cloak class="mb-1 mt-3 border-t border-slate-200/80 pt-3">
                             <button type="button" @click="navGroupMore = !navGroupMore" class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-bold uppercase tracking-widest text-slate-500 transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35" :aria-expanded="navGroupMore ? 'true' : 'false'">
                                 <span>Więcej treści</span>
                                 <span class="text-slate-400" x-text="navGroupMore ? '▾' : '▸'" aria-hidden="true"></span>
                             </button>
                             <div x-show="navGroupMore" class="mt-0.5 space-y-0.5">
-                                <div x-show="adminManifestoTabVisible()" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('about') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                <div x-show="adminManifestoTabVisible()" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('about') && activeTab === 'manifesto' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
                                     <button type="button" @click="setTab('manifesto')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
-                                        <span :class="isSidebarNavActive('about') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">O nas</span>
+                                        <span :class="activeTab === 'manifesto' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">O nas</span>
                                     </button>
                                 </div>
-                                <div x-show="adminTabVisible('care_profile')" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('about') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                <div x-show="adminTabVisible('care_profile')" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('about') && activeTab === 'care_profile' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
                                     <button type="button" @click="setTab('care_profile')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
-                                        <span :class="isSidebarNavActive('about') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">O nas</span>
+                                        <span :class="activeTab === 'care_profile' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug" x-text="careProfileNavLabel()"></span>
                                     </button>
                                 </div>
                                 <div x-show="adminTabVisible('trust')" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('trust') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
