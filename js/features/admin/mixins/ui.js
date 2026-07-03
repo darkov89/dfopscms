@@ -619,39 +619,6 @@ function adminMixinUi(ctx) {
       get forcedResetPasswordHintClass() {
         return this.canSubmitForcedPasswordReset ? 'text-emerald-700' : 'text-amber-800';
       },
-      get subscriptionRenewalDateFormatted() {
-        const raw = this.billingSubscriptionView?.current_period_end;
-        if (typeof window.DFOPS_formatSubscriptionPeriodEndPl === 'function') {
-          return window.DFOPS_formatSubscriptionPeriodEndPl(raw);
-        }
-        if (raw == null || raw === '') return '—';
-        try {
-          const d = new Date(typeof raw === 'number' ? raw * 1000 : String(raw));
-          if (Number.isNaN(d.getTime())) return '—';
-          return d.toLocaleDateString('pl-PL', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-          });
-        } catch {
-          return '—';
-        }
-      },
-      /** Krótka data (np. badge „Wygasa 3.06.2026”) — zgodna z timezone przeglądarki jak `subscriptionRenewalDateFormatted`. */
-      get subscriptionRenewalDateBadgeShort() {
-        const raw = this.billingSubscriptionView?.current_period_end;
-        if (raw == null || raw === '') return '—';
-        try {
-          const d = new Date(typeof raw === 'number' ? raw * 1000 : String(raw));
-          if (Number.isNaN(d.getTime())) return '—';
-          const day = d.getDate();
-          const month = String(d.getMonth() + 1).padStart(2, '0');
-          const year = d.getFullYear();
-          return `${day}.${month}.${year}`;
-        } catch {
-          return '—';
-        }
-      },
 
       isLocked() {
         return false;

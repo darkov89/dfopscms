@@ -289,6 +289,7 @@ function adminMixinBilling(ctx) {
           billingSubscriptionView: { ...this.billingSubscriptionView },
           subscriptionPlan: this.subscriptionPlan,
           hasActivePaidSubscription: this.hasActivePaidSubscription,
+          subscriptionRenewalDateFormatted: this.subscriptionRenewalDateFormatted,
           planUtilsFn: typeof window.DFOPS_hasPaidSubscriptionAccess,
         };
         if (!Array.isArray(this.billingDebugLog)) this.billingDebugLog = [];

@@ -809,6 +809,9 @@ function applyBillingSubscriptionView(ctx) {
   ctx.billingSubscriptionView = view;
   ctx.subscriptionPlan = view.plan || 'trial';
   ctx.hasActivePaidSubscription = computeHasActivePaidSubscription(view);
+  const periodEnd = view.current_period_end;
+  ctx.subscriptionRenewalDateFormatted = formatSubscriptionRenewalDatePl(periodEnd);
+  ctx.subscriptionRenewalDateBadgeShort = formatSubscriptionRenewalDateBadgeShort(periodEnd);
   return view;
 }
 
@@ -832,6 +835,38 @@ function billingDebugEnabledFromLocation() {
     return localStorage.getItem('dfcms_billing_debug') === '1';
   } catch {
     return false;
+  }
+}
+
+function formatSubscriptionRenewalDatePl(raw) {
+  if (typeof window.DFOPS_formatSubscriptionPeriodEndPl === 'function') {
+    return window.DFOPS_formatSubscriptionPeriodEndPl(raw);
+  }
+  if (raw == null || raw === '') return '—';
+  try {
+    const d = new Date(typeof raw === 'number' ? raw * 1000 : String(raw));
+    if (Number.isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString('pl-PL', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  } catch {
+    return '—';
+  }
+}
+
+function formatSubscriptionRenewalDateBadgeShort(raw) {
+  if (raw == null || raw === '') return '—';
+  try {
+    const d = new Date(typeof raw === 'number' ? raw * 1000 : String(raw));
+    if (Number.isNaN(d.getTime())) return '—';
+    const day = d.getDate();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}.${month}.${year}`;
+  } catch {
+    return '—';
   }
 }
 
@@ -1456,39 +1491,6 @@ function adminMixinUi(ctx) {
       get forcedResetPasswordHintClass() {
         return this.canSubmitForcedPasswordReset ? 'text-emerald-700' : 'text-amber-800';
       },
-      get subscriptionRenewalDateFormatted() {
-        const raw = this.billingSubscriptionView?.current_period_end;
-        if (typeof window.DFOPS_formatSubscriptionPeriodEndPl === 'function') {
-          return window.DFOPS_formatSubscriptionPeriodEndPl(raw);
-        }
-        if (raw == null || raw === '') return '—';
-        try {
-          const d = new Date(typeof raw === 'number' ? raw * 1000 : String(raw));
-          if (Number.isNaN(d.getTime())) return '—';
-          return d.toLocaleDateString('pl-PL', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-          });
-        } catch {
-          return '—';
-        }
-      },
-      /** Krótka data (np. badge „Wygasa 3.06.2026”) — zgodna z timezone przeglądarki jak `subscriptionRenewalDateFormatted`. */
-      get subscriptionRenewalDateBadgeShort() {
-        const raw = this.billingSubscriptionView?.current_period_end;
-        if (raw == null || raw === '') return '—';
-        try {
-          const d = new Date(typeof raw === 'number' ? raw * 1000 : String(raw));
-          if (Number.isNaN(d.getTime())) return '—';
-          const day = d.getDate();
-          const month = String(d.getMonth() + 1).padStart(2, '0');
-          const year = d.getFullYear();
-          return `${day}.${month}.${year}`;
-        } catch {
-          return '—';
-        }
-      },
 
       isLocked() {
         return false;
@@ -1986,6 +1988,8 @@ function adminMixinAuth(ctx) {
         this.billingSubscriptionView = emptyBillingSubscriptionView();
         this.subscriptionPlan = 'trial';
         this.hasActivePaidSubscription = false;
+        this.subscriptionRenewalDateFormatted = '—';
+        this.subscriptionRenewalDateBadgeShort = '—';
         this.billingDebugLog = [];
         this.billingProfileReady = false;
         this._billingStatusToastShown = false;
@@ -3062,6 +3066,7 @@ function adminMixinBilling(ctx) {
           billingSubscriptionView: { ...this.billingSubscriptionView },
           subscriptionPlan: this.subscriptionPlan,
           hasActivePaidSubscription: this.hasActivePaidSubscription,
+          subscriptionRenewalDateFormatted: this.subscriptionRenewalDateFormatted,
           planUtilsFn: typeof window.DFOPS_hasPaidSubscriptionAccess,
         };
         if (!Array.isArray(this.billingDebugLog)) this.billingDebugLog = [];
@@ -4230,6 +4235,8 @@ function createAdminApp() {
       /** Ustawiane w applyBillingSubscriptionView — nie gettery (Alpine zamraża je przy init). */
       subscriptionPlan: 'trial',
       hasActivePaidSubscription: false,
+      subscriptionRenewalDateFormatted: '—',
+      subscriptionRenewalDateBadgeShort: '—',
       billingDebugLog: [],
       /** False do zakończenia pierwszego loadBillingProfile w bieżącej sesji panelu. */
       billingProfileReady: false,

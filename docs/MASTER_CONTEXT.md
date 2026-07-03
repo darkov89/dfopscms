@@ -378,6 +378,7 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
+| **2026-07-03** | **Billing UI — daty odnowienia:** `subscriptionRenewalDateFormatted` / `BadgeShort` jako jawne pola w `applyBillingSubscriptionView()` (getter zamrożony przy init → brak „Następna płatność”). |
 | **2026-07-03** | **Billing UI — Alpine gettery:** `subscriptionPlan` i `hasActivePaidSubscription` jako jawne pola (Alpine zamraża gettery przy init x-data); `applyBillingSubscriptionView()` ustawia trójkę pól naraz. |
 | **2026-07-03** | **Billing UI panel — reaktywność Alpine:** `billingSubscriptionView` jako jawny stan (nie getter wołający `window`); `js/features/admin/billingView.js` w bundlu `adminApp.js`; `refreshBillingSubscriptionView()` po `loadBillingProfile`/`loadData`; sync Stripe weryfikuje `hasActivePaidSubscription` przed toastem sukcesu; panel debug `?billing_debug=1` na zakładce Subskrypcja. |
 | **2026-07-03** | **Panel admin — JS mixiny:** `js/features/admin/` (shared + 6 mixinów domenowych) + `scripts/build-admin-app.mjs` / `split-admin-app.mjs`; `npm run build:admin-js`; `adminApp.js` generowany (IIFE + `Object.assign`); mixiny dostają `ctx` z `createAdminApp`; `js/features/admin/README.md`. |

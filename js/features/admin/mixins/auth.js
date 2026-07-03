@@ -350,6 +350,8 @@ function adminMixinAuth(ctx) {
         this.billingSubscriptionView = emptyBillingSubscriptionView();
         this.subscriptionPlan = 'trial';
         this.hasActivePaidSubscription = false;
+        this.subscriptionRenewalDateFormatted = '—';
+        this.subscriptionRenewalDateBadgeShort = '—';
         this.billingDebugLog = [];
         this.billingProfileReady = false;
         this._billingStatusToastShown = false;

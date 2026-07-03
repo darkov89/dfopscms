@@ -138,6 +138,9 @@ function applyBillingSubscriptionView(ctx) {
   ctx.billingSubscriptionView = view;
   ctx.subscriptionPlan = view.plan || 'trial';
   ctx.hasActivePaidSubscription = computeHasActivePaidSubscription(view);
+  const periodEnd = view.current_period_end;
+  ctx.subscriptionRenewalDateFormatted = formatSubscriptionRenewalDatePl(periodEnd);
+  ctx.subscriptionRenewalDateBadgeShort = formatSubscriptionRenewalDateBadgeShort(periodEnd);
   return view;
 }
 
@@ -161,5 +164,37 @@ function billingDebugEnabledFromLocation() {
     return localStorage.getItem('dfcms_billing_debug') === '1';
   } catch {
     return false;
+  }
+}
+
+function formatSubscriptionRenewalDatePl(raw) {
+  if (typeof window.DFOPS_formatSubscriptionPeriodEndPl === 'function') {
+    return window.DFOPS_formatSubscriptionPeriodEndPl(raw);
+  }
+  if (raw == null || raw === '') return '—';
+  try {
+    const d = new Date(typeof raw === 'number' ? raw * 1000 : String(raw));
+    if (Number.isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString('pl-PL', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  } catch {
+    return '—';
+  }
+}
+
+function formatSubscriptionRenewalDateBadgeShort(raw) {
+  if (raw == null || raw === '') return '—';
+  try {
+    const d = new Date(typeof raw === 'number' ? raw * 1000 : String(raw));
+    if (Number.isNaN(d.getTime())) return '—';
+    const day = d.getDate();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}.${month}.${year}`;
+  } catch {
+    return '—';
   }
 }

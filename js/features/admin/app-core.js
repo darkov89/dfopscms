@@ -115,6 +115,8 @@ function createAdminApp() {
       /** Ustawiane w applyBillingSubscriptionView — nie gettery (Alpine zamraża je przy init). */
       subscriptionPlan: 'trial',
       hasActivePaidSubscription: false,
+      subscriptionRenewalDateFormatted: '—',
+      subscriptionRenewalDateBadgeShort: '—',
       billingDebugLog: [],
       /** False do zakończenia pierwszego loadBillingProfile w bieżącej sesji panelu. */
       billingProfileReady: false,
