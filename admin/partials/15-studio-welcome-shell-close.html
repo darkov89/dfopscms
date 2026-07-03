@@ -1,0 +1,26 @@
+        <div x-show="showStudioWelcomeModal" x-cloak
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50"
+             @click.self="closeStudioWelcomeModal()"
+             role="presentation">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 md:p-10 text-center border border-gray-100 relative"
+                 @click.stop
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="studio-welcome-title">
+                <h2 id="studio-welcome-title" class="text-2xl font-black text-slate-900 mb-4">Witaj w swoim Studiu! ✨</h2>
+                <p class="text-sm text-slate-600 leading-relaxed mb-8">
+                    Fundamenty strony są gotowe — możesz teraz przejść przez zakładki we własnym tempie. W każdej chwili wrócisz do pełnego kreatora przyciskiem „Uruchom Kreator” w menu po lewej.
+                </p>
+                <button type="button" @click="closeStudioWelcomeModal()" class="w-full bg-[#D4AF37] hover:bg-[#c4a028] text-[#121212] font-bold py-4 px-6 rounded-xl text-sm tracking-widest uppercase transition-colors shadow-md">
+                    Zaczynamy eksplorację!
+                </button>
+            </div>
+        </div>
+    </div>
+

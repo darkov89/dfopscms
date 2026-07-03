@@ -24,14 +24,16 @@ Front: **http://localhost:3000** (`serve`). Nie otwieraj `admin.html` z `file://
 
 | Ścieżka | Znaczenie |
 |--------|-----------|
-| `admin.html`, `router.html`, `index.html`, `*.html` | Wejścia aplikacji i szablony (korzeń — ścieżki Cloudflare) |
+| `admin.html` (root) | **Generowany** panel CMS — `npm run build:admin` ze źródeł `admin/partials/` |
+| `admin/partials/` | Źródła HTML panelu (36 plików); edytuj tutaj, nie w korzeniu |
 | `js/core/`, `js/features/` | Logika klienta (`config.js`, `pageRepository.js`, `adminApp.js`, …) |
 | `data/seeds/demo_pages.json` | 6 demo katalogowych (`demo-beauty` … `demo-consultant`) — fallback na **localhost** gdy brak wiersza w Staging DB; SoT w migracji `20260616150000_*` |
 | `functions/_middleware.js` | Middleware **Cloudflare Pages** |
 | `supabase/functions/` | **Supabase Edge Functions** (Deno) |
 | `supabase/migrations/` | Migracje DB (baseline: `20260603072317_remote_schema.sql`) |
 | `docs/MASTER_CONTEXT.md`, `docs/PRODUCT_ROADMAP.md` | Kontekst techniczny i roadmap post-MVP |
-| `scripts/` | Generatory (migracja demo) |
+| `index.html`, `router.html`, … (root) | Pozostałe wejścia statyczne (Cloudflare Pages) |
+| `scripts/` | Generatory: demo seeds, **`build:admin`**, `split:admin` |
 
 ## Konfiguracja
 

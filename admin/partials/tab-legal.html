@@ -1,0 +1,47 @@
+                    <div x-show="activeTab === 'legal'" x-transition.opacity x-cloak>
+                        <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
+                            <div class="flex items-start gap-4">
+                                <div class="hidden h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-accent/10 text-accent sm:flex" aria-hidden="true">
+                                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.75h-.152c-3.196 0-6.1-1.248-8.25-3.286Z"/></svg>
+                                </div>
+                                <div>
+                                    <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Regulamin / RODO</h2>
+                                    <p class="text-sm text-slate-600 leading-relaxed max-w-3xl">DFCMS dba o Twoje bezpieczeństwo prawne. Wybierz sposób generowania Polityki Prywatności dla Twojej strony.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="max-w-4xl space-y-6">
+                            <section class="rounded-xl border border-slate-200/80 bg-white p-5 shadow-panel ring-1 ring-slate-900/5 md:p-6">
+                                <fieldset class="space-y-4">
+                                    <legend class="text-xs font-bold uppercase tracking-widest text-slate-500">Sposób generowania Polityki Prywatności</legend>
+
+                                    <label class="flex cursor-pointer gap-4 rounded-xl border p-4 transition-colors" :class="content.pl.privacy.mode === 'default' ? 'border-accent bg-amber-50/70 ring-1 ring-accent/20' : 'border-slate-200 hover:bg-slate-50'">
+                                        <input type="radio" name="privacy-mode" value="default" x-model="content.pl.privacy.mode" class="mt-1 border-slate-300 text-accent focus:ring-accent/40">
+                                        <span>
+                                            <span class="block text-sm font-bold text-slate-900">Użyj standardowej Polityki DFCMS (Zalecane)</span>
+                                            <span class="mt-1 block text-sm leading-relaxed text-slate-600">System automatycznie wygeneruje stronę z bezpiecznym, standardowym wzorem dostosowanym do małego biznesu.</span>
+                                        </span>
+                                    </label>
+
+                                    <label class="flex cursor-pointer gap-4 rounded-xl border p-4 transition-colors" :class="content.pl.privacy.mode === 'custom' ? 'border-accent bg-amber-50/70 ring-1 ring-accent/20' : 'border-slate-200 hover:bg-slate-50'">
+                                        <input type="radio" name="privacy-mode" value="custom" x-model="content.pl.privacy.mode" class="mt-1 border-slate-300 text-accent focus:ring-accent/40">
+                                        <span>
+                                            <span class="block text-sm font-bold text-slate-900">Mam własny dokument</span>
+                                            <span class="mt-1 block text-sm leading-relaxed text-slate-600">Wklej własną treść Polityki Prywatności. Zostanie oczyszczona przed publikacją.</span>
+                                        </span>
+                                    </label>
+                                </fieldset>
+
+                                <div x-show="content.pl.privacy.mode === 'custom'" x-transition.opacity class="mt-6" x-cloak>
+                                    <label for="privacy-custom-text" class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Własna Polityka Prywatności</label>
+                                    <textarea id="privacy-custom-text" x-model="content.pl.privacy.customText" rows="18" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 font-mono text-sm outline-none transition-all resize-y focus:border-transparent focus:ring-2 focus:ring-accent/30" placeholder="Wklej tutaj własny dokument..."></textarea>
+                                </div>
+                            </section>
+
+                            <div class="rounded-xl border border-amber-200/80 bg-amber-50 p-4 text-sm leading-relaxed text-amber-950 ring-1 ring-amber-900/5">
+                                Zgodnie z wymogami RODO, do Twojej polityki automatycznie dodamy obowiązkową klauzulę o infrastrukturze technologicznej (DFCMS, Supabase, Cloudflare).
+                            </div>
+                        </div>
+                    </div>
+

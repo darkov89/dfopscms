@@ -1,0 +1,39 @@
+                    <div x-show="activeTab === 'trust' && adminTabVisible('trust')" x-transition.opacity x-cloak>
+                        <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
+                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Dlaczego warto nas wybrać?</h2>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Krótki cytat i ocena — budują wiarygodność przed blokiem z Google. Wyłączona sekcja znika ze strony, ale treści zostają w Studiu.</p>
+                            <label class="flex items-center gap-4 cursor-pointer">
+                                <div class="relative">
+                                    <input type="checkbox" x-model="content.pl.settings.showTrust" class="sr-only peer">
+                                    <div class="w-11 h-6 rounded-full transition-colors peer-checked:bg-emerald-500 bg-gray-200"></div>
+                                    <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5 pointer-events-none"></div>
+                                </div>
+                                <span class="text-sm font-medium text-slate-900">Włącz sekcję Zaufanie</span>
+                            </label>
+                        </div>
+                        <div class="space-y-6 max-w-2xl">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Nagłówek sekcji</label>
+                                <input type="text" x-model="content.pl.trust.title" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:ring-2 focus:ring-accent/30 outline-none" placeholder="np. Polecają nas klienci">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Cytat</label>
+                                <textarea x-model="content.pl.trust.quote" rows="4" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm focus:ring-2 focus:ring-accent/30 outline-none resize-y" placeholder="Treść rekomendacji…"></textarea>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Podpis (np. imię)</label>
+                                    <input type="text" x-model="content.pl.trust.author" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:ring-2 focus:ring-accent/30 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Podtytuł (np. usługa · rok)</label>
+                                    <input type="text" x-model="content.pl.trust.subtitle" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:ring-2 focus:ring-accent/30 outline-none">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Liczba gwiazdek (1–5)</label>
+                                <input type="number" min="1" max="5" x-model.number="content.pl.trust.stars" class="w-28 rounded-lg border border-slate-200 px-4 py-3 focus:ring-2 focus:ring-accent/30 outline-none">
+                            </div>
+                        </div>
+                    </div>
+

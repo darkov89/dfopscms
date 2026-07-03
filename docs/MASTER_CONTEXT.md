@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-07-03 — przywrócono `data/seeds/demo_pages.json` (6 demo katalogowych)
+**Ostatnia aktualizacja treści:** 2026-07-03 — panel admin: partials + `npm run build:admin`
 
 ---
 
@@ -139,7 +139,7 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 
 **Progressive disclosure:** Kontakt (rezerwacje na górze; adres/mapa, WhatsApp, social w `<details>`); Baner (CTA w `<details>`; manifesto → osobna zakładka); Wygląd (logo + presety kolorów; reszta w „Ustawienia zaawansowane…”).
 
-**Implementacja:** całość w monolitach `admin.html` + `adminApp.js` — przy kolejnych zmianach IA rozważyć partials per zakładka (bez bundlera).
+**Monolity panelu:** logika w `adminApp.js` (~4k linii); HTML rozbity na `admin/partials/` (2026-07-03). Przy edycji UI panelu: partial → `npm run build:admin` → commit partials + `admin.html`.
 
 ### 1.5.1 Theme-aware panel (`themeConfig`) — wzorzec
 
@@ -318,7 +318,8 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 
 | Ścieżka | Rola |
 |---------|------|
-| `*.html` (root) | Wejścia Cloudflare Pages (`admin`, `index`, `router`, `rejestracja`, …) — świadomy kompromis ścieżek URL |
+| `*.html` (root) | Wejścia Cloudflare Pages (`index`, `router`, `rejestracja`, …); **`admin.html` generowany** |
+| `admin/partials/` | Źródła HTML panelu CMS (36 plików); `admin/manifest.json` + `npm run build:admin` |
 | `templates/` | **Szablony HTML** witryn klientów + `_base_template.html`, `_partials/` |
 | `js/core/` | Config, Supabase client, `pageRepository`, `themeConfig`, `planUtils`, sanitizacja |
 | `js/features/` | Aplikacje Alpine: `adminApp`, `publicSiteApp`, `routerApp`, … |
@@ -353,7 +354,7 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 |-------|------|
 | Konfiguracja klienta / ceny fallback | `js/core/config.js` |
 | Landing + cennik | `index.html#cennik`, `js/features/landingPricing.js` |
-| Panel — IA / logika tabów | `admin.html`, `js/features/adminApp.js` (§1.5.2) |
+| Panel — IA / logika tabów | `admin/partials/`, `admin.html` (build), `js/features/adminApp.js` (§1.5.2) |
 | Kontrakt JSON treści | `js/core/contentSchema.js`, `js/core/contentUpgrader.js` |
 | Domyślna treść motywów | `js/templates/registry.js` |
 | Panel subskrypcja | `admin.html`, `adminApp.js` |
@@ -374,6 +375,7 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
+| **2026-07-03** | **Panel admin — partials:** `admin/partials/` (36 plików) + `scripts/build-admin.mjs` / `split-admin-html.mjs`; `npm run build:admin`; `admin.html` generowany z banerem; byte-identyczny rebuild; `admin/README.md`. |
 | **2026-07-03** | **Repo — `data/seeds/demo_pages.json`:** przywrócone 6 demo katalogowych z migracji `20260616150000_*`; skrypt `extract-demo-seeds-from-migration.mjs`; README + MASTER §3.1/§3.7; localhost fallback demo bez wiersza w Staging DB. |
 | **2026-07-03** | **Repo — `_lead-generator-export/` gitignored:** archiwum GTM poza śledzeniem git (lokalna kopia / osobne repo); MASTER §3.7 zaktualizowany; pliki usunięte z indeksu git, pozostają na dysku. |
 | **2026-07-03** | **MASTER_CONTEXT — mapa repo i IA panelu:** §1.5.2 (dashboard, grupy sidebaru, aliasy hash, progressive disclosure); §3.7 mapa katalogów deploy/archiwum/gitignore; doprecyzowanie `registry.js` vs `templates/`; kontrakt `contentSchema.js`; znany dług `data/seeds`; poprawiony opis tour Driver.js. |

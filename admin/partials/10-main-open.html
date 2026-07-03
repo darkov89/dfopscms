@@ -1,0 +1,38 @@
+        <template x-if="panelContentReady && content && content.pl">
+        <main class="mx-auto mt-4 w-full max-w-6xl px-4 pb-16 md:mt-8 md:px-6 md:pb-24" x-transition.opacity>
+            <div x-show="isBillingCanceled" x-cloak class="mb-6 rounded-xl border border-red-200/90 bg-red-50 p-4 text-red-950 shadow-panel ring-1 ring-red-900/10">
+                <p class="text-sm font-medium leading-relaxed">Subskrypcja Stripe została <strong>zakończona</strong>. Widok publiczny strony jest wyłączony. Aby przywrócić dostęp, wykup pakiet ponownie lub wznów subskrypcję w portalu Stripe (jeśli dostępne).</p>
+            </div>
+            <div x-show="subscriptionPlan === 'trial' && !hasActivePaidSubscription && !isBillingCanceled" class="mb-6 flex flex-col gap-4 rounded-xl border border-amber-200/80 bg-amber-50 p-4 text-amber-950 shadow-panel ring-1 ring-amber-900/5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                <div class="font-medium text-sm space-y-1.5 flex-1">
+                    <p>⏳ <strong>Okres próbny (14 dni).</strong> Zostało: <strong x-text="trialDaysLeft"></strong> dni. Wybierz pakiet i dokończ płatność przed końcem próby — inaczej widok publiczny może zostać <strong>zablokowany</strong> (archiwizacja), zgodnie z regulaminem.</p>
+                    <p x-show="selectedPlanHumanLabel" class="text-xs font-normal text-amber-950/85 leading-relaxed" x-cloak>
+                        Zapisany wybór: <strong x-text="selectedPlanHumanLabel"></strong> — w sekcji Subskrypcja możesz dokończyć płatność (albo zmienić pakiet, dopóki trwa trial).
+                    </p>
+                </div>
+                <button type="button" @click="setTab('subscription')" class="w-full shrink-0 rounded-lg py-2 text-center text-xs font-bold uppercase tracking-widest text-amber-900 transition-colors hover:bg-amber-100/80 hover:underline sm:w-auto sm:py-0 sm:text-left">Subskrypcja →</button>
+            </div>
+            <div x-show="errorMessage" class="mb-6 flex items-center gap-3 rounded-xl border border-red-200/80 bg-red-50 p-4 text-red-900 shadow-panel ring-1 ring-red-900/5">
+                <span x-text="errorMessage" class="text-sm font-medium leading-relaxed"></span>
+            </div>
+
+            <div x-show="message" class="mb-6 flex items-center gap-3 rounded-xl border border-emerald-200/80 bg-emerald-50 p-4 text-emerald-900 shadow-panel ring-1 ring-emerald-900/5">
+                <span x-text="message" class="text-sm font-medium leading-relaxed"></span>
+            </div>
+
+            <div x-show="updateAvailable" class="mb-6 flex flex-col gap-4 rounded-xl border border-amber-200/80 bg-amber-50/90 p-4 text-amber-950 shadow-panel ring-1 ring-amber-900/5 md:flex-row md:items-center md:justify-between">
+                <div class="text-sm">
+                    <div class="font-bold uppercase tracking-widest text-xs mb-1">Dostępna aktualizacja szablonu</div>
+                    <div>
+                        Twoja wersja: <span class="font-mono font-bold" x-text="currentTemplateVersion"></span>
+                        → najnowsza: <span class="font-mono font-bold" x-text="latestTemplateVersion"></span>
+                    </div>
+                    <div class="text-xs text-amber-700 mt-1">Aktualizacja doda brakujące pola/sekcje. Twoje istniejące wartości pozostaną bez zmian.</div>
+                </div>
+                <button type="button" @click="upgradeTemplate()" :disabled="upgrading"
+                        class="w-full rounded-lg bg-amber-600 px-6 py-3 text-xs font-bold uppercase tracking-widest text-white shadow-panel transition-all hover:bg-amber-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto">
+                    <span x-show="!upgrading">Upgrade do v<span x-text="latestTemplateVersion"></span></span>
+                    <span x-show="upgrading" class="animate-pulse">Aktualizuję…</span>
+                </button>
+            </div>
+

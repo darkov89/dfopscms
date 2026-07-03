@@ -1,0 +1,35 @@
+                    <div x-show="activeTab === 'care_profile' && adminTabVisible('care_profile')" x-transition.opacity x-cloak>
+                        <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
+                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Informacje o gabinecie</h2>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl">Obszary pomocy i certyfikaty widoczne w szablonie Care — puste sekcje znikają ze strony.</p>
+                        </div>
+                        <div class="space-y-8">
+                            <div x-show="themeHasSection('help_areas')">
+                                <h3 class="text-sm font-bold text-slate-900 mb-4">Obszary pomocy</h3>
+                                <template x-for="(area, index) in (content.pl.help_areas || [])" :key="'ha-'+index">
+                                    <div class="bg-gray-50 p-5 rounded-lg border mb-4 relative">
+                                        <button type="button" @click="content.pl.help_areas.splice(index, 1)" class="absolute top-3 right-3 text-red-400 text-xs">Usuń</button>
+                                        <div class="space-y-3 pr-10">
+                                            <input type="text" x-model="area.title" placeholder="Tytuł" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm font-bold bg-white outline-none focus:ring-2 focus:ring-accent/30">
+                                            <textarea x-model="area.desc" rows="2" placeholder="Krótki opis" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-accent/30 resize-y"></textarea>
+                                        </div>
+                                    </div>
+                                </template>
+                                <button type="button" @click="(content.pl.help_areas = content.pl.help_areas || []).push({ title: '', desc: '' })" class="w-full border-2 border-dashed border-gray-300 text-slate-600 text-sm py-3 rounded-sm hover:border-accent">+ Dodaj obszar pomocy</button>
+                            </div>
+                            <div x-show="themeHasSection('certificates')">
+                                <h3 class="text-sm font-bold text-slate-900 mb-4">Certyfikaty i uprawnienia</h3>
+                                <template x-for="(cert, index) in (content.pl.certificates || [])" :key="'cert-'+index">
+                                    <div class="bg-gray-50 p-5 rounded-lg border mb-4 relative">
+                                        <button type="button" @click="content.pl.certificates.splice(index, 1)" class="absolute top-3 right-3 text-red-400 text-xs">Usuń</button>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pr-10">
+                                            <input type="text" x-model="cert.title" placeholder="Nazwa" class="rounded-lg border border-slate-200 px-4 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-accent/30">
+                                            <input type="text" x-model="cert.issuer" placeholder="Wydawca / rok" class="rounded-lg border border-slate-200 px-4 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-accent/30">
+                                        </div>
+                                    </div>
+                                </template>
+                                <button type="button" @click="(content.pl.certificates = content.pl.certificates || []).push({ title: '', issuer: '' })" class="w-full border-2 border-dashed border-gray-300 text-slate-600 text-sm py-3 rounded-sm hover:border-accent">+ Dodaj certyfikat</button>
+                            </div>
+                        </div>
+                    </div>
+

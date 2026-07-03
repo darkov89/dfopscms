@@ -1,0 +1,65 @@
+                    <div x-show="activeTab === 'services' && adminTabVisible('services')" x-transition.opacity x-cloak>
+                        <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
+                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Usługi</h2>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Dostosuj swój cennik i usługi — klienci zobaczą je w przejrzystej formie, gdy włączysz sekcję.</p>
+                            <label class="flex items-center gap-4 cursor-pointer">
+                                <div class="relative">
+                                    <input type="checkbox" x-model="content.pl.settings.showServices" class="sr-only peer">
+                                    <div class="w-11 h-6 rounded-full transition-colors peer-checked:bg-emerald-500 bg-gray-200"></div>
+                                    <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5 pointer-events-none"></div>
+                                </div>
+                                <span class="text-sm font-medium text-slate-900">Włącz sekcję Usługi</span>
+                            </label>
+                            <div x-show="content.pl.settings.showServices && (!content.pl.services || content.pl.services.length === 0)" class="text-sm text-blue-700 bg-blue-50 border border-blue-100 p-4 rounded-xl mt-3 flex items-start gap-3">
+                                <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <p>✨ Sekcja cennika jest aktywna. Dodaj pierwszą usługę poniżej — wtedy klienci zobaczą ofertę na stronie.</p>
+                            </div>
+                        </div>
+                        <div class="space-y-6">
+                            <template x-for="(service, index) in content.pl.services" :key="index">
+                                <div class="bg-gray-50 p-6 rounded-sm border relative group mb-4">
+                                    <button @click="content.pl.services.splice(index, 1)" class="absolute top-4 right-4 text-red-400 hover:text-red-600 text-xs font-medium">Usuń</button>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Nazwa</label>
+                                            <input type="text" x-model="service.title" class="w-full rounded-lg border border-slate-200 px-4 py-2 font-bold focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white">
+                                        </div>
+                                        <div x-show="['beauty','fitness','services'].includes(theme)">
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Czas / zakres</label>
+                                            <input type="text" x-model="service.duration" placeholder="np. 1h 30min · do 24h" class="w-full rounded-lg border border-slate-200 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Cena</label>
+                                            <input type="text" x-model="service.price" placeholder="np. 400,00 zł" class="w-full rounded-lg border border-slate-200 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white text-[#D4AF37] font-bold">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Krótki opis (zawsze widoczny)</label>
+                                        <input type="text" x-model="service.desc" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white">
+                                    </div>
+                                    
+                                    <div x-show="['beauty','fitness','services'].includes(theme)">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Szczegóły (rozwijane na stronie)</label>
+                                        <textarea x-model="service.details" rows="2" placeholder="Dodatkowe informacje po rozwinięciu kafelka…" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white resize-y"></textarea>
+                                    </div>
+                                    <div x-show="theme === 'services'" class="mt-4">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Ikona kafelka</label>
+                                        <select x-model="service.icon" class="w-full max-w-xs rounded-lg border border-slate-200 px-4 py-2 text-sm bg-white focus:border-transparent focus:ring-2 focus:ring-accent/30 outline-none">
+                                            <option value="wrench">Klucz / narzędzia</option>
+                                            <option value="bolt">Błyskawica (elektryka)</option>
+                                            <option value="droplet">Kropla (hydraulika)</option>
+                                            <option value="cog">Zębatka (mechanika)</option>
+                                            <option value="pipe">Łączenie / instalacje</option>
+                                        </select>
+                                        <p class="text-xs text-slate-500 mt-1.5">Jeśli puste, zapisze się pierwsza z listy — możesz dopasować do każdej usługi.</p>
+                                    </div>
+                                </div>
+                            </template>
+                            <button type="button" @click="content.pl.services.push({ title: 'Nowa usługa', desc: '', price: '', duration: '', details: '', icon: 'wrench' })" class="w-full border-2 border-dashed border-gray-300 text-slate-600 font-semibold text-sm py-4 rounded-sm hover:bg-[#D4AF37] hover:text-white hover:border-[#D4AF37] transition-all">
+                                + Dodaj pozycję do cennika
+                            </button>
+                        </div>
+                    </div>
+

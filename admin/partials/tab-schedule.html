@@ -1,0 +1,32 @@
+                    <div x-show="activeTab === 'schedule' && adminTabVisible('schedule')" x-transition.opacity x-cloak>
+                        <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
+                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Grafik zajęć</h2>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-3">Wiersze wyświetlane w sekcji „Grafik” na stronie (szablon Fitness). Możesz dodać np. dni tygodnia, godziny otwarcia i krótką notatkę.</p>
+                            <p class="text-xs text-gray-500 leading-relaxed max-w-2xl">O tym, czy na stronie widać grafik, kalendarz czy przycisk rezerwacji, decyduje zakładka <button type="button" @click="setTab('booking')" class="font-bold text-accent hover:underline">Rezerwacje online</button>.</p>
+                        </div>
+                        <div class="space-y-4">
+                            <template x-for="(row, index) in (content.pl.schedule || [])" :key="'sched'+index">
+                                <div class="bg-gray-50 p-6 rounded-lg border border-slate-200 relative group">
+                                    <button type="button" @click="content.pl.schedule.splice(index, 1)" class="absolute top-4 right-4 text-red-400 hover:text-red-600 text-xs font-medium">Usuń</button>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pr-16">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Dzień / okres</label>
+                                            <input type="text" x-model="row.day" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm bg-white focus:ring-2 focus:ring-accent/30 outline-none" placeholder="np. Poniedziałek — Piątek">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Godziny</label>
+                                            <input type="text" x-model="row.time" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm bg-white focus:ring-2 focus:ring-accent/30 outline-none" placeholder="np. 9:00 — 18:00">
+                                        </div>
+                                        <div class="md:col-span-1">
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Notatka</label>
+                                            <input type="text" x-model="row.note" class="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm bg-white focus:ring-2 focus:ring-accent/30 outline-none" placeholder="Krótki opis">
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                            <button type="button" @click="(content.pl.schedule = content.pl.schedule || []).push({ day: '', time: '', note: '' })" class="w-full border-2 border-dashed border-gray-300 text-slate-600 font-semibold text-sm py-4 rounded-sm hover:bg-[#D4AF37] hover:text-white hover:border-[#D4AF37] transition-all">
+                                + Dodaj wiersz grafiku
+                            </button>
+                        </div>
+                    </div>
+

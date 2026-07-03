@@ -1,0 +1,130 @@
+                    <div class="dfops-admin-sidebar-scroll flex flex-col px-2 pb-4 pt-3">
+                        <a x-show="isSuperAdmin" x-cloak href="/godmode.html" class="mb-3 flex w-full items-center gap-3 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-left font-bold text-amber-950 shadow-panel transition-colors hover:border-accent hover:bg-amber-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2">
+                            <span class="text-xl shrink-0" aria-hidden="true">👑</span>
+                            <span class="min-w-0 flex-1 leading-snug">Master Dashboard</span>
+                        </a>
+
+                        <div class="mb-2 flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'dashboard' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                            <button type="button" @click="setTab('dashboard')" class="min-w-0 flex-1 rounded-r-lg py-3 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                <span :class="activeTab === 'dashboard' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Twoja strona</span>
+                            </button>
+                        </div>
+
+                        <!-- GRUPA 1: Na start -->
+                        <div class="mb-1 mt-2">
+                            <button type="button" @click="navGroupStart = !navGroupStart" class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-bold uppercase tracking-widest text-slate-500 transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35" :aria-expanded="navGroupStart ? 'true' : 'false'">
+                                <span>Na start</span>
+                                <span class="text-slate-400" x-text="navGroupStart ? '▾' : '▸'" aria-hidden="true"></span>
+                            </button>
+                            <div x-show="navGroupStart" class="mt-0.5 space-y-0.5">
+                                <div class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('hero') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('hero')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('hero') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Baner — pierwsze co widzi klient</span>
+                                    </button>
+                                </div>
+                                <div x-show="adminTabVisible('services')" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('offer') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('services')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('offer') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Twoja oferta i ceny</span>
+                                    </button>
+                                </div>
+                                <div x-show="adminTabVisible('menu')" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('offer') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('menu')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('offer') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Twoja oferta i ceny</span>
+                                    </button>
+                                </div>
+                                <div class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('contact') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('contact')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('contact') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="inline-flex items-center gap-1.5 leading-snug">Telefon, adres, mapa<span x-show="sidebarTabNeedsAttention('contact')" class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[10px] font-bold leading-none text-amber-800" title="Wymaga uwagi">!</span></span>
+                                    </button>
+                                </div>
+                                <div x-show="adminTabVisible('gallery')" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('gallery') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('gallery')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('gallery') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Zdjęcia Twoich prac</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- GRUPA 2: Więcej treści -->
+                        <div class="mb-1 mt-3 border-t border-slate-200/80 pt-3">
+                            <button type="button" @click="navGroupMore = !navGroupMore" class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-bold uppercase tracking-widest text-slate-500 transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35" :aria-expanded="navGroupMore ? 'true' : 'false'">
+                                <span>Więcej treści</span>
+                                <span class="text-slate-400" x-text="navGroupMore ? '▾' : '▸'" aria-hidden="true"></span>
+                            </button>
+                            <div x-show="navGroupMore" class="mt-0.5 space-y-0.5">
+                                <div x-show="adminManifestoTabVisible()" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('about') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('manifesto')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('about') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">O nas</span>
+                                    </button>
+                                </div>
+                                <div x-show="adminTabVisible('care_profile')" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('about') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('care_profile')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('about') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">O nas</span>
+                                    </button>
+                                </div>
+                                <div x-show="adminTabVisible('trust')" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('trust') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('trust')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('trust') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Dlaczego warto nas wybrać?</span>
+                                    </button>
+                                </div>
+                                <div x-show="adminTabVisible('faq')" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('faq') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('faq')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('faq') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Pytania klientów</span>
+                                    </button>
+                                </div>
+                                <div x-show="adminTabVisible('google_reviews') || adminTabVisible('reviews')" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('reviews') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('reviews')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('reviews') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Opinie</span>
+                                    </button>
+                                </div>
+                                <div x-show="adminTabVisible('schedule')" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('schedule') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('schedule')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('schedule') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Grafik zajęć</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- GRUPA 3: Ustawienia -->
+                        <div class="mb-1 mt-3 border-t border-slate-200/80 pt-3">
+                            <button type="button" @click="navGroupSettings = !navGroupSettings" class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-bold uppercase tracking-widest text-slate-500 transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35" :aria-expanded="navGroupSettings ? 'true' : 'false'">
+                                <span>Ustawienia</span>
+                                <span class="text-slate-400" x-text="navGroupSettings ? '▾' : '▸'" aria-hidden="true"></span>
+                            </button>
+                            <div x-show="navGroupSettings" class="mt-0.5 space-y-0.5">
+                                <div class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('settings') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('settings')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('settings') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="inline-flex items-center gap-1.5 leading-snug">Wygląd strony<span x-show="sidebarTabNeedsAttention('settings')" class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[10px] font-bold leading-none text-amber-800" title="Wymaga uwagi">!</span></span>
+                                    </button>
+                                </div>
+                                <div class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('seo') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('seo')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('seo') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Wyszukiwarka Google</span>
+                                    </button>
+                                </div>
+                                <div class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('legal') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('legal')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('legal') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Regulamin i RODO</span>
+                                    </button>
+                                </div>
+                                <div class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('account') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('account')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('account') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Konto i bezpieczeństwo</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 space-y-1 border-t border-slate-200/80 pt-4">
+                            <button type="button" id="dfcms-onboarding-nav-subscription" @click="setTab('subscription')" class="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-slate-600 transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35" :class="activeTab === 'subscription' ? 'bg-amber-50/60 font-bold text-slate-900' : ''">
+                                <span class="leading-snug">Subskrypcja i płatności</span>
+                            </button>
+                            <button type="button" id="dfcms-onboarding-wizard-btn" @click="mobileMenuOpen = false; openWizardFromStudio()" class="flex w-full items-center gap-3 rounded-xl bg-accent/10 px-3 py-2.5 text-left font-bold text-accent transition-colors hover:bg-accent/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2">
+                                <span class="text-lg shrink-0" aria-hidden="true">🪄</span>
+                                <span class="min-w-0 flex-1 leading-snug text-sm">Pomocnik krok po kroku</span>
+                                <span x-show="incompleteOnboardingChecks.length && !showWizard" x-cloak class="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-amber-200/90 px-1.5 text-[10px] font-bold tabular-nums text-amber-950" x-text="incompleteOnboardingChecks.length"></span>
+                            </button>
+                        </div>
+                    </div>
+                </aside>
+

@@ -1,0 +1,130 @@
+                    <div x-show="activeTab === 'contact'" x-transition.opacity x-cloak>
+                        <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
+                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Telefon, adres, mapa</h2>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Dane kontaktowe widoczne na stronie — telefon i e-mail to minimum, resztę możesz dodać później.</p>
+                            <label class="flex items-center gap-4 cursor-pointer">
+                                <div class="relative">
+                                    <input type="checkbox" x-model="content.pl.settings.showContact" class="sr-only peer">
+                                    <div class="w-11 h-6 rounded-full transition-colors peer-checked:bg-emerald-500 bg-gray-200"></div>
+                                    <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5 pointer-events-none"></div>
+                                </div>
+                                <span class="text-sm font-medium text-slate-900">Pokaż sekcję kontaktu na stronie</span>
+                            </label>
+                        </div>
+                        <div class="space-y-6">
+                            <template x-if="content.pl.contact">
+                                <div>
+                                    <div x-show="adminTabVisible('booking')" class="mb-8 rounded-xl border border-slate-200/70 bg-white p-5 shadow-panel ring-1 ring-slate-900/5 md:p-6 space-y-6">
+                                        <h3 class="text-sm font-bold text-slate-900">Jak klient ma się umówić?</h3>
+                                        <p class="text-xs text-slate-500 leading-relaxed">Booksy, Calendly lub prosty przycisk — wybierz sposób rezerwacji na stronie.</p>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Sposób rezerwacji</label>
+                                            <select x-model="content.pl.settings.booking_mode" @change="syncBookingSettings()" class="w-full rounded-lg border border-slate-200 px-4 py-3 bg-white focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none text-sm">
+                                                <option value="schedule" x-text="theme === 'fitness' ? 'Wyświetlaj tylko mój grafik (tabela dni i godzin)' : 'Bez rezerwacji online (standardowy widok strony)'"></option>
+                                                <option value="embed">Pokaż kalendarz rezerwacji na stronie (np. Calendly)</option>
+                                                <option value="button">Pokaż tylko przycisk rezerwacji (np. Booksy)</option>
+                                                <option value="both" x-text="theme === 'fitness' ? 'Wyświetlaj grafik oraz przycisk rezerwacji pod nim' : 'Standardowy widok oraz przycisk rezerwacji'"></option>
+                                            </select>
+                                        </div>
+                                        <div x-show="content.pl.settings.booking_mode !== 'schedule'" x-transition.opacity x-cloak>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Link do rezerwacji</label>
+                                            <input type="text" x-model="content.pl.contact.booking_url" @blur="syncBookingSettings()" autocomplete="off" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none text-sm" placeholder="https://booksy.com/… lub https://calendly.com/…">
+                                        </div>
+                                        <p x-show="theme === 'fitness'" x-cloak class="text-xs text-slate-500">Grafik edytujesz w sekcji <button type="button" @click="setTab('schedule')" class="font-bold text-accent hover:underline">Grafik zajęć</button>.</p>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Telefon</label>
+                                        <input type="text" x-model="content.pl.contact.phone" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="np. +48 600 123 456">
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">E-mail</label>
+                                        <input type="email" x-model="content.pl.contact.email" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="np. kontakt@twojafirma.pl">
+                                    </div>
+
+                                    <details class="mb-4 border border-slate-200/80 rounded-xl p-4 md:p-5">
+                                        <summary class="cursor-pointer text-sm font-bold text-slate-900">Adres i mapa Google</summary>
+                                        <div class="mt-4 space-y-4">
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Adres</label>
+                                                <input type="text" x-model="content.pl.contact.address" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                            </div>
+                                            <div x-show="['beauty','consultant','fitness','services'].includes(theme)">
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Mapa Google</label>
+                                                <input type="text" x-model="content.pl.contact.map_embed_url" autocomplete="off" class="w-full rounded-lg border border-slate-200 px-4 py-3 mb-3 outline-none focus:ring-2 focus:ring-[#D4AF37]" placeholder="Link z Google Maps (Udostępnij → Umieść mapę)">
+                                                <div class="flex gap-2 mb-3">
+                                                    <input type="text" x-model="mapPlaceQuery" @keydown.enter.prevent="searchPlacesForMap()" placeholder="Szukaj firmy po nazwie lub adresie" class="flex-1 rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#D4AF37]">
+                                                    <button type="button" @click="searchPlacesForMap()" :disabled="mapPlaceLoading" class="shrink-0 px-5 py-3 bg-[#121212] text-white text-xs font-bold uppercase rounded-sm disabled:opacity-50">Szukaj</button>
+                                                </div>
+                                                <p x-show="mapPlaceError" class="text-xs text-red-600 mb-2" x-text="mapPlaceError"></p>
+                                                <ul x-show="mapPlaceResults.length" class="border border-gray-200 rounded-sm divide-y divide-gray-100 max-h-56 overflow-y-auto mb-3">
+                                                    <template x-for="p in mapPlaceResults" :key="p.id">
+                                                        <li class="flex items-start gap-3 p-3 hover:bg-slate-50/90 cursor-pointer" @click="mapPlaceSelectedId = p.id">
+                                                            <input type="radio" :value="p.id" x-model="mapPlaceSelectedId" class="mt-1">
+                                                            <div class="min-w-0">
+                                                                <div class="text-sm font-semibold text-slate-900" x-text="p.name"></div>
+                                                                <div class="text-xs text-slate-500 mt-0.5" x-text="p.address"></div>
+                                                            </div>
+                                                        </li>
+                                                    </template>
+                                                </ul>
+                                                <div class="flex flex-wrap gap-2">
+                                                    <button type="button" x-show="mapPlaceSelectedId" @click="confirmMapPlaceSelection()" class="px-5 py-2.5 bg-emerald-600 text-white text-xs font-bold uppercase rounded-sm">Użyj lokalizacji</button>
+                                                    <button type="button" x-show="content.pl.contact?.map_place_id" @click="clearMapPlaceSelection()" class="px-5 py-2.5 border border-gray-300 text-xs font-bold uppercase rounded-sm">Usuń mapę</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </details>
+
+                                    <details class="mb-4 border border-slate-200/80 rounded-xl p-4 md:p-5">
+                                        <summary class="cursor-pointer text-sm font-bold text-slate-900">Szybki czat (WhatsApp / Messenger)</summary>
+                                        <div class="relative mt-4 rounded-xl border border-slate-200/80 bg-slate-50/60 p-4 space-y-4" :class="isQuickChatLocked ? 'opacity-60' : ''">
+                                            <div :class="isQuickChatLocked ? 'pointer-events-none' : ''">
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Numer WhatsApp</label>
+                                                <input type="text" x-model="content.pl.contact.whatsapp" @focus="onQuickChatInputGuard()" autocomplete="off" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="+48 600 123 456">
+                                            </div>
+                                            <div :class="isQuickChatLocked ? 'pointer-events-none' : ''">
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Link Messenger</label>
+                                                <input type="text" x-model="content.pl.contact.messenger" @focus="onQuickChatInputGuard()" autocomplete="off" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="https://m.me/TwojaStrona">
+                                            </div>
+                                            <button type="button" x-show="isQuickChatLocked" x-cloak @click="promptQuickChatUpgrade()" class="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/40 cursor-pointer" aria-label="Odblokuj szybki kontakt">
+                                                <span class="rounded-full bg-white px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-800 shadow-md ring-1 ring-slate-200">Niedostępne w Starterze</span>
+                                            </button>
+                                        </div>
+                                    </details>
+
+                                    <details class="border border-slate-200/80 rounded-xl p-4 md:p-5">
+                                        <summary class="cursor-pointer text-sm font-bold text-slate-900">Media społecznościowe</summary>
+                                        <div class="mt-4 space-y-4">
+                                            <div x-show="theme === 'consultant'">
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">LinkedIn</label>
+                                                <input type="url" x-model="content.pl.social.linkedin" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="https://linkedin.com/in/...">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Facebook</label>
+                                                <input type="url" x-model="content.pl.social.facebook" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="https://facebook.com/...">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Instagram</label>
+                                                <input type="url" x-model="content.pl.social.instagram" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="https://instagram.com/...">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">TikTok</label>
+                                                <input type="url" x-model="content.pl.social.tiktok" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="https://tiktok.com/@...">
+                                            </div>
+                                            <div x-show="theme === 'consultant'">
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">X (Twitter)</label>
+                                                <input type="url" x-model="content.pl.social.twitter" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="https://x.com/...">
+                                            </div>
+                                            <div x-show="theme === 'consultant'">
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">YouTube</label>
+                                                <input type="url" x-model="content.pl.social.youtube" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="https://youtube.com/@...">
+                                            </div>
+                                        </div>
+                                    </details>
+
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+

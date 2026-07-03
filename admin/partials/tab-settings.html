@@ -1,0 +1,294 @@
+                    <div x-show="activeTab === 'settings'" x-transition.opacity x-cloak>
+                        <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
+                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Wygląd strony</h2>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl">Nazwa firmy, logo i kolory — to pierwsze, co warto ustawić. Reszta opcji jest w sekcji zaawansowanej poniżej.</p>
+                        </div>
+
+                        <div class="space-y-8 max-w-4xl">
+                            <!-- 1 Marka -->
+                            <section class="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-panel ring-1 ring-slate-900/5">
+                                <div class="border-b border-slate-200/60 bg-slate-50/80 px-5 py-3.5 flex flex-wrap items-baseline justify-between gap-2">
+                                    <div>
+                                        <h3 class="text-sm font-bold text-slate-900 uppercase tracking-widest">Nazwa firmy i logo</h3>
+                                        <p class="text-xs text-slate-500 mt-1">To widzą goście obok menu — nazwa i opcjonalnie grafika.</p>
+                                    </div>
+                                    
+                                </div>
+                                <div class="p-5 md:p-6 space-y-6">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Nazwa w menu (tekst)</label>
+                                        <input type="text" x-model="content.pl.nav.logo" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Krótka nazwa marki lub podpis — obok grafiki jako „tekstowe logo”.</p>
+                                    </div>
+                                    <div id="dfcms-onboarding-logo">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Logo graficzne</label>
+                                        <div class="flex flex-col sm:flex-row items-start gap-6">
+                                            <div class="flex flex-col items-center shrink-0">
+                                                <div class="w-40 h-16 rounded-sm border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-100 p-2">
+                                                    <template x-if="content.pl.nav.logoImage">
+                                                        <img :src="content.pl.nav.logoImage" class="w-full h-full object-contain mix-blend-multiply" alt="">
+                                                    </template>
+                                                    <template x-if="!content.pl.nav.logoImage">
+                                                        <span class="text-[10px] text-slate-500 uppercase tracking-widest text-center">Brak pliku</span>
+                                                    </template>
+                                                </div>
+                                                <template x-if="content.pl.nav.logoImage">
+                                                    <button type="button" @click="content.pl.nav.logoImage = ''" class="mt-2 text-[10px] text-red-500 hover:text-red-700 font-bold uppercase tracking-widest">Usuń grafikę</button>
+                                                </template>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <input type="file" accept="image/*" @change="uploadImage($event, 'nav', 'logoImage')" class="text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-sm file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-widest file:bg-[#121212] file:text-[#D4AF37] hover:file:bg-gray-800 cursor-pointer transition-colors w-full">
+                                                <p class="text-xs text-slate-500 mt-2 leading-relaxed">PNG lub SVG z przezroczystym tłem. Po wgraniu kliknij <strong>Publikuj zmiany</strong>.</p>
+                                                <p x-show="uploadingImage" x-text="uploadingMessage" class="text-xs text-[#D4AF37] mt-2 font-bold animate-pulse"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- 2 Wygląd -->
+                            <section class="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-panel ring-1 ring-slate-900/5">
+                                <div class="border-b border-slate-200/60 bg-slate-50/80 px-5 py-3.5 flex flex-wrap items-baseline justify-between gap-2">
+                                    <div>
+                                        <h3 class="text-sm font-bold text-slate-900 uppercase tracking-widest">Kolory i styl</h3>
+                                        <p class="text-xs text-slate-500 mt-1">Gotowe zestawy kolorów, tło i czcionki — podgląd w panelu od razu po zmianie.</p>
+                                    </div>
+                                    
+                                </div>
+                                <div class="p-5 md:p-6 space-y-8">
+                                    <div>
+                                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-widest mb-3">Gotowe zestawy kolorów</h4>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Zestaw kolorów</label>
+                                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                            <template x-for="preset in availablePresets" :key="preset.id">
+                                                <button type="button"
+                                                        @click="selectColorPreset(preset)"
+                                                        class="relative rounded-sm border-2 p-3 text-left transition-all hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                                                        :class="{
+                                                            'border-[#D4AF37] ring-1 ring-[#D4AF37]/30': isColorPresetActive(preset),
+                                                            'border-gray-200': !isColorPresetActive(preset)
+                                                        }">
+                                                    <div class="flex items-center gap-2">
+                                                        <div class="w-8 h-8 rounded-sm border border-gray-300 shrink-0 shadow-inner" :style="'background:' + presetSwatchColor(preset.id)"></div>
+                                                        <span class="text-xs font-semibold text-slate-800 leading-tight" x-text="preset.label"></span>
+                                                    </div>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                    <div class="pt-6 border-t border-gray-100">
+                                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-widest mb-3">Skrót: gotowe zestawy</h4>
+                                        <p class="text-xs text-slate-500 mb-3 leading-relaxed">Kolor, tło i fonty jednym kliknięciem — dostępne na każdym planie.</p>
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                                            <div class="md:col-span-2">
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Wybierz zestaw</label>
+                                                <select x-model="selectedStyleBundle"
+                                                        class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white">
+                                                    <option value="">— wybierz —</option>
+                                                    <template x-for="b in styleBundles" :key="b.id">
+                                                        <option :value="b.id" x-text="b.label"></option>
+                                                    </template>
+                                                </select>
+                                            </div>
+                                            <button type="button" @click="applyStyleBundle()"
+                                                    class="bg-[#121212] text-white px-4 py-3 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-[#2a2a2a] transition-colors">
+                                                Zastosuj
+                                            </button>
+                                        </div>
+                                        <p class="text-xs text-slate-500 mt-2">Jednym klikiem ustawia kolor, tło i fonty — potem możesz dopracować ręcznie (w Standard).</p>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <details class="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-panel ring-1 ring-slate-900/5">
+                                <summary class="cursor-pointer border-b border-slate-200/60 bg-slate-50/80 px-5 py-4 text-sm font-bold text-slate-900">Ustawienia zaawansowane dla informatyka</summary>
+                                <div class="space-y-8 p-5 md:p-6">
+                                    <div x-show="themeHasSection('nav_labels')">
+                                        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Napisy w górnym menu strony</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <template x-for="field in navMenuFields" :key="'nav-adv-' + field.key">
+                                                <div :class="field.key === 'faq' ? 'md:col-span-2' : ''">
+                                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2" x-text="field.label"></label>
+                                                    <input type="text" x-model="content.pl.nav.menu[field.key]" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                    <div class="pt-2 border-t border-gray-100">
+                                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-widest mb-3">Własna personalizacja</h4>
+                                        <p class="text-xs text-slate-500 mb-4 leading-relaxed">Wybór własnego koloru akcentu, tła i fontów — od pakietu Standard.</p>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:items-start">
+                                            <div class="relative rounded-lg border border-slate-200/80 bg-slate-50/80 p-4" :class="isCustomAppearanceLocked ? 'opacity-50' : ''">
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Własny kolor akcentu</label>
+                                                <div class="flex flex-wrap items-center gap-3" :class="isCustomAppearanceLocked ? 'pointer-events-none' : ''">
+                                                    <input type="color" :value="appearancePickerAccentHex" @input="onCustomAccentColorInput($event)" class="h-11 w-14 cursor-pointer rounded-lg border border-slate-300 bg-white p-0.5 shadow-inner" aria-label="Wybierz kolor akcentu">
+                                                    <div class="flex items-center gap-2 min-w-0">
+                                                        <div class="w-8 h-8 rounded-sm border border-gray-300 shadow-inner shrink-0" :style="`background:${accentColor}`"></div>
+                                                        <div class="text-xs font-mono text-slate-700 truncate" x-text="accentColor"></div>
+                                                    </div>
+                                                </div>
+                                                <button type="button" x-show="isCustomAppearanceLocked" x-cloak @click="promptAppearanceUpgrade()" class="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/50 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40" aria-label="Odblokuj własny kolor — Standard">
+                                                    <span class="text-2xl leading-none" aria-hidden="true">🔒</span>
+                                                </button>
+                                            </div>
+                                            <div class="space-y-4">
+                                                <div class="relative">
+                                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Własny styl tła</label>
+                                                    <select x-model="content.pl.settings.background_style"
+                                                            @change="onCustomBackgroundStyleGuard($event)"
+                                                            :disabled="isCustomAppearanceLocked"
+                                                            class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white"
+                                                            :class="isCustomAppearanceLocked ? 'pointer-events-none' : ''">
+                                                        <option value="clean">Clean</option>
+                                                        <option value="glow">Glow (premium)</option>
+                                                        <option value="soft">Soft (delikatne)</option>
+                                                        <option value="smoky">Smoky (barber / luxe)</option>
+                                                    </select>
+                                                    <button type="button" x-show="isCustomAppearanceLocked" x-cloak @click="promptAppearanceUpgrade()" class="absolute inset-0 z-10 flex items-end justify-end p-2 cursor-pointer rounded-lg bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40" aria-label="Odblokuj własne tło">
+                                                        <span class="text-lg leading-none drop-shadow-sm" aria-hidden="true">🔒</span>
+                                                    </button>
+                                                </div>
+                                                <div class="relative">
+                                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Własny wybór fontu</label>
+                                                    <select x-model="content.pl.settings.font_preset"
+                                                            @change="onCustomFontPresetGuard($event)"
+                                                            :disabled="isCustomAppearanceLocked"
+                                                            class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white"
+                                                            :class="isCustomAppearanceLocked ? 'pointer-events-none' : ''">
+                                                        <option value="inter">Inter + Playfair</option>
+                                                        <option value="poppins">Poppins + Playfair</option>
+                                                        <option value="barber">Oswald + Playfair</option>
+                                                        <option value="elegant">Cormorant + Inter</option>
+                                                    </select>
+                                                    <button type="button" x-show="isCustomAppearanceLocked" x-cloak @click="promptAppearanceUpgrade()" class="absolute inset-0 z-10 flex items-end justify-end p-2 cursor-pointer rounded-lg bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40" aria-label="Odblokuj własny font">
+                                                        <span class="text-lg leading-none drop-shadow-sm" aria-hidden="true">🔒</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                            <!-- 3 Zmiana szablonu (ryzykowne) -->
+                            <section class="rounded-lg border border-amber-200 bg-amber-50/50 shadow-sm overflow-hidden">
+                                <div class="px-5 py-3.5 bg-amber-100/40 border-b border-amber-200/80 flex flex-wrap items-baseline justify-between gap-2">
+                                    <div>
+                                        <h3 class="text-sm font-bold text-amber-950 uppercase tracking-widest">Zmiana motywu branżowego</h3>
+                                        <p class="text-xs text-amber-900/80 mt-1">Nadpisuje treści sekcji (zostają kontakt, logo i subskrypcja). Rzadko potrzebne po starcie.</p>
+                                    </div>
+                                    <span class="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Opcja</span>
+                                </div>
+                                <div class="p-5 md:p-6">
+                                    <p class="text-xs text-slate-700 mb-4">Aktywny motyw: <strong class="text-[#D4AF37] uppercase" x-text="theme"></strong></p>
+                                    <button type="button" @click="showTemplateSwitcher = !showTemplateSwitcher" :disabled="saving" class="bg-white border border-amber-300 text-amber-950 px-4 py-2 rounded-sm text-xs font-bold uppercase tracking-wide hover:bg-amber-50 transition-colors disabled:opacity-50">
+                                        Wybierz inny szablon
+                                    </button>
+                                    <div x-show="showTemplateSwitcher" x-cloak class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" x-transition.opacity>
+                                        <template x-for="t in templateCatalog" :key="t.id">
+                                            <button type="button"
+                                                    @click="onTemplateTileClick(t)"
+                                                    :disabled="saving || (t.available && theme === t.id)"
+                                                    :class="{
+                                                        'border-2 rounded-sm p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/40': true,
+                                                        'border-[#D4AF37] bg-[#faf8f3] ring-2 ring-[#D4AF37]/25': theme === t.id,
+                                                        'border-slate-200 bg-white hover:border-amber-200/80': theme !== t.id,
+                                                        'opacity-60': !t.available,
+                                                        'disabled:pointer-events-none disabled:opacity-40': saving || (t.available && theme === t.id)
+                                                    }">
+                                                <div class="flex flex-wrap items-start justify-between gap-2">
+                                                    <h5 class="font-bold text-slate-900" x-text="t.name"></h5>
+                                                    <span x-show="!t.available" class="shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest bg-slate-100 text-slate-600">Wkrótce</span>
+                                                </div>
+                                                <p class="text-xs text-slate-500 mt-1 leading-snug" x-text="t.desc"></p>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- 4 Domena -->
+                            <section class="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-panel ring-1 ring-slate-900/5">
+                                <div class="border-b border-slate-200/60 bg-slate-50/80 px-5 py-3.5 flex flex-wrap items-baseline justify-between gap-2">
+                                    <div>
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-widest">Własna domena</h3>
+                                            <div class="relative group inline-flex shrink-0" @click.stop>
+                                                <button type="button" class="p-0.5 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2" aria-label="Podpowiedź o własnej domenie">
+                                                    <svg class="w-4 h-4 text-slate-400 hover:text-accent transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                </button>
+                                                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-900 text-white text-xs rounded-xl shadow-panel-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none text-center leading-relaxed">
+                                                    To Twój unikalny adres w internecie. Pomyśl o nim jak o szyldzie nad drzwiami Twojego salonu.
+                                                    <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p class="text-xs text-slate-500 mt-1">Dla planów z własną domeną — podłączenie u operatora domeny.</p>
+                                    </div>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Opcja Pro</span>
+                                </div>
+                                <div class="p-5 md:p-6 space-y-4">
+                                    <div x-show="customDomain && customDomainStatus === 'active'" x-cloak class="flex items-start gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-900">
+                                        <span class="shrink-0" aria-hidden="true">🟢</span>
+                                        <span><strong>Aktywna (Połączono)</strong> — <span class="font-mono" x-text="customDomain"></span></span>
+                                    </div>
+                                    <div x-show="customDomain && customDomainStatus === 'pending'" x-cloak class="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+                                        <span class="shrink-0" aria-hidden="true">🟡</span>
+                                        <span><strong>Oczekuje na propagację DNS</strong> (dodaj rekord CNAME na <span class="font-mono font-semibold">proxy.dfcms.pl</span>) — <span class="font-mono" x-text="customDomain"></span></span>
+                                    </div>
+                                    <div class="flex flex-col sm:flex-row gap-2 sm:items-stretch">
+                                        <input type="text" x-model="domainInput" :disabled="isCustomDomainLocked || isVerifyingDomain" placeholder="np. twojadomena.pl"
+                                               class="min-w-0 flex-1 rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" :class="isCustomDomainLocked ? 'opacity-50 bg-gray-100 cursor-not-allowed' : 'bg-white'">
+                                        <button type="button" @click="verifyAndSaveDomain()"
+                                                title="Sprawdza rekord CNAME i zapisuje domenę"
+                                                :disabled="isVerifyingDomain || !domainInput || isCustomDomainLocked"
+                                                :class="{ 'animate-pulse': isVerifyingDomain }"
+                                                class="shrink-0 px-4 py-3 rounded-sm text-sm font-semibold border border-[#D4AF37] text-[#8B7355] bg-white hover:bg-[#faf8f3] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                            <span x-text="isVerifyingDomain ? 'Sprawdzanie...' : 'Zapisz i sprawdź'"></span>
+                                        </button>
+                                    </div>
+                                    <div x-show="domainMessage" x-cloak class="p-4 bg-green-50 text-green-800 border border-green-200 rounded-sm text-sm font-medium flex items-center gap-2"><span x-text="domainMessage"></span></div>
+                                    <div x-show="showDnsInstructions" x-cloak x-transition.opacity class="p-6 bg-blue-50 border border-blue-200 rounded-sm shadow-sm">
+                                        <h4 class="text-sm font-bold text-blue-900 mb-2 uppercase tracking-widest flex items-center gap-2">
+                                            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                                            Krok 2: Ustawienia u operatora domeny
+                                        </h4>
+                                        <p class="text-xs text-blue-800 mb-4 leading-relaxed">Zaloguj się do panelu swojego operatora domeny (np. OVH, Nazwa.pl, Home.pl) i dodaj poniższe wpisy. To skieruje adres Twojej domeny na stronę.</p>
+
+                                        <div class="bg-white border border-blue-100 rounded-sm overflow-hidden">
+                                            <table class="w-full text-left text-sm">
+                                                <thead class="bg-blue-100/50 text-blue-900 text-[10px] uppercase tracking-wider">
+                                                    <tr>
+                                                        <th class="px-4 py-3 font-bold">Typ rekordu</th>
+                                                        <th class="px-4 py-3 font-bold">Nazwa (Host)</th>
+                                                        <th class="px-4 py-3 font-bold">Wartość (Kieruje na)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="text-slate-700 text-xs">
+                                                    <tr>
+                                                        <td class="px-4 py-3 font-mono font-bold">CNAME</td>
+                                                        <td class="px-4 py-3 font-mono">@ <span class="text-[9px] text-slate-400 font-sans tracking-normal">(lub zostaw puste)</span></td>
+                                                        <td class="px-4 py-3 font-mono font-bold text-[#D4AF37]">proxy.dfcms.pl</td>
+                                                    </tr>
+                                                    <tr class="border-t border-gray-100">
+                                                        <td class="px-4 py-3 font-mono font-bold">CNAME</td>
+                                                        <td class="px-4 py-3 font-mono">www</td>
+                                                        <td class="px-4 py-3 font-mono font-bold text-[#D4AF37]">proxy.dfcms.pl</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <p class="text-[10px] text-blue-700 mt-4 uppercase tracking-widest font-bold flex items-center gap-1">
+                                            <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            Propagacja zmian u operatora domeny może potrwać od 1 do 24 godzin.
+                                        </p>
+                                    </div>
+                                    <div x-show="domainError" x-cloak class="p-4 bg-red-50 text-red-800 border border-red-200 rounded-sm text-sm font-medium flex items-center gap-2"><span x-text="domainError"></span></div>
+                                    <p x-show="isCustomDomainLocked" class="text-xs text-amber-700">Własna domena od pakietu Standard — <button type="button" @click="setTab('subscription')" class="font-bold underline text-amber-900 hover:text-slate-900">Zobacz plany</button>.</p>
+                                    <p x-show="!isCustomDomainLocked" class="text-xs text-slate-500">Adres domeny (np. twojadomena.pl) — wpisy przekierowujące ustawiasz u rejestratora.</p>
+                                </div>
+                            </section>
+                                </div>
+                            </details>
+
+                        </div>
+                    </div>
+
