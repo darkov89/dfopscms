@@ -108,6 +108,8 @@ function createAdminApp() {
       stripeSyncLoading: false,
       /** Profil rozliczeniowy z tabeli billing_profiles (źródło prawdy Stripe). */
       billingProfile: null,
+      /** Lustrzany plan z `pages.billing_plan` — fallback UI gdy brak wiersza billing lub God Mode. */
+      pageBillingPlan: 'trial',
       /** False do zakończenia pierwszego loadBillingProfile w bieżącej sesji panelu. */
       billingProfileReady: false,
       /** Jednorazowy toast o wygasającej / zakończonej subskrypcji (po pełnym stanie billing). */

@@ -19,7 +19,11 @@ function adminMixinUi(ctx) {
       get billingSubscriptionView() {
         const trialSub = this.content?.pl?.settings?.subscription;
         if (typeof window.DFOPS_billingRowToSubscriptionView === 'function') {
-          return window.DFOPS_billingRowToSubscriptionView(this.billingProfile, trialSub);
+          return window.DFOPS_billingRowToSubscriptionView(
+            this.billingProfile,
+            trialSub,
+            this.pageBillingPlan,
+          );
         }
         return trialSub && typeof trialSub === 'object' ? trialSub : { plan: 'trial' };
       },
@@ -187,6 +191,9 @@ function adminMixinUi(ctx) {
       /** Zapisuje krok i motyw kreatora lokalnie (per slug), żeby po ponownym otwarciu nie zaczynać od zera. */
       get hasActivePaidSubscription() {
         const sub = this.billingSubscriptionView;
+        if (typeof window.DFOPS_hasPaidSubscriptionAccess === 'function') {
+          return window.DFOPS_hasPaidSubscriptionAccess(sub);
+        }
         if (!sub || typeof sub !== 'object') return false;
         const sid =
           typeof sub.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';

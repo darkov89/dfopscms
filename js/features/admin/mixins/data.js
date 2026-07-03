@@ -210,6 +210,7 @@ function adminMixinData(ctx) {
           this.pageId = data.id;
           this.slug = data.slug;
           this.impersonatedPageOwnerId = this.isImpersonating ? (data.user_id || null) : null;
+          this.pageBillingPlan = data.billing_plan || 'trial';
           this.trialBlockedAt = data.trial_blocked_at ?? null;
           this.showTrialSuspendedModal = !!this.trialBlockedAt;
           this.customDomain = data.custom_domain || '';

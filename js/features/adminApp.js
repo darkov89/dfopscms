@@ -690,7 +690,11 @@ function adminMixinUi(ctx) {
       get billingSubscriptionView() {
         const trialSub = this.content?.pl?.settings?.subscription;
         if (typeof window.DFOPS_billingRowToSubscriptionView === 'function') {
-          return window.DFOPS_billingRowToSubscriptionView(this.billingProfile, trialSub);
+          return window.DFOPS_billingRowToSubscriptionView(
+            this.billingProfile,
+            trialSub,
+            this.pageBillingPlan,
+          );
         }
         return trialSub && typeof trialSub === 'object' ? trialSub : { plan: 'trial' };
       },
@@ -858,6 +862,9 @@ function adminMixinUi(ctx) {
       /** Zapisuje krok i motyw kreatora lokalnie (per slug), żeby po ponownym otwarciu nie zaczynać od zera. */
       get hasActivePaidSubscription() {
         const sub = this.billingSubscriptionView;
+        if (typeof window.DFOPS_hasPaidSubscriptionAccess === 'function') {
+          return window.DFOPS_hasPaidSubscriptionAccess(sub);
+        }
         if (!sub || typeof sub !== 'object') return false;
         const sid =
           typeof sub.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
@@ -1836,6 +1843,7 @@ function adminMixinAuth(ctx) {
         this.hasUnsavedChanges = false;
         this.showSuccessModal = false;
         this.billingProfile = null;
+        this.pageBillingPlan = 'trial';
         this.billingProfileReady = false;
         this._billingStatusToastShown = false;
         this._initialPanelLoadDone = false;
@@ -2060,6 +2068,7 @@ function adminMixinData(ctx) {
           this.pageId = data.id;
           this.slug = data.slug;
           this.impersonatedPageOwnerId = this.isImpersonating ? (data.user_id || null) : null;
+          this.pageBillingPlan = data.billing_plan || 'trial';
           this.trialBlockedAt = data.trial_blocked_at ?? null;
           this.showTrialSuspendedModal = !!this.trialBlockedAt;
           this.customDomain = data.custom_domain || '';
@@ -4012,6 +4021,8 @@ function createAdminApp() {
       stripeSyncLoading: false,
       /** Profil rozliczeniowy z tabeli billing_profiles (źródło prawdy Stripe). */
       billingProfile: null,
+      /** Lustrzany plan z `pages.billing_plan` — fallback UI gdy brak wiersza billing lub God Mode. */
+      pageBillingPlan: 'trial',
       /** False do zakończenia pierwszego loadBillingProfile w bieżącej sesji panelu. */
       billingProfileReady: false,
       /** Jednorazowy toast o wygasającej / zakończonej subskrypcji (po pełnym stanie billing). */

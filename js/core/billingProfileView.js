@@ -2,9 +2,35 @@
  * Mapowanie billing_profiles + pól trial z content → kształt zgodny z planUtils.
  */
 ;(function () {
-  function billingRowToSubscriptionView(billing, trialSub) {
+  function normalizePageBillingPlan(plan) {
+    const raw = plan && String(plan).trim() !== '' ? String(plan).trim().toLowerCase() : 'trial';
+    if (raw === 'tier2' || raw === 'premium') return 'tier1';
+    return raw;
+  }
+
+  /**
+   * @param {object|null} billing — wiersz `billing_profiles`
+   * @param {object|null} trialSub — `content.pl.settings.subscription` (tylko trial)
+   * @param {string|null|undefined} pageBillingPlan — lustrzane `pages.billing_plan` (fallback gdy brak profilu / God Mode)
+   */
+  function billingRowToSubscriptionView(billing, trialSub, pageBillingPlan) {
     const trial = trialSub && typeof trialSub === 'object' ? trialSub : {};
     if (!billing || typeof billing !== 'object') {
+      const mirrored = normalizePageBillingPlan(pageBillingPlan);
+      if (mirrored === 'tier0' || mirrored === 'tier1') {
+        return {
+          plan: mirrored,
+          trial_started_at: trial.trial_started_at || null,
+          selected_plan: trial.selected_plan ?? null,
+          payment_completed: true,
+          status: 'active',
+          stripe_customer_id: '',
+          stripe_subscription_id: '',
+          current_period_end: '',
+          cancel_at_period_end: false,
+          cancel_at: trial.cancel_at ?? null,
+        };
+      }
       return {
         plan: trial.plan || 'trial',
         trial_started_at: trial.trial_started_at || null,
