@@ -333,11 +333,38 @@
       }
     }
 
+    /**
+     * Pola karty dań (gastro) — panel ma x-model na hours/orders nawet przy x-show na innych motywach;
+     * bez obiektów Alpine rzuca TypeError przy loadData (treść bez tych kluczy po merge z beauty itd.).
+     */
+    function ensureMenuPanelFields(block) {
+      if (!block || typeof block !== 'object' || Array.isArray(block)) return;
+      if (!block.hours || typeof block.hours !== 'object' || Array.isArray(block.hours)) {
+        block.hours = { title: 'Godziny otwarcia', lines: [] };
+      }
+      if (block.hours.title === undefined || block.hours.title === null) {
+        block.hours.title = 'Godziny otwarcia';
+      }
+      if (!Array.isArray(block.hours.lines)) block.hours.lines = [];
+      if (!block.orders || typeof block.orders !== 'object' || Array.isArray(block.orders)) {
+        block.orders = { label: '', title: '', description: '', call_button: '' };
+      }
+      if (block.orders.label === undefined) block.orders.label = '';
+      if (block.orders.title === undefined) block.orders.title = '';
+      if (block.orders.description === undefined) block.orders.description = '';
+      if (block.orders.call_button === undefined) block.orders.call_button = '';
+      if (!Array.isArray(block.menu_items)) block.menu_items = [];
+      if (block.menu_mode === undefined || block.menu_mode === null) block.menu_mode = 'manual';
+      if (block.menu_link === undefined || block.menu_link === null) block.menu_link = '';
+      if (block.menu_image === undefined || block.menu_image === null) block.menu_image = '';
+    }
+
     for (const _lang of Object.keys(merged)) {
       ensureSeo(merged[_lang]);
       ensureLegal(merged[_lang]);
       ensureContactCta(merged[_lang], theme);
       ensureHeroButton(merged[_lang]);
+      ensureMenuPanelFields(merged[_lang]);
     }
 
     return merged;
