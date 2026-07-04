@@ -33,6 +33,10 @@
       pl.settings.welcome_onboarding_completed =
         pl.settings.onboarding_completed === true || bnM.length > 0;
     }
+    /** Świeże konto (`setup`) — zawsze modal powitalny + kreator, dopóki onboarding nieukończony. */
+    if (theme === 'setup' && pl.settings.onboarding_completed !== true) {
+      pl.settings.welcome_onboarding_completed = false;
+    }
 
     if (!pl.settings.color_preset) {
       pl.settings.color_preset =

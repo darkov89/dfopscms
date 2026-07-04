@@ -1350,6 +1350,10 @@ function adminMixinUi(ctx) {
               : null,
           slug: this.slug,
           theme: this.theme,
+          showWizard: this.showWizard,
+          showWelcomeModal: this.showWelcomeModal,
+          welcomeOnboardingDone: this.content?.pl?.settings?.welcome_onboarding_completed === true,
+          onboardingDone: this.content?.pl?.settings?.onboarding_completed === true,
           liveUrl: typeof this.getLiveSiteUrl === 'function' ? this.getLiveSiteUrl() : '—',
           previewUrl: typeof this.getPublicSiteUrl === 'function' ? this.getPublicSiteUrl() : '—',
           needsEmailConfirmation: this.needsEmailConfirmation,
@@ -1803,7 +1807,10 @@ function adminMixinAuth(ctx) {
           }
           if (this.loadingAuth) return;
           if (!this.isEmailVerified) {
-            this.showWizard = false;
+            const host = String(window.location?.hostname || '');
+            const stagingSurface =
+              window.DFOPS_DEPLOY_ENVIRONMENT === 'staging' || /\.pages\.dev$/i.test(host);
+            if (!stagingSurface) this.showWizard = false;
             return;
           }
         });
@@ -2425,10 +2432,12 @@ function adminMixinData(ctx) {
             !!this.user &&
             this.isEmailVerified &&
             !this.isForcedPasswordReset &&
-            this.theme !== 'setup' &&
             !this.content?.pl?.settings?.welcome_onboarding_completed;
 
-          if (this.content?.pl?.settings?.welcome_onboarding_completed === true) {
+          if (
+            this.content?.pl?.settings?.welcome_onboarding_completed === true &&
+            this.content?.pl?.settings?.onboarding_completed === true
+          ) {
             this.showWizard = false;
             if (this.slug) clearWizardStateFromStorage(this.slug);
           }
@@ -2461,27 +2470,6 @@ function adminMixinData(ctx) {
           }
           if (!this._initialPanelLoadDone && this.billingProfileReady) {
             this._initialPanelLoadDone = true;
-          }
-          if (
-            !this._setupWizardAutoOpened &&
-            this.user &&
-            this.isEmailVerified &&
-            !this.isForcedPasswordReset &&
-            this.theme === 'setup' &&
-            this.content?.pl?.settings?.onboarding_completed === false
-          ) {
-            this._setupWizardAutoOpened = true;
-            this.$nextTick(() => {
-              setTimeout(() => {
-                if (
-                  this.theme === 'setup' &&
-                  this.content?.pl?.settings?.onboarding_completed === false &&
-                  !this.showWizard
-                ) {
-                  this.openWizardFromStudio();
-                }
-              }, 350);
-            });
           }
           this.publishPanelDebugState();
         }
@@ -3911,7 +3899,10 @@ function adminMixinWizard(ctx) {
       /** Pełny ekran startowy kreatora (wybór ścieżki). */
       async openWizardFromStudio() {
         await this.syncAuthUserFromServer();
-        if (!this.isEmailVerified) {
+        const host = String(window.location?.hostname || '');
+        const stagingSurface =
+          window.DFOPS_DEPLOY_ENVIRONMENT === 'staging' || /\.pages\.dev$/i.test(host);
+        if (!stagingSurface && !this.isEmailVerified) {
           this.showToast('Potwierdź najpierw adres e-mail — link masz w wiadomości od DFCMS.', 'error');
           return;
         }
@@ -3921,13 +3912,19 @@ function adminMixinWizard(ctx) {
         this.sidebarOpen = false;
         this.mobileMenuOpen = false;
         this.persistWizardUiState();
+        if (new URLSearchParams(window.location.search).get('dfcms_debug') === '1') {
+          console.info('[DFCMS] openWizardFromStudio → showWizard', this.showWizard, 'step', this.wizardStep);
+        }
         if (typeof window.DFOPS_trackEvent === 'function') {
           window.DFOPS_trackEvent('onboarding_reopened', { slug: this.slug });
         }
       },
       async reopenWizard() {
         await this.syncAuthUserFromServer();
-        if (!this.isEmailVerified) {
+        const host = String(window.location?.hostname || '');
+        const stagingSurface =
+          window.DFOPS_DEPLOY_ENVIRONMENT === 'staging' || /\.pages\.dev$/i.test(host);
+        if (!stagingSurface && !this.isEmailVerified) {
           this.showToast('Potwierdź najpierw adres e-mail — link masz w wiadomości od DFCMS.', 'error');
           return;
         }

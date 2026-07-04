@@ -292,10 +292,12 @@ function adminMixinData(ctx) {
             !!this.user &&
             this.isEmailVerified &&
             !this.isForcedPasswordReset &&
-            this.theme !== 'setup' &&
             !this.content?.pl?.settings?.welcome_onboarding_completed;
 
-          if (this.content?.pl?.settings?.welcome_onboarding_completed === true) {
+          if (
+            this.content?.pl?.settings?.welcome_onboarding_completed === true &&
+            this.content?.pl?.settings?.onboarding_completed === true
+          ) {
             this.showWizard = false;
             if (this.slug) clearWizardStateFromStorage(this.slug);
           }
@@ -328,27 +330,6 @@ function adminMixinData(ctx) {
           }
           if (!this._initialPanelLoadDone && this.billingProfileReady) {
             this._initialPanelLoadDone = true;
-          }
-          if (
-            !this._setupWizardAutoOpened &&
-            this.user &&
-            this.isEmailVerified &&
-            !this.isForcedPasswordReset &&
-            this.theme === 'setup' &&
-            this.content?.pl?.settings?.onboarding_completed === false
-          ) {
-            this._setupWizardAutoOpened = true;
-            this.$nextTick(() => {
-              setTimeout(() => {
-                if (
-                  this.theme === 'setup' &&
-                  this.content?.pl?.settings?.onboarding_completed === false &&
-                  !this.showWizard
-                ) {
-                  this.openWizardFromStudio();
-                }
-              }, 350);
-            });
           }
           this.publishPanelDebugState();
         }

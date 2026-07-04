@@ -52,7 +52,10 @@ function adminMixinAuth(ctx) {
           }
           if (this.loadingAuth) return;
           if (!this.isEmailVerified) {
-            this.showWizard = false;
+            const host = String(window.location?.hostname || '');
+            const stagingSurface =
+              window.DFOPS_DEPLOY_ENVIRONMENT === 'staging' || /\.pages\.dev$/i.test(host);
+            if (!stagingSurface) this.showWizard = false;
             return;
           }
         });

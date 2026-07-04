@@ -460,7 +460,10 @@ function adminMixinWizard(ctx) {
       /** Pełny ekran startowy kreatora (wybór ścieżki). */
       async openWizardFromStudio() {
         await this.syncAuthUserFromServer();
-        if (!this.isEmailVerified) {
+        const host = String(window.location?.hostname || '');
+        const stagingSurface =
+          window.DFOPS_DEPLOY_ENVIRONMENT === 'staging' || /\.pages\.dev$/i.test(host);
+        if (!stagingSurface && !this.isEmailVerified) {
           this.showToast('Potwierdź najpierw adres e-mail — link masz w wiadomości od DFCMS.', 'error');
           return;
         }
@@ -470,13 +473,19 @@ function adminMixinWizard(ctx) {
         this.sidebarOpen = false;
         this.mobileMenuOpen = false;
         this.persistWizardUiState();
+        if (new URLSearchParams(window.location.search).get('dfcms_debug') === '1') {
+          console.info('[DFCMS] openWizardFromStudio → showWizard', this.showWizard, 'step', this.wizardStep);
+        }
         if (typeof window.DFOPS_trackEvent === 'function') {
           window.DFOPS_trackEvent('onboarding_reopened', { slug: this.slug });
         }
       },
       async reopenWizard() {
         await this.syncAuthUserFromServer();
-        if (!this.isEmailVerified) {
+        const host = String(window.location?.hostname || '');
+        const stagingSurface =
+          window.DFOPS_DEPLOY_ENVIRONMENT === 'staging' || /\.pages\.dev$/i.test(host);
+        if (!stagingSurface && !this.isEmailVerified) {
           this.showToast('Potwierdź najpierw adres e-mail — link masz w wiadomości od DFCMS.', 'error');
           return;
         }
