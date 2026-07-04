@@ -8,6 +8,16 @@
 
                         <!-- Aktywna subskrypcja: jedna karta statusu + zarządzanie (spójne z resztą panelu) -->
                         <div x-show="hasActivePaidSubscription" x-cloak id="dfops-subscription-overview" class="mb-8 rounded-xl border border-slate-200/70 bg-white shadow-panel ring-1 ring-slate-900/5 overflow-hidden scroll-mt-24">
+                            <!-- Sukces po pierwszej płatności -->
+                            <div x-show="subscriptionActivationBanner && !isSubscriptionCanceledButValid" x-cloak class="border-b border-emerald-200/80 bg-emerald-50/90 px-6 py-4">
+                                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                    <div>
+                                        <p class="text-xs font-bold uppercase tracking-widest text-emerald-900 mb-1">Płatność zaksięgowana</p>
+                                        <p class="text-sm leading-relaxed text-emerald-950">Twój pakiet jest aktywny. Faktury, karta i ewentualna zmiana planu — poniżej, w portalu Stripe.</p>
+                                    </div>
+                                    <button type="button" @click="dismissSubscriptionActivationBanner()" class="shrink-0 self-start text-xs font-semibold text-emerald-800 underline decoration-emerald-300 underline-offset-2 hover:text-emerald-950">Rozumiem</button>
+                                </div>
+                            </div>
                             <!-- Alert: zaplanowane anulowanie -->
                             <div x-show="isSubscriptionCanceledButValid" x-cloak class="border-b border-amber-200/80 bg-amber-50/90 px-6 py-4">
                                 <p class="text-xs font-bold uppercase tracking-widest text-amber-900 mb-1">Subskrypcja wygasa</p>
@@ -44,20 +54,26 @@
                                     <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between mb-5">
                                         <div>
                                             <h3 class="text-sm font-bold text-slate-900">Zarządzanie rozliczeniami</h3>
-                                            <p class="mt-1 text-xs text-slate-500 leading-relaxed max-w-xl">Karta, faktury i zmiana planu — w bezpiecznym portalu Stripe. Każdy przycisk otwiera właściwy krok.</p>
+                                            <p class="mt-1 text-xs text-slate-500 leading-relaxed max-w-xl">Karta, faktury i zmiana planu — w bezpiecznym portalu Stripe.</p>
                                         </div>
                                         <span class="mt-2 inline-flex w-fit shrink-0 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:mt-0">
                                             <svg aria-hidden="true" class="h-3.5 w-3.5 text-[#635bff]" viewBox="0 0 24 24" fill="currentColor">
                                                 <path d="M10.6 10.6c0-.5.4-.7 1.2-.7 1.1 0 2.4.3 3.5.8V7.4c-1-.4-2.1-.6-3.5-.6-2.9 0-4.8 1.5-4.8 4 0 3.9 5.3 3.3 5.3 5 0 .6-.5.8-1.3.8-1.2 0-2.7-.5-3.9-1.1v3.3c1.3.5 2.6.8 3.9.8 3 0 5-1.5 5-4 0-4.2-5.4-3.4-5.4-4.9z"/>
                                             </svg>
-                                            Obsługa: Stripe
+                                            Stripe
                                         </span>
                                     </div>
                                     <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                                        <button type="button" x-show="canOpenPortalPlanChangeFlow() && !isSubscriptionCanceledButValid" x-cloak
+                                        <button type="button" x-show="canOpenPortalPlanChangeFlow() && activePaidTierForUi === 'tier0'" x-cloak
                                                 @click="openCustomerPortal({ subscriptionUpdate: true })" :disabled="isPortalLoading || saving"
                                                 class="inline-flex min-h-[2.75rem] flex-1 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-[12rem] sm:flex-none">
-                                            <span x-show="!isPortalLoading">Zmień pakiet w Stripe</span>
+                                            <span x-show="!isPortalLoading">Podnież do Standard</span>
+                                            <span x-show="isPortalLoading" x-cloak>Łączenie…</span>
+                                        </button>
+                                        <button type="button" x-show="canOpenPortalPlanChangeFlow() && activePaidTierForUi === 'tier1'" x-cloak
+                                                @click="openCustomerPortal({ subscriptionUpdate: true })" :disabled="isPortalLoading || saving"
+                                                class="inline-flex min-h-[2.75rem] flex-1 items-center justify-center rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition-colors hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/50 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-[12rem] sm:flex-none">
+                                            <span x-show="!isPortalLoading">Obniż do Starter</span>
                                             <span x-show="isPortalLoading" x-cloak>Łączenie…</span>
                                         </button>
                                         <button type="button" @click="openCustomerPortal()" :disabled="isPortalLoading || saving"
@@ -67,7 +83,7 @@
                                         </button>
                                     </div>
                                     <div x-show="hasActivePaidSubscription && !isSubscriptionCanceledButValid" x-cloak class="mt-6 flex flex-col gap-2 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
-                                        <p class="text-xs text-slate-500 leading-relaxed max-w-md">Rezygnacja z odnowień — przejdziesz do ankiety wyjścia w Stripe (możliwa retencja oferty).</p>
+                                        <p class="text-xs text-slate-500 leading-relaxed max-w-md">Rezygnacja z odnowień — w portalu Stripe (możliwa oferta retencyjna).</p>
                                         <button type="button" @click="openCustomerPortal({ subscriptionCancel: true })" :disabled="isPortalLoading || saving"
                                                 class="inline-flex shrink-0 items-center justify-center rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:border-red-300 hover:bg-red-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-300/50 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                                             <span x-show="!isPortalLoading">Anuluj subskrypcję</span>
@@ -81,25 +97,23 @@
                             </div>
                         </div>
 
-                        <div x-show="!hasActivePaidSubscription" class="mb-6 rounded-xl border border-slate-200/70 bg-white p-5 shadow-panel ring-1 ring-slate-900/5">
+                        <!-- Wybór pakietu — tylko przed aktywną płatnością -->
+                        <div x-show="!hasActivePaidSubscription" x-cloak>
+                        <div class="mb-6 rounded-xl border border-slate-200/70 bg-white p-5 shadow-panel ring-1 ring-slate-900/5">
                             <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Twój aktualny plan</p>
                             <p class="text-lg font-bold text-slate-900" x-text="planDisplayLabel"></p>
                         </div>
                         <p class="mb-3 flex items-center gap-2 text-xs text-slate-500 xl:hidden">
                             <span class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-200 text-slate-600" aria-hidden="true">↔</span>
-                            <span>Przewiń plansze albo użyj strzałek — od szerokiego laptopa wszystkie pakiety są w jednej siatce.</span>
+                            <span>Przewiń, aby zobaczyć wszystkie pakiety.</span>
                         </p>
                         <div class="mb-6 flex flex-col items-center gap-2" role="group" aria-label="Okres rozliczenia subskrypcji">
                             <div class="inline-flex max-w-full flex-wrap items-center justify-center gap-1 rounded-full border border-slate-200/90 bg-slate-50/95 p-1 shadow-panel ring-1 ring-slate-900/5">
                                 <button type="button" @click="billingInterval = 'monthly'" :aria-pressed="billingInterval === 'monthly'" :class="billingInterval === 'monthly' ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200/80' : 'text-slate-600 hover:text-slate-900'" class="rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-wide transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 sm:text-xs">Płatność miesięczna</button>
                                 <button type="button" @click="billingInterval = 'yearly'" :aria-pressed="billingInterval === 'yearly'" :class="billingInterval === 'yearly' ? 'bg-accent text-accent-fg shadow-sm ring-1 ring-accent/30' : 'text-slate-600 hover:text-slate-900'" class="rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-wide transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 sm:text-xs">Płatność roczna <span class="font-semibold normal-case tracking-normal opacity-90">(−20%)</span></button>
                             </div>
-                            <p class="text-center text-[11px] text-slate-500" x-show="billingInterval === 'yearly'" x-cloak>Roczna opłata z rabatem 20% — rozliczenie jednorazowo na 12 miesięcy.</p>
+                            <p class="text-center text-[11px] text-slate-500" x-show="billingInterval === 'yearly'" x-cloak>Rabat 20% przy płatności rocznej.</p>
                         </div>
-                        <p class="mx-auto mb-4 max-w-2xl text-center text-xs leading-relaxed text-slate-500">
-                            <span x-show="billingInterval === 'monthly'">Subskrypcja odnawiana automatycznie co miesiąc. Bezpieczne płatności obsługuje Stripe. Możesz anulować w dowolnym momencie.</span>
-                            <span x-show="billingInterval === 'yearly'" x-cloak>Subskrypcja odnawiana automatycznie co 12 miesięcy. Bezpieczne płatności obsługuje Stripe. Możesz anulować w dowolnym momencie.</span>
-                        </p>
                         <div class="relative" x-data="{ scrollPlans(dir) { const el = this.$refs.planStrip; if (!el) return; const step = Math.min(el.clientWidth * 0.88, 360); el.scrollBy({ left: dir * step, behavior: 'smooth' }); } }">
                             <div class="pointer-events-none absolute inset-y-0 left-0 z-10 hidden w-10 bg-gradient-to-r from-white via-white/95 to-transparent xl:hidden md:block" aria-hidden="true"></div>
                             <div class="pointer-events-none absolute inset-y-0 right-0 z-10 hidden w-10 bg-gradient-to-l from-white via-white/95 to-transparent xl:hidden md:block" aria-hidden="true"></div>
@@ -112,7 +126,6 @@
                                     <div class="mb-3 flex min-h-[1.75rem] shrink-0 items-center justify-end" aria-hidden="true"></div>
                                     <div class="mb-4">
                                         <h3 class="text-lg font-bold tracking-tight text-slate-900">Starter</h3>
-                                        <p class="mt-1 text-[11px] font-semibold uppercase tracking-widest text-slate-500">Wejście w CMS</p>
                                     </div>
                                     <div class="mb-5 border-b border-slate-100 pb-5" data-plan-price="starter">
                                         <div x-show="billingInterval === 'monthly'">
@@ -121,9 +134,7 @@
                                         <div x-show="billingInterval === 'yearly'" x-cloak>
                                             <p class="text-xs font-medium text-slate-400 line-through tabular-nums">348 zł</p>
                                             <p class="text-3xl font-bold tabular-nums text-accent">278,40 zł<span class="text-base font-semibold text-slate-500"> / rok</span></p>
-                                            <p class="mt-1 text-[11px] font-medium text-emerald-800/90">23,20 zł / mc przy płatności rocznej</p>
                                         </div>
-                                        <p class="mt-1 text-[11px] text-slate-500">netto · +23% VAT</p>
                                     </div>
                                     <details class="dfops-plan-features min-h-0 flex-1">
                                         <summary>Zobacz pełną listę funkcji</summary>
@@ -133,15 +144,11 @@
                                             <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Logo DFCMS</strong> w stopce</span></li>
                                         </ul>
                                     </details>
-                                    <div class="mt-auto w-full shrink-0 space-y-3 pt-4">
-                                        <button type="button" @click="subscribe('starter')" x-show="subscriptionPlan === 'trial'" :disabled="checkoutLoading || saving" class="inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-xl bg-accent-fg px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-white shadow-panel transition-colors hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 disabled:opacity-50 xl:text-[11px]">
-                                            <span x-show="!checkoutLoading">Aktywuj plan przez Stripe</span>
-                                            <span x-show="checkoutLoading" x-cloak>Łączenie ze Stripe…</span>
+                                    <div class="mt-auto w-full shrink-0 pt-4">
+                                        <button type="button" @click="subscribe('starter')" x-show="subscriptionPlan === 'trial'" :disabled="checkoutLoading || saving" class="inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-xl bg-accent-fg px-3 py-2 text-center text-sm font-bold text-white shadow-panel transition-colors hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 disabled:opacity-50">
+                                            <span x-show="!checkoutLoading">Wybierz Starter</span>
+                                            <span x-show="checkoutLoading" x-cloak>Łączenie…</span>
                                         </button>
-                                        <p x-show="subscriptionPlan === 'trial'" class="text-[11px] leading-relaxed text-slate-500">*Klikając przycisk, żądasz natychmiastowego rozpoczęcia świadczenia usługi i przyjmujesz do wiadomości, że tracisz prawo do 14-dniowego odstąpienia od umowy.</p>
-                                        <div x-show="subscriptionPlan === 'tier0'" x-cloak class="flex min-h-[3.25rem] w-full items-center justify-center rounded-xl border-2 border-accent bg-amber-50/90 px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-accent-soft xl:text-[11px]">
-                                            Aktywna subskrypcja
-                                        </div>
                                     </div>
                                 </div>
                             </article>
@@ -153,7 +160,6 @@
                                     </div>
                                     <div class="mb-4">
                                         <h3 class="text-lg font-bold tracking-tight text-slate-900">Standard</h3>
-                                        <p class="mt-1 text-[11px] font-semibold uppercase tracking-widest text-slate-500">Rozwój marki</p>
                                     </div>
                                     <div class="mb-5 border-b border-amber-200/70 pb-5" data-plan-price="standard">
                                         <div x-show="billingInterval === 'monthly'">
@@ -162,9 +168,7 @@
                                         <div x-show="billingInterval === 'yearly'" x-cloak>
                                             <p class="text-xs font-medium text-slate-400 line-through tabular-nums">588 zł</p>
                                             <p class="text-3xl font-bold tabular-nums text-accent">470,40 zł<span class="text-base font-semibold text-slate-500"> / rok</span></p>
-                                            <p class="mt-1 text-[11px] font-medium text-emerald-800/90">39,20 zł / mc przy płatności rocznej</p>
                                         </div>
-                                        <p class="mt-1 text-[11px] text-slate-500">netto · +23% VAT</p>
                                     </div>
                                     <details class="dfops-plan-features min-h-0 flex-1">
                                         <summary>Zobacz pełną listę funkcji</summary>
@@ -175,17 +179,11 @@
                                             <li class="flex gap-2"><span class="shrink-0 font-bold text-accent">✓</span><span><strong class="text-slate-800">Asystent</strong> od 100 zł/h netto</span></li>
                                         </ul>
                                     </details>
-                                    <div class="mt-auto w-full shrink-0 space-y-3 pt-4">
-                                        <p x-show="subscriptionPlan === 'trial' && content?.pl?.settings?.subscription?.selected_plan === 'tier1'" class="min-h-0 text-xs font-medium leading-relaxed text-amber-900/90" x-cloak>Dokończ płatność Standard, aby utrzymać dostęp po trialu.</p>
-                                        <button type="button" @click="subscribe('standard')" x-show="subscriptionPlan !== 'tier1'" :disabled="checkoutLoading || saving" class="inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-xl bg-accent px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-accent-fg shadow-panel transition-colors hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 disabled:opacity-50 xl:text-[11px]">
-                                            <span x-show="!checkoutLoading && subscriptionPlan === 'trial'">Aktywuj plan przez Stripe</span>
-                                            <span x-show="!checkoutLoading && subscriptionPlan !== 'trial'" x-cloak>Przejdź do płatności w Stripe</span>
-                                            <span x-show="checkoutLoading" x-cloak>Łączenie ze Stripe…</span>
+                                    <div class="mt-auto w-full shrink-0 pt-4">
+                                        <button type="button" @click="subscribe('standard')" x-show="subscriptionPlan !== 'tier1'" :disabled="checkoutLoading || saving" class="inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-xl bg-accent px-3 py-2 text-center text-sm font-bold text-accent-fg shadow-panel transition-colors hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 disabled:opacity-50">
+                                            <span x-show="!checkoutLoading">Wybierz Standard</span>
+                                            <span x-show="checkoutLoading" x-cloak>Łączenie…</span>
                                         </button>
-                                        <p x-show="subscriptionPlan !== 'tier1'" class="text-[11px] leading-relaxed text-slate-500">*Klikając przycisk, żądasz natychmiastowego rozpoczęcia świadczenia usługi i przyjmujesz do wiadomości, że tracisz prawo do 14-dniowego odstąpienia od umowy.</p>
-                                        <div x-show="subscriptionPlan === 'tier1'" x-cloak class="flex min-h-[3.25rem] w-full items-center justify-center rounded-xl border-2 border-accent bg-white/90 px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-accent-soft xl:text-[11px]">
-                                            Aktywna subskrypcja
-                                        </div>
                                     </div>
                                 </div>
                             </article>
@@ -195,11 +193,9 @@
                                     <div class="mb-3 flex min-h-[1.75rem] shrink-0 items-center justify-end" aria-hidden="true"></div>
                                     <div class="mb-4">
                                         <h3 class="text-lg font-bold tracking-tight text-slate-900">Custom</h3>
-                                        <p class="mt-1 text-[11px] font-semibold uppercase tracking-widest text-slate-500">Na zamówienie</p>
                                     </div>
                                     <div class="mb-5 border-b border-slate-200/80 pb-5">
                                         <p class="text-2xl font-bold leading-tight tabular-nums text-accent sm:text-3xl">Wycena indywidualna</p>
-                                        <p class="mt-1 text-[11px] text-slate-500">Rozszerzenia i wdrożenie · netto</p>
                                     </div>
                                     <details class="dfops-plan-features min-h-0 flex-1">
                                         <summary>Zobacz pełną listę funkcji</summary>
@@ -215,6 +211,8 @@
                                 </div>
                             </article>
                             </div>
+                        </div>
+                        <p class="mx-auto mt-2 max-w-xl text-center text-[11px] leading-relaxed text-slate-400">Kwoty netto (+ VAT w Stripe). Wybór pakietu = natychmiastowe rozpoczęcie usługi (bez 14-dniowego odstąpienia).</p>
                         </div>
 
                         <div id="dfops-platnosci-info" class="mt-8 max-w-2xl scroll-mt-24 border-t border-slate-200/80 pt-6">

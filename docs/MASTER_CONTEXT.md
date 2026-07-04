@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-07-04 — rollback podziału `adminApp.js` na staging (przywrócono monolit z `main`)
+**Ostatnia aktualizacja treści:** 2026-07-04 — UX zakładki Subskrypcja (post-checkout, kafelki); rollback panelu JS na staging
 
 ---
 
@@ -112,7 +112,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 - **Driver.js** (CDN 1.4.0): tour → kreator (krok 0) → podgląd strony → sidebar (`#dfops-admin-sidebar`) → **Pomocnik krok po kroku** → Subskrypcja. Po tour domyślny widok: **`dashboard`** (nie `hero`).
 - **Kreator:** kroki logiczne z `js/core/themeConfig.js` (`template` → `brand` → `hero` → `offer` → `about` → `contact`); aktywna lista per motyw (`DFOPS_getActiveWizardStepIds`) — np. gastro pomija `about`, w `offer` zbiera `menu_items` zamiast `services`; sync `nav.logo` → `business_name` / `hero.name` / SEO; `finishWizard` → `finalizeWizardContent` (ukrywa puste sekcje); stan w `localStorage` (`dfops_wizard_state_v1:{slug}`, `v:2`); czyszczenie po `finishWizard` / `switchTemplate`.
 - **Draft vs published:** auto-save debounce 1000ms → `draft_content`; `publishChanges()` → `content`; preview tylko właściciel (`dfcms_preview=1`); `revertChanges()` z `_publishedContentRaw`.
-- **Subskrypcja panel:** `hasActivePaidSubscription` / `isSubscriptionCanceledButValid` — tylko Stripe (`billing_profiles`), nie samo `payment_completed` w JSON.
+- **Subskrypcja panel:** `hasActivePaidSubscription` / `isSubscriptionCanceledButValid` — tylko Stripe (`billing_profiles`), nie samo `payment_completed` w JSON. Po aktywnej płatności: karta statusu + portal Stripe (upgrade/downgrade kontekstowo: Starter→Standard / Standard→Starter); karuzela pakietów ukryta; baner sukcesu po `?payment=success` (`subscriptionActivationBanner`).
 - **God Mode:** `godmode.html` wymaga sesji i widocznego własnego wpisu w `superadmins`; lista pobiera wszystkie `pages`. Panel po zalogowaniu sprawdza `superadmins` i pokazuje w sidebarze „Master Dashboard” tylko superadminom. Przycisk „Zarządzaj” otwiera `admin.html?impersonate={slug}`. W impersonacji panel zapisuje konkretny rekord po `pages.id`, pomija profil billingowy superadmina i blokuje checkout z sesji operatora.
 
 ### 1.5.2 Panel admin — IA (2026-07)
@@ -371,6 +371,11 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 
 ## 4. Dziennik transformacji
 
+### 2026-07-04 — UX zakładki Subskrypcja
+
+- **`admin/partials/tab-subscription.html`:** po `hasActivePaidSubscription` ukryta karuzela wyboru pakietu; uproszczone kafelki (cena + `<details>` funkcji, bez duplikatów prawnych); karta aktywnej subskrypcji z przyciskami **Podnież do Standard** / **Obniż do Starter** + faktury/karta w portalu Stripe.
+- **`adminApp.js`:** `subscriptionActivationBanner` + `dismissSubscriptionActivationBanner()` po udanym `?payment=success` (auto `setTab('subscription')`).
+
 ### 2026-07-04 — Rollback eksperymentu panelu JS (staging)
 
 Na gałęzi `staging` przetestowano podział logiki panelu — **cofnięto**; stan panelu JS = **`main`** (monolit `js/features/adminApp.js`).
@@ -392,7 +397,7 @@ Na gałęzi `staging` przetestowano podział logiki panelu — **cofnięto**; st
 
 | Element | Stan |
 |---------|------|
-| `js/features/adminApp.js` | Monolit z `main` (`?v=20260703c` w partialu head) |
+| `js/features/adminApp.js` | Monolit z `main` (`?v=20260704a` w partialu head) |
 | `js/features/admin/` | Usunięte |
 | `scripts/build-admin-app.mjs`, `split-admin-app.mjs` | Usunięte |
 | `admin/partials/`, `admin.html` | Z `main` (build: `npm run build:admin`) |

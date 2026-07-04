@@ -793,6 +793,8 @@
       showTrialSuspendedModal: true,
       /** Opcjonalny modal po płatności — główny flow opiera się na toastach + opóźnionym loadData. */
       showSuccessModal: false,
+      /** Krótki baner sukcesu na karcie Subskrypcja po pierwszej płatności (checkout). */
+      subscriptionActivationBanner: false,
       _postPaymentRefreshTimer: null,
       resendConfirmLoading: false,
       /**
@@ -1601,6 +1603,10 @@
         );
       },
 
+      dismissSubscriptionActivationBanner() {
+        this.subscriptionActivationBanner = false;
+      },
+
       /**
        * @param {{ subscriptionUpdate?: boolean, subscriptionCancel?: boolean }} [opts]
        *   subscriptionUpdate — deep link: zmiana planu (upgrade/downgrade).
@@ -1706,6 +1712,8 @@
                   'error',
                 );
               } else {
+                this.subscriptionActivationBanner = true;
+                this.setTab('subscription');
                 this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
               }
             } catch (e) {
