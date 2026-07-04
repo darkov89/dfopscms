@@ -1271,6 +1271,9 @@
        * właściciela ma ten wpis — anon nigdy → szczelne oddzielenie draft/content.
        */
       stashDraftForPreview() {
+        if (typeof window.DFOPS_mirrorAuthForPreviewHandoff === 'function') {
+          window.DFOPS_mirrorAuthForPreviewHandoff();
+        }
         try {
           if (!this.slug || !this.content?.pl) return;
           const payload = {

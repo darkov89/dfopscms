@@ -1196,7 +1196,7 @@
               this.trialBlocked = true;
               this.trialBlockedTitle = 'Podgląd wymaga logowania w panelu';
               this.trialBlockedBody =
-                'Otwórz „Podgląd prywatny” z panelu DFCMS (ta sama przeglądarka, zalogowana sesja). Goście nadal nie widzą strony.';
+                'Wróć do panelu i kliknij „Podgląd prywatny” (otwiera nową kartę z Twoją sesją). Wklejony link bez panelu nie wystarczy. Goście nadal nie widzą strony.';
               this.dataLoaded = true;
               document.title = 'Podgląd niedostępny';
               return;

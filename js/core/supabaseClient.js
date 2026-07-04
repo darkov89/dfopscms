@@ -1,11 +1,54 @@
 ;(function () {
   let client = null;
 
+  const PREVIEW_AUTH_PREFIX = 'dfops_preview_auth:';
+  const PREVIEW_AUTH_TS_KEY = 'dfops_preview_auth_ts';
+  const PREVIEW_AUTH_TTL_MS = 30 * 60 * 1000;
+
   function readRememberFlag() {
     try {
       return window.localStorage.getItem('dfops_remember') === 'true';
     } catch (e) {
       return false;
+    }
+  }
+
+  function isPreviewSurface() {
+    try {
+      return new URLSearchParams(window.location.search).get('dfcms_preview') === '1';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /**
+   * Panel → nowa karta podglądu: sessionStorage nie jest współdzielony między kartami.
+   * Kopiujemy token Supabase do localStorage (TTL 30 min), żeby `dfcms_preview=1` widział właściciela.
+   */
+  function mirrorAuthForPreviewHandoff() {
+    try {
+      const now = Date.now();
+      for (const store of [window.sessionStorage, window.localStorage]) {
+        for (let i = 0; i < store.length; i++) {
+          const key = store.key(i);
+          if (!key || !key.includes('-auth-token')) continue;
+          const val = store.getItem(key);
+          if (val) window.localStorage.setItem(PREVIEW_AUTH_PREFIX + key, val);
+        }
+      }
+      window.localStorage.setItem(PREVIEW_AUTH_TS_KEY, String(now));
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
+  function readPreviewAuthMirror(storageKey) {
+    try {
+      const ts = parseInt(window.localStorage.getItem(PREVIEW_AUTH_TS_KEY) || '0', 10);
+      if (!ts || Date.now() - ts > PREVIEW_AUTH_TTL_MS) return null;
+      return window.localStorage.getItem(PREVIEW_AUTH_PREFIX + storageKey);
+    } catch (_) {
+      return null;
     }
   }
 
@@ -36,7 +79,14 @@
 
   const authStorage = {
     getItem(key) {
-      return selectedAuthStorage().getItem(key);
+      if (isPreviewSurface() && key && String(key).includes('-auth-token')) {
+        const mirrored = readPreviewAuthMirror(key);
+        if (mirrored != null) return mirrored;
+      }
+      const primary = selectedAuthStorage().getItem(key);
+      if (primary != null) return primary;
+      const alt = selectedAuthStorage() === window.localStorage ? window.sessionStorage : window.localStorage;
+      return alt.getItem(key);
     },
     setItem(key, value) {
       selectedAuthStorage().setItem(key, value);
@@ -44,6 +94,11 @@
     removeItem(key) {
       window.localStorage.removeItem(key);
       window.sessionStorage.removeItem(key);
+      try {
+        window.localStorage.removeItem(PREVIEW_AUTH_PREFIX + key);
+      } catch (_) {
+        /* ignore */
+      }
     },
   };
 
@@ -72,10 +127,11 @@
   }
 
   function resetSupabaseClient() {
-    // Zachowujemy kompatybilność z istniejącymi call-site'ami bez tworzenia kolejnego GoTrueClient.
+    client = null;
     maybeExpireRememberedSession();
   }
 
   window.DFOPS_getSupabaseClient = getSupabaseClient;
   window.DFOPS_resetSupabaseClient = resetSupabaseClient;
+  window.DFOPS_mirrorAuthForPreviewHandoff = mirrorAuthForPreviewHandoff;
 })();

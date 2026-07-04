@@ -452,11 +452,17 @@
   async function getPageForAuthenticatedPreview(slug) {
     const slugTrimmed = typeof slug === 'string' ? slug.trim().toLowerCase() : '';
     if (!slugTrimmed) return { data: null, error: null };
+    const sb = supabase();
+    try {
+      await sb.auth.getSession();
+    } catch (_) {
+      /* ignore */
+    }
     const {
       data: { user } = { user: null },
-    } = await supabase().auth.getUser();
+    } = await sb.auth.getUser();
     if (!user?.id) return { data: null, error: null };
-    const { data, error } = await supabase()
+    const { data, error } = await sb
       .from('pages')
       .select('slug, theme, content, color_preset, custom_domain, trial_blocked_at, billing_failed_at, billing_plan')
       .eq('slug', slugTrimmed)
