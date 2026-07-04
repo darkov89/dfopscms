@@ -13,7 +13,10 @@
             <a href="godmode.html" class="ml-3 inline-flex rounded-md border border-white/15 px-3 py-1 text-xs font-bold uppercase tracking-widest text-white transition-colors hover:bg-white/10">Wróć do listy</a>
         </div>
         <div x-show="isTrialPublicBlocked" class="w-full bg-red-900 text-white text-sm py-3 px-4 text-center flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 shrink-0" x-cloak role="alert">
-            <span>Strona publiczna jest <strong>zablokowana</strong> (wygasły trial lub brak płatności po terminie). Goście widzą komunikat z wezwaniem dla administratora. Podgląd z panelu nadal działa.</span>
-            <button type="button" @click="setTab('subscription'); showTrialSuspendedModal = false" class="shrink-0 underline font-bold hover:no-underline text-white">Przejdź do subskrypcji</button>
+            <span>Strona LIVE jest <strong>zablokowana</strong> dla gości. <strong>Podgląd prywatny</strong> działa tylko dla Ciebie z panelu.</span>
+            <div class="flex shrink-0 flex-wrap items-center justify-center gap-3">
+            <a :href="getPublicSiteUrl()" @click="stashDraftForPreview()" target="_blank" rel="noopener noreferrer" class="underline font-bold hover:no-underline text-amber-200">Otwórz podgląd</a>
+            <button type="button" @click="setTab('subscription'); dismissTrialSuspendedModal()" class="underline font-bold hover:no-underline text-white">Subskrypcja</button>
+            </div>
         </div>
 

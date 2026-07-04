@@ -1189,6 +1189,24 @@
         if (t === 'setup' || isPublishedTheme(t)) return t;
         return 'beauty';
       },
+      get previewSiteButtonLabel() {
+        return this.isTrialPublicBlocked ? 'Podgląd prywatny' : 'Podgląd strony';
+      },
+      get previewSiteButtonTitle() {
+        if (this.isTrialPublicBlocked) {
+          return 'Tylko Ty widzisz ten podgląd — strona LIVE jest zablokowana dla gości (wygasły trial lub problem z płatnością).';
+        }
+        if (this.previewUsesHtmlFallback) {
+          return 'Podgląd tymczasowo używa szablonu Beauty (tryb lokalny).';
+        }
+        return 'Otwiera podgląd wersji roboczej — nic nie publikuje na stronie LIVE.';
+      },
+      get liveSiteLinkTitle() {
+        if (this.isTrialPublicBlocked) {
+          return 'Strona LIVE — zablokowana dla gości; zobaczysz komunikat o niedostępności.';
+        }
+        return 'Otwórz opublikowaną stronę w nowej karcie';
+      },
       get previewUsesHtmlFallback() {
         const t = String(this.theme || '').trim().toLowerCase();
         if (!t || t === 'setup') return false;

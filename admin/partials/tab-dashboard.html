@@ -4,10 +4,11 @@
                             <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Tu zarządzasz treścią witryny. Zmiany zapisują się automatycznie — na końcu kliknij <strong>Opublikuj zmiany</strong> w górnym pasku, żeby klienci je zobaczyli.</p>
                             <div class="rounded-xl border border-slate-200/80 bg-slate-50/60 p-5 md:p-6">
                                 <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Adres Twojej strony</p>
+                                <p x-show="isTrialPublicBlocked" x-cloak class="text-xs text-amber-900 bg-amber-50 border border-amber-200/80 rounded-lg px-3 py-2 mb-3 leading-relaxed">Strona LIVE jest zablokowana dla gości. Użyj <strong>Podglądu prywatnego</strong> — widzisz ją tylko Ty.</p>
                                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                    <a :href="getLiveSiteUrl()" target="_blank" rel="noopener noreferrer" class="text-lg font-semibold text-slate-900 underline decoration-slate-300 underline-offset-4 hover:decoration-accent break-all" x-text="slug ? (slug + '.dfcms.pl') : '—'"></a>
-                                    <a :href="getPublicSiteUrl()" @click="stashDraftForPreview()" target="_blank" rel="noopener noreferrer" class="inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50">
-                                        Zobacz stronę
+                                    <a :href="getLiveSiteUrl()" target="_blank" rel="noopener noreferrer" :title="liveSiteLinkTitle" class="text-lg font-semibold text-slate-900 underline decoration-slate-300 underline-offset-4 hover:decoration-accent break-all" x-text="slug ? (slug + '.dfcms.pl') : '—'"></a>
+                                    <a :href="getPublicSiteUrl()" @click="stashDraftForPreview()" target="_blank" rel="noopener noreferrer" :title="previewSiteButtonTitle" class="inline-flex shrink-0 items-center justify-center rounded-lg border px-4 py-2.5 text-sm font-semibold shadow-sm transition-colors" :class="isTrialPublicBlocked ? 'border-amber-300 bg-amber-50 text-amber-950 hover:bg-amber-100' : 'border-slate-200 bg-white text-slate-800 hover:border-slate-300 hover:bg-slate-50'">
+                                        <span x-text="previewSiteButtonLabel"></span>
                                     </a>
                                 </div>
                             </div>

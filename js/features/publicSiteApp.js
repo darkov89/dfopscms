@@ -1190,7 +1190,19 @@
             page = data;
           }
 
-          if (!page) throw new Error('Brak strony');
+          if (!page) {
+            if (isPreview) {
+              window.DFOPS__applyAnalyticsConsentNow = function noopAnalyticsConsent() {};
+              this.trialBlocked = true;
+              this.trialBlockedTitle = 'Podgląd wymaga logowania w panelu';
+              this.trialBlockedBody =
+                'Otwórz „Podgląd prywatny” z panelu DFCMS (ta sama przeglądarka, zalogowana sesja). Goście nadal nie widzą strony.';
+              this.dataLoaded = true;
+              document.title = 'Podgląd niedostępny';
+              return;
+            }
+            throw new Error('Brak strony');
+          }
 
           this.slug = page.slug;
 

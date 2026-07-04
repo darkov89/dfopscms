@@ -16,8 +16,9 @@
                         <a :href="getLiveSiteUrl()"
                            target="_blank" rel="noopener noreferrer"
                            class="group inline-flex min-w-0 items-center gap-1 truncate font-medium text-slate-900 underline decoration-slate-200 underline-offset-4 hover:decoration-slate-400"
-                           title="Otwórz opublikowaną stronę w nowej karcie">
+                           :title="liveSiteLinkTitle">
                             <span class="min-w-0 truncate" x-text="slug"></span>
+                            <span x-show="isTrialPublicBlocked" x-cloak class="shrink-0 text-[10px] font-bold uppercase tracking-wider text-red-700" title="Zablokowane dla gości">live ✕</span>
                             <span class="shrink-0 text-slate-400 transition-colors group-hover:text-slate-600" aria-hidden="true">↗</span>
                         </a>
                     </div>
@@ -28,10 +29,11 @@
                         <a id="dfcms-onboarding-site-preview"
                            :href="getPublicSiteUrl()"
                            @click="stashDraftForPreview()"
-                           :title="previewUsesHtmlFallback ? 'Podgląd tymczasowo używa szablonu Beauty (tryb lokalny).' : 'Otwiera podgląd wersji roboczej — nic nie publikuje na stronie'"
+                           :title="previewSiteButtonTitle"
                            target="_blank" rel="noopener noreferrer"
-                           class="inline-flex min-w-0 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900 sm:px-4">
-                            Podgląd strony
+                           class="inline-flex min-w-0 items-center justify-center rounded-lg border px-3 py-2.5 text-sm font-medium shadow-sm transition-colors sm:px-4"
+                           :class="isTrialPublicBlocked ? 'border-amber-300 bg-amber-50 text-amber-950 hover:bg-amber-100' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900'">
+                            <span x-text="previewSiteButtonLabel"></span>
                         </a>
 
                         <button @click="requestPublish()" x-show="content && panelContentReady" type="button"
