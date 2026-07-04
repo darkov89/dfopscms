@@ -16,18 +16,21 @@ function adminMixinUi(ctx) {
       },
       get accentColor() { return cfg.accentByPreset[this.content?.pl?.settings?.color_preset] || '#D4AF37'; },
       get styleBundles() { return cfg.bundlesByTheme[this.theme] || []; },
-      /** Panel gotowy do renderu (treść + profil billing po zalogowaniu). */
-      get panelContentReady() {
-        if (this.loadingAuth || this.isLoading) return false;
-        if (!this.user || this.isForcedPasswordReset) return true;
-        return this.billingProfileReady;
-      },
-      get panelBootLoading() {
-        return (
-          this.loadingAuth ||
-          this.isLoading ||
-          (!!this.user && !this.isForcedPasswordReset && !this.billingProfileReady)
-        );
+      /** Spójne flagi ładowania panelu — jawne pola (nie gettery Alpine). */
+      syncPanelReadyFlags() {
+        this.panelBootLoading =
+          !!this.loadingAuth ||
+          !!this.isLoading ||
+          (!!this.user && !this.isForcedPasswordReset && !this.billingProfileReady);
+        if (this.loadingAuth || this.isLoading) {
+          this.panelContentReady = false;
+        } else if (!this.user) {
+          this.panelContentReady = false;
+        } else if (this.isForcedPasswordReset) {
+          this.panelContentReady = true;
+        } else {
+          this.panelContentReady = !!this.billingProfileReady;
+        }
       },
       /** Kreator tylko po potwierdzeniu e-maila — zgodny z needsEmailConfirmation ustawianym po getUser(). */
       get isEmailVerified() {

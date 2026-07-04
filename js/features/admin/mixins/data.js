@@ -157,6 +157,8 @@ function adminMixinData(ctx) {
       async loadData() {
         this.isLoading = true;
         this.billingProfileReady = false;
+        this.showTrialBanner = false;
+        this.syncPanelReadyFlags();
         this.showWizardDismissModal = false;
         try {
           if (this.user) {
@@ -318,6 +320,7 @@ function adminMixinData(ctx) {
             this.billingProfileReady = true;
           }
           this.isLoading = false;
+          this.syncPanelReadyFlags();
           if (this.user && this.billingProfileReady) {
             this.maybeShowPaymentReturnToast();
             this.maybeShowBillingStatusToastOnce();

@@ -189,6 +189,10 @@ function applyBillingSubscriptionView(ctx) {
   ctx.showStripeBillingPortal = computeShowStripeBillingPortal(view, hasPaid);
   ctx.activeSubscriptionBrandLabel = computeActiveSubscriptionBrandLabel(tier, hasPaid);
   ctx.activeSubscriptionPriceLine = computeActiveSubscriptionPriceLine(tier, hasPaid);
+  const billingSt = String(ctx.billingProfile?.status || '').trim().toLowerCase();
+  const billingCanceled =
+    billingSt === 'canceled' || billingSt === 'cancelled' || billingSt === 'incomplete_expired';
+  ctx.showTrialBanner = !hasPaid && (view.plan || 'trial') === 'trial' && !billingCanceled;
   return view;
 }
 

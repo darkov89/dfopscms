@@ -240,6 +240,7 @@ function adminMixinAuth(ctx) {
         }
         /** Dopiero po pierwszym loadData nie pokazujemy „pustego” panelu (mniej migania przy pierwszym logowaniu). */
         this.loadingAuth = false;
+        this.syncPanelReadyFlags();
         if (this._passwordRecoveryPendingUi && this.user) {
           this.applyPasswordRecoveryUi();
         }
@@ -303,6 +304,7 @@ function adminMixinAuth(ctx) {
         else {
           localStorage.setItem('dfops_login_time', String(Date.now()));
           this.isLoading = true;
+          this.syncPanelReadyFlags();
           this.assignAuthUser(data.user);
           await this.syncAuthUserFromServer();
           await this.refreshSuperadminStatus();
@@ -357,6 +359,9 @@ function adminMixinAuth(ctx) {
         this.showStripeBillingPortal = false;
         this.activeSubscriptionBrandLabel = '';
         this.activeSubscriptionPriceLine = '';
+        this.showTrialBanner = false;
+        this.panelContentReady = false;
+        this.panelBootLoading = true;
         this.billingProfileReady = false;
         this._billingStatusToastShown = false;
         this._initialPanelLoadDone = false;

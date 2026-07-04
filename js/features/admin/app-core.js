@@ -122,6 +122,9 @@ function createAdminApp() {
       showStripeBillingPortal: false,
       activeSubscriptionBrandLabel: '',
       activeSubscriptionPriceLine: '',
+      showTrialBanner: false,
+      panelContentReady: false,
+      panelBootLoading: true,
       /** False do zakończenia pierwszego loadBillingProfile w bieżącej sesji panelu. */
       billingProfileReady: false,
       /** Jednorazowy toast o wygasającej / zakończonej subskrypcji (po pełnym stanie billing). */

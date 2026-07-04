@@ -860,6 +860,10 @@ function applyBillingSubscriptionView(ctx) {
   ctx.showStripeBillingPortal = computeShowStripeBillingPortal(view, hasPaid);
   ctx.activeSubscriptionBrandLabel = computeActiveSubscriptionBrandLabel(tier, hasPaid);
   ctx.activeSubscriptionPriceLine = computeActiveSubscriptionPriceLine(tier, hasPaid);
+  const billingSt = String(ctx.billingProfile?.status || '').trim().toLowerCase();
+  const billingCanceled =
+    billingSt === 'canceled' || billingSt === 'cancelled' || billingSt === 'incomplete_expired';
+  ctx.showTrialBanner = !hasPaid && (view.plan || 'trial') === 'trial' && !billingCanceled;
   return view;
 }
 
@@ -927,18 +931,21 @@ function adminMixinUi(ctx) {
       },
       get accentColor() { return cfg.accentByPreset[this.content?.pl?.settings?.color_preset] || '#D4AF37'; },
       get styleBundles() { return cfg.bundlesByTheme[this.theme] || []; },
-      /** Panel gotowy do renderu (treść + profil billing po zalogowaniu). */
-      get panelContentReady() {
-        if (this.loadingAuth || this.isLoading) return false;
-        if (!this.user || this.isForcedPasswordReset) return true;
-        return this.billingProfileReady;
-      },
-      get panelBootLoading() {
-        return (
-          this.loadingAuth ||
-          this.isLoading ||
-          (!!this.user && !this.isForcedPasswordReset && !this.billingProfileReady)
-        );
+      /** Spójne flagi ładowania panelu — jawne pola (nie gettery Alpine). */
+      syncPanelReadyFlags() {
+        this.panelBootLoading =
+          !!this.loadingAuth ||
+          !!this.isLoading ||
+          (!!this.user && !this.isForcedPasswordReset && !this.billingProfileReady);
+        if (this.loadingAuth || this.isLoading) {
+          this.panelContentReady = false;
+        } else if (!this.user) {
+          this.panelContentReady = false;
+        } else if (this.isForcedPasswordReset) {
+          this.panelContentReady = true;
+        } else {
+          this.panelContentReady = !!this.billingProfileReady;
+        }
       },
       /** Kreator tylko po potwierdzeniu e-maila — zgodny z needsEmailConfirmation ustawianym po getUser(). */
       get isEmailVerified() {
@@ -1868,6 +1875,7 @@ function adminMixinAuth(ctx) {
         }
         /** Dopiero po pierwszym loadData nie pokazujemy „pustego” panelu (mniej migania przy pierwszym logowaniu). */
         this.loadingAuth = false;
+        this.syncPanelReadyFlags();
         if (this._passwordRecoveryPendingUi && this.user) {
           this.applyPasswordRecoveryUi();
         }
@@ -1931,6 +1939,7 @@ function adminMixinAuth(ctx) {
         else {
           localStorage.setItem('dfops_login_time', String(Date.now()));
           this.isLoading = true;
+          this.syncPanelReadyFlags();
           this.assignAuthUser(data.user);
           await this.syncAuthUserFromServer();
           await this.refreshSuperadminStatus();
@@ -1985,6 +1994,9 @@ function adminMixinAuth(ctx) {
         this.showStripeBillingPortal = false;
         this.activeSubscriptionBrandLabel = '';
         this.activeSubscriptionPriceLine = '';
+        this.showTrialBanner = false;
+        this.panelContentReady = false;
+        this.panelBootLoading = true;
         this.billingProfileReady = false;
         this._billingStatusToastShown = false;
         this._initialPanelLoadDone = false;
@@ -2156,6 +2168,8 @@ function adminMixinData(ctx) {
       async loadData() {
         this.isLoading = true;
         this.billingProfileReady = false;
+        this.showTrialBanner = false;
+        this.syncPanelReadyFlags();
         this.showWizardDismissModal = false;
         try {
           if (this.user) {
@@ -2317,6 +2331,7 @@ function adminMixinData(ctx) {
             this.billingProfileReady = true;
           }
           this.isLoading = false;
+          this.syncPanelReadyFlags();
           if (this.user && this.billingProfileReady) {
             this.maybeShowPaymentReturnToast();
             this.maybeShowBillingStatusToastOnce();
@@ -4201,6 +4216,9 @@ function createAdminApp() {
       showStripeBillingPortal: false,
       activeSubscriptionBrandLabel: '',
       activeSubscriptionPriceLine: '',
+      showTrialBanner: false,
+      panelContentReady: false,
+      panelBootLoading: true,
       /** False do zakończenia pierwszego loadBillingProfile w bieżącej sesji panelu. */
       billingProfileReady: false,
       /** Jednorazowy toast o wygasającej / zakończonej subskrypcji (po pełnym stanie billing). */
