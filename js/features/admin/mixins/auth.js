@@ -78,7 +78,25 @@ function adminMixinAuth(ctx) {
           if (resolved) normalized.email = resolved;
         }
         this.user = normalized;
-        this.needsEmailConfirmation = !userEmailLooksConfirmed(normalized);
+        this.syncEmailVerificationView(normalized);
+      },
+
+      /** Jawne pola `isEmailVerified` / `needsEmailConfirmation` — reaktywność Alpine. */
+      syncEmailVerificationView(user) {
+        const u = user || this.user;
+        if (!u) {
+          this.isEmailVerified = false;
+          this.needsEmailConfirmation = false;
+          return;
+        }
+        if (this._authEmailJustConfirmed) {
+          this.isEmailVerified = true;
+          this.needsEmailConfirmation = false;
+          return;
+        }
+        const confirmed = userEmailLooksConfirmed(u);
+        this.isEmailVerified = !!confirmed;
+        this.needsEmailConfirmation = !confirmed;
       },
 
       /** PKCE: link z maila zawiera ?code= — bez wymiany sesja pozostaje „sprzed” potwierdzenia. `type=recovery` = reset hasła. */
@@ -98,6 +116,9 @@ function adminMixinAuth(ctx) {
         }
         const { error } = await this.supabase.auth.exchangeCodeForSession(code);
         if (error) throw error;
+        if (flowType !== 'recovery') {
+          this._authEmailJustConfirmed = true;
+        }
         if (flowType === 'recovery') {
           this._passwordRecoveryPendingUi = true;
           this.isForcedPasswordReset = true;
@@ -375,6 +396,7 @@ function adminMixinAuth(ctx) {
         this._initialPanelLoadDone = false;
         this._subscriptionTabStripeSynced = false;
         this._setupWizardAutoOpened = false;
+        this._authEmailJustConfirmed = false;
         if (this._postPaymentRefreshTimer != null) {
           clearTimeout(this._postPaymentRefreshTimer);
           this._postPaymentRefreshTimer = null;

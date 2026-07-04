@@ -157,8 +157,11 @@ function createAdminApp() {
       resendConfirmLoading: false,
       /**
        * Z serwera Auth (getUser), nie ze „stale” session.user w JWT.
-       * true = pokaż baner + blokuj kreator do czasu potwierdzenia maila.
+       * Jawne pole — nie getter (Alpine zamraża gettery przy init x-data).
        */
+      isEmailVerified: false,
+      /** Ustawiane po `exchangeCodeForSession` z linku potwierdzającego e-mail. */
+      _authEmailJustConfirmed: false,
       needsEmailConfirmation: false,
     },
     adminMixinUi(ctx),

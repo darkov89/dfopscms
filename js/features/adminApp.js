@@ -998,11 +998,6 @@ function adminMixinUi(ctx) {
           this.panelContentReady = !!this.billingProfileReady;
         }
       },
-      /** Kreator — na bieżąco z user (nie tylko flaga ustawiona przy init sesji). */
-      get isEmailVerified() {
-        if (!this.user) return false;
-        return userEmailLooksConfirmed(this.user);
-      },
       /**
        * Checklista „co jeszcze dołożyć” dopóki `onboarding_completed` jest false — tylko podstawy:
        * szablon (dopóki motyw `setup`), nazwa w menu, minimum kontaktu (tel. lub e-mail).
@@ -1833,7 +1828,25 @@ function adminMixinAuth(ctx) {
           if (resolved) normalized.email = resolved;
         }
         this.user = normalized;
-        this.needsEmailConfirmation = !userEmailLooksConfirmed(normalized);
+        this.syncEmailVerificationView(normalized);
+      },
+
+      /** Jawne pola `isEmailVerified` / `needsEmailConfirmation` — reaktywność Alpine. */
+      syncEmailVerificationView(user) {
+        const u = user || this.user;
+        if (!u) {
+          this.isEmailVerified = false;
+          this.needsEmailConfirmation = false;
+          return;
+        }
+        if (this._authEmailJustConfirmed) {
+          this.isEmailVerified = true;
+          this.needsEmailConfirmation = false;
+          return;
+        }
+        const confirmed = userEmailLooksConfirmed(u);
+        this.isEmailVerified = !!confirmed;
+        this.needsEmailConfirmation = !confirmed;
       },
 
       /** PKCE: link z maila zawiera ?code= — bez wymiany sesja pozostaje „sprzed” potwierdzenia. `type=recovery` = reset hasła. */
@@ -1853,6 +1866,9 @@ function adminMixinAuth(ctx) {
         }
         const { error } = await this.supabase.auth.exchangeCodeForSession(code);
         if (error) throw error;
+        if (flowType !== 'recovery') {
+          this._authEmailJustConfirmed = true;
+        }
         if (flowType === 'recovery') {
           this._passwordRecoveryPendingUi = true;
           this.isForcedPasswordReset = true;
@@ -2130,6 +2146,7 @@ function adminMixinAuth(ctx) {
         this._initialPanelLoadDone = false;
         this._subscriptionTabStripeSynced = false;
         this._setupWizardAutoOpened = false;
+        this._authEmailJustConfirmed = false;
         if (this._postPaymentRefreshTimer != null) {
           clearTimeout(this._postPaymentRefreshTimer);
           this._postPaymentRefreshTimer = null;
@@ -2470,6 +2487,17 @@ function adminMixinData(ctx) {
           }
           if (!this._initialPanelLoadDone && this.billingProfileReady) {
             this._initialPanelLoadDone = true;
+          }
+          if (
+            this._authEmailJustConfirmed &&
+            !this.isForcedPasswordReset &&
+            this.content?.pl?.settings?.welcome_onboarding_completed !== true
+          ) {
+            this._authEmailJustConfirmed = false;
+            this.showWelcomeModal = false;
+            this.$nextTick(() => {
+              void this.dismissWelcomeModalAndStartOnboarding();
+            });
           }
           this.publishPanelDebugState();
         }
@@ -4395,8 +4423,11 @@ function createAdminApp() {
       resendConfirmLoading: false,
       /**
        * Z serwera Auth (getUser), nie ze „stale” session.user w JWT.
-       * true = pokaż baner + blokuj kreator do czasu potwierdzenia maila.
+       * Jawne pole — nie getter (Alpine zamraża gettery przy init x-data).
        */
+      isEmailVerified: false,
+      /** Ustawiane po `exchangeCodeForSession` z linku potwierdzającego e-mail. */
+      _authEmailJustConfirmed: false,
       needsEmailConfirmation: false,
     },
     adminMixinUi(ctx),

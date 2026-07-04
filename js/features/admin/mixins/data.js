@@ -331,6 +331,17 @@ function adminMixinData(ctx) {
           if (!this._initialPanelLoadDone && this.billingProfileReady) {
             this._initialPanelLoadDone = true;
           }
+          if (
+            this._authEmailJustConfirmed &&
+            !this.isForcedPasswordReset &&
+            this.content?.pl?.settings?.welcome_onboarding_completed !== true
+          ) {
+            this._authEmailJustConfirmed = false;
+            this.showWelcomeModal = false;
+            this.$nextTick(() => {
+              void this.dismissWelcomeModalAndStartOnboarding();
+            });
+          }
           this.publishPanelDebugState();
         }
       },

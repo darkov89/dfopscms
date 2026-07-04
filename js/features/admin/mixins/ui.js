@@ -32,11 +32,6 @@ function adminMixinUi(ctx) {
           this.panelContentReady = !!this.billingProfileReady;
         }
       },
-      /** Kreator — na bieżąco z user (nie tylko flaga ustawiona przy init sesji). */
-      get isEmailVerified() {
-        if (!this.user) return false;
-        return userEmailLooksConfirmed(this.user);
-      },
       /**
        * Checklista „co jeszcze dołożyć” dopóki `onboarding_completed` jest false — tylko podstawy:
        * szablon (dopóki motyw `setup`), nazwa w menu, minimum kontaktu (tel. lub e-mail).

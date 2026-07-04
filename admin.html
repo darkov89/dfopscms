@@ -46,7 +46,7 @@
     <script defer src="js/core/googlePlacesSync.js?v=20260522d"></script>
     <script defer src="js/core/analytics.js?v=20260403t"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260704h"></script>
+    <script defer src="js/features/adminApp.js?v=20260704i"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -475,7 +475,7 @@
             </template>
         </div>
         <div x-show="user && !isEmailVerified" x-cloak class="w-full bg-amber-900 text-amber-50 text-sm py-3 px-4 text-center flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 shrink-0 border-b border-amber-800/50" role="status">
-            <span class="max-w-3xl">Dokończ rejestrację: <strong class="text-white">potwierdź adres e-mail</strong> z wiadomości wysłanej przez DFCMS (nadawca: <strong class="text-white">notifications@dfops.eu</strong>) — bez tego kreator się nie uruchomi.</span>
+            <span class="max-w-3xl">Dokończ rejestrację: <strong class="text-white">potwierdź adres e-mail</strong> z wiadomości wysłanej przez DFCMS (nadawca: <strong class="text-white">notifications@dfops.eu</strong>).</span>
             <button type="button" @click.prevent.stop="resendSignupConfirmation()" :disabled="resendConfirmLoading" class="shrink-0 rounded-sm bg-white/15 hover:bg-white/25 border border-white/25 text-white text-xs font-bold uppercase tracking-widest px-4 py-2 disabled:opacity-50 transition-colors">
                 <span x-show="!resendConfirmLoading">Wyślij link ponownie</span>
                 <span x-show="resendConfirmLoading" x-cloak>Wysyłam…</span>
