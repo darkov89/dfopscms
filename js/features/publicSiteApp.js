@@ -101,6 +101,29 @@
 
   window.DFOPS_initWatermark = initWatermark;
 
+  /** Baner na podglądzie właściciela, gdy strona publiczna jest zablokowana (trial / billing). */
+  function injectPrivatePreviewBanner(subscriptionPanelUrl) {
+    if (document.getElementById('dfcms-private-preview-banner')) return;
+    const el = document.createElement('div');
+    el.id = 'dfcms-private-preview-banner';
+    el.setAttribute('role', 'status');
+    el.style.cssText =
+      'position:fixed;top:0;left:0;right:0;z-index:2147483646;background:#7f1d1d;color:#fff;text-align:center;padding:10px 16px;font:600 12px/1.4 system-ui,-apple-system,sans-serif;letter-spacing:0.02em;box-shadow:0 2px 8px rgba(0,0,0,.2);';
+    const msg = document.createElement('span');
+    msg.textContent =
+      'Podgląd prywatny — strona niewidoczna dla gości (wygasły trial lub brak płatności). ';
+    el.appendChild(msg);
+    const url = typeof subscriptionPanelUrl === 'string' ? subscriptionPanelUrl.trim() : '';
+    if (url) {
+      const a = document.createElement('a');
+      a.href = url;
+      a.textContent = 'Przejdź do subskrypcji';
+      a.style.cssText = 'color:#fde68a;text-decoration:underline;margin-left:4px;';
+      el.appendChild(a);
+    }
+    document.body.prepend(el);
+  }
+
   function extractEmbedUrl(rawValue) {
     if (!rawValue) return '';
     let value = String(rawValue).trim();
@@ -918,6 +941,8 @@
       bazaBlad: false,
       /** Widok publiczny zablokowany (cron trial_blocked_at lub logika shouldBlockPublicPageView). */
       trialBlocked: false,
+      /** Podgląd panelu (`dfcms_preview=1`) właściciela mimo blokady publicznej. */
+      privatePreviewOnly: false,
       trialBlockedTitle: 'Ta strona jest chwilowo niedostępna',
       trialBlockedBody:
         'Trwają prace techniczne albo witryna jest w aktualizacji. Spróbuj ponownie później — przepraszamy za utrudnienia.',
@@ -1171,6 +1196,7 @@
       async init() {
         try {
           const urlParams = new URLSearchParams(window.location.search);
+          const isPreview = urlParams.get('dfcms_preview') === '1';
           const hostname = normalizeHostname(window.location.hostname);
           const { currentSlug, currentCustomDomain } = resolveSiteContext();
 
@@ -1179,10 +1205,21 @@
           }
 
           let page = null;
+          let isAuthenticatedPreview = false;
           if (currentSlug) {
-            const { data, error } = await repo.getPageBySlug(currentSlug);
-            if (error) throw error;
-            page = data;
+            if (isPreview && typeof repo.getPageForAuthenticatedPreview === 'function') {
+              const ownerRes = await repo.getPageForAuthenticatedPreview(currentSlug);
+              if (ownerRes?.error) throw ownerRes.error;
+              if (ownerRes?.data) {
+                page = ownerRes.data;
+                isAuthenticatedPreview = true;
+              }
+            }
+            if (!page) {
+              const { data, error } = await repo.getPageBySlug(currentSlug);
+              if (error) throw error;
+              page = data;
+            }
           } else {
             const { data, error } = await repo.getPageByCustomDomain(currentCustomDomain);
             if (error) throw error;
@@ -1202,7 +1239,8 @@
           const onTenantHome =
             onTenantPublicSurface && homePaths.indexOf(rawPathname) !== -1;
 
-          if (shouldBlockPublicPageView(page)) {
+          const wouldBlockPublic = shouldBlockPublicPageView(page);
+          if (wouldBlockPublic && !(isPreview && isAuthenticatedPreview)) {
             window.DFOPS__applyAnalyticsConsentNow = function noopAnalyticsConsent() {};
             const links = this.buildSubscriptionLinks(page.slug);
             this.subscriptionPanelUrl = links.panel;
@@ -1214,10 +1252,9 @@
           }
 
           /**
-           * Podgląd roboczy (Live Preview): TYLKO gdy `dfcms_preview=1` i zalogowany właściciel.
-           * Anonimowy gość nigdy tu nie wchodzi (brak sesji → brak draftu) — publiczna ścieżka bez zmian.
+           * Podgląd roboczy (Live Preview): TYLKO gdy `dfcms_preview=1` i zalogowany właściciel/superadmin.
+           * Anonimowy gość nigdy tu nie wchodzi (brak sesji → brak rekordu) — publiczna ścieżka bez zmian.
            */
-          const isPreview = urlParams.get('dfcms_preview') === '1';
           let previewDraft = null;
           if (isPreview) {
             // 1) Handoff z panelu przez localStorage — działa w nowej karcie niezależnie od
@@ -1279,6 +1316,11 @@
 
           applyDocumentSeo(this.content, this.lang);
           this.billingPlan = page.billing_plan || 'trial';
+          if (isPreview && isAuthenticatedPreview && wouldBlockPublic) {
+            this.privatePreviewOnly = true;
+            const links = this.buildSubscriptionLinks(page.slug);
+            injectPrivatePreviewBanner(links.panel);
+          }
           initWatermark(this.billingPlan);
           this.injectAnalyticsTracking();
           this.dataLoaded = true;

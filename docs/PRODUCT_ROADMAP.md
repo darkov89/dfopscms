@@ -2,7 +2,17 @@
 
 > **Plan strategiczny** po fazie MVP / po ~10 płacących klientach. Stan bieżący produkcji: [`MASTER_CONTEXT.md`](MASTER_CONTEXT.md).
 
-**Ostatnia aktualizacja:** 2026-06-16 — konsolidacja z `docs/roadmap/*`
+**Ostatnia aktualizacja:** 2026-07-04 — link do Silnika Wzrostu
+
+---
+
+## 0. Silnik Wzrostu (Growth Autopilot)
+
+**Priorytet produktowy post-MVP** — CMS, który po publikacji strony co tydzień podpowiada jedną zmianę związaną z klientami (telefon, rezerwacja, opinie), z licznikami konwersji i benchmarkami branżowymi.
+
+**Spec wdrożeniowy (fazy G0–G4, DB, Edge, panel):** [`docs/GROWTH_AUTOPILOT_ARCHITECTURE.md`](GROWTH_AUTOPILOT_ARCHITECTURE.md).
+
+Nie blokuje architektury V2 poniżej — fazy G0–G1 można wdrażać na obecnym stacku (bez Vite/bundlera).
 
 ---
 

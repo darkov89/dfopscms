@@ -446,6 +446,26 @@
   }
 
   /**
+   * Metadane strony do podglądu panelu (`?dfcms_preview=1`) — bez filtrów trial/billing.
+   * RLS: właściciel lub superadmin; anon / obcy zalogowany użytkownik → brak wiersza.
+   */
+  async function getPageForAuthenticatedPreview(slug) {
+    const slugTrimmed = typeof slug === 'string' ? slug.trim().toLowerCase() : '';
+    if (!slugTrimmed) return { data: null, error: null };
+    const {
+      data: { user } = { user: null },
+    } = await supabase().auth.getUser();
+    if (!user?.id) return { data: null, error: null };
+    const { data, error } = await supabase()
+      .from('pages')
+      .select('slug, theme, content, color_preset, custom_domain, trial_blocked_at, billing_failed_at, billing_plan')
+      .eq('slug', slugTrimmed)
+      .limit(1)
+      .maybeSingle();
+    return { data: sanitizePageRow(data), error };
+  }
+
+  /**
    * Strona przypisana do niestandardowej domeny (SaaS). Kolumny: custom_domain, custom_domain_status.
    * Hostname bez www — normalizuj przed wywołaniem (np. w routerze).
    */
@@ -541,6 +561,7 @@
 
   window.DFOPS_pageRepository = {
     getPageBySlug,
+    getPageForAuthenticatedPreview,
     getDraftContentForOwner,
     getPageByCustomDomain,
     isSlugAvailable,

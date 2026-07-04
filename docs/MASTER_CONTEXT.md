@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-07-04 — fix landingu na subdomenach tenantów (client fallback bez wildcard Pages)
+**Ostatnia aktualizacja treści:** 2026-07-04 — spec architektury Silnika Wzrostu (Growth Autopilot)
 
 ---
 
@@ -90,7 +90,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 
 **Trial i retencja:**
 
-- **Blokada publiczna (14 dni):** `publicSiteApp.shouldBlockPublicPageView()` — 14 dni od `trial_started_at` lub `billing_failed_at`; natychmiast przy `trial_blocked_at`.
+- **Blokada publiczna (14 dni):** `publicSiteApp.shouldBlockPublicPageView()` — 14 dni od `trial_started_at` lub `billing_failed_at`; natychmiast przy `trial_blocked_at`. **Podgląd panelu** (`?dfcms_preview=1` + sesja właściciela/superadmina) omija blokadę — `getPageForAuthenticatedPreview()` + baner „Podgląd prywatny”; goście i LIVE bez zmian.
 - **Cron DB:** Edge `expire-trial-pages` → RPC `expire_trial_pages()` (logika 14 dni + `billing_profiles`; migracja `20260611120000`).
 - **Ostrzeżenie −7 dni:** `pages.purge_warning_sent_at` + RPC `notify_purge_upcoming_pages()` (≥23 dni od blokady).
 - **Kasacja (30 dni):** RPC `purge_trial_blocked_pages_after_grace()` — **domyślnie wyłączona** w Edge (`AUTO_PURGE_ENABLED` ≠ true); raport do ręcznej kasacji.
@@ -102,7 +102,9 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 
 **Security (skrót):** forced password reset, DOMPurify, sanitizacja URL-like pól `pages.content` na zapisie i odczycie, Cloudflare Turnstile dla rejestracji/custom inquiry/checkout, CSP/HSTS/XFO/nosniff w `functions/_middleware.js`, publiczny odczyt `pages` zawężony query+RLS+grantami kolumnowymi, Stripe webhook tylko Edge, Google Places/Maps klucz tylko Edge, `billing_profiles` SoT rozliczeń, draft preview tylko dla właściciela. Superadmini są wyłącznie w `public.superadmins`; RLS dodaje im SELECT/UPDATE/DELETE na `pages` i `analytics_events`, bez zmiany polityk właścicielskich.
 
-**Luki:** brak obowiązkowego E2E/CI dla Edge; wildcard `*.dfcms.pl` w Cloudflare Pages; RLS anon read wymaga GRANT + polityki; brak historii wersji treści; monolityczny panel (`admin.html` + `adminApp.js`) utrudnia kolejne zmiany IA.
+**Silnik Wzrostu (plan — nie wdrożony):** CMS podpowiada co tydzień jedną zmianę związaną z konwersją (telefon, rezerwacja, opinie), liczniki kliknięć CTA i benchmarki branżowe per `theme`. **Spec wdrożeniowy:** [`docs/GROWTH_AUTOPILOT_ARCHITECTURE.md`](GROWTH_AUTOPILOT_ARCHITECTURE.md) — fazy G0–G4; **repurpose** tabeli `analytics_events` (stary telemetry panelu wycofany); osobno `growth_benchmarks`; Edge `record-site-event` + cron benchmarków; `growthRules.js`, karta na dashboardzie.
+
+**Luki:** brak obowiązkowego E2E/CI dla Edge; wildcard `*.dfcms.pl` w Cloudflare Pages; RLS anon read wymaga GRANT + polityki; brak historii wersji treści; monolityczny panel (`admin.html` + `adminApp.js`) utrudnia kolejne zmiany IA; Silnik Wzrostu — do implementacji wg spec.
 
 **TO-DO operacyjne:** tour Driver.js mobile; smoke webhook Stripe; CI deploy Edge; skonfigurować Cron Supabase dla `expire-trial-pages`.
 
@@ -111,7 +113,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 - **Modal powitalny** (`showWelcomeModal`): warunek — `welcome_onboarding_completed` w `content.pl.settings`.
 - **Driver.js** (CDN 1.4.0): tour → kreator (krok 0) → podgląd strony → sidebar (`#dfops-admin-sidebar`) → **Pomocnik krok po kroku** → Subskrypcja. Po tour domyślny widok: **`dashboard`** (nie `hero`).
 - **Kreator:** kroki logiczne z `js/core/themeConfig.js` (`template` → `brand` → `hero` → `offer` → `about` → `contact`); aktywna lista per motyw (`DFOPS_getActiveWizardStepIds`) — np. gastro pomija `about`, w `offer` zbiera `menu_items` zamiast `services`; sync `nav.logo` → `business_name` / `hero.name` / SEO; `finishWizard` → `finalizeWizardContent` (ukrywa puste sekcje); stan w `localStorage` (`dfops_wizard_state_v1:{slug}`, `v:2`); czyszczenie po `finishWizard` / `switchTemplate`.
-- **Draft vs published:** auto-save debounce 1000ms → `draft_content`; `publishChanges()` → `content`; preview tylko właściciel (`dfcms_preview=1`); `revertChanges()` z `_publishedContentRaw`.
+- **Draft vs published:** auto-save debounce 1000ms → `draft_content`; `publishChanges()` → `content`; preview tylko właściciel/superadmin (`dfcms_preview=1`, także po wygasłym trial); `revertChanges()` z `_publishedContentRaw`.
 - **Subskrypcja panel:** `hasActivePaidSubscription` / `isSubscriptionCanceledButValid` — tylko Stripe (`billing_profiles`), nie samo `payment_completed` w JSON. Po aktywnej płatności: karta statusu + portal Stripe (upgrade/downgrade kontekstowo: Starter→Standard / Standard→Starter); karuzela pakietów ukryta; baner sukcesu po `?payment=success` (`subscriptionActivationBanner`).
 - **God Mode:** `godmode.html` wymaga sesji i widocznego własnego wpisu w `superadmins`; lista pobiera wszystkie `pages`. Panel po zalogowaniu sprawdza `superadmins` i pokazuje w sidebarze „Master Dashboard” tylko superadminom. Przycisk „Zarządzaj” otwiera `admin.html?impersonate={slug}`. W impersonacji panel zapisuje konkretny rekord po `pages.id`, pomija profil billingowy superadmina i blokuje checkout z sesji operatora.
 
@@ -366,10 +368,23 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 | Szablony publiczne | `templates/{beauty,fitness,services,consultant,gastro,care}.html`, boilerplate `templates/_base_template.html` |
 | Rejestracja | `rejestracja.html`, `registrationApp.js`, trigger `handle_new_user` |
 | Edge Stripe | `create-checkout`, `stripe-webhook`, `sync-stripe-subscription`, `_shared/stripeBilling.ts` |
+| Silnik Wzrostu (spec) | [`docs/GROWTH_AUTOPILOT_ARCHITECTURE.md`](GROWTH_AUTOPILOT_ARCHITECTURE.md) |
 
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-07-04 — Podgląd po wygasłym trial
+
+- **`pageRepository.getPageForAuthenticatedPreview`:** odczyt metadanych strony bez filtrów trial/billing — RLS (właściciel lub superadmin).
+- **`publicSiteApp`:** przy `?dfcms_preview=1` + zalogowany właściciel pomija `shouldBlockPublicPageView`; baner „Podgląd prywatny”; analityka nadal wyłączona w preview. Publiczny LIVE i anon bez zmian.
+
+### 2026-07-04 — Spec architektury Silnika Wzrostu
+
+- **Dokument:** [`docs/GROWTH_AUTOPILOT_ARCHITECTURE.md`](GROWTH_AUTOPILOT_ARCHITECTURE.md) — plan wdrożenia Growth Autopilot dla agentów: fazy G0–G4, rozszerzenie `analytics_events` + `growth_benchmarks`, Edge Functions, `growthRules.js` / `siteAnalytics.js`, integracja z `themeConfig`, dashboard, RLS, checklist plików i testów.
+- **Decyzje:** rozszerzyć `analytics_events` (stary telemetry panelu nieużywany); reguły branżowe jak `themeConfig`; panel JS = monolit `adminApp.js`; HTML dashboard przez partials + `build:admin`.
+- **Rev 2 (2026-07-04):** rezygnacja z osobnej tabeli `site_events` — jedna tabela zdarzeń, cleanup `DFOPS_trackEvent` w panelu.
+- **Status:** spec tylko — brak kodu produkcyjnego do momentu ticketów G0+.
 
 ### 2026-07-04 — Fix landingu na subdomenach tenantów
 
