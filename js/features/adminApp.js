@@ -2260,7 +2260,11 @@ function adminMixinData(ctx) {
        * Zwraca true, jeśli zaplanowano opóźnione odświeżenie (pierwsze loadData nie wołamy od razu).
        */
       async ensurePageFromRegistrationMetadata() {
-        const { data: first } = await repo.getCurrentUserPage(this.user.id);
+        let { data: first } = await repo.getCurrentUserPage(this.user.id);
+        if (first) return true;
+        // Trigger DB mógł właśnie utworzyć stronę — krótkie ponowienie zamiast błędu „slug zajęty”.
+        await new Promise((resolve) => window.setTimeout(resolve, 450));
+        ({ data: first } = await repo.getCurrentUserPage(this.user.id));
         if (first) return true;
 
         const { data: udata, error: uerr } = await this.supabase.auth.getUser();
@@ -2302,6 +2306,8 @@ function adminMixinData(ctx) {
         if (insErr) {
           const code = insErr.code || insErr?.code;
           if (code === '23505') {
+            const retry = await repo.getCurrentUserPage(this.user.id);
+            if (retry.data) return true;
             this.showError('Ten adres strony jest już zajęty. Skontaktuj się z pomocą.');
           } else {
             this.showError(insErr.message || 'Nie udało się utworzyć strony przy pierwszym logowaniu.');
@@ -2488,11 +2494,17 @@ function adminMixinData(ctx) {
           if (!this._initialPanelLoadDone && this.billingProfileReady) {
             this._initialPanelLoadDone = true;
           }
-          if (
-            this._authEmailJustConfirmed &&
+          const shouldAutoStartOnboarding =
+            !this._onboardingAutoStartDone &&
+            !!this.pageId &&
+            !!this.user &&
+            this.isEmailVerified &&
             !this.isForcedPasswordReset &&
-            this.content?.pl?.settings?.welcome_onboarding_completed !== true
-          ) {
+            this.theme === 'setup' &&
+            this.content?.pl?.settings?.onboarding_completed === false &&
+            this.content?.pl?.settings?.welcome_onboarding_completed !== true;
+          if (shouldAutoStartOnboarding) {
+            this._onboardingAutoStartDone = true;
             this._authEmailJustConfirmed = false;
             this.showWelcomeModal = false;
             this.$nextTick(() => {
@@ -3912,7 +3924,12 @@ function adminMixinWizard(ctx) {
           return;
         }
         if (!this.resolveDriverFactory()) {
-          await this.markWelcomeOnboardingSeen();
+          this.wizardStep = 0;
+          this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
+          this.wizardFieldWarning = '';
+          this.showWizard = true;
+          this.sidebarOpen = false;
+          this.mobileMenuOpen = false;
           return;
         }
         this.wizardStep = 0;
@@ -4428,6 +4445,8 @@ function createAdminApp() {
       isEmailVerified: false,
       /** Ustawiane po `exchangeCodeForSession` z linku potwierdzającego e-mail. */
       _authEmailJustConfirmed: false,
+      /** Jednorazowy auto-start kreatora po pierwszym udanym loadData (setup, onboarding nieukończony). */
+      _onboardingAutoStartDone: false,
       needsEmailConfirmation: false,
     },
     adminMixinUi(ctx),

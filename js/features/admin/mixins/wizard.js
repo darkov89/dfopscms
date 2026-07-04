@@ -445,7 +445,12 @@ function adminMixinWizard(ctx) {
           return;
         }
         if (!this.resolveDriverFactory()) {
-          await this.markWelcomeOnboardingSeen();
+          this.wizardStep = 0;
+          this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
+          this.wizardFieldWarning = '';
+          this.showWizard = true;
+          this.sidebarOpen = false;
+          this.mobileMenuOpen = false;
           return;
         }
         this.wizardStep = 0;

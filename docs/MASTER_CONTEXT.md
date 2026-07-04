@@ -96,7 +96,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 - **Kasacja (30 dni):** RPC `purge_trial_blocked_pages_after_grace()` — **domyślnie wyłączona** w Edge (`AUTO_PURGE_ENABLED` ≠ true); raport do ręcznej kasacji.
 - **Powiadomienia cron:** **Telegram** (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`) — Markdown; **Resend usunięty** z `expire-trial-pages`. Secrets crona: `CRON_SECRET`. Harmonogram: Dashboard → Integrations → Cron → POST `expire-trial-pages`.
 
-**Onboarding:** modal powitalny (pomijany gdy `theme === setup`), **auto-otwarcie kreatora** przy pierwszym wejściu na panel ze świeżym kontem (`theme=setup`, `onboarding_completed=false`, e-mail potwierdzony), Driver.js, kreator (wizard) sterowany `themeConfig` — liczba i treść kroków zależy od `pages.theme`; `welcome_onboarding_completed` / `onboarding_completed` w `pages.content`.
+**Onboarding:** modal powitalny (pomijany przy auto-starcie); **auto-otwarcie kreatora** przy pierwszym udanym `loadData` ze świeżym kontem (`theme=setup`, `onboarding_completed=false`, e-mail potwierdzony lub staging bypass) — także po wejściu z linku rejestracji (`admin.html?site=…`), nie tylko po `?code=` z maila; Driver.js, kreator (wizard) sterowany `themeConfig`; `welcome_onboarding_completed` / `onboarding_completed` w `pages.content`. Przy pierwszym logowaniu trigger DB może utworzyć `pages` przed panelem — `ensurePageFromRegistrationMetadata` ponawia odczyt zamiast błędu „slug zajęty”.
 
 **Prawo & Bezpieczeństwo:** panel `admin.html#legal` zarządza `pages.content.pl.privacy` (`mode: 'default' | 'custom'`, `customText`). Publiczny route `/polityka-prywatnosci` renderuje standardową politykę DFCMS albo własny dokument użytkownika przez DOMPurify i zawsze dokleja klauzulę infrastruktury DFCMS/Supabase/Cloudflare.
 
@@ -378,6 +378,7 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
+| **2026-07-04** | **Onboarding po rejestracji:** auto-start kreatora przy pierwszym `loadData` dla `theme=setup` (nie tylko `?code=` z maila); race trigger DB vs `ensurePageFromRegistrationMetadata` — retry + 23505 bez flasha „slug zajęty”; kreator otwiera się bez Driver.js gdy CDN niedostępny. Bundle `adminApp.js?v=20260704j`. |
 | **2026-07-04** | **Staging pages.dev — tenant bez subdomeny:** `platformRouting` na `*.pages.dev` buduje URL `apex/?site=slug` (CF Pages bez wildcardu); staging bypass weryfikacji e-mail dla zalogowanego użytkownika (kreator na preview). |
 | **2026-07-04** | **Fix routing tenantów (rewrite vs redirect):** middleware `fetchThemeAsset` przez `env.ASSETS.fetch(new URL('/templates/{theme}.html', request.url))` z `redirect: manual`; custom domain w `fetchPageRow` → 404 zamiast fallbacku na landing; catch tenant host → 404; `publicSiteApp.cleanTenantPublicUrl` — subdomena + custom domain, pathname `/` (bez `/templates/`); `buildThemePageUrl` dla custom → `/`; `routerApp` tenant/custom → `/` (nie `/templates/`); `index.html` bez shimów subdomena/custom → `router.html`. |
 | **2026-07-04** | **Subskrypcja panel — UX zarządzania:** jawne pola etykiet/statusu portalu; przyciski „Przejdź na Standard/Starter” + anuluj; karuzela planów ukryta przy aktywnej subskrypcji. |

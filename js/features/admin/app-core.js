@@ -162,6 +162,8 @@ function createAdminApp() {
       isEmailVerified: false,
       /** Ustawiane po `exchangeCodeForSession` z linku potwierdzającego e-mail. */
       _authEmailJustConfirmed: false,
+      /** Jednorazowy auto-start kreatora po pierwszym udanym loadData (setup, onboarding nieukończony). */
+      _onboardingAutoStartDone: false,
       needsEmailConfirmation: false,
     },
     adminMixinUi(ctx),
