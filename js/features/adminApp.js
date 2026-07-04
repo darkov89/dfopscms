@@ -1,4 +1,3 @@
-/* GENERATED — nie edytuj ręcznie. Źródło: js/features/admin/ → npm run build:admin-js */
 ;(function () {
   /** Pusty szkielet `content` — Alpine nie wywołuje wtedy błędów typu `null.pl` przed `loadData`. */
   function formatResendSignupError(err) {
@@ -14,59 +13,16 @@
     return msg || 'Nie udało się wysłać maila.';
   }
 
-  function userEmailAddress(u) {
-    if (!u || typeof u !== 'object') return '';
-    const direct = String(u.email || '').trim();
-    if (direct) return direct;
-    if (Array.isArray(u.identities)) {
-      for (let i = 0; i < u.identities.length; i++) {
-        const id = u.identities[i];
-        const fromId = String(id?.identity_data?.email || id?.email || '').trim();
-        if (fromId) return fromId;
-      }
-    }
-    const meta = u.user_metadata && typeof u.user_metadata === 'object' ? u.user_metadata : null;
-    return meta ? String(meta.email || '').trim() : '';
-  }
-
   /** Czy konto ma ustawione potwierdzenie e-mail (snake_case + camelCase — różne wersje klienta JWT). */
   function userEmailLooksConfirmed(u) {
     if (!u || typeof u !== 'object') return false;
     const ok = (v) => v != null && String(v).trim() !== '' && String(v).toLowerCase() !== 'null';
-    if (
+    return !!(
       ok(u.email_confirmed_at) ||
       ok(u.confirmed_at) ||
       ok(u.emailConfirmedAt) ||
       ok(u.confirmedAt)
-    ) {
-      return true;
-    }
-    if (Array.isArray(u.identities)) {
-      for (let i = 0; i < u.identities.length; i++) {
-        const id = u.identities[i];
-        if (id?.identity_data?.email_verified === true) return true;
-        const created = id?.identity_data?.email_verified_at || id?.created_at;
-        if (ok(created) && userEmailAddress(u)) return true;
-      }
-    }
-    const meta = u.user_metadata && typeof u.user_metadata === 'object' ? u.user_metadata : null;
-    if (meta && meta.email_verified === true) return true;
-    const env =
-      typeof globalThis !== 'undefined' && globalThis.DFOPS_DEPLOY_ENVIRONMENT
-        ? globalThis.DFOPS_DEPLOY_ENVIRONMENT
-        : '';
-    const host =
-      (typeof window !== 'undefined' && window.location && window.location.hostname
-        ? String(window.location.hostname)
-        : '') ||
-      (typeof globalThis !== 'undefined' && globalThis.location && globalThis.location.hostname
-        ? String(globalThis.location.hostname)
-        : '');
-    /** Staging / preview: aktywna sesja wystarczy (JWT często bez `email` / `email_confirmed_at`). */
-    if (env === 'staging' || /\.pages\.dev$/i.test(host)) {
-      return !!u.id;
-    }
-    return false;
+    );
   }
 
   function resendErrorMeansAlreadyConfirmed(err) {
@@ -323,14 +279,6 @@
       return window.DFOPS_isPublishedTheme(theme);
     }
     return getSwitchableTemplateIds().includes(String(theme || '').trim().toLowerCase());
-  }
-
-  /** Ścieżka HTML widoku publicznego — `setup` to root `setup.html`, nie `/templates/`. */
-  function publicHtmlPathForTheme(theme) {
-    const t = String(theme || '').trim().toLowerCase();
-    if (t === 'setup') return '/setup.html';
-    if (isPublishedTheme(t)) return `/templates/${t}.html`;
-    return '/templates/beauty.html';
   }
 
   function normalizeWizardTheme(theme) {
@@ -720,564 +668,268 @@
     return null;
   }
 
-  /** Motyw do presetów kolorów — kreator vs studio; nowe szablony przez `presetsByTheme` w config. */
-  function resolvePresetThemeForPanel(showWizard, wizardTheme, theme) {
-    const raw = showWizard ? wizardTheme || theme || 'beauty' : theme || 'beauty';
-    return normalizeWizardTheme(raw);
-  }
-
-  function computeAvailablePresets(cfg, showWizard, wizardTheme, theme) {
-    const id = resolvePresetThemeForPanel(showWizard, wizardTheme, theme);
-    return (cfg && cfg.presetsByTheme && cfg.presetsByTheme[id]) || [];
-  }
-
-  function computeThemeDisplayLabel(theme) {
-    const id = String(theme || '').trim().toLowerCase();
-    if (typeof window.DFOPS_getTemplateCatalog === 'function') {
-      const cat = window.DFOPS_getTemplateCatalog().find((t) => t.id === id);
-      if (cat?.name) return cat.name;
-    }
-    return THEME_DISPLAY_LABELS[id] || id || '—';
-  }
-
-  function computeDashboardStartTasks(theme, pl) {
-    if (!pl) return [];
-    const tasks = [];
-    const phone = String(pl.contact?.phone || '').trim();
-    const email = String(pl.contact?.email || '').trim();
-    tasks.push({
-      id: 'phone',
-      label: 'Dodaj numer telefonu',
-      tab: 'contact',
-      done: !!(phone || email),
-    });
-    let hasOffer = false;
-    if (themeHasSection(theme, 'menu')) {
-      hasOffer =
-        Array.isArray(pl.menu_items) &&
-        pl.menu_items.some((row) => row && isNonEmptyContentString(row.name));
-    } else if (themeHasSection(theme, 'services')) {
-      hasOffer =
-        Array.isArray(pl.services) &&
-        pl.services.some((s) => s && isNonEmptyContentString(s.title));
-    }
-    tasks.push({
-      id: 'offer',
-      label: themeHasSection(theme, 'menu')
-        ? 'Wpisz choć jedną pozycję menu'
-        : 'Wpisz choć jedną usługę',
-      tab: themeHasSection(theme, 'menu') ? 'menu' : 'services',
-      done: hasOffer,
-    });
-    const hasHeroImage =
-      isNonEmptyContentString(pl.hero?.image) || isNonEmptyContentString(pl.nav?.logoImage);
-    tasks.push({
-      id: 'heroimg',
-      label: 'Wgraj zdjęcie banera',
-      tab: 'hero',
-      done: hasHeroImage,
-    });
-    tasks.push({
-      id: 'headline',
-      label: 'Uzupełnij nagłówek na banerze',
-      tab: 'hero',
-      done: isNonEmptyContentString(pl.hero?.headline),
-    });
-    return tasks;
-  }
-
-  /** Checklista onboardingu — `theme === setup` lub brak podstaw w treści. */
-  function computeIncompleteOnboardingChecks(theme, content) {
-    const settings = content?.pl?.settings;
-    if (!settings || settings.onboarding_completed === true) return [];
-    const pl = content?.pl;
-    if (!pl) return [];
-    const items = [];
-    if (theme === 'setup') {
-      items.push({
-        id: 'setup',
-        label: 'Wybierz szablon (Beauty, Konsultant, Fitness…)',
-        tab: null,
-        openWizard: true,
-      });
-    }
-    if (!String(pl.nav?.logo || '').trim()) {
-      items.push({
-        id: 'navlogo',
-        label: 'Podaj nazwę marki w menu strony',
-        tab: 'settings',
-        openWizard: false,
-      });
-    }
-    const phone = String(pl.contact?.phone || '').trim();
-    const email = String(pl.contact?.email || '').trim();
-    if (!phone && !email) {
-      items.push({
-        id: 'contact',
-        label: 'Dodaj telefon lub e-mail do kontaktu',
-        tab: 'contact',
-        openWizard: false,
-      });
-    }
-    return items;
-  }
-
-  function computePreviewHtmlBasename(theme) {
-    const t = String(theme || 'beauty').trim().toLowerCase();
-    if (t === 'setup') return 'setup';
-    if (isPublishedTheme(t)) return t;
-    return 'beauty';
-  }
-
-  function computeTemplateCatalog() {
-    if (typeof window.DFOPS_getTemplateCatalog === 'function') {
-      return window.DFOPS_getTemplateCatalog();
-    }
-    return [];
-  }
-
-  function computeWizardTemplateCatalog(templateCatalog) {
-    if (typeof window.DFOPS_getWizardTemplateCatalog === 'function') {
-      return window.DFOPS_getWizardTemplateCatalog();
-    }
-    return templateCatalog;
-  }
-
-  function computeTrialDaysLeft(ctx) {
-    const { MS_PER_DAY, isBillingCanceled, hasActivePaidSubscription, subscriptionPlan, billingSubscriptionView } =
-      ctx;
-    if (isBillingCanceled) return 0;
-    if (hasActivePaidSubscription) return 0;
-    const sub = billingSubscriptionView;
-    if (subscriptionPlan !== 'trial' || !sub?.trial_started_at) return 14;
-    const start = new Date(sub.trial_started_at).getTime();
-    const elapsed = Math.floor((Date.now() - start) / MS_PER_DAY);
-    return Math.max(0, 14 - elapsed);
-  }
-
-  function computePlanGatingLocks(subscriptionPlan) {
-    const p = subscriptionPlan || 'trial';
-    let isCustomDomainLocked = p === 'trial' || p === 'tier0';
-    let isCustomAppearanceLocked = p === 'trial' || p === 'tier0';
-    let isQuickChatLocked = p === 'tier0';
-    if (typeof window.DFOPS_planAllowsCustomDomain === 'function') {
-      isCustomDomainLocked = !window.DFOPS_planAllowsCustomDomain(p);
-    }
-    if (typeof window.DFOPS_planAllowsCustomAppearance === 'function') {
-      isCustomAppearanceLocked = !window.DFOPS_planAllowsCustomAppearance(p);
-    }
-    if (typeof window.DFOPS_planAllowsQuickChat === 'function') {
-      isQuickChatLocked = !window.DFOPS_planAllowsQuickChat(p);
-    }
-    return { isCustomDomainLocked, isCustomAppearanceLocked, isQuickChatLocked };
-  }
-
-  function computeSubscriptionBlocksAccountDeletion(billingSubscriptionView) {
-    const sub = billingSubscriptionView;
-    const sid = typeof sub?.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
-    if (!sid) return false;
-    const stRaw = typeof sub?.status === 'string' ? sub.status.trim().toLowerCase() : '';
-    if (stRaw === 'canceled' || stRaw === 'cancelled' || stRaw === 'incomplete_expired') return false;
-    if (!stRaw) return true;
-    return ['active', 'trialing', 'past_due', 'unpaid', 'paused'].includes(stRaw);
-  }
-
-  function computePlanDisplayLabel(billingSubscriptionView, subscriptionPlan) {
-    const sub = billingSubscriptionView;
-    if (typeof window.DFOPS_subscriptionDisplayName === 'function') {
-      return window.DFOPS_subscriptionDisplayName(sub);
-    }
-    if (typeof window.DFOPS_planDisplayName === 'function') {
-      return window.DFOPS_planDisplayName(subscriptionPlan);
-    }
-    return subscriptionPlan || 'trial';
-  }
-
-  function computeSelectedPlanHumanLabel(billingSubscriptionView) {
-    const s = billingSubscriptionView?.selected_plan;
-    if (s === 'tier0') return 'Starter';
-    if (s === 'tier1' || s === 'tier2') return 'Standard';
-    return '';
-  }
-
-  function computeTenantSiteHostLabel(slug) {
-    if (!slug) return '—';
-    if (typeof window.DFOPS_formatTenantHostname === 'function') {
-      return (
-        window.DFOPS_formatTenantHostname(
-          slug,
-          window.location.hostname,
-          window.DFOPS_normalizeHostname,
-        ) || slug
-      );
-    }
-    return `${slug}.dfcms.pl`;
-  }
-
-/** Mapowanie billing_profiles + trial z content — ten sam kontrakt co js/core/billingProfileView.js */
-
-function normalizePageBillingPlan(plan) {
-  const raw = plan && String(plan).trim() !== '' ? String(plan).trim().toLowerCase() : 'trial';
-  if (raw === 'tier2' || raw === 'premium') return 'tier1';
-  return raw;
-}
-
-function emptyBillingSubscriptionView() {
-  return {
-    plan: 'trial',
-    status: '',
-    payment_completed: false,
-    stripe_customer_id: '',
-    stripe_subscription_id: '',
-    current_period_end: '',
-    cancel_at_period_end: false,
-    cancel_at: null,
-    trial_started_at: null,
-    selected_plan: null,
-  };
-}
-
-/** Plain object — omija Alpine Proxy / getters Supabase przy odczycie pól. */
-function snapshotBillingProfileRow(bp) {
-  if (bp == null) return null;
-  if (typeof bp !== 'object' || Array.isArray(bp)) return null;
-  let raw = bp;
-  try {
-    raw = typeof structuredClone === 'function' ? structuredClone(bp) : JSON.parse(JSON.stringify(bp));
-  } catch {
-    raw = bp;
-  }
-  const plan = raw.plan ?? raw['plan'] ?? null;
-  const status = raw.status ?? raw['status'] ?? null;
-  const stripeSubscriptionId = raw.stripe_subscription_id ?? raw['stripe_subscription_id'] ?? '';
-  if (plan == null && status == null && !String(stripeSubscriptionId).trim()) return null;
-  return {
-    plan,
-    status,
-    stripe_customer_id: String(raw.stripe_customer_id ?? raw['stripe_customer_id'] ?? '').trim(),
-    stripe_subscription_id: String(stripeSubscriptionId).trim(),
-    current_period_end: raw.current_period_end ?? raw['current_period_end'] ?? '',
-    cancel_at_period_end: raw.cancel_at_period_end === true || raw['cancel_at_period_end'] === true,
-  };
-}
-
-function billingRowToSubscriptionView(billing, trialSub, pageBillingPlan) {
-  const trial = trialSub && typeof trialSub === 'object' ? trialSub : {};
-  if (!billing || typeof billing !== 'object' || Array.isArray(billing)) {
-    const mirrored = normalizePageBillingPlan(pageBillingPlan);
-    if (mirrored === 'tier0' || mirrored === 'tier1') {
-      return {
-        plan: mirrored,
-        trial_started_at: trial.trial_started_at || null,
-        selected_plan: trial.selected_plan ?? null,
-        payment_completed: true,
-        status: 'active',
-        stripe_customer_id: '',
-        stripe_subscription_id: '',
-        current_period_end: '',
-        cancel_at_period_end: false,
-        cancel_at: trial.cancel_at ?? null,
-      };
-    }
+  function createAdminApp() {
+    const t = window.DFOPS_CONFIG?.timeouts || {};
+    const MS_PER_DAY = t.msPerDay ?? 86400000;
+    const ERROR_MESSAGE_TIMEOUT = t.errorMessage ?? 5000;
+    const SUCCESS_MESSAGE_TIMEOUT = t.successMessage ?? 3000;
+    const UPGRADE_MESSAGE_TIMEOUT = t.upgradeMessage ?? 3500;
+    const cfg = window.DFOPS_CONFIG;
+    const repo = window.DFOPS_pageRepository;
     return {
-      plan: trial.plan || 'trial',
-      trial_started_at: trial.trial_started_at || null,
-      selected_plan: trial.selected_plan ?? null,
-      payment_completed: trial.payment_completed === true,
-      status: '',
-      stripe_customer_id: '',
-      stripe_subscription_id: '',
-      current_period_end: '',
-      cancel_at_period_end: false,
-      cancel_at: trial.cancel_at ?? null,
-    };
-  }
-  const st = String(billing.status || '').trim().toLowerCase();
-  const terminated = st === 'canceled' || st === 'cancelled' || st === 'incomplete_expired';
-  let plan = terminated ? 'trial' : normalizePageBillingPlan(billing.plan || 'trial');
-  const mirrored = normalizePageBillingPlan(pageBillingPlan);
-  if ((plan === 'trial' || !billing.plan) && (mirrored === 'tier0' || mirrored === 'tier1')) {
-    plan = mirrored;
-  }
-  const paidTier = !terminated && (plan === 'tier0' || plan === 'tier1');
-  const effectiveStatus = st || (paidTier ? 'active' : '');
-  return {
-    plan,
-    status: effectiveStatus,
-    stripe_customer_id: billing.stripe_customer_id || '',
-    stripe_subscription_id: billing.stripe_subscription_id || '',
-    current_period_end: billing.current_period_end || '',
-    cancel_at_period_end: billing.cancel_at_period_end === true,
-    cancel_at: trial.cancel_at ?? null,
-    trial_started_at: trial.trial_started_at,
-    selected_plan: trial.selected_plan ?? null,
-    payment_completed:
-      paidTier &&
-      (!st ||
-        st === 'active' ||
-        st === 'trialing' ||
-        st === 'past_due' ||
-        st === 'unpaid' ||
-        trial.payment_completed === true),
-  };
-}
-
-function computeHasActivePaidSubscription(sub) {
-  if (!sub || typeof sub !== 'object') return false;
-  if (sub.payment_completed === true) return true;
-  let p = String(sub.plan || '').trim().toLowerCase();
-  if (p === 'tier2' || p === 'premium') p = 'tier1';
-  if (p === 'tier0' || p === 'tier1') {
-    const st = String(sub.status || '').trim().toLowerCase();
-    if (!st || st === 'active' || st === 'trialing' || st === 'past_due' || st === 'unpaid') {
-      return true;
-    }
-  }
-  if (typeof window.DFOPS_hasPaidSubscriptionAccess === 'function') {
-    return window.DFOPS_hasPaidSubscriptionAccess(sub);
-  }
-  const sid =
-    typeof sub.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
-  if (!sid) return false;
-  const st = typeof sub.status === 'string' ? sub.status.trim().toLowerCase() : '';
-  return st === 'active' || st === 'trialing';
-}
-
-function computeActivePaidTierForUi(view, hasPaid) {
-  if (!hasPaid || !view || typeof view !== 'object') return null;
-  let p = String(view.plan || '').trim().toLowerCase();
-  if (p === 'tier2' || p === 'premium') p = 'tier1';
-  if (p === 'tier0' || p === 'tier1') return p;
-  const sel = view.selected_plan;
-  if (sel === 'tier0' || sel === 'tier1') return sel;
-  if (sel === 'tier2') return 'tier1';
-  return null;
-}
-
-function computeIsSubscriptionCanceledButValid(view) {
-  if (!view || typeof view !== 'object') return false;
-  const st = String(view.status || '').trim().toLowerCase();
-  if (st !== 'active' && st !== 'trialing') return false;
-  return view.cancel_at_period_end === true;
-}
-
-function computeShowStripeBillingPortal(view, hasPaid) {
-  if (hasPaid) return true;
-  if (!view || typeof view !== 'object') return false;
-  const cid = String(view.stripe_customer_id || '').trim();
-  if (!cid) return false;
-  const st = String(view.status || '').trim().toLowerCase();
-  return st === 'canceled' || st === 'cancelled';
-}
-
-function computeActiveSubscriptionBrandLabel(tier, hasPaid) {
-  if (tier === 'tier1') return 'STANDARD';
-  if (tier === 'tier0') return 'STARTER';
-  if (hasPaid) return 'SUBSKRYPCJA STRIPE';
-  return '';
-}
-
-function computeActiveSubscriptionPriceLine(tier, hasPaid) {
-  if (tier === 'tier1') return '49 PLN netto / msc';
-  if (tier === 'tier0') return '29 PLN netto / msc';
-  if (hasPaid) return 'Kwota zgodnie z aktywnym pakietem w Stripe';
-  return '';
-}
-
-/** Jawnie ustawia pola billing UI (Alpine nie zachowuje getterów z x-data — tylko przypisania). */
-function applyBillingSubscriptionView(ctx) {
-  const trialSub = ctx.content?.pl?.settings?.subscription;
-  const view = billingRowToSubscriptionView(
-    snapshotBillingProfileRow(ctx.billingProfile),
-    trialSub,
-    ctx.pageBillingPlan,
-  );
-  const hasPaid = computeHasActivePaidSubscription(view);
-  const tier = computeActivePaidTierForUi(view, hasPaid);
-  ctx.billingSubscriptionView = view;
-  ctx.subscriptionPlan = view.plan || 'trial';
-  ctx.hasActivePaidSubscription = hasPaid;
-  const periodEnd = view.current_period_end;
-  ctx.subscriptionRenewalDateFormatted = formatSubscriptionRenewalDatePl(periodEnd);
-  ctx.subscriptionRenewalDateBadgeShort = formatSubscriptionRenewalDateBadgeShort(periodEnd);
-  ctx.activePaidTierForUi = tier;
-  ctx.isSubscriptionCanceledButValid = computeIsSubscriptionCanceledButValid(view);
-  ctx.showStripeBillingPortal = computeShowStripeBillingPortal(view, hasPaid);
-  ctx.activeSubscriptionBrandLabel = computeActiveSubscriptionBrandLabel(tier, hasPaid);
-  ctx.activeSubscriptionPriceLine = computeActiveSubscriptionPriceLine(tier, hasPaid);
-  const billingSt = String(ctx.billingProfile?.status || '').trim().toLowerCase();
-  const billingCanceled =
-    billingSt === 'canceled' || billingSt === 'cancelled' || billingSt === 'incomplete_expired';
-  ctx.showTrialBanner = !hasPaid && (view.plan || 'trial') === 'trial' && !billingCanceled;
-  return view;
-}
-
-function stripBillingFromContentSubscription(sub) {
-  const trial = sub && typeof sub === 'object' ? sub : {};
-  const out = {
-    plan: 'trial',
-    trial_started_at:
-      typeof trial.trial_started_at === 'string' && trial.trial_started_at.trim()
-        ? trial.trial_started_at.trim()
-        : new Date().toISOString(),
-    selected_plan: trial.selected_plan ?? null,
-  };
-  if (trial.payment_completed === true) out.payment_completed = true;
-  return out;
-}
-
-function formatSubscriptionRenewalDatePl(raw) {
-  if (typeof window.DFOPS_formatSubscriptionPeriodEndPl === 'function') {
-    return window.DFOPS_formatSubscriptionPeriodEndPl(raw);
-  }
-  if (raw == null || raw === '') return '—';
-  try {
-    const d = new Date(typeof raw === 'number' ? raw * 1000 : String(raw));
-    if (Number.isNaN(d.getTime())) return '—';
-    return d.toLocaleDateString('pl-PL', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-  } catch {
-    return '—';
-  }
-}
-
-function formatSubscriptionRenewalDateBadgeShort(raw) {
-  if (raw == null || raw === '') return '—';
-  try {
-    const d = new Date(typeof raw === 'number' ? raw * 1000 : String(raw));
-    if (Number.isNaN(d.getTime())) return '—';
-    const day = d.getDate();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    return `${day}.${month}.${year}`;
-  } catch {
-    return '—';
-  }
-}
-
-function adminMixinUi(ctx) {
-  const {
-    cfg,
-    repo,
-    MS_PER_DAY,
-    ERROR_MESSAGE_TIMEOUT,
-    SUCCESS_MESSAGE_TIMEOUT,
-    UPGRADE_MESSAGE_TIMEOUT,
-  } = ctx;
-  return {
+      supabase: null,
+      user: null,
+      loadingAuth: true,
+      email: '',
+      password: '',
+      rememberMe: false,
+      authError: '',
+      /** Logowanie: widok „Nie pamiętam hasła” (ten sam admin.html). */
+      showLoginForgotPassword: false,
+      forgotPasswordEmail: '',
+      forgotPasswordSending: false,
+      forgotPasswordInfo: '',
+      /** Link resetujący hasło (Supabase) — po loadData: izolatka wymuszonego resetu. */
+      _passwordRecoveryPendingUi: false,
+      _passwordRecoveryUiHandled: false,
+      /** Sesja z linku recovery — pełny panel ukryty do ustawienia nowego hasła. */
+      isForcedPasswordReset: false,
+      slug: new URLSearchParams(window.location.search).get('site') || '',
+      hasImpersonateParam: new URLSearchParams(window.location.search).has('impersonate'),
+      impersonateSlug: normalizePageSlug(new URLSearchParams(window.location.search).get('impersonate')),
+      isSuperadmin: false,
+      isSuperAdmin: false,
+      isImpersonating: false,
+      impersonatedPageOwnerId: null,
+      lang: 'pl',
+      theme: '',
+      isLoading: false,
+      /** Pakiet do feature gating (kolory): starter | standard. Po loadData nadpisuje się z subskrypcji. */
+      userPlan: 'starter',
+      content: createAdminContentShell(),
+      showWizard: false,
+      wizardStep: 0,
+      wizardTheme: '',
+      wizardFieldWarning: '',
+      /** Jednorazowy komunikat po „Pomiń kreator” — bez listy „ninja” u góry. */
+      showWizardDismissModal: false,
+      /** Pierwsza konfiguracja: treść bez `business_name` (po normalize — zob. loadData). */
+      showWelcomeModal: false,
+      showStudioWelcomeModal: false,
+      customDomain: '',
+      customDomainStatus: '',
+      domainInput: '',
+      pageId: null,
+      isVerifyingDomain: false,
+      domainMessage: '',
+      domainError: '',
+      showDnsInstructions: false,
+      showTemplateSwitcher: false,
+      activeTab: 'dashboard',
+      mobileMenuOpen: false,
+      headerMoreMenuOpen: false,
+      navGroupStart: true,
+      navGroupMore: false,
+      navGroupSettings: false,
+      saving: false,
+      uploadingImage: false,
+      uploadingMessage: '',
+      message: '',
+      errorMessage: '',
+      toast: { show: false, message: '', type: 'success' },
+      _toastTimer: null,
+      /** Globalny modal confirm() (Promise<boolean>) — zastępuje systemowy `confirm()` w panelu. */
+      confirmDialog: {
+        open: false,
+        title: '',
+        message: '',
+        yesLabel: 'Tak',
+        noLabel: 'Nie',
+        tone: 'default', // default | danger
+      },
+      _confirmDialogResolve: null,
+      hasUnsavedChanges: false,
+      _stopContentWatch: null,
+      /** Cichy auto-save stanu roboczego (draft_content). */
+      _draftAutosaveTimer: null,
+      draftSaving: false,
+      draftSavedOnce: false,
+      upgrading: false,
+      checkoutLoading: false,
+      showCheckoutModal: false,
+      pendingCheckoutPlan: '',
+      pendingCheckoutPlanType: '',
+      pendingCheckoutTier: '',
+      pendingCheckoutInterval: '',
+      turnstileToken: '',
+      turnstileWidgetId: null,
+      /** Okres rozliczenia na ekranie pakietów: monthly | yearly */
+      billingInterval: 'monthly',
+      stripeSyncLoading: false,
+      /** Profil rozliczeniowy z tabeli billing_profiles (źródło prawdy Stripe). */
+      billingProfile: null,
+      /** False do zakończenia pierwszego loadBillingProfile w bieżącej sesji panelu. */
+      billingProfileReady: false,
+      /** Jednorazowy toast o wygasającej / zakończonej subskrypcji (po pełnym stanie billing). */
+      _billingStatusToastShown: false,
+      /** Pierwsze loadData zakończone — dopiero potem silent sync na zakładce Subskrypcja. */
+      _initialPanelLoadDone: false,
+      /** Zapobiega podwójnemu sync przy loadData po syncStripeSubscription. */
+      _loadDataSubscriptionStripeSync: false,
+      /** Jednorazowy silent sync ze Stripe po wejściu w zakładkę Subskrypcja (świeży `cancel_at_period_end`). */
+      _subscriptionTabStripeSynced: false,
+      newPassword: '',
+      newPasswordConfirm: '',
+      /** Podgląd znaków przy zmianie hasła (Konto). */
+      showAccountPassword: false,
+      isPasswordUpdating: false,
+      isPortalLoading: false,
+      latestTemplateVersion: window.DFOPS_LATEST_TEMPLATE_VERSION || 3,
+      currentTemplateVersion: 1,
+      updateAvailable: false,
+      selectedStyleBundle: '',
+      /** Ustawiane z pages.trial_blocked_at — po trialu bez płatności strona publiczna jest zablokowana. */
+      trialBlockedAt: null,
+      showTrialSuspendedModal: true,
+      /** Opcjonalny modal po płatności — główny flow opiera się na toastach + opóźnionym loadData. */
+      showSuccessModal: false,
+      _postPaymentRefreshTimer: null,
+      resendConfirmLoading: false,
       /**
-       * Jawne pola UI zależne od theme/content/billing — wołaj po loadData, zmianie motywu, billing sync,
-       * edycji treści (deep watch) i syncWizardView. Nowe szablony: registry + themeConfig + presetsByTheme.
+       * Z serwera Auth (getUser), nie ze „stale” session.user w JWT.
+       * true = pokaż baner + blokuj kreator do czasu potwierdzenia maila.
        */
-      syncUiDerivedView() {
-        const theme = this.theme || '';
+      needsEmailConfirmation: false,
+      get availablePresets() {
+        const currentTheme = this.showWizard
+          ? (this.wizardTheme || this.theme || 'beauty')
+          : (this.theme || 'beauty');
+        return cfg.presetsByTheme[currentTheme] || [];
+      },
+      get accentColor() { return cfg.accentByPreset[this.content?.pl?.settings?.color_preset] || '#D4AF37'; },
+      get styleBundles() { return cfg.bundlesByTheme[this.theme] || []; },
+      get billingSubscriptionView() {
+        const trialSub = this.content?.pl?.settings?.subscription;
+        if (typeof window.DFOPS_billingRowToSubscriptionView === 'function') {
+          return window.DFOPS_billingRowToSubscriptionView(this.billingProfile, trialSub);
+        }
+        return trialSub && typeof trialSub === 'object' ? trialSub : { plan: 'trial' };
+      },
+      /** Panel gotowy do renderu (treść + profil billing po zalogowaniu). */
+      get panelContentReady() {
+        if (this.loadingAuth || this.isLoading) return false;
+        if (!this.user || this.isForcedPasswordReset) return true;
+        return this.billingProfileReady;
+      },
+      get panelBootLoading() {
+        return (
+          this.loadingAuth ||
+          this.isLoading ||
+          (!!this.user && !this.isForcedPasswordReset && !this.billingProfileReady)
+        );
+      },
+      billingStripeStatusNormalized() {
+        const sub = this.billingSubscriptionView;
+        return typeof sub?.status === 'string' ? sub.status.trim().toLowerCase() : '';
+      },
+      get subscriptionPlan() {
+        return this.billingSubscriptionView?.plan || 'trial';
+      },
+      /** Tier zapisany w CMS albo wybrany przed pełnym merge z webhookiem. */
+      get activePaidTierForUi() {
+        if (!this.hasActivePaidSubscription) return null;
+        const p = this.subscriptionPlan;
+        if (p === 'tier0' || p === 'tier1') return p;
+        if (p === 'tier2' && typeof window.DFOPS_normalizePlan === 'function') {
+          return window.DFOPS_normalizePlan(p);
+        }
+        if (p === 'tier2') return 'tier1';
+        const sel = this.billingSubscriptionView?.selected_plan;
+        if (sel === 'tier0' || sel === 'tier1') return sel;
+        if (sel === 'tier2') return 'tier1';
+        return null;
+      },
+      /** Kreator tylko po potwierdzeniu e-maila — zgodny z needsEmailConfirmation ustawianym po getUser(). */
+      get isEmailVerified() {
+        return !!this.user && !this.needsEmailConfirmation;
+      },
+      /**
+       * Checklista „co jeszcze dołożyć” dopóki `onboarding_completed` jest false — tylko podstawy:
+       * szablon (dopóki motyw `setup`), nazwa w menu, minimum kontaktu (tel. lub e-mail).
+       * Nagłówek hero nie jest wymuszany — uzupełnisz go w kreatorze lub w zakładce powitalnej.
+       */
+      get themeDisplayLabel() {
+        const id = String(this.theme || '').trim().toLowerCase();
+        if (typeof window.DFOPS_getTemplateCatalog === 'function') {
+          const cat = window.DFOPS_getTemplateCatalog().find((t) => t.id === id);
+          if (cat?.name) return cat.name;
+        }
+        return THEME_DISPLAY_LABELS[id] || id || '—';
+      },
+      /** Checklista na ekranie startowym — proste kroki dla właściciela firmy. */
+      get dashboardStartTasks() {
         const pl = this.content?.pl;
-        const catalog = computeTemplateCatalog();
-
-        this.availablePresets = computeAvailablePresets(cfg, this.showWizard, this.wizardTheme, theme);
-        this.accentColor =
-          cfg.accentByPreset[pl?.settings?.color_preset] || cfg.accentByPreset.gold || '#D4AF37';
-        this.styleBundles = cfg.bundlesByTheme[theme] || [];
-        this.themeDisplayLabel = computeThemeDisplayLabel(theme);
-        this.dashboardStartTasks = computeDashboardStartTasks(theme, pl);
-        this.incompleteOnboardingChecks = computeIncompleteOnboardingChecks(theme, this.content);
-        this.templateCatalog = catalog;
-        this.wizardTemplateCatalog = computeWizardTemplateCatalog(catalog);
-        this.activeThemeSections = getThemeSections(this.wizardActiveTheme);
-        this.navMenuFields =
-          typeof window.DFOPS_getNavMenuFields === 'function'
-            ? window.DFOPS_getNavMenuFields(theme)
-            : [];
-        this.previewHtmlBasename = computePreviewHtmlBasename(theme);
-        this.previewUsesHtmlFallback = (() => {
-          const t = String(theme || '').trim().toLowerCase();
-          if (!t || t === 'setup') return false;
-          return !isPublishedTheme(t);
-        })();
-        this.tenantSiteHostLabel = computeTenantSiteHostLabel(this.slug);
-
-        const premium = Array.isArray(cfg?.premiumThemes) ? cfg.premiumThemes : [];
-        this.isPremiumDraftTheme = premium.includes(String(theme || '').trim());
-        const locks = computePlanGatingLocks(this.subscriptionPlan);
-        this.isCustomDomainLocked = locks.isCustomDomainLocked;
-        this.isCustomAppearanceLocked = locks.isCustomAppearanceLocked;
-        this.isQuickChatLocked = locks.isQuickChatLocked;
-        this.isPublishBlockedByPlan = this.isPremiumDraftTheme && this.isCustomAppearanceLocked;
-
-        this.isBillingCanceled = (() => {
-          const st = String(this.billingProfile?.status || '').trim().toLowerCase();
-          return st === 'canceled' || st === 'cancelled' || st === 'incomplete_expired';
-        })();
-        this.trialDaysLeft = computeTrialDaysLeft({
-          MS_PER_DAY,
-          isBillingCanceled: this.isBillingCanceled,
-          hasActivePaidSubscription: this.hasActivePaidSubscription,
-          subscriptionPlan: this.subscriptionPlan,
-          billingSubscriptionView: this.billingSubscriptionView,
-        });
-        this.subscriptionBlocksAccountDeletion = computeSubscriptionBlocksAccountDeletion(
-          this.billingSubscriptionView,
-        );
-        this.planDisplayLabel = computePlanDisplayLabel(
-          this.billingSubscriptionView,
-          this.subscriptionPlan,
-        );
-        this.selectedPlanHumanLabel = computeSelectedPlanHumanLabel(this.billingSubscriptionView);
-
-        this.appearancePickerAccentHex = this.appearancePickerHex || this.accentColor || '#D4AF37';
-      },
-
-      syncPasswordFormView() {
-        const a = String(this.newPassword ?? '').trim();
-        const b = String(this.newPasswordConfirm ?? '').trim();
-        this.canUpdatePassword = !this.isPasswordUpdating && a.length >= 6 && a === b;
-        if (!a && !b) this.accountPasswordHint = '';
-        else if (a.length < 6) this.accountPasswordHint = `Za krótkie — minimum 6 znaków (${a.length}/6).`;
-        else if (!b) this.accountPasswordHint = 'Wpisz to samo hasło w polu „Potwierdź”.';
-        else if (a !== b) this.accountPasswordHint = 'Hasła się różnią.';
-        else this.accountPasswordHint = 'Hasła są zgodne — możesz zapisać.';
-        this.accountPasswordHintClass = this.canUpdatePassword ? 'text-emerald-700' : 'text-amber-800';
-
-        const pol = passwordPolicyErrorForRecovery(a);
-        this.canSubmitForcedPasswordReset =
-          !this.isPasswordUpdating && a === b && !!a && pol === null;
-        if (!a && !b) this.forcedResetPasswordHint = '';
-        else if (pol) this.forcedResetPasswordHint = pol;
-        else if (!b) this.forcedResetPasswordHint = 'Potwierdź hasło w drugim polu.';
-        else if (a !== b) this.forcedResetPasswordHint = 'Hasła muszą być identyczne.';
-        else this.forcedResetPasswordHint = 'Hasło spełnia wymagania.';
-        this.forcedResetPasswordHintClass = this.canSubmitForcedPasswordReset
-          ? 'text-emerald-700'
-          : 'text-amber-800';
-      },
-
-      /** Spójne flagi ładowania panelu — jawne pola (nie gettery Alpine). */
-      syncPanelReadyFlags() {
-        this.panelBootLoading =
-          !!this.loadingAuth ||
-          !!this.isLoading ||
-          (!!this.user && !this.isForcedPasswordReset && !this.billingProfileReady);
-        if (this.loadingAuth || this.isLoading) {
-          this.panelContentReady = false;
-        } else if (!this.user) {
-          this.panelContentReady = false;
-        } else if (this.isForcedPasswordReset) {
-          this.panelContentReady = true;
+        if (!pl) return [];
+        const tasks = [];
+        const phone = String(pl.contact?.phone || '').trim();
+        const email = String(pl.contact?.email || '').trim();
+        if (!phone && !email) {
+          tasks.push({ id: 'phone', label: 'Dodaj numer telefonu', tab: 'contact', done: false });
         } else {
-          this.panelContentReady = !!this.billingProfileReady;
+          tasks.push({ id: 'phone', label: 'Dodaj numer telefonu', tab: 'contact', done: true });
         }
-        if (typeof this.syncUiDerivedView === 'function') {
-          this.syncUiDerivedView();
+        let hasOffer = false;
+        if (themeHasSection(this.theme, 'menu')) {
+          hasOffer =
+            Array.isArray(pl.menu_items) &&
+            pl.menu_items.some((row) => row && isNonEmptyContentString(row.name));
+        } else if (themeHasSection(this.theme, 'services')) {
+          hasOffer =
+            Array.isArray(pl.services) &&
+            pl.services.some((s) => s && isNonEmptyContentString(s.title));
         }
+        tasks.push({
+          id: 'offer',
+          label: themeHasSection(this.theme, 'menu')
+            ? 'Wpisz choć jedną pozycję menu'
+            : 'Wpisz choć jedną usługę',
+          tab: themeHasSection(this.theme, 'menu') ? 'menu' : 'services',
+          done: hasOffer,
+        });
+        const hasHeroImage =
+          isNonEmptyContentString(pl.hero?.image) || isNonEmptyContentString(pl.nav?.logoImage);
+        tasks.push({
+          id: 'heroimg',
+          label: 'Wgraj zdjęcie banera',
+          tab: 'hero',
+          done: hasHeroImage,
+        });
+        const hasHeadline = isNonEmptyContentString(pl.hero?.headline);
+        tasks.push({
+          id: 'headline',
+          label: 'Uzupełnij nagłówek na banerze',
+          tab: 'hero',
+          done: hasHeadline,
+        });
+        return tasks;
       },
-      themeHasSection(section) {
-        return themeHasSection(this.wizardActiveTheme, section);
-      },
-      adminTabVisible(tabId) {
-        return adminTabVisibleForTheme(this.theme, tabId);
+      get incompleteOnboardingChecks() {
+        if (!this.content?.pl?.settings || this.content.pl.settings.onboarding_completed === true) return [];
+        const pl = this.content.pl;
+        if (!pl) return [];
+        const items = [];
+        if (this.theme === 'setup') {
+          items.push({ id: 'setup', label: 'Wybierz szablon (Beauty, Konsultant, Fitness…)', tab: null, openWizard: true });
+        }
+        if (!String(pl.nav?.logo || '').trim()) {
+          items.push({ id: 'navlogo', label: 'Podaj nazwę marki w menu strony', tab: 'settings', openWizard: false });
+        }
+        const phone = String(pl.contact?.phone || '').trim();
+        const email = String(pl.contact?.email || '').trim();
+        if (!phone && !email) {
+          items.push({ id: 'contact', label: 'Dodaj telefon lub e-mail do kontaktu', tab: 'contact', openWizard: false });
+        }
+        return items;
       },
       /**
        * Ukończenie profilu strony (0–100). Wagi sumują się do 100% — pola z `content.pl` + motyw strony (`theme` z rekordu `pages`, nie `setup`).
@@ -1328,10 +980,210 @@ function adminMixinUi(ctx) {
         }
         return Math.min(100, Math.round(sum));
       },
+      /** Zapisuje krok i motyw kreatora lokalnie (per slug), żeby po ponownym otwarciu nie zaczynać od zera. */
+      persistWizardUiState() {
+        if (!this.slug || !this.showWizard) return;
+        writeWizardStateToStorage(this.slug, this.wizardStep, this.wizardTheme);
+      },
+      /**
+       * @param {0|1} defaultStepWhenNoSave — gdy brak zapisanego stanu: 0 = ekran wyboru ścieżki, 1 = od razu krok 1 (np. „Uruchom kreator” z checklisty).
+       */
+      restoreWizardUiFromStorage(defaultStepWhenNoSave) {
+        const pageTheme = this.theme || '';
+        const saved = readWizardStateFromStorage(this.slug);
+        if (!saved) {
+          this.wizardStep = defaultStepWhenNoSave === 1 ? 1 : 0;
+          this.wizardTheme = pageTheme === 'setup' ? 'beauty' : pageTheme || 'beauty';
+          return;
+        }
+        const norm = normalizeWizardRestore(saved.step, saved.theme, pageTheme);
+        this.wizardStep = norm.step;
+        this.wizardTheme = norm.theme;
+        const pl = this.content?.pl;
+        const theme = this.wizardTheme || pageTheme;
+        const stepId = wizardStepIdAtIndex(theme, this.wizardStep);
+        if (pl && stepId === 'offer') {
+          if (wizardOfferSection(theme) === 'menu') prepareWizardMenuStep(pl, theme);
+          else prepareWizardServicesStep(pl, theme);
+        }
+        if (pl && stepId === 'about') {
+          prepareWizardManifestoStep(pl, theme);
+        }
+      },
+      /**
+       * Aktywna opłacona subskrypcja Stripe (`billing_profiles` → billingSubscriptionView).
+       * Wyłącznie: niepuste `stripe_subscription_id` + status `active` lub `trialing`.
+       */
+      get hasActivePaidSubscription() {
+        const sub = this.billingSubscriptionView;
+        if (!sub || typeof sub !== 'object') return false;
+        const sid =
+          typeof sub.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
+        if (!sid) return false;
+        const st = typeof sub.status === 'string' ? sub.status.trim().toLowerCase() : '';
+        return st === 'active' || st === 'trialing';
+      },
+      /**
+       * Subskrypcja opłacona do końca okresu, ale zaplanowane zamknięcie (nie odnowi się).
+       */
+      get isSubscriptionCanceledButValid() {
+        const sub = this.billingSubscriptionView;
+        if (!sub || typeof sub !== 'object') return false;
+        const st = typeof sub.status === 'string' ? sub.status.trim().toLowerCase() : '';
+        if (st !== 'active' && st !== 'trialing') return false;
+        return sub.cancel_at_period_end === true;
+      },
+      /**
+       * Portal Stripe — aktywny pakiet lub anulowana subskrypcja z nadal istniejącym klientem (faktury, karta).
+       */
+      get showStripeBillingPortal() {
+        if (this.hasActivePaidSubscription) return true;
+        const sub = this.billingSubscriptionView;
+        const cid = typeof sub?.stripe_customer_id === 'string' ? sub.stripe_customer_id.trim() : '';
+        if (!cid) return false;
+        const st = typeof sub?.status === 'string' ? sub.status.trim().toLowerCase() : '';
+        return st === 'canceled' || st === 'cancelled';
+      },
+      /** Istniejący klient Stripe (CID lub SID) — nie oznacza aktywnej subskrypcji. */
+      hasStripeBillingCustomer() {
+        const sub = this.billingSubscriptionView;
+        if (!sub || typeof sub !== 'object') return false;
+        const cid = typeof sub.stripe_customer_id === 'string' ? sub.stripe_customer_id.trim() : '';
+        const sid = typeof sub.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
+        return !!(cid || sid);
+      },
+      /** Checkout vs portal — portal tylko: stripe_customer_id + status active | trialing | past_due. */
+      shouldUseStripePortalForPlanChange() {
+        const sub = this.billingSubscriptionView;
+        const cid = typeof sub?.stripe_customer_id === 'string' ? sub.stripe_customer_id.trim() : '';
+        if (!cid) return false;
+        const st = this.billingStripeStatusNormalized();
+        return st === 'active' || st === 'trialing' || st === 'past_due';
+      },
+      /**
+       * True gdy w Stripe wisi jeszcze subskrypcja — wtedy nie udostępniamy prośby o usunięcie konta
+       * (najpierw anulowanie w portalu Stripe).
+       */
+      get subscriptionBlocksAccountDeletion() {
+        const sub = this.billingSubscriptionView;
+        const sid = typeof sub?.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
+        if (!sid) return false;
+        const stRaw = typeof sub?.status === 'string' ? sub.status.trim().toLowerCase() : '';
+        if (stRaw === 'canceled' || stRaw === 'cancelled' || stRaw === 'incomplete_expired') return false;
+        if (!stRaw) return true;
+        return ['active', 'trialing', 'past_due', 'unpaid', 'paused'].includes(stRaw);
+      },
+      get activeSubscriptionBrandLabel() {
+        const t = this.activePaidTierForUi;
+        if (t === 'tier1' || t === 'tier2') return 'STANDARD';
+        if (t === 'tier0') return 'STARTER';
+        if (this.hasActivePaidSubscription) return 'SUBSKRYPCJA STRIPE';
+        return '';
+      },
+      get activeSubscriptionPriceLine() {
+        const t = this.activePaidTierForUi;
+        if (t === 'tier1' || t === 'tier2') return '49 PLN netto / msc';
+        if (t === 'tier0') return '29 PLN netto / msc';
+        if (this.hasActivePaidSubscription) return 'Kwota zgodnie z aktywnym pakietem w Stripe';
+        return '';
+      },
+      get isBillingCanceled() {
+        const st = String(this.billingProfile?.status || '').trim().toLowerCase();
+        return st === 'canceled' || st === 'cancelled' || st === 'incomplete_expired';
+      },
+      get trialDaysLeft() {
+        if (this.isBillingCanceled) return 0;
+        const sub = this.billingSubscriptionView;
+        if (this.hasActivePaidSubscription) return 0;
+        if (this.subscriptionPlan !== 'trial' || !sub?.trial_started_at) return 14;
+        const start = new Date(sub.trial_started_at).getTime();
+        const now = Date.now();
+        const elapsed = Math.floor((now - start) / MS_PER_DAY);
+        return Math.max(0, 14 - elapsed);
+      },
+      get isCustomDomainLocked() {
+        if (typeof window.DFOPS_planAllowsCustomDomain === 'function') {
+          return !window.DFOPS_planAllowsCustomDomain(this.subscriptionPlan);
+        }
+        const p = this.subscriptionPlan;
+        return p === 'trial' || p === 'tier0';
+      },
 
-      /** Pełna ścieżka do podglądu / live (setup → /setup.html). */
-      themePublicHtmlPath() {
-        return publicHtmlPathForTheme(this.theme || 'beauty');
+      /** Trial / Starter — bez własnego koloru, fontu i tła (presety i zestawy są wolne). */
+      get isCustomAppearanceLocked() {
+        if (typeof window.DFOPS_planAllowsCustomAppearance === 'function') {
+          return !window.DFOPS_planAllowsCustomAppearance(this.subscriptionPlan);
+        }
+        const p = this.subscriptionPlan;
+        return p === 'trial' || p === 'tier0';
+      },
+
+      /** Opłacony Starter (tier0) — bez przycisku szybkiego kontaktu WhatsApp / Messenger. */
+      get isQuickChatLocked() {
+        if (typeof window.DFOPS_planAllowsQuickChat === 'function') {
+          return !window.DFOPS_planAllowsQuickChat(this.subscriptionPlan);
+        }
+        return this.subscriptionPlan === 'tier0';
+      },
+
+      get appearancePickerAccentHex() {
+        if (this.appearancePickerHex) return this.appearancePickerHex;
+        return this.accentColor || '#D4AF37';
+      },
+      /** Na localhost podgląd wskazuje plik .html — brak pliku = proxy (Epik 3). */
+      get previewHtmlBasename() {
+        const t = String(this.theme || 'beauty').trim().toLowerCase();
+        if (t === 'setup' || isPublishedTheme(t)) return t;
+        return 'beauty';
+      },
+      get previewUsesHtmlFallback() {
+        const t = String(this.theme || '').trim().toLowerCase();
+        if (!t || t === 'setup') return false;
+        return !isPublishedTheme(t);
+      },
+      get templateCatalog() {
+        if (typeof window.DFOPS_getTemplateCatalog === 'function') {
+          return window.DFOPS_getTemplateCatalog();
+        }
+        return [];
+      },
+      get wizardTemplateCatalog() {
+        if (typeof window.DFOPS_getWizardTemplateCatalog === 'function') {
+          return window.DFOPS_getWizardTemplateCatalog();
+        }
+        return this.templateCatalog;
+      },
+      get wizardActiveTheme() {
+        return this.showWizard
+          ? normalizeWizardTheme(this.wizardTheme || this.theme || 'beauty')
+          : normalizeWizardTheme(this.theme || 'beauty');
+      },
+      get activeThemeSections() {
+        return getThemeSections(this.wizardActiveTheme);
+      },
+      themeHasSection(section) {
+        return themeHasSection(this.wizardActiveTheme, section);
+      },
+      adminTabVisible(tabId) {
+        return adminTabVisibleForTheme(this.theme, tabId);
+      },
+      get wizardStepId() {
+        return wizardStepIdAtIndex(this.wizardActiveTheme, this.wizardStep) || 'template';
+      },
+      get wizardStepCount() {
+        return getActiveWizardStepIds(this.wizardActiveTheme).length;
+      },
+      get wizardOfferCopy() {
+        if (typeof window.DFOPS_getWizardOfferCopy === 'function') {
+          return window.DFOPS_getWizardOfferCopy(this.wizardActiveTheme);
+        }
+        return { title: 'Twoja oferta', lead: '', itemLabel: 'Usługa', addRow: '+' };
+      },
+      get navMenuFields() {
+        if (typeof window.DFOPS_getNavMenuFields === 'function') {
+          return window.DFOPS_getNavMenuFields(this.theme);
+        }
+        return [];
       },
       onTemplateTileClick(entry) {
         if (!entry || this.saving) return;
@@ -1373,76 +1225,44 @@ function adminMixinUi(ctx) {
         // (subdomena `{slug}.dfcms.pl` to inny origin). Dlatego zawsze otwieramy `/templates/{motyw}.html?site=…`.
         const isLocalhost =
           window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const path = `${this.themePublicHtmlPath()}?${siteQs}`;
+        const path = `/templates/${this.previewHtmlBasename}.html?${siteQs}`;
         if (isLocalhost) return path;
         const origin = String(window.location.origin || '').replace(/\/$/, '');
         return origin ? `${origin}${path}` : path;
       },
 
+      /** Link do wersji opublikowanej (LIVE) — bez `dfcms_preview`, z preferencją custom domain. */
       getLiveSiteUrl() {
         if (!this.slug) return '#';
         const isLocalhost =
           window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         if (isLocalhost) {
           const qs = `site=${encodeURIComponent(this.slug)}`;
-          return `${publicHtmlPathForTheme(this.theme)}?${qs}`;
+          return `/templates/${this.previewHtmlBasename}.html?${qs}`;
         }
         const hostCustom = typeof this.customDomain === 'string' ? this.customDomain.trim() : '';
         if (hostCustom && this.customDomainStatus === 'active') {
           const h = hostCustom.replace(/^https?:\/\//i, '').split('/')[0];
           return `https://${h}/`;
         }
-        if (typeof window.DFOPS_buildTenantPublicSiteUrl === 'function') {
-          const url = window.DFOPS_buildTenantPublicSiteUrl(
-            this.slug,
-            window.location.hostname,
-            window.DFOPS_normalizeHostname,
-            this.theme,
-          );
-          if (url) return url;
-        }
         const base = (cfg.appDomain || 'dfcms.pl').toLowerCase();
         return `https://${this.slug}.${base}/`;
       },
-
-      /** `admin.html?dfcms_debug=1` — stan routingu / auth w konsoli i overlay. */
-      publishPanelDebugState() {
-        if (new URLSearchParams(window.location.search).get('dfcms_debug') !== '1') return;
-        const host = window.location.hostname;
-        const state = {
-          host,
-          deployEnv: window.DFOPS_DEPLOY_ENVIRONMENT,
-          supabaseProject: (window.DFOPS_SUPABASE_URL || '').replace(/^https:\/\//, '').split('.')[0] || '—',
-          tenantBase:
-            typeof window.DFOPS_resolveTenantBaseFromHostname === 'function'
-              ? window.DFOPS_resolveTenantBaseFromHostname(host, window.DFOPS_normalizeHostname)
-              : '—',
-          subdomainRouting:
-            typeof window.DFOPS_tenantBaseUsesSubdomainRouting === 'function'
-              ? window.DFOPS_tenantBaseUsesSubdomainRouting(
-                  window.DFOPS_resolveTenantBaseFromHostname?.(host, window.DFOPS_normalizeHostname),
-                )
-              : null,
-          slug: this.slug,
-          theme: this.theme,
-          showWizard: this.showWizard,
-          showWelcomeModal: this.showWelcomeModal,
-          welcomeOnboardingDone: this.content?.pl?.settings?.welcome_onboarding_completed === true,
-          onboardingDone: this.content?.pl?.settings?.onboarding_completed === true,
-          liveUrl: typeof this.getLiveSiteUrl === 'function' ? this.getLiveSiteUrl() : '—',
-          previewUrl: typeof this.getPublicSiteUrl === 'function' ? this.getPublicSiteUrl() : '—',
-          needsEmailConfirmation: this.needsEmailConfirmation,
-          isEmailVerified: this.isEmailVerified,
-          userId: this.user?.id || null,
-          userEmail: typeof userEmailAddress === 'function' ? userEmailAddress(this.user) : this.user?.email || null,
-          sessionEmailField: this.user?.email || null,
-          emailConfirmedAt: this.user?.email_confirmed_at || this.user?.confirmed_at || null,
-          adminBundle:
-            document.querySelector('script[src*="adminApp.js"]')?.getAttribute('src') || '—',
-        };
-        this.panelDebugState = state;
-        console.info('[DFCMS panel debug]', state);
-        window.DFOPS_panelDebugState = () => ({ ...state });
+      get planDisplayLabel() {
+        const sub = this.billingSubscriptionView;
+        if (typeof window.DFOPS_subscriptionDisplayName === 'function') {
+          return window.DFOPS_subscriptionDisplayName(sub);
+        }
+        if (typeof window.DFOPS_planDisplayName === 'function') {
+          return window.DFOPS_planDisplayName(this.subscriptionPlan);
+        }
+        return this.subscriptionPlan;
+      },
+      get selectedPlanHumanLabel() {
+        const s = this.billingSubscriptionView?.selected_plan;
+        if (s === 'tier0') return 'Starter';
+        if (s === 'tier1' || s === 'tier2') return 'Standard';
+        return '';
       },
 
       subscriptionPaymentActive() {
@@ -1615,6 +1435,28 @@ function adminMixinUi(ctx) {
 
       /** Polska data z ISO w subscription.current_period_end (webhook Stripe). */
       /** Zmiana hasła: dopiero po 6+ znakach i zgodności obu pól (po trim). */
+      get accountPasswordFieldsTrimmed() {
+        return {
+          a: String(this.newPassword ?? '').trim(),
+          b: String(this.newPasswordConfirm ?? '').trim(),
+        };
+      },
+      get canUpdatePassword() {
+        if (this.isPasswordUpdating) return false;
+        const { a, b } = this.accountPasswordFieldsTrimmed;
+        return a.length >= 6 && a === b;
+      },
+      get accountPasswordHint() {
+        const { a, b } = this.accountPasswordFieldsTrimmed;
+        if (!a && !b) return '';
+        if (a.length < 6) return `Za krótkie — minimum 6 znaków (${a.length}/6).`;
+        if (!b) return 'Wpisz to samo hasło w polu „Potwierdź”.';
+        if (a !== b) return 'Hasła się różnią.';
+        return 'Hasła są zgodne — możesz zapisać.';
+      },
+      get accountPasswordHintClass() {
+        return this.canUpdatePassword ? 'text-emerald-700' : 'text-amber-800';
+      },
 
       supportEmailDisplay() {
         return (cfg && typeof cfg.supportEmail === 'string' && cfg.supportEmail.includes('@')
@@ -1625,6 +1467,368 @@ function adminMixinUi(ctx) {
         return `mailto:${encodeURIComponent(this.supportEmailDisplay())}`;
       },
 
+      get canSubmitForcedPasswordReset() {
+        if (this.isPasswordUpdating) return false;
+        const a = String(this.newPassword ?? '').trim();
+        const b = String(this.newPasswordConfirm ?? '').trim();
+        if (a !== b || !a) return false;
+        return passwordPolicyErrorForRecovery(a) === null;
+      },
+      get forcedResetPasswordHint() {
+        const a = String(this.newPassword ?? '').trim();
+        const b = String(this.newPasswordConfirm ?? '').trim();
+        if (!a && !b) return '';
+        const pol = passwordPolicyErrorForRecovery(a);
+        if (pol) return pol;
+        if (!b) return 'Potwierdź hasło w drugim polu.';
+        if (a !== b) return 'Hasła muszą być identyczne.';
+        return 'Hasło spełnia wymagania.';
+      },
+      get forcedResetPasswordHintClass() {
+        return this.canSubmitForcedPasswordReset ? 'text-emerald-700' : 'text-amber-800';
+      },
+      get subscriptionRenewalDateFormatted() {
+        const raw = this.billingSubscriptionView?.current_period_end;
+        if (typeof window.DFOPS_formatSubscriptionPeriodEndPl === 'function') {
+          return window.DFOPS_formatSubscriptionPeriodEndPl(raw);
+        }
+        if (raw == null || raw === '') return '—';
+        try {
+          const d = new Date(typeof raw === 'number' ? raw * 1000 : String(raw));
+          if (Number.isNaN(d.getTime())) return '—';
+          return d.toLocaleDateString('pl-PL', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          });
+        } catch {
+          return '—';
+        }
+      },
+      /** Krótka data (np. badge „Wygasa 3.06.2026”) — zgodna z timezone przeglądarki jak `subscriptionRenewalDateFormatted`. */
+      get subscriptionRenewalDateBadgeShort() {
+        const raw = this.billingSubscriptionView?.current_period_end;
+        if (raw == null || raw === '') return '—';
+        try {
+          const d = new Date(typeof raw === 'number' ? raw * 1000 : String(raw));
+          if (Number.isNaN(d.getTime())) return '—';
+          const day = d.getDate();
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const year = d.getFullYear();
+          return `${day}.${month}.${year}`;
+        } catch {
+          return '—';
+        }
+      },
+
+      closeSuccessModal() {
+        this.showSuccessModal = false;
+      },
+
+      /** Stripe Customer Portal (anulacja / metoda płatności) — Edge Function `create-portal-session`. */
+      openStripeCustomerPortal() {
+        return this.openCustomerPortal();
+      },
+
+      async updatePassword() {
+        if (!this.supabase) {
+          this.showToast('Brak połączenia z serwisem. Odśwież stronę.', 'error');
+          return;
+        }
+        const pw = String(this.newPassword ?? '').trim();
+        const pw2 = String(this.newPasswordConfirm ?? '').trim();
+
+        if (this.isForcedPasswordReset) {
+          const polErr = passwordPolicyErrorForRecovery(pw);
+          if (polErr) {
+            this.showToast(polErr, 'error');
+            return;
+          }
+          if (!pw2) {
+            this.showToast('Wpisz ponownie hasło w polu „Potwierdź”.', 'error');
+            return;
+          }
+          if (pw !== pw2) {
+            this.showToast('Hasła nie są takie same.', 'error');
+            return;
+          }
+        } else {
+          if (pw.length < 6) {
+            this.showToast('Hasło musi mieć co najmniej 6 znaków.', 'error');
+            return;
+          }
+          if (pw !== pw2) {
+            this.showToast('Hasła nie są takie same — wpisz to samo hasło w obu polach.', 'error');
+            return;
+          }
+        }
+
+        this.isPasswordUpdating = true;
+        try {
+          const { error } = await this.supabase.auth.updateUser({
+            password: pw,
+          });
+          if (error) throw error;
+          const exitForced = this.isForcedPasswordReset;
+          this.newPassword = '';
+          this.newPasswordConfirm = '';
+          if (exitForced) {
+            this.isForcedPasswordReset = false;
+            try {
+              window.history.replaceState({}, document.title, window.location.pathname);
+            } catch {
+              /* ignore */
+            }
+            this.showToast('Hasło zostało ustawione. Zaloguj się ponownie.', 'success');
+            await this.logout();
+          } else {
+            this.showToast('Hasło zostało pomyślnie zmienione!', 'success');
+          }
+        } catch (err) {
+          const msg = err && typeof err === 'object' && 'message' in err ? String((err).message) : String(err);
+          this.showToast(msg || 'Nie udało się zmienić hasła.', 'error');
+        } finally {
+          this.isPasswordUpdating = false;
+        }
+      },
+
+      /** Czy deep link do zmiany planu w portalu Stripe ma sens (active/trialing, nie wygasająca). */
+      canOpenPortalPlanChangeFlow() {
+        return (
+          this.shouldUseStripePortalForPlanChange() &&
+          this.hasActivePaidSubscription &&
+          !this.isSubscriptionCanceledButValid
+        );
+      },
+
+      /**
+       * @param {{ subscriptionUpdate?: boolean, subscriptionCancel?: boolean }} [opts]
+       *   subscriptionUpdate — deep link: zmiana planu (upgrade/downgrade).
+       *   subscriptionCancel — deep link: anulowanie subskrypcji w Stripe.
+       */
+      async openCustomerPortal(opts = {}) {
+        if (!this.supabase) {
+          this.showToast('Brak połączenia z serwisem. Odśwież stronę.', 'error');
+          return;
+        }
+        this.isPortalLoading = true;
+        try {
+          const { data: sessionData } = await this.supabase.auth.getSession();
+          const token = sessionData?.session?.access_token;
+          if (!token) throw new Error('Brak autoryzacji');
+          const returnUrlObj = new URL(window.location.href);
+          returnUrlObj.searchParams.set('billing', 'return');
+          returnUrlObj.hash = 'subscription';
+          const returnUrl = returnUrlObj.toString();
+          const sub = this.billingSubscriptionView;
+          const subscriptionId =
+            typeof sub?.stripe_subscription_id === 'string'
+              ? sub.stripe_subscription_id.trim()
+              : '';
+          const portalBody = { returnUrl };
+          if (subscriptionId) portalBody.subscription_id = subscriptionId;
+          if (opts.subscriptionCancel) portalBody.flow = 'subscription_cancel';
+          else if (opts.subscriptionUpdate) portalBody.flow = 'subscription_update';
+          const { data, error } = await this.supabase.functions.invoke('create-portal-session', {
+            body: portalBody,
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (error) throw error;
+          const url = data && typeof data.url === 'string' ? data.url : '';
+          if (url) {
+            window.location.href = url;
+            return;
+          }
+          const errMsg =
+            data && typeof data.error === 'string' ? data.error : 'Brak adresu portalu płatności.';
+          throw new Error(errMsg);
+        } catch (err) {
+          console.error(err);
+          this.showToast('Nie udało się otworzyć portalu płatności. Skontaktuj się z pomocą.', 'error');
+        } finally {
+          this.isPortalLoading = false;
+        }
+      },
+
+      async deleteAccount() {
+        if (this.subscriptionBlocksAccountDeletion) {
+          this.showToast(
+            'Najpierw anuluj subskrypcję w Stripe: zakładka Subskrypcja → „Zarządzaj subskrypcją i fakturami”. Gdy subskrypcja w Stripe będzie anulowana, wróć tu i wyślij prośbę o usunięcie konta.',
+            'error',
+          );
+          return;
+        }
+        const confirmed = await this.confirmAsync({
+          title: 'Usunąć konto?',
+          message: 'Czy na pewno chcesz bezpowrotnie usunąć swoje konto i stronę? Tej operacji nie można cofnąć.',
+          yesLabel: 'Tak, usuń konto',
+          noLabel: 'Nie',
+          tone: 'danger',
+        });
+        if (!confirmed) return;
+        const support =
+          (cfg && typeof cfg.supportEmail === 'string' && cfg.supportEmail.includes('@')
+            ? cfg.supportEmail.trim()
+            : 'pomoc@dfcms.pl');
+        const subj = this.user?.email
+          ? `Usunięcie konta: ${this.user.email}`
+          : 'Usunięcie konta';
+        window.location.href = `mailto:${support}?subject=${encodeURIComponent(subj)}`;
+        this.showToast('Otwarto okno wiadomości. Wyślij prośbę o usunięcie konta.', 'info');
+      },
+
+      /**
+       * Po ?payment=success czekamy na webhook Stripe, potem ponownie loadData (świeży content + trial_blocked_at).
+       * Zwraca true, jeśli zaplanowano opóźnione odświeżenie (pierwsze loadData nie wołamy od razu).
+       */
+      schedulePostPaymentDataRefresh() {
+        try {
+          const u = new URL(window.location.href);
+          if (u.searchParams.get('payment') !== 'success' || !this.user) return false;
+          if (this._postPaymentRefreshTimer != null) {
+            clearTimeout(this._postPaymentRefreshTimer);
+            this._postPaymentRefreshTimer = null;
+          }
+          this.showToast('Przetwarzanie płatności... Odświeżam Twoje konto! ✨', 'success');
+          this.billingProfileReady = false;
+          this.isLoading = true;
+          this._postPaymentRefreshTimer = setTimeout(async () => {
+            this._postPaymentRefreshTimer = null;
+            try {
+              await this.loadData();
+              if (!this.subscriptionPaymentActive()) {
+                await this.syncStripeSubscription({ silent: true });
+                await this.loadData();
+              }
+              if (!this.subscriptionPaymentActive()) {
+                this.showToast(
+                  'Nie widzimy jeszcze potwierdzenia w bazie. Otwórz Subskrypcja → „Synchronizuj ze Stripe” lub poczekaj minutę (webhook Stripe).',
+                  'error',
+                );
+              } else {
+                this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
+              }
+            } catch (e) {
+              console.error(e);
+            } finally {
+              this.showTrialSuspendedModal = false;
+              const clean = new URL(window.location.href);
+              clean.searchParams.delete('payment');
+              const qs = clean.searchParams.toString();
+              window.history.replaceState(
+                {},
+                document.title,
+                clean.pathname + (qs ? `?${qs}` : '') + clean.hash,
+              );
+              this.showSuccessModal = false;
+            }
+          }, 4000);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+
+      /**
+       * Po powrocie z portalu Stripe (`?billing=return`) — sync + loadData + toast o zaktualizowanym planie.
+       */
+      schedulePostPortalBillingRefresh() {
+        try {
+          const u = new URL(window.location.href);
+          if (u.searchParams.get('billing') !== 'return' || !this.user) return false;
+          this.billingProfileReady = false;
+          this.isLoading = true;
+          this.showToast('Odświeżam status subskrypcji…', 'info');
+          void (async () => {
+            try {
+              await this.syncStripeSubscription({ silent: true });
+              await this.loadData();
+              this.setTab('subscription');
+              this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
+            } catch (e) {
+              console.error(e);
+              this.showToast(
+                'Nie udało się odświeżyć planu. Użyj Subskrypcja → „Synchronizuj ze Stripe”.',
+                'error',
+              );
+            } finally {
+              const clean = new URL(window.location.href);
+              clean.searchParams.delete('billing');
+              const qs = clean.searchParams.toString();
+              window.history.replaceState(
+                {},
+                document.title,
+                clean.pathname + (qs ? `?${qs}` : '') + clean.hash,
+              );
+              this.isLoading = false;
+            }
+          })();
+          return true;
+        } catch {
+          return false;
+        }
+      },
+
+      /**
+       * Edge Function sync-stripe-subscription — naprawia opóźniony webhook.
+       * @param {{ silent?: boolean }} opts — `silent: true` bez toastów (retry po checkout).
+       */
+      async syncStripeSubscription(opts) {
+        const options = opts && typeof opts === 'object' ? opts : {};
+        const silent = options.silent === true;
+        if (!this.user?.id || !this.supabase) {
+          if (!silent) this.showToast('Zaloguj się, aby zsynchronizować płatności.', 'error');
+          return false;
+        }
+        const { data: sessionData } = await this.supabase.auth.getSession();
+        const token = sessionData?.session?.access_token;
+        if (!token) {
+          if (!silent) this.showToast('Błąd sesji. Wyloguj się i zaloguj ponownie.', 'error');
+          return false;
+        }
+        this.stripeSyncLoading = true;
+        try {
+          const { data, error } = await this.supabase.functions.invoke('sync-stripe-subscription', {
+            body: {},
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (error) throw error;
+          if (data && data.ok === false && typeof data.error === 'string') {
+            if (!silent) this.showToast(data.error, 'error');
+            return false;
+          }
+          this._loadDataSubscriptionStripeSync = true;
+          try {
+            await this.loadData();
+          } finally {
+            this._loadDataSubscriptionStripeSync = false;
+          }
+          this.syncUserPlanFromBilling();
+          if (!silent) {
+            this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
+          }
+          return true;
+        } catch (e) {
+          console.error(e);
+          const msg = e instanceof Error ? e.message : String(e);
+          if (!silent) {
+            this.showToast(msg || 'Nie udało się zsynchronizować. Sprawdź połączenie i czy funkcja jest wdrożona.', 'error');
+          }
+          return false;
+        } finally {
+          this.stripeSyncLoading = false;
+        }
+      },
+
+      syncUserPlanFromBilling() {
+        const p = this.subscriptionPlan;
+        if (p === 'tier1' || p === 'tier2') this.userPlan = 'standard';
+        else this.userPlan = 'starter';
+      },
+
+      /** Gotowe palety kolorów — zawsze dostępne (freemium). */
       isLocked() {
         return false;
       },
@@ -1652,7 +1856,6 @@ function adminMixinUi(ctx) {
         }
         this.appearancePickerHex = '';
         this.applyThemeStylingFromContent();
-        if (typeof this.syncUiDerivedView === 'function') this.syncUiDerivedView();
       },
 
       _hexColorDistance(hexA, hexB) {
@@ -1729,7 +1932,6 @@ function adminMixinUi(ctx) {
         this.appearancePickerHex = hex;
         this.content.pl.settings.color_preset = this.findPresetIdForAccentHex(hex);
         this.applyThemeStylingFromContent();
-        if (typeof this.syncUiDerivedView === 'function') this.syncUiDerivedView();
       },
 
       onCustomFontPresetGuard(event) {
@@ -1758,20 +1960,6 @@ function adminMixinUi(ctx) {
         /* Freemium: wszystkie gotowe presety kolorów dostępne na każdym planie. */
       },
 
-      /** Po zmianie linku/trybu rezerwacji — normalizacja i cichy auto-save. */
-  };
-}
-
-function adminMixinAuth(ctx) {
-  const {
-    cfg,
-    repo,
-    MS_PER_DAY,
-    ERROR_MESSAGE_TIMEOUT,
-    SUCCESS_MESSAGE_TIMEOUT,
-    UPGRADE_MESSAGE_TIMEOUT,
-  } = ctx;
-  return {
       init() {
         if (typeof window.DFOPS_applyThemeStyling === 'function') {
           window.DFOPS_applyThemeStyling(null, '', 'admin');
@@ -1816,25 +2004,11 @@ function adminMixinAuth(ctx) {
           }
           if (this.loadingAuth) return;
           if (!this.isEmailVerified) {
-            const host = String(window.location?.hostname || '');
-            const stagingSurface =
-              window.DFOPS_DEPLOY_ENVIRONMENT === 'staging' || /\.pages\.dev$/i.test(host);
-            if (!stagingSurface) this.showWizard = false;
+            this.showWizard = false;
             return;
           }
         });
         void this.bootstrapAdminSession();
-        if (typeof this.$watch === 'function') {
-          this.$watch('newPassword', () => {
-            if (typeof this.syncPasswordFormView === 'function') this.syncPasswordFormView();
-          });
-          this.$watch('newPasswordConfirm', () => {
-            if (typeof this.syncPasswordFormView === 'function') this.syncPasswordFormView();
-          });
-          this.$watch('isPasswordUpdating', () => {
-            if (typeof this.syncPasswordFormView === 'function') this.syncPasswordFormView();
-          });
-        }
       },
 
       /**
@@ -1847,31 +2021,8 @@ function adminMixinAuth(ctx) {
           this.isForcedPasswordReset = false;
           return;
         }
-        const normalized = { ...user };
-        if (!String(normalized.email || '').trim() && typeof userEmailAddress === 'function') {
-          const resolved = userEmailAddress(normalized);
-          if (resolved) normalized.email = resolved;
-        }
-        this.user = normalized;
-        this.syncEmailVerificationView(normalized);
-      },
-
-      /** Jawne pola `isEmailVerified` / `needsEmailConfirmation` — reaktywność Alpine. */
-      syncEmailVerificationView(user) {
-        const u = user || this.user;
-        if (!u) {
-          this.isEmailVerified = false;
-          this.needsEmailConfirmation = false;
-          return;
-        }
-        if (this._authEmailJustConfirmed) {
-          this.isEmailVerified = true;
-          this.needsEmailConfirmation = false;
-          return;
-        }
-        const confirmed = userEmailLooksConfirmed(u);
-        this.isEmailVerified = !!confirmed;
-        this.needsEmailConfirmation = !confirmed;
+        this.user = { ...user };
+        this.needsEmailConfirmation = !userEmailLooksConfirmed(user);
       },
 
       /** PKCE: link z maila zawiera ?code= — bez wymiany sesja pozostaje „sprzed” potwierdzenia. `type=recovery` = reset hasła. */
@@ -1891,9 +2042,6 @@ function adminMixinAuth(ctx) {
         }
         const { error } = await this.supabase.auth.exchangeCodeForSession(code);
         if (error) throw error;
-        if (flowType !== 'recovery') {
-          this._authEmailJustConfirmed = true;
-        }
         if (flowType === 'recovery') {
           this._passwordRecoveryPendingUi = true;
           this.isForcedPasswordReset = true;
@@ -2044,7 +2192,6 @@ function adminMixinAuth(ctx) {
         }
         /** Dopiero po pierwszym loadData nie pokazujemy „pustego” panelu (mniej migania przy pierwszym logowaniu). */
         this.loadingAuth = false;
-        this.syncPanelReadyFlags();
         if (this._passwordRecoveryPendingUi && this.user) {
           this.applyPasswordRecoveryUi();
         }
@@ -2108,7 +2255,6 @@ function adminMixinAuth(ctx) {
         else {
           localStorage.setItem('dfops_login_time', String(Date.now()));
           this.isLoading = true;
-          this.syncPanelReadyFlags();
           this.assignAuthUser(data.user);
           await this.syncAuthUserFromServer();
           await this.refreshSuperadminStatus();
@@ -2152,146 +2298,17 @@ function adminMixinAuth(ctx) {
         this.hasUnsavedChanges = false;
         this.showSuccessModal = false;
         this.billingProfile = null;
-        this.pageBillingPlan = 'trial';
-        this.billingSubscriptionView = emptyBillingSubscriptionView();
-        this.subscriptionPlan = 'trial';
-        this.hasActivePaidSubscription = false;
-        this.subscriptionRenewalDateFormatted = '—';
-        this.subscriptionRenewalDateBadgeShort = '—';
-        this.activePaidTierForUi = null;
-        this.isSubscriptionCanceledButValid = false;
-        this.showStripeBillingPortal = false;
-        this.activeSubscriptionBrandLabel = '';
-        this.activeSubscriptionPriceLine = '';
-        this.showTrialBanner = false;
-        this.panelContentReady = false;
-        this.panelBootLoading = true;
         this.billingProfileReady = false;
         this._billingStatusToastShown = false;
         this._initialPanelLoadDone = false;
         this._subscriptionTabStripeSynced = false;
-        this._onboardingAutoStartDone = false;
-        this._authEmailJustConfirmed = false;
-        if (typeof this.syncUiDerivedView === 'function') this.syncUiDerivedView();
-        if (typeof this.syncPasswordFormView === 'function') this.syncPasswordFormView();
         if (this._postPaymentRefreshTimer != null) {
           clearTimeout(this._postPaymentRefreshTimer);
           this._postPaymentRefreshTimer = null;
         }
       },
-  };
-}
-
-function adminMixinData(ctx) {
-  const {
-    cfg,
-    repo,
-    MS_PER_DAY,
-    ERROR_MESSAGE_TIMEOUT,
-    SUCCESS_MESSAGE_TIMEOUT,
-    UPGRADE_MESSAGE_TIMEOUT,
-  } = ctx;
-  return {
-      async updatePassword() {
-        if (!this.supabase) {
-          this.showToast('Brak połączenia z serwisem. Odśwież stronę.', 'error');
-          return;
-        }
-        const pw = String(this.newPassword ?? '').trim();
-        const pw2 = String(this.newPasswordConfirm ?? '').trim();
-
-        if (this.isForcedPasswordReset) {
-          const polErr = passwordPolicyErrorForRecovery(pw);
-          if (polErr) {
-            this.showToast(polErr, 'error');
-            return;
-          }
-          if (!pw2) {
-            this.showToast('Wpisz ponownie hasło w polu „Potwierdź”.', 'error');
-            return;
-          }
-          if (pw !== pw2) {
-            this.showToast('Hasła nie są takie same.', 'error');
-            return;
-          }
-        } else {
-          if (pw.length < 6) {
-            this.showToast('Hasło musi mieć co najmniej 6 znaków.', 'error');
-            return;
-          }
-          if (pw !== pw2) {
-            this.showToast('Hasła nie są takie same — wpisz to samo hasło w obu polach.', 'error');
-            return;
-          }
-        }
-
-        this.isPasswordUpdating = true;
-        try {
-          const { error } = await this.supabase.auth.updateUser({
-            password: pw,
-          });
-          if (error) throw error;
-          const exitForced = this.isForcedPasswordReset;
-          this.newPassword = '';
-          this.newPasswordConfirm = '';
-          if (exitForced) {
-            this.isForcedPasswordReset = false;
-            try {
-              window.history.replaceState({}, document.title, window.location.pathname);
-            } catch {
-              /* ignore */
-            }
-            this.showToast('Hasło zostało ustawione. Zaloguj się ponownie.', 'success');
-            await this.logout();
-          } else {
-            this.showToast('Hasło zostało pomyślnie zmienione!', 'success');
-          }
-        } catch (err) {
-          const msg = err && typeof err === 'object' && 'message' in err ? String((err).message) : String(err);
-          this.showToast(msg || 'Nie udało się zmienić hasła.', 'error');
-        } finally {
-          this.isPasswordUpdating = false;
-        }
-      },
-
-      /** Czy deep link do zmiany planu w portalu Stripe ma sens (active/trialing, nie wygasająca). */
-      async deleteAccount() {
-        if (this.subscriptionBlocksAccountDeletion) {
-          this.showToast(
-            'Najpierw anuluj subskrypcję w Stripe: zakładka Subskrypcja → „Zarządzaj subskrypcją i fakturami”. Gdy subskrypcja w Stripe będzie anulowana, wróć tu i wyślij prośbę o usunięcie konta.',
-            'error',
-          );
-          return;
-        }
-        const confirmed = await this.confirmAsync({
-          title: 'Usunąć konto?',
-          message: 'Czy na pewno chcesz bezpowrotnie usunąć swoje konto i stronę? Tej operacji nie można cofnąć.',
-          yesLabel: 'Tak, usuń konto',
-          noLabel: 'Nie',
-          tone: 'danger',
-        });
-        if (!confirmed) return;
-        const support =
-          (cfg && typeof cfg.supportEmail === 'string' && cfg.supportEmail.includes('@')
-            ? cfg.supportEmail.trim()
-            : 'pomoc@dfcms.pl');
-        const subj = this.user?.email
-          ? `Usunięcie konta: ${this.user.email}`
-          : 'Usunięcie konta';
-        window.location.href = `mailto:${support}?subject=${encodeURIComponent(subj)}`;
-        this.showToast('Otwarto okno wiadomości. Wyślij prośbę o usunięcie konta.', 'info');
-      },
-
-      /**
-       * Po ?payment=success czekamy na webhook Stripe, potem ponownie loadData (świeży content + trial_blocked_at).
-       * Zwraca true, jeśli zaplanowano opóźnione odświeżenie (pierwsze loadData nie wołamy od razu).
-       */
       async ensurePageFromRegistrationMetadata() {
-        let { data: first } = await repo.getCurrentUserPage(this.user.id);
-        if (first) return true;
-        // Trigger DB mógł właśnie utworzyć stronę — krótkie ponowienie zamiast błędu „slug zajęty”.
-        await new Promise((resolve) => window.setTimeout(resolve, 450));
-        ({ data: first } = await repo.getCurrentUserPage(this.user.id));
+        const { data: first } = await repo.getCurrentUserPage(this.user.id);
         if (first) return true;
 
         const { data: udata, error: uerr } = await this.supabase.auth.getUser();
@@ -2333,8 +2350,6 @@ function adminMixinData(ctx) {
         if (insErr) {
           const code = insErr.code || insErr?.code;
           if (code === '23505') {
-            const retry = await repo.getCurrentUserPage(this.user.id);
-            if (retry.data) return true;
             this.showError('Ten adres strony jest już zajęty. Skontaktuj się z pomocą.');
           } else {
             this.showError(insErr.message || 'Nie udało się utworzyć strony przy pierwszym logowaniu.');
@@ -2344,11 +2359,27 @@ function adminMixinData(ctx) {
         return true;
       },
 
+      async loadBillingProfile() {
+        if (!this.user?.id || !this.supabase) {
+          this.billingProfile = null;
+          return;
+        }
+        const { data, error } = await this.supabase
+          .from('billing_profiles')
+          .select('*')
+          .eq('user_id', this.user.id)
+          .maybeSingle();
+        if (error) {
+          console.warn('[DFCMS] loadBillingProfile:', error.message || error);
+          this.billingProfile = null;
+          return;
+        }
+        this.billingProfile = data || null;
+      },
+
       async loadData() {
         this.isLoading = true;
         this.billingProfileReady = false;
-        this.showTrialBanner = false;
-        this.syncPanelReadyFlags();
         this.showWizardDismissModal = false;
         try {
           if (this.user) {
@@ -2402,7 +2433,6 @@ function adminMixinData(ctx) {
           this.pageId = data.id;
           this.slug = data.slug;
           this.impersonatedPageOwnerId = this.isImpersonating ? (data.user_id || null) : null;
-          this.pageBillingPlan = data.billing_plan || 'trial';
           this.trialBlockedAt = data.trial_blocked_at ?? null;
           this.showTrialSuspendedModal = !!this.trialBlockedAt;
           this.customDomain = data.custom_domain || '';
@@ -2420,9 +2450,6 @@ function adminMixinData(ctx) {
           this.theme =
             (workingRaw?.pl?.settings?.theme && String(workingRaw.pl.settings.theme).trim()) ||
             data.theme;
-          if (typeof this.syncWizardView === 'function') {
-            this.syncWizardView();
-          }
 
           /** Migawka opublikowanej wersji (kolumna `content`) — pod akcję „Odrzuć zmiany” (revert do produkcji). */
           this._publishedContentRaw = data.content ?? null;
@@ -2446,7 +2473,6 @@ function adminMixinData(ctx) {
           }
           if (this.isImpersonating) {
             this.billingProfile = null;
-            this.refreshBillingSubscriptionView();
           } else {
             await this.loadBillingProfile();
           }
@@ -2457,7 +2483,6 @@ function adminMixinData(ctx) {
           this.applyThemeStylingFromContent();
           this.enforceColorPresetForStarter();
           this.enforceQuickChatForStarter();
-          if (typeof this.syncUiDerivedView === 'function') this.syncUiDerivedView();
 
           /** Pierwsze wejście po migracji (draft pusty): utrwalamy spójny stan roboczy = opublikowana treść. */
           if (!usingDraft && this.pageId && this.user?.id) {
@@ -2475,7 +2500,7 @@ function adminMixinData(ctx) {
             this.showWizard = false;
           } else if (
             this.content?.pl?.settings?.onboarding_completed === false &&
-            computeIncompleteOnboardingChecks(this.theme, this.content).length === 0
+            this.incompleteOnboardingChecks.length === 0
           ) {
             this.content.pl.settings.onboarding_completed = true;
             this.content.pl.settings.welcome_onboarding_completed = true;
@@ -2488,10 +2513,7 @@ function adminMixinData(ctx) {
             !this.isForcedPasswordReset &&
             !this.content?.pl?.settings?.welcome_onboarding_completed;
 
-          if (
-            this.content?.pl?.settings?.welcome_onboarding_completed === true &&
-            this.content?.pl?.settings?.onboarding_completed === true
-          ) {
+          if (this.content?.pl?.settings?.welcome_onboarding_completed === true) {
             this.showWizard = false;
             if (this.slug) clearWizardStateFromStorage(this.slug);
           }
@@ -2506,7 +2528,6 @@ function adminMixinData(ctx) {
               this._stopContentWatch = this.$watch('content', () => {
                 this.hasUnsavedChanges = true;
                 this.scheduleDraftAutosave();
-                if (typeof this.syncUiDerivedView === 'function') this.syncUiDerivedView();
               }, { deep: true });
             }, 0);
           });
@@ -2518,7 +2539,6 @@ function adminMixinData(ctx) {
             this.billingProfileReady = true;
           }
           this.isLoading = false;
-          this.syncPanelReadyFlags();
           if (this.user && this.billingProfileReady) {
             this.maybeShowPaymentReturnToast();
             this.maybeShowBillingStatusToastOnce();
@@ -2526,24 +2546,6 @@ function adminMixinData(ctx) {
           if (!this._initialPanelLoadDone && this.billingProfileReady) {
             this._initialPanelLoadDone = true;
           }
-          const shouldAutoStartOnboarding =
-            !this._onboardingAutoStartDone &&
-            !!this.pageId &&
-            !!this.user &&
-            this.isEmailVerified &&
-            !this.isForcedPasswordReset &&
-            this.theme === 'setup' &&
-            this.content?.pl?.settings?.onboarding_completed === false &&
-            this.content?.pl?.settings?.welcome_onboarding_completed !== true;
-          if (shouldAutoStartOnboarding) {
-            this._onboardingAutoStartDone = true;
-            this._authEmailJustConfirmed = false;
-            this.showWelcomeModal = false;
-            this.$nextTick(() => {
-              void this.dismissWelcomeModalAndStartOnboarding();
-            });
-          }
-          this.publishPanelDebugState();
         }
       },
       applyThemeStylingFromContent() {
@@ -2647,6 +2649,704 @@ function adminMixinData(ctx) {
         this.appearancePickerHex = '';
         this.applyThemeStylingFromContent();
       },
+      clearCheckoutTurnstile() {
+        this.turnstileToken = '';
+        const turnstile = window.turnstile;
+        if (turnstile && typeof turnstile.remove === 'function') {
+          try {
+            if (this.turnstileWidgetId !== null) turnstile.remove(this.turnstileWidgetId);
+            else turnstile.remove('#turnstile-checkout-container');
+          } catch (e) {
+            /* ignore */
+          }
+        }
+        this.turnstileWidgetId = null;
+        const container = document.getElementById('turnstile-checkout-container');
+        if (container) container.innerHTML = '';
+      },
+      closeCheckoutModal(force = false) {
+        if (this.checkoutLoading && !force) return;
+        this.showCheckoutModal = false;
+        this.pendingCheckoutPlan = '';
+        this.pendingCheckoutPlanType = '';
+        this.pendingCheckoutTier = '';
+        this.pendingCheckoutInterval = '';
+        this.clearCheckoutTurnstile();
+      },
+      renderCheckoutTurnstile(attempt = 0) {
+        if (!this.showCheckoutModal) return;
+        const sitekey = cfg?.turnstileSiteKey;
+        const container = document.getElementById('turnstile-checkout-container');
+        const turnstile = window.turnstile;
+        const ready = sitekey && container && turnstile && typeof turnstile.render === 'function';
+
+        if (!ready) {
+          if (attempt < 30) {
+            window.setTimeout(() => this.renderCheckoutTurnstile(attempt + 1), 150);
+          } else {
+            this.showToast('Nie udało się załadować weryfikacji płatności. Odśwież stronę i spróbuj ponownie.', 'error');
+            this.closeCheckoutModal();
+          }
+          return;
+        }
+
+        this.clearCheckoutTurnstile();
+        try {
+          this.turnstileWidgetId = turnstile.render('#turnstile-checkout-container', {
+            sitekey,
+            callback: (token) => {
+              const value = typeof token === 'string' ? token.trim() : '';
+              if (!value || this.checkoutLoading) return;
+              this.turnstileToken = value;
+              void this.executeStripeCheckout(value);
+            },
+            'expired-callback': () => {
+              this.turnstileToken = '';
+            },
+            'error-callback': () => {
+              this.turnstileToken = '';
+              this.showToast('Weryfikacja nie powiodła się. Spróbuj ponownie.', 'error');
+            },
+          });
+        } catch (e) {
+          console.warn('Turnstile render failed', e);
+          this.showToast('Nie udało się uruchomić weryfikacji płatności.', 'error');
+          this.closeCheckoutModal();
+        }
+      },
+      validateWizardStep(step) {
+        const pl = this.content?.pl;
+        if (!pl) return '';
+        const theme = this.wizardActiveTheme;
+        const stepId = wizardStepIdAtIndex(theme, step);
+        if (stepId === 'template') {
+          if (!getWizardTemplateIds().includes(this.wizardTheme)) {
+            return 'Wybierz szablon branżowy.';
+          }
+        }
+        if (stepId === 'brand') {
+          if (!String(pl.nav?.logo || '').trim()) {
+            return 'Podaj nazwę firmy — wyświetli się w menu i buduje rozpoznawalność marki.';
+          }
+        }
+        if (stepId === 'hero') {
+          const tmpl = getWizardTemplatePl(this.wizardTheme || this.theme);
+          if (isWizardPlaceholder(pl.hero?.headline, tmpl?.hero?.headline)) {
+            return 'Podaj główne hasło na stronie — zastąp przykładowy tekst z szablonu.';
+          }
+          if (isWizardPlaceholder(pl.hero?.description, tmpl?.hero?.description)) {
+            return 'Napisz krótki opis pod nagłówkiem — goście muszą wiedzieć, czym się zajmujesz.';
+          }
+        }
+        if (stepId === 'offer') {
+          const offerKind = wizardOfferSection(theme);
+          if (offerKind === 'menu') {
+            const hasMenu =
+              Array.isArray(pl.menu_items) && pl.menu_items.some((row) => normWizardText(row?.name));
+            if (!hasMenu) {
+              return 'Dodaj co najmniej jedno danie z nazwą — goście muszą wiedzieć, co serwujesz.';
+            }
+          } else {
+            const hasService =
+              Array.isArray(pl.services) && pl.services.some((s) => normWizardText(s?.title));
+            if (!hasService) {
+              return 'Dodaj co najmniej jedną usługę z nazwą — klienci muszą wiedzieć, co oferujesz.';
+            }
+          }
+        }
+        if (stepId === 'about') {
+          if (!normWizardText(pl.manifesto?.text)) {
+            return 'Napisz kilka zdań o sobie lub swojej firmie — sekcja „O nas” nie może zostać pusta.';
+          }
+        }
+        if (stepId === 'contact') {
+          const phone = String(pl.contact?.phone || '').trim();
+          const email = String(pl.contact?.email || '').trim();
+          if (!phone && !email) {
+            return 'Podaj numer telefonu lub e-mail — klienci muszą mieć sposób kontaktu.';
+          }
+        }
+        return '';
+      },
+      startWizard() {
+        this.wizardStep = 1;
+        this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
+        this.wizardFieldWarning = '';
+        this.persistWizardUiState();
+        if (typeof window.DFOPS_trackEvent === 'function') {
+          window.DFOPS_trackEvent('onboarding_started', { slug: this.slug });
+        }
+      },
+      /** Zamknięcie kreatora bez kończenia — zapis treści + stan kroku w localStorage (wznowienie w „Uruchom Kreator”). */
+      async skipWizard() {
+        if (!this.content?.[this.lang]?.settings) return;
+        const ok = await this.saveData({ silentSuccess: true });
+        if (!ok) return;
+        this.persistWizardUiState();
+        this.showWizard = false;
+        this.wizardStep = 0;
+        this.wizardFieldWarning = '';
+        this.showWizardDismissModal = true;
+        if (typeof window.DFOPS_trackEvent === 'function') {
+          window.DFOPS_trackEvent('onboarding_skipped', { slug: this.slug });
+        }
+      },
+      async nextWizardStep() {
+        const err = this.validateWizardStep(this.wizardStep);
+        if (err) {
+          this.wizardFieldWarning = err;
+          return;
+        }
+        this.wizardFieldWarning = '';
+
+        const pl = this.content?.pl;
+        const activeTheme = this.wizardTheme || this.theme;
+        const stepId = wizardStepIdAtIndex(activeTheme, this.wizardStep);
+        if (pl && (stepId === 'brand' || stepId === 'hero')) {
+          syncWizardDerivedFields(pl, activeTheme);
+        }
+        if (pl && stepId === 'hero') {
+          const offerKind = wizardOfferSection(activeTheme);
+          if (offerKind === 'menu') prepareWizardMenuStep(pl, activeTheme);
+          else if (offerKind === 'services') prepareWizardServicesStep(pl, activeTheme);
+        }
+        if (pl && stepId === 'offer') {
+          prepareWizardManifestoStep(pl, activeTheme);
+        }
+
+        if (this.wizardStep === 1 && this.wizardTheme !== this.theme) {
+          if (typeof window.DFOPS_mergeContentWithTemplate !== 'function') {
+            this.showError('Brak konfiguracji szablonów (registry).');
+            return;
+          }
+          const savedContact = JSON.parse(JSON.stringify(this.content?.pl?.contact || {}));
+          const savedLogo = this.content?.pl?.nav?.logo ?? '';
+          const savedLogoImage = this.content?.pl?.nav?.logoImage ?? '';
+          const savedPrivacy = JSON.parse(JSON.stringify(this.content?.pl?.privacy || { mode: 'default', customText: '' }));
+          const savedSubscription = JSON.parse(
+            JSON.stringify(this.content?.pl?.settings?.subscription || {}),
+          );
+          const trialOnlySub =
+            typeof window.DFOPS_stripBillingFromContentSubscription === 'function'
+              ? window.DFOPS_stripBillingFromContentSubscription(savedSubscription)
+              : savedSubscription;
+
+          const merged = window.DFOPS_mergeContentWithTemplate(this.wizardTheme, {});
+          merged.pl.contact = savedContact;
+          merged.pl.privacy = savedPrivacy;
+          if (!merged.pl.nav) merged.pl.nav = {};
+          merged.pl.nav.logo = savedLogo;
+          merged.pl.nav.logoImage = savedLogoImage;
+          if (merged.pl.settings) {
+            merged.pl.settings.subscription = {
+              ...(merged.pl.settings.subscription || {}),
+              ...trialOnlySub,
+            };
+          }
+
+          this.theme = this.wizardTheme;
+          this.content = window.DFOPS_normalizeContent(merged, this.wizardTheme);
+
+          const presets = cfg.presetsByTheme[this.wizardTheme] || [];
+          const cp = this.content.pl.settings.color_preset;
+          if (presets.length && !presets.some((p) => p.id === cp)) {
+            this.content.pl.settings.color_preset = presets[0].id;
+          }
+          this.selectedStyleBundle = '';
+          this.syncUserPlanFromBilling();
+          this.enforceColorPresetForStarter();
+          this.enforceQuickChatForStarter();
+          this.applyThemeStylingFromContent();
+        }
+
+        /** Zapis do bazy przed przejściem dalej — w tym wartości domyślne z szablonu po merge (krok 1). */
+        const savedOk = await this.saveData({ silentSuccess: true });
+        if (!savedOk) {
+          this.wizardFieldWarning =
+            'Nie udało się zapisać na serwerze. Sprawdź połączenie i spróbuj ponownie — albo użyj „Publikuj zmiany” w nagłówku panelu.';
+          return;
+        }
+
+        if (this.wizardStep < this.wizardStepCount) {
+          if (typeof window.DFOPS_trackEvent === 'function') {
+            window.DFOPS_trackEvent('onboarding_step_completed', { step: this.wizardStep });
+          }
+          this.wizardStep++;
+        }
+        this.persistWizardUiState();
+      },
+      wizardAddServiceRow() {
+        const pl = this.content?.pl;
+        if (!pl) return;
+        if (!Array.isArray(pl.services)) pl.services = [];
+        if (pl.services.length >= 3) return;
+        const theme = this.wizardTheme || this.theme || 'beauty';
+        pl.services.push(emptyWizardService(theme));
+      },
+      wizardAddMenuRow() {
+        const pl = this.content?.pl;
+        if (!pl) return;
+        if (!Array.isArray(pl.menu_items)) pl.menu_items = [];
+        if (pl.menu_items.length >= 6) return;
+        pl.menu_items.push(emptyWizardMenuItem());
+      },
+      ensureMenuContentShape() {
+        const pl = this.content?.pl;
+        if (!pl) return;
+        if (!pl.hours || typeof pl.hours !== 'object') {
+          pl.hours = { title: 'Godziny otwarcia', lines: [] };
+        }
+        if (!Array.isArray(pl.hours.lines)) pl.hours.lines = [];
+        if (!Array.isArray(pl.menu_items)) pl.menu_items = [];
+        if (!pl.orders || typeof pl.orders !== 'object') {
+          pl.orders = { label: '', title: '', description: '', call_button: '' };
+        }
+        if (!pl.menu_mode) pl.menu_mode = 'manual';
+      },
+      addMenuHourLine() {
+        this.ensureMenuContentShape();
+        this.content.pl.hours.lines.push('');
+      },
+      addMenuItemRow() {
+        this.ensureMenuContentShape();
+        this.content.pl.menu_items.push(emptyWizardMenuItem());
+      },
+      prevWizardStep() {
+        this.wizardFieldWarning = '';
+        if (this.wizardStep > 1) this.wizardStep--;
+        this.persistWizardUiState();
+      },
+      async finishWizard() {
+        if (!this.content?.[this.lang]?.settings) return;
+        const err = this.validateWizardStep(this.wizardStepCount);
+        if (err) {
+          this.wizardFieldWarning = err;
+          return;
+        }
+        this.wizardFieldWarning = '';
+        const pl = this.content.pl;
+        const activeTheme = this.wizardTheme || this.theme;
+        if (pl) {
+          finalizeWizardContent(pl, activeTheme);
+          normalizeBookingSettings(pl);
+        }
+        this.content[this.lang].settings.onboarding_completed = true;
+        /** Koniec kreatora = pierwsza publikacja na żywo (przycisk „Opublikuj moją stronę”). */
+        const ok = await this.publishChanges({ silentSuccess: true });
+        if (!ok) return;
+        this.showWizard = false;
+        this.wizardStep = 0;
+        this.wizardFieldWarning = '';
+        clearWizardStateFromStorage(this.slug);
+        this.showStudioWelcomeModal = true;
+        if (typeof window.DFOPS_trackEvent === 'function') {
+          window.DFOPS_trackEvent('onboarding_finished', { slug: this.slug });
+        }
+      },
+      closeStudioWelcomeModal() {
+        this.showStudioWelcomeModal = false;
+        this.setTab('dashboard');
+      },
+
+      resolveDriverFactory() {
+        const pkg = typeof window !== 'undefined' && window.driver && window.driver.js;
+        if (pkg && typeof pkg.driver === 'function') return pkg.driver;
+        return null;
+      },
+
+      /** Zapis w `content` (Supabase): ukończono powitanie / tour — modal nie wraca przy kolejnych logowaniach. */
+      async markWelcomeOnboardingSeen() {
+        if (!this.content?.pl?.settings) return;
+        if (this.content.pl.settings.welcome_onboarding_completed === true) return;
+        this.content.pl.settings.welcome_onboarding_completed = true;
+        await this.saveData({ silentSuccess: true });
+      },
+
+      /**
+       * Oprowadzenie (driver.js): najpierw ekran startowy kreatora (wybór ścieżki), potem podgląd i menu.
+       * Pola treści (nazwa, logo w Studiu) pomijamy — sens mają dopiero po wyborze szablonu w kreatorze.
+       */
+      async startOnboardingTour() {
+        if (this.content?.pl?.settings?.welcome_onboarding_completed === true) return;
+        const driverFactory = this.resolveDriverFactory();
+        if (!driverFactory) {
+          this.showWizard = false;
+          await this.markWelcomeOnboardingSeen();
+          return;
+        }
+
+        const self = this;
+        const ensureSidebarForTour = (driver) => {
+          self.sidebarOpen = true;
+          self.mobileMenuOpen = true;
+          self.$nextTick(() => {
+            requestAnimationFrame(() => {
+              if (driver && typeof driver.refresh === 'function') driver.refresh();
+            });
+          });
+        };
+        const openWizardStep0ForTour = (driver) => {
+          self.showWizard = true;
+          self.wizardStep = 0;
+          self.wizardFieldWarning = '';
+          self.$nextTick(() => {
+            requestAnimationFrame(() => {
+              if (driver && typeof driver.refresh === 'function') driver.refresh();
+            });
+          });
+        };
+        const closeWizardForTour = (driver) => {
+          self.showWizard = false;
+          self.setTab('dashboard');
+          self.$nextTick(() => {
+            requestAnimationFrame(() => {
+              if (driver && typeof driver.refresh === 'function') driver.refresh();
+            });
+          });
+        };
+        const d = driverFactory({
+          showProgress: true,
+          progressText: 'Krok {{current}} z {{total}}',
+          nextBtnText: 'Dalej',
+          prevBtnText: 'Wstecz',
+          doneBtnText: 'Zakończ',
+          smoothScroll: true,
+          allowClose: true,
+          disableActiveInteraction: true,
+          overlayOpacity: 0.55,
+          overlayColor: '#0f172a',
+          onDestroyed: () => {
+            self.showWizard = false;
+            void self.markWelcomeOnboardingSeen();
+          },
+          steps: [
+            {
+              element: '#dfcms-onboarding-wizard-step0',
+              popover: {
+                title: 'Najpierw kreator',
+                description:
+                  'Zanim uzupełnisz treści w Studiu, wybierz szablon i przejdź przez krótki kreator — wtedy pola (nazwa, kolory, logo) mają sens. Ten krok jest tylko podglądem: nie musisz teraz nic klikać.',
+                side: 'bottom',
+                align: 'center',
+              },
+              onHighlightStarted: (element, step, { driver }) => {
+                openWizardStep0ForTour(driver);
+              },
+            },
+            {
+              element: '#dfcms-onboarding-wizard-paths',
+              popover: {
+                title: 'Dwie ścieżki',
+                description:
+                  '„Krok po kroku” prowadzi przez wybór szablonu i podstawy. „Studio” to od razu pełny panel — też OK, ale wtedy sam wybierzesz szablon w kreatorze z menu.',
+                side: 'top',
+                align: 'center',
+              },
+              onHighlightStarted: (element, step, { driver }) => {
+                openWizardStep0ForTour(driver);
+              },
+            },
+            {
+              element: '#dfcms-onboarding-site-preview',
+              popover: {
+                title: 'Podgląd na żywo',
+                description:
+                  'Gdy już masz szablon, link „Podgląd strony” pokaże witrynę tak, jak zobaczą ją goście.',
+                side: 'bottom',
+                align: 'center',
+              },
+              onHighlightStarted: (element, step, { driver }) => {
+                closeWizardForTour(driver);
+              },
+            },
+            {
+              element: '#dfops-admin-sidebar',
+              popover: {
+                title: 'Menu po lewej',
+                description:
+                  '„Na start” to najważniejsze sekcje strony. Reszta jest w „Więcej treści” i „Ustawieniach”. Na końcu kliknij Opublikuj zmiany w górnym pasku.',
+                side: 'right',
+                align: 'start',
+              },
+              onHighlightStarted: (element, step, { driver }) => {
+                ensureSidebarForTour(driver);
+              },
+            },
+            {
+              element: '#dfcms-onboarding-wizard-btn',
+              popover: {
+                title: 'Pomocnik krok po kroku',
+                description:
+                  'Gdy utkniesz — uruchom pomocnika. Przeprowadzi Cię przez wybór szablonu i podstawowe treści.',
+                side: 'right',
+                align: 'center',
+              },
+              onHighlightStarted: (element, step, { driver }) => {
+                ensureSidebarForTour(driver);
+              },
+            },
+            {
+              element: '#dfcms-onboarding-nav-subscription',
+              popover: {
+                title: 'Subskrypcja',
+                description:
+                  'Pakiet, płatność i dostęp do funkcji (np. własna domena). Tu też wrócisz do płatności w Stripe, gdy będzie potrzeba.',
+                side: 'right',
+                align: 'center',
+              },
+              onHighlightStarted: (element, step, { driver }) => {
+                ensureSidebarForTour(driver);
+              },
+            },
+          ],
+        });
+
+        await new Promise((resolve) => this.$nextTick(resolve));
+        requestAnimationFrame(() => {
+          d.drive();
+        });
+      },
+
+      /** Zamknięcie modala powitalnego; przy otwartym kreatorze tylko zapis „widziane”, bez touru pod spodem. */
+      async dismissWelcomeModalAndStartOnboarding() {
+        this.showWelcomeModal = false;
+        if (this.content?.pl?.settings?.welcome_onboarding_completed === true) {
+          return;
+        }
+        if (this.showWizard) {
+          await this.markWelcomeOnboardingSeen();
+          return;
+        }
+        if (!this.resolveDriverFactory()) {
+          await this.markWelcomeOnboardingSeen();
+          return;
+        }
+        this.wizardStep = 0;
+        this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
+        this.wizardFieldWarning = '';
+        this.showWizard = true;
+        this.sidebarOpen = false;
+        this.mobileMenuOpen = false;
+        await new Promise((resolve) => this.$nextTick(resolve));
+        await this.startOnboardingTour();
+      },
+      /** Pełny ekran startowy kreatora (wybór ścieżki). */
+      openWizardFromStudio() {
+        if (!this.isEmailVerified) {
+          this.showToast('Potwierdź najpierw adres e-mail — link masz w wiadomości od DFCMS.', 'error');
+          return;
+        }
+        this.restoreWizardUiFromStorage(0);
+        this.wizardFieldWarning = '';
+        this.showWizard = true;
+        this.sidebarOpen = false;
+        this.mobileMenuOpen = false;
+        this.persistWizardUiState();
+        if (typeof window.DFOPS_trackEvent === 'function') {
+          window.DFOPS_trackEvent('onboarding_reopened', { slug: this.slug });
+        }
+      },
+      reopenWizard() {
+        if (!this.isEmailVerified) {
+          this.showToast('Potwierdź najpierw adres e-mail — link masz w wiadomości od DFCMS.', 'error');
+          return;
+        }
+        this.restoreWizardUiFromStorage(1);
+        this.showWizard = true;
+        this.wizardFieldWarning = '';
+        this.persistWizardUiState();
+        if (typeof window.DFOPS_trackEvent === 'function') {
+          window.DFOPS_trackEvent('onboarding_reopened', { slug: this.slug });
+        }
+      },
+      sidebarTabNeedsAttention(tab) {
+        if (!this.content?.pl?.settings || this.content.pl.settings.onboarding_completed === true) return false;
+        const pl = this.content.pl;
+        if (!pl) return false;
+        if (tab === 'settings') {
+          return this.theme === 'setup' || !String(pl.nav?.logo || '').trim();
+        }
+        if (tab === 'contact') {
+          const phone = String(pl.contact?.phone || '').trim();
+          const email = String(pl.contact?.email || '').trim();
+          return !phone && !email;
+        }
+        return false;
+      },
+      goToOnboardingItem(item) {
+        if (!item) return;
+        if (item.openWizard) this.openWizardFromStudio();
+        else if (item.tab) this.setTab(item.tab);
+        this.sidebarOpen = false;
+        this.mobileMenuOpen = false;
+      },
+      closeWizardDismissModal() {
+        this.showWizardDismissModal = false;
+      },
+      async subscribe(planType) {
+        if (this.isImpersonating) {
+          this.showToast('W trybie God Mode płatności klienta nie są obsługiwane z sesji superadmina.', 'error');
+          return;
+        }
+        if (planType === 'premium') {
+          this.showError('Pakiet Premium nie jest już dostępny. Wybierz Starter lub Standard.');
+          return;
+        }
+        const plan = planType === 'pro' ? 'standard' : String(planType || '').trim();
+        if (!plan || plan === 'custom') {
+          this.showError('Pakiet Custom — skorzystaj z formularza zapytania.');
+          return;
+        }
+        const interval = this.billingInterval === 'yearly' ? 'yearly' : 'monthly';
+        if (plan !== 'starter' && plan !== 'standard') {
+          this.showError('Nieprawidłowy plan. Wybierz Starter lub Standard.');
+          return;
+        }
+        if (!this.user?.id) {
+          this.showError('Zaloguj się, aby wykupić subskrypcję.');
+          return;
+        }
+        if (!this.content?.pl?.settings) return;
+        const tier = plan === 'starter' ? 'tier0' : 'tier1';
+        const currentTier =
+          this.subscriptionPlan === 'tier2' ? 'tier1' : this.subscriptionPlan;
+        const isCurrentPaidTier = currentTier === 'tier0' || currentTier === 'tier1';
+
+        if (!this.billingProfileReady) {
+          await this.loadBillingProfile();
+          this.billingProfileReady = true;
+        }
+
+        if (this.shouldUseStripePortalForPlanChange()) {
+          if (isCurrentPaidTier && currentTier === tier) {
+            this.showToast('Masz już wybrany ten plan rozliczeniowy.', 'success');
+            await this.loadData();
+            return;
+          }
+          this.showToast(
+            'Zmianę pakietu wykonasz w portalu Stripe — zobaczysz podsumowanie kosztów i potwierdzisz płatność przed obciążeniem karty.',
+            'info',
+          );
+          await this.openCustomerPortal({ subscriptionUpdate: true });
+          return;
+        }
+
+        this.pendingCheckoutPlan = plan;
+        this.pendingCheckoutPlanType = planType;
+        this.pendingCheckoutTier = tier;
+        this.pendingCheckoutInterval = interval;
+        this.turnstileToken = '';
+        this.showCheckoutModal = true;
+        this.$nextTick(() => {
+          this.renderCheckoutTurnstile();
+        });
+      },
+      async executeStripeCheckout(turnstileToken) {
+        const plan = String(this.pendingCheckoutPlan || '').trim();
+        const planType = String(this.pendingCheckoutPlanType || plan).trim();
+        const tier = String(this.pendingCheckoutTier || '').trim();
+        const interval = this.pendingCheckoutInterval === 'yearly' ? 'yearly' : 'monthly';
+
+        if (!plan || !tier || (plan !== 'starter' && plan !== 'standard')) {
+          this.showToast('Nieprawidłowy plan płatności. Wybierz pakiet jeszcze raz.', 'error');
+          this.closeCheckoutModal();
+          return;
+        }
+        if (!turnstileToken) {
+          this.showToast('Potwierdź, że nie jesteś botem, a potem ponów płatność.', 'error');
+          return;
+        }
+        if (!this.user?.id) {
+          this.showToast('Zaloguj się, aby wykupić subskrypcję.', 'error');
+          this.closeCheckoutModal();
+          return;
+        }
+        if (!this.content?.pl?.settings) {
+          this.showToast('Nie udało się odczytać ustawień strony. Odśwież panel i spróbuj ponownie.', 'error');
+          this.closeCheckoutModal(true);
+          return;
+        }
+
+        this.checkoutLoading = true;
+        if (!this.content.pl.settings.subscription) {
+          this.content.pl.settings.subscription = { plan: 'trial', trial_started_at: new Date().toISOString() };
+        }
+        this.content.pl.settings.subscription.selected_plan = tier;
+        const saved = await this.saveData({ silentSuccess: true });
+        if (!saved) {
+          this.checkoutLoading = false;
+          this.closeCheckoutModal(true);
+          return;
+        }
+
+        const { data: sessionData } = await this.supabase.auth.getSession();
+        const token = sessionData?.session?.access_token;
+        if (!token) {
+          this.showToast('Błąd sesji. Wyloguj się i zaloguj ponownie.', 'error');
+          this.checkoutLoading = false;
+          this.closeCheckoutModal(true);
+          return;
+        }
+        try {
+          const returnUrlObj = new URL(window.location.href);
+          returnUrlObj.searchParams.set('payment', 'success');
+          returnUrlObj.hash = 'subscription';
+          const returnUrl = returnUrlObj.toString();
+
+          const { data, error } = await this.supabase.functions.invoke(
+            'create-checkout',
+            {
+              body: {
+                plan,
+                interval,
+                returnUrl,
+                userEmail: this.user?.email || '',
+                turnstileToken,
+              },
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+          if (error) {
+            const detail =
+              (data && typeof data.error === 'string' && data.error) ||
+              (typeof error.message === 'string' && error.message) ||
+              'Błąd podczas łączenia z systemem płatności.';
+            throw new Error(detail);
+          }
+          const url = data && typeof data.url === 'string' ? data.url : '';
+          if (url) {
+            if (planType === 'starter' && typeof window.DFOPS_trackEvent === 'function') {
+              window.DFOPS_trackEvent('starter_checkout_started', { slug: this.slug });
+            }
+            this.showCheckoutModal = false;
+            this.clearCheckoutTurnstile();
+            window.location.href = url;
+          } else {
+            const errMsg =
+              data && typeof data.error === 'string'
+                ? data.error
+                : 'Brak adresu płatności.';
+            throw new Error(errMsg);
+          }
+        } catch (e) {
+          console.error(e);
+          this.clearCheckoutTurnstile();
+          const msg = e && typeof e === 'object' && 'message' in e ? String(e.message) : '';
+          if (msg.includes('HAS_STRIPE_SUBSCRIPTION') || /subskrypcję Stripe/i.test(msg)) {
+            this.showToast(
+              'Masz już subskrypcję — użyj zmiany planu w panelu albo portalu płatności.',
+              'error',
+            );
+          } else {
+            this.showToast(msg || 'Błąd podczas łączenia z systemem płatności.', 'error');
+          }
+          this.closeCheckoutModal(true);
+        } finally {
+          this.checkoutLoading = false;
+        }
+      },
       async upgradeTemplate() {
         if (!this.content || !this.theme) return;
         this.upgrading = true;
@@ -2746,6 +3446,16 @@ function adminMixinData(ctx) {
         }
       },
       /** Czy plan pozwala publikować premium motyw. Premium = lista `cfg.premiumThemes` (domyślnie pusta → brak regresji). */
+      get isPremiumDraftTheme() {
+        const premium = Array.isArray(cfg?.premiumThemes) ? cfg.premiumThemes : [];
+        return premium.includes(String(this.theme || '').trim());
+      },
+      /** Freemium: na darmowym planie (trial/Starter) premium motyw można edytować i podglądać, ale NIE publikować. */
+      get isPublishBlockedByPlan() {
+        return this.isPremiumDraftTheme && this.isCustomAppearanceLocked;
+      },
+
+      /** Po zmianie linku/trybu rezerwacji — normalizacja i cichy auto-save. */
       syncBookingSettings() {
         if (!this.content?.pl) return;
         normalizeBookingSettings(this.content.pl);
@@ -2985,1096 +3695,6 @@ function adminMixinData(ctx) {
           this.saving = false;
         }
       },
-  };
-}
-
-function adminMixinBilling(ctx) {
-  const {
-    cfg,
-    repo,
-    MS_PER_DAY,
-    ERROR_MESSAGE_TIMEOUT,
-    SUCCESS_MESSAGE_TIMEOUT,
-    UPGRADE_MESSAGE_TIMEOUT,
-  } = ctx;
-  return {
-      billingStripeStatusNormalized() {
-        const sub = this.billingSubscriptionView;
-        return typeof sub?.status === 'string' ? sub.status.trim().toLowerCase() : '';
-      },
-      hasStripeBillingCustomer() {
-        const sub = this.billingSubscriptionView;
-        if (!sub || typeof sub !== 'object') return false;
-        const cid = typeof sub.stripe_customer_id === 'string' ? sub.stripe_customer_id.trim() : '';
-        const sid = typeof sub.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
-        return !!(cid || sid);
-      },
-      /** Checkout vs portal — portal tylko: stripe_customer_id + status active | trialing | past_due. */
-      shouldUseStripePortalForPlanChange() {
-        const sub = this.billingSubscriptionView;
-        const cid = typeof sub?.stripe_customer_id === 'string' ? sub.stripe_customer_id.trim() : '';
-        if (!cid) return false;
-        const st = this.billingStripeStatusNormalized();
-        return st === 'active' || st === 'trialing' || st === 'past_due';
-      },
-      /**
-       * True gdy w Stripe wisi jeszcze subskrypcja — wtedy nie udostępniamy prośby o usunięcie konta
-       * (najpierw anulowanie w portalu Stripe).
-       */
-      closeSuccessModal() {
-        this.showSuccessModal = false;
-      },
-
-      /** Stripe Customer Portal (anulacja / metoda płatności) — Edge Function `create-portal-session`. */
-      openStripeCustomerPortal() {
-        return this.openCustomerPortal();
-      },
-
-      canOpenPortalPlanChangeFlow() {
-        return (
-          this.shouldUseStripePortalForPlanChange() &&
-          this.hasActivePaidSubscription &&
-          !this.isSubscriptionCanceledButValid
-        );
-      },
-
-      /**
-       * @param {{ subscriptionUpdate?: boolean, subscriptionCancel?: boolean }} [opts]
-       *   subscriptionUpdate — deep link: zmiana planu (upgrade/downgrade).
-       *   subscriptionCancel — deep link: anulowanie subskrypcji w Stripe.
-       */
-      async openCustomerPortal(opts = {}) {
-        if (!this.supabase) {
-          this.showToast('Brak połączenia z serwisem. Odśwież stronę.', 'error');
-          return;
-        }
-        this.isPortalLoading = true;
-        try {
-          const { data: sessionData } = await this.supabase.auth.getSession();
-          const token = sessionData?.session?.access_token;
-          if (!token) throw new Error('Brak autoryzacji');
-          const returnUrlObj = new URL(window.location.href);
-          returnUrlObj.searchParams.set('billing', 'return');
-          returnUrlObj.hash = 'subscription';
-          const returnUrl = returnUrlObj.toString();
-          const sub = this.billingSubscriptionView;
-          const subscriptionId =
-            typeof sub?.stripe_subscription_id === 'string'
-              ? sub.stripe_subscription_id.trim()
-              : '';
-          const portalBody = { returnUrl };
-          if (subscriptionId) portalBody.subscription_id = subscriptionId;
-          if (opts.subscriptionCancel) portalBody.flow = 'subscription_cancel';
-          else if (opts.subscriptionUpdate) portalBody.flow = 'subscription_update';
-          const { data, error } = await this.supabase.functions.invoke('create-portal-session', {
-            body: portalBody,
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (error) throw error;
-          const url = data && typeof data.url === 'string' ? data.url : '';
-          if (url) {
-            window.location.href = url;
-            return;
-          }
-          const errMsg =
-            data && typeof data.error === 'string' ? data.error : 'Brak adresu portalu płatności.';
-          throw new Error(errMsg);
-        } catch (err) {
-          console.error(err);
-          this.showToast('Nie udało się otworzyć portalu płatności. Skontaktuj się z pomocą.', 'error');
-        } finally {
-          this.isPortalLoading = false;
-        }
-      },
-
-      schedulePostPaymentDataRefresh() {
-        try {
-          const u = new URL(window.location.href);
-          if (u.searchParams.get('payment') !== 'success' || !this.user) return false;
-          if (this._postPaymentRefreshTimer != null) {
-            clearTimeout(this._postPaymentRefreshTimer);
-            this._postPaymentRefreshTimer = null;
-          }
-          this.showToast('Przetwarzanie płatności... Odświeżam Twoje konto! ✨', 'success');
-          this.billingProfileReady = false;
-          this.isLoading = true;
-          this._postPaymentRefreshTimer = setTimeout(async () => {
-            this._postPaymentRefreshTimer = null;
-            try {
-              await this.loadData();
-              if (!this.subscriptionPaymentActive()) {
-                await this.syncStripeSubscription({ silent: true });
-                await this.loadData();
-              }
-              if (!this.subscriptionPaymentActive()) {
-                this.showToast(
-                  'Nie widzimy jeszcze potwierdzenia w bazie. Otwórz Subskrypcja → „Synchronizuj ze Stripe” lub poczekaj minutę (webhook Stripe).',
-                  'error',
-                );
-              } else {
-                this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
-              }
-            } catch (e) {
-              console.error(e);
-            } finally {
-              this.showTrialSuspendedModal = false;
-              const clean = new URL(window.location.href);
-              clean.searchParams.delete('payment');
-              const qs = clean.searchParams.toString();
-              window.history.replaceState(
-                {},
-                document.title,
-                clean.pathname + (qs ? `?${qs}` : '') + clean.hash,
-              );
-              this.showSuccessModal = false;
-            }
-          }, 4000);
-          return true;
-        } catch {
-          return false;
-        }
-      },
-
-      /**
-       * Po powrocie z portalu Stripe (`?billing=return`) — sync + loadData + toast o zaktualizowanym planie.
-       */
-      schedulePostPortalBillingRefresh() {
-        try {
-          const u = new URL(window.location.href);
-          if (u.searchParams.get('billing') !== 'return' || !this.user) return false;
-          this.billingProfileReady = false;
-          this.isLoading = true;
-          this.showToast('Odświeżam status subskrypcji…', 'info');
-          void (async () => {
-            try {
-              await this.syncStripeSubscription({ silent: true });
-              await this.loadData();
-              this.setTab('subscription');
-              this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
-            } catch (e) {
-              console.error(e);
-              this.showToast(
-                'Nie udało się odświeżyć planu. Użyj Subskrypcja → „Synchronizuj ze Stripe”.',
-                'error',
-              );
-            } finally {
-              const clean = new URL(window.location.href);
-              clean.searchParams.delete('billing');
-              const qs = clean.searchParams.toString();
-              window.history.replaceState(
-                {},
-                document.title,
-                clean.pathname + (qs ? `?${qs}` : '') + clean.hash,
-              );
-              this.isLoading = false;
-            }
-          })();
-          return true;
-        } catch {
-          return false;
-        }
-      },
-
-      /**
-       * Edge Function sync-stripe-subscription — naprawia opóźniony webhook.
-       * @param {{ silent?: boolean }} opts — `silent: true` bez toastów (retry po checkout).
-       */
-      async syncStripeSubscription(opts) {
-        const options = opts && typeof opts === 'object' ? opts : {};
-        const silent = options.silent === true;
-        if (!this.user?.id || !this.supabase) {
-          if (!silent) this.showToast('Zaloguj się, aby zsynchronizować płatności.', 'error');
-          return false;
-        }
-        const { data: sessionData } = await this.supabase.auth.getSession();
-        const token = sessionData?.session?.access_token;
-        if (!token) {
-          if (!silent) this.showToast('Błąd sesji. Wyloguj się i zaloguj ponownie.', 'error');
-          return false;
-        }
-        this.stripeSyncLoading = true;
-        try {
-          const { data, error } = await this.supabase.functions.invoke('sync-stripe-subscription', {
-            body: {},
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          if (error) throw error;
-          if (data && data.ok === false && typeof data.error === 'string') {
-            if (!silent) this.showToast(data.error, 'error');
-            return false;
-          }
-          if (!data || data.ok !== true) {
-            if (!silent) {
-              this.showToast('Nieoczekiwana odpowiedź synchronizacji Stripe. Odśwież stronę i spróbuj ponownie.', 'error');
-            }
-            return false;
-          }
-          this._loadDataSubscriptionStripeSync = true;
-          try {
-            await this.loadData();
-          } finally {
-            this._loadDataSubscriptionStripeSync = false;
-          }
-          this.syncUserPlanFromBilling();
-          const paid = this.hasActivePaidSubscription;
-          const plan = this.subscriptionPlan;
-          if (!paid && (plan === 'trial' || plan === '')) {
-            if (!silent) {
-              this.showToast(
-                'Synchronizacja zakończona, ale plan w panelu nie odświeżył się. Odśwież stronę i spróbuj ponownie.',
-                'error',
-              );
-            }
-            return false;
-          }
-          if (!silent) {
-            this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
-          }
-          return true;
-        } catch (e) {
-          console.error(e);
-          const msg = e instanceof Error ? e.message : String(e);
-          if (!silent) {
-            this.showToast(msg || 'Nie udało się zsynchronizować. Sprawdź połączenie i czy funkcja jest wdrożona.', 'error');
-          }
-          return false;
-        } finally {
-          this.stripeSyncLoading = false;
-        }
-      },
-
-      syncUserPlanFromBilling() {
-        const p = this.subscriptionPlan;
-        if (p === 'tier1' || p === 'tier2') this.userPlan = 'standard';
-        else this.userPlan = 'starter';
-      },
-
-      refreshBillingSubscriptionView() {
-        applyBillingSubscriptionView(this);
-        if (typeof this.syncUiDerivedView === 'function') this.syncUiDerivedView();
-      },
-
-      /** Gotowe palety kolorów — zawsze dostępne (freemium). */
-      async loadBillingProfile() {
-        if (!this.user?.id || !this.supabase) {
-          this.billingProfile = null;
-          this.refreshBillingSubscriptionView();
-          return;
-        }
-        const { data, error } = await this.supabase
-          .from('billing_profiles')
-          .select('*')
-          .eq('user_id', this.user.id)
-          .maybeSingle();
-        if (error) {
-          console.warn('[DFCMS] loadBillingProfile:', error.message || error);
-          this.billingProfile = null;
-          this.refreshBillingSubscriptionView();
-          return;
-        }
-        this.billingProfile = data || null;
-        this.refreshBillingSubscriptionView();
-      },
-
-      clearCheckoutTurnstile() {
-        this.turnstileToken = '';
-        const turnstile = window.turnstile;
-        if (turnstile && typeof turnstile.remove === 'function') {
-          try {
-            if (this.turnstileWidgetId !== null) turnstile.remove(this.turnstileWidgetId);
-            else turnstile.remove('#turnstile-checkout-container');
-          } catch (e) {
-            /* ignore */
-          }
-        }
-        this.turnstileWidgetId = null;
-        const container = document.getElementById('turnstile-checkout-container');
-        if (container) container.innerHTML = '';
-      },
-      closeCheckoutModal(force = false) {
-        if (this.checkoutLoading && !force) return;
-        this.showCheckoutModal = false;
-        this.pendingCheckoutPlan = '';
-        this.pendingCheckoutPlanType = '';
-        this.pendingCheckoutTier = '';
-        this.pendingCheckoutInterval = '';
-        this.clearCheckoutTurnstile();
-      },
-      renderCheckoutTurnstile(attempt = 0) {
-        if (!this.showCheckoutModal) return;
-        const sitekey = cfg?.turnstileSiteKey;
-        const container = document.getElementById('turnstile-checkout-container');
-        const turnstile = window.turnstile;
-        const ready = sitekey && container && turnstile && typeof turnstile.render === 'function';
-
-        if (!ready) {
-          if (attempt < 30) {
-            window.setTimeout(() => this.renderCheckoutTurnstile(attempt + 1), 150);
-          } else {
-            this.showToast('Nie udało się załadować weryfikacji płatności. Odśwież stronę i spróbuj ponownie.', 'error');
-            this.closeCheckoutModal();
-          }
-          return;
-        }
-
-        this.clearCheckoutTurnstile();
-        try {
-          this.turnstileWidgetId = turnstile.render('#turnstile-checkout-container', {
-            sitekey,
-            callback: (token) => {
-              const value = typeof token === 'string' ? token.trim() : '';
-              if (!value || this.checkoutLoading) return;
-              this.turnstileToken = value;
-              void this.executeStripeCheckout(value);
-            },
-            'expired-callback': () => {
-              this.turnstileToken = '';
-            },
-            'error-callback': () => {
-              this.turnstileToken = '';
-              this.showToast('Weryfikacja nie powiodła się. Spróbuj ponownie.', 'error');
-            },
-          });
-        } catch (e) {
-          console.warn('Turnstile render failed', e);
-          this.showToast('Nie udało się uruchomić weryfikacji płatności.', 'error');
-          this.closeCheckoutModal();
-        }
-      },
-      async subscribe(planType) {
-        if (this.isImpersonating) {
-          this.showToast('W trybie God Mode płatności klienta nie są obsługiwane z sesji superadmina.', 'error');
-          return;
-        }
-        if (planType === 'premium') {
-          this.showError('Pakiet Premium nie jest już dostępny. Wybierz Starter lub Standard.');
-          return;
-        }
-        const plan = planType === 'pro' ? 'standard' : String(planType || '').trim();
-        if (!plan || plan === 'custom') {
-          this.showError('Pakiet Custom — skorzystaj z formularza zapytania.');
-          return;
-        }
-        const interval = this.billingInterval === 'yearly' ? 'yearly' : 'monthly';
-        if (plan !== 'starter' && plan !== 'standard') {
-          this.showError('Nieprawidłowy plan. Wybierz Starter lub Standard.');
-          return;
-        }
-        if (!this.user?.id) {
-          this.showError('Zaloguj się, aby wykupić subskrypcję.');
-          return;
-        }
-        if (!this.content?.pl?.settings) return;
-        const tier = plan === 'starter' ? 'tier0' : 'tier1';
-        const currentTier =
-          this.subscriptionPlan === 'tier2' ? 'tier1' : this.subscriptionPlan;
-        const isCurrentPaidTier = currentTier === 'tier0' || currentTier === 'tier1';
-
-        if (!this.billingProfileReady) {
-          await this.loadBillingProfile();
-          this.billingProfileReady = true;
-        }
-
-        if (this.shouldUseStripePortalForPlanChange()) {
-          if (isCurrentPaidTier && currentTier === tier) {
-            this.showToast('Masz już wybrany ten plan rozliczeniowy.', 'success');
-            await this.loadData();
-            return;
-          }
-          this.showToast(
-            'Zmianę pakietu wykonasz w portalu Stripe — zobaczysz podsumowanie kosztów i potwierdzisz płatność przed obciążeniem karty.',
-            'info',
-          );
-          await this.openCustomerPortal({ subscriptionUpdate: true });
-          return;
-        }
-
-        this.pendingCheckoutPlan = plan;
-        this.pendingCheckoutPlanType = planType;
-        this.pendingCheckoutTier = tier;
-        this.pendingCheckoutInterval = interval;
-        this.turnstileToken = '';
-        this.showCheckoutModal = true;
-        this.$nextTick(() => {
-          this.renderCheckoutTurnstile();
-        });
-      },
-      async executeStripeCheckout(turnstileToken) {
-        const plan = String(this.pendingCheckoutPlan || '').trim();
-        const planType = String(this.pendingCheckoutPlanType || plan).trim();
-        const tier = String(this.pendingCheckoutTier || '').trim();
-        const interval = this.pendingCheckoutInterval === 'yearly' ? 'yearly' : 'monthly';
-
-        if (!plan || !tier || (plan !== 'starter' && plan !== 'standard')) {
-          this.showToast('Nieprawidłowy plan płatności. Wybierz pakiet jeszcze raz.', 'error');
-          this.closeCheckoutModal();
-          return;
-        }
-        if (!turnstileToken) {
-          this.showToast('Potwierdź, że nie jesteś botem, a potem ponów płatność.', 'error');
-          return;
-        }
-        if (!this.user?.id) {
-          this.showToast('Zaloguj się, aby wykupić subskrypcję.', 'error');
-          this.closeCheckoutModal();
-          return;
-        }
-        if (!this.content?.pl?.settings) {
-          this.showToast('Nie udało się odczytać ustawień strony. Odśwież panel i spróbuj ponownie.', 'error');
-          this.closeCheckoutModal(true);
-          return;
-        }
-
-        this.checkoutLoading = true;
-        if (!this.content.pl.settings.subscription) {
-          this.content.pl.settings.subscription = { plan: 'trial', trial_started_at: new Date().toISOString() };
-        }
-        this.content.pl.settings.subscription.selected_plan = tier;
-        const saved = await this.saveData({ silentSuccess: true });
-        if (!saved) {
-          this.checkoutLoading = false;
-          this.closeCheckoutModal(true);
-          return;
-        }
-
-        const { data: sessionData } = await this.supabase.auth.getSession();
-        const token = sessionData?.session?.access_token;
-        if (!token) {
-          this.showToast('Błąd sesji. Wyloguj się i zaloguj ponownie.', 'error');
-          this.checkoutLoading = false;
-          this.closeCheckoutModal(true);
-          return;
-        }
-        try {
-          const returnUrlObj = new URL(window.location.href);
-          returnUrlObj.searchParams.set('payment', 'success');
-          returnUrlObj.hash = 'subscription';
-          const returnUrl = returnUrlObj.toString();
-
-          const { data, error } = await this.supabase.functions.invoke(
-            'create-checkout',
-            {
-              body: {
-                plan,
-                interval,
-                returnUrl,
-                userEmail: this.user?.email || '',
-                turnstileToken,
-              },
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          );
-          if (error) {
-            const detail =
-              (data && typeof data.error === 'string' && data.error) ||
-              (typeof error.message === 'string' && error.message) ||
-              'Błąd podczas łączenia z systemem płatności.';
-            throw new Error(detail);
-          }
-          const url = data && typeof data.url === 'string' ? data.url : '';
-          if (url) {
-            if (planType === 'starter' && typeof window.DFOPS_trackEvent === 'function') {
-              window.DFOPS_trackEvent('starter_checkout_started', { slug: this.slug });
-            }
-            this.showCheckoutModal = false;
-            this.clearCheckoutTurnstile();
-            window.location.href = url;
-          } else {
-            const errMsg =
-              data && typeof data.error === 'string'
-                ? data.error
-                : 'Brak adresu płatności.';
-            throw new Error(errMsg);
-          }
-        } catch (e) {
-          console.error(e);
-          this.clearCheckoutTurnstile();
-          const msg = e && typeof e === 'object' && 'message' in e ? String(e.message) : '';
-          if (msg.includes('HAS_STRIPE_SUBSCRIPTION') || /subskrypcję Stripe/i.test(msg)) {
-            this.showToast(
-              'Masz już subskrypcję — użyj zmiany planu w panelu albo portalu płatności.',
-              'error',
-            );
-          } else {
-            this.showToast(msg || 'Błąd podczas łączenia z systemem płatności.', 'error');
-          }
-          this.closeCheckoutModal(true);
-        } finally {
-          this.checkoutLoading = false;
-        }
-      },
-  };
-}
-
-function adminMixinWizard(ctx) {
-  const {
-    cfg,
-    repo,
-    MS_PER_DAY,
-    ERROR_MESSAGE_TIMEOUT,
-    SUCCESS_MESSAGE_TIMEOUT,
-    UPGRADE_MESSAGE_TIMEOUT,
-  } = ctx;
-  return {
-      /** Ustawia wizardActiveTheme, wizardStepId, wizardStepCount, wizardOfferCopy — wołaj po każdej zmianie kroku/motywu. */
-      syncWizardView() {
-        const activeTheme = this.showWizard
-          ? normalizeWizardTheme(this.wizardTheme || this.theme || 'beauty')
-          : normalizeWizardTheme(this.theme || 'beauty');
-        this.wizardActiveTheme = activeTheme;
-        this.wizardStepCount = getActiveWizardStepIds(activeTheme).length;
-        const stepId = wizardStepIdAtIndex(activeTheme, this.wizardStep);
-        this.wizardStepId = stepId || '';
-        if (typeof window.DFOPS_getWizardOfferCopy === 'function') {
-          this.wizardOfferCopy = window.DFOPS_getWizardOfferCopy(activeTheme);
-        }
-        if (typeof this.syncUiDerivedView === 'function') {
-          this.syncUiDerivedView();
-        }
-      },
-      persistWizardUiState() {
-        this.syncWizardView();
-        if (!this.slug || !this.showWizard) return;
-        writeWizardStateToStorage(this.slug, this.wizardStep, this.wizardTheme);
-      },
-      /**
-       * @param {0|1} defaultStepWhenNoSave — gdy brak zapisanego stanu: 0 = ekran wyboru ścieżki, 1 = od razu krok 1 (np. „Uruchom kreator” z checklisty).
-       */
-      restoreWizardUiFromStorage(defaultStepWhenNoSave) {
-        const pageTheme = this.theme || '';
-        const saved = readWizardStateFromStorage(this.slug);
-        if (!saved) {
-          this.wizardStep = defaultStepWhenNoSave === 1 ? 1 : 0;
-          this.wizardTheme = pageTheme === 'setup' ? 'beauty' : pageTheme || 'beauty';
-          this.syncWizardView();
-          return;
-        }
-        const norm = normalizeWizardRestore(saved.step, saved.theme, pageTheme);
-        this.wizardStep = norm.step;
-        this.wizardTheme = norm.theme;
-        const pl = this.content?.pl;
-        const theme = this.wizardTheme || pageTheme;
-        const stepId = wizardStepIdAtIndex(theme, this.wizardStep);
-        if (pl && stepId === 'offer') {
-          if (wizardOfferSection(theme) === 'menu') prepareWizardMenuStep(pl, theme);
-          else prepareWizardServicesStep(pl, theme);
-        }
-        if (pl && stepId === 'about') {
-          prepareWizardManifestoStep(pl, theme);
-        }
-        this.syncWizardView();
-      },
-      /**
-       * Aktywna opłacona subskrypcja Stripe (`billing_profiles` → billingSubscriptionView).
-       * Wyłącznie: niepuste `stripe_subscription_id` + status `active` lub `trialing`.
-       */
-      validateWizardStep(step) {
-        const pl = this.content?.pl;
-        if (!pl) return '';
-        const theme = this.wizardActiveTheme;
-        const stepId = wizardStepIdAtIndex(theme, step);
-        if (stepId === 'template') {
-          if (!getWizardTemplateIds().includes(this.wizardTheme)) {
-            return 'Wybierz szablon branżowy.';
-          }
-        }
-        if (stepId === 'brand') {
-          if (!String(pl.nav?.logo || '').trim()) {
-            return 'Podaj nazwę firmy — wyświetli się w menu i buduje rozpoznawalność marki.';
-          }
-        }
-        if (stepId === 'hero') {
-          const tmpl = getWizardTemplatePl(this.wizardTheme || this.theme);
-          if (isWizardPlaceholder(pl.hero?.headline, tmpl?.hero?.headline)) {
-            return 'Podaj główne hasło na stronie — zastąp przykładowy tekst z szablonu.';
-          }
-          if (isWizardPlaceholder(pl.hero?.description, tmpl?.hero?.description)) {
-            return 'Napisz krótki opis pod nagłówkiem — goście muszą wiedzieć, czym się zajmujesz.';
-          }
-        }
-        if (stepId === 'offer') {
-          const offerKind = wizardOfferSection(theme);
-          if (offerKind === 'menu') {
-            const hasMenu =
-              Array.isArray(pl.menu_items) && pl.menu_items.some((row) => normWizardText(row?.name));
-            if (!hasMenu) {
-              return 'Dodaj co najmniej jedno danie z nazwą — goście muszą wiedzieć, co serwujesz.';
-            }
-          } else {
-            const hasService =
-              Array.isArray(pl.services) && pl.services.some((s) => normWizardText(s?.title));
-            if (!hasService) {
-              return 'Dodaj co najmniej jedną usługę z nazwą — klienci muszą wiedzieć, co oferujesz.';
-            }
-          }
-        }
-        if (stepId === 'about') {
-          if (!normWizardText(pl.manifesto?.text)) {
-            return 'Napisz kilka zdań o sobie lub swojej firmie — sekcja „O nas” nie może zostać pusta.';
-          }
-        }
-        if (stepId === 'contact') {
-          const phone = String(pl.contact?.phone || '').trim();
-          const email = String(pl.contact?.email || '').trim();
-          if (!phone && !email) {
-            return 'Podaj numer telefonu lub e-mail — klienci muszą mieć sposób kontaktu.';
-          }
-        }
-        return '';
-      },
-      startWizard() {
-        this.wizardStep = 1;
-        this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
-        this.wizardFieldWarning = '';
-        this.syncWizardView();
-        this.persistWizardUiState();
-        if (typeof window.DFOPS_trackEvent === 'function') {
-          window.DFOPS_trackEvent('onboarding_started', { slug: this.slug });
-        }
-      },
-      /** Zamknięcie kreatora bez kończenia — zapis treści + stan kroku w localStorage (wznowienie w „Uruchom Kreator”). */
-      async skipWizard() {
-        if (!this.content?.[this.lang]?.settings) return;
-        const ok = await this.saveData({ silentSuccess: true });
-        if (!ok) return;
-        this.persistWizardUiState();
-        this.showWizard = false;
-        this.wizardStep = 0;
-        this.wizardFieldWarning = '';
-        this.showWizardDismissModal = true;
-        if (typeof window.DFOPS_trackEvent === 'function') {
-          window.DFOPS_trackEvent('onboarding_skipped', { slug: this.slug });
-        }
-      },
-      async nextWizardStep() {
-        const err = this.validateWizardStep(this.wizardStep);
-        if (err) {
-          this.wizardFieldWarning = err;
-          return;
-        }
-        this.wizardFieldWarning = '';
-
-        const pl = this.content?.pl;
-        const activeTheme = this.wizardTheme || this.theme;
-        const stepId = wizardStepIdAtIndex(activeTheme, this.wizardStep);
-        if (pl && (stepId === 'brand' || stepId === 'hero')) {
-          syncWizardDerivedFields(pl, activeTheme);
-        }
-        if (pl && stepId === 'hero') {
-          const offerKind = wizardOfferSection(activeTheme);
-          if (offerKind === 'menu') prepareWizardMenuStep(pl, activeTheme);
-          else if (offerKind === 'services') prepareWizardServicesStep(pl, activeTheme);
-        }
-        if (pl && stepId === 'offer') {
-          prepareWizardManifestoStep(pl, activeTheme);
-        }
-
-        if (this.wizardStep === 1 && this.wizardTheme !== this.theme) {
-          if (typeof window.DFOPS_mergeContentWithTemplate !== 'function') {
-            this.showError('Brak konfiguracji szablonów (registry).');
-            return;
-          }
-          const savedContact = JSON.parse(JSON.stringify(this.content?.pl?.contact || {}));
-          const savedLogo = this.content?.pl?.nav?.logo ?? '';
-          const savedLogoImage = this.content?.pl?.nav?.logoImage ?? '';
-          const savedPrivacy = JSON.parse(JSON.stringify(this.content?.pl?.privacy || { mode: 'default', customText: '' }));
-          const savedSubscription = JSON.parse(
-            JSON.stringify(this.content?.pl?.settings?.subscription || {}),
-          );
-          const trialOnlySub =
-            typeof window.DFOPS_stripBillingFromContentSubscription === 'function'
-              ? window.DFOPS_stripBillingFromContentSubscription(savedSubscription)
-              : savedSubscription;
-
-          const merged = window.DFOPS_mergeContentWithTemplate(this.wizardTheme, {});
-          merged.pl.contact = savedContact;
-          merged.pl.privacy = savedPrivacy;
-          if (!merged.pl.nav) merged.pl.nav = {};
-          merged.pl.nav.logo = savedLogo;
-          merged.pl.nav.logoImage = savedLogoImage;
-          if (merged.pl.settings) {
-            merged.pl.settings.subscription = {
-              ...(merged.pl.settings.subscription || {}),
-              ...trialOnlySub,
-            };
-          }
-
-          this.theme = this.wizardTheme;
-          this.content = window.DFOPS_normalizeContent(merged, this.wizardTheme);
-
-          const presets = cfg.presetsByTheme[this.wizardTheme] || [];
-          const cp = this.content.pl.settings.color_preset;
-          if (presets.length && !presets.some((p) => p.id === cp)) {
-            this.content.pl.settings.color_preset = presets[0].id;
-          }
-          this.selectedStyleBundle = '';
-          this.syncUserPlanFromBilling();
-          this.enforceColorPresetForStarter();
-          this.enforceQuickChatForStarter();
-          this.applyThemeStylingFromContent();
-          this.syncWizardView();
-        }
-
-        /** Zapis do bazy przed przejściem dalej
-        const savedOk = await this.saveData({ silentSuccess: true });
-        if (!savedOk) {
-          this.wizardFieldWarning =
-            'Nie udało się zapisać na serwerze. Sprawdź połączenie i spróbuj ponownie — albo użyj „Publikuj zmiany” w nagłówku panelu.';
-          return;
-        }
-
-        if (this.wizardStep < this.wizardStepCount) {
-          if (typeof window.DFOPS_trackEvent === 'function') {
-            window.DFOPS_trackEvent('onboarding_step_completed', { step: this.wizardStep });
-          }
-          this.wizardStep++;
-        }
-        this.syncWizardView();
-        this.persistWizardUiState();
-      },
-      wizardAddServiceRow() {
-        const pl = this.content?.pl;
-        if (!pl) return;
-        if (!Array.isArray(pl.services)) pl.services = [];
-        if (pl.services.length >= 3) return;
-        const theme = this.wizardTheme || this.theme || 'beauty';
-        pl.services.push(emptyWizardService(theme));
-      },
-      wizardAddMenuRow() {
-        const pl = this.content?.pl;
-        if (!pl) return;
-        if (!Array.isArray(pl.menu_items)) pl.menu_items = [];
-        if (pl.menu_items.length >= 6) return;
-        pl.menu_items.push(emptyWizardMenuItem());
-      },
-      ensureMenuContentShape() {
-        const pl = this.content?.pl;
-        if (!pl) return;
-        if (!pl.hours || typeof pl.hours !== 'object') {
-          pl.hours = { title: 'Godziny otwarcia', lines: [] };
-        }
-        if (!Array.isArray(pl.hours.lines)) pl.hours.lines = [];
-        if (!Array.isArray(pl.menu_items)) pl.menu_items = [];
-        if (!pl.orders || typeof pl.orders !== 'object') {
-          pl.orders = { label: '', title: '', description: '', call_button: '' };
-        }
-        if (!pl.menu_mode) pl.menu_mode = 'manual';
-      },
-      addMenuHourLine() {
-        this.ensureMenuContentShape();
-        this.content.pl.hours.lines.push('');
-      },
-      addMenuItemRow() {
-        this.ensureMenuContentShape();
-        this.content.pl.menu_items.push(emptyWizardMenuItem());
-      },
-      prevWizardStep() {
-        this.wizardFieldWarning = '';
-        if (this.wizardStep > 1) this.wizardStep--;
-        this.syncWizardView();
-        this.persistWizardUiState();
-      },
-      async finishWizard() {
-        if (!this.content?.[this.lang]?.settings) return;
-        const err = this.validateWizardStep(this.wizardStepCount);
-        if (err) {
-          this.wizardFieldWarning = err;
-          return;
-        }
-        this.wizardFieldWarning = '';
-        const pl = this.content.pl;
-        const activeTheme = this.wizardTheme || this.theme;
-        if (pl) {
-          finalizeWizardContent(pl, activeTheme);
-          normalizeBookingSettings(pl);
-        }
-        this.content[this.lang].settings.onboarding_completed = true;
-        /** Koniec kreatora = pierwsza publikacja na żywo (przycisk „Opublikuj moją stronę”). */
-        const ok = await this.publishChanges({ silentSuccess: true });
-        if (!ok) return;
-        this.showWizard = false;
-        this.wizardStep = 0;
-        this.wizardFieldWarning = '';
-        clearWizardStateFromStorage(this.slug);
-        this.showStudioWelcomeModal = true;
-        if (typeof window.DFOPS_trackEvent === 'function') {
-          window.DFOPS_trackEvent('onboarding_finished', { slug: this.slug });
-        }
-      },
-      closeStudioWelcomeModal() {
-        this.showStudioWelcomeModal = false;
-        this.setTab('dashboard');
-      },
-
-      resolveDriverFactory() {
-        const pkg = typeof window !== 'undefined' && window.driver && window.driver.js;
-        if (pkg && typeof pkg.driver === 'function') return pkg.driver;
-        return null;
-      },
-
-      /** Zapis w `content` (Supabase): ukończono powitanie / tour — modal nie wraca przy kolejnych logowaniach. */
-      async markWelcomeOnboardingSeen() {
-        if (!this.content?.pl?.settings) return;
-        if (this.content.pl.settings.welcome_onboarding_completed === true) return;
-        this.content.pl.settings.welcome_onboarding_completed = true;
-        await this.saveData({ silentSuccess: true });
-      },
-
-      /**
-       * Oprowadzenie (driver.js): najpierw ekran startowy kreatora (wybór ścieżki), potem podgląd i menu.
-       * Pola treści (nazwa, logo w Studiu) pomijamy — sens mają dopiero po wyborze szablonu w kreatorze.
-       */
-      async startOnboardingTour() {
-        if (this.content?.pl?.settings?.welcome_onboarding_completed === true) return;
-        const driverFactory = this.resolveDriverFactory();
-        if (!driverFactory) {
-          this.showWizard = false;
-          await this.markWelcomeOnboardingSeen();
-          return;
-        }
-
-        const self = this;
-        const ensureSidebarForTour = (driver) => {
-          self.sidebarOpen = true;
-          self.mobileMenuOpen = true;
-          self.$nextTick(() => {
-            requestAnimationFrame(() => {
-              if (driver && typeof driver.refresh === 'function') driver.refresh();
-            });
-          });
-        };
-        const openWizardStep0ForTour = (driver) => {
-          self.showWizard = true;
-          self.wizardStep = 0;
-          self.wizardFieldWarning = '';
-          self.syncWizardView();
-          self.$nextTick(() => {
-            requestAnimationFrame(() => {
-              if (driver && typeof driver.refresh === 'function') driver.refresh();
-            });
-          });
-        };
-        const closeWizardForTour = (driver) => {
-          self.showWizard = false;
-          self.setTab('dashboard');
-          self.$nextTick(() => {
-            requestAnimationFrame(() => {
-              if (driver && typeof driver.refresh === 'function') driver.refresh();
-            });
-          });
-        };
-        const d = driverFactory({
-          showProgress: true,
-          progressText: 'Krok {{current}} z {{total}}',
-          nextBtnText: 'Dalej',
-          prevBtnText: 'Wstecz',
-          doneBtnText: 'Zakończ',
-          smoothScroll: true,
-          allowClose: true,
-          disableActiveInteraction: true,
-          overlayOpacity: 0.55,
-          overlayColor: '#0f172a',
-          onDestroyed: () => {
-            self.showWizard = false;
-            void self.markWelcomeOnboardingSeen();
-          },
-          steps: [
-            {
-              element: '#dfcms-onboarding-wizard-step0',
-              popover: {
-                title: 'Najpierw kreator',
-                description:
-                  'Zanim uzupełnisz treści w Studiu, wybierz szablon i przejdź przez krótki kreator — wtedy pola (nazwa, kolory, logo) mają sens. Ten krok jest tylko podglądem: nie musisz teraz nic klikać.',
-                side: 'bottom',
-                align: 'center',
-              },
-              onHighlightStarted: (element, step, { driver }) => {
-                openWizardStep0ForTour(driver);
-              },
-            },
-            {
-              element: '#dfcms-onboarding-wizard-paths',
-              popover: {
-                title: 'Dwie ścieżki',
-                description:
-                  '„Krok po kroku” prowadzi przez wybór szablonu i podstawy. „Studio” to od razu pełny panel — też OK, ale wtedy sam wybierzesz szablon w kreatorze z menu.',
-                side: 'top',
-                align: 'center',
-              },
-              onHighlightStarted: (element, step, { driver }) => {
-                openWizardStep0ForTour(driver);
-              },
-            },
-            {
-              element: '#dfcms-onboarding-site-preview',
-              popover: {
-                title: 'Podgląd na żywo',
-                description:
-                  'Gdy już masz szablon, link „Podgląd strony” pokaże witrynę tak, jak zobaczą ją goście.',
-                side: 'bottom',
-                align: 'center',
-              },
-              onHighlightStarted: (element, step, { driver }) => {
-                closeWizardForTour(driver);
-              },
-            },
-            {
-              element: '#dfops-admin-sidebar',
-              popover: {
-                title: 'Menu po lewej',
-                description:
-                  '„Na start” to najważniejsze sekcje strony. Reszta jest w „Więcej treści” i „Ustawieniach”. Na końcu kliknij Opublikuj zmiany w górnym pasku.',
-                side: 'right',
-                align: 'start',
-              },
-              onHighlightStarted: (element, step, { driver }) => {
-                ensureSidebarForTour(driver);
-              },
-            },
-            {
-              element: '#dfcms-onboarding-wizard-btn',
-              popover: {
-                title: 'Pomocnik krok po kroku',
-                description:
-                  'Gdy utkniesz — uruchom pomocnika. Przeprowadzi Cię przez wybór szablonu i podstawowe treści.',
-                side: 'right',
-                align: 'center',
-              },
-              onHighlightStarted: (element, step, { driver }) => {
-                ensureSidebarForTour(driver);
-              },
-            },
-            {
-              element: '#dfcms-onboarding-nav-subscription',
-              popover: {
-                title: 'Subskrypcja',
-                description:
-                  'Pakiet, płatność i dostęp do funkcji (np. własna domena). Tu też wrócisz do płatności w Stripe, gdy będzie potrzeba.',
-                side: 'right',
-                align: 'center',
-              },
-              onHighlightStarted: (element, step, { driver }) => {
-                ensureSidebarForTour(driver);
-              },
-            },
-          ],
-        });
-
-        await new Promise((resolve) => this.$nextTick(resolve));
-        requestAnimationFrame(() => {
-          d.drive();
-        });
-      },
-
-      /** Zamknięcie modala powitalnego; przy otwartym kreatorze tylko zapis „widziane”, bez touru pod spodem. */
-      async dismissWelcomeModalAndStartOnboarding() {
-        this.showWelcomeModal = false;
-        if (this.content?.pl?.settings?.welcome_onboarding_completed === true) {
-          return;
-        }
-        if (!this.resolveDriverFactory()) {
-          this.wizardStep = 0;
-          this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
-          this.wizardFieldWarning = '';
-          this.showWizard = true;
-          this.sidebarOpen = false;
-          this.mobileMenuOpen = false;
-          this.syncWizardView();
-          return;
-        }
-        this.wizardStep = 0;
-        this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
-        this.wizardFieldWarning = '';
-        this.showWizard = true;
-        this.sidebarOpen = false;
-        this.mobileMenuOpen = false;
-        this.syncWizardView();
-        await new Promise((resolve) => this.$nextTick(resolve));
-        await this.startOnboardingTour();
-      },
-      /** Pełny ekran startowy kreatora (wybór ścieżki). */
-      async openWizardFromStudio() {
-        await this.syncAuthUserFromServer();
-        const host = String(window.location?.hostname || '');
-        const stagingSurface =
-          window.DFOPS_DEPLOY_ENVIRONMENT === 'staging' || /\.pages\.dev$/i.test(host);
-        if (!stagingSurface && !this.isEmailVerified) {
-          this.showToast('Potwierdź najpierw adres e-mail — link masz w wiadomości od DFCMS.', 'error');
-          return;
-        }
-        this.restoreWizardUiFromStorage(0);
-        this.wizardFieldWarning = '';
-        this.showWizard = true;
-        this.sidebarOpen = false;
-        this.mobileMenuOpen = false;
-        this.syncWizardView();
-        this.persistWizardUiState();
-        if (new URLSearchParams(window.location.search).get('dfcms_debug') === '1') {
-          console.info('[DFCMS] openWizardFromStudio → showWizard', this.showWizard, 'step', this.wizardStep);
-        }
-        if (typeof window.DFOPS_trackEvent === 'function') {
-          window.DFOPS_trackEvent('onboarding_reopened', { slug: this.slug });
-        }
-      },
-      async reopenWizard() {
-        await this.syncAuthUserFromServer();
-        const host = String(window.location?.hostname || '');
-        const stagingSurface =
-          window.DFOPS_DEPLOY_ENVIRONMENT === 'staging' || /\.pages\.dev$/i.test(host);
-        if (!stagingSurface && !this.isEmailVerified) {
-          this.showToast('Potwierdź najpierw adres e-mail — link masz w wiadomości od DFCMS.', 'error');
-          return;
-        }
-        this.restoreWizardUiFromStorage(1);
-        this.showWizard = true;
-        this.wizardFieldWarning = '';
-        this.syncWizardView();
-        this.persistWizardUiState();
-        if (typeof window.DFOPS_trackEvent === 'function') {
-          window.DFOPS_trackEvent('onboarding_reopened', { slug: this.slug });
-        }
-      },
-      sidebarTabNeedsAttention(tab) {
-        if (!this.content?.pl?.settings || this.content.pl.settings.onboarding_completed === true) return false;
-        const pl = this.content.pl;
-        if (!pl) return false;
-        if (tab === 'settings') {
-          return this.theme === 'setup' || !String(pl.nav?.logo || '').trim();
-        }
-        if (tab === 'contact') {
-          const phone = String(pl.contact?.phone || '').trim();
-          const email = String(pl.contact?.email || '').trim();
-          return !phone && !email;
-        }
-        return false;
-      },
-      goToOnboardingItem(item) {
-        if (!item) return;
-        if (item.openWizard) this.openWizardFromStudio();
-        else if (item.tab) this.setTab(item.tab);
-        this.sidebarOpen = false;
-        this.mobileMenuOpen = false;
-      },
-      closeWizardDismissModal() {
-        this.showWizardDismissModal = false;
-      },
-  };
-}
-
-function adminMixinIntegrations(ctx) {
-  const {
-    cfg,
-    repo,
-    MS_PER_DAY,
-    ERROR_MESSAGE_TIMEOUT,
-    SUCCESS_MESSAGE_TIMEOUT,
-    UPGRADE_MESSAGE_TIMEOUT,
-  } = ctx;
-  return {
       async uploadImage(event, section, field, index = null) {
         const file = event.target.files?.[0];
         if (!file || !this.slug) return;
@@ -4335,220 +3955,13 @@ function adminMixinIntegrations(ctx) {
         }
         this.mapPlaceSelectedId = null;
       },
-  };
-}
+    };
+  }
 
-function createAdminApp() {
-    const t = window.DFOPS_CONFIG?.timeouts || {};
-    const MS_PER_DAY = t.msPerDay ?? 86400000;
-    const ERROR_MESSAGE_TIMEOUT = t.errorMessage ?? 5000;
-    const SUCCESS_MESSAGE_TIMEOUT = t.successMessage ?? 3000;
-    const UPGRADE_MESSAGE_TIMEOUT = t.upgradeMessage ?? 3500;
-    const cfg = window.DFOPS_CONFIG;
-    const repo = window.DFOPS_pageRepository;
-  const ctx = {
-    t,
-    MS_PER_DAY,
-    ERROR_MESSAGE_TIMEOUT,
-    SUCCESS_MESSAGE_TIMEOUT,
-    UPGRADE_MESSAGE_TIMEOUT,
-    cfg,
-    repo,
-  };
-  return Object.assign(
-    {
-      supabase: null,
-      user: null,
-      loadingAuth: true,
-      email: '',
-      password: '',
-      rememberMe: false,
-      authError: '',
-      /** Logowanie: widok „Nie pamiętam hasła” (ten sam admin.html). */
-      showLoginForgotPassword: false,
-      forgotPasswordEmail: '',
-      forgotPasswordSending: false,
-      forgotPasswordInfo: '',
-      /** Link resetujący hasło (Supabase) — po loadData: izolatka wymuszonego resetu. */
-      _passwordRecoveryPendingUi: false,
-      _passwordRecoveryUiHandled: false,
-      /** Sesja z linku recovery — pełny panel ukryty do ustawienia nowego hasła. */
-      isForcedPasswordReset: false,
-      panelDebugState: null,
-      slug: new URLSearchParams(window.location.search).get('site') || '',
-      hasImpersonateParam: new URLSearchParams(window.location.search).has('impersonate'),
-      impersonateSlug: normalizePageSlug(new URLSearchParams(window.location.search).get('impersonate')),
-      isSuperadmin: false,
-      isSuperAdmin: false,
-      isImpersonating: false,
-      impersonatedPageOwnerId: null,
-      lang: 'pl',
-      theme: '',
-      isLoading: false,
-      /** Pakiet do feature gating (kolory): starter | standard. Po loadData nadpisuje się z subskrypcji. */
-      userPlan: 'starter',
-      content: createAdminContentShell(),
-      showWizard: false,
-      wizardStep: 0,
-      wizardTheme: '',
-      wizardFieldWarning: '',
-      /** Jawne pola kreatora — nie gettery (Alpine zamraża je przy init x-data). */
-      wizardActiveTheme: 'beauty',
-      wizardStepId: '',
-      wizardStepCount: 6,
-      wizardOfferCopy: { title: 'Twoja oferta', lead: '', itemLabel: 'Usługa', addRow: '+' },
-      /** Jawne pola UI — syncUiDerivedView(); nowe szablony przez registry/themeConfig. */
-      availablePresets: [],
-      accentColor: '#D4AF37',
-      styleBundles: [],
-      themeDisplayLabel: '—',
-      dashboardStartTasks: [],
-      incompleteOnboardingChecks: [],
-      templateCatalog: [],
-      wizardTemplateCatalog: [],
-      activeThemeSections: [],
-      navMenuFields: [],
-      previewHtmlBasename: 'beauty',
-      previewUsesHtmlFallback: false,
-      tenantSiteHostLabel: '—',
-      isPremiumDraftTheme: false,
-      isPublishBlockedByPlan: false,
-      isBillingCanceled: false,
-      trialDaysLeft: 14,
-      isCustomDomainLocked: true,
-      isCustomAppearanceLocked: true,
-      isQuickChatLocked: false,
-      subscriptionBlocksAccountDeletion: false,
-      planDisplayLabel: 'trial',
-      selectedPlanHumanLabel: '',
-      appearancePickerAccentHex: '#D4AF37',
-      canUpdatePassword: false,
-      accountPasswordHint: '',
-      accountPasswordHintClass: 'text-amber-800',
-      canSubmitForcedPasswordReset: false,
-      forcedResetPasswordHint: '',
-      forcedResetPasswordHintClass: 'text-amber-800',
-      /** Jednorazowy komunikat po „Pomiń kreator” — bez listy „ninja” u góry. */
-      showWizardDismissModal: false,
-      /** Pierwsza konfiguracja: treść bez `business_name` (po normalize — zob. loadData). */
-      showWelcomeModal: false,
-      showStudioWelcomeModal: false,
-      customDomain: '',
-      customDomainStatus: '',
-      domainInput: '',
-      pageId: null,
-      isVerifyingDomain: false,
-      domainMessage: '',
-      domainError: '',
-      showDnsInstructions: false,
-      showTemplateSwitcher: false,
-      activeTab: 'dashboard',
-      mobileMenuOpen: false,
-      headerMoreMenuOpen: false,
-      navGroupStart: true,
-      navGroupMore: false,
-      navGroupSettings: false,
-      saving: false,
-      uploadingImage: false,
-      uploadingMessage: '',
-      message: '',
-      errorMessage: '',
-      toast: { show: false, message: '', type: 'success' },
-      _toastTimer: null,
-      /** Globalny modal confirm() (Promise<boolean>) — zastępuje systemowy `confirm()` w panelu. */
-      confirmDialog: {
-        open: false,
-        title: '',
-        message: '',
-        yesLabel: 'Tak',
-        noLabel: 'Nie',
-        tone: 'default', // default | danger
-      },
-      _confirmDialogResolve: null,
-      hasUnsavedChanges: false,
-      _stopContentWatch: null,
-      /** Cichy auto-save stanu roboczego (draft_content). */
-      _draftAutosaveTimer: null,
-      draftSaving: false,
-      draftSavedOnce: false,
-      upgrading: false,
-      checkoutLoading: false,
-      showCheckoutModal: false,
-      pendingCheckoutPlan: '',
-      pendingCheckoutPlanType: '',
-      pendingCheckoutTier: '',
-      pendingCheckoutInterval: '',
-      turnstileToken: '',
-      turnstileWidgetId: null,
-      /** Okres rozliczenia na ekranie pakietów: monthly | yearly */
-      billingInterval: 'monthly',
-      stripeSyncLoading: false,
-      /** Profil rozliczeniowy z tabeli billing_profiles (źródło prawdy Stripe). */
-      billingProfile: null,
-      /** Lustrzany plan z `pages.billing_plan` — fallback UI gdy brak wiersza billing lub God Mode. */
-      pageBillingPlan: 'trial',
-      /** Widok subskrypcji — refreshBillingSubscriptionView(), nie getter (Alpine reactivity). */
-      billingSubscriptionView: emptyBillingSubscriptionView(),
-      /** Ustawiane w applyBillingSubscriptionView — nie gettery (Alpine zamraża je przy init). */
-      subscriptionPlan: 'trial',
-      hasActivePaidSubscription: false,
-      subscriptionRenewalDateFormatted: '—',
-      subscriptionRenewalDateBadgeShort: '—',
-      activePaidTierForUi: null,
-      isSubscriptionCanceledButValid: false,
-      showStripeBillingPortal: false,
-      activeSubscriptionBrandLabel: '',
-      activeSubscriptionPriceLine: '',
-      showTrialBanner: false,
-      panelContentReady: false,
-      panelBootLoading: true,
-      /** False do zakończenia pierwszego loadBillingProfile w bieżącej sesji panelu. */
-      billingProfileReady: false,
-      /** Jednorazowy toast o wygasającej / zakończonej subskrypcji (po pełnym stanie billing). */
-      _billingStatusToastShown: false,
-      /** Pierwsze loadData zakończone — dopiero potem silent sync na zakładce Subskrypcja. */
-      _initialPanelLoadDone: false,
-      /** Zapobiega podwójnemu sync przy loadData po syncStripeSubscription. */
-      _loadDataSubscriptionStripeSync: false,
-      /** Jednorazowy silent sync ze Stripe po wejściu w zakładkę Subskrypcja (świeży `cancel_at_period_end`). */
-      _subscriptionTabStripeSynced: false,
-      newPassword: '',
-      newPasswordConfirm: '',
-      /** Podgląd znaków przy zmianie hasła (Konto). */
-      showAccountPassword: false,
-      isPasswordUpdating: false,
-      isPortalLoading: false,
-      latestTemplateVersion: window.DFOPS_LATEST_TEMPLATE_VERSION || 3,
-      currentTemplateVersion: 1,
-      updateAvailable: false,
-      selectedStyleBundle: '',
-      /** Ustawiane z pages.trial_blocked_at — po trialu bez płatności strona publiczna jest zablokowana. */
-      trialBlockedAt: null,
-      showTrialSuspendedModal: true,
-      /** Opcjonalny modal po płatności — główny flow opiera się na toastach + opóźnionym loadData. */
-      showSuccessModal: false,
-      _postPaymentRefreshTimer: null,
-      resendConfirmLoading: false,
-      /**
-       * Z serwera Auth (getUser), nie ze „stale” session.user w JWT.
-       * Jawne pole — nie getter (Alpine zamraża gettery przy init x-data).
-       */
-      isEmailVerified: false,
-      /** Ustawiane po `exchangeCodeForSession` z linku potwierdzającego e-mail. */
-      _authEmailJustConfirmed: false,
-      /** Jednorazowy auto-start kreatora po pierwszym udanym loadData (setup, onboarding nieukończony). */
-      _onboardingAutoStartDone: false,
-      needsEmailConfirmation: false,
-    },
-    adminMixinUi(ctx),
-    adminMixinAuth(ctx),
-    adminMixinData(ctx),
-    adminMixinBilling(ctx),
-    adminMixinWizard(ctx),
-    adminMixinIntegrations(ctx),
-  );
-}
-
+  /**
+   * Pełny stan pod `x-data` panelu: zawsze ma `isLoading` i `content.pl` (bez wyścigu z Kreatorem).
+   * Wywoływane w admin.html zamiast `{ ...createAdminApp() }`, żeby cache starego JS nie zostawiał `content: null`.
+   */
   function buildAdminAlpineState() {
     const fromApp = createAdminApp();
 
@@ -4561,15 +3974,10 @@ function createAdminApp() {
         : createAdminContentShell();
     fromApp.isLoading = fromApp.isLoading === true || fromApp.isLoading === false ? fromApp.isLoading : false;
 
-    if (typeof fromApp.syncUiDerivedView === 'function') fromApp.syncUiDerivedView();
-    if (typeof fromApp.syncPasswordFormView === 'function') fromApp.syncPasswordFormView();
-
     return fromApp;
   }
 
   window.createAdminApp = createAdminApp;
   window.DFOPS_adminAlpineState = buildAdminAlpineState;
   window.DFOPS_createAdminContentShell = createAdminContentShell;
-  window.DFOPS_billingRowToSubscriptionView = billingRowToSubscriptionView;
-  window.DFOPS_stripBillingFromContentSubscription = stripBillingFromContentSubscription;
 })();

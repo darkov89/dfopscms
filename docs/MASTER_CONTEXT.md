@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-07-04 — staging tenant URLs (`*.staging.dfopscms.pages.dev`)
+**Ostatnia aktualizacja treści:** 2026-07-04 — rollback podziału `adminApp.js` na staging (przywrócono monolit z `main`)
 
 ---
 
@@ -59,13 +59,13 @@ W konsoli: `window.DFOPS_DEPLOY_ENVIRONMENT` → `'staging'` | `'production'`.
 2. **Publikacja treści** — panel kopiuje `draft_content` → `content`; strony publiczne czytają wyłącznie `content` (preview: `dfcms_preview=1` + właściciel).
 3. **Płatność** — panel → `create-checkout` → Stripe Checkout → `stripe-webhook` / `sync-stripe-subscription` → `billing_profiles` + lustrzane `pages.billing_plan`.
 4. **Własna domena** — panel → `add-custom-domain` + `GET /api/verify-domain?domain=…` (Pages Function, DoH CNAME) → Cloudflare Custom Hostname → `pages.custom_domain`.
-5. **Routing publiczny** — `functions/_middleware.js` (slug z nagłówka `Host` / kandydatów, nie tylko `pages.dev`); subdomeny `{slug}.dfcms.pl` i custom domeny → **wewnętrzny rewrite** do `/templates/{theme}.html` (bez `Response.redirect`); motyw **`setup`** (świeże konto przed kreatorem) → rewrite do root **`/setup.html`** (nie ma pliku w `/templates/`); URL w przeglądarce zostaje `/`; apex `dfcms.pl?site=slug` tylko preview/demo (`/templates/…?site=` lub `/setup.html?site=`); nieistniejący tenant → 404 HTML (nie landing); `?site=` tylko bezpieczny slug `[a-z0-9-]+`; `publicSiteApp.cleanTenantPublicUrl()` normalizuje pathname do `/` (usuwa `/templates/`, `?site=` na subdomenie/custom).
+5. **Routing publiczny** — `functions/_middleware.js` (slug z nagłówka `Host` / kandydatów, nie tylko `pages.dev`); subdomeny `{slug}.dfcms.pl` → szablon bez `?site=`; apex `dfcms.pl?site=slug` tylko preview/demo; nieistniejący tenant → 404 HTML (nie landing); `?site=` tylko bezpieczny slug `[a-z0-9-]+`; `publicSiteApp.cleanTenantPublicUrl()` usuwa ewentualny query na subdomenie.
 6. **Alerty** — Sentry / Database Webhooks / cron → Telegram (**bez** triggerów SQL `http_request` w migracjach).
 
 ```
 Użytkownik → Auth → pages.content + pages.billing_plan + billing_profiles
     → create-checkout → Stripe → stripe-webhook / sync-stripe-subscription
-    → Panel: `js/features/admin/billingView.js` (bundlowane w `adminApp.js`) → `planUtils` (tier0/tier1)
+    → Panel: billingProfileView.js → planUtils (tier0/tier1)
     → add-custom-domain → Cloudflare → pages.custom_domain
 ```
 
@@ -96,13 +96,13 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 - **Kasacja (30 dni):** RPC `purge_trial_blocked_pages_after_grace()` — **domyślnie wyłączona** w Edge (`AUTO_PURGE_ENABLED` ≠ true); raport do ręcznej kasacji.
 - **Powiadomienia cron:** **Telegram** (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`) — Markdown; **Resend usunięty** z `expire-trial-pages`. Secrets crona: `CRON_SECRET`. Harmonogram: Dashboard → Integrations → Cron → POST `expire-trial-pages`.
 
-**Onboarding:** modal powitalny (pomijany przy auto-starcie); **auto-otwarcie kreatora** przy pierwszym udanym `loadData` ze świeżym kontem (`theme=setup`, `onboarding_completed=false`, e-mail potwierdzony lub staging bypass) — także po wejściu z linku rejestracji (`admin.html?site=…`), nie tylko po `?code=` z maila; Driver.js, kreator (wizard) sterowany `themeConfig`; `welcome_onboarding_completed` / `onboarding_completed` w `pages.content`. Przy pierwszym logowaniu trigger DB może utworzyć `pages` przed panelem — `ensurePageFromRegistrationMetadata` ponawia odczyt zamiast błędu „slug zajęty”.
+**Onboarding:** modal powitalny, Driver.js, kreator (wizard) sterowany `themeConfig` — liczba i treść kroków zależy od `pages.theme`; `welcome_onboarding_completed` / `onboarding_completed` w `pages.content`.
 
 **Prawo & Bezpieczeństwo:** panel `admin.html#legal` zarządza `pages.content.pl.privacy` (`mode: 'default' | 'custom'`, `customText`). Publiczny route `/polityka-prywatnosci` renderuje standardową politykę DFCMS albo własny dokument użytkownika przez DOMPurify i zawsze dokleja klauzulę infrastruktury DFCMS/Supabase/Cloudflare.
 
 **Security (skrót):** forced password reset, DOMPurify, sanitizacja URL-like pól `pages.content` na zapisie i odczycie, Cloudflare Turnstile dla rejestracji/custom inquiry/checkout, CSP/HSTS/XFO/nosniff w `functions/_middleware.js`, publiczny odczyt `pages` zawężony query+RLS+grantami kolumnowymi, Stripe webhook tylko Edge, Google Places/Maps klucz tylko Edge, `billing_profiles` SoT rozliczeń, draft preview tylko dla właściciela. Superadmini są wyłącznie w `public.superadmins`; RLS dodaje im SELECT/UPDATE/DELETE na `pages` i `analytics_events`, bez zmiany polityk właścicielskich.
 
-**Luki:** brak obowiązkowego E2E/CI dla Edge; wildcard `*.dfcms.pl` w Cloudflare Pages; RLS anon read wymaga GRANT + polityki; brak historii wersji treści; panel JS nadal ~4k linii po buildzie (źródła w mixinach, bez bundlera tree-shaking).
+**Luki:** brak obowiązkowego E2E/CI dla Edge; wildcard `*.dfcms.pl` w Cloudflare Pages; RLS anon read wymaga GRANT + polityki; brak historii wersji treści; monolityczny panel (`admin.html` + `adminApp.js`) utrudnia kolejne zmiany IA.
 
 **TO-DO operacyjne:** tour Driver.js mobile; smoke webhook Stripe; CI deploy Edge; skonfigurować Cron Supabase dla `expire-trial-pages`.
 
@@ -112,7 +112,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 - **Driver.js** (CDN 1.4.0): tour → kreator (krok 0) → podgląd strony → sidebar (`#dfops-admin-sidebar`) → **Pomocnik krok po kroku** → Subskrypcja. Po tour domyślny widok: **`dashboard`** (nie `hero`).
 - **Kreator:** kroki logiczne z `js/core/themeConfig.js` (`template` → `brand` → `hero` → `offer` → `about` → `contact`); aktywna lista per motyw (`DFOPS_getActiveWizardStepIds`) — np. gastro pomija `about`, w `offer` zbiera `menu_items` zamiast `services`; sync `nav.logo` → `business_name` / `hero.name` / SEO; `finishWizard` → `finalizeWizardContent` (ukrywa puste sekcje); stan w `localStorage` (`dfops_wizard_state_v1:{slug}`, `v:2`); czyszczenie po `finishWizard` / `switchTemplate`.
 - **Draft vs published:** auto-save debounce 1000ms → `draft_content`; `publishChanges()` → `content`; preview tylko właściciel (`dfcms_preview=1`); `revertChanges()` z `_publishedContentRaw`.
-- **Subskrypcja panel:** Źródła: `billing_profiles` + `pages.billing_plan`. Widok UI — jawne pola Alpine w `applyBillingSubscriptionView()` (plan, `hasActivePaidSubscription`, daty odnowienia, etykiety pakietu, `showStripeBillingPortal`). Aktywna subskrypcja: karta statusu + **Przejdź na Standard/Starter**, faktury/karta, **Anuluj subskrypcję** (deep linki Stripe Customer Portal). Karuzela planów tylko przy trialu. **Prod ≠ staging:** `main` ma stary `adminApp.js` (getter bug) — merge `staging` → `main` przed deployem prod.
+- **Subskrypcja panel:** `hasActivePaidSubscription` / `isSubscriptionCanceledButValid` — tylko Stripe (`billing_profiles`), nie samo `payment_completed` w JSON.
 - **God Mode:** `godmode.html` wymaga sesji i widocznego własnego wpisu w `superadmins`; lista pobiera wszystkie `pages`. Panel po zalogowaniu sprawdza `superadmins` i pokazuje w sidebarze „Master Dashboard” tylko superadminom. Przycisk „Zarządzaj” otwiera `admin.html?impersonate={slug}`. W impersonacji panel zapisuje konkretny rekord po `pages.id`, pomija profil billingowy superadmina i blokuje checkout z sesji operatora.
 
 ### 1.5.2 Panel admin — IA (2026-07)
@@ -139,7 +139,7 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 
 **Progressive disclosure:** Kontakt (rezerwacje na górze; adres/mapa, WhatsApp, social w `<details>`); Baner (CTA w `<details>`; manifesto → osobna zakładka); Wygląd (logo + presety kolorów; reszta w „Ustawienia zaawansowane…”).
 
-**Monolity panelu:** HTML w `admin/partials/` (2026-07-03); logika w `js/features/admin/` (mixiny: auth, billing, data, wizard, integrations, ui) → **`npm run build:admin-js`** składa `adminApp.js`. Przy edycji UI: partial → `npm run build:admin`; przy logice panelu: mixin → `npm run build:admin-js`.
+**Monolity panelu:** logika w `adminApp.js` (~4k linii); HTML rozbity na `admin/partials/` (2026-07-03). Przy edycji UI panelu: partial → `npm run build:admin` → commit partials + `admin.html`.
 
 ### 1.5.1 Theme-aware panel (`themeConfig`) — wzorzec
 
@@ -301,8 +301,6 @@ Karty testowe: `4242 4242 4242 4242` ([dokumentacja Stripe](https://docs.stripe.
 | **DB + Edge** | `link staging` → `db push` / `functions deploy` | `link production` → `db push` / `functions deploy` |
 | **Secrets** | `supabase secrets set` — Test Stripe, CF staging, Telegram, `CRON_SECRET` | Live Stripe, prod CF, Telegram, `CRON_SECRET` |
 
-**Panel CMS przed pushem (brak build na CI):** Cloudflare Pages nie uruchamia `npm run build` — w repo muszą być **wygenerowane** `admin.html` i `js/features/adminApp.js`. Po edycji `admin/partials/` → `npm run build:admin`; po edycji `js/features/admin/` → `npm run build:admin-js`; oba → `npm run build:panel`. Commit: źródła **i** artefakty. Reszta frontu (`templates/`, `js/core/`, …) bez kroku build.
-
 **Checklist prod:** migracje na Staging OK; Edge wdrożone; Secrets Live; Cloudflare Pages prod Supabase; Stripe webhook Live; Cron `expire-trial-pages`; Database Webhooks.
 
 ### 3.6 Gałęzie Git
@@ -322,7 +320,6 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 |---------|------|
 | `*.html` (root) | Wejścia Cloudflare Pages (`index`, `router`, `rejestracja`, …); **`admin.html` generowany** |
 | `admin/partials/` | Źródła HTML panelu CMS (36 plików); `admin/manifest.json` + `npm run build:admin` |
-| `js/features/admin/` | Źródła logiki panelu (shared + mixiny); `npm run build:admin-js` → `adminApp.js` |
 | `templates/` | **Szablony HTML** witryn klientów + `_base_template.html`, `_partials/` |
 | `js/core/` | Config, Supabase client, `pageRepository`, `themeConfig`, `planUtils`, sanitizacja |
 | `js/features/` | Aplikacje Alpine: `adminApp`, `publicSiteApp`, `routerApp`, … |
@@ -357,13 +354,13 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 |-------|------|
 | Konfiguracja klienta / ceny fallback | `js/core/config.js` |
 | Landing + cennik | `index.html#cennik`, `js/features/landingPricing.js` |
-| Panel — IA / logika tabów | `admin/partials/`, `admin.html` (build), `js/features/admin/` → `adminApp.js` (§1.5.2) |
+| Panel — IA / logika tabów | `admin/partials/`, `admin.html` (build), `js/features/adminApp.js` (§1.5.2) |
 | Kontrakt JSON treści | `js/core/contentSchema.js`, `js/core/contentUpgrader.js` |
 | Domyślna treść motywów | `js/templates/registry.js` |
 | Panel subskrypcja | `admin.html`, `adminApp.js` |
 | God Mode / superadmin | `godmode.html`, `admin.html?impersonate={slug}`, `20260623100512_add_god_mode.sql` |
 | Plany / watermark | `js/core/planUtils.js` |
-| Profil Stripe | `js/features/admin/billingView.js` (bundel), `loadBillingProfile()`, `godmode`: `billingProfileView.js` |
+| Profil Stripe | `billingProfileView.js`, `loadBillingProfile()` |
 | Demo seeds (localhost fallback) | `data/seeds/demo_pages.json`, `scripts/extract-demo-seeds-from-migration.mjs` |
 | Demo seeds (DB / prod) | `supabase/migrations/20260616150000_seed_demo_catalog_pages.sql` |
 | Szablony publiczne | `templates/{beauty,fitness,services,consultant,gastro,care}.html`, boilerplate `templates/_base_template.html` |
@@ -374,80 +371,33 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 
 ## 4. Dziennik transformacji
 
-Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana.
+### 2026-07-04 — Rollback eksperymentu panelu JS (staging)
 
-| Data | Co |
-|------|-----|
-| **2026-07-04** | **Panel — syncUiDerivedView:** wszystkie gettery UI (presety, checklisty, gating planu, katalog szablonów) jako jawne pola + `syncUiDerivedView()` / `compute*` w `shared.js` (registry/themeConfig — nowe szablony bez zmian w Alpine). Bundle `adminApp.js?v=20260704l`. |
-| **2026-07-04** | **Kreator panelu — reaktywność Alpine:** jawne pola `wizardStepId`, `wizardStepCount`, `wizardActiveTheme`, `wizardOfferCopy` + `syncWizardView()` (gettery zamrażane przy init → kreator utykał na szablonie); usunięty błędny early-return w `dismissWelcomeModalAndStartOnboarding` pomijający Driver.js. Bundle `adminApp.js?v=20260704k`. |
-| **2026-07-04** | **Onboarding po rejestracji:** auto-start kreatora przy pierwszym `loadData` dla `theme=setup` (nie tylko `?code=` z maila); race trigger DB vs `ensurePageFromRegistrationMetadata` — retry + 23505 bez flasha „slug zajęty”; kreator otwiera się bez Driver.js gdy CDN niedostępny. Bundle `adminApp.js?v=20260704j`. |
-| **2026-07-04** | **Staging pages.dev — tenant bez subdomeny:** `platformRouting` na `*.pages.dev` buduje URL `apex/?site=slug` (CF Pages bez wildcardu); staging bypass weryfikacji e-mail dla zalogowanego użytkownika (kreator na preview). |
-| **2026-07-04** | **Fix routing tenantów (rewrite vs redirect):** middleware `fetchThemeAsset` przez `env.ASSETS.fetch(new URL('/templates/{theme}.html', request.url))` z `redirect: manual`; custom domain w `fetchPageRow` → 404 zamiast fallbacku na landing; catch tenant host → 404; `publicSiteApp.cleanTenantPublicUrl` — subdomena + custom domain, pathname `/` (bez `/templates/`); `buildThemePageUrl` dla custom → `/`; `routerApp` tenant/custom → `/` (nie `/templates/`); `index.html` bez shimów subdomena/custom → `router.html`. |
-| **2026-07-04** | **Subskrypcja panel — UX zarządzania:** jawne pola etykiet/statusu portalu; przyciski „Przejdź na Standard/Starter” + anuluj; karuzela planów ukryta przy aktywnej subskrypcji. |
-| **2026-07-03** | **Billing UI — cleanup:** usunięty panel/konsola debug (`billing_debug`); zostaje jawny stan billing + weryfikacja sync przed toastem sukcesu. |
-| **2026-07-03** | **Billing UI — daty odnowienia:** `subscriptionRenewalDateFormatted` / `BadgeShort` jako jawne pola w `applyBillingSubscriptionView()` (getter zamrożony przy init → brak „Następna płatność”). |
-| **2026-07-03** | **Billing UI — Alpine gettery:** `subscriptionPlan` i `hasActivePaidSubscription` jako jawne pola (Alpine zamraża gettery przy init x-data); `applyBillingSubscriptionView()` ustawia trójkę pól naraz. |
-| **2026-07-03** | **Billing UI panel — reaktywność Alpine:** `billingSubscriptionView` jako jawny stan; `refreshBillingSubscriptionView()` po `loadBillingProfile`/`loadData`; sync Stripe weryfikuje `hasActivePaidSubscription` przed toastem sukcesu. |
-| **2026-07-03** | **Panel admin — JS mixiny:** `js/features/admin/` (shared + 6 mixinów domenowych) + `scripts/build-admin-app.mjs` / `split-admin-app.mjs`; `npm run build:admin-js`; `adminApp.js` generowany (IIFE + `Object.assign`); mixiny dostają `ctx` z `createAdminApp`; `js/features/admin/README.md`. |
-| **2026-07-03** | **Panel admin — partials:** `admin/partials/` (36 plików) + `scripts/build-admin.mjs` / `split-admin-html.mjs`; `npm run build:admin`; `admin.html` generowany z banerem; byte-identyczny rebuild; `admin/README.md`. |
-| **2026-07-03** | **Repo — `data/seeds/demo_pages.json`:** przywrócone 6 demo katalogowych z migracji `20260616150000_*`; skrypt `extract-demo-seeds-from-migration.mjs`; README + MASTER §3.1/§3.7; localhost fallback demo bez wiersza w Staging DB. |
-| **2026-07-03** | **Repo — `_lead-generator-export/` gitignored:** archiwum GTM poza śledzeniem git (lokalna kopia / osobne repo); MASTER §3.7 zaktualizowany; pliki usunięte z indeksu git, pozostają na dysku. |
-| **2026-07-03** | **MASTER_CONTEXT — mapa repo i IA panelu:** §1.5.2 (dashboard, grupy sidebaru, aliasy hash, progressive disclosure); §3.7 mapa katalogów deploy/archiwum/gitignore; doprecyzowanie `registry.js` vs `templates/`; kontrakt `contentSchema.js`; znany dług `data/seeds`; poprawiony opis tour Driver.js. |
-| **2026-07-03** | **Panel admin — UX dla nietechnicznych:** domyślny ekran `dashboard` (adres strony + checklista startowa); sidebar w 3 grupach (Na start / Więcej treści / Ustawienia); scalone Opinie (`reviews` + `google_reviews`), rezerwacje w Kontakcie; usunięte Leady z menu i widoczność sekcji z Wyglądu; akordeony `<details>` w hero/kontakt/settings; nagłówek z CTA „Opublikuj”, menu ⋯ (Odrzuć/Warunki/Wyloguj); aliasy hash `#booking`→`contact`, `#google_reviews`→`reviews`, `#leady`→`dashboard`. |
-| **2026-07-03** | **Szybki kontakt (WhatsApp / Messenger):** partial `templates/_partials/quick_chat_fab.html` we wszystkich szablonach publicznych — FAB z dymkiem „Masz pytanie? Napisz!”, kropką `animate-ping` i linkiem `wa.me` / `m.me` (bez modala). Panel → Kontakt: `contact.whatsapp` / `contact.messenger`; gating Starter (`tier0`, `DFOPS_planAllowsQuickChat` / `isQuickChatLocked`). Logika URL w `publicSiteApp.js`. |
-| **2026-07-02** | **wFirma retry:** `stripe-webhook` `await` na wFirma (nie `void` — Edge mógł zabić task przed końcem); ledger `failed` zawsze ponawia; nowa funkcja `retry-wfirma-invoice` (`POST` + `Bearer CRON_SECRET`, body `checkoutSessionId` / `stripeInvoiceId`) — retry bez Resend ze Stripe. |
-| **2026-07-02** | **Fix billing webhook → zły user + spam Telegram:** `findPageByAuthUserEmail` używał błędnego filtra `email.eq.…` w `listUsers` (GoTrue oczekuje samego emaila + dopasowanie 1:1); `invoice.paid` / `subscription.updated` mogły przypisać subskrypcję najnowszemu kontu w bazie. Dodano `subscription_data.metadata.supabase_user_id` w Checkout, priorytet metadanych w `resolvePageForStripeSubscription`, reset trialu przy `releaseStaleStripeUniqueKeys`, filtr istotnych pól w `telegram-webhook` (bez alertów przy samym `updated_at`). Naprawiono zombie profil `sirdin3k@gmail.com` na prod. |
-| **2026-07-02** | **Theme-aware panel i kreator:** `js/core/themeConfig.js` definiuje sekcje per motyw (`menu`, `opening_hours`, `services`, `manifesto`, …); `admin.html` używa `themeHasSection()` / `adminTabVisible()` zamiast twardych `theme === 'beauty'`; nowa zakładka „Karta dań / Cennik” (gastro: link / zdjęcie / pozycje ręczne + godziny + zamówienia); kreator pomija krok „O nas” dla gastro i zamienia krok oferty na kartę dań; `templates/gastro.html` — dynamiczne treści z `content.pl` i `x-show` na pustych sekcjach. |
-| **2026-07-02** | **Fix deploy Pages Functions:** middleware importuje `js/core/publishedThemes.js` zamiast `registry.js` (Workers nie mają `window`); bez tego produkcja zostawała na starym fallbacku bez edge routingu. |
-| **2026-07-01** | **Routing subdomen tenantów:** middleware skanuje kandydatów hosta (`Host` pierwszy), slug z subdomeny bez shim `/?site=`; `index.html` i `routerApp.js` — subdomena → `router.html` / szablon bez query; walidacja `?site=` (odrzucenie URL-i); nieistniejący tenant na `*.dfcms.pl` → 404 zamiast marketingu. |
-| **2026-07-01** | **Kreator onboardingu (zero dummy):** 6 kroków — dodano usługi i O nas; walidacja hero/usług/manifesto/kontaktu; auto-sync nazwy i SEO; `finalizeWizardContent` wyłącza sekcje z pustym lub szablonowym contentem (galeria, opinie Google, trust, grafik fitness, Calendly placeholder). |
-| **2026-06-30** | **Regulamin i polityka (audyt prawny):** `regulamin.html` — trial 14 dni, pakiety, managed domain vs CNAME, plan multi-site, managed services; `polityka.html` — role admin/procesor, rozszerzone kategorie danych, podprocesorzy Supabase+Cloudflare+Google+Sentry, cookies bez GA/Meta na dfcms.pl (opcjonalnie w przyszłości). |
-| **2026-06-26** | **Regulamin domen niestandardowych:** `regulamin.html` zawiera nowy punkt o rejestracji, utrzymaniu, wygaśnięciu prawa korzystania i opcjonalnej cesji custom domains; kolejne punkty regulaminu przenumerowane. |
-| **2026-06-23** | **God Mode / Master Admin:** migracja `20260623100512_add_god_mode.sql` dodaje `superadmins` i polityki RLS dla pełnego SELECT/UPDATE/DELETE na `pages` oraz `analytics_events`; `godmode.html` listuje wszystkie strony superadminom; `admin.html?impersonate={slug}` ładuje i zapisuje rekord klienta po `pages.id`, bez użycia billing profilu operatora. |
-| **2026-06-23** | **God Mode UX fix:** `godmode.html` ładuje zależności w tej samej kolejności co `admin.html` (`utils` przed config/repo), a `adminApp.js` po sesji ustawia `isSuperAdmin` i pokazuje link „Master Dashboard” w sidebarze tylko superadminom. |
-| **2026-06-23** | **Root cleanup assets:** utworzono `/assets/images/` jako miejsce na statyczne logotypy/obrazy przenoszone z root; audyt ścieżek nie wykazał aktywnych referencji do `dfops-dark.svg`, `dfops-light.svg` ani `dragonfly_ops_logo.svg`. |
-| **2026-06-23** | **Frontend templates refactor:** branżowe HTML przeniesione z root do `/templates/`; Cloudflare middleware serwuje `/templates/{theme}.html` z zachowaniem starych tras `/{theme}.html`; panel preview i publiczne redirecty używają `/templates/`; dodano `_base_template.html` i `_components_library.html`. |
-| **2026-06-23** | **Cleanup lead demo DB:** migracja `20260623083000_cleanup_lead_demo_pages.sql` usuwa z `public.pages` wygenerowane leadowe `demo-*`, zostawiając oficjalne `demo-beauty`, `demo-fitness`, `demo-services`, `demo-gastro`, `demo-care`, `demo-consultant`. |
-| **2026-06-23** | **GTM pivot:** porzucono generowanie 40 osobnych wizytówek leadowych w głównym repo. Lead-gen przeniesiony do `_lead-generator-export`; CSV prowadzi do oficjalnych demo DFCMS per `theme`; główne `data/seeds` i leadowe migracje usunięte z runtime. |
-| **2026-06-22** | **Demo lead catalog v2:** 40 top leadów z Apify/Google Places; każdy slug `demo-*`, `billing_plan=tier1`, Google `place_query`, mapa `map_embed_url`, fallbackowe opinie, social media z datasetu, placeholder hero `/img/Twoje%20zdjecie.jpg` i galeria `/img/galeria1.jpg`–`/img/galeria4.jpg`; barberzy używają beauty `black-gold`/`smoky`/`barber`. |
-| **2026-06-22** | **GTM Polish demo:** `scripts/generate-leads-demos.mjs` sortuje top 40, generuje slugi `demo-*` do 60 znaków bez cięcia słów, mapuje drzew/ogród/wycinka do `services`, dodaje branżowe podtytuły i presety oraz `hero.title` po `cleanBusinessName()` przy zachowaniu pełnej nazwy w Google `place_query`. |
-| **2026-06-22** | **Prawo & Bezpieczeństwo:** nowa odsłona zakładki `legal` w panelu; `pages.content.pl.privacy` (`default/custom`); publiczny route `/polityka-prywatnosci` z generowaną polityką, custom tekstem po DOMPurify i obowiązkową klauzulą DFCMS/Supabase/Cloudflare. |
-| **2026-06-19** | **Security hardening:** `fetchPageRow` na Cloudflare edge waliduje slug/hostname i pobiera pojedynczy obiekt PostgREST; `pageRepository` sanitizuje `content`/`draft_content` na zapisie i odczycie, w tym pola URL używane w `href/src`, żeby blokować `javascript:`/`data:` i stare złośliwe rekordy. |
-| **2026-06-19** | **Demo katalog:** landing pokazuje 6 template i prowadzi przez `router.html?site=demo-*`; demo katalogowe nie blokuje się przez trial (`is_demo_catalog`) + migracja ustawia `billing_plan=tier1` i czyści flagi blokady dla demo rekordów. |
-| **2026-06-19** | **Landing dark-mode SaaS:** `index.html` przepisany na ekskluzywny ciemny landing produktowy: hero 3 minuty, proste 3 kroki, wyposażenie wizytówki, sekcja „Święty spokój”, kafelki demo i ciemny cennik glassmorphism. |
-| **2026-06-19** | **Landing Concierge:** `index.html` przepisany na empatyczny, jasny przekaz do lokalnych firm; sekcja mitu AI, Tabela Szczerości, relacje z klientami, branże i lekki cennik z pomarańczowymi akcentami. |
-| **2026-06-19** | **Checkout Turnstile:** widget nie jest stałym elementem Subskrypcji; po kliknięciu aktywacji planu otwiera się modal, Turnstile renderuje się jawnie i callback automatycznie uruchamia `executeStripeCheckout(token)`. |
-| **2026-06-19** | **Panel admin mobile:** top bar układa się mobile-first, hamburger steruje `mobileMenuOpen`, zamknięty sidebar ma `pointer-events-none` i nie blokuje kliknięć w treść. |
-| **2026-06-19** | **Panel admin / Checkout:** CSP dopuszcza `browser.sentry-cdn.com`, `cdn.jsdelivr.net`, `cdnjs.cloudflare.com`; Turnstile w Subskrypcji renderowany jawnie po aktywacji widoku; `supabaseClient` utrzymuje jeden `GoTrueClient` z dynamicznym storage. |
-| **2026-06-17** | **Turnstile:** widgety antyspamowe dla rejestracji, formularza Custom i checkoutu; `_shared/turnstileVerification.ts`; `create-checkout` → 403 przed Supabase/Stripe gdy token nieważny. |
-| **2026-06-17** | **Security audit:** limitowane publiczne zapytania `pages`, dokładne `eq` zamiast `ilike`, RLS/granty kolumnowe dla anon, `.env.example` z podziałem PUBLIC/SECRET, `SECURITY.md`. |
-| **2026-06-17** | **Security/DRY/tooling:** CSP + HSTS/XFO/nosniff w `functions/_middleware.js`; wspólny `js/core/utils.js` (`DFOPS_normalizeHostname`); `.prettierrc`, `.eslintrc.json`, `.vscode/settings.json`. |
-| **2026-06-16** | **Demo katalog:** `demo-gastro`, `demo-care`, `demo-consultant` w `demo_pages.json` + migracja seed; landing — wszystkie nisze z linkiem „Zobacz demo”. |
-| **2026-06-16** | **Gastro/Care:** nowe layouty publiczne, 5 palet branżowych, fix panelu kolorów. |
-| **2026-06-16** | **Cron trial:** `expire-trial-pages` — powiadomienia **Telegram** (Markdown) zamiast Resend; alert −7 dni + raport ręcznej kasacji; `AUTO_PURGE_ENABLED` domyślnie off. |
-| **2026-06-15** | **SQL trial:** migracja `20260611120000` — przywrócona `expire_trial_pages()` (14 dni + `billing_profiles`); `purge_warning_sent_at`, RPC ostrzeżenia i listy kasacji. |
-| **2026-06-14** | **API weryfikacji domeny:** `functions/api/verify-domain.js` — DoH CNAME → `verified` / `pending`. |
-| **2026-06-14** | **Routing publiczny:** subdomeny `*.dfcms.pl` → shim `/?site=slug` + `cleanTenantPublicUrl`; `dfopscms.pages.dev` → Production Supabase. |
-| **2026-06-12** | **Edge routing:** `functions/_middleware.js` — szablon na `/`, `?site=`, `{slug}.dfcms.pl` bez hopu index→router→fitness. |
-| **2026-06-11** | **Smart Booking v2:** zakładka Rezerwacje online; `settings.booking_mode` + `contact.booking_url`. |
-| **2026-06-11** | **Sekcje per zakładka:** toggle Galerii (`showGallery`); mapa zakładek panelu. |
-| **2026-06-10** | **CTA we wszystkich szablonach:** edycja/wyłączanie hero + stopki. |
-| **2026-06-09** | **Panel Subskrypcja:** blok „Warunki rozliczeń” (Stripe Tax, wFirma/KSeF, grace 14 dni). |
-| **2026-06-05** | **wFirma + Stripe Tax:** B2C/B2B, idempotencja ledger, faktury przy checkout/odnowieniu/upgrade. |
-| **2026-06-05** | **Panel Subskrypcja B2C:** disclaimery cykliczności + zrzeczenie odstąpienia przy Checkout. |
-| **2026-06-05** | **Porządek repo:** `data/seeds/demo_pages.json`; usunięte martwe pliki. |
-| **2026-06-03** | **Infrastruktura:** separacja Staging/Production; `config.js` routing po hoście; baseline `remote_schema` bez `http_request`. |
-| **2026-06-02** | **Telegram webhook:** router Sentry → Database Webhooks → Telegram. |
-| **2026-06-02** | **Panel:** Sentry loader; Subskrypcja UI spójna; `confirmAsync` zamiast `confirm()`. |
-| **2026-06-01** | **Draft vs Published:** `pages.draft_content`; live preview + auto-save; modal publikacji. |
-| **2026-05-25** | **Portal Stripe:** deep links subscription_update / cancel; rejestracja slug rollback. |
-| **2026-05-24** | **Fix blokady po płatności:** `expire_trial_pages` respektuje `billing_profiles`. |
-| **2026-05-23** | **Refaktor rozliczeń:** cykle mies./rok, Starter/Standard/Custom, `billing_profiles`, landing `#cennik`. |
-| **2026-05-22** | **Dual SoT billing:** `syncPageBillingMirrorFromProfile`; anti-zombie webhooks; Google Places autocomplete. |
-| **2026-05-06** | **Analityka + RODO:** GTM/Pixel po zgodzie; `dfcms_preview=1`. |
-| **2026-04-04** | **Trial / public:** `shouldBlockPublicPageView`; purge po 30 dniach `trial_blocked_at`. |
-| **2026-04-04** | **Szablony:** fitness, `pages.theme`, kreator, presety neon. |
-| **2026-04-03** | Trial blokada publiczna; Edge `expire-trial-pages`; onboarding Driver.js. |
+Na gałęzi `staging` przetestowano podział logiki panelu — **cofnięto**; stan panelu JS = **`main`** (monolit `js/features/adminApp.js`).
+
+**Co miało być zrobione**
+
+1. **Split `adminApp.js`** na `js/features/admin/` (mixiny: auth, billing, data, wizard, ui, integrations) + `npm run build:admin-js` / `build:panel`.
+2. **Fixy reaktywności Alpine 3** — gettery zamrażane przy `init()`; jawne pola + `syncBillingSubscriptionView`, `syncWizardView`, `syncUiDerivedView`, `syncEmailVerificationView`.
+3. **Onboarding po rejestracji** — auto-start kreatora, race trigger DB vs `ensurePageFromRegistrationMetadata`, staging bypass weryfikacji e-mail, routing tenantów (`platformRouting.js`), `setup.html`.
+4. **Pozostałe zmiany staging** (middleware, publicSiteApp, subskrypcja UI) — pozostają w repo poza rollbackiem panelu JS; nie były częścią cofnięcia.
+
+**Dlaczego rollback**
+
+- Kreator i samouczek Driver.js na stagingu **niestabilne** vs produkcja (`main`).
+- Split nie usunął problemu — ujawnił regresje (m.in. zamrożone gettery, tour pomijany przy auto-starcie).
+- **Decyzja:** panel JS jak na `main`; **zostaje** split HTML (`admin/partials/` + `npm run build:admin`).
+
+**Stan po rollbacku**
+
+| Element | Stan |
+|---------|------|
+| `js/features/adminApp.js` | Monolit z `main` (`?v=20260703c` w partialu head) |
+| `js/features/admin/` | Usunięte |
+| `scripts/build-admin-app.mjs`, `split-admin-app.mjs` | Usunięte |
+| `admin/partials/`, `admin.html` | Z `main` (build: `npm run build:admin`) |
+
+**Następny krok (opcjonalnie):** refaktor JS panelu dopiero z CI (`build:panel` na deploy) lub po testach E2E onboardingu; ewentualnie pozostajemy przy monolicie + partials HTML.
 
 ---
 

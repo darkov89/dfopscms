@@ -3,7 +3,7 @@
             <div x-show="isBillingCanceled" x-cloak class="mb-6 rounded-xl border border-red-200/90 bg-red-50 p-4 text-red-950 shadow-panel ring-1 ring-red-900/10">
                 <p class="text-sm font-medium leading-relaxed">Subskrypcja Stripe została <strong>zakończona</strong>. Widok publiczny strony jest wyłączony. Aby przywrócić dostęp, wykup pakiet ponownie lub wznów subskrypcję w portalu Stripe (jeśli dostępne).</p>
             </div>
-            <div x-show="showTrialBanner" x-cloak class="mb-6 flex flex-col gap-4 rounded-xl border border-amber-200/80 bg-amber-50 p-4 text-amber-950 shadow-panel ring-1 ring-amber-900/5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+            <div x-show="subscriptionPlan === 'trial' && !hasActivePaidSubscription && !isBillingCanceled" class="mb-6 flex flex-col gap-4 rounded-xl border border-amber-200/80 bg-amber-50 p-4 text-amber-950 shadow-panel ring-1 ring-amber-900/5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                 <div class="font-medium text-sm space-y-1.5 flex-1">
                     <p>⏳ <strong>Okres próbny (14 dni).</strong> Zostało: <strong x-text="trialDaysLeft"></strong> dni. Wybierz pakiet i dokończ płatność przed końcem próby — inaczej widok publiczny może zostać <strong>zablokowany</strong> (archiwizacja), zgodnie z regulaminem.</p>
                     <p x-show="selectedPlanHumanLabel" class="text-xs font-normal text-amber-950/85 leading-relaxed" x-cloak>
