@@ -12,6 +12,21 @@
     return msg || 'Nie udało się wysłać maila.';
   }
 
+  function userEmailAddress(u) {
+    if (!u || typeof u !== 'object') return '';
+    const direct = String(u.email || '').trim();
+    if (direct) return direct;
+    if (Array.isArray(u.identities)) {
+      for (let i = 0; i < u.identities.length; i++) {
+        const id = u.identities[i];
+        const fromId = String(id?.identity_data?.email || id?.email || '').trim();
+        if (fromId) return fromId;
+      }
+    }
+    const meta = u.user_metadata && typeof u.user_metadata === 'object' ? u.user_metadata : null;
+    return meta ? String(meta.email || '').trim() : '';
+  }
+
   /** Czy konto ma ustawione potwierdzenie e-mail (snake_case + camelCase — różne wersje klienta JWT). */
   function userEmailLooksConfirmed(u) {
     if (!u || typeof u !== 'object') return false;
@@ -28,14 +43,12 @@
       for (let i = 0; i < u.identities.length; i++) {
         const id = u.identities[i];
         if (id?.identity_data?.email_verified === true) return true;
+        const created = id?.identity_data?.email_verified_at || id?.created_at;
+        if (ok(created) && userEmailAddress(u)) return true;
       }
     }
     const meta = u.user_metadata && typeof u.user_metadata === 'object' ? u.user_metadata : null;
     if (meta && meta.email_verified === true) return true;
-    /**
-     * Staging / CF Pages preview: brak wildcardu na subdomeny + redirecty maili często nie trafiają
-     * na `*.pages.dev` — zalogowany użytkownik z e-mailem może korzystać z panelu i kreatora.
-     */
     const env =
       typeof globalThis !== 'undefined' && globalThis.DFOPS_DEPLOY_ENVIRONMENT
         ? globalThis.DFOPS_DEPLOY_ENVIRONMENT
@@ -47,8 +60,9 @@
       (typeof globalThis !== 'undefined' && globalThis.location && globalThis.location.hostname
         ? String(globalThis.location.hostname)
         : '');
+    /** Staging / preview: aktywna sesja wystarczy (JWT często bez `email` / `email_confirmed_at`). */
     if (env === 'staging' || /\.pages\.dev$/i.test(host)) {
-      return !!(u.id && String(u.email || '').trim());
+      return !!u.id;
     }
     return false;
   }

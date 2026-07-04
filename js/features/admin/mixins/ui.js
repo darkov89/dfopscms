@@ -388,8 +388,10 @@ function adminMixinUi(ctx) {
           previewUrl: typeof this.getPublicSiteUrl === 'function' ? this.getPublicSiteUrl() : '—',
           needsEmailConfirmation: this.needsEmailConfirmation,
           isEmailVerified: this.isEmailVerified,
+          userId: this.user?.id || null,
+          userEmail: typeof userEmailAddress === 'function' ? userEmailAddress(this.user) : this.user?.email || null,
+          sessionEmailField: this.user?.email || null,
           emailConfirmedAt: this.user?.email_confirmed_at || this.user?.confirmed_at || null,
-          userEmail: this.user?.email || null,
           adminBundle:
             document.querySelector('script[src*="adminApp.js"]')?.getAttribute('src') || '—',
         };

@@ -69,8 +69,13 @@ function adminMixinAuth(ctx) {
           this.isForcedPasswordReset = false;
           return;
         }
-        this.user = { ...user };
-        this.needsEmailConfirmation = !userEmailLooksConfirmed(user);
+        const normalized = { ...user };
+        if (!String(normalized.email || '').trim() && typeof userEmailAddress === 'function') {
+          const resolved = userEmailAddress(normalized);
+          if (resolved) normalized.email = resolved;
+        }
+        this.user = normalized;
+        this.needsEmailConfirmation = !userEmailLooksConfirmed(normalized);
       },
 
       /** PKCE: link z maila zawiera ?code= — bez wymiany sesja pozostaje „sprzed” potwierdzenia. `type=recovery` = reset hasła. */
