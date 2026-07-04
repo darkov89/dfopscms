@@ -52,6 +52,11 @@ function createAdminApp() {
       wizardStep: 0,
       wizardTheme: '',
       wizardFieldWarning: '',
+      /** Jawne pola kreatora — nie gettery (Alpine zamraża je przy init x-data). */
+      wizardActiveTheme: 'beauty',
+      wizardStepId: '',
+      wizardStepCount: 6,
+      wizardOfferCopy: { title: 'Twoja oferta', lead: '', itemLabel: 'Usługa', addRow: '+' },
       /** Jednorazowy komunikat po „Pomiń kreator” — bez listy „ninja” u góry. */
       showWizardDismissModal: false,
       /** Pierwsza konfiguracja: treść bez `business_name` (po normalize — zob. loadData). */

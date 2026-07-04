@@ -236,6 +236,9 @@ function adminMixinData(ctx) {
           this.theme =
             (workingRaw?.pl?.settings?.theme && String(workingRaw.pl.settings.theme).trim()) ||
             data.theme;
+          if (typeof this.syncWizardView === 'function') {
+            this.syncWizardView();
+          }
 
           /** Migawka opublikowanej wersji (kolumna `content`) — pod akcję „Odrzuć zmiany” (revert do produkcji). */
           this._publishedContentRaw = data.content ?? null;

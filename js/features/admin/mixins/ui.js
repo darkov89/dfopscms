@@ -255,11 +255,6 @@ function adminMixinUi(ctx) {
         }
         return this.templateCatalog;
       },
-      get wizardActiveTheme() {
-        return this.showWizard
-          ? normalizeWizardTheme(this.wizardTheme || this.theme || 'beauty')
-          : normalizeWizardTheme(this.theme || 'beauty');
-      },
       get activeThemeSections() {
         return getThemeSections(this.wizardActiveTheme);
       },
@@ -268,18 +263,6 @@ function adminMixinUi(ctx) {
       },
       adminTabVisible(tabId) {
         return adminTabVisibleForTheme(this.theme, tabId);
-      },
-      get wizardStepId() {
-        return wizardStepIdAtIndex(this.wizardActiveTheme, this.wizardStep) || 'template';
-      },
-      get wizardStepCount() {
-        return getActiveWizardStepIds(this.wizardActiveTheme).length;
-      },
-      get wizardOfferCopy() {
-        if (typeof window.DFOPS_getWizardOfferCopy === 'function') {
-          return window.DFOPS_getWizardOfferCopy(this.wizardActiveTheme);
-        }
-        return { title: 'Twoja oferta', lead: '', itemLabel: 'Usługa', addRow: '+' };
       },
       get navMenuFields() {
         if (typeof window.DFOPS_getNavMenuFields === 'function') {

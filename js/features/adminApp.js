@@ -1221,11 +1221,6 @@ function adminMixinUi(ctx) {
         }
         return this.templateCatalog;
       },
-      get wizardActiveTheme() {
-        return this.showWizard
-          ? normalizeWizardTheme(this.wizardTheme || this.theme || 'beauty')
-          : normalizeWizardTheme(this.theme || 'beauty');
-      },
       get activeThemeSections() {
         return getThemeSections(this.wizardActiveTheme);
       },
@@ -1234,18 +1229,6 @@ function adminMixinUi(ctx) {
       },
       adminTabVisible(tabId) {
         return adminTabVisibleForTheme(this.theme, tabId);
-      },
-      get wizardStepId() {
-        return wizardStepIdAtIndex(this.wizardActiveTheme, this.wizardStep) || 'template';
-      },
-      get wizardStepCount() {
-        return getActiveWizardStepIds(this.wizardActiveTheme).length;
-      },
-      get wizardOfferCopy() {
-        if (typeof window.DFOPS_getWizardOfferCopy === 'function') {
-          return window.DFOPS_getWizardOfferCopy(this.wizardActiveTheme);
-        }
-        return { title: 'Twoja oferta', lead: '', itemLabel: 'Usługa', addRow: '+' };
       },
       get navMenuFields() {
         if (typeof window.DFOPS_getNavMenuFields === 'function') {
@@ -2393,6 +2376,9 @@ function adminMixinData(ctx) {
           this.theme =
             (workingRaw?.pl?.settings?.theme && String(workingRaw.pl.settings.theme).trim()) ||
             data.theme;
+          if (typeof this.syncWizardView === 'function') {
+            this.syncWizardView();
+          }
 
           /** Migawka opublikowanej wersji (kolumna `content`) — pod akcję „Odrzuć zmiany” (revert do produkcji). */
           this._publishedContentRaw = data.content ?? null;
@@ -3487,7 +3473,21 @@ function adminMixinWizard(ctx) {
     UPGRADE_MESSAGE_TIMEOUT,
   } = ctx;
   return {
+      /** Ustawia wizardActiveTheme, wizardStepId, wizardStepCount, wizardOfferCopy — wołaj po każdej zmianie kroku/motywu. */
+      syncWizardView() {
+        const activeTheme = this.showWizard
+          ? normalizeWizardTheme(this.wizardTheme || this.theme || 'beauty')
+          : normalizeWizardTheme(this.theme || 'beauty');
+        this.wizardActiveTheme = activeTheme;
+        this.wizardStepCount = getActiveWizardStepIds(activeTheme).length;
+        const stepId = wizardStepIdAtIndex(activeTheme, this.wizardStep);
+        this.wizardStepId = stepId || '';
+        if (typeof window.DFOPS_getWizardOfferCopy === 'function') {
+          this.wizardOfferCopy = window.DFOPS_getWizardOfferCopy(activeTheme);
+        }
+      },
       persistWizardUiState() {
+        this.syncWizardView();
         if (!this.slug || !this.showWizard) return;
         writeWizardStateToStorage(this.slug, this.wizardStep, this.wizardTheme);
       },
@@ -3500,6 +3500,7 @@ function adminMixinWizard(ctx) {
         if (!saved) {
           this.wizardStep = defaultStepWhenNoSave === 1 ? 1 : 0;
           this.wizardTheme = pageTheme === 'setup' ? 'beauty' : pageTheme || 'beauty';
+          this.syncWizardView();
           return;
         }
         const norm = normalizeWizardRestore(saved.step, saved.theme, pageTheme);
@@ -3515,6 +3516,7 @@ function adminMixinWizard(ctx) {
         if (pl && stepId === 'about') {
           prepareWizardManifestoStep(pl, theme);
         }
+        this.syncWizardView();
       },
       /**
        * Aktywna opłacona subskrypcja Stripe (`billing_profiles` → billingSubscriptionView).
@@ -3578,6 +3580,7 @@ function adminMixinWizard(ctx) {
         this.wizardStep = 1;
         this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
         this.wizardFieldWarning = '';
+        this.syncWizardView();
         this.persistWizardUiState();
         if (typeof window.DFOPS_trackEvent === 'function') {
           window.DFOPS_trackEvent('onboarding_started', { slug: this.slug });
@@ -3663,9 +3666,10 @@ function adminMixinWizard(ctx) {
           this.enforceColorPresetForStarter();
           this.enforceQuickChatForStarter();
           this.applyThemeStylingFromContent();
+          this.syncWizardView();
         }
 
-        /** Zapis do bazy przed przejściem dalej — w tym wartości domyślne z szablonu po merge (krok 1). */
+        /** Zapis do bazy przed przejściem dalej
         const savedOk = await this.saveData({ silentSuccess: true });
         if (!savedOk) {
           this.wizardFieldWarning =
@@ -3679,6 +3683,7 @@ function adminMixinWizard(ctx) {
           }
           this.wizardStep++;
         }
+        this.syncWizardView();
         this.persistWizardUiState();
       },
       wizardAddServiceRow() {
@@ -3720,6 +3725,7 @@ function adminMixinWizard(ctx) {
       prevWizardStep() {
         this.wizardFieldWarning = '';
         if (this.wizardStep > 1) this.wizardStep--;
+        this.syncWizardView();
         this.persistWizardUiState();
       },
       async finishWizard() {
@@ -3795,6 +3801,7 @@ function adminMixinWizard(ctx) {
           self.showWizard = true;
           self.wizardStep = 0;
           self.wizardFieldWarning = '';
+          self.syncWizardView();
           self.$nextTick(() => {
             requestAnimationFrame(() => {
               if (driver && typeof driver.refresh === 'function') driver.refresh();
@@ -3919,10 +3926,6 @@ function adminMixinWizard(ctx) {
         if (this.content?.pl?.settings?.welcome_onboarding_completed === true) {
           return;
         }
-        if (this.showWizard) {
-          await this.markWelcomeOnboardingSeen();
-          return;
-        }
         if (!this.resolveDriverFactory()) {
           this.wizardStep = 0;
           this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
@@ -3930,6 +3933,7 @@ function adminMixinWizard(ctx) {
           this.showWizard = true;
           this.sidebarOpen = false;
           this.mobileMenuOpen = false;
+          this.syncWizardView();
           return;
         }
         this.wizardStep = 0;
@@ -3938,6 +3942,7 @@ function adminMixinWizard(ctx) {
         this.showWizard = true;
         this.sidebarOpen = false;
         this.mobileMenuOpen = false;
+        this.syncWizardView();
         await new Promise((resolve) => this.$nextTick(resolve));
         await this.startOnboardingTour();
       },
@@ -3956,6 +3961,7 @@ function adminMixinWizard(ctx) {
         this.showWizard = true;
         this.sidebarOpen = false;
         this.mobileMenuOpen = false;
+        this.syncWizardView();
         this.persistWizardUiState();
         if (new URLSearchParams(window.location.search).get('dfcms_debug') === '1') {
           console.info('[DFCMS] openWizardFromStudio → showWizard', this.showWizard, 'step', this.wizardStep);
@@ -3976,6 +3982,7 @@ function adminMixinWizard(ctx) {
         this.restoreWizardUiFromStorage(1);
         this.showWizard = true;
         this.wizardFieldWarning = '';
+        this.syncWizardView();
         this.persistWizardUiState();
         if (typeof window.DFOPS_trackEvent === 'function') {
           window.DFOPS_trackEvent('onboarding_reopened', { slug: this.slug });
@@ -4335,6 +4342,11 @@ function createAdminApp() {
       wizardStep: 0,
       wizardTheme: '',
       wizardFieldWarning: '',
+      /** Jawne pola kreatora — nie gettery (Alpine zamraża je przy init x-data). */
+      wizardActiveTheme: 'beauty',
+      wizardStepId: '',
+      wizardStepCount: 6,
+      wizardOfferCopy: { title: 'Twoja oferta', lead: '', itemLabel: 'Usługa', addRow: '+' },
       /** Jednorazowy komunikat po „Pomiń kreator” — bez listy „ninja” u góry. */
       showWizardDismissModal: false,
       /** Pierwsza konfiguracja: treść bez `business_name` (po normalize — zob. loadData). */
