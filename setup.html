@@ -1,10 +1,37 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="pl" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Strona w budowie</title>
+    <title>Strona w budowie — DFCMS</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#121212">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            gold: '#D4AF37',
+                            ink: '#121212',
+                        },
+                    },
+                    boxShadow: {
+                        accent: '0 0 0 1px rgba(212, 175, 55, 0.22), 0 22px 70px -24px rgba(212, 175, 55, 0.7)',
+                    },
+                },
+            },
+        };
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script defer src="js/core/utils.js?v=20260617a"></script>
     <script defer src="js/core/config.js?v=20260602b"></script>
@@ -17,50 +44,70 @@
     <script defer src="js/core/planUtils.js?v=20260602b"></script>
     <script defer src="js/features/publicSiteApp.js?v=20260622a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
-    <style>[x-cloak]{display:none!important}</style>
+    <style>
+        [x-cloak] { display: none !important; }
+        body { font-feature-settings: "cv02", "cv03", "cv04", "cv11"; }
+    </style>
 </head>
 <body
-    class="min-h-screen bg-[#0b0b0f] text-zinc-100 antialiased"
+    class="dfops-setup-page min-h-screen bg-[#121212] font-sans text-gray-300 antialiased selection:bg-brand-gold selection:text-brand-ink"
     x-data="createPublicSiteApp('setup')"
     x-cloak
 >
 
-    <div x-show="!dataLoaded && !bazaBlad" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0b0b0f]">
-        <div class="h-12 w-12 rounded-full border-2 border-[#D4AF37] border-t-transparent animate-spin mb-4"></div>
-        <p class="text-sm font-medium tracking-[0.2em] text-[#D4AF37]/80 uppercase">Ładowanie…</p>
+    <!-- Loader -->
+    <div x-show="!dataLoaded && !bazaBlad" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#121212]">
+        <div class="mb-4 h-12 w-12 animate-spin rounded-full border-2 border-brand-gold border-t-transparent" aria-hidden="true"></div>
+        <p class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-gold/90">Ładowanie…</p>
     </div>
 
-    <div x-show="bazaBlad" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0b0b0f] px-6 text-center">
-        <p class="text-zinc-400">Nie udało się wczytać strony.</p>
+    <!-- Błąd -->
+    <div x-show="bazaBlad" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#121212] px-6 text-center">
+        <p class="text-base text-gray-400">Nie udało się wczytać strony.</p>
     </div>
 
-    <div x-show="trialBlocked && dataLoaded" x-cloak class="fixed inset-0 z-[250] flex flex-col items-center justify-center bg-[#0b0b0f]/98 px-6 text-center text-zinc-200">
-        <div class="max-w-lg rounded-xl border border-[#D4AF37]/40 bg-[#121212] p-8 shadow-2xl">
-            <p class="text-xs font-bold uppercase tracking-[0.2em] text-[#D4AF37] mb-3">DFCMS</p>
-            <h1 class="text-2xl font-bold text-white mb-4" x-text="trialBlockedTitle"></h1>
-            <p class="text-sm text-zinc-400 leading-relaxed mb-4" x-text="trialBlockedBody"></p>
-            <p x-show="trialBlockedAdminHint" x-cloak class="text-sm text-zinc-200 font-medium leading-relaxed mb-8 border-l-4 border-[#D4AF37] pl-4 text-left" x-text="trialBlockedAdminHint"></p>
+    <!-- Trial zablokowany -->
+    <div x-show="trialBlocked && dataLoaded" x-cloak class="fixed inset-0 z-[250] flex flex-col items-center justify-center bg-[#121212]/98 px-6 text-center">
+        <div class="max-w-lg rounded-2xl border border-brand-gold/35 bg-[#1a1a1a] p-8 shadow-2xl ring-1 ring-white/5">
+            <p class="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-brand-gold">DFCMS</p>
+            <h1 class="mb-4 text-2xl font-bold text-white" x-text="trialBlockedTitle"></h1>
+            <p class="mb-4 text-sm leading-relaxed text-gray-400" x-text="trialBlockedBody"></p>
+            <p
+                x-show="trialBlockedAdminHint"
+                x-cloak
+                class="mb-8 border-l-4 border-brand-gold pl-4 text-left text-sm font-medium leading-relaxed text-gray-300"
+                x-text="trialBlockedAdminHint"
+            ></p>
             <div class="flex flex-col gap-3">
-                <a :href="subscriptionPanelUrl" class="inline-flex justify-center rounded-sm bg-[#D4AF37] px-6 py-3 text-sm font-bold uppercase tracking-widest text-[#121212] hover:opacity-90 transition-opacity">Zaloguj do panelu administratora</a>
-                <a :href="landingPricingUrl" class="inline-flex justify-center rounded-sm border-2 border-[#D4AF37] px-6 py-3 text-sm font-bold uppercase tracking-widest text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-colors">Zobacz cennik</a>
+                <a
+                    :href="subscriptionPanelUrl"
+                    class="inline-flex justify-center rounded-xl bg-brand-gold px-6 py-3.5 text-sm font-bold uppercase tracking-widest text-brand-ink shadow-accent transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212]"
+                >Zaloguj do panelu administratora</a>
+                <a
+                    :href="landingPricingUrl"
+                    class="inline-flex justify-center rounded-xl border-2 border-brand-gold/80 px-6 py-3.5 text-sm font-bold uppercase tracking-widest text-brand-gold transition hover:bg-brand-gold/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40"
+                >Zobacz cennik</a>
             </div>
         </div>
     </div>
 
+    <!-- Strona w budowie -->
     <template x-if="dataLoaded && !trialBlocked && content && content.pl && theme === 'setup'">
-        <div class="min-h-screen flex flex-col items-center justify-center px-6 py-16 text-center">
-            <p class="text-xs font-bold uppercase tracking-[0.25em] text-[#D4AF37]/90 mb-4">DFCMS</p>
-            <h1 class="text-3xl md:text-4xl font-bold text-white mb-4 tracking-tight">Strona w budowie</h1>
-            <p class="text-lg text-zinc-400 max-w-lg mb-10 leading-relaxed">
-                Trwa konfiguracja serwisu <span class="text-[#D4AF37] font-semibold" x-text="slug"></span>. Zapraszamy wkrótce!
+        <main class="flex min-h-screen flex-col items-center justify-center px-6 py-16 text-center">
+            <p class="mb-4 text-xs font-bold uppercase tracking-[0.25em] text-brand-gold">DFCMS</p>
+            <h1 class="mb-4 text-3xl font-bold tracking-tight text-white md:text-4xl">Strona w budowie</h1>
+            <p class="mb-10 max-w-lg text-lg leading-relaxed text-gray-400">
+                Trwa konfiguracja serwisu
+                <span class="font-semibold text-brand-gold" x-text="slug"></span>.
+                Zapraszamy wkrótce!
             </p>
             <a
                 :href="'admin.html?site=' + encodeURIComponent(slug || '')"
-                class="inline-flex items-center justify-center rounded-sm bg-[#D4AF37] px-8 py-4 text-sm font-bold uppercase tracking-widest text-[#121212] shadow-lg shadow-[#D4AF37]/20 transition hover:bg-[#c9a432]"
+                class="inline-flex items-center justify-center rounded-xl bg-brand-gold px-8 py-4 text-sm font-bold uppercase tracking-widest text-brand-ink shadow-accent transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212]"
             >
                 Zaloguj do panelu
             </a>
-        </div>
+        </main>
     </template>
 
 </body>

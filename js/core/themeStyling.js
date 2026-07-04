@@ -38,6 +38,37 @@
     }
 
     const s = settings || {};
+
+    /** Placeholder „strona w budowie” — stały dark SaaS, bez presetów klienta. */
+    if (theme === 'setup') {
+      document.documentElement.setAttribute('data-dfops-scope', 'setup');
+      document.documentElement.setAttribute('data-theme', 'setup');
+      document.documentElement.setAttribute('data-bg-style', 'setup');
+      setCssVar('--accent', '#D4AF37');
+      setCssVar('--accent-contrast', '#121212');
+      setCssVar('--bg-a', '#121212');
+      setCssVar('--bg-b', '#0b0b0f');
+      setCssVar('--bg-c', 'rgba(212, 175, 55, 0.1)');
+      setCssVar('--bg-texture-opacity', '0.04');
+      setCssVar('--surface-bg', 'transparent');
+      setCssVar('--surface-accent', 'rgba(255,255,255,0.06)');
+      setCssVar('--surface-card', 'rgba(26,26,26,0.95)');
+      setCssVar('--beauty-text', '#d1d5db');
+      setCssVar('--beauty-text-muted', '#9ca3af');
+      setCssVar('--beauty-white', '#ffffff');
+      setCssVar('--bg-main', '#121212');
+      setCssVar('--text-main', '#d1d5db');
+      setCssVar('--color-primary', '#D4AF37');
+      setCssVar('--color-text-body', '#9ca3af');
+      setCssVar('--color-accent-text', '#121212');
+      const inter = cfg.fontByPreset?.inter;
+      if (inter) {
+        setCssVar('--font-sans', inter.sans);
+        setCssVar('--font-serif', inter.serif);
+      }
+      return;
+    }
+
     const bgStyle = s.background_style || (theme === 'beauty' ? 'soft' : 'glow');
 
     document.documentElement.setAttribute('data-dfops-scope', resolvedScope);
