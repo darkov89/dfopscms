@@ -378,7 +378,7 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
-| **2026-07-04** | **Staging tenant URLs:** `platformRouting.js` — subdomeny `{slug}.staging.dfopscms.pages.dev` / `{slug}.staging.dfcms.pl`; panel `getLiveSiteUrl()` i etykieta dashboardu z hosta panelu (nie hardcoded `.dfcms.pl`); middleware + `publicSiteApp` + `routerApp` rozpoznają slug z pages.dev staging. |
+| **2026-07-04** | **Staging pages.dev — tenant bez subdomeny:** `platformRouting` na `*.pages.dev` buduje URL `apex/?site=slug` (CF Pages bez wildcardu); staging bypass weryfikacji e-mail dla zalogowanego użytkownika (kreator na preview). |
 | **2026-07-04** | **Fix routing tenantów (rewrite vs redirect):** middleware `fetchThemeAsset` przez `env.ASSETS.fetch(new URL('/templates/{theme}.html', request.url))` z `redirect: manual`; custom domain w `fetchPageRow` → 404 zamiast fallbacku na landing; catch tenant host → 404; `publicSiteApp.cleanTenantPublicUrl` — subdomena + custom domain, pathname `/` (bez `/templates/`); `buildThemePageUrl` dla custom → `/`; `routerApp` tenant/custom → `/` (nie `/templates/`); `index.html` bez shimów subdomena/custom → `router.html`. |
 | **2026-07-04** | **Subskrypcja panel — UX zarządzania:** jawne pola etykiet/statusu portalu; przyciski „Przejdź na Standard/Starter” + anuluj; karuzela planów ukryta przy aktywnej subskrypcji. |
 | **2026-07-03** | **Billing UI — cleanup:** usunięty panel/konsola debug (`billing_debug`); zostaje jawny stan billing + weryfikacja sync przed toastem sukcesu. |

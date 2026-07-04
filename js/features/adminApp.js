@@ -18,12 +18,38 @@
   function userEmailLooksConfirmed(u) {
     if (!u || typeof u !== 'object') return false;
     const ok = (v) => v != null && String(v).trim() !== '' && String(v).toLowerCase() !== 'null';
-    return !!(
+    if (
       ok(u.email_confirmed_at) ||
       ok(u.confirmed_at) ||
       ok(u.emailConfirmedAt) ||
       ok(u.confirmedAt)
-    );
+    ) {
+      return true;
+    }
+    if (Array.isArray(u.identities)) {
+      for (let i = 0; i < u.identities.length; i++) {
+        const id = u.identities[i];
+        if (id?.identity_data?.email_verified === true) return true;
+      }
+    }
+    const meta = u.user_metadata && typeof u.user_metadata === 'object' ? u.user_metadata : null;
+    if (meta && meta.email_verified === true) return true;
+    /**
+     * Staging / CF Pages preview: brak wildcardu na subdomeny + redirecty maili często nie trafiają
+     * na `*.pages.dev` — zalogowany użytkownik z e-mailem może korzystać z panelu i kreatora.
+     */
+    const env =
+      typeof globalThis !== 'undefined' && globalThis.DFOPS_DEPLOY_ENVIRONMENT
+        ? globalThis.DFOPS_DEPLOY_ENVIRONMENT
+        : '';
+    const host =
+      typeof globalThis !== 'undefined' && globalThis.location && globalThis.location.hostname
+        ? String(globalThis.location.hostname)
+        : '';
+    if (env === 'staging' || /\.pages\.dev$/i.test(host)) {
+      return !!(u.id && String(u.email || '').trim());
+    }
+    return false;
   }
 
   function resendErrorMeansAlreadyConfirmed(err) {

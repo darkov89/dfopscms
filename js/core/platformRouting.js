@@ -64,11 +64,19 @@
     return !!extractTenantSlugFromHostname(h, normalizeFn);
   }
 
+  /** CF Pages preview nie ma wildcardu `*.staging…pages.dev` — tenant tylko przez `?site=` na apexie. */
+  function tenantBaseUsesSubdomainRouting(base) {
+    return !String(base || '').includes('pages.dev');
+  }
+
   function buildTenantPublicSiteUrl(slug, hostname, normalizeFn) {
     const s = String(slug || '').trim().toLowerCase();
     if (!s || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(s)) return '';
     const base = resolveTenantBaseFromHostname(hostname, normalizeFn);
     if (base === 'localhost' || base === '127.0.0.1') return '';
+    if (!tenantBaseUsesSubdomainRouting(base)) {
+      return `https://${base}/?site=${encodeURIComponent(s)}`;
+    }
     return `https://${s}.${base}/`;
   }
 
@@ -77,6 +85,9 @@
     if (!s) return '';
     const base = resolveTenantBaseFromHostname(hostname, normalizeFn);
     if (base === 'localhost' || base === '127.0.0.1') return s;
+    if (!tenantBaseUsesSubdomainRouting(base)) {
+      return `${base}/?site=${s}`;
+    }
     return `${s}.${base}`;
   }
 
@@ -88,4 +99,5 @@
   globalThis.DFOPS_isHostUnderPlatform = isHostUnderPlatform;
   globalThis.DFOPS_buildTenantPublicSiteUrl = buildTenantPublicSiteUrl;
   globalThis.DFOPS_formatTenantHostname = formatTenantHostname;
+  globalThis.DFOPS_tenantBaseUsesSubdomainRouting = tenantBaseUsesSubdomainRouting;
 })();
