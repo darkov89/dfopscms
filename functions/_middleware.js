@@ -1,5 +1,6 @@
 import '../js/core/utils.js';
 import '../js/core/publishedThemes.js';
+import '../js/core/platformRouting.js';
 
 /**
  * Cloudflare Pages — globalny middleware (SEO + edge routing szablonów + HTMLRewriter + Supabase).
@@ -13,7 +14,18 @@ import '../js/core/publishedThemes.js';
 
 const STATIC_EXT = /\.(css|js|mjs|png|jpg|jpeg|gif|svg|ico|webp|woff2?|ttf|eot|map|json|xml|txt|pdf|webmanifest)$/i;
 
-const PLATFORM_BASE_DOMAINS = ['dfcms.pl', 'dfopscms.pl', 'dfopscms.pages.dev', 'localhost', '127.0.0.1'];
+const PLATFORM_BASE_DOMAINS =
+  typeof globalThis.DFOPS_PLATFORM_TENANT_BASE_DOMAINS !== 'undefined'
+    ? globalThis.DFOPS_PLATFORM_TENANT_BASE_DOMAINS.slice().sort((a, b) => b.length - a.length)
+    : [
+        'staging.dfopscms.pages.dev',
+        'staging.dfcms.pl',
+        'dfopscms.pages.dev',
+        'dfcms.pl',
+        'dfopscms.pl',
+        'localhost',
+        '127.0.0.1',
+      ];
 const ALLOWED_THEMES = new Set(
   typeof globalThis.DFOPS_getPublishedThemeIds === 'function'
     ? globalThis.DFOPS_getPublishedThemeIds()
@@ -60,8 +72,17 @@ function collectHostCandidates(request, url, cf) {
   return out;
 }
 
-/** Preferuj tenant *.dfcms.pl zamiast wewnętrznego hosta pages.dev widzianego przez worker. */
+/** Preferuj host tenantowy (np. slug.staging.dfopscms.pages.dev) zamiast wewnętrznego pages.dev workera. */
 function pickTenantHostname(candidates) {
+  for (let i = 0; i < candidates.length; i++) {
+    const h = candidates[i];
+    if (
+      typeof globalThis.DFOPS_isTenantPublicHostname === 'function' &&
+      globalThis.DFOPS_isTenantPublicHostname(h, normalizeHostname)
+    ) {
+      return h;
+    }
+  }
   for (let i = 0; i < candidates.length; i++) {
     const h = candidates[i];
     if (h.endsWith('.dfcms.pl') && h !== 'dfcms.pl' && h !== 'staging.dfcms.pl') return h;
@@ -82,13 +103,19 @@ function getRequestHostname(request, url, cf) {
 }
 
 function isPlatformHost(hostnameNorm) {
+  if (typeof globalThis.DFOPS_isHostUnderPlatform === 'function') {
+    return globalThis.DFOPS_isHostUnderPlatform(hostnameNorm, normalizeHostname);
+  }
   return PLATFORM_BASE_DOMAINS.some(
     (base) => hostnameNorm === base || hostnameNorm.endsWith('.' + base),
   );
 }
 
-/** Dla user.dfcms.pl → 'user'; dla gołego dfcms.pl / localhost → '' */
+/** Dla user.dfcms.pl / user.staging.dfopscms.pages.dev → slug; apex → '' */
 function extractSubdomainSlug(hostnameNorm) {
+  if (typeof globalThis.DFOPS_extractTenantSlugFromHostname === 'function') {
+    return globalThis.DFOPS_extractTenantSlugFromHostname(hostnameNorm, normalizeHostname) || '';
+  }
   for (const base of PLATFORM_BASE_DOMAINS) {
     if (hostnameNorm === base) return '';
     const suffix = '.' + base;
@@ -127,11 +154,24 @@ function normalizeSiteParam(siteParam) {
   return isSafeSlugValue(slug) ? slug : '';
 }
 
-/** Subdomena tenantowa *.dfcms.pl (nie apex, nie staging). */
+/** Subdomena tenantowa platformy (nie apex staging/prod). */
 function isTenantSubdomain(hostnameNorm) {
-  if (!hostnameNorm || !hostnameNorm.endsWith('.dfcms.pl')) return false;
-  if (hostnameNorm === 'dfcms.pl' || hostnameNorm === 'staging.dfcms.pl') return false;
+  if (typeof globalThis.DFOPS_isTenantPublicHostname === 'function') {
+    return globalThis.DFOPS_isTenantPublicHostname(hostnameNorm, normalizeHostname);
+  }
+  if (!hostnameNorm) return false;
   return !!extractSubdomainSlug(hostnameNorm);
+}
+
+/** Niestandardowa domena klienta (poza platformą i pages.dev). */
+function isCustomDomainHost(hostnameNorm) {
+  if (!hostnameNorm || hostnameNorm.includes('pages.dev')) return false;
+  return !isPlatformHost(hostnameNorm);
+}
+
+/** Subdomena SaaS lub custom domain — publiczny URL ma zostać na `/`. */
+function isTenantPublicHost(hostnameNorm) {
+  return isTenantSubdomain(hostnameNorm) || isCustomDomainHost(hostnameNorm);
 }
 
 function tenantNotFoundHtml() {
@@ -290,16 +330,19 @@ async function fetchPageRow(supabaseUrl, anonKey, slugTrimmed, hostnameNorm) {
   return row && typeof row === 'object' ? row : null;
 }
 
-async function fetchThemeAsset(env, request, theme, url, hostnameNorm) {
+/** Wewnętrzny rewrite do pliku szablonu — bez Response.redirect (URL w przeglądarce bez zmian). */
+async function fetchThemeAsset(env, request, theme, url) {
   if (!env.ASSETS) return null;
-  const paths = [`/templates/${theme}.html`, `/templates/${theme}`, `/${theme}.html`, `/${theme}`];
-  const assetOrigin = `https://${hostnameNorm || new URL(request.url).hostname}`;
+  const paths =
+    theme === 'setup'
+      ? ['/setup.html', '/setup']
+      : [`/templates/${theme}.html`, `/templates/${theme}`, `/${theme}.html`, `/${theme}`];
   for (let i = 0; i < paths.length; i++) {
-    const themeUrl = new URL(paths[i], assetOrigin);
+    const themeUrl = new URL(paths[i], request.url);
     themeUrl.search = url.search;
     const themeRequest = new Request(themeUrl.toString(), {
       method: request.method === 'HEAD' ? 'HEAD' : 'GET',
-      redirect: 'follow',
+      redirect: 'manual',
     });
     const themeResponse = await env.ASSETS.fetch(themeRequest);
     if (themeResponse.ok) return themeResponse;
@@ -370,9 +413,9 @@ function applySeoRewriter(htmlResponse, row, env, slugTrimmed, hostnameNorm) {
 
 async function serveThemedPage(request, env, row, slugTrimmed, hostnameNorm, url) {
   const theme = String(row.theme).trim().toLowerCase();
-  if (!ALLOWED_THEMES.has(theme)) return null;
+  if (theme !== 'setup' && !ALLOWED_THEMES.has(theme)) return null;
 
-  const themeResponse = await fetchThemeAsset(env, request, theme, url, hostnameNorm);
+  const themeResponse = await fetchThemeAsset(env, request, theme, url);
   if (!themeResponse?.ok) return null;
 
   const withSeo = applySeoRewriter(themeResponse, row, env, slugTrimmed, hostnameNorm);
@@ -424,7 +467,11 @@ export async function onRequest(context) {
     const row = await fetchPageRow(supabaseUrl, anonKey, slugTrimmed, hostnameNorm);
 
     if (!row) {
-      if (tenantSub || (slugTrimmed && isSafeSlugValue(slugTrimmed))) {
+      if (
+        tenantSub ||
+        isCustomDomainHost(hostnameNorm) ||
+        (slugTrimmed && isSafeSlugValue(slugTrimmed))
+      ) {
         return tenantNotFoundResponse(request);
       }
       debugTrace = `NO_ROW|slug:[${slugTrimmed}]|host:[${hostnameNorm}]`;
@@ -436,7 +483,7 @@ export async function onRequest(context) {
     }
 
     const theme = String(row.theme).trim().toLowerCase();
-    if (!ALLOWED_THEMES.has(theme)) {
+    if (theme !== 'setup' && !ALLOWED_THEMES.has(theme)) {
       debugTrace = 'INVALID_THEME:' + theme;
       throw new Error(debugTrace);
     }
@@ -447,7 +494,7 @@ export async function onRequest(context) {
       throw new Error(debugTrace);
     }
 
-    const themeResponse = await fetchThemeAsset(env, request, theme, url, hostnameNorm);
+    const themeResponse = await fetchThemeAsset(env, request, theme, url);
     if (!themeResponse?.ok) {
       debugTrace = 'ASSET_404';
       throw new Error(debugTrace);
@@ -462,7 +509,14 @@ export async function onRequest(context) {
 
     return applySecurityHeaders(request, finalResponse);
   } catch (e) {
-    // FALLBACK
+    const hostnameNorm = hostname || urlHostname;
+    if (isTenantPublicHost(hostnameNorm) && isEdgeRoutePath(url.pathname)) {
+      const notFound = tenantNotFoundResponse(request);
+      if (env.SEO_DEBUG === '1' || env.SEO_DEBUG === 'true') {
+        notFound.headers.set('X-DFCMS-Debug', `FAIL[${debugTrace}]`);
+      }
+      return notFound;
+    }
     const response = await next();
     const fallbackRes = new Response(response.body, response);
     if (env.SEO_DEBUG === '1' || env.SEO_DEBUG === 'true') {

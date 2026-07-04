@@ -444,52 +444,94 @@
       if (!raw.includes('://') && !raw.includes('/') && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(raw)) {
         currentSlug = raw;
       }
-    } else if (
-      hostname.includes('dfcms.pl') ||
-      hostname.includes('dfopscms.pl') ||
-      hostname.includes('localhost') ||
-      hostname === '127.0.0.1'
+    }
+
+    if (!currentSlug && typeof window.DFOPS_extractTenantSlugFromHostname === 'function') {
+      const fromHost = window.DFOPS_extractTenantSlugFromHostname(hostname, normalizeHostname);
+      if (fromHost) currentSlug = fromHost;
+    }
+
+    if (
+      !currentSlug &&
+      typeof window.DFOPS_isHostUnderPlatform === 'function' &&
+      !window.DFOPS_isHostUnderPlatform(hostname, normalizeHostname)
     ) {
-      const bareRoots = {
-        'dfcms.pl': 1,
-        'dfopscms.pl': 1,
-        'dfopscms.pages.dev': 1,
-        'staging.dfcms.pl': 1,
-        localhost: 1,
-        '127.0.0.1': 1,
-      };
-      if (!bareRoots[hostname]) {
-        const parts = hostname.split('.');
-        if (parts.length > 2 || (hostname.includes('localhost') && parts.length > 1 && parts[0] !== 'localhost')) {
-          currentSlug = parts[0].toLowerCase();
-        }
-      }
-    } else if (!hostname.includes('pages.dev')) {
       currentCustomDomain = hostname;
     }
 
     return { currentSlug, currentCustomDomain };
   }
 
-  /** Po załadowaniu treści usuń ?site= z URL na subdomenie tenantowej (czysty adres w pasku). */
+  const PLATFORM_APEX_HOSTS = {
+    'staging.dfopscms.pages.dev': 1,
+    'staging.dfcms.pl': 1,
+    'dfcms.pl': 1,
+    'dfopscms.pl': 1,
+    'dfopscms.pages.dev': 1,
+    localhost: 1,
+    '127.0.0.1': 1,
+  };
+
+  function isTenantPublicHost(hostname) {
+    if (typeof window.DFOPS_isTenantPublicHostname === 'function') {
+      return window.DFOPS_isTenantPublicHostname(hostname, normalizeHostname);
+    }
+    const h = normalizeHostname(hostname);
+    if (!h || PLATFORM_APEX_HOSTS[h]) return false;
+    if (h.endsWith('.dfcms.pl') || h.endsWith('.dfopscms.pl')) return true;
+    if (h.includes('pages.dev')) return false;
+    if (h === 'localhost' || h === '127.0.0.1') return false;
+    return true;
+  }
+
+  function isPublishedThemePathname(pathname) {
+    const themes =
+      window.DFOPS_PUBLISHED_THEME_IDS ||
+      (typeof window.DFOPS_getPublishedThemeIds === 'function' ? window.DFOPS_getPublishedThemeIds() : []);
+    const bare = String(pathname || '')
+      .replace(/\.html$/i, '')
+      .replace(/^\/templates\//i, '')
+      .replace(/^\//, '')
+      .toLowerCase();
+    return themes.indexOf(bare) !== -1;
+  }
+
+  function shouldNormalizeTenantPathname(pathname) {
+    const path = String(pathname || '/');
+    if (path === '/' || path === '') return false;
+    if (path === '/index.html' || path === '/index' || path === '/router.html' || path === '/router') {
+      return true;
+    }
+    if (/^\/templates\/[a-z0-9-]+\.html$/i.test(path)) return true;
+    return isPublishedThemePathname(path);
+  }
+
+  /**
+   * Po załadowaniu treści: subdomena / custom domain → czysty `/` w pasku (bez /templates/ ani ?site=).
+   */
   function cleanTenantPublicUrl(slug) {
     try {
       const u = new URL(window.location.href);
-      const siteQs = u.searchParams.get('site');
-      if (!siteQs || !String(siteQs).trim()) return;
       const h = normalizeHostname(u.hostname);
-      const bareRoots = {
-        'dfcms.pl': 1,
-        'dfopscms.pl': 1,
-        'dfopscms.pages.dev': 1,
-        'staging.dfcms.pl': 1,
-        localhost: 1,
-        '127.0.0.1': 1,
-      };
-      if (bareRoots[h]) return;
-      if (!h.endsWith('.dfcms.pl') && !h.endsWith('.dfopscms.pl')) return;
-      if (String(siteQs).trim().toLowerCase() !== String(slug || '').trim().toLowerCase()) return;
-      u.searchParams.delete('site');
+      if (!isTenantPublicHost(h)) return;
+
+      let changed = false;
+      const siteQs = u.searchParams.get('site');
+      if (siteQs && String(siteQs).trim()) {
+        const siteNorm = String(siteQs).trim().toLowerCase();
+        const slugNorm = slug ? String(slug).trim().toLowerCase() : '';
+        if (!slugNorm || siteNorm === slugNorm) {
+          u.searchParams.delete('site');
+          changed = true;
+        }
+      }
+
+      if (shouldNormalizeTenantPathname(u.pathname)) {
+        u.pathname = '/';
+        changed = true;
+      }
+
+      if (!changed) return;
       const qs = u.searchParams.toString();
       history.replaceState(null, '', u.pathname + (qs ? '?' + qs : '') + u.hash);
     } catch (_) {
@@ -1093,24 +1135,48 @@
         return { panel, landingCennik: `${landing}#cennik` };
       },
       buildThemePageUrl(page) {
-        const baseDomain = (cfg.appDomain || 'dfcms.pl').toLowerCase();
         const host = normalizeHostname(window.location.hostname);
         const isLocal = (cfg.localHosts || []).includes(window.location.hostname);
         const theme = page.theme;
         const slug = page.slug;
-        if (!theme) return `${window.location.origin}/setup.html`;
+        const tenantBase =
+          typeof window.DFOPS_resolveTenantBaseFromHostname === 'function'
+            ? window.DFOPS_resolveTenantBaseFromHostname(host, normalizeHostname)
+            : (cfg.appDomain || 'dfcms.pl').toLowerCase();
+        if (!theme || theme === 'setup') {
+          const setupPath = `/setup.html`;
+          if (!slug) return `${window.location.origin}${setupPath}`;
+          if (isLocal) {
+            return `${window.location.origin}${setupPath}?site=${encodeURIComponent(slug)}`;
+          }
+          if (host.endsWith('.' + tenantBase) && host !== tenantBase) {
+            return `${window.location.protocol}//${window.location.host}/`;
+          }
+          if (
+            typeof window.DFOPS_isHostUnderPlatform === 'function' &&
+            !window.DFOPS_isHostUnderPlatform(host, normalizeHostname) &&
+            host !== tenantBase
+          ) {
+            return `${window.location.protocol}//${window.location.host}/`;
+          }
+          return `${window.location.origin}${setupPath}?site=${encodeURIComponent(slug)}`;
+        }
         if (!slug) return `${window.location.origin}/templates/${theme}.html`;
 
         if (isLocal) {
           return `${window.location.origin}/templates/${theme}.html?site=${encodeURIComponent(slug)}`;
         }
 
-        if (host.endsWith(`.${baseDomain}`) && host !== baseDomain) {
+        if (host.endsWith('.' + tenantBase) && host !== tenantBase) {
           return `${window.location.protocol}//${window.location.host}/`;
         }
 
-        if (host !== baseDomain && host !== 'localhost' && host !== '127.0.0.1' && !host.endsWith(`.${baseDomain}`)) {
-          return `${window.location.protocol}//${window.location.host}/templates/${theme}.html`;
+        if (
+          typeof window.DFOPS_isHostUnderPlatform === 'function' &&
+          !window.DFOPS_isHostUnderPlatform(host, normalizeHostname) &&
+          host !== tenantBase
+        ) {
+          return `${window.location.protocol}//${window.location.host}/`;
         }
 
         return `${window.location.origin}/templates/${theme}.html?site=${encodeURIComponent(slug)}`;
@@ -1139,13 +1205,16 @@
           if (!page) throw new Error('Brak strony');
 
           this.slug = page.slug;
-          const onTenantSubdomain =
-            !!currentSlug &&
-            !currentCustomDomain &&
+          cleanTenantPublicUrl(page.slug);
+
+          const onTenantPublicSurface =
+            (!!currentSlug || !!currentCustomDomain) &&
             !urlParams.get('site')?.trim() &&
-            (hostname.includes('dfcms.pl') || hostname.includes('dfopscms.pl')) &&
-            hostname !== 'dfcms.pl' &&
-            hostname !== 'dfopscms.pl';
+            isTenantPublicHost(hostname);
+          const homePaths = ['/', '/index.html', '/index'];
+          const onTenantHome =
+            onTenantPublicSurface && homePaths.indexOf(window.location.pathname) !== -1;
+
           if (shouldBlockPublicPageView(page)) {
             window.DFOPS__applyAnalyticsConsentNow = function noopAnalyticsConsent() {};
             const links = this.buildSubscriptionLinks(page.slug);
@@ -1190,13 +1259,7 @@
             }
           }
 
-          // Redirect na właściwy plik motywu tylko dla wersji opublikowanej; w podglądzie draftu
-          // panel sam wybiera plik wg motywu roboczego (unikamy gubienia parametru dfcms_preview).
-          const onTenantHome =
-            onTenantSubdomain &&
-            (window.location.pathname === '/' ||
-              window.location.pathname === '/index.html' ||
-              window.location.pathname === '/index');
+          // Redirect na właściwy motyw tylko poza tenantowym `/`; edge rewrite serwuje szablon bez zmiany URL.
           if (
             !previewDraft &&
             !onTenantHome &&

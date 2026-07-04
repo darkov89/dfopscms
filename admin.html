@@ -33,6 +33,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
     <script defer src="js/core/utils.js?v=20260617a"></script>
+    <script defer src="js/core/platformRouting.js?v=20260704a"></script>
     <script defer src="js/core/config.js?v=20260617t"></script>
     <script defer src="js/core/supabaseClient.js?v=20260619a"></script>
     <script defer src="js/templates/registry.js?v=20260701a"></script>
@@ -45,7 +46,7 @@
     <script defer src="js/core/googlePlacesSync.js?v=20260522d"></script>
     <script defer src="js/core/analytics.js?v=20260403t"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260704b"></script>
+    <script defer src="js/features/adminApp.js?v=20260704d"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -900,7 +901,7 @@
                             <div class="rounded-xl border border-slate-200/80 bg-slate-50/60 p-5 md:p-6">
                                 <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Adres Twojej strony</p>
                                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                    <a :href="getLiveSiteUrl()" target="_blank" rel="noopener noreferrer" class="text-lg font-semibold text-slate-900 underline decoration-slate-300 underline-offset-4 hover:decoration-accent break-all" x-text="slug ? (slug + '.dfcms.pl') : '—'"></a>
+                                    <a :href="getLiveSiteUrl()" target="_blank" rel="noopener noreferrer" class="text-lg font-semibold text-slate-900 underline decoration-slate-300 underline-offset-4 hover:decoration-accent break-all" x-text="tenantSiteHostLabel"></a>
                                     <a :href="getPublicSiteUrl()" @click="stashDraftForPreview()" target="_blank" rel="noopener noreferrer" class="inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50">
                                         Zobacz stronę
                                     </a>

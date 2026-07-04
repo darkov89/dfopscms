@@ -282,6 +282,14 @@
     return getSwitchableTemplateIds().includes(String(theme || '').trim().toLowerCase());
   }
 
+  /** Ścieżka HTML widoku publicznego — `setup` to root `setup.html`, nie `/templates/`. */
+  function publicHtmlPathForTheme(theme) {
+    const t = String(theme || '').trim().toLowerCase();
+    if (t === 'setup') return '/setup.html';
+    if (isPublishedTheme(t)) return `/templates/${t}.html`;
+    return '/templates/beauty.html';
+  }
+
   function normalizeWizardTheme(theme) {
     const id = String(theme || '').trim().toLowerCase();
     return getWizardTemplateIds().includes(id) ? id : 'beauty';
@@ -1127,6 +1135,21 @@ function adminMixinUi(ctx) {
         return this.subscriptionPlan === 'tier0';
       },
 
+      /** Etykieta adresu LIVE w panelu — zależy od środowiska (prod vs staging pages.dev). */
+      get tenantSiteHostLabel() {
+        if (!this.slug) return '—';
+        if (typeof window.DFOPS_formatTenantHostname === 'function') {
+          return (
+            window.DFOPS_formatTenantHostname(
+              this.slug,
+              window.location.hostname,
+              window.DFOPS_normalizeHostname,
+            ) || this.slug
+          );
+        }
+        return `${this.slug}.dfcms.pl`;
+      },
+
       get appearancePickerAccentHex() {
         if (this.appearancePickerHex) return this.appearancePickerHex;
         return this.accentColor || '#D4AF37';
@@ -1134,8 +1157,13 @@ function adminMixinUi(ctx) {
       /** Na localhost podgląd wskazuje plik .html — brak pliku = proxy (Epik 3). */
       get previewHtmlBasename() {
         const t = String(this.theme || 'beauty').trim().toLowerCase();
-        if (t === 'setup' || isPublishedTheme(t)) return t;
+        if (t === 'setup') return 'setup';
+        if (isPublishedTheme(t)) return t;
         return 'beauty';
+      },
+      /** Pełna ścieżka do podglądu / live (setup → /setup.html). */
+      themePublicHtmlPath() {
+        return publicHtmlPathForTheme(this.theme || 'beauty');
       },
       get previewUsesHtmlFallback() {
         const t = String(this.theme || '').trim().toLowerCase();
@@ -1226,7 +1254,7 @@ function adminMixinUi(ctx) {
         // (subdomena `{slug}.dfcms.pl` to inny origin). Dlatego zawsze otwieramy `/templates/{motyw}.html?site=…`.
         const isLocalhost =
           window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const path = `/templates/${this.previewHtmlBasename}.html?${siteQs}`;
+        const path = `${this.themePublicHtmlPath()}?${siteQs}`;
         if (isLocalhost) return path;
         const origin = String(window.location.origin || '').replace(/\/$/, '');
         return origin ? `${origin}${path}` : path;
@@ -1239,12 +1267,20 @@ function adminMixinUi(ctx) {
           window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         if (isLocalhost) {
           const qs = `site=${encodeURIComponent(this.slug)}`;
-          return `/templates/${this.previewHtmlBasename}.html?${qs}`;
+          return `${publicHtmlPathForTheme(this.theme)}?${qs}`;
         }
         const hostCustom = typeof this.customDomain === 'string' ? this.customDomain.trim() : '';
         if (hostCustom && this.customDomainStatus === 'active') {
           const h = hostCustom.replace(/^https?:\/\//i, '').split('/')[0];
           return `https://${h}/`;
+        }
+        if (typeof window.DFOPS_buildTenantPublicSiteUrl === 'function') {
+          const url = window.DFOPS_buildTenantPublicSiteUrl(
+            this.slug,
+            window.location.hostname,
+            window.DFOPS_normalizeHostname,
+          );
+          if (url) return url;
         }
         const base = (cfg.appDomain || 'dfcms.pl').toLowerCase();
         return `https://${this.slug}.${base}/`;
@@ -2001,6 +2037,7 @@ function adminMixinAuth(ctx) {
         this._billingStatusToastShown = false;
         this._initialPanelLoadDone = false;
         this._subscriptionTabStripeSynced = false;
+        this._setupWizardAutoOpened = false;
         if (this._postPaymentRefreshTimer != null) {
           clearTimeout(this._postPaymentRefreshTimer);
           this._postPaymentRefreshTimer = null;
@@ -2303,6 +2340,7 @@ function adminMixinData(ctx) {
             !!this.user &&
             this.isEmailVerified &&
             !this.isForcedPasswordReset &&
+            this.theme !== 'setup' &&
             !this.content?.pl?.settings?.welcome_onboarding_completed;
 
           if (this.content?.pl?.settings?.welcome_onboarding_completed === true) {
@@ -2338,6 +2376,27 @@ function adminMixinData(ctx) {
           }
           if (!this._initialPanelLoadDone && this.billingProfileReady) {
             this._initialPanelLoadDone = true;
+          }
+          if (
+            !this._setupWizardAutoOpened &&
+            this.user &&
+            this.isEmailVerified &&
+            !this.isForcedPasswordReset &&
+            this.theme === 'setup' &&
+            this.content?.pl?.settings?.onboarding_completed === false
+          ) {
+            this._setupWizardAutoOpened = true;
+            this.$nextTick(() => {
+              setTimeout(() => {
+                if (
+                  this.theme === 'setup' &&
+                  this.content?.pl?.settings?.onboarding_completed === false &&
+                  !this.showWizard
+                ) {
+                  this.openWizardFromStudio();
+                }
+              }, 350);
+            });
           }
         }
       },
@@ -4229,6 +4288,8 @@ function createAdminApp() {
       _loadDataSubscriptionStripeSync: false,
       /** Jednorazowy silent sync ze Stripe po wejściu w zakładkę Subskrypcja (świeży `cancel_at_period_end`). */
       _subscriptionTabStripeSynced: false,
+      /** Jednorazowe auto-otwarcie kreatora dla świeżego konta (`theme === setup`). */
+      _setupWizardAutoOpened: false,
       newPassword: '',
       newPasswordConfirm: '',
       /** Podgląd znaków przy zmianie hasła (Konto). */

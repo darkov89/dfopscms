@@ -366,6 +366,7 @@ function adminMixinAuth(ctx) {
         this._billingStatusToastShown = false;
         this._initialPanelLoadDone = false;
         this._subscriptionTabStripeSynced = false;
+        this._setupWizardAutoOpened = false;
         if (this._postPaymentRefreshTimer != null) {
           clearTimeout(this._postPaymentRefreshTimer);
           this._postPaymentRefreshTimer = null;

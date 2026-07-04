@@ -250,6 +250,13 @@
     }
 
     const contactCtaDefaultsByTheme = {
+      setup: {
+        enabled: false,
+        title: '',
+        description: '',
+        button_text: '',
+        button_url: '',
+      },
       consultant: {
         enabled: true,
         title: 'Szybki kalendarz',
@@ -285,7 +292,8 @@
       if (!block || typeof block !== 'object' || Array.isArray(block)) return;
       if (!block.contact) block.contact = {};
       const defaults =
-        contactCtaDefaultsByTheme[contentTheme] || contactCtaDefaultsByTheme.consultant;
+        contactCtaDefaultsByTheme[contentTheme] ||
+        (contentTheme === 'setup' ? contactCtaDefaultsByTheme.setup : contactCtaDefaultsByTheme.consultant);
       if (!block.contact.cta) {
         block.contact.cta = { ...defaults };
       }

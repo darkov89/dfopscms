@@ -61,7 +61,7 @@
             try {
                 var u = new URL(window.location.href);
                 var h = window.DFOPS_normalizeHostname(u.hostname);
-                var bareRoots = { 'dfcms.pl': 1, 'dfopscms.pl': 1, 'dfopscms.pages.dev': 1, 'staging.dfcms.pl': 1, localhost: 1, '127.0.0.1': 1 };
+                var bareRoots = { 'dfcms.pl': 1, 'dfopscms.pl': 1, 'dfopscms.pages.dev': 1, 'staging.dfcms.pl': 1, 'staging.dfopscms.pages.dev': 1, localhost: 1, '127.0.0.1': 1 };
                 var site = u.searchParams.get('site');
                 var isLocal = h === 'localhost' || h === '127.0.0.1';
                 var safeSlugRe = /^[a-z0-9]+(?:-[a-z0-9]+)*$/i;
@@ -75,18 +75,9 @@
                     }
                 }
 
-                if (!isLocal && !bareRoots[h] && h.endsWith('.dfcms.pl')) {
-                    window.location.replace('router.html' + u.search + u.hash);
-                    return;
-                }
-
                 if (site && String(site).trim() && bareRoots[h]) {
                     window.location.replace('router.html' + u.search + u.hash);
                     return;
-                }
-
-                if (!bareRoots[h] && !h.endsWith('.dfcms.pl') && h.indexOf('pages.dev') === -1) {
-                    window.location.replace('router.html' + u.search + u.hash);
                 }
             } catch (e) { /* ignore */ }
         })();

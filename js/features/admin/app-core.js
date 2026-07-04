@@ -135,6 +135,8 @@ function createAdminApp() {
       _loadDataSubscriptionStripeSync: false,
       /** Jednorazowy silent sync ze Stripe po wejściu w zakładkę Subskrypcja (świeży `cancel_at_period_end`). */
       _subscriptionTabStripeSynced: false,
+      /** Jednorazowe auto-otwarcie kreatora dla świeżego konta (`theme === setup`). */
+      _setupWizardAutoOpened: false,
       newPassword: '',
       newPasswordConfirm: '',
       /** Podgląd znaków przy zmianie hasła (Konto). */

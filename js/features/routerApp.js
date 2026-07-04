@@ -2,12 +2,19 @@
   /**
    * Domeny platformy (hosting wielodomenowy + dev). Host spoza tej listy → szukanie po custom_domain.
    */
-  const BASE_DOMAINS = ['dfcms.pl', 'dfopscms.pl', 'dfopscms.pages.dev', 'localhost', '127.0.0.1'];
+  const BASE_DOMAINS = [
+    'staging.dfopscms.pages.dev',
+    'staging.dfcms.pl',
+    'dfcms.pl',
+    'dfopscms.pl',
+    'dfopscms.pages.dev',
+    'localhost',
+    '127.0.0.1',
+  ];
 
   /**
-   * Router przekierowuje na plik `/templates/{theme}.html` (np. beauty, consultant, fitness).
-   * Na domenach systemowych bez ?site= → index.html (landing marketingowy).
-   * Na niestandardowej domenie (np. mojsalon.pl) → getPageByCustomDomain.
+   * Router legacy: apex / pages.dev / localhost z ?site= → `/templates/{theme}.html?site=…`.
+   * Subdomeny tenantów i custom domeny → `/` (edge middleware robi wewnętrzny rewrite szablonu).
    */
   function show404() {
     document.body.innerHTML = '';
@@ -29,11 +36,15 @@
   }
 
   function isApexOrStagingRoot(hostname) {
+    if (typeof window.DFOPS_isPlatformApexHostname === 'function') {
+      return window.DFOPS_isPlatformApexHostname(hostname, normalizeHostname);
+    }
     return (
       hostname === 'dfcms.pl' ||
       hostname === 'dfopscms.pl' ||
       hostname === 'dfopscms.pages.dev' ||
-      hostname === 'staging.dfcms.pl'
+      hostname === 'staging.dfcms.pl' ||
+      hostname === 'staging.dfopscms.pages.dev'
     );
   }
 
@@ -52,10 +63,15 @@
     });
   }
 
-  /** Dla user.dfcms.pl → 'user'; dla dokładnie dfcms.pl / localhost → null */
+  /** Dla user.dfcms.pl / user.staging.dfopscms.pages.dev → slug; apex → null */
   function extractSubdomainAsSlug(hostname, bases) {
-    for (let i = 0; i < bases.length; i++) {
-      const base = bases[i];
+    if (typeof window.DFOPS_extractTenantSlugFromHostname === 'function') {
+      const slug = window.DFOPS_extractTenantSlugFromHostname(hostname, normalizeHostname);
+      return slug || null;
+    }
+    const sorted = (bases || []).slice().sort((a, b) => b.length - a.length);
+    for (let i = 0; i < sorted.length; i++) {
+      const base = sorted[i];
       if (hostname === base) return null;
       const suffix = '.' + base;
       if (hostname.endsWith(suffix)) {
@@ -86,6 +102,22 @@
         return;
       }
 
+      const localHosts = cfg.localHosts || [];
+      const isLocal = localHosts.indexOf(window.location.hostname) !== -1;
+
+      if (!isLocal && !hostname.includes('pages.dev') && !isApexOrStagingRoot(hostname)) {
+        if (isHostUnderBaseDomain(hostname, baseDomains)) {
+          const subSlug = extractSubdomainAsSlug(hostname, baseDomains);
+          if (subSlug && isSafeSlugValue(subSlug)) {
+            window.location.replace('/');
+            return;
+          }
+        } else {
+          window.location.replace('/');
+          return;
+        }
+      }
+
       let page = null;
 
       if (isHostUnderBaseDomain(hostname, baseDomains)) {
@@ -112,8 +144,6 @@
 
       if (!page || !page.theme || !page.slug) throw new Error('Strona nie istnieje');
 
-      const localHosts = cfg.localHosts || [];
-      const isLocal = localHosts.indexOf(window.location.hostname) !== -1;
       let target = '/templates/' + page.theme + '.html';
       if (isLocal || hostname.includes('pages.dev') || isApexOrStagingRoot(hostname)) {
         target += '?site=' + encodeURIComponent(page.slug);

@@ -280,6 +280,14 @@
     return getSwitchableTemplateIds().includes(String(theme || '').trim().toLowerCase());
   }
 
+  /** Ścieżka HTML widoku publicznego — `setup` to root `setup.html`, nie `/templates/`. */
+  function publicHtmlPathForTheme(theme) {
+    const t = String(theme || '').trim().toLowerCase();
+    if (t === 'setup') return '/setup.html';
+    if (isPublishedTheme(t)) return `/templates/${t}.html`;
+    return '/templates/beauty.html';
+  }
+
   function normalizeWizardTheme(theme) {
     const id = String(theme || '').trim().toLowerCase();
     return getWizardTemplateIds().includes(id) ? id : 'beauty';
