@@ -263,6 +263,7 @@ function adminMixinBilling(ctx) {
 
       refreshBillingSubscriptionView() {
         applyBillingSubscriptionView(this);
+        if (typeof this.syncUiDerivedView === 'function') this.syncUiDerivedView();
       },
 
       /** Gotowe palety kolorów — zawsze dostępne (freemium). */

@@ -717,3 +717,197 @@
     if (!/\d/u.test(s)) return 'Hasło musi zawierać co najmniej jedną cyfrę.';
     return null;
   }
+
+  /** Motyw do presetów kolorów — kreator vs studio; nowe szablony przez `presetsByTheme` w config. */
+  function resolvePresetThemeForPanel(showWizard, wizardTheme, theme) {
+    const raw = showWizard ? wizardTheme || theme || 'beauty' : theme || 'beauty';
+    return normalizeWizardTheme(raw);
+  }
+
+  function computeAvailablePresets(cfg, showWizard, wizardTheme, theme) {
+    const id = resolvePresetThemeForPanel(showWizard, wizardTheme, theme);
+    return (cfg && cfg.presetsByTheme && cfg.presetsByTheme[id]) || [];
+  }
+
+  function computeThemeDisplayLabel(theme) {
+    const id = String(theme || '').trim().toLowerCase();
+    if (typeof window.DFOPS_getTemplateCatalog === 'function') {
+      const cat = window.DFOPS_getTemplateCatalog().find((t) => t.id === id);
+      if (cat?.name) return cat.name;
+    }
+    return THEME_DISPLAY_LABELS[id] || id || '—';
+  }
+
+  function computeDashboardStartTasks(theme, pl) {
+    if (!pl) return [];
+    const tasks = [];
+    const phone = String(pl.contact?.phone || '').trim();
+    const email = String(pl.contact?.email || '').trim();
+    tasks.push({
+      id: 'phone',
+      label: 'Dodaj numer telefonu',
+      tab: 'contact',
+      done: !!(phone || email),
+    });
+    let hasOffer = false;
+    if (themeHasSection(theme, 'menu')) {
+      hasOffer =
+        Array.isArray(pl.menu_items) &&
+        pl.menu_items.some((row) => row && isNonEmptyContentString(row.name));
+    } else if (themeHasSection(theme, 'services')) {
+      hasOffer =
+        Array.isArray(pl.services) &&
+        pl.services.some((s) => s && isNonEmptyContentString(s.title));
+    }
+    tasks.push({
+      id: 'offer',
+      label: themeHasSection(theme, 'menu')
+        ? 'Wpisz choć jedną pozycję menu'
+        : 'Wpisz choć jedną usługę',
+      tab: themeHasSection(theme, 'menu') ? 'menu' : 'services',
+      done: hasOffer,
+    });
+    const hasHeroImage =
+      isNonEmptyContentString(pl.hero?.image) || isNonEmptyContentString(pl.nav?.logoImage);
+    tasks.push({
+      id: 'heroimg',
+      label: 'Wgraj zdjęcie banera',
+      tab: 'hero',
+      done: hasHeroImage,
+    });
+    tasks.push({
+      id: 'headline',
+      label: 'Uzupełnij nagłówek na banerze',
+      tab: 'hero',
+      done: isNonEmptyContentString(pl.hero?.headline),
+    });
+    return tasks;
+  }
+
+  /** Checklista onboardingu — `theme === setup` lub brak podstaw w treści. */
+  function computeIncompleteOnboardingChecks(theme, content) {
+    const settings = content?.pl?.settings;
+    if (!settings || settings.onboarding_completed === true) return [];
+    const pl = content?.pl;
+    if (!pl) return [];
+    const items = [];
+    if (theme === 'setup') {
+      items.push({
+        id: 'setup',
+        label: 'Wybierz szablon (Beauty, Konsultant, Fitness…)',
+        tab: null,
+        openWizard: true,
+      });
+    }
+    if (!String(pl.nav?.logo || '').trim()) {
+      items.push({
+        id: 'navlogo',
+        label: 'Podaj nazwę marki w menu strony',
+        tab: 'settings',
+        openWizard: false,
+      });
+    }
+    const phone = String(pl.contact?.phone || '').trim();
+    const email = String(pl.contact?.email || '').trim();
+    if (!phone && !email) {
+      items.push({
+        id: 'contact',
+        label: 'Dodaj telefon lub e-mail do kontaktu',
+        tab: 'contact',
+        openWizard: false,
+      });
+    }
+    return items;
+  }
+
+  function computePreviewHtmlBasename(theme) {
+    const t = String(theme || 'beauty').trim().toLowerCase();
+    if (t === 'setup') return 'setup';
+    if (isPublishedTheme(t)) return t;
+    return 'beauty';
+  }
+
+  function computeTemplateCatalog() {
+    if (typeof window.DFOPS_getTemplateCatalog === 'function') {
+      return window.DFOPS_getTemplateCatalog();
+    }
+    return [];
+  }
+
+  function computeWizardTemplateCatalog(templateCatalog) {
+    if (typeof window.DFOPS_getWizardTemplateCatalog === 'function') {
+      return window.DFOPS_getWizardTemplateCatalog();
+    }
+    return templateCatalog;
+  }
+
+  function computeTrialDaysLeft(ctx) {
+    const { MS_PER_DAY, isBillingCanceled, hasActivePaidSubscription, subscriptionPlan, billingSubscriptionView } =
+      ctx;
+    if (isBillingCanceled) return 0;
+    if (hasActivePaidSubscription) return 0;
+    const sub = billingSubscriptionView;
+    if (subscriptionPlan !== 'trial' || !sub?.trial_started_at) return 14;
+    const start = new Date(sub.trial_started_at).getTime();
+    const elapsed = Math.floor((Date.now() - start) / MS_PER_DAY);
+    return Math.max(0, 14 - elapsed);
+  }
+
+  function computePlanGatingLocks(subscriptionPlan) {
+    const p = subscriptionPlan || 'trial';
+    let isCustomDomainLocked = p === 'trial' || p === 'tier0';
+    let isCustomAppearanceLocked = p === 'trial' || p === 'tier0';
+    let isQuickChatLocked = p === 'tier0';
+    if (typeof window.DFOPS_planAllowsCustomDomain === 'function') {
+      isCustomDomainLocked = !window.DFOPS_planAllowsCustomDomain(p);
+    }
+    if (typeof window.DFOPS_planAllowsCustomAppearance === 'function') {
+      isCustomAppearanceLocked = !window.DFOPS_planAllowsCustomAppearance(p);
+    }
+    if (typeof window.DFOPS_planAllowsQuickChat === 'function') {
+      isQuickChatLocked = !window.DFOPS_planAllowsQuickChat(p);
+    }
+    return { isCustomDomainLocked, isCustomAppearanceLocked, isQuickChatLocked };
+  }
+
+  function computeSubscriptionBlocksAccountDeletion(billingSubscriptionView) {
+    const sub = billingSubscriptionView;
+    const sid = typeof sub?.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
+    if (!sid) return false;
+    const stRaw = typeof sub?.status === 'string' ? sub.status.trim().toLowerCase() : '';
+    if (stRaw === 'canceled' || stRaw === 'cancelled' || stRaw === 'incomplete_expired') return false;
+    if (!stRaw) return true;
+    return ['active', 'trialing', 'past_due', 'unpaid', 'paused'].includes(stRaw);
+  }
+
+  function computePlanDisplayLabel(billingSubscriptionView, subscriptionPlan) {
+    const sub = billingSubscriptionView;
+    if (typeof window.DFOPS_subscriptionDisplayName === 'function') {
+      return window.DFOPS_subscriptionDisplayName(sub);
+    }
+    if (typeof window.DFOPS_planDisplayName === 'function') {
+      return window.DFOPS_planDisplayName(subscriptionPlan);
+    }
+    return subscriptionPlan || 'trial';
+  }
+
+  function computeSelectedPlanHumanLabel(billingSubscriptionView) {
+    const s = billingSubscriptionView?.selected_plan;
+    if (s === 'tier0') return 'Starter';
+    if (s === 'tier1' || s === 'tier2') return 'Standard';
+    return '';
+  }
+
+  function computeTenantSiteHostLabel(slug) {
+    if (!slug) return '—';
+    if (typeof window.DFOPS_formatTenantHostname === 'function') {
+      return (
+        window.DFOPS_formatTenantHostname(
+          slug,
+          window.location.hostname,
+          window.DFOPS_normalizeHostname,
+        ) || slug
+      );
+    }
+    return `${slug}.dfcms.pl`;
+  }

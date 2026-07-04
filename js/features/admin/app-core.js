@@ -57,6 +57,37 @@ function createAdminApp() {
       wizardStepId: '',
       wizardStepCount: 6,
       wizardOfferCopy: { title: 'Twoja oferta', lead: '', itemLabel: 'Usługa', addRow: '+' },
+      /** Jawne pola UI — syncUiDerivedView(); nowe szablony przez registry/themeConfig. */
+      availablePresets: [],
+      accentColor: '#D4AF37',
+      styleBundles: [],
+      themeDisplayLabel: '—',
+      dashboardStartTasks: [],
+      incompleteOnboardingChecks: [],
+      templateCatalog: [],
+      wizardTemplateCatalog: [],
+      activeThemeSections: [],
+      navMenuFields: [],
+      previewHtmlBasename: 'beauty',
+      previewUsesHtmlFallback: false,
+      tenantSiteHostLabel: '—',
+      isPremiumDraftTheme: false,
+      isPublishBlockedByPlan: false,
+      isBillingCanceled: false,
+      trialDaysLeft: 14,
+      isCustomDomainLocked: true,
+      isCustomAppearanceLocked: true,
+      isQuickChatLocked: false,
+      subscriptionBlocksAccountDeletion: false,
+      planDisplayLabel: 'trial',
+      selectedPlanHumanLabel: '',
+      appearancePickerAccentHex: '#D4AF37',
+      canUpdatePassword: false,
+      accountPasswordHint: '',
+      accountPasswordHintClass: 'text-amber-800',
+      canSubmitForcedPasswordReset: false,
+      forcedResetPasswordHint: '',
+      forcedResetPasswordHintClass: 'text-amber-800',
       /** Jednorazowy komunikat po „Pomiń kreator” — bez listy „ninja” u góry. */
       showWizardDismissModal: false,
       /** Pierwsza konfiguracja: treść bez `business_name` (po normalize — zob. loadData). */
@@ -141,8 +172,6 @@ function createAdminApp() {
       _loadDataSubscriptionStripeSync: false,
       /** Jednorazowy silent sync ze Stripe po wejściu w zakładkę Subskrypcja (świeży `cancel_at_period_end`). */
       _subscriptionTabStripeSynced: false,
-      /** Jednorazowe auto-otwarcie kreatora dla świeżego konta (`theme === setup`). */
-      _setupWizardAutoOpened: false,
       newPassword: '',
       newPasswordConfirm: '',
       /** Podgląd znaków przy zmianie hasła (Konto). */
@@ -191,6 +220,9 @@ function createAdminApp() {
         ? fromApp.content
         : createAdminContentShell();
     fromApp.isLoading = fromApp.isLoading === true || fromApp.isLoading === false ? fromApp.isLoading : false;
+
+    if (typeof fromApp.syncUiDerivedView === 'function') fromApp.syncUiDerivedView();
+    if (typeof fromApp.syncPasswordFormView === 'function') fromApp.syncPasswordFormView();
 
     return fromApp;
   }

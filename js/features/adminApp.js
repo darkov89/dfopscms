@@ -720,6 +720,200 @@
     return null;
   }
 
+  /** Motyw do presetów kolorów — kreator vs studio; nowe szablony przez `presetsByTheme` w config. */
+  function resolvePresetThemeForPanel(showWizard, wizardTheme, theme) {
+    const raw = showWizard ? wizardTheme || theme || 'beauty' : theme || 'beauty';
+    return normalizeWizardTheme(raw);
+  }
+
+  function computeAvailablePresets(cfg, showWizard, wizardTheme, theme) {
+    const id = resolvePresetThemeForPanel(showWizard, wizardTheme, theme);
+    return (cfg && cfg.presetsByTheme && cfg.presetsByTheme[id]) || [];
+  }
+
+  function computeThemeDisplayLabel(theme) {
+    const id = String(theme || '').trim().toLowerCase();
+    if (typeof window.DFOPS_getTemplateCatalog === 'function') {
+      const cat = window.DFOPS_getTemplateCatalog().find((t) => t.id === id);
+      if (cat?.name) return cat.name;
+    }
+    return THEME_DISPLAY_LABELS[id] || id || '—';
+  }
+
+  function computeDashboardStartTasks(theme, pl) {
+    if (!pl) return [];
+    const tasks = [];
+    const phone = String(pl.contact?.phone || '').trim();
+    const email = String(pl.contact?.email || '').trim();
+    tasks.push({
+      id: 'phone',
+      label: 'Dodaj numer telefonu',
+      tab: 'contact',
+      done: !!(phone || email),
+    });
+    let hasOffer = false;
+    if (themeHasSection(theme, 'menu')) {
+      hasOffer =
+        Array.isArray(pl.menu_items) &&
+        pl.menu_items.some((row) => row && isNonEmptyContentString(row.name));
+    } else if (themeHasSection(theme, 'services')) {
+      hasOffer =
+        Array.isArray(pl.services) &&
+        pl.services.some((s) => s && isNonEmptyContentString(s.title));
+    }
+    tasks.push({
+      id: 'offer',
+      label: themeHasSection(theme, 'menu')
+        ? 'Wpisz choć jedną pozycję menu'
+        : 'Wpisz choć jedną usługę',
+      tab: themeHasSection(theme, 'menu') ? 'menu' : 'services',
+      done: hasOffer,
+    });
+    const hasHeroImage =
+      isNonEmptyContentString(pl.hero?.image) || isNonEmptyContentString(pl.nav?.logoImage);
+    tasks.push({
+      id: 'heroimg',
+      label: 'Wgraj zdjęcie banera',
+      tab: 'hero',
+      done: hasHeroImage,
+    });
+    tasks.push({
+      id: 'headline',
+      label: 'Uzupełnij nagłówek na banerze',
+      tab: 'hero',
+      done: isNonEmptyContentString(pl.hero?.headline),
+    });
+    return tasks;
+  }
+
+  /** Checklista onboardingu — `theme === setup` lub brak podstaw w treści. */
+  function computeIncompleteOnboardingChecks(theme, content) {
+    const settings = content?.pl?.settings;
+    if (!settings || settings.onboarding_completed === true) return [];
+    const pl = content?.pl;
+    if (!pl) return [];
+    const items = [];
+    if (theme === 'setup') {
+      items.push({
+        id: 'setup',
+        label: 'Wybierz szablon (Beauty, Konsultant, Fitness…)',
+        tab: null,
+        openWizard: true,
+      });
+    }
+    if (!String(pl.nav?.logo || '').trim()) {
+      items.push({
+        id: 'navlogo',
+        label: 'Podaj nazwę marki w menu strony',
+        tab: 'settings',
+        openWizard: false,
+      });
+    }
+    const phone = String(pl.contact?.phone || '').trim();
+    const email = String(pl.contact?.email || '').trim();
+    if (!phone && !email) {
+      items.push({
+        id: 'contact',
+        label: 'Dodaj telefon lub e-mail do kontaktu',
+        tab: 'contact',
+        openWizard: false,
+      });
+    }
+    return items;
+  }
+
+  function computePreviewHtmlBasename(theme) {
+    const t = String(theme || 'beauty').trim().toLowerCase();
+    if (t === 'setup') return 'setup';
+    if (isPublishedTheme(t)) return t;
+    return 'beauty';
+  }
+
+  function computeTemplateCatalog() {
+    if (typeof window.DFOPS_getTemplateCatalog === 'function') {
+      return window.DFOPS_getTemplateCatalog();
+    }
+    return [];
+  }
+
+  function computeWizardTemplateCatalog(templateCatalog) {
+    if (typeof window.DFOPS_getWizardTemplateCatalog === 'function') {
+      return window.DFOPS_getWizardTemplateCatalog();
+    }
+    return templateCatalog;
+  }
+
+  function computeTrialDaysLeft(ctx) {
+    const { MS_PER_DAY, isBillingCanceled, hasActivePaidSubscription, subscriptionPlan, billingSubscriptionView } =
+      ctx;
+    if (isBillingCanceled) return 0;
+    if (hasActivePaidSubscription) return 0;
+    const sub = billingSubscriptionView;
+    if (subscriptionPlan !== 'trial' || !sub?.trial_started_at) return 14;
+    const start = new Date(sub.trial_started_at).getTime();
+    const elapsed = Math.floor((Date.now() - start) / MS_PER_DAY);
+    return Math.max(0, 14 - elapsed);
+  }
+
+  function computePlanGatingLocks(subscriptionPlan) {
+    const p = subscriptionPlan || 'trial';
+    let isCustomDomainLocked = p === 'trial' || p === 'tier0';
+    let isCustomAppearanceLocked = p === 'trial' || p === 'tier0';
+    let isQuickChatLocked = p === 'tier0';
+    if (typeof window.DFOPS_planAllowsCustomDomain === 'function') {
+      isCustomDomainLocked = !window.DFOPS_planAllowsCustomDomain(p);
+    }
+    if (typeof window.DFOPS_planAllowsCustomAppearance === 'function') {
+      isCustomAppearanceLocked = !window.DFOPS_planAllowsCustomAppearance(p);
+    }
+    if (typeof window.DFOPS_planAllowsQuickChat === 'function') {
+      isQuickChatLocked = !window.DFOPS_planAllowsQuickChat(p);
+    }
+    return { isCustomDomainLocked, isCustomAppearanceLocked, isQuickChatLocked };
+  }
+
+  function computeSubscriptionBlocksAccountDeletion(billingSubscriptionView) {
+    const sub = billingSubscriptionView;
+    const sid = typeof sub?.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
+    if (!sid) return false;
+    const stRaw = typeof sub?.status === 'string' ? sub.status.trim().toLowerCase() : '';
+    if (stRaw === 'canceled' || stRaw === 'cancelled' || stRaw === 'incomplete_expired') return false;
+    if (!stRaw) return true;
+    return ['active', 'trialing', 'past_due', 'unpaid', 'paused'].includes(stRaw);
+  }
+
+  function computePlanDisplayLabel(billingSubscriptionView, subscriptionPlan) {
+    const sub = billingSubscriptionView;
+    if (typeof window.DFOPS_subscriptionDisplayName === 'function') {
+      return window.DFOPS_subscriptionDisplayName(sub);
+    }
+    if (typeof window.DFOPS_planDisplayName === 'function') {
+      return window.DFOPS_planDisplayName(subscriptionPlan);
+    }
+    return subscriptionPlan || 'trial';
+  }
+
+  function computeSelectedPlanHumanLabel(billingSubscriptionView) {
+    const s = billingSubscriptionView?.selected_plan;
+    if (s === 'tier0') return 'Starter';
+    if (s === 'tier1' || s === 'tier2') return 'Standard';
+    return '';
+  }
+
+  function computeTenantSiteHostLabel(slug) {
+    if (!slug) return '—';
+    if (typeof window.DFOPS_formatTenantHostname === 'function') {
+      return (
+        window.DFOPS_formatTenantHostname(
+          slug,
+          window.location.hostname,
+          window.DFOPS_normalizeHostname,
+        ) || slug
+      );
+    }
+    return `${slug}.dfcms.pl`;
+  }
+
 /** Mapowanie billing_profiles + trial z content — ten sam kontrakt co js/core/billingProfileView.js */
 
 function normalizePageBillingPlan(plan) {
@@ -974,14 +1168,92 @@ function adminMixinUi(ctx) {
     UPGRADE_MESSAGE_TIMEOUT,
   } = ctx;
   return {
-      get availablePresets() {
-        const currentTheme = this.showWizard
-          ? (this.wizardTheme || this.theme || 'beauty')
-          : (this.theme || 'beauty');
-        return cfg.presetsByTheme[currentTheme] || [];
+      /**
+       * Jawne pola UI zależne od theme/content/billing — wołaj po loadData, zmianie motywu, billing sync,
+       * edycji treści (deep watch) i syncWizardView. Nowe szablony: registry + themeConfig + presetsByTheme.
+       */
+      syncUiDerivedView() {
+        const theme = this.theme || '';
+        const pl = this.content?.pl;
+        const catalog = computeTemplateCatalog();
+
+        this.availablePresets = computeAvailablePresets(cfg, this.showWizard, this.wizardTheme, theme);
+        this.accentColor =
+          cfg.accentByPreset[pl?.settings?.color_preset] || cfg.accentByPreset.gold || '#D4AF37';
+        this.styleBundles = cfg.bundlesByTheme[theme] || [];
+        this.themeDisplayLabel = computeThemeDisplayLabel(theme);
+        this.dashboardStartTasks = computeDashboardStartTasks(theme, pl);
+        this.incompleteOnboardingChecks = computeIncompleteOnboardingChecks(theme, this.content);
+        this.templateCatalog = catalog;
+        this.wizardTemplateCatalog = computeWizardTemplateCatalog(catalog);
+        this.activeThemeSections = getThemeSections(this.wizardActiveTheme);
+        this.navMenuFields =
+          typeof window.DFOPS_getNavMenuFields === 'function'
+            ? window.DFOPS_getNavMenuFields(theme)
+            : [];
+        this.previewHtmlBasename = computePreviewHtmlBasename(theme);
+        this.previewUsesHtmlFallback = (() => {
+          const t = String(theme || '').trim().toLowerCase();
+          if (!t || t === 'setup') return false;
+          return !isPublishedTheme(t);
+        })();
+        this.tenantSiteHostLabel = computeTenantSiteHostLabel(this.slug);
+
+        const premium = Array.isArray(cfg?.premiumThemes) ? cfg.premiumThemes : [];
+        this.isPremiumDraftTheme = premium.includes(String(theme || '').trim());
+        const locks = computePlanGatingLocks(this.subscriptionPlan);
+        this.isCustomDomainLocked = locks.isCustomDomainLocked;
+        this.isCustomAppearanceLocked = locks.isCustomAppearanceLocked;
+        this.isQuickChatLocked = locks.isQuickChatLocked;
+        this.isPublishBlockedByPlan = this.isPremiumDraftTheme && this.isCustomAppearanceLocked;
+
+        this.isBillingCanceled = (() => {
+          const st = String(this.billingProfile?.status || '').trim().toLowerCase();
+          return st === 'canceled' || st === 'cancelled' || st === 'incomplete_expired';
+        })();
+        this.trialDaysLeft = computeTrialDaysLeft({
+          MS_PER_DAY,
+          isBillingCanceled: this.isBillingCanceled,
+          hasActivePaidSubscription: this.hasActivePaidSubscription,
+          subscriptionPlan: this.subscriptionPlan,
+          billingSubscriptionView: this.billingSubscriptionView,
+        });
+        this.subscriptionBlocksAccountDeletion = computeSubscriptionBlocksAccountDeletion(
+          this.billingSubscriptionView,
+        );
+        this.planDisplayLabel = computePlanDisplayLabel(
+          this.billingSubscriptionView,
+          this.subscriptionPlan,
+        );
+        this.selectedPlanHumanLabel = computeSelectedPlanHumanLabel(this.billingSubscriptionView);
+
+        this.appearancePickerAccentHex = this.appearancePickerHex || this.accentColor || '#D4AF37';
       },
-      get accentColor() { return cfg.accentByPreset[this.content?.pl?.settings?.color_preset] || '#D4AF37'; },
-      get styleBundles() { return cfg.bundlesByTheme[this.theme] || []; },
+
+      syncPasswordFormView() {
+        const a = String(this.newPassword ?? '').trim();
+        const b = String(this.newPasswordConfirm ?? '').trim();
+        this.canUpdatePassword = !this.isPasswordUpdating && a.length >= 6 && a === b;
+        if (!a && !b) this.accountPasswordHint = '';
+        else if (a.length < 6) this.accountPasswordHint = `Za krótkie — minimum 6 znaków (${a.length}/6).`;
+        else if (!b) this.accountPasswordHint = 'Wpisz to samo hasło w polu „Potwierdź”.';
+        else if (a !== b) this.accountPasswordHint = 'Hasła się różnią.';
+        else this.accountPasswordHint = 'Hasła są zgodne — możesz zapisać.';
+        this.accountPasswordHintClass = this.canUpdatePassword ? 'text-emerald-700' : 'text-amber-800';
+
+        const pol = passwordPolicyErrorForRecovery(a);
+        this.canSubmitForcedPasswordReset =
+          !this.isPasswordUpdating && a === b && !!a && pol === null;
+        if (!a && !b) this.forcedResetPasswordHint = '';
+        else if (pol) this.forcedResetPasswordHint = pol;
+        else if (!b) this.forcedResetPasswordHint = 'Potwierdź hasło w drugim polu.';
+        else if (a !== b) this.forcedResetPasswordHint = 'Hasła muszą być identyczne.';
+        else this.forcedResetPasswordHint = 'Hasło spełnia wymagania.';
+        this.forcedResetPasswordHintClass = this.canSubmitForcedPasswordReset
+          ? 'text-emerald-700'
+          : 'text-amber-800';
+      },
+
       /** Spójne flagi ładowania panelu — jawne pola (nie gettery Alpine). */
       syncPanelReadyFlags() {
         this.panelBootLoading =
@@ -997,84 +1269,15 @@ function adminMixinUi(ctx) {
         } else {
           this.panelContentReady = !!this.billingProfileReady;
         }
+        if (typeof this.syncUiDerivedView === 'function') {
+          this.syncUiDerivedView();
+        }
       },
-      /**
-       * Checklista „co jeszcze dołożyć” dopóki `onboarding_completed` jest false — tylko podstawy:
-       * szablon (dopóki motyw `setup`), nazwa w menu, minimum kontaktu (tel. lub e-mail).
-       * Nagłówek hero nie jest wymuszany — uzupełnisz go w kreatorze lub w zakładce powitalnej.
-       */
-      get themeDisplayLabel() {
-        const id = String(this.theme || '').trim().toLowerCase();
-        if (typeof window.DFOPS_getTemplateCatalog === 'function') {
-          const cat = window.DFOPS_getTemplateCatalog().find((t) => t.id === id);
-          if (cat?.name) return cat.name;
-        }
-        return THEME_DISPLAY_LABELS[id] || id || '—';
+      themeHasSection(section) {
+        return themeHasSection(this.wizardActiveTheme, section);
       },
-      /** Checklista na ekranie startowym — proste kroki dla właściciela firmy. */
-      get dashboardStartTasks() {
-        const pl = this.content?.pl;
-        if (!pl) return [];
-        const tasks = [];
-        const phone = String(pl.contact?.phone || '').trim();
-        const email = String(pl.contact?.email || '').trim();
-        if (!phone && !email) {
-          tasks.push({ id: 'phone', label: 'Dodaj numer telefonu', tab: 'contact', done: false });
-        } else {
-          tasks.push({ id: 'phone', label: 'Dodaj numer telefonu', tab: 'contact', done: true });
-        }
-        let hasOffer = false;
-        if (themeHasSection(this.theme, 'menu')) {
-          hasOffer =
-            Array.isArray(pl.menu_items) &&
-            pl.menu_items.some((row) => row && isNonEmptyContentString(row.name));
-        } else if (themeHasSection(this.theme, 'services')) {
-          hasOffer =
-            Array.isArray(pl.services) &&
-            pl.services.some((s) => s && isNonEmptyContentString(s.title));
-        }
-        tasks.push({
-          id: 'offer',
-          label: themeHasSection(this.theme, 'menu')
-            ? 'Wpisz choć jedną pozycję menu'
-            : 'Wpisz choć jedną usługę',
-          tab: themeHasSection(this.theme, 'menu') ? 'menu' : 'services',
-          done: hasOffer,
-        });
-        const hasHeroImage =
-          isNonEmptyContentString(pl.hero?.image) || isNonEmptyContentString(pl.nav?.logoImage);
-        tasks.push({
-          id: 'heroimg',
-          label: 'Wgraj zdjęcie banera',
-          tab: 'hero',
-          done: hasHeroImage,
-        });
-        const hasHeadline = isNonEmptyContentString(pl.hero?.headline);
-        tasks.push({
-          id: 'headline',
-          label: 'Uzupełnij nagłówek na banerze',
-          tab: 'hero',
-          done: hasHeadline,
-        });
-        return tasks;
-      },
-      get incompleteOnboardingChecks() {
-        if (!this.content?.pl?.settings || this.content.pl.settings.onboarding_completed === true) return [];
-        const pl = this.content.pl;
-        if (!pl) return [];
-        const items = [];
-        if (this.theme === 'setup') {
-          items.push({ id: 'setup', label: 'Wybierz szablon (Beauty, Konsultant, Fitness…)', tab: null, openWizard: true });
-        }
-        if (!String(pl.nav?.logo || '').trim()) {
-          items.push({ id: 'navlogo', label: 'Podaj nazwę marki w menu strony', tab: 'settings', openWizard: false });
-        }
-        const phone = String(pl.contact?.phone || '').trim();
-        const email = String(pl.contact?.email || '').trim();
-        if (!phone && !email) {
-          items.push({ id: 'contact', label: 'Dodaj telefon lub e-mail do kontaktu', tab: 'contact', openWizard: false });
-        }
-        return items;
+      adminTabVisible(tabId) {
+        return adminTabVisibleForTheme(this.theme, tabId);
       },
       /**
        * Ukończenie profilu strony (0–100). Wagi sumują się do 100% — pola z `content.pl` + motyw strony (`theme` z rekordu `pages`, nie `setup`).
@@ -1125,116 +1328,10 @@ function adminMixinUi(ctx) {
         }
         return Math.min(100, Math.round(sum));
       },
-      /** Istniejący klient Stripe (CID lub SID) — nie oznacza aktywnej subskrypcji. */
-      get subscriptionBlocksAccountDeletion() {
-        const sub = this.billingSubscriptionView;
-        const sid = typeof sub?.stripe_subscription_id === 'string' ? sub.stripe_subscription_id.trim() : '';
-        if (!sid) return false;
-        const stRaw = typeof sub?.status === 'string' ? sub.status.trim().toLowerCase() : '';
-        if (stRaw === 'canceled' || stRaw === 'cancelled' || stRaw === 'incomplete_expired') return false;
-        if (!stRaw) return true;
-        return ['active', 'trialing', 'past_due', 'unpaid', 'paused'].includes(stRaw);
-      },
-      get isBillingCanceled() {
-        const st = String(this.billingProfile?.status || '').trim().toLowerCase();
-        return st === 'canceled' || st === 'cancelled' || st === 'incomplete_expired';
-      },
-      get trialDaysLeft() {
-        if (this.isBillingCanceled) return 0;
-        const sub = this.billingSubscriptionView;
-        if (this.hasActivePaidSubscription) return 0;
-        if (this.subscriptionPlan !== 'trial' || !sub?.trial_started_at) return 14;
-        const start = new Date(sub.trial_started_at).getTime();
-        const now = Date.now();
-        const elapsed = Math.floor((now - start) / MS_PER_DAY);
-        return Math.max(0, 14 - elapsed);
-      },
-      get isCustomDomainLocked() {
-        if (typeof window.DFOPS_planAllowsCustomDomain === 'function') {
-          return !window.DFOPS_planAllowsCustomDomain(this.subscriptionPlan);
-        }
-        const p = this.subscriptionPlan;
-        return p === 'trial' || p === 'tier0';
-      },
 
-      /** Trial / Starter — bez własnego koloru, fontu i tła (presety i zestawy są wolne). */
-      get isCustomAppearanceLocked() {
-        if (typeof window.DFOPS_planAllowsCustomAppearance === 'function') {
-          return !window.DFOPS_planAllowsCustomAppearance(this.subscriptionPlan);
-        }
-        const p = this.subscriptionPlan;
-        return p === 'trial' || p === 'tier0';
-      },
-
-      /** Opłacony Starter (tier0) — bez przycisku szybkiego kontaktu WhatsApp / Messenger. */
-      get isQuickChatLocked() {
-        if (typeof window.DFOPS_planAllowsQuickChat === 'function') {
-          return !window.DFOPS_planAllowsQuickChat(this.subscriptionPlan);
-        }
-        return this.subscriptionPlan === 'tier0';
-      },
-
-      /** Etykieta adresu LIVE w panelu — zależy od środowiska (prod vs staging pages.dev). */
-      get tenantSiteHostLabel() {
-        if (!this.slug) return '—';
-        if (typeof window.DFOPS_formatTenantHostname === 'function') {
-          return (
-            window.DFOPS_formatTenantHostname(
-              this.slug,
-              window.location.hostname,
-              window.DFOPS_normalizeHostname,
-            ) || this.slug
-          );
-        }
-        return `${this.slug}.dfcms.pl`;
-      },
-
-      get appearancePickerAccentHex() {
-        if (this.appearancePickerHex) return this.appearancePickerHex;
-        return this.accentColor || '#D4AF37';
-      },
-      /** Na localhost podgląd wskazuje plik .html — brak pliku = proxy (Epik 3). */
-      get previewHtmlBasename() {
-        const t = String(this.theme || 'beauty').trim().toLowerCase();
-        if (t === 'setup') return 'setup';
-        if (isPublishedTheme(t)) return t;
-        return 'beauty';
-      },
       /** Pełna ścieżka do podglądu / live (setup → /setup.html). */
       themePublicHtmlPath() {
         return publicHtmlPathForTheme(this.theme || 'beauty');
-      },
-      get previewUsesHtmlFallback() {
-        const t = String(this.theme || '').trim().toLowerCase();
-        if (!t || t === 'setup') return false;
-        return !isPublishedTheme(t);
-      },
-      get templateCatalog() {
-        if (typeof window.DFOPS_getTemplateCatalog === 'function') {
-          return window.DFOPS_getTemplateCatalog();
-        }
-        return [];
-      },
-      get wizardTemplateCatalog() {
-        if (typeof window.DFOPS_getWizardTemplateCatalog === 'function') {
-          return window.DFOPS_getWizardTemplateCatalog();
-        }
-        return this.templateCatalog;
-      },
-      get activeThemeSections() {
-        return getThemeSections(this.wizardActiveTheme);
-      },
-      themeHasSection(section) {
-        return themeHasSection(this.wizardActiveTheme, section);
-      },
-      adminTabVisible(tabId) {
-        return adminTabVisibleForTheme(this.theme, tabId);
-      },
-      get navMenuFields() {
-        if (typeof window.DFOPS_getNavMenuFields === 'function') {
-          return window.DFOPS_getNavMenuFields(this.theme);
-        }
-        return [];
       },
       onTemplateTileClick(entry) {
         if (!entry || this.saving) return;
@@ -1346,22 +1443,6 @@ function adminMixinUi(ctx) {
         this.panelDebugState = state;
         console.info('[DFCMS panel debug]', state);
         window.DFOPS_panelDebugState = () => ({ ...state });
-      },
-      get planDisplayLabel() {
-        const sub = this.billingSubscriptionView;
-        if (typeof window.DFOPS_subscriptionDisplayName === 'function') {
-          return window.DFOPS_subscriptionDisplayName(sub);
-        }
-        if (typeof window.DFOPS_planDisplayName === 'function') {
-          return window.DFOPS_planDisplayName(this.subscriptionPlan);
-        }
-        return this.subscriptionPlan;
-      },
-      get selectedPlanHumanLabel() {
-        const s = this.billingSubscriptionView?.selected_plan;
-        if (s === 'tier0') return 'Starter';
-        if (s === 'tier1' || s === 'tier2') return 'Standard';
-        return '';
       },
 
       subscriptionPaymentActive() {
@@ -1534,28 +1615,6 @@ function adminMixinUi(ctx) {
 
       /** Polska data z ISO w subscription.current_period_end (webhook Stripe). */
       /** Zmiana hasła: dopiero po 6+ znakach i zgodności obu pól (po trim). */
-      get accountPasswordFieldsTrimmed() {
-        return {
-          a: String(this.newPassword ?? '').trim(),
-          b: String(this.newPasswordConfirm ?? '').trim(),
-        };
-      },
-      get canUpdatePassword() {
-        if (this.isPasswordUpdating) return false;
-        const { a, b } = this.accountPasswordFieldsTrimmed;
-        return a.length >= 6 && a === b;
-      },
-      get accountPasswordHint() {
-        const { a, b } = this.accountPasswordFieldsTrimmed;
-        if (!a && !b) return '';
-        if (a.length < 6) return `Za krótkie — minimum 6 znaków (${a.length}/6).`;
-        if (!b) return 'Wpisz to samo hasło w polu „Potwierdź”.';
-        if (a !== b) return 'Hasła się różnią.';
-        return 'Hasła są zgodne — możesz zapisać.';
-      },
-      get accountPasswordHintClass() {
-        return this.canUpdatePassword ? 'text-emerald-700' : 'text-amber-800';
-      },
 
       supportEmailDisplay() {
         return (cfg && typeof cfg.supportEmail === 'string' && cfg.supportEmail.includes('@')
@@ -1564,27 +1623,6 @@ function adminMixinUi(ctx) {
       },
       supportMailtoHref() {
         return `mailto:${encodeURIComponent(this.supportEmailDisplay())}`;
-      },
-
-      get canSubmitForcedPasswordReset() {
-        if (this.isPasswordUpdating) return false;
-        const a = String(this.newPassword ?? '').trim();
-        const b = String(this.newPasswordConfirm ?? '').trim();
-        if (a !== b || !a) return false;
-        return passwordPolicyErrorForRecovery(a) === null;
-      },
-      get forcedResetPasswordHint() {
-        const a = String(this.newPassword ?? '').trim();
-        const b = String(this.newPasswordConfirm ?? '').trim();
-        if (!a && !b) return '';
-        const pol = passwordPolicyErrorForRecovery(a);
-        if (pol) return pol;
-        if (!b) return 'Potwierdź hasło w drugim polu.';
-        if (a !== b) return 'Hasła muszą być identyczne.';
-        return 'Hasło spełnia wymagania.';
-      },
-      get forcedResetPasswordHintClass() {
-        return this.canSubmitForcedPasswordReset ? 'text-emerald-700' : 'text-amber-800';
       },
 
       isLocked() {
@@ -1614,6 +1652,7 @@ function adminMixinUi(ctx) {
         }
         this.appearancePickerHex = '';
         this.applyThemeStylingFromContent();
+        if (typeof this.syncUiDerivedView === 'function') this.syncUiDerivedView();
       },
 
       _hexColorDistance(hexA, hexB) {
@@ -1690,6 +1729,7 @@ function adminMixinUi(ctx) {
         this.appearancePickerHex = hex;
         this.content.pl.settings.color_preset = this.findPresetIdForAccentHex(hex);
         this.applyThemeStylingFromContent();
+        if (typeof this.syncUiDerivedView === 'function') this.syncUiDerivedView();
       },
 
       onCustomFontPresetGuard(event) {
@@ -1716,15 +1756,6 @@ function adminMixinUi(ctx) {
 
       enforceColorPresetForStarter() {
         /* Freemium: wszystkie gotowe presety kolorów dostępne na każdym planie. */
-      },
-
-      get isPremiumDraftTheme() {
-        const premium = Array.isArray(cfg?.premiumThemes) ? cfg.premiumThemes : [];
-        return premium.includes(String(this.theme || '').trim());
-      },
-      /** Freemium: na darmowym planie (trial/Starter) premium motyw można edytować i podglądać, ale NIE publikować. */
-      get isPublishBlockedByPlan() {
-        return this.isPremiumDraftTheme && this.isCustomAppearanceLocked;
       },
 
       /** Po zmianie linku/trybu rezerwacji — normalizacja i cichy auto-save. */
@@ -1793,6 +1824,17 @@ function adminMixinAuth(ctx) {
           }
         });
         void this.bootstrapAdminSession();
+        if (typeof this.$watch === 'function') {
+          this.$watch('newPassword', () => {
+            if (typeof this.syncPasswordFormView === 'function') this.syncPasswordFormView();
+          });
+          this.$watch('newPasswordConfirm', () => {
+            if (typeof this.syncPasswordFormView === 'function') this.syncPasswordFormView();
+          });
+          this.$watch('isPasswordUpdating', () => {
+            if (typeof this.syncPasswordFormView === 'function') this.syncPasswordFormView();
+          });
+        }
       },
 
       /**
@@ -2128,8 +2170,10 @@ function adminMixinAuth(ctx) {
         this._billingStatusToastShown = false;
         this._initialPanelLoadDone = false;
         this._subscriptionTabStripeSynced = false;
-        this._setupWizardAutoOpened = false;
+        this._onboardingAutoStartDone = false;
         this._authEmailJustConfirmed = false;
+        if (typeof this.syncUiDerivedView === 'function') this.syncUiDerivedView();
+        if (typeof this.syncPasswordFormView === 'function') this.syncPasswordFormView();
         if (this._postPaymentRefreshTimer != null) {
           clearTimeout(this._postPaymentRefreshTimer);
           this._postPaymentRefreshTimer = null;
@@ -2413,6 +2457,7 @@ function adminMixinData(ctx) {
           this.applyThemeStylingFromContent();
           this.enforceColorPresetForStarter();
           this.enforceQuickChatForStarter();
+          if (typeof this.syncUiDerivedView === 'function') this.syncUiDerivedView();
 
           /** Pierwsze wejście po migracji (draft pusty): utrwalamy spójny stan roboczy = opublikowana treść. */
           if (!usingDraft && this.pageId && this.user?.id) {
@@ -2430,7 +2475,7 @@ function adminMixinData(ctx) {
             this.showWizard = false;
           } else if (
             this.content?.pl?.settings?.onboarding_completed === false &&
-            this.incompleteOnboardingChecks.length === 0
+            computeIncompleteOnboardingChecks(this.theme, this.content).length === 0
           ) {
             this.content.pl.settings.onboarding_completed = true;
             this.content.pl.settings.welcome_onboarding_completed = true;
@@ -2461,6 +2506,7 @@ function adminMixinData(ctx) {
               this._stopContentWatch = this.$watch('content', () => {
                 this.hasUnsavedChanges = true;
                 this.scheduleDraftAutosave();
+                if (typeof this.syncUiDerivedView === 'function') this.syncUiDerivedView();
               }, { deep: true });
             }, 0);
           });
@@ -3207,6 +3253,7 @@ function adminMixinBilling(ctx) {
 
       refreshBillingSubscriptionView() {
         applyBillingSubscriptionView(this);
+        if (typeof this.syncUiDerivedView === 'function') this.syncUiDerivedView();
       },
 
       /** Gotowe palety kolorów — zawsze dostępne (freemium). */
@@ -3484,6 +3531,9 @@ function adminMixinWizard(ctx) {
         this.wizardStepId = stepId || '';
         if (typeof window.DFOPS_getWizardOfferCopy === 'function') {
           this.wizardOfferCopy = window.DFOPS_getWizardOfferCopy(activeTheme);
+        }
+        if (typeof this.syncUiDerivedView === 'function') {
+          this.syncUiDerivedView();
         }
       },
       persistWizardUiState() {
@@ -4347,6 +4397,37 @@ function createAdminApp() {
       wizardStepId: '',
       wizardStepCount: 6,
       wizardOfferCopy: { title: 'Twoja oferta', lead: '', itemLabel: 'Usługa', addRow: '+' },
+      /** Jawne pola UI — syncUiDerivedView(); nowe szablony przez registry/themeConfig. */
+      availablePresets: [],
+      accentColor: '#D4AF37',
+      styleBundles: [],
+      themeDisplayLabel: '—',
+      dashboardStartTasks: [],
+      incompleteOnboardingChecks: [],
+      templateCatalog: [],
+      wizardTemplateCatalog: [],
+      activeThemeSections: [],
+      navMenuFields: [],
+      previewHtmlBasename: 'beauty',
+      previewUsesHtmlFallback: false,
+      tenantSiteHostLabel: '—',
+      isPremiumDraftTheme: false,
+      isPublishBlockedByPlan: false,
+      isBillingCanceled: false,
+      trialDaysLeft: 14,
+      isCustomDomainLocked: true,
+      isCustomAppearanceLocked: true,
+      isQuickChatLocked: false,
+      subscriptionBlocksAccountDeletion: false,
+      planDisplayLabel: 'trial',
+      selectedPlanHumanLabel: '',
+      appearancePickerAccentHex: '#D4AF37',
+      canUpdatePassword: false,
+      accountPasswordHint: '',
+      accountPasswordHintClass: 'text-amber-800',
+      canSubmitForcedPasswordReset: false,
+      forcedResetPasswordHint: '',
+      forcedResetPasswordHintClass: 'text-amber-800',
       /** Jednorazowy komunikat po „Pomiń kreator” — bez listy „ninja” u góry. */
       showWizardDismissModal: false,
       /** Pierwsza konfiguracja: treść bez `business_name` (po normalize — zob. loadData). */
@@ -4431,8 +4512,6 @@ function createAdminApp() {
       _loadDataSubscriptionStripeSync: false,
       /** Jednorazowy silent sync ze Stripe po wejściu w zakładkę Subskrypcja (świeży `cancel_at_period_end`). */
       _subscriptionTabStripeSynced: false,
-      /** Jednorazowe auto-otwarcie kreatora dla świeżego konta (`theme === setup`). */
-      _setupWizardAutoOpened: false,
       newPassword: '',
       newPasswordConfirm: '',
       /** Podgląd znaków przy zmianie hasła (Konto). */
@@ -4481,6 +4560,9 @@ function createAdminApp() {
         ? fromApp.content
         : createAdminContentShell();
     fromApp.isLoading = fromApp.isLoading === true || fromApp.isLoading === false ? fromApp.isLoading : false;
+
+    if (typeof fromApp.syncUiDerivedView === 'function') fromApp.syncUiDerivedView();
+    if (typeof fromApp.syncPasswordFormView === 'function') fromApp.syncPasswordFormView();
 
     return fromApp;
   }

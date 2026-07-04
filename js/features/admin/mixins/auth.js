@@ -60,6 +60,17 @@ function adminMixinAuth(ctx) {
           }
         });
         void this.bootstrapAdminSession();
+        if (typeof this.$watch === 'function') {
+          this.$watch('newPassword', () => {
+            if (typeof this.syncPasswordFormView === 'function') this.syncPasswordFormView();
+          });
+          this.$watch('newPasswordConfirm', () => {
+            if (typeof this.syncPasswordFormView === 'function') this.syncPasswordFormView();
+          });
+          this.$watch('isPasswordUpdating', () => {
+            if (typeof this.syncPasswordFormView === 'function') this.syncPasswordFormView();
+          });
+        }
       },
 
       /**
@@ -395,8 +406,10 @@ function adminMixinAuth(ctx) {
         this._billingStatusToastShown = false;
         this._initialPanelLoadDone = false;
         this._subscriptionTabStripeSynced = false;
-        this._setupWizardAutoOpened = false;
+        this._onboardingAutoStartDone = false;
         this._authEmailJustConfirmed = false;
+        if (typeof this.syncUiDerivedView === 'function') this.syncUiDerivedView();
+        if (typeof this.syncPasswordFormView === 'function') this.syncPasswordFormView();
         if (this._postPaymentRefreshTimer != null) {
           clearTimeout(this._postPaymentRefreshTimer);
           this._postPaymentRefreshTimer = null;

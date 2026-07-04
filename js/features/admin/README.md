@@ -18,6 +18,8 @@ Logika Alpine panelu (`admin.html`) jest podzielona na pliki domenowe i składan
 
 Mixiny przyjmują `ctx` z closure `createAdminApp` (`cfg`, `repo`, timeouty).
 
+**Reaktywność Alpine:** gettery na `x-data` zamrażają się przy init — stan UI (billing, kreator, checklisty, presety) trzymaj w jawnych polach i odświeżaj przez `refreshBillingSubscriptionView()`, `syncWizardView()`, `syncUiDerivedView()`, `syncPasswordFormView()`. Nowe szablony: `registry.js` + `themeConfig.js` + `presetsByTheme` w config — bez zmian w syncu.
+
 ## Komendy
 
 ```bash

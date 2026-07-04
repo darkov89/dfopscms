@@ -20,6 +20,9 @@ function adminMixinWizard(ctx) {
         if (typeof window.DFOPS_getWizardOfferCopy === 'function') {
           this.wizardOfferCopy = window.DFOPS_getWizardOfferCopy(activeTheme);
         }
+        if (typeof this.syncUiDerivedView === 'function') {
+          this.syncUiDerivedView();
+        }
       },
       persistWizardUiState() {
         this.syncWizardView();

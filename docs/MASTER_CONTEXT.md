@@ -378,6 +378,7 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
+| **2026-07-04** | **Panel — syncUiDerivedView:** wszystkie gettery UI (presety, checklisty, gating planu, katalog szablonów) jako jawne pola + `syncUiDerivedView()` / `compute*` w `shared.js` (registry/themeConfig — nowe szablony bez zmian w Alpine). Bundle `adminApp.js?v=20260704l`. |
 | **2026-07-04** | **Kreator panelu — reaktywność Alpine:** jawne pola `wizardStepId`, `wizardStepCount`, `wizardActiveTheme`, `wizardOfferCopy` + `syncWizardView()` (gettery zamrażane przy init → kreator utykał na szablonie); usunięty błędny early-return w `dismissWelcomeModalAndStartOnboarding` pomijający Driver.js. Bundle `adminApp.js?v=20260704k`. |
 | **2026-07-04** | **Onboarding po rejestracji:** auto-start kreatora przy pierwszym `loadData` dla `theme=setup` (nie tylko `?code=` z maila); race trigger DB vs `ensurePageFromRegistrationMetadata` — retry + 23505 bez flasha „slug zajęty”; kreator otwiera się bez Driver.js gdy CDN niedostępny. Bundle `adminApp.js?v=20260704j`. |
 | **2026-07-04** | **Staging pages.dev — tenant bez subdomeny:** `platformRouting` na `*.pages.dev` buduje URL `apex/?site=slug` (CF Pages bez wildcardu); staging bypass weryfikacji e-mail dla zalogowanego użytkownika (kreator na preview). |
