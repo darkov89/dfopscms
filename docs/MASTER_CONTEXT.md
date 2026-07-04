@@ -342,7 +342,7 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 | **Gitignored — archiwum GTM (lokalne)** | `_lead-generator-export/` | CSV leadów, dataset Apify, skrypt leadów (40 wizytówek — **nie** demo katalogowe). **Nie ma w świeżym `git clone`**. Demo katalogowe → `data/seeds/demo_pages.json` + migracja `20260616150000_*`. |
 | **Lokalne / pomocnicze** | `supabase/migrations_backup/`, `migrations_local_only/`, `snippets/` | Nie pushować na prod bez review; mogą być puste |
 | **Gitignored** | `.env*`, `node_modules/`, `supabase/.temp/`, `.supabase/`, `dataset_crawler-google-places_*.json` | Sekrety i cache CLI |
-| **Opcjonalne (AI)** | `.agents/skills/` | Instrukcje agentów; nie wpływają na deploy |
+| **Opcjonalne (AI)** | `.agents/skills/` | Instrukcje agentów (Stripe, **supabase-dfcms**, **cloudflare-dfcms**); nie wpływają na deploy |
 
 **`data/seeds/demo_pages.json`:** w repo (6 demo katalogowych, ~31 KB). Synchronizowany z migracją `20260616150000_*` skryptem `scripts/extract-demo-seeds-from-migration.mjs`. Nie mylić z `_lead-generator-export/demo_pages.json` (40 leadów, gitignored).
 

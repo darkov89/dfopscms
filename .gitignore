@@ -4,7 +4,10 @@
 .vscode/*
 !.vscode/settings.json
 .idea/
-.agents/
+# Agent tooling — skills w repo, reszta lokalna
+.agents/*
+!.agents/skills/
+!.agents/skills/**
 
 ## Logs
 *.log

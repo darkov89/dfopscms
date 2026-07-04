@@ -20,6 +20,16 @@
       "source": "docs.stripe.com",
       "sourceType": "well-known",
       "computedHash": "46bb3c16878f93b953ed901b950686d64f04f90c67400bf31e1a0d7790d889df"
+    },
+    "supabase-dfcms": {
+      "source": "project",
+      "sourceType": "local",
+      "path": ".agents/skills/supabase-dfcms"
+    },
+    "cloudflare-dfcms": {
+      "source": "project",
+      "sourceType": "local",
+      "path": ".agents/skills/cloudflare-dfcms"
     }
   }
 }
