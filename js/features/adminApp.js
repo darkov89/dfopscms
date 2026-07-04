@@ -788,8 +788,10 @@
       currentTemplateVersion: 1,
       updateAvailable: false,
       selectedStyleBundle: '',
-      /** Ustawiane z pages.trial_blocked_at — po trialu bez płatności strona publiczna jest zablokowana. */
+      /** Ustawiane z pages.trial_blocked_at — znacznik cron/Stripe w bazie. */
       trialBlockedAt: null,
+      billingFailedAt: null,
+      pageBillingPlan: 'trial',
       showTrialSuspendedModal: true,
       /** Opcjonalny modal po płatności — główny flow opiera się na toastach + opóźnionym loadData. */
       showSuccessModal: false,
@@ -1100,8 +1102,22 @@
         if (this.subscriptionPlan !== 'trial' || !sub?.trial_started_at) return 14;
         const start = new Date(sub.trial_started_at).getTime();
         const now = Date.now();
+        const blockDays = window.DFOPS_TRIAL_PUBLIC_BLOCK_AFTER_DAYS || 14;
         const elapsed = Math.floor((now - start) / MS_PER_DAY);
-        return Math.max(0, 14 - elapsed);
+        return Math.max(0, blockDays - elapsed);
+      },
+      /** Zgodne z publicSiteApp / expire_trial_pages — DB flag lub wyliczenie z trial_started_at. */
+      get isTrialPublicBlocked() {
+        if (this.hasActivePaidSubscription) return false;
+        if (typeof window.DFOPS_shouldBlockPublicPageView !== 'function') {
+          return !!this.trialBlockedAt;
+        }
+        return window.DFOPS_shouldBlockPublicPageView({
+          trial_blocked_at: this.trialBlockedAt,
+          billing_failed_at: this.billingFailedAt,
+          billing_plan: this.pageBillingPlan,
+          content: this.content,
+        });
       },
       get isCustomDomainLocked() {
         if (typeof window.DFOPS_planAllowsCustomDomain === 'function') {
@@ -2442,7 +2458,8 @@
           this.slug = data.slug;
           this.impersonatedPageOwnerId = this.isImpersonating ? (data.user_id || null) : null;
           this.trialBlockedAt = data.trial_blocked_at ?? null;
-          this.showTrialSuspendedModal = !!this.trialBlockedAt;
+          this.billingFailedAt = data.billing_failed_at ?? null;
+          this.pageBillingPlan = data.billing_plan || 'trial';
           this.customDomain = data.custom_domain || '';
           this.customDomainStatus = data.custom_domain_status || '';
           this.domainInput = data.custom_domain || '';
@@ -2485,9 +2502,10 @@
             await this.loadBillingProfile();
           }
           this.billingProfileReady = true;
+          this.syncUserPlanFromBilling();
+          this.showTrialSuspendedModal = this.isTrialPublicBlocked;
           this.currentTemplateVersion = Number(this.content.pl.settings.template_version || 1);
           this.updateAvailable = this.currentTemplateVersion < this.latestTemplateVersion;
-          this.syncUserPlanFromBilling();
           this.applyThemeStylingFromContent();
           this.enforceColorPresetForStarter();
           this.enforceQuickChatForStarter();

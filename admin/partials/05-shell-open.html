@@ -12,8 +12,8 @@
             <span>Edytujesz stronę klienta: <strong class="font-semibold text-white" x-text="slug"></strong></span>
             <a href="godmode.html" class="ml-3 inline-flex rounded-md border border-white/15 px-3 py-1 text-xs font-bold uppercase tracking-widest text-white transition-colors hover:bg-white/10">Wróć do listy</a>
         </div>
-        <div x-show="trialBlockedAt" class="w-full bg-red-900 text-white text-sm py-3 px-4 text-center flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 shrink-0" x-cloak role="alert">
-            <span>Strona publiczna jest <strong>zablokowana</strong> (wygasły trial lub brak płatności po terminie). Goście widzą komunikat z wezwaniem dla administratora.</span>
+        <div x-show="isTrialPublicBlocked" class="w-full bg-red-900 text-white text-sm py-3 px-4 text-center flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 shrink-0" x-cloak role="alert">
+            <span>Strona publiczna jest <strong>zablokowana</strong> (wygasły trial lub brak płatności po terminie). Goście widzą komunikat z wezwaniem dla administratora. Podgląd z panelu nadal działa.</span>
             <button type="button" @click="setTab('subscription'); showTrialSuspendedModal = false" class="shrink-0 underline font-bold hover:no-underline text-white">Przejdź do subskrypcji</button>
         </div>
 

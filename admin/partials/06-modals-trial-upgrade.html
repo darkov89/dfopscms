@@ -1,4 +1,4 @@
-        <div x-show="user && trialBlockedAt && showTrialSuspendedModal" x-cloak class="fixed inset-0 z-[260] flex items-center justify-center p-4 bg-black/60" @click.self="showTrialSuspendedModal = false">
+        <div x-show="user && isTrialPublicBlocked && showTrialSuspendedModal" x-cloak class="fixed inset-0 z-[260] flex items-center justify-center p-4 bg-black/60" @click.self="showTrialSuspendedModal = false">
             <div class="relative w-full max-w-lg rounded-2xl border border-slate-200/70 bg-white p-8 shadow-panel-md ring-1 ring-slate-900/5" @click.stop>
                 <button type="button" class="absolute top-3 right-3 text-slate-400 hover:text-slate-800 text-xl leading-none" @click="showTrialSuspendedModal = false" aria-label="Zamknij">×</button>
                 <h2 class="text-xl font-serif font-bold text-slate-900 mb-2 pr-8">Publikacja zablokowana</h2>

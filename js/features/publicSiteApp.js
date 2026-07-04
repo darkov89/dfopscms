@@ -1,46 +1,10 @@
 ;(function () {
-  const MS_PER_DAY = 86400000;
   const normalizeHostname = window.DFOPS_normalizeHostname;
-  /** Zgodnie z public.expire_trial_pages() — blok po 14 dniach od trial_started_at bez płatności. */
-  const TRIAL_PUBLIC_BLOCK_AFTER_DAYS = 14;
-  /** Zgodnie z billing_targets w expire_trial_pages — 14 dni po billing_failed_at. */
-  const BILLING_FAILED_BLOCK_AFTER_DAYS = 14;
 
-  function paymentCompletedTrue(sub) {
-    if (!sub || typeof sub !== 'object') return false;
-    const v = sub.payment_completed;
-    if (v === true || v === 1 || v === '1' || v === 'true') return true;
-    return false;
-  }
-
-  /**
-   * Czy ukryć treść strony publicznej (bez czekania na cron ustawiający trial_blocked_at).
-   * Logika zsynchronizowana z SQL: expire_trial_pages (trial + billing_failed).
-   * Uwaga: rezygnacja na koniec okresu w Stripe (`cancel_at_period_end` w JSON) sama w sobie
-   * NIE blokuje publikacji — do tego służą trial, billing_failed i trial_blocked_at.
-   */
   function shouldBlockPublicPageView(page) {
-    if (!page || typeof page !== 'object') return true;
-    if (page.content?.pl?.settings?.is_demo_catalog === true) return false;
-    const billingPlan = String(page.billing_plan || '').trim() || 'trial';
-    if (billingPlan === 'tier0' || billingPlan === 'tier1' || billingPlan === 'tier2') {
-      return false;
+    if (typeof window.DFOPS_shouldBlockPublicPageView === 'function') {
+      return window.DFOPS_shouldBlockPublicPageView(page);
     }
-    if (page.trial_blocked_at) return true;
-    const bf = page.billing_failed_at;
-    if (bf) {
-      const bt = new Date(bf).getTime();
-      if (Number.isFinite(bt) && Date.now() - bt >= BILLING_FAILED_BLOCK_AFTER_DAYS * MS_PER_DAY) {
-        return true;
-      }
-    }
-    const sub = page.content?.pl?.settings?.subscription;
-    if (!sub || typeof sub !== 'object') return true;
-    const ts = sub.trial_started_at;
-    if (ts == null || String(ts).trim() === '') return true;
-    const start = new Date(ts).getTime();
-    if (!Number.isFinite(start)) return true;
-    if (Date.now() - start < TRIAL_PUBLIC_BLOCK_AFTER_DAYS * MS_PER_DAY) return false;
     return true;
   }
 

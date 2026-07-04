@@ -27,7 +27,17 @@ Configure **separate** webhook endpoints in Stripe Test vs Live dashboards.
 
 ## Cron
 
-`expire-trial-pages` — configure Supabase Cron / scheduled invoke with `CRON_SECRET`. See MASTER_CONTEXT TO-DO if not yet on prod.
+### Trial expiry (wymagane)
+
+1. Dashboard → **Database → Extensions** → włącz **pg_cron** (i **pg_net** jeśli Telegram).
+2. `npm run deploy:db:staging` / `deploy:db:production` — migracja `20260704223000` rejestruje job `dfcms-expire-trial-pages` (03:00 UTC) i robi backfill `trial_blocked_at`.
+3. Sprawdź: `SELECT * FROM cron.job WHERE jobname = 'dfcms-expire-trial-pages';`
+
+### Telegram (opcjonalnie)
+
+Edge `expire-trial-pages` — alerty kasacji. Po ustawieniu Vault (`dfcms_project_url`, `dfcms_cron_secret`) uruchom `scripts/cron-expire-trial-edge.sql` w SQL Editor (job `dfcms-expire-trial-edge`, 03:15 UTC).
+
+Ręczny test Edge: `POST …/functions/v1/expire-trial-pages` + `Authorization: Bearer CRON_SECRET`.
 
 ## Database Webhooks
 

@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-07-04 — spec architektury Silnika Wzrostu (Growth Autopilot)
+**Ostatnia aktualizacja treści:** 2026-07-04 — pg_cron trial sync + panel isTrialPublicBlocked
 
 ---
 
@@ -90,11 +90,12 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 
 **Trial i retencja:**
 
-- **Blokada publiczna (14 dni):** `publicSiteApp.shouldBlockPublicPageView()` — 14 dni od `trial_started_at` lub `billing_failed_at`; natychmiast przy `trial_blocked_at`. **Podgląd panelu** (`?dfcms_preview=1` + sesja właściciela/superadmina) omija blokadę — `getPageForAuthenticatedPreview()` + baner „Podgląd prywatny”; goście i LIVE bez zmian.
-- **Cron DB:** Edge `expire-trial-pages` → RPC `expire_trial_pages()` (logika 14 dni + `billing_profiles`; migracja `20260611120000`).
+- **Blokada publiczna (14 dni):** wspólna logika `js/core/trialBlocking.js` (`DFOPS_shouldBlockPublicPageView`) — używana w `publicSiteApp` i panelu (`isTrialPublicBlocked`). Źródła: `trial_started_at` w JSON, `trial_blocked_at`, `billing_failed_at`, `billing_plan`. **Podgląd panelu** (`?dfcms_preview=1` + sesja właściciela) omija blokadę.
+- **Cron DB (pg_cron):** migracja `20260704223000` — codziennie 03:00 UTC `run_expire_trial_pages_cron()` → `expire_trial_pages()` + `notify_purge_upcoming_pages()`; backfill przy `db push`. Wymaga **pg_cron** w Dashboard → Extensions.
+- **Edge `expire-trial-pages`:** opcjonalnie Telegram (alert −7 dni, raport kasacji) — `scripts/cron-expire-trial-edge.sql` + Vault (`dfcms_project_url`, `dfcms_cron_secret`); `verify_jwt = false`.
 - **Ostrzeżenie −7 dni:** `pages.purge_warning_sent_at` + RPC `notify_purge_upcoming_pages()` (≥23 dni od blokady).
 - **Kasacja (30 dni):** RPC `purge_trial_blocked_pages_after_grace()` — **domyślnie wyłączona** w Edge (`AUTO_PURGE_ENABLED` ≠ true); raport do ręcznej kasacji.
-- **Powiadomienia cron:** **Telegram** (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`) — Markdown; **Resend usunięty** z `expire-trial-pages`. Secrets crona: `CRON_SECRET`. Harmonogram: Dashboard → Integrations → Cron → POST `expire-trial-pages`.
+- **Powiadomienia cron:** **Telegram** (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`) — przez Edge `expire-trial-pages` (opcjonalny harmonogram pg_cron, patrz `scripts/cron-expire-trial-edge.sql`). Secrets: `CRON_SECRET`.
 
 **Onboarding:** modal powitalny, Driver.js, kreator (wizard) sterowany `themeConfig` — liczba i treść kroków zależy od `pages.theme`; `welcome_onboarding_completed` / `onboarding_completed` w `pages.content`.
 
@@ -106,7 +107,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 
 **Luki:** brak obowiązkowego E2E/CI dla Edge; wildcard `*.dfcms.pl` w Cloudflare Pages; RLS anon read wymaga GRANT + polityki; brak historii wersji treści; monolityczny panel (`admin.html` + `adminApp.js`) utrudnia kolejne zmiany IA; Silnik Wzrostu — do implementacji wg spec.
 
-**TO-DO operacyjne:** tour Driver.js mobile; smoke webhook Stripe; CI deploy Edge; skonfigurować Cron Supabase dla `expire-trial-pages`.
+**TO-DO operacyjne:** tour Driver.js mobile; smoke webhook Stripe; CI deploy Edge; włączyć **pg_cron** na Staging/Prod jeśli migracja `20260704223000` zalogowała WARNING; opcjonalnie Vault + `scripts/cron-expire-trial-edge.sql` dla Telegram.
 
 ### 1.5 Onboarding i panel (szczegóły)
 
@@ -373,6 +374,13 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-07-04 — pg_cron trial + sync panelu z blokadą publiczną
+
+- **`js/core/trialBlocking.js`:** wspólna `DFOPS_shouldBlockPublicPageView` (public + panel).
+- **Panel:** getter `isTrialPublicBlocked` — baner/modal gdy trial wygasły po dacie, nie tylko gdy `trial_blocked_at` w DB.
+- **Migracja `20260704223000`:** `run_expire_trial_pages_cron()` + pg_cron 03:00 UTC + backfill `trial_blocked_at`; opcjonalny Telegram przez `scripts/cron-expire-trial-edge.sql`.
+- **Edge:** `expire-trial-pages/config.toml` → `verify_jwt = false`.
 
 ### 2026-07-04 — Podgląd po wygasłym trial
 
