@@ -102,22 +102,6 @@
         return;
       }
 
-      const localHosts = cfg.localHosts || [];
-      const isLocal = localHosts.indexOf(window.location.hostname) !== -1;
-
-      if (!isLocal && !hostname.includes('pages.dev') && !isApexOrStagingRoot(hostname)) {
-        if (isHostUnderBaseDomain(hostname, baseDomains)) {
-          const subSlug = extractSubdomainAsSlug(hostname, baseDomains);
-          if (subSlug && isSafeSlugValue(subSlug)) {
-            window.location.replace('/');
-            return;
-          }
-        } else {
-          window.location.replace('/');
-          return;
-        }
-      }
-
       let page = null;
 
       if (isHostUnderBaseDomain(hostname, baseDomains)) {
@@ -144,6 +128,8 @@
 
       if (!page || !page.theme || !page.slug) throw new Error('Strona nie istnieje');
 
+      const localHosts = cfg.localHosts || [];
+      const isLocal = localHosts.indexOf(window.location.hostname) !== -1;
       const theme = String(page.theme).trim().toLowerCase();
       let target =
         typeof window.DFOPS_publicHtmlPathForTheme === 'function'

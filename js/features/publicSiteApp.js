@@ -1139,44 +1139,31 @@
         const isLocal = (cfg.localHosts || []).includes(window.location.hostname);
         const theme = page.theme;
         const slug = page.slug;
-        const tenantBase =
-          typeof window.DFOPS_resolveTenantBaseFromHostname === 'function'
-            ? window.DFOPS_resolveTenantBaseFromHostname(host, normalizeHostname)
-            : (cfg.appDomain || 'dfcms.pl').toLowerCase();
+        const themePath =
+          typeof window.DFOPS_publicHtmlPathForTheme === 'function'
+            ? window.DFOPS_publicHtmlPathForTheme(theme)
+            : theme === 'setup'
+              ? '/setup.html'
+              : `/templates/${theme}.html`;
+
         if (!theme || theme === 'setup') {
-          const setupPath = `/setup.html`;
-          if (!slug) return `${window.location.origin}${setupPath}`;
+          if (!slug) return `${window.location.origin}${themePath || '/setup.html'}`;
           if (isLocal) {
-            return `${window.location.origin}${setupPath}?site=${encodeURIComponent(slug)}`;
+            return `${window.location.origin}/setup.html?site=${encodeURIComponent(slug)}`;
           }
-          if (host.endsWith('.' + tenantBase) && host !== tenantBase) {
-            return `${window.location.protocol}//${window.location.host}/`;
+          if (isTenantPublicHost(host)) {
+            return `${window.location.protocol}//${window.location.host}/setup.html`;
           }
-          if (
-            typeof window.DFOPS_isHostUnderPlatform === 'function' &&
-            !window.DFOPS_isHostUnderPlatform(host, normalizeHostname) &&
-            host !== tenantBase
-          ) {
-            return `${window.location.protocol}//${window.location.host}/`;
-          }
-          return `${window.location.origin}${setupPath}?site=${encodeURIComponent(slug)}`;
+          return `${window.location.origin}/setup.html?site=${encodeURIComponent(slug)}`;
         }
-        if (!slug) return `${window.location.origin}/templates/${theme}.html`;
+        if (!slug) return `${window.location.origin}${themePath}`;
 
         if (isLocal) {
           return `${window.location.origin}/templates/${theme}.html?site=${encodeURIComponent(slug)}`;
         }
 
-        if (host.endsWith('.' + tenantBase) && host !== tenantBase) {
-          return `${window.location.protocol}//${window.location.host}/`;
-        }
-
-        if (
-          typeof window.DFOPS_isHostUnderPlatform === 'function' &&
-          !window.DFOPS_isHostUnderPlatform(host, normalizeHostname) &&
-          host !== tenantBase
-        ) {
-          return `${window.location.protocol}//${window.location.host}/`;
+        if (isTenantPublicHost(host)) {
+          return `${window.location.protocol}//${window.location.host}${themePath}`;
         }
 
         return `${window.location.origin}/templates/${theme}.html?site=${encodeURIComponent(slug)}`;
@@ -1205,15 +1192,15 @@
           if (!page) throw new Error('Brak strony');
 
           this.slug = page.slug;
-          cleanTenantPublicUrl(page.slug);
 
+          const rawPathname = window.location.pathname;
           const onTenantPublicSurface =
             (!!currentSlug || !!currentCustomDomain) &&
             !urlParams.get('site')?.trim() &&
             isTenantPublicHost(hostname);
           const homePaths = ['/', '/index.html', '/index'];
           const onTenantHome =
-            onTenantPublicSurface && homePaths.indexOf(window.location.pathname) !== -1;
+            onTenantPublicSurface && homePaths.indexOf(rawPathname) !== -1;
 
           if (shouldBlockPublicPageView(page)) {
             window.DFOPS__applyAnalyticsConsentNow = function noopAnalyticsConsent() {};
@@ -1270,6 +1257,8 @@
             window.location.replace(this.buildThemePageUrl(page));
             return;
           }
+
+          cleanTenantPublicUrl(page.slug);
 
           const renderSource = previewDraft || page.content;
           this.theme =

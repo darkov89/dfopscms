@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-07-04 — UX zakładki Subskrypcja (post-checkout, kafelki); rollback panelu JS na staging
+**Ostatnia aktualizacja treści:** 2026-07-04 — fix landingu na subdomenach tenantów (client fallback bez wildcard Pages)
 
 ---
 
@@ -59,7 +59,7 @@ W konsoli: `window.DFOPS_DEPLOY_ENVIRONMENT` → `'staging'` | `'production'`.
 2. **Publikacja treści** — panel kopiuje `draft_content` → `content`; strony publiczne czytają wyłącznie `content` (preview: `dfcms_preview=1` + właściciel).
 3. **Płatność** — panel → `create-checkout` → Stripe Checkout → `stripe-webhook` / `sync-stripe-subscription` → `billing_profiles` + lustrzane `pages.billing_plan`.
 4. **Własna domena** — panel → `add-custom-domain` + `GET /api/verify-domain?domain=…` (Pages Function, DoH CNAME) → Cloudflare Custom Hostname → `pages.custom_domain`.
-5. **Routing publiczny** — `functions/_middleware.js` (slug z nagłówka `Host` / kandydatów, nie tylko `pages.dev`); subdomeny `{slug}.dfcms.pl` → szablon bez `?site=`; apex `dfcms.pl?site=slug` tylko preview/demo; nieistniejący tenant → 404 HTML (nie landing); `?site=` tylko bezpieczny slug `[a-z0-9-]+`; `publicSiteApp.cleanTenantPublicUrl()` usuwa ewentualny query na subdomenie.
+5. **Routing publiczny** — `functions/_middleware.js` (slug z nagłówka `Host` / kandydatów); gdy edge widzi tylko `*.pages.dev` (brak wildcard `*.dfcms.pl` w Pages), **fallback w przeglądarce:** `index.html` → `router.html` → `/templates/{theme}.html` (slug z `window.location.hostname`); `publicSiteApp.cleanTenantPublicUrl()` normalizuje URL do `/`; apex `dfcms.pl?site=slug` → preview z query; nieistniejący tenant → 404 HTML.
 6. **Alerty** — Sentry / Database Webhooks / cron → Telegram (**bez** triggerów SQL `http_request` w migracjach).
 
 ```
@@ -370,6 +370,12 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-07-04 — Fix landingu na subdomenach tenantów
+
+- **Przyczyna:** bez wildcard `*.dfcms.pl` w Cloudflare Pages worker widzi host `dfopscms.pages.dev` → middleware pada → `next()` serwuje `index.html` (marketing). Poprzedni `routerApp` robił `replace('/')` → pętla landingu.
+- **Fix:** `index.html` — fallback `router.html` gdy `DFOPS_isTenantPublicHostname` lub custom domain; `routerApp.js` — tenant/custom → `/templates/{theme}.html` (bez `?site=`); `publicSiteApp` — `buildThemePageUrl` i kolejność `cleanTenantPublicUrl` vs redirect motywu.
+- **TO-DO infra:** dodać `*.dfcms.pl` (i ewentualnie custom hostnames) w Cloudflare Pages, żeby edge rewrite na `/` działał bez hopu przez router.
 
 ### 2026-07-04 — UX zakładki Subskrypcja
 

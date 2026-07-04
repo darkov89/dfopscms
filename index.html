@@ -52,6 +52,7 @@
         body { font-feature-settings: "cv02", "cv03", "cv04", "cv11"; }
     </style>
     <script src="js/core/utils.js?v=20260617a"></script>
+    <script src="js/core/platformRouting.js?v=20260704c"></script>
 </head>
 <body class="min-h-screen bg-[#121212] font-sans text-gray-300 antialiased selection:bg-brand-gold selection:text-brand-ink" x-data="landingPricing()">
 
@@ -78,6 +79,20 @@
                 if (site && String(site).trim() && bareRoots[h]) {
                     window.location.replace('router.html' + u.search + u.hash);
                     return;
+                }
+
+                // Edge nie widzi Host subdomeny bez wildcardu *.dfcms.pl w Pages — fallback po hostname w przeglądarce.
+                if (
+                    !isLocal &&
+                    typeof window.DFOPS_isTenantPublicHostname === 'function' &&
+                    window.DFOPS_isTenantPublicHostname(h, window.DFOPS_normalizeHostname)
+                ) {
+                    window.location.replace('router.html' + u.search + u.hash);
+                    return;
+                }
+
+                if (!bareRoots[h] && h.indexOf('pages.dev') === -1 && !isLocal) {
+                    window.location.replace('router.html' + u.search + u.hash);
                 }
             } catch (e) { /* ignore */ }
         })();
