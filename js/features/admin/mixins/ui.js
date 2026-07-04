@@ -29,20 +29,6 @@ function adminMixinUi(ctx) {
           (!!this.user && !this.isForcedPasswordReset && !this.billingProfileReady)
         );
       },
-      /** Tier zapisany w CMS albo wybrany przed pełnym merge z webhookiem. */
-      get activePaidTierForUi() {
-        if (!this.hasActivePaidSubscription) return null;
-        const p = this.subscriptionPlan;
-        if (p === 'tier0' || p === 'tier1') return p;
-        if (p === 'tier2' && typeof window.DFOPS_normalizePlan === 'function') {
-          return window.DFOPS_normalizePlan(p);
-        }
-        if (p === 'tier2') return 'tier1';
-        const sel = this.billingSubscriptionView?.selected_plan;
-        if (sel === 'tier0' || sel === 'tier1') return sel;
-        if (sel === 'tier2') return 'tier1';
-        return null;
-      },
       /** Kreator tylko po potwierdzeniu e-maila — zgodny z needsEmailConfirmation ustawianym po getUser(). */
       get isEmailVerified() {
         return !!this.user && !this.needsEmailConfirmation;
@@ -174,27 +160,6 @@ function adminMixinUi(ctx) {
         }
         return Math.min(100, Math.round(sum));
       },
-      /**
-       * Subskrypcja opłacona do końca okresu, ale zaplanowane zamknięcie (nie odnowi się).
-       */
-      get isSubscriptionCanceledButValid() {
-        const sub = this.billingSubscriptionView;
-        if (!sub || typeof sub !== 'object') return false;
-        const st = typeof sub.status === 'string' ? sub.status.trim().toLowerCase() : '';
-        if (st !== 'active' && st !== 'trialing') return false;
-        return sub.cancel_at_period_end === true;
-      },
-      /**
-       * Portal Stripe — aktywny pakiet lub anulowana subskrypcja z nadal istniejącym klientem (faktury, karta).
-       */
-      get showStripeBillingPortal() {
-        if (this.hasActivePaidSubscription) return true;
-        const sub = this.billingSubscriptionView;
-        const cid = typeof sub?.stripe_customer_id === 'string' ? sub.stripe_customer_id.trim() : '';
-        if (!cid) return false;
-        const st = typeof sub?.status === 'string' ? sub.status.trim().toLowerCase() : '';
-        return st === 'canceled' || st === 'cancelled';
-      },
       /** Istniejący klient Stripe (CID lub SID) — nie oznacza aktywnej subskrypcji. */
       get subscriptionBlocksAccountDeletion() {
         const sub = this.billingSubscriptionView;
@@ -204,20 +169,6 @@ function adminMixinUi(ctx) {
         if (stRaw === 'canceled' || stRaw === 'cancelled' || stRaw === 'incomplete_expired') return false;
         if (!stRaw) return true;
         return ['active', 'trialing', 'past_due', 'unpaid', 'paused'].includes(stRaw);
-      },
-      get activeSubscriptionBrandLabel() {
-        const t = this.activePaidTierForUi;
-        if (t === 'tier1' || t === 'tier2') return 'STANDARD';
-        if (t === 'tier0') return 'STARTER';
-        if (this.hasActivePaidSubscription) return 'SUBSKRYPCJA STRIPE';
-        return '';
-      },
-      get activeSubscriptionPriceLine() {
-        const t = this.activePaidTierForUi;
-        if (t === 'tier1' || t === 'tier2') return '49 PLN netto / msc';
-        if (t === 'tier0') return '29 PLN netto / msc';
-        if (this.hasActivePaidSubscription) return 'Kwota zgodnie z aktywnym pakietem w Stripe';
-        return '';
       },
       get isBillingCanceled() {
         const st = String(this.billingProfile?.status || '').trim().toLowerCase();

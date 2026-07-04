@@ -117,6 +117,11 @@ function createAdminApp() {
       hasActivePaidSubscription: false,
       subscriptionRenewalDateFormatted: '—',
       subscriptionRenewalDateBadgeShort: '—',
+      activePaidTierForUi: null,
+      isSubscriptionCanceledButValid: false,
+      showStripeBillingPortal: false,
+      activeSubscriptionBrandLabel: '',
+      activeSubscriptionPriceLine: '',
       /** False do zakończenia pierwszego loadBillingProfile w bieżącej sesji panelu. */
       billingProfileReady: false,
       /** Jednorazowy toast o wygasającej / zakończonej subskrypcji (po pełnym stanie billing). */

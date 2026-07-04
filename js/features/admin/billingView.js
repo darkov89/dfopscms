@@ -127,6 +127,47 @@ function computeHasActivePaidSubscription(sub) {
   return st === 'active' || st === 'trialing';
 }
 
+function computeActivePaidTierForUi(view, hasPaid) {
+  if (!hasPaid || !view || typeof view !== 'object') return null;
+  let p = String(view.plan || '').trim().toLowerCase();
+  if (p === 'tier2' || p === 'premium') p = 'tier1';
+  if (p === 'tier0' || p === 'tier1') return p;
+  const sel = view.selected_plan;
+  if (sel === 'tier0' || sel === 'tier1') return sel;
+  if (sel === 'tier2') return 'tier1';
+  return null;
+}
+
+function computeIsSubscriptionCanceledButValid(view) {
+  if (!view || typeof view !== 'object') return false;
+  const st = String(view.status || '').trim().toLowerCase();
+  if (st !== 'active' && st !== 'trialing') return false;
+  return view.cancel_at_period_end === true;
+}
+
+function computeShowStripeBillingPortal(view, hasPaid) {
+  if (hasPaid) return true;
+  if (!view || typeof view !== 'object') return false;
+  const cid = String(view.stripe_customer_id || '').trim();
+  if (!cid) return false;
+  const st = String(view.status || '').trim().toLowerCase();
+  return st === 'canceled' || st === 'cancelled';
+}
+
+function computeActiveSubscriptionBrandLabel(tier, hasPaid) {
+  if (tier === 'tier1') return 'STANDARD';
+  if (tier === 'tier0') return 'STARTER';
+  if (hasPaid) return 'SUBSKRYPCJA STRIPE';
+  return '';
+}
+
+function computeActiveSubscriptionPriceLine(tier, hasPaid) {
+  if (tier === 'tier1') return '49 PLN netto / msc';
+  if (tier === 'tier0') return '29 PLN netto / msc';
+  if (hasPaid) return 'Kwota zgodnie z aktywnym pakietem w Stripe';
+  return '';
+}
+
 /** Jawnie ustawia pola billing UI (Alpine nie zachowuje getterów z x-data — tylko przypisania). */
 function applyBillingSubscriptionView(ctx) {
   const trialSub = ctx.content?.pl?.settings?.subscription;
@@ -135,12 +176,19 @@ function applyBillingSubscriptionView(ctx) {
     trialSub,
     ctx.pageBillingPlan,
   );
+  const hasPaid = computeHasActivePaidSubscription(view);
+  const tier = computeActivePaidTierForUi(view, hasPaid);
   ctx.billingSubscriptionView = view;
   ctx.subscriptionPlan = view.plan || 'trial';
-  ctx.hasActivePaidSubscription = computeHasActivePaidSubscription(view);
+  ctx.hasActivePaidSubscription = hasPaid;
   const periodEnd = view.current_period_end;
   ctx.subscriptionRenewalDateFormatted = formatSubscriptionRenewalDatePl(periodEnd);
   ctx.subscriptionRenewalDateBadgeShort = formatSubscriptionRenewalDateBadgeShort(periodEnd);
+  ctx.activePaidTierForUi = tier;
+  ctx.isSubscriptionCanceledButValid = computeIsSubscriptionCanceledButValid(view);
+  ctx.showStripeBillingPortal = computeShowStripeBillingPortal(view, hasPaid);
+  ctx.activeSubscriptionBrandLabel = computeActiveSubscriptionBrandLabel(tier, hasPaid);
+  ctx.activeSubscriptionPriceLine = computeActiveSubscriptionPriceLine(tier, hasPaid);
   return view;
 }
 

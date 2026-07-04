@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-07-03 — billing UI: jawny `billingSubscriptionView` + panel debug
+**Ostatnia aktualizacja treści:** 2026-07-04 — subskrypcja panel: jawny stan billing + akcje upgrade/downgrade/anuluj
 
 ---
 
@@ -112,7 +112,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 - **Driver.js** (CDN 1.4.0): tour → kreator (krok 0) → podgląd strony → sidebar (`#dfops-admin-sidebar`) → **Pomocnik krok po kroku** → Subskrypcja. Po tour domyślny widok: **`dashboard`** (nie `hero`).
 - **Kreator:** kroki logiczne z `js/core/themeConfig.js` (`template` → `brand` → `hero` → `offer` → `about` → `contact`); aktywna lista per motyw (`DFOPS_getActiveWizardStepIds`) — np. gastro pomija `about`, w `offer` zbiera `menu_items` zamiast `services`; sync `nav.logo` → `business_name` / `hero.name` / SEO; `finishWizard` → `finalizeWizardContent` (ukrywa puste sekcje); stan w `localStorage` (`dfops_wizard_state_v1:{slug}`, `v:2`); czyszczenie po `finishWizard` / `switchTemplate`.
 - **Draft vs published:** auto-save debounce 1000ms → `draft_content`; `publishChanges()` → `content`; preview tylko właściciel (`dfcms_preview=1`); `revertChanges()` z `_publishedContentRaw`.
-- **Subskrypcja panel:** Źródła: `billing_profiles` + lustrzane `pages.billing_plan`; `content.pl.settings.subscription` zawsze trial (strip przy `loadData`). Widok UI: **`billingSubscriptionView`**, **`subscriptionPlan`**, **`hasActivePaidSubscription`**, daty odnowienia — jawne pola Alpine (nie gettery; Alpine zamraża gettery przy `x-data` init). Ustawiane przez `refreshBillingSubscriptionView()` / `applyBillingSubscriptionView()`. Sync Stripe: toast sukcesu tylko gdy `hasActivePaidSubscription`.
+- **Subskrypcja panel:** Źródła: `billing_profiles` + `pages.billing_plan`. Widok UI — jawne pola Alpine w `applyBillingSubscriptionView()` (plan, `hasActivePaidSubscription`, daty odnowienia, etykiety pakietu, `showStripeBillingPortal`). Aktywna subskrypcja: karta statusu + **Przejdź na Standard/Starter**, faktury/karta, **Anuluj subskrypcję** (deep linki Stripe Customer Portal). Karuzela planów tylko przy trialu. **Prod ≠ staging:** `main` ma stary `adminApp.js` (getter bug) — merge `staging` → `main` przed deployem prod.
 - **God Mode:** `godmode.html` wymaga sesji i widocznego własnego wpisu w `superadmins`; lista pobiera wszystkie `pages`. Panel po zalogowaniu sprawdza `superadmins` i pokazuje w sidebarze „Master Dashboard” tylko superadminom. Przycisk „Zarządzaj” otwiera `admin.html?impersonate={slug}`. W impersonacji panel zapisuje konkretny rekord po `pages.id`, pomija profil billingowy superadmina i blokuje checkout z sesji operatora.
 
 ### 1.5.2 Panel admin — IA (2026-07)
@@ -378,6 +378,7 @@ Chronologiczny changelog (najnowsze u góry). Jedna linia = jedna istotna zmiana
 
 | Data | Co |
 |------|-----|
+| **2026-07-04** | **Subskrypcja panel — UX zarządzania:** jawne pola etykiet/statusu portalu; przyciski „Przejdź na Standard/Starter” + anuluj; karuzela planów ukryta przy aktywnej subskrypcji. |
 | **2026-07-03** | **Billing UI — cleanup:** usunięty panel/konsola debug (`billing_debug`); zostaje jawny stan billing + weryfikacja sync przed toastem sukcesu. |
 | **2026-07-03** | **Billing UI — daty odnowienia:** `subscriptionRenewalDateFormatted` / `BadgeShort` jako jawne pola w `applyBillingSubscriptionView()` (getter zamrożony przy init → brak „Następna płatność”). |
 | **2026-07-03** | **Billing UI — Alpine gettery:** `subscriptionPlan` i `hasActivePaidSubscription` jako jawne pola (Alpine zamraża gettery przy init x-data); `applyBillingSubscriptionView()` ustawia trójkę pól naraz. |
