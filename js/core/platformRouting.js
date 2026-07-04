@@ -69,15 +69,24 @@
     return !String(base || '').includes('pages.dev');
   }
 
-  function buildTenantPublicSiteUrl(slug, hostname, normalizeFn) {
+  function buildTenantPublicSiteUrl(slug, hostname, normalizeFn, theme) {
     const s = String(slug || '').trim().toLowerCase();
     if (!s || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(s)) return '';
     const base = resolveTenantBaseFromHostname(hostname, normalizeFn);
+    const t = String(theme || '').trim().toLowerCase();
     if (base === 'localhost' || base === '127.0.0.1') return '';
     if (!tenantBaseUsesSubdomainRouting(base)) {
-      return `https://${base}/?site=${encodeURIComponent(s)}`;
+      const path = t === 'setup' ? '/setup.html' : '/';
+      return `https://${base}${path}?site=${encodeURIComponent(s)}`;
     }
     return `https://${s}.${base}/`;
+  }
+
+  function publicHtmlPathForTheme(theme) {
+    const t = String(theme || '').trim().toLowerCase();
+    if (t === 'setup') return '/setup.html';
+    if (t && t !== 'setup') return `/templates/${t}.html`;
+    return '/';
   }
 
   function formatTenantHostname(slug, hostname, normalizeFn) {
@@ -100,4 +109,5 @@
   globalThis.DFOPS_buildTenantPublicSiteUrl = buildTenantPublicSiteUrl;
   globalThis.DFOPS_formatTenantHostname = formatTenantHostname;
   globalThis.DFOPS_tenantBaseUsesSubdomainRouting = tenantBaseUsesSubdomainRouting;
+  globalThis.DFOPS_publicHtmlPathForTheme = publicHtmlPathForTheme;
 })();

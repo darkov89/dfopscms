@@ -34,6 +34,7 @@ function createAdminApp() {
       _passwordRecoveryUiHandled: false,
       /** Sesja z linku recovery — pełny panel ukryty do ustawienia nowego hasła. */
       isForcedPasswordReset: false,
+      panelDebugState: null,
       slug: new URLSearchParams(window.location.search).get('site') || '',
       hasImpersonateParam: new URLSearchParams(window.location.search).has('impersonate'),
       impersonateSlug: normalizePageSlug(new URLSearchParams(window.location.search).get('impersonate')),

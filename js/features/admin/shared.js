@@ -41,9 +41,12 @@
         ? globalThis.DFOPS_DEPLOY_ENVIRONMENT
         : '';
     const host =
-      typeof globalThis !== 'undefined' && globalThis.location && globalThis.location.hostname
+      (typeof window !== 'undefined' && window.location && window.location.hostname
+        ? String(window.location.hostname)
+        : '') ||
+      (typeof globalThis !== 'undefined' && globalThis.location && globalThis.location.hostname
         ? String(globalThis.location.hostname)
-        : '';
+        : '');
     if (env === 'staging' || /\.pages\.dev$/i.test(host)) {
       return !!(u.id && String(u.email || '').trim());
     }

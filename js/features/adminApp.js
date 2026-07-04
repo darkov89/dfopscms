@@ -43,9 +43,12 @@
         ? globalThis.DFOPS_DEPLOY_ENVIRONMENT
         : '';
     const host =
-      typeof globalThis !== 'undefined' && globalThis.location && globalThis.location.hostname
+      (typeof window !== 'undefined' && window.location && window.location.hostname
+        ? String(window.location.hostname)
+        : '') ||
+      (typeof globalThis !== 'undefined' && globalThis.location && globalThis.location.hostname
         ? String(globalThis.location.hostname)
-        : '';
+        : '');
     if (env === 'staging' || /\.pages\.dev$/i.test(host)) {
       return !!(u.id && String(u.email || '').trim());
     }
@@ -981,9 +984,10 @@ function adminMixinUi(ctx) {
           this.panelContentReady = !!this.billingProfileReady;
         }
       },
-      /** Kreator tylko po potwierdzeniu e-maila — zgodny z needsEmailConfirmation ustawianym po getUser(). */
+      /** Kreator — na bieżąco z user (nie tylko flaga ustawiona przy init sesji). */
       get isEmailVerified() {
-        return !!this.user && !this.needsEmailConfirmation;
+        if (!this.user) return false;
+        return userEmailLooksConfirmed(this.user);
       },
       /**
        * Checklista „co jeszcze dołożyć” dopóki `onboarding_completed` jest false — tylko podstawy:
@@ -1286,7 +1290,6 @@ function adminMixinUi(ctx) {
         return origin ? `${origin}${path}` : path;
       },
 
-      /** Link do wersji opublikowanej (LIVE) — bez `dfcms_preview`, z preferencją custom domain. */
       getLiveSiteUrl() {
         if (!this.slug) return '#';
         const isLocalhost =
@@ -1305,11 +1308,46 @@ function adminMixinUi(ctx) {
             this.slug,
             window.location.hostname,
             window.DFOPS_normalizeHostname,
+            this.theme,
           );
           if (url) return url;
         }
         const base = (cfg.appDomain || 'dfcms.pl').toLowerCase();
         return `https://${this.slug}.${base}/`;
+      },
+
+      /** `admin.html?dfcms_debug=1` — stan routingu / auth w konsoli i overlay. */
+      publishPanelDebugState() {
+        if (new URLSearchParams(window.location.search).get('dfcms_debug') !== '1') return;
+        const host = window.location.hostname;
+        const state = {
+          host,
+          deployEnv: window.DFOPS_DEPLOY_ENVIRONMENT,
+          supabaseProject: (window.DFOPS_SUPABASE_URL || '').replace(/^https:\/\//, '').split('.')[0] || '—',
+          tenantBase:
+            typeof window.DFOPS_resolveTenantBaseFromHostname === 'function'
+              ? window.DFOPS_resolveTenantBaseFromHostname(host, window.DFOPS_normalizeHostname)
+              : '—',
+          subdomainRouting:
+            typeof window.DFOPS_tenantBaseUsesSubdomainRouting === 'function'
+              ? window.DFOPS_tenantBaseUsesSubdomainRouting(
+                  window.DFOPS_resolveTenantBaseFromHostname?.(host, window.DFOPS_normalizeHostname),
+                )
+              : null,
+          slug: this.slug,
+          theme: this.theme,
+          liveUrl: typeof this.getLiveSiteUrl === 'function' ? this.getLiveSiteUrl() : '—',
+          previewUrl: typeof this.getPublicSiteUrl === 'function' ? this.getPublicSiteUrl() : '—',
+          needsEmailConfirmation: this.needsEmailConfirmation,
+          isEmailVerified: this.isEmailVerified,
+          emailConfirmedAt: this.user?.email_confirmed_at || this.user?.confirmed_at || null,
+          userEmail: this.user?.email || null,
+          adminBundle:
+            document.querySelector('script[src*="adminApp.js"]')?.getAttribute('src') || '—',
+        };
+        this.panelDebugState = state;
+        console.info('[DFCMS panel debug]', state);
+        window.DFOPS_panelDebugState = () => ({ ...state });
       },
       get planDisplayLabel() {
         const sub = this.billingSubscriptionView;
@@ -2424,6 +2462,7 @@ function adminMixinData(ctx) {
               }, 350);
             });
           }
+          this.publishPanelDebugState();
         }
       },
       applyThemeStylingFromContent() {
@@ -3849,7 +3888,8 @@ function adminMixinWizard(ctx) {
         await this.startOnboardingTour();
       },
       /** Pełny ekran startowy kreatora (wybór ścieżki). */
-      openWizardFromStudio() {
+      async openWizardFromStudio() {
+        await this.syncAuthUserFromServer();
         if (!this.isEmailVerified) {
           this.showToast('Potwierdź najpierw adres e-mail — link masz w wiadomości od DFCMS.', 'error');
           return;
@@ -3864,7 +3904,8 @@ function adminMixinWizard(ctx) {
           window.DFOPS_trackEvent('onboarding_reopened', { slug: this.slug });
         }
       },
-      reopenWizard() {
+      async reopenWizard() {
+        await this.syncAuthUserFromServer();
         if (!this.isEmailVerified) {
           this.showToast('Potwierdź najpierw adres e-mail — link masz w wiadomości od DFCMS.', 'error');
           return;
@@ -4213,6 +4254,7 @@ function createAdminApp() {
       _passwordRecoveryUiHandled: false,
       /** Sesja z linku recovery — pełny panel ukryty do ustawienia nowego hasła. */
       isForcedPasswordReset: false,
+      panelDebugState: null,
       slug: new URLSearchParams(window.location.search).get('site') || '',
       hasImpersonateParam: new URLSearchParams(window.location.search).has('impersonate'),
       impersonateSlug: normalizePageSlug(new URLSearchParams(window.location.search).get('impersonate')),

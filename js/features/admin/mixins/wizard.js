@@ -458,7 +458,8 @@ function adminMixinWizard(ctx) {
         await this.startOnboardingTour();
       },
       /** Pełny ekran startowy kreatora (wybór ścieżki). */
-      openWizardFromStudio() {
+      async openWizardFromStudio() {
+        await this.syncAuthUserFromServer();
         if (!this.isEmailVerified) {
           this.showToast('Potwierdź najpierw adres e-mail — link masz w wiadomości od DFCMS.', 'error');
           return;
@@ -473,7 +474,8 @@ function adminMixinWizard(ctx) {
           window.DFOPS_trackEvent('onboarding_reopened', { slug: this.slug });
         }
       },
-      reopenWizard() {
+      async reopenWizard() {
+        await this.syncAuthUserFromServer();
         if (!this.isEmailVerified) {
           this.showToast('Potwierdź najpierw adres e-mail — link masz w wiadomości od DFCMS.', 'error');
           return;

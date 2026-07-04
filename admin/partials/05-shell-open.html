@@ -1,5 +1,19 @@
         <div x-show="user && !isForcedPasswordReset" x-cloak class="flex-grow flex flex-col">
-        <div x-show="user && needsEmailConfirmation" x-cloak class="w-full bg-amber-900 text-amber-50 text-sm py-3 px-4 text-center flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 shrink-0 border-b border-amber-800/50" role="status">
+        <div x-show="panelDebugState" x-cloak class="fixed bottom-3 right-3 z-[500] max-w-md rounded-lg border border-slate-600 bg-slate-950/95 p-3 font-mono text-[10px] leading-relaxed text-emerald-300 shadow-2xl" role="status">
+            <p class="mb-1 font-bold uppercase tracking-widest text-white">DFCMS debug</p>
+            <template x-if="panelDebugState">
+                <div>
+                    <div>host: <span x-text="panelDebugState.host"></span></div>
+                    <div>bundle: <span x-text="panelDebugState.adminBundle"></span></div>
+                    <div>env: <span x-text="panelDebugState.deployEnv"></span> · db: <span x-text="panelDebugState.supabaseProject"></span></div>
+                    <div>tenant: <span x-text="panelDebugState.tenantBase"></span> · sub: <span x-text="panelDebugState.subdomainRouting"></span></div>
+                    <div>slug: <span x-text="panelDebugState.slug"></span> · theme: <span x-text="panelDebugState.theme"></span></div>
+                    <div>live: <span class="break-all" x-text="panelDebugState.liveUrl"></span></div>
+                    <div>email OK: <span x-text="panelDebugState.isEmailVerified"></span></div>
+                </div>
+            </template>
+        </div>
+        <div x-show="user && !isEmailVerified" x-cloak class="w-full bg-amber-900 text-amber-50 text-sm py-3 px-4 text-center flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 shrink-0 border-b border-amber-800/50" role="status">
             <span class="max-w-3xl">Dokończ rejestrację: <strong class="text-white">potwierdź adres e-mail</strong> z wiadomości wysłanej przez DFCMS (nadawca: <strong class="text-white">notifications@dfops.eu</strong>) — bez tego kreator się nie uruchomi.</span>
             <button type="button" @click.prevent.stop="resendSignupConfirmation()" :disabled="resendConfirmLoading" class="shrink-0 rounded-sm bg-white/15 hover:bg-white/25 border border-white/25 text-white text-xs font-bold uppercase tracking-widest px-4 py-2 disabled:opacity-50 transition-colors">
                 <span x-show="!resendConfirmLoading">Wyślij link ponownie</span>

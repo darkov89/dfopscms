@@ -144,7 +144,13 @@
 
       if (!page || !page.theme || !page.slug) throw new Error('Strona nie istnieje');
 
-      let target = '/templates/' + page.theme + '.html';
+      const theme = String(page.theme).trim().toLowerCase();
+      let target =
+        typeof window.DFOPS_publicHtmlPathForTheme === 'function'
+          ? window.DFOPS_publicHtmlPathForTheme(theme)
+          : theme === 'setup'
+            ? '/setup.html'
+            : '/templates/' + theme + '.html';
       if (isLocal || hostname.includes('pages.dev') || isApexOrStagingRoot(hostname)) {
         target += '?site=' + encodeURIComponent(page.slug);
       }

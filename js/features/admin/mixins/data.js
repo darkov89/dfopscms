@@ -350,6 +350,7 @@ function adminMixinData(ctx) {
               }, 350);
             });
           }
+          this.publishPanelDebugState();
         }
       },
       applyThemeStylingFromContent() {
