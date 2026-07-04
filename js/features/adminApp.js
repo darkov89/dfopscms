@@ -792,7 +792,7 @@
       trialBlockedAt: null,
       billingFailedAt: null,
       pageBillingPlan: 'trial',
-      showTrialSuspendedModal: true,
+      showTrialSuspendedModal: false,
       /** Opcjonalny modal po płatności — główny flow opiera się na toastach + opóźnionym loadData. */
       showSuccessModal: false,
       /** Krótki baner sukcesu na karcie Subskrypcja po pierwszej płatności (checkout). */
@@ -1118,6 +1118,41 @@
           billing_plan: this.pageBillingPlan,
           content: this.content,
         });
+      },
+      /** Zablokowany trial / brak płatności — bez pierwszego onboardingu (Driver + kreator). */
+      get shouldSkipFirstRunOnboarding() {
+        return this.isTrialPublicBlocked;
+      },
+      dismissTrialSuspendedModal() {
+        this.showTrialSuspendedModal = false;
+        if (!this.slug) return;
+        try {
+          sessionStorage.setItem('dfops_trial_suspended_dismissed:' + this.slug, '1');
+        } catch (_) {
+          /* ignore */
+        }
+      },
+      syncTrialSuspendedModalVisibility() {
+        if (!this.isTrialPublicBlocked) {
+          this.showTrialSuspendedModal = false;
+          if (this.slug) {
+            try {
+              sessionStorage.removeItem('dfops_trial_suspended_dismissed:' + this.slug);
+            } catch (_) {
+              /* ignore */
+            }
+          }
+          return;
+        }
+        let dismissed = false;
+        if (this.slug) {
+          try {
+            dismissed = sessionStorage.getItem('dfops_trial_suspended_dismissed:' + this.slug) === '1';
+          } catch (_) {
+            dismissed = false;
+          }
+        }
+        this.showTrialSuspendedModal = !dismissed;
       },
       get isCustomDomainLocked() {
         if (typeof window.DFOPS_planAllowsCustomDomain === 'function') {
@@ -2503,7 +2538,7 @@
           }
           this.billingProfileReady = true;
           this.syncUserPlanFromBilling();
-          this.showTrialSuspendedModal = this.isTrialPublicBlocked;
+          this.syncTrialSuspendedModalVisibility();
           this.currentTemplateVersion = Number(this.content.pl.settings.template_version || 1);
           this.updateAvailable = this.currentTemplateVersion < this.latestTemplateVersion;
           this.applyThemeStylingFromContent();
@@ -2537,6 +2572,7 @@
             !!this.user &&
             this.isEmailVerified &&
             !this.isForcedPasswordReset &&
+            !this.shouldSkipFirstRunOnboarding &&
             !this.content?.pl?.settings?.welcome_onboarding_completed;
 
           if (this.content?.pl?.settings?.welcome_onboarding_completed === true) {
@@ -3136,6 +3172,7 @@
       /** Zamknięcie modala powitalnego; przy otwartym kreatorze tylko zapis „widziane”, bez touru pod spodem. */
       async dismissWelcomeModalAndStartOnboarding() {
         this.showWelcomeModal = false;
+        if (this.shouldSkipFirstRunOnboarding) return;
         if (this.content?.pl?.settings?.welcome_onboarding_completed === true) {
           return;
         }

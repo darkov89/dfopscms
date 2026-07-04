@@ -375,6 +375,11 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 
 ## 4. Dziennik transformacji
 
+### 2026-07-04 — Panel: brak onboardingu przy zablokowanym trial
+
+- **`shouldSkipFirstRunOnboarding`:** wygasły trial nie pokazuje modala powitalnego / Driver.js + kreator.
+- **`syncTrialSuspendedModalVisibility`:** modal trial zapamiętywany w `sessionStorage` po „Pracuję w panelu” (nie wraca przy każdym F5).
+
 ### 2026-07-04 — pg_cron trial + sync panelu z blokadą publiczną
 
 - **`js/core/trialBlocking.js`:** wspólna `DFOPS_shouldBlockPublicPageView` (public + panel).
