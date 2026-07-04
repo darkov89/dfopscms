@@ -2208,7 +2208,7 @@
                                             <span x-show="!checkoutLoading">Aktywuj plan przez Stripe</span>
                                             <span x-show="checkoutLoading" x-cloak>Łączenie ze Stripe…</span>
                                         </button>
-                                        <p x-show="subscriptionPlan === 'trial'" class="text-[11px] leading-relaxed text-slate-500">*Klikając przycisk, żądasz natychmiastowego rozpoczęcia świadczenia usługi i przyjmujesz do wiadomości, że tracisz prawo do 14-dniowego odstąpienia od umowy.</p>
+                                        <p x-show="subscriptionPlan === 'trial'" class="text-[11px] leading-relaxed text-slate-500">Przekierowanie do bezpiecznej płatności w Stripe.</p>
                                         <div x-show="subscriptionPlan === 'tier0'" x-cloak class="flex min-h-[3.25rem] w-full items-center justify-center rounded-xl border-2 border-accent bg-amber-50/90 px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-accent-soft xl:text-[11px]">
                                             Aktywna subskrypcja
                                         </div>
@@ -2252,7 +2252,7 @@
                                             <span x-show="!checkoutLoading && subscriptionPlan !== 'trial'" x-cloak>Przejdź do płatności w Stripe</span>
                                             <span x-show="checkoutLoading" x-cloak>Łączenie ze Stripe…</span>
                                         </button>
-                                        <p x-show="subscriptionPlan !== 'tier1'" class="text-[11px] leading-relaxed text-slate-500">*Klikając przycisk, żądasz natychmiastowego rozpoczęcia świadczenia usługi i przyjmujesz do wiadomości, że tracisz prawo do 14-dniowego odstąpienia od umowy.</p>
+                                        <p x-show="subscriptionPlan !== 'tier1'" class="text-[11px] leading-relaxed text-slate-500">Przekierowanie do bezpiecznej płatności w Stripe.</p>
                                         <div x-show="subscriptionPlan === 'tier1'" x-cloak class="flex min-h-[3.25rem] w-full items-center justify-center rounded-xl border-2 border-accent bg-white/90 px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-widest text-accent-soft xl:text-[11px]">
                                             Aktywna subskrypcja
                                         </div>
