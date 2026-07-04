@@ -489,7 +489,7 @@
     if (path === '/index.html' || path === '/index' || path === '/router.html' || path === '/router') {
       return true;
     }
-    if (/^\/templates\/[a-z0-9-]+\.html$/i.test(path)) return true;
+    if (/^\/templates\/[a-z0-9-]+(\.html)?$/i.test(path)) return true;
     return isPublishedThemePathname(path);
   }
 
@@ -1199,12 +1199,14 @@
                 'Wróć do panelu i kliknij „Podgląd prywatny” (otwiera nową kartę z Twoją sesją). Wklejony link bez panelu nie wystarczy. Goście nadal nie widzą strony.';
               this.dataLoaded = true;
               document.title = 'Podgląd niedostępny';
+              cleanTenantPublicUrl(currentSlug || '');
               return;
             }
             throw new Error('Brak strony');
           }
 
           this.slug = page.slug;
+          cleanTenantPublicUrl(page.slug);
 
           const rawPathname = window.location.pathname;
           const onTenantPublicSurface =
@@ -1224,6 +1226,7 @@
             this.trialBlocked = true;
             this.dataLoaded = true;
             document.title = 'Strona chwilowo niedostępna';
+            cleanTenantPublicUrl(page.slug);
             return;
           }
 
