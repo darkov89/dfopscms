@@ -333,6 +333,16 @@
       if (c.button_text === undefined || c.button_text === null) c.button_text = defaults.button_text;
       if (c.button_url === undefined || c.button_url === null) c.button_url = defaults.button_url;
 
+      /* Szybki czat: predefiniowane pytania (string[]) wklejane do WhatsApp/Messenger. */
+      if (!Array.isArray(block.contact.quick_chat_questions)) {
+        block.contact.quick_chat_questions = [];
+      } else {
+        block.contact.quick_chat_questions = block.contact.quick_chat_questions
+          .map((q) => String(q == null ? '' : q).trim())
+          .filter(Boolean)
+          .slice(0, 12);
+      }
+
       /* Smart Booking: kanoniczne `booking_url` + `settings.booking_mode` (kontrakt w contentSchema.js). */
       const legacyBooking = String(block.contact.bookingUrl || '').trim();
       const legacyBooksy = String(block.contact.booksyUrl || '').trim();

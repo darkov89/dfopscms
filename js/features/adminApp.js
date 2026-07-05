@@ -559,6 +559,7 @@
           map_place_id: '',
           whatsapp: '',
           messenger: '',
+          quick_chat_questions: [],
           cta: {
             enabled: false,
             title: '',
@@ -1995,6 +1996,64 @@
         if (!this.isQuickChatLocked || !this.content?.pl?.contact) return;
         this.content.pl.contact.whatsapp = '';
         this.content.pl.contact.messenger = '';
+      },
+
+      /** Predefiniowane pytania szybkiego czatu — wklejane do WhatsApp/Messenger (limit 12). */
+      quickChatQuestionSuggestions() {
+        const byTheme = {
+          gastro: [
+            'Dzień dobry, chciałbym zarezerwować stolik.',
+            'Czy macie wolny stolik na dziś wieczorem?',
+            'Czy przyjmujecie zamówienia na wynos?',
+          ],
+          beauty: [
+            'Dzień dobry, chciałabym umówić wizytę.',
+            'Jakie są wolne terminy w tym tygodniu?',
+            'Ile kosztuje ten zabieg?',
+          ],
+          fitness: [
+            'Dzień dobry, chciałbym zapisać się na zajęcia.',
+            'Jak wygląda karnet i cennik?',
+            'Czy mogę przyjść na trening próbny?',
+          ],
+          care: [
+            'Dzień dobry, chciałbym umówić konsultację.',
+            'Czy mają Państwo wolne terminy w tym tygodniu?',
+            'Jakie dokumenty zabrać na wizytę?',
+          ],
+          consultant: [
+            'Dzień dobry, chciałbym umówić rozmowę.',
+            'Czy oferują Państwo darmową konsultację?',
+            'Jak wygląda współpraca i cennik?',
+          ],
+          services: [
+            'Dzień dobry, chciałbym poprosić o wycenę.',
+            'Czy są dostępne wolne terminy w tym tygodniu?',
+            'Jaki jest zakres i cena usługi?',
+          ],
+        };
+        return byTheme[this.theme] || byTheme.services;
+      },
+
+      addQuickChatQuestion(preset) {
+        if (this.isQuickChatLocked) {
+          this.promptQuickChatUpgrade();
+          return;
+        }
+        if (!this.content?.pl?.contact) return;
+        if (!Array.isArray(this.content.pl.contact.quick_chat_questions)) {
+          this.content.pl.contact.quick_chat_questions = [];
+        }
+        const list = this.content.pl.contact.quick_chat_questions;
+        if (list.length >= 12) return;
+        const value = typeof preset === 'string' && preset.trim() ? preset.trim() : '';
+        if (value && list.some((q) => String(q || '').trim() === value)) return;
+        list.push(value);
+      },
+
+      removeQuickChatQuestion(index) {
+        const list = this.content?.pl?.contact?.quick_chat_questions;
+        if (Array.isArray(list)) list.splice(index, 1);
       },
 
       goAppearanceUpgrade() {

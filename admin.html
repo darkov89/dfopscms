@@ -1839,6 +1839,36 @@
                                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Link Messenger</label>
                                                 <input type="text" x-model="content.pl.contact.messenger" @focus="onQuickChatInputGuard()" autocomplete="off" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="https://m.me/TwojaStrona">
                                             </div>
+
+                                            <div class="border-t border-slate-200/80 pt-4" :class="isQuickChatLocked ? 'pointer-events-none' : ''">
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Gotowe pytania</label>
+                                                <p class="text-xs text-slate-500 leading-relaxed mb-3">Klient klika przycisk czatu, wybiera pytanie z listy i od razu ma je wpisane w rozmowie. Dodaj własne lub użyj podpowiedzi.</p>
+
+                                                <div class="space-y-2 mb-3">
+                                                    <template x-for="(q, index) in (content.pl.contact.quick_chat_questions || [])" :key="index">
+                                                        <div class="flex items-center gap-2">
+                                                            <input type="text" x-model="content.pl.contact.quick_chat_questions[index]" autocomplete="off" class="flex-1 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="np. Dzień dobry, chciałbym umówić wizytę.">
+                                                            <button type="button" @click="removeQuickChatQuestion(index)" class="shrink-0 flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-red-600 hover:border-red-200 transition-colors" aria-label="Usuń pytanie">
+                                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                            </button>
+                                                        </div>
+                                                    </template>
+                                                </div>
+
+                                                <button type="button" x-show="(content.pl.contact.quick_chat_questions || []).length < 12" @click="addQuickChatQuestion()" class="w-full border-2 border-dashed border-slate-300 text-slate-600 font-semibold text-sm py-2.5 rounded-lg hover:bg-accent hover:text-white hover:border-accent transition-all">
+                                                    + Dodaj pytanie
+                                                </button>
+
+                                                <div x-show="(content.pl.contact.quick_chat_questions || []).length === 0" class="mt-3">
+                                                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Podpowiedzi</p>
+                                                    <div class="flex flex-wrap gap-2">
+                                                        <template x-for="(s, si) in quickChatQuestionSuggestions()" :key="si">
+                                                            <button type="button" @click="addQuickChatQuestion(s)" class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:border-accent hover:text-accent transition-colors" x-text="s"></button>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                             <button type="button" x-show="isQuickChatLocked" x-cloak @click="promptQuickChatUpgrade()" class="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/40 cursor-pointer" aria-label="Odblokuj szybki kontakt">
                                                 <span class="rounded-full bg-white px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-800 shadow-md ring-1 ring-slate-200">Niedostępne w Starterze</span>
                                             </button>

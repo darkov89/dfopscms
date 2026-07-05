@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-07-05 — WhatsApp/Messenger odblokowane na planie Starter (tier0)
+**Ostatnia aktualizacja treści:** 2026-07-05 — Szybki czat: predefiniowane pytania (WhatsApp pre-fill / Messenger schowek)
 
 ---
 
@@ -73,7 +73,7 @@ Użytkownik → Auth → pages.content + pages.billing_plan + billing_profiles
 
 | Warstwa | Kluczowe artefakty |
 |--------|---------------------|
-| **Front publiczny** | `index.html` (dark-mode SaaS landing spójny z admin/rejestracją: `#121212` + `#D4AF37`; hero 3 min, `#jak`, `#wyposazenie`, `#spokoj`, `#demo`, `#cennik`, SEO + `favicon.svg`), demo przez `router.html?site=demo-*` (beauty/services/care/gastro/fitness/consultant). Szablony branżowe HTML są w `/templates/` (`beauty`, `consultant`, `fitness`, `services`, `gastro`, `care`); media statyczne przenoszone z root trafiają do `/assets/images/`; boilerplate nowych szablonów: `/templates/_base_template.html`; klocki UI: `/templates/_components_library.html`; partial FAB czatu: `/templates/_partials/quick_chat_fab.html`. `setup.html` zostaje w root. `landingPricing.js` — plany cennika i dane landingowe. **Szybki kontakt:** pływający przycisk WhatsApp (`contact.whatsapp` → `wa.me`) lub Messenger (`contact.messenger` → `m.me`) — `publicSiteApp` + Alpine `x-show`; dostępny na wszystkich planach w tym Starter (`tier0`, `DFOPS_planAllowsQuickChat` — od 2026-07-05). |
+| **Front publiczny** | `index.html` (dark-mode SaaS landing spójny z admin/rejestracją: `#121212` + `#D4AF37`; hero 3 min, `#jak`, `#wyposazenie`, `#spokoj`, `#demo`, `#cennik`, SEO + `favicon.svg`), demo przez `router.html?site=demo-*` (beauty/services/care/gastro/fitness/consultant). Szablony branżowe HTML są w `/templates/` (`beauty`, `consultant`, `fitness`, `services`, `gastro`, `care`); media statyczne przenoszone z root trafiają do `/assets/images/`; boilerplate nowych szablonów: `/templates/_base_template.html`; klocki UI: `/templates/_components_library.html`; partial FAB czatu: `/templates/_partials/quick_chat_fab.html`. `setup.html` zostaje w root. `landingPricing.js` — plany cennika i dane landingowe. **Szybki kontakt:** pływający przycisk WhatsApp (`contact.whatsapp` → `wa.me`) lub Messenger (`contact.messenger` → `m.me`) — `publicSiteApp` + Alpine `x-show`; dostępny na wszystkich planach w tym Starter (`tier0`, `DFOPS_planAllowsQuickChat` — od 2026-07-05). Opcjonalna lista gotowych pytań (`contact.quick_chat_questions: string[]`, panel Kontakt → Szybki czat): klik w FAB rozwija popover, wybór pytania otwiera czat z wpisaną treścią (WhatsApp `?text=`; Messenger nie wspiera pre-fillu → kopiowanie do schowka + toast). |
 | **Panel CMS** | `admin.html` (~2,5k linii HTML), `adminApp.js` (~4k linii Alpine). **IA (2026-07):** domyślny ekran `dashboard` (adres + checklista); sidebar w 3 grupach zwijanych (Na start / Więcej treści / Ustawienia); nagłówek z CTA „Opublikuj”, menu ⋯; rezerwacje w Kontakcie; scalone Opinie; bez Leady w menu; bez globalnej widoczności sekcji w Wyglądzie — szczegóły §1.5.2. **`js/core/themeConfig.js`** — sekcje per `pages.theme`; **`js/core/contentSchema.js`** + **`contentUpgrader.js`** — kontrakt/migracja pól JSON (`pages.content` / `draft_content`). **`js/templates/registry.js`** — domyślna treść startowa (nie mylić z `templates/*.html`). Draft vs published: `pages.draft_content` / `pages.content`. Subskrypcja, Smart Booking, szybki kontakt, God Mode — jak wcześniej. |
 | **Backend** | `pages`, `billing_profiles`, `superadmins`, RLS. Schemat baseline: `20260603072317_remote_schema.sql`; God Mode: `20260623100512_add_god_mode.sql`. |
 | **Płatności** | Starter `tier0`, Standard `tier1`, Custom poza Stripe. Secrets: `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_STARTER_YEARLY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_PRO_YEARLY`. wFirma: `WFIRMA_*`, ledger `wfirma_invoice_ledger`. |
@@ -374,6 +374,15 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-07-05 — Szybki czat: predefiniowane pytania
+
+FAB WhatsApp/Messenger dostaje rozwijaną listę gotowych pytań; klient wybiera pytanie i czat otwiera się z wpisaną treścią.
+
+- **Kontrakt treści:** `pl.contact.quick_chat_questions` — `string[]` (limit 12). Default `[]` w `createPublicContentShell` (`publicSiteApp.js`) i `createAdminContentShell` (`adminApp.js`); normalizacja/trim/filter/slice(12) w `contentUpgrader.js` (`ensureContactCta`). Zapis całego `content` (bez whitelisty) → pole trwałe.
+- **Front (`publicSiteApp.js`):** stan `quickChatOpen`/`quickChatCopied` + metody `quickChatQuestions()`, `quickChatHasQuestions()`, `quickChatSupportsPrefill()` (WhatsApp), `quickChatHrefForText(text)` (`wa.me/<digits>?text=…`), `toggleQuickChat()`, `onQuickChatQuestion(text)`, `copyQuickChatText()`. **Messenger (`m.me`) nie wspiera pre-fillu treści** → pytanie kopiowane do schowka + toast „wklej w Messengerze”. Brak pytań = zachowanie jak dawniej (klik = link do czatu).
+- **UI FAB:** przebudowany blok w `templates/{beauty,consultant,fitness,services,gastro,care}.html` + `_base_template.html` + `_partials/quick_chat_fab.html` (8 kopii, ręcznie zsynchronizowane). Dodano popover z listą, tło zamykające, toast, `aria-haspopup`/`aria-expanded`, Escape zamyka.
+- **Panel (Kontakt → Szybki czat):** edytor listy pytań (`admin/partials/tab-contact.html`) — dodawanie/usuwanie/edycja + podpowiedzi per motyw. Metody `quickChatQuestionSuggestions()`, `addQuickChatQuestion(preset)`, `removeQuickChatQuestion(index)` w `adminApp.js`; gated tym samym `isQuickChatLocked`. `npm run build:admin`.
 
 ### 2026-07-05 — WhatsApp / Messenger na planie Starter
 

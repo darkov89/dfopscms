@@ -395,6 +395,7 @@
           map_place_id: '',
           whatsapp: '',
           messenger: '',
+          quick_chat_questions: [],
         },
         social: { linkedin: '', facebook: '', instagram: '', tiktok: '' },
         google_reviews: { embed_url: '', place_query: '', place_id: '', max_reviews: 6, title: 'Opinie z Google' },
@@ -904,6 +905,8 @@
       dataLoaded: false,
       billingPlan: 'trial',
       fabBubbleVisible: false,
+      quickChatOpen: false,
+      quickChatCopied: false,
       content: createPublicContentShell(),
       bazaBlad: false,
       /** Widok publiczny zablokowany (cron trial_blocked_at lub logika shouldBlockPublicPageView). */
@@ -1065,6 +1068,75 @@
       quickChatLabel() {
         return this.quickChatIsWhatsApp() ? 'Napisz na WhatsApp' : 'Napisz na Messengerze';
       },
+      /** Predefiniowane pytania (string[]) do wklejenia w czacie — filtrowane, tylko gdy plan pozwala. */
+      quickChatQuestions() {
+        if (!this.quickChatPlanAllowed()) return [];
+        const raw = this.getContentBlock().contact?.quick_chat_questions;
+        if (!Array.isArray(raw)) return [];
+        return raw.map((q) => String(q == null ? '' : q).trim()).filter(Boolean);
+      },
+      quickChatHasQuestions() {
+        return this.quickChatQuestions().length > 0;
+      },
+      /** WhatsApp obsługuje pre-fill treści przez `?text=`; Messenger (m.me) nie — stąd kopiowanie do schowka. */
+      quickChatSupportsPrefill() {
+        return this.quickChatIsWhatsApp();
+      },
+      /** Link do czatu z wpisaną treścią pytania (WhatsApp); dla Messengera zwraca zwykły link. */
+      quickChatHrefForText(text) {
+        const msg = String(text || '').trim();
+        const wa = this.quickChatWhatsApp();
+        if (wa) {
+          const digits = wa.replace(/\D/g, '');
+          if (!digits) return '';
+          const base = `https://wa.me/${digits}`;
+          return msg ? `${base}?text=${encodeURIComponent(msg)}` : base;
+        }
+        return this.quickChatHref();
+      },
+      toggleQuickChat() {
+        this.quickChatOpen = !this.quickChatOpen;
+        if (this.quickChatOpen) this.fabBubbleVisible = false;
+      },
+      /** Klik w pytanie: tracking + (dla Messengera) skopiuj treść do schowka, bo m.me nie wspiera pre-fillu. */
+      onQuickChatQuestion(text) {
+        this.onConversionClick(this.quickChatIsWhatsApp() ? 'whatsapp_click' : 'messenger_click', 'fab');
+        const msg = String(text || '').trim();
+        if (msg && !this.quickChatIsWhatsApp()) {
+          this.copyQuickChatText(msg);
+        }
+        this.quickChatOpen = false;
+      },
+      copyQuickChatText(text) {
+        const done = () => {
+          this.quickChatCopied = true;
+          setTimeout(() => {
+            this.quickChatCopied = false;
+          }, 2600);
+        };
+        try {
+          if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+            navigator.clipboard.writeText(text).then(done).catch(() => {});
+            return;
+          }
+        } catch (e) {
+          /* fallback poniżej */
+        }
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          done();
+        } catch (e) {
+          /* brak schowka — trudno, użytkownik wpisze ręcznie */
+        }
+      },
       /**
        * Silnik Wzrostu (G1) — jedyny punkt wejścia trackingu konwersji publicznych
        * (tel/rezerwacja/WhatsApp/Messenger/e-mail/mapa). Delegacja do js/core/siteAnalytics.js;
@@ -1096,6 +1168,7 @@
       },
       initQuickChatFab() {
         this.fabBubbleVisible = false;
+        this.quickChatOpen = false;
         if (!this.quickChatActive()) return;
         setTimeout(() => {
           this.fabBubbleVisible = true;
