@@ -113,8 +113,8 @@
 
             <nav class="hidden items-center gap-8 text-sm font-medium text-gray-400 md:flex" aria-label="Nawigacja główna">
                 <a href="#jak" class="transition hover:text-white">Jak to działa</a>
-                <a href="#wyposazenie" class="transition hover:text-white">Co w ofercie</a>
-                <a href="#spokoj" class="transition hover:text-white">Święty spokój</a>
+                <a href="#korzysci" class="transition hover:text-white">Co dostajesz</a>
+                <a href="#panel" class="transition hover:text-white">Panel i statystyki</a>
                 <a href="#demo" class="transition hover:text-white">Przykłady</a>
                 <a href="#cennik" class="transition hover:text-white">Cennik</a>
                 <a href="admin.html" class="transition hover:text-white">Zaloguj się</a>
@@ -150,8 +150,8 @@
         >
             <nav class="flex flex-col gap-1 text-sm font-medium text-gray-300" aria-label="Menu mobilne">
                 <a href="#jak" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false">Jak to działa</a>
-                <a href="#wyposazenie" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false">Co w ofercie</a>
-                <a href="#spokoj" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false">Święty spokój</a>
+                <a href="#korzysci" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false">Co dostajesz</a>
+                <a href="#panel" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false">Panel i statystyki</a>
                 <a href="#demo" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false">Przykłady</a>
                 <a href="#cennik" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false">Cennik</a>
                 <a href="admin.html" class="rounded-lg px-3 py-3 hover:bg-white/5">Zaloguj się</a>
@@ -165,86 +165,167 @@
             <div class="absolute left-1/2 top-0 -z-10 h-[32rem] w-[32rem] -translate-x-1/2 rounded-full bg-brand-gold/20 blur-3xl" aria-hidden="true"></div>
             <div class="absolute right-0 top-24 -z-10 h-96 w-96 rounded-full bg-amber-700/20 blur-3xl" aria-hidden="true"></div>
             <div class="mx-auto max-w-5xl text-center">
-                <p class="mb-6 inline-flex rounded-full border border-brand-gold/25 bg-brand-gold/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">DFCMS dla lokalnego biznesu</p>
+                <p class="mb-6 inline-flex rounded-full border border-brand-gold/25 bg-brand-gold/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Strony WWW dla lokalnego biznesu</p>
                 <h1 class="font-display text-4xl font-black leading-[1.04] tracking-tight text-white sm:text-6xl lg:text-7xl">
-                    Piękna i nowoczesna strona dla Twojego biznesu. Gotowa w 3 minuty.
+                    Profesjonalna strona dla Twojego biznesu. Gotowa w kilka minut.
                 </h1>
                 <p class="mx-auto mt-7 max-w-3xl text-base leading-relaxed text-gray-300 sm:text-xl">
-                    Wybierasz projekt dla swojej branży, wpisujesz dane i gotowe. Masz zintegrowane Booksy, opinie z Google i mapę dojazdu. Bez instalowania wtyczek i martwienia się o hosting.
+                    Wybierasz gotowy szablon dla swojej branży, wpisujesz dane w prostym edytorze i publikujesz. A w panelu na bieżąco widzisz statystyki — ile osób wchodzi na stronę i ile klika, żeby zadzwonić lub zarezerwować. Bez wtyczek i martwienia się o hosting.
                 </p>
                 <div class="mt-10 flex justify-center">
                     <a href="rejestracja.html" class="inline-flex w-full max-w-sm items-center justify-center rounded-2xl bg-brand-gold px-8 py-4 text-sm font-bold uppercase tracking-widest text-brand-ink shadow-accent transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212] sm:w-auto sm:min-w-[280px]">
                         Uruchom swoją stronę za darmo
                     </a>
                 </div>
-                <p class="mt-6 text-sm text-gray-400">Testuj 14 dni. Zrobisz to szybciej, niż wypijesz kawę.</p>
+                <ul class="mx-auto mt-7 flex max-w-2xl flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-gray-400">
+                    <li class="inline-flex items-center gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> 14 dni za darmo</li>
+                    <li class="inline-flex items-center gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Bez podawania karty</li>
+                    <li class="inline-flex items-center gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Hosting, SSL i aktualizacje w cenie</li>
+                </ul>
             </div>
         </section>
 
         <section id="jak" class="px-4 py-20 sm:px-6 sm:py-24 lg:px-8 scroll-mt-24">
             <div class="mx-auto max-w-6xl">
                 <div class="mx-auto max-w-3xl text-center">
-                    <h2 class="font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">Nie budujesz strony od zera. Ty ją tylko uzupełniasz.</h2>
+                    <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Jak to działa</p>
+                    <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">Nie budujesz strony od zera. Kreator prowadzi Cię krok po kroku.</h2>
+                    <p class="mt-5 text-base leading-relaxed text-gray-400">Cztery proste kroki. Bez wiedzy technicznej — jeśli potrafisz wypełnić formularz, poradzisz sobie ze stroną.</p>
                 </div>
-                <div class="mt-12 grid gap-5 md:grid-cols-3">
+                <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
                     <article class="rounded-2xl border border-gray-800 bg-white/[0.045] p-7 shadow-lift backdrop-blur">
                         <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-gold/10 text-2xl text-brand-gold" aria-hidden="true">◈</div>
-                        <h3 class="text-lg font-bold text-white">1. Wybierz branżę</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Masz salon, warsztat czy gabinet? Wybierz gotowy, perfekcyjnie zaprojektowany układ.</p>
+                        <h3 class="text-lg font-bold text-white">1. Wybierz szablon</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Salon, gabinet, restauracja, siłownia czy usługi? Wybierz gotowy układ dla swojej branży.</p>
                     </article>
                     <article class="rounded-2xl border border-gray-800 bg-white/[0.045] p-7 shadow-lift backdrop-blur">
                         <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-amber-700/15 text-2xl text-amber-200" aria-hidden="true">✦</div>
-                        <h3 class="text-lg font-bold text-white">2. Wpisz swoje dane</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Dodaj cennik, podaj godziny otwarcia i załącz kilka swoich zdjęć.</p>
+                        <h3 class="text-lg font-bold text-white">2. Uzupełnij dane</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300">W prostym edytorze wpisujesz cennik, godziny i dodajesz zdjęcia. Zmiany zapisują się same.</p>
+                    </article>
+                    <article class="rounded-2xl border border-gray-800 bg-white/[0.045] p-7 shadow-lift backdrop-blur">
+                        <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-gold/10 text-2xl text-brand-gold" aria-hidden="true">↗</div>
+                        <h3 class="text-lg font-bold text-white">3. Opublikuj</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Jeden klik i strona jest w internecie — na darmowym adresie. Masz własną domenę? Podłączysz ją sam, a jak wolisz, pomożemy.</p>
                     </article>
                     <article class="rounded-2xl border border-gray-800 bg-white/[0.045] p-7 shadow-lift backdrop-blur">
                         <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-gold/10 text-2xl text-brand-gold" aria-hidden="true">✓</div>
-                        <h3 class="text-lg font-bold text-white">3. Gotowe!</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Strona działa w internecie. Wygląda świetnie na komputerze i na każdym telefonie.</p>
+                        <h3 class="text-lg font-bold text-white">4. Obserwuj wyniki</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300">W panelu widzisz statystyki: ile było wejść i ile kliknięć w telefon, rezerwację i czat. Edytujesz stronę, kiedy chcesz.</p>
                     </article>
                 </div>
             </div>
         </section>
 
-        <section id="wyposazenie" class="px-4 py-20 sm:px-6 sm:py-24 lg:px-8 scroll-mt-24">
+        <section id="korzysci" class="px-4 py-20 sm:px-6 sm:py-24 lg:px-8 scroll-mt-24">
             <div class="mx-auto max-w-6xl">
                 <div class="max-w-3xl">
-                    <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Co w ofercie</p>
-                    <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">Wszystko, czego potrzebuje nowoczesna wizytówka.</h2>
+                    <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Co dostajesz</p>
+                    <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">Wszystko, czego potrzebuje Twój biznes — w jednym miejscu.</h2>
+                    <p class="mt-5 text-base leading-relaxed text-gray-400">Nie tylko ładna wizytówka. Narzędzia, które realnie pomagają zdobywać klientów.</p>
                 </div>
-                <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+                <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     <article class="rounded-2xl border border-gray-800 bg-[#1e1e1e]/80 p-6 backdrop-blur">
-                        <h3 class="font-bold text-white">Kalendarz i Rezerwacje</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Wpinamy Twoje Booksy, Kalendarz Google, lub inny w 5 sekund. Klienci umawiają się bez dzwonienia.</p>
+                        <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-gold/10 text-xl text-brand-gold" aria-hidden="true">◈</div>
+                        <h3 class="font-bold text-white">Szablony branżowe</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Gotowe projekty dla beauty, gastro, fitness, usług, gabinetów i doradców. Każdy dopasowany do tego, jak działa Twoja branża.</p>
                     </article>
                     <article class="rounded-2xl border border-gray-800 bg-[#1e1e1e]/80 p-6 backdrop-blur">
-                        <h3 class="font-bold text-white">Opinie, które budują zaufanie</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Strona automatycznie wyświetla Twoje 5 gwiazdek z Google oraz opinie własne.</p>
+                        <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-gold/10 text-xl text-brand-gold" aria-hidden="true">✎</div>
+                        <h3 class="font-bold text-white">Prosty edytor</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Zmieniasz teksty, cennik i zdjęcia jak w formularzu. Zmiany zapisują się same, a Ty publikujesz jednym kliknięciem.</p>
                     </article>
                     <article class="rounded-2xl border border-gray-800 bg-[#1e1e1e]/80 p-6 backdrop-blur">
-                        <h3 class="font-bold text-white">Prosty dojazd</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Wbudowana, interaktywna mapa z bezpośrednim wyznaczaniem trasy pod Twoje drzwi.</p>
+                        <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-gold/10 text-xl text-brand-gold" aria-hidden="true">▤</div>
+                        <h3 class="font-bold text-white">Dashboard ze statystykami</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Widzisz, ilu klientów weszło na stronę oraz ile było kliknięć w telefon, rezerwację i czat. Wiesz, co działa.</p>
                     </article>
                     <article class="rounded-2xl border border-gray-800 bg-[#1e1e1e]/80 p-6 backdrop-blur">
-                        <h3 class="font-bold text-white">Odbieranie wiadomości</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Wygodny formularz kontaktowy. Wszystkie zapytania lądują prosto w Twoim panelu.</p>
+                        <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-gold/10 text-xl text-brand-gold" aria-hidden="true">✆</div>
+                        <h3 class="font-bold text-white">Szybki czat WhatsApp / Messenger</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Klient klika i pisze do Ciebie z gotowymi pytaniami („Czy jest wolny termin?”). Rozmowa ląduje prosto na Twoim telefonie.</p>
                     </article>
                     <article class="rounded-2xl border border-gray-800 bg-[#1e1e1e]/80 p-6 backdrop-blur">
-                        <h3 class="font-bold text-white">SEO ready, social media i galeria</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Pokaż efekty pracy, dodaj linki do social mediów i startuj ze stroną przygotowaną pod widoczność w Google.</p>
+                        <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-gold/10 text-xl text-brand-gold" aria-hidden="true">↻</div>
+                        <h3 class="font-bold text-white">Integracje, których używasz</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Booksy, Calendly, opinie i mapa z Google. Klienci rezerwują i znajdują dojazd bez jednego telefonu.</p>
+                    </article>
+                    <article class="rounded-2xl border border-gray-800 bg-[#1e1e1e]/80 p-6 backdrop-blur">
+                        <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-gold/10 text-xl text-brand-gold" aria-hidden="true">⛨</div>
+                        <h3 class="font-bold text-white">Hosting, SSL i aktualizacje</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300">W cenie abonamentu. Bez wtyczek, bez faktur za serwer, bez „strona przestała działać”. Technologia gra w tle.</p>
                     </article>
                 </div>
             </div>
         </section>
 
-        <section id="spokoj" class="px-4 py-20 sm:px-6 sm:py-24 lg:px-8 scroll-mt-24">
+        <section id="panel" class="px-4 py-20 sm:px-6 sm:py-24 lg:px-8 scroll-mt-24">
             <div class="mx-auto max-w-6xl">
-                <div class="overflow-hidden rounded-3xl border border-gray-800 bg-gradient-to-br from-white/[0.08] via-[#1e1e1e] to-[#121212] p-8 shadow-lift backdrop-blur sm:p-12">
-                    <div class="max-w-3xl">
-                        <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Święty spokój</p>
-                        <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">Kupujesz, wpisujesz dane i masz. Reszta to nasz problem.</h2>
-                        <p class="mt-6 text-base leading-relaxed text-gray-300 sm:text-lg">Tradycyjne strony to często ukryte koszty: trzeba opłacać hosting, dokupować certyfikaty bezpieczeństwa (SSL) i ciągle aktualizować wtyczki. W DFCMS masz to z głowy. Technologia działa w tle, serwery są opłacone w abonamencie, a Ty po prostu przyjmujesz klientów.</p>
+                <div class="grid items-center gap-10 lg:grid-cols-2">
+                    <div class="max-w-xl">
+                        <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Panel i statystyki</p>
+                        <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">Wreszcie wiesz, czy strona przynosi klientów.</h2>
+                        <p class="mt-6 text-base leading-relaxed text-gray-300 sm:text-lg">Twój panel to nie tylko edytor. To prosty dashboard, który po ludzku pokazuje, co się dzieje: ile osób odwiedziło stronę i ile razy kliknęły, żeby zadzwonić, zarezerwować albo napisać. Bez wykresów, których nie da się zrozumieć.</p>
+                        <ul class="mt-6 space-y-3 text-sm text-gray-300">
+                            <li class="flex gap-3"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span> Liczby z ostatnich 7 dni — od razu po zalogowaniu.</li>
+                            <li class="flex gap-3"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span> Podpowiedź „priorytet na ten tydzień” — co poprawić, by mieć więcej klientów.</li>
+                            <li class="flex gap-3"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span> Wszystko na telefonie — sprawdzasz między klientami.</li>
+                        </ul>
                     </div>
+                    <div class="rounded-3xl border border-gray-800 bg-gradient-to-br from-white/[0.08] via-[#1e1e1e] to-[#121212] p-6 shadow-lift backdrop-blur sm:p-8">
+                        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-gray-500">Twój tydzień w skrócie</p>
+                        <div class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                            <div class="rounded-2xl border border-brand-gold/30 bg-brand-gold/10 p-4 text-center">
+                                <p class="font-display text-3xl font-bold tabular-nums text-white">248</p>
+                                <p class="mt-1 text-xs text-gray-400">Wejścia</p>
+                            </div>
+                            <div class="rounded-2xl border border-gray-800 bg-white/[0.045] p-4 text-center">
+                                <p class="font-display text-3xl font-bold tabular-nums text-white">37</p>
+                                <p class="mt-1 text-xs text-gray-400">Telefony</p>
+                            </div>
+                            <div class="rounded-2xl border border-gray-800 bg-white/[0.045] p-4 text-center">
+                                <p class="font-display text-3xl font-bold tabular-nums text-white">21</p>
+                                <p class="mt-1 text-xs text-gray-400">Rezerwacje</p>
+                            </div>
+                            <div class="rounded-2xl border border-gray-800 bg-white/[0.045] p-4 text-center">
+                                <p class="font-display text-3xl font-bold tabular-nums text-white">14</p>
+                                <p class="mt-1 text-xs text-gray-400">Czat</p>
+                            </div>
+                        </div>
+                        <div class="mt-5 rounded-2xl border border-gray-800 bg-white/[0.045] p-5">
+                            <p class="text-[11px] font-bold uppercase tracking-widest text-brand-gold">Priorytet na ten tydzień</p>
+                            <p class="mt-2 text-sm leading-relaxed text-gray-300">Dodaj 3 zdjęcia do galerii — strony ze zdjęciami mają więcej rezerwacji.</p>
+                        </div>
+                        <p class="mt-4 text-center text-[11px] text-gray-500">Przykładowe dane poglądowe</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="integracje" class="px-4 py-20 sm:px-6 sm:py-24 lg:px-8 scroll-mt-24">
+            <div class="mx-auto max-w-6xl">
+                <div class="mx-auto max-w-3xl text-center">
+                    <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Integracje</p>
+                    <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">Łączy się z tym, czego już używasz.</h2>
+                    <p class="mt-5 text-base leading-relaxed text-gray-400">Wklejasz link, my zajmujemy się resztą. Klient rezerwuje i znajduje Cię bez dzwonienia.</p>
+                </div>
+                <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                    <article class="rounded-2xl border border-gray-800 bg-white/[0.045] p-6 text-center shadow-lift backdrop-blur">
+                        <h3 class="font-bold text-white">Booksy</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-gray-300">Przycisk rezerwacji prosto z Twojego profilu.</p>
+                    </article>
+                    <article class="rounded-2xl border border-gray-800 bg-white/[0.045] p-6 text-center shadow-lift backdrop-blur">
+                        <h3 class="font-bold text-white">Calendly</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-gray-300">Kalendarz wolnych terminów wprost na stronie.</p>
+                    </article>
+                    <article class="rounded-2xl border border-gray-800 bg-white/[0.045] p-6 text-center shadow-lift backdrop-blur">
+                        <h3 class="font-bold text-white">Opinie Google</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-gray-300">Twoje gwiazdki i recenzje budują zaufanie za Ciebie.</p>
+                    </article>
+                    <article class="rounded-2xl border border-gray-800 bg-white/[0.045] p-6 text-center shadow-lift backdrop-blur">
+                        <h3 class="font-bold text-white">Mapa Google</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-gray-300">Interaktywny dojazd pod same Twoje drzwi.</p>
+                    </article>
                 </div>
             </div>
         </section>
@@ -293,6 +374,24 @@
                         <p class="mt-3 text-sm leading-relaxed text-gray-300">Profesjonalny układ pod usługi eksperckie, proces i dowody zaufania.</p>
                         <span class="mt-6 inline-flex text-sm font-semibold text-brand-gold group-hover:text-white">Zobacz demo →</span>
                     </a>
+                </div>
+                <div class="mt-10 text-center">
+                    <a href="rejestracja.html" class="inline-flex items-center justify-center rounded-2xl border border-white/20 bg-transparent px-7 py-3.5 text-sm font-bold uppercase tracking-widest text-white transition hover:bg-white hover:text-brand-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/50">
+                        Podoba się? Zrób taką u siebie →
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section id="spokoj" class="px-4 py-20 sm:px-6 sm:py-24 lg:px-8 scroll-mt-24">
+            <div class="mx-auto max-w-6xl">
+                <div class="overflow-hidden rounded-3xl border border-gray-800 bg-gradient-to-br from-white/[0.08] via-[#1e1e1e] to-[#121212] p-8 shadow-lift backdrop-blur sm:p-12">
+                    <div class="max-w-3xl">
+                        <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Święty spokój</p>
+                        <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">Ty przyjmujesz klientów. Technologię bierzemy na siebie.</h2>
+                        <p class="mt-6 text-base leading-relaxed text-gray-300 sm:text-lg">Tradycyjne strony to często ukryte koszty: trzeba opłacać hosting, dokupować certyfikaty bezpieczeństwa (SSL) i ciągle aktualizować wtyczki. W DFCMS masz to z głowy — hosting, SSL i aktualizacje są w abonamencie, a technologia działa w tle.</p>
+                        <p class="mt-4 text-base leading-relaxed text-gray-300 sm:text-lg">Masz własną domenę (np. <span class="text-white">twojbiznes.pl</span>)? Podłączasz ją samodzielnie w panelu — a jeśli wolisz, pomożemy Ci to ustawić. Nie masz domeny? Startujesz od razu na darmowym adresie i nic Cię to nie kosztuje.</p>
+                    </div>
                 </div>
             </div>
         </section>
@@ -396,7 +495,7 @@
         <section class="px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
             <div class="mx-auto max-w-3xl text-center">
                 <h2 class="font-display text-4xl font-bold tracking-tight text-white sm:text-5xl">Szkoda Twojego czasu na walkę z technologią.</h2>
-                <p class="mt-5 text-base leading-relaxed text-gray-300 sm:text-lg">Uruchom swoją nową wizytówkę i wracaj do robienia tego, w czym jesteś najlepszy.</p>
+                <p class="mt-5 text-base leading-relaxed text-gray-300 sm:text-lg">Uruchom swoją stronę w kilka minut i wracaj do robienia tego, w czym jesteś najlepszy. Testujesz 14 dni za darmo — bez podawania karty.</p>
                 <a href="rejestracja.html" class="mt-8 inline-flex items-center justify-center rounded-2xl bg-brand-gold px-8 py-4 text-sm font-bold uppercase tracking-widest text-brand-ink shadow-gold transition hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212]">
                     Zacznij teraz →
                 </a>
