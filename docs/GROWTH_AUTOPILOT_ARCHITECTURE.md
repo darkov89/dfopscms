@@ -726,6 +726,7 @@ Każdy PR = deployowalny na Staging; G0 daje wartość UX (reguły + mock) bez D
 - Porównanie tydzień vs tydzień (↑↓) na dashboardzie.
 - Integracja z `expire-trial-pages`: miękkie nudge przed blokadą trial („Dodaj telefon — 0 kliknięć w 14 dni”).
 - A/B hero — dopiero po G4 + historia wersji treści.
+- **Dedup `page_view` (feedback CTO 2026-07-05):** dziś surowe odsłony (celowa decyzja v0 — spójność z licznikami CTA). Przy realnym wzroście ruchu rozważyć unikalny indeks `(page_id, event_name, visitor_key) WHERE event_scope='visit'` w `record-site-event` (odrzuca duplikaty tego samego odwiedzającego/dnia po stronie serwera, bez `sessionStorage` — `sessionStorage` podlegałby art. 173 Prawo Telekomunikacyjne jak cookies i wymagałby zmiany klauzuli RODO). Świadomie odłożone — ruch SMB dziś rzędy wielkości poniżej darmowych limitów Supabase Edge Functions.
 
 ---
 
