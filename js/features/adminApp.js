@@ -2856,9 +2856,6 @@
         this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
         this.wizardFieldWarning = '';
         this.persistWizardUiState();
-        if (typeof window.DFOPS_trackEvent === 'function') {
-          window.DFOPS_trackEvent('onboarding_started', { slug: this.slug });
-        }
       },
       /** Zamknięcie kreatora bez kończenia — zapis treści + stan kroku w localStorage (wznowienie w „Uruchom Kreator”). */
       async skipWizard() {
@@ -2870,9 +2867,6 @@
         this.wizardStep = 0;
         this.wizardFieldWarning = '';
         this.showWizardDismissModal = true;
-        if (typeof window.DFOPS_trackEvent === 'function') {
-          window.DFOPS_trackEvent('onboarding_skipped', { slug: this.slug });
-        }
       },
       async nextWizardStep() {
         const err = this.validateWizardStep(this.wizardStep);
@@ -2951,9 +2945,6 @@
         }
 
         if (this.wizardStep < this.wizardStepCount) {
-          if (typeof window.DFOPS_trackEvent === 'function') {
-            window.DFOPS_trackEvent('onboarding_step_completed', { step: this.wizardStep });
-          }
           this.wizardStep++;
         }
         this.persistWizardUiState();
@@ -3022,9 +3013,6 @@
         this.wizardFieldWarning = '';
         clearWizardStateFromStorage(this.slug);
         this.showStudioWelcomeModal = true;
-        if (typeof window.DFOPS_trackEvent === 'function') {
-          window.DFOPS_trackEvent('onboarding_finished', { slug: this.slug });
-        }
       },
       closeStudioWelcomeModal() {
         this.showStudioWelcomeModal = false;
@@ -3226,9 +3214,6 @@
         this.sidebarOpen = false;
         this.mobileMenuOpen = false;
         this.persistWizardUiState();
-        if (typeof window.DFOPS_trackEvent === 'function') {
-          window.DFOPS_trackEvent('onboarding_reopened', { slug: this.slug });
-        }
       },
       reopenWizard() {
         if (!this.isEmailVerified) {
@@ -3239,9 +3224,6 @@
         this.showWizard = true;
         this.wizardFieldWarning = '';
         this.persistWizardUiState();
-        if (typeof window.DFOPS_trackEvent === 'function') {
-          window.DFOPS_trackEvent('onboarding_reopened', { slug: this.slug });
-        }
       },
       sidebarTabNeedsAttention(tab) {
         if (!this.content?.pl?.settings || this.content.pl.settings.onboarding_completed === true) return false;
@@ -3401,9 +3383,6 @@
           }
           const url = data && typeof data.url === 'string' ? data.url : '';
           if (url) {
-            if (planType === 'starter' && typeof window.DFOPS_trackEvent === 'function') {
-              window.DFOPS_trackEvent('starter_checkout_started', { slug: this.slug });
-            }
             this.showCheckoutModal = false;
             this.clearCheckoutTurnstile();
             window.location.href = url;
@@ -4057,6 +4036,11 @@
         ? fromApp.content
         : createAdminContentShell();
     fromApp.isLoading = fromApp.isLoading === true || fromApp.isLoading === false ? fromApp.isLoading : false;
+
+    // Silnik Wzrostu — jedyny punkt wejścia modułu js/features/growth/ do monolitu (§14 spec).
+    if (typeof window.DFOPS_attachGrowthPanel === 'function') {
+      window.DFOPS_attachGrowthPanel(fromApp);
+    }
 
     return fromApp;
   }

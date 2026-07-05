@@ -1,4 +1,73 @@
                     <div x-show="activeTab === 'dashboard'" x-transition.opacity x-cloak>
+                        <!-- Silnik Wzrostu: Twój priorytet na ten tydzień (js/features/growth/growthPanel.js) -->
+                        <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5 md:p-8" x-show="typeof growthLoading !== 'undefined'" x-cloak>
+                            <template x-if="growthLoading">
+                                <div class="animate-pulse space-y-3">
+                                    <div class="h-3 w-40 rounded bg-slate-200"></div>
+                                    <div class="h-5 w-2/3 rounded bg-slate-200"></div>
+                                    <div class="h-4 w-full rounded bg-slate-100"></div>
+                                    <div class="h-4 w-5/6 rounded bg-slate-100"></div>
+                                </div>
+                            </template>
+
+                            <template x-if="!growthLoading && growthPriority">
+                                <div>
+                                    <p class="text-xs font-bold uppercase tracking-widest text-accent-soft mb-2">Twój priorytet na ten tydzień</p>
+                                    <h3 class="font-serif text-xl text-slate-900 mb-2" x-text="growthPriority.title"></h3>
+                                    <p class="text-sm text-slate-600 leading-relaxed mb-5" x-text="growthPriority.message"></p>
+                                    <div class="flex flex-col gap-2 sm:flex-row">
+                                        <button type="button" @click="goToGrowthAction()" class="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-2.5 text-sm font-bold text-accent-fg shadow-sm transition-colors hover:bg-accent-soft">
+                                            Popraw to
+                                        </button>
+                                        <button type="button" @click="dismissGrowthPriority()" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50">
+                                            Nie teraz
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <template x-if="!growthLoading && !growthPriority && growthHasEnoughData">
+                                <div>
+                                    <p class="text-xs font-bold uppercase tracking-widest text-emerald-700 mb-2">Twój priorytet na ten tydzień</p>
+                                    <h3 class="font-serif text-xl text-slate-900 mb-1">Świetnie — na ten tydzień nie masz pilnych poprawek</h3>
+                                    <p class="text-sm text-slate-600 leading-relaxed">Wróć za kilka dni — Silnik Wzrostu podpowie kolejny krok, gdy pojawią się nowe dane.</p>
+                                </div>
+                            </template>
+
+                            <template x-if="!growthLoading && !growthPriority && !growthHasEnoughData">
+                                <div>
+                                    <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Twój priorytet na ten tydzień</p>
+                                    <h3 class="font-serif text-xl text-slate-900 mb-1">Zbieramy statystyki</h3>
+                                    <p class="text-sm text-slate-600 leading-relaxed">Wróć za kilka dni — potrzebujemy przynajmniej tygodnia danych o Twojej stronie.</p>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Silnik Wzrostu: liczniki konwersji 7 dni -->
+                        <div x-show="typeof growthWeekStats !== 'undefined'" x-cloak class="mb-6">
+                            <div class="flex items-center justify-between mb-2 px-1">
+                                <p class="text-xs text-slate-400" x-show="growthLastUpdatedAt" x-text="'Zaktualizowano: ' + growthLastUpdatedLabel()"></p>
+                                <button type="button" @click="refreshGrowthStatsNow()" :disabled="growthRefreshing" class="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" :class="growthRefreshing ? 'animate-spin' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+                                    <span x-text="growthRefreshing ? 'Odświeżanie…' : 'Odśwież'"></span>
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-3 gap-3">
+                                <div class="rounded-xl border border-slate-200/70 bg-white p-4 text-center shadow-panel ring-1 ring-slate-900/5">
+                                    <p class="text-2xl font-bold text-slate-900" x-text="growthWeekStats.phone_click || 0"></p>
+                                    <p class="text-xs text-slate-500 mt-1">Telefony (7 dni)</p>
+                                </div>
+                                <div class="rounded-xl border border-slate-200/70 bg-white p-4 text-center shadow-panel ring-1 ring-slate-900/5">
+                                    <p class="text-2xl font-bold text-slate-900" x-text="growthWeekStats.booking_click || 0"></p>
+                                    <p class="text-xs text-slate-500 mt-1">Rezerwacje (7 dni)</p>
+                                </div>
+                                <div class="rounded-xl border border-slate-200/70 bg-white p-4 text-center shadow-panel ring-1 ring-slate-900/5">
+                                    <p class="text-2xl font-bold text-slate-900" x-text="(growthWeekStats.whatsapp_click || 0) + (growthWeekStats.messenger_click || 0)"></p>
+                                    <p class="text-xs text-slate-500 mt-1">WhatsApp / Messenger (7 dni)</p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5 md:p-8">
                             <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Twoja strona</h2>
                             <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Tu zarządzasz treścią witryny. Zmiany zapisują się automatycznie — na końcu kliknij <strong>Opublikuj zmiany</strong> w górnym pasku, żeby klienci je zobaczyli.</p>

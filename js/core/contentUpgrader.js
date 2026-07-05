@@ -73,6 +73,31 @@
       }
     }
 
+    /** Silnik Wzrostu (G3) — kontrakt settings.growth, patrz js/core/contentSchema.js. */
+    if (
+      !pl.settings.growth ||
+      typeof pl.settings.growth !== 'object' ||
+      Array.isArray(pl.settings.growth)
+    ) {
+      const growthDefaults = window.DFOPS_GROWTH_SETTINGS_DEFAULTS || {
+        dismissed_rule_ids: [],
+        last_shown_rule_id: '',
+        last_shown_at: '',
+        onboarding_growth_seen: false,
+      };
+      pl.settings.growth =
+        typeof window.DFOPS_deepClone === 'function'
+          ? window.DFOPS_deepClone(growthDefaults)
+          : JSON.parse(JSON.stringify(growthDefaults));
+    } else {
+      if (!Array.isArray(pl.settings.growth.dismissed_rule_ids)) pl.settings.growth.dismissed_rule_ids = [];
+      if (typeof pl.settings.growth.last_shown_rule_id !== 'string') pl.settings.growth.last_shown_rule_id = '';
+      if (typeof pl.settings.growth.last_shown_at !== 'string') pl.settings.growth.last_shown_at = '';
+      if (typeof pl.settings.growth.onboarding_growth_seen !== 'boolean') {
+        pl.settings.growth.onboarding_growth_seen = false;
+      }
+    }
+
     const sub = pl.settings.subscription;
     if (sub.payment_completed === 'true' || sub.payment_completed === 1 || sub.payment_completed === '1') {
       sub.payment_completed = true;

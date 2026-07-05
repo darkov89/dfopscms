@@ -67,13 +67,23 @@
     supabaseAnonKey,
     deployEnvironment: environment,
     isLocalhost,
-    /** Opcjonalny URL (np. Edge Function) do zapisu zdarzeń DFOPS_trackEvent — może zostać puste. */
+    /**
+     * Opcjonalny URL (np. Edge Function) do zapisu zdarzeń DFOPS_trackEvent — nieużywane od G1
+     * (Silnik Wzrostu przeniósł tracking konwersji do `conversionEventsEndpoint` / siteAnalytics.js).
+     */
     analyticsEndpoint: '',
     /**
-     * Tabela w Supabase pod zdarzenia DFOPS_trackEvent (kolumny: user_id, event_name, created_at).
-     * Puste = bez zapisu do bazy. Nazwa musi zgadzać się z tabelą w projekcie.
+     * DEPRECATED (od G1 — Silnik Wzrostu): `DFOPS_trackEvent` (panel) już nie zapisuje do tej tabeli
+     * bezpośrednio z frontu. `analytics_events` jest teraz repurposed pod konwersje publiczne —
+     * zapisuje wyłącznie Edge Function `record-site-event` (service_role). Zostawione na wypadek
+     * nieusuniętych wywołań `DFOPS_trackEvent` — `analytics.js` je jedynie loguje w konsoli.
      */
     analyticsTable: 'analytics_events',
+    /**
+     * Silnik Wzrostu (G1): Edge Function przyjmująca konwersje publiczne (klik tel/rezerwacja/WhatsApp).
+     * Składane dynamicznie z `supabaseUrl` w `js/core/siteAnalytics.js` — to pole może zostać puste.
+     */
+    conversionEventsEndpoint: '',
     /**
      * Stripe: Price ID (price_…) lub Product ID (prod_…) — w Checkout produkt jest
      * rozwijany do domyślnej ceny po stronie Edge Function.

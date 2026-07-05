@@ -46,6 +46,7 @@
     <script defer src="/js/core/pageRepository.js?v=20260704i"></script>
     <script defer src="/js/core/planUtils.js?v=20260703a"></script>
     <script defer src="/js/core/trialBlocking.js?v=20260704h"></script>
+    <script defer src="/js/core/siteAnalytics.js?v=20260705a"></script>
     <script defer src="/js/features/publicSiteApp.js?v=20260704j"></script>
     <script defer src="/js/features/googleReviewsApp.js"></script>
     <script defer src="/js/features/cookieConsentApp.js"></script>
@@ -109,6 +110,7 @@
         :href="quickChatHref()"
         target="_blank"
         rel="noopener noreferrer"
+        @click="onConversionClick(quickChatIsWhatsApp() ? 'whatsapp_click' : 'messenger_click', 'fab')"
         :aria-label="quickChatLabel()"
         class="group flex flex-col items-end gap-2.5 no-underline outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-500 rounded-2xl"
     >

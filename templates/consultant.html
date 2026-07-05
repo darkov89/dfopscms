@@ -48,6 +48,7 @@
     <script defer src="/js/core/pageRepository.js?v=20260704i"></script>
     <script defer src="/js/core/planUtils.js?v=20260703a"></script>
     <script defer src="/js/core/trialBlocking.js?v=20260704h"></script>
+    <script defer src="/js/core/siteAnalytics.js?v=20260705a"></script>
     <script defer src="/js/features/publicSiteApp.js?v=20260704j"></script>
     <script defer src="/js/features/googleReviewsApp.js"></script>
     <script defer src="/js/features/cookieConsentApp.js"></script>
@@ -141,7 +142,7 @@
                         <template x-if="content[lang].settings?.showReviews !== false && content[lang].reviews?.length">
                             <a href="#opinie" class="text-sattva-text/80 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.reviews || 'Opinie'"></a>
                         </template>
-                        <a href="#rezerwacja" x-show="bookingModuleActive() || footerCtaEnabled()" x-cloak class="text-sattva-text/80 hover:text-sattva-brand transition-colors">Rezerwacja</a>
+                        <a href="#rezerwacja" @click="onConversionClick('booking_click', 'nav')" x-show="bookingModuleActive() || footerCtaEnabled()" x-cloak class="text-sattva-text/80 hover:text-sattva-brand transition-colors">Rezerwacja</a>
                         <template x-if="content[lang].settings?.showContact !== false">
                             <a href="#kontakt" class="text-sattva-brand hover:text-sattva-text transition-colors duration-300" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></a>
                         </template>
@@ -446,6 +447,7 @@
                     <div class="p-8 md:p-10 rounded-2xl border shadow-lg relative overflow-hidden text-center" style="background-color: var(--surface-card, var(--bg-main)); border-color: var(--color-primary); color: var(--text-main);">
                         <div class="absolute -top-10 -right-10 w-48 h-48 opacity-25 blur-3xl rounded-full pointer-events-none" style="background-color: var(--color-primary);"></div>
                         <a :href="resolveBookingUrl()" :target="ctaLinkTarget(resolveBookingUrl())" :rel="ctaLinkRel(resolveBookingUrl())"
+                           @click="onConversionClick('booking_click', 'booking_section')"
                            class="relative z-[1] inline-flex items-center justify-center w-full sm:w-auto gap-2 px-8 py-3.5 rounded-sm text-base font-semibold tracking-wide transition-all hover:-translate-y-0.5 shadow-md hover:shadow-xl"
                            style="background-color: var(--color-primary); color: var(--color-accent-text);">
                             <span x-text="bookingCtaButtonText()"></span>
@@ -500,7 +502,7 @@
                                         </div>
                                         <div class="min-w-0 flex-1">
                                             <p class="text-[10px] font-semibold uppercase tracking-wider opacity-60" style="color: var(--color-text-body)">Telefon</p>
-                                            <a :href="'tel:' + content[lang].contact.phone.replace(/\s/g, '')" class="text-base font-semibold hover:opacity-80 transition break-words" style="color: var(--color-text-body)" x-text="content[lang].contact.phone"></a>
+                                            <a :href="'tel:' + content[lang].contact.phone.replace(/\s/g, '')" @click="onConversionClick('phone_click', 'footer')" class="text-base font-semibold hover:opacity-80 transition break-words" style="color: var(--color-text-body)" x-text="content[lang].contact.phone"></a>
                                         </div>
                                     </div>
                                 </template>
@@ -651,6 +653,7 @@
         :href="quickChatHref()"
         target="_blank"
         rel="noopener noreferrer"
+        @click="onConversionClick(quickChatIsWhatsApp() ? 'whatsapp_click' : 'messenger_click', 'fab')"
         :aria-label="quickChatLabel()"
         class="group flex flex-col items-end gap-2.5 no-underline outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-500 rounded-2xl"
     >

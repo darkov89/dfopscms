@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-07-04 — czysty URL subdomen tenant (`tenantPublicUrlClean`)
+**Ostatnia aktualizacja treści:** 2026-07-05 — Silnik Wzrostu G0–G3 (kod gotowy, nie wdeployowany)
 
 ---
 
@@ -103,11 +103,11 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 
 **Security (skrót):** forced password reset, DOMPurify, sanitizacja URL-like pól `pages.content` na zapisie i odczycie, Cloudflare Turnstile dla rejestracji/custom inquiry/checkout, CSP/HSTS/XFO/nosniff w `functions/_middleware.js`, publiczny odczyt `pages` zawężony query+RLS+grantami kolumnowymi, Stripe webhook tylko Edge, Google Places/Maps klucz tylko Edge, `billing_profiles` SoT rozliczeń, draft preview tylko dla właściciela. Superadmini są wyłącznie w `public.superadmins`; RLS dodaje im SELECT/UPDATE/DELETE na `pages` i `analytics_events`, bez zmiany polityk właścicielskich.
 
-**Silnik Wzrostu (plan — nie wdrożony):** CMS podpowiada co tydzień jedną zmianę związaną z konwersją (telefon, rezerwacja, opinie), liczniki kliknięć CTA i benchmarki branżowe per `theme`. **Spec wdrożeniowy:** [`docs/GROWTH_AUTOPILOT_ARCHITECTURE.md`](GROWTH_AUTOPILOT_ARCHITECTURE.md) — fazy G0–G4; **repurpose** tabeli `analytics_events` (stary telemetry panelu wycofany); osobno `growth_benchmarks`; Edge `record-site-event` + cron benchmarków; `growthRules.js`, karta na dashboardzie.
+**Silnik Wzrostu (G0–G3 wdrożone, kod — nie wdeployowane na Staging/Prod):** CMS podpowiada co tydzień jedną zmianę związaną z konwersją (telefon, rezerwacja, opinie), liczniki kliknięć CTA i benchmarki branżowe per `theme`. **Spec:** [`docs/GROWTH_AUTOPILOT_ARCHITECTURE.md`](GROWTH_AUTOPILOT_ARCHITECTURE.md). **Repurpose** `analytics_events` (kolumny `page_id`/`slug`/`source`/`event_scope`, migracja `20260705000000_growth_engine.sql`) + nowa `growth_benchmarks`; Edge `record-site-event` (insert konwersji, service_role) i `aggregate-growth-benchmarks` (cron tygodniowy → RPC `aggregate_growth_benchmarks`); RPC `get_page_growth_stats` (SECURITY INVOKER, panel). Tracking publiczny: `js/core/siteAnalytics.js` (`window.DFOPS_recordConversionEvent`) + `publicSiteApp.onConversionClick` + hooki `@click` w 6 szablonach i `quick_chat_fab.html`. Panel: **moduł poza monolitem** `js/features/growth/` (`growthRepository.js`, `growthPanel.js`) + domena `js/core/growthRules.js` (12 reguł) — jedyny punkt styku z `adminApp.js` to hook `window.DFOPS_attachGrowthPanel(fromApp)` w `buildAdminAlpineState()` (3 linie). UI: karta „Twój priorytet na ten tydzień” + liczniki konwersji w `admin/partials/tab-dashboard.html`. Kontrakt treści `pl.settings.growth` (`dismissed_rule_ids`, `last_shown_rule_id`, `last_shown_at`, `onboarding_growth_seen`) w `contentSchema.js` / `contentUpgrader.js` / `registry.js`. Stary telemetry panelu (`DFOPS_trackEvent` — onboarding/checkout) usunięty z `adminApp.js`; `analytics.js` zostaje jako cichy stub. **Nie wdrożone:** `supabase db push` (migracja), `supabase functions deploy` (obie funkcje), harmonogram cron Dashboardu dla `aggregate-growth-benchmarks`, klauzula RODO w polityce prywatności. G4 (one-click draft patch) — poza zakresem.
 
-**Luki:** brak obowiązkowego E2E/CI dla Edge; wildcard `*.dfcms.pl` w Cloudflare Pages; RLS anon read wymaga GRANT + polityki; brak historii wersji treści; monolityczny panel (`admin.html` + `adminApp.js`) utrudnia kolejne zmiany IA; Silnik Wzrostu — do implementacji wg spec.
+**Luki:** brak obowiązkowego E2E/CI dla Edge; wildcard `*.dfcms.pl` w Cloudflare Pages; RLS anon read wymaga GRANT + polityki; brak historii wersji treści; monolityczny panel (`admin.html` + `adminApp.js`) utrudnia kolejne zmiany IA — Silnik Wzrostu jest pierwszym wycinkiem poza monolitem (wzorzec do powielenia); Silnik Wzrostu — kod gotowy, wymaga deployu DB/Edge + testu manualnego G1/G3 (spec §10) przed produkcją.
 
-**TO-DO operacyjne:** tour Driver.js mobile; smoke webhook Stripe; CI deploy Edge; włączyć **pg_cron** na Staging/Prod jeśli migracja `20260704223000` zalogowała WARNING; opcjonalnie Vault + `scripts/cron-expire-trial-edge.sql` dla Telegram.
+**TO-DO operacyjne:** tour Driver.js mobile; smoke webhook Stripe; CI deploy Edge; włączyć **pg_cron** na Staging/Prod jeśli migracja `20260704223000` zalogowała WARNING; opcjonalnie Vault + `scripts/cron-expire-trial-edge.sql` dla Telegram; **Silnik Wzrostu:** `db push` + `functions deploy record-site-event aggregate-growth-benchmarks` na Staging, harmonogram cron (`0 3 * * 1`), test manualny G1 (klik tel → wiersz `analytics_events`) i G3 (karta priorytetu w panelu) przed `main`.
 
 ### 1.5 Onboarding i panel (szczegóły)
 
@@ -142,7 +142,7 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 
 **Progressive disclosure:** Kontakt (rezerwacje na górze; adres/mapa, WhatsApp, social w `<details>`); Baner (CTA w `<details>`; manifesto → osobna zakładka); Wygląd (logo + presety kolorów; reszta w „Ustawienia zaawansowane…”).
 
-**Monolity panelu:** logika w `adminApp.js` (~4k linii); HTML rozbity na `admin/partials/` (2026-07-03). Przy edycji UI panelu: partial → `npm run build:admin` → commit partials + `admin.html`.
+**Panel JS:** monolit `adminApp.js` + **pierwszy moduł feature** `js/features/growth/` (attach hook — §14 w [`GROWTH_AUTOPILOT_ARCHITECTURE.md`](GROWTH_AUTOPILOT_ARCHITECTURE.md)). HTML partials + `build:admin` bez zmian.
 
 ### 1.5.1 Theme-aware panel (`themeConfig`) — wzorzec
 
@@ -374,6 +374,22 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-07-05 — Silnik Wzrostu: implementacja G0–G3 (Lite Hexagonal)
+
+Wdrożenie wg [`docs/GROWTH_AUTOPILOT_ARCHITECTURE.md`](GROWTH_AUTOPILOT_ARCHITECTURE.md) — kod na branchu, **nie wdeployowany**.
+
+- **DB:** `supabase/migrations/20260705000000_growth_engine.sql` — repurpose `analytics_events` (`page_id`, `slug`, `source`, `visitor_key`, `event_scope`; `created_at` → `timestamptz` z defaultem); RLS: usunięty stary insert właściciela, nowa `analytics_events_owner_select_conversion` (SELECT `event_scope='conversion'` + `page_id` własny), INSERT tylko `service_role`; nowa tabela `growth_benchmarks` (RLS: SELECT `authenticated`, insert/update `service_role`); RPC `aggregate_growth_benchmarks()` (SECURITY DEFINER, wyklucza `demo-*`) i `get_page_growth_stats(page_id, days)` (SECURITY INVOKER).
+- **Edge:** `supabase/functions/record-site-event` (insert konwersji, walidacja slug/event_type/source, blokada `dfcms_preview=1`, rate-limit per IP+slug, `visitor_key` hash bez PII) i `aggregate-growth-benchmarks` (cron `Bearer CRON_SECRET`, wzorzec `expire-trial-pages`).
+- **Front publiczny:** `js/core/siteAnalytics.js` (`window.DFOPS_recordConversionEvent`, debounce 2s, no-op w preview) + `publicSiteApp.onConversionClick` + `@click` na tel/rezerwacja/WhatsApp-Messenger w `templates/{beauty,consultant,fitness,services,gastro,care}.html`, `_base_template.html`, `_partials/quick_chat_fab.html`. `js/core/config.js` — `conversionEventsEndpoint`.
+- **Cleanup legacy telemetry:** usunięto 8 wywołań `DFOPS_trackEvent` z `adminApp.js` (onboarding/checkout); `js/core/analytics.js` — `DFOPS_trackEvent` zostaje jako `console.debug` stub, bez zapisu DB.
+- **Domena + panel (poza monolitem):** `js/core/growthRules.js` (kontekst `DFOPS_buildGrowthContext`, 12 reguł, `DFOPS_pickGrowthRecommendation` + rotacja tygodniowa przez `DFOPS_evaluateGrowthRule`) — pure functions; `js/features/growth/growthRepository.js` (adapter DB: benchmarks, `get_page_growth_stats`, wiek strony); `js/features/growth/growthPanel.js` — `window.DFOPS_attachGrowthPanel(app)`, owija `afterLoadData`/`loadData` hosta. **Jedyna zmiana w monolicie:** 3 linie w `buildAdminAlpineState()` (`adminApp.js`) wołające `DFOPS_attachGrowthPanel`.
+- **Kontrakt treści:** `pl.settings.growth` (`dismissed_rule_ids`, `last_shown_rule_id`, `last_shown_at`, `onboarding_growth_seen`) w `contentSchema.js` (`DFOPS_GROWTH_SETTINGS_DEFAULTS`), `contentUpgrader.js` (`normalizeContent`) i `js/templates/registry.js` (defaults per motyw).
+- **UI:** `admin/partials/tab-dashboard.html` — karta „Twój priorytet na ten tydzień” (skeleton / rekomendacja / OK / brak danych) + 3 liczniki konwersji 7 dni; `admin/partials/01-head.html` — importy `growthRules.js`, `growthRepository.js`, `growthPanel.js` przed `adminApp.js` (`?v=20260705a`); `npm run build:admin` uruchomiony.
+- **Dashboard — ręczne odświeżanie:** `growthPanel.js` — `app.refreshGrowthStatsNow()` + `growthRefreshing` (osobny stan od `growthLoading`, bez migotania karty), `growthLastUpdatedAt`/`growthLastUpdatedLabel()`; przycisk „Odśwież” + znacznik czasu w `tab-dashboard.html` nad licznikami. Świadomie bez auto-pollingu (decyzja v0).
+- **RODO — klauzula CTA:** `infrastructurePrivacyHtml()` w `js/features/publicSiteApp.js` (sekcja „Statystyki kliknięć elementów kontaktowych”) — doklejana automatycznie do KAŻDEJ polityki prywatności (domyślnej i własnej klienta, bo `renderPrivacyPolicyPage()` zawsze dokleja tę funkcję), opisuje zliczanie kliknięć CTA (brak cookies, jednokierunkowy hash IP+slug+data, cel: statystyki właściciela + anonimowe benchmarki branżowe). Zamyka spec §11.
+- **`publish_reminder` domknięte:** `supabase/migrations/20260705010000_growth_draft_staleness.sql` — `pages.draft_updated_at` (timestamptz) + trigger `pages_set_draft_updated_at()` (BEFORE UPDATE: ustawia `now()` przy powstaniu rozbieżności draft/content, `NULL` po publikacji, bez zmian gdy rozbieżność trwa dalej — zero zmian w `adminApp.js`). `get_page_growth_stats()` RPC dokłada `draft_stale_days` do zwracanego JSON-a (ten sam podpis funkcji). `growthRules.js` czyta gotowe pole z `ctx.weekStats.draft_stale_days`.
+- **Nie zrobione w tej sesji:** `supabase db push` / `functions deploy` (Staging), harmonogram cron Dashboardu, test manualny G1/G3 (spec §10), `pct_has_offer`/`median_weekly_phone_clicks` niewalidowane na realnych danych.
 
 ### 2026-07-04 — Czysty URL subdomen tenant (bez /templates/…)
 

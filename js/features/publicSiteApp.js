@@ -170,7 +170,10 @@
           <li class="mb-2"><strong>Supabase</strong> (bezpieczne przechowywanie danych w bazie danych z zachowaniem rygorystycznych polityk dostępu, na serwerach zlokalizowanych na terenie Unii Europejskiej).</li>
           <li class="mb-2"><strong>Cloudflare</strong> (obsługa infrastruktury sieciowej, ochrona przed atakami botów oraz optymalizacja szybkości ładowania strony z poziomu serwerów Edge).</li>
         </ul>
-        <p>Wszystkie podmioty zaangażowane w utrzymanie techniczne strony spełniają wymogi RODO, stosują zaawansowane środki ochrony kryptograficznej i przetwarzają dane wyłącznie na zlecenie Administratora w celach technicznych.</p>
+        <p class="mb-4">Wszystkie podmioty zaangażowane w utrzymanie techniczne strony spełniają wymogi RODO, stosują zaawansowane środki ochrony kryptograficznej i przetwarzają dane wyłącznie na zlecenie Administratora w celach technicznych.</p>
+        <h3 class="text-lg font-bold mb-4">Statystyki kliknięć elementów kontaktowych (CTA)</h3>
+        <p class="mb-4">Aby Administrator mógł ocenić skuteczność strony i lepiej dopasować sposób kontaktu do potrzeb klientów, platforma DFCMS odnotowuje zdarzenia kliknięcia w elementy kontaktowe strony, takie jak: numer telefonu, przycisk rezerwacji, WhatsApp / Messenger, adres e-mail lub mapę dojazdu. Zdarzenia te <strong>nie są powiązane z plikami cookies</strong> ani żadnymi identyfikatorami zapisywanymi w przeglądarce użytkownika.</p>
+        <p>Do celów wyłącznie technicznych (ochrona przed nadużyciami i wielokrotnym zliczeniem tego samego zdarzenia) po stronie serwera tworzony jest jednorazowy, nieodwracalny skrót kryptograficzny (hash) na podstawie adresu IP, adresu strony i bieżącej daty — sam adres IP nie jest zapisywany w bazie danych. Zebrane w ten sposób dane mają charakter wyłącznie zbiorczy (liczba kliknięć w danym okresie) i służą do wyświetlenia Administratorowi statystyk w panelu zarządzania stroną oraz — w formie w pełni zanonimizowanej i uśrednionej dla branży — do porównań (benchmarków) między stronami o podobnym profilu działalności. Dane te nie umożliwiają zidentyfikowania konkretnego użytkownika ani odtworzenia jego adresu IP.</p>
       </div>
     `;
   }
@@ -1062,6 +1065,16 @@
       quickChatLabel() {
         return this.quickChatIsWhatsApp() ? 'Napisz na WhatsApp' : 'Napisz na Messengerze';
       },
+      /**
+       * Silnik Wzrostu (G1) — jedyny punkt wejścia trackingu konwersji publicznych
+       * (tel/rezerwacja/WhatsApp/Messenger/e-mail/mapa). Delegacja do js/core/siteAnalytics.js;
+       * brak skryptu / preview → no-op (patrz DFOPS_recordConversionEvent).
+       */
+      onConversionClick(eventName, source) {
+        if (typeof window.DFOPS_recordConversionEvent === 'function') {
+          window.DFOPS_recordConversionEvent(eventName, source);
+        }
+      },
       quickChatFabOffsetClass() {
         if (
           typeof window.DFOPS_planShowsWatermark === 'function' &&
@@ -1206,6 +1219,8 @@
           }
 
           this.slug = page.slug;
+          /** Silnik Wzrostu (siteAnalytics.js) czyta slug stąd — bez duplikowania stanu routingu. */
+          window.DFOPS_publicSiteAppInstance = this;
           cleanTenantPublicUrl(page.slug);
 
           const rawPathname = window.location.pathname;

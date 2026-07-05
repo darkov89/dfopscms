@@ -12,6 +12,19 @@
    */
   const CONTACT_BOOKING_DEFAULTS = { booking_url: '', booking_mode: 'schedule' };
 
+  /**
+   * Silnik Wzrostu (G3) — kontrakt `pages.content.pl.settings.growth`.
+   * Zapis WYŁĄCZNIE w `draft_content` (autosave panelu) — patrz docs/GROWTH_AUTOPILOT_ARCHITECTURE.md §7.
+   * `dismissed_rule_ids` — max 50 ID (obcinane w growthPanel.js); `last_shown_rule_id` + `last_shown_at`
+   * sterują rotacją tygodniową rekomendacji.
+   */
+  const GROWTH_SETTINGS_DEFAULTS = {
+    dismissed_rule_ids: [],
+    last_shown_rule_id: '',
+    last_shown_at: '',
+    onboarding_growth_seen: false,
+  };
+
   function deepClone(obj) {
     return JSON.parse(JSON.stringify(obj));
   }
@@ -67,6 +80,7 @@
   }
 
   window.DFOPS_CONTACT_BOOKING_DEFAULTS = CONTACT_BOOKING_DEFAULTS;
+  window.DFOPS_GROWTH_SETTINGS_DEFAULTS = GROWTH_SETTINGS_DEFAULTS;
   window.DFOPS_deepClone = deepClone;
   window.DFOPS_fillDefaults = fillDefaults;
   window.DFOPS_mergeContentWithTemplate = mergeContentWithTemplate;

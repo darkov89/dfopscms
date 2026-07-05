@@ -9,6 +9,7 @@
         :href="quickChatHref()"
         target="_blank"
         rel="noopener noreferrer"
+        @click="onConversionClick(quickChatIsWhatsApp() ? 'whatsapp_click' : 'messenger_click', 'fab')"
         :aria-label="quickChatLabel()"
         class="group flex flex-col items-end gap-2.5 no-underline outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-500 rounded-2xl"
     >

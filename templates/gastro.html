@@ -55,6 +55,7 @@
     <script defer src="/js/core/pageRepository.js?v=20260704i"></script>
     <script defer src="/js/core/planUtils.js?v=20260703a"></script>
     <script defer src="/js/core/trialBlocking.js?v=20260704h"></script>
+    <script defer src="/js/core/siteAnalytics.js?v=20260705a"></script>
     <script defer src="/js/features/publicSiteApp.js?v=20260704j"></script>
     <script defer src="/js/features/cookieConsentApp.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
@@ -143,6 +144,7 @@
                            x-text="content[lang].hero_actions?.menu_button || 'Zobacz Menu'">
                         </a>
                         <a :href="content[lang].contact?.phone ? ('tel:' + (content[lang].contact.phone || '').replace(/\\s/g, '')) : '#kontakt'"
+                           @click="onConversionClick('phone_click', 'hero')"
                            class="inline-flex items-center justify-center px-8 py-4 rounded-sm border font-bold uppercase tracking-widest text-sm transition-colors"
                            :class="[paletteClass('borderAccent'), paletteClass('accentText')]"
                            x-text="content[lang].hero_actions?.call_button || 'Zadzwoń i zamów'">
@@ -217,6 +219,7 @@
                                     <a :href="resolveHeroButtonUrl()"
                                        :target="ctaLinkTarget(resolveHeroButtonUrl())"
                                        :rel="ctaLinkRel(resolveHeroButtonUrl())"
+                                       @click="onConversionClick('booking_click', 'hero')"
                                        class="inline-flex items-center justify-center px-8 py-4 rounded-sm font-bold uppercase tracking-widest text-sm transition-colors"
                                        :class="[paletteClass('accentBg'), paletteClass('accentBgHover'), paletteClass('btnOnAccent')]">
                                         <span x-text="content[lang].hero.button || 'Zarezerwuj stolik'"></span>
@@ -224,6 +227,7 @@
                                 </template>
                                 <a :href="content[lang].contact?.phone ? ('tel:' + (content[lang].contact.phone || '').replace(/\\s/g, '')) : '#kontakt'"
                                    x-show="content[lang].contact?.phone"
+                                   @click="onConversionClick('phone_click', 'menu')"
                                    class="inline-flex items-center justify-center px-8 py-4 rounded-sm border font-bold uppercase tracking-widest text-sm transition-colors"
                                    :class="[paletteClass('borderAccent'), paletteClass('accentText')]"
                                    x-text="content[lang].orders?.call_button || 'Zadzwoń'">
@@ -259,7 +263,7 @@
                                 <div class="space-y-2">
                                     <p x-show="content[lang].contact?.phone">
                                         Telefon:
-                                        <a :href="'tel:' + (content[lang].contact.phone || '').replace(/\\s/g, '')" class="font-bold hover:underline" :class="paletteClass('accentText')" x-text="content[lang].contact.phone"></a>
+                                        <a :href="'tel:' + (content[lang].contact.phone || '').replace(/\\s/g, '')" @click="onConversionClick('phone_click', 'footer')" class="font-bold hover:underline" :class="paletteClass('accentText')" x-text="content[lang].contact.phone"></a>
                                     </p>
                                     <p x-show="content[lang].contact?.email">
                                         E-mail:
@@ -331,6 +335,7 @@
         :href="quickChatHref()"
         target="_blank"
         rel="noopener noreferrer"
+        @click="onConversionClick(quickChatIsWhatsApp() ? 'whatsapp_click' : 'messenger_click', 'fab')"
         :aria-label="quickChatLabel()"
         class="group flex flex-col items-end gap-2.5 no-underline outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-500 rounded-2xl"
     >

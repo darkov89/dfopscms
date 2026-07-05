@@ -36,7 +36,7 @@
 - **`analytics_events`** — **jedyna tabela zdarzeń** (repurpose). Stary tracking panelu (onboarding, checkout) był nieudany i **nie będzie używany** — w G1 usunąć wywołania `DFOPS_trackEvent` z `adminApp.js` i rozszerzyć schemat pod konwersje publiczne (klik tel, rezerwacja, WhatsApp).
 - **`themeConfig.js`** — źródło prawdy sekcji motywu; reguły wzrostu **muszą** wołać `DFOPS_themeHasSection`, nie `theme === 'beauty'`.
 - **`pages.content` / `draft_content`** — treść + opcjonalny stan UI rekomendacji w `pl.settings.growth`.
-- **Panel JS** — monolit `js/features/adminApp.js` (rollback mixins 2026-07-04); HTML w `admin/partials/` → `npm run build:admin`.
+- **Panel JS** — monolit `js/features/adminApp.js`; **Silnik Wzrostu** jako **pierwszy wycinek** w `js/features/growth/` (patrz §14). HTML w `admin/partials/` → `npm run build:admin`.
 
 ### 1.3 Fazy wdrożenia (kolejność obowiązkowa)
 
@@ -45,7 +45,7 @@
 | **G0** | Kontrakt + reguły (bez DB) | `growthRules.js`, testy kontekstu, mock karty na dashboardzie |
 | **G1** | Zdarzenia publiczne | migracja `analytics_events`, Edge `record-site-event`, hooki w szablonach, cleanup panel telemetry |
 | **G2** | Benchmarki | RPC `aggregate_growth_benchmarks`, cron Edge, tabela `growth_benchmarks` |
-| **G3** | Panel — priorytet tygodnia | karta na `tab-dashboard.html`, load stats w `adminApp.js` |
+| **G3** | Panel — priorytet tygodnia | karta na `tab-dashboard.html`, moduł `js/features/growth/`, cienki hook w `adminApp.js` |
 | **G4** | One-click draft (opcjonalnie) | `applyGrowthPatch()` → `draft_content`, bez auto-publish |
 
 ---
@@ -73,7 +73,8 @@ flowchart TB
 
   subgraph panel [Panel admin]
     GR[js/core/growthRules.js]
-    AA[adminApp.js getters]
+    GP[js/features/growth/growthPanel.js]
+    AA[adminApp.js — cienki hook]
     TD[tab-dashboard.html]
   end
 
@@ -81,10 +82,9 @@ flowchart TB
   RSE --> AE
   AGB -->|cron CRON_SECRET| GB
   AGB -->|czyta content| P
-  AA -->|SELECT analytics_events| AE
-  AA -->|SELECT benchmarks| GB
-  AA --> GR
-  GR -->|eval content.pl + theme| AA
+  GP --> GR
+  GP -->|SELECT| AE
+  AA -->|attachGrowthPanel| GP
   TD --> AA
 ```
 
@@ -453,6 +453,8 @@ Getter w `adminApp.js` ładuje oba jak dziś (`this.content` = draft, `_publishe
 
 ## 8. Panel admin
 
+> **Modularizacja:** logika Silnika Wzrostu **nie idzie do monolitu** — patrz **§14**.
+
 ### 8.1 UI — `admin/partials/tab-dashboard.html`
 
 **Kolejność sekcji (góra → dół):**
@@ -472,24 +474,20 @@ Getter w `adminApp.js` ładuje oba jak dziś (`this.content` = draft, `_publishe
 
 **Po edycji partiala:** `npm run build:admin`.
 
-### 8.2 Logika — `adminApp.js`
+### 8.2 Logika — `js/features/growth/` (NIE w monolicie)
 
-Nowe pola / metody (szkic nazw):
+Cała logika panelu Silnika Wzrostu w module **`js/features/growth/`**. W `adminApp.js` tylko **hook** (§14.3).
 
-```javascript
-growthBenchmarks: {},      // załadowane przy loadData
-growthWeekStats: {},       // { phone_click: N, … }
-growthPriority: null,      // wynik pickGrowthRecommendation
+**Import skryptów** (`admin/partials/01-head.html`, przed `adminApp.js`):
 
-async loadGrowthData() { … }  // SELECT benchmarks + RPC/count analytics_events
-refreshGrowthPriority() { … } // po load + po zmianie content
-dismissGrowthPriority() { … } // push dismissed_rule_ids, save draft
-goToGrowthAction() { … }      // setTab(action.tab)
+```html
+<script defer src="js/core/growthRules.js?v=…"></script>
+<script defer src="js/features/growth/growthRepository.js?v=…"></script>
+<script defer src="js/features/growth/growthPanel.js?v=…"></script>
+<script defer src="js/features/adminApp.js?v=…"></script>
 ```
 
-**Import skryptu:** `admin/partials/01-head.html` — `<script defer src="js/core/growthRules.js?v=…">` **przed** `adminApp.js`.
-
-**God Mode / impersonacja:** statystyki i rekomendacje dla **`impersonatedPageId`** / slug klienta (jak reszta panelu).
+**God Mode / impersonacja:** moduł growth dostaje `pageId`, `slug`, `theme` z hosta (`attachGrowthPanel`) — te same pola co reszta panelu.
 
 ### 8.3 Zapytania Supabase (panel)
 
@@ -509,23 +507,24 @@ goToGrowthAction() { … }      // setTab(action.tab)
 
 | Akcja | Plik |
 |-------|------|
-| **CREATE** | `docs/GROWTH_AUTOPILOT_ARCHITECTURE.md` (ten plik) |
+| **CREATE** | `js/features/growth/README.md` |
 | **CREATE** | `js/core/growthRules.js` |
+| **CREATE** | `js/features/growth/growthRepository.js` |
+| **CREATE** | `js/features/growth/growthPanel.js` |
 | **CREATE** | `js/core/siteAnalytics.js` |
 | **CREATE** | `supabase/functions/record-site-event/index.ts` |
 | **CREATE** | `supabase/functions/aggregate-growth-benchmarks/index.ts` |
 | **CREATE** | `supabase/migrations/<ts>_growth_analytics_events.sql` |
+| **EDIT** | `js/core/config.js` — `conversionEventsEndpoint`, komentarz `analyticsTable` |
+| **EDIT** | `js/core/analytics.js` — usunąć zapis DB |
+| **EDIT** | `js/features/adminApp.js` — **tylko hook** attach + usuń `DFOPS_trackEvent` |
 | **EDIT** | `js/core/contentSchema.js`, `contentUpgrader.js`, `js/templates/registry.js` |
 | **EDIT** | `js/features/publicSiteApp.js` — `onConversionClick` |
-| **EDIT** | `js/core/config.js` — `conversionEventsEndpoint`, komentarz `analyticsTable` |
-| **EDIT** | `js/core/analytics.js` — usunąć zapis DB; opcjonalnie deprecate |
-| **EDIT** | `js/features/adminApp.js` — usunąć `DFOPS_trackEvent`, dodać loadGrowth* |
 | **EDIT** | `admin/partials/tab-dashboard.html`, `01-head.html` |
 | **EDIT** | `templates/*.html` (6) + `_partials/quick_chat_fab.html` |
-| **EDIT** | `docs/MASTER_CONTEXT.md` — §1.4 skrót + §4 changelog po wdrożeniu fazy |
 | **RUN** | `npm run build:admin` po zmianach partials |
 
-**Nie tworzyć** na tym etapie: nowej zakładki sidebar, bundlera, mixins panelu (rollback 2026-07-04).
+**Nie dodawać** logiki growth w `createAdminApp()` poza hookiem. Reszty panelu **nie** splitować w tym samym PR.
 
 ---
 
@@ -568,7 +567,7 @@ Wykluczyć `demo-*` z benchmarków; **można** zapisywać zdarzenia demo (dev), 
 - Rate limit na `record-site-event` — ochrona przed spamem.
 - `analytics_events`: brak INSERT dla `anon`/`authenticated` (tylko Edge); SELECT conversion tylko dla właściciela strony.
 - Superadmin: polityki OR (wzór God Mode).
-- Aktualizacja klauzuli w `/polityka-prywatnosci` — osobny ticket prawny przed prod G1.
+- ~~Aktualizacja klauzuli w `/polityka-prywatnosci` — osobny ticket prawny przed prod G1.~~ ✅ Zrobione 2026-07-05: `infrastructurePrivacyHtml()` w `js/features/publicSiteApp.js` (klauzula doklejana automatycznie do KAŻDEJ polityki — domyślnej i własnej klienta).
 
 ---
 
@@ -593,12 +592,125 @@ Wykluczyć `demo-*` z benchmarków; **można** zapisywać zdarzenia demo (dev), 
 - [ ] RPC `aggregate_growth_benchmarks`
 - [ ] Edge cron + harmonogram Supabase
 
-### G3 — Panel
+### G3 — Panel (moduł `js/features/growth/`)
 
 - [ ] `settings.growth` w schema/upgrader/registry
-- [ ] `loadGrowthData` w adminApp
+- [ ] `growthRepository.js` + `growthPanel.js` + `DFOPS_attachGrowthPanel`
+- [ ] Hook w `buildAdminAlpineState()` (3–5 linii w monolicie)
 - [ ] UI karty + liczniki w `tab-dashboard.html`
 - [ ] `npm run build:admin`
+
+---
+
+## 14. Panel modularny — Silnik Wzrostu jako pierwszy wycinek
+
+### 14.1 Dlaczego nie powtórka rollbacku mixins (2026-07-04)
+
+Poprzedni split **całego** `adminApp.js` na mixiny padł m.in. dlatego, że:
+
+1. **`{ ...createAdminApp(), ...mixin }` niszczy gettery Alpine 3** — w kodzie jest już komentarz: mutacja zamiast spreadu (`buildAdminAlpineState`).
+2. **Wszystko naraz** — regresje onboardingu, billing, wizard jednocześnie; trudny debug.
+3. **Brak granic domenowych** — mixiny `auth`, `ui`, `wizard` były warstwą techniczną, nie feature’em produktowym.
+
+**Nowy wzorzec:** jeden **pionowy wycinek produktowy** (Growth) = osobny katalog + cienki hook. Reszta monolitu **dotykana minimalnie**.
+
+### 14.2 Trzy warstwy modułu Growth
+
+```
+js/core/growthRules.js              ← domena (pure functions, bez Alpine, bez Supabase)
+js/features/growth/
+  growthRepository.js               ← adapter DB (benchmarks, RPC stats, dismiss → draft)
+  growthPanel.js                    ← wiązanie Alpine (stan + metody UI dashboardu)
+  README.md                         ← kontrakt dla kolejnych modułów panelu
+js/core/siteAnalytics.js            ← tracking publiczny (osobny, współdzielony z szablonami)
+```
+
+| Warstwa | Zależności dozwolone | Zakaz |
+|---------|---------------------|-------|
+| `growthRules.js` | `themeConfig` (`DFOPS_themeHasSection`) | Alpine, Supabase, `adminApp` |
+| `growthRepository.js` | `DFOPS_getSupabaseClient`, config | Alpine, reguły UI |
+| `growthPanel.js` | rules + repository + host (app) | bezpośredni SQL poza repository |
+
+To jest **lite hexagonal** z roadmapy V2 — bez Vite, bez ESM; IIFE + `window.DFOPS_*` jak reszta repo.
+
+### 14.3 Kontrakt hosta (Alpine app)
+
+**Plik:** `growthPanel.js` eksportuje:
+
+```javascript
+window.DFOPS_attachGrowthPanel = function attachGrowthPanel(app) {
+  // 1. Pola reaktywne — jawne, nie gettery zamknięte w factory
+  app.growthLoading = false;
+  app.growthBenchmarks = {};
+  app.growthWeekStats = {};
+  app.growthPriority = null;
+
+  // 2. Metody — mutacja app, bez spreadu
+  app.loadGrowthData = async function loadGrowthData() { /* … używa this.pageId, this.theme */ };
+  app.refreshGrowthPriority = function () { /* DFOPS_pickGrowthRecommendation */ };
+  app.dismissGrowthPriority = async function () { /* settings.growth + save draft */ };
+  app.goToGrowthAction = function () { this.setTab(this.growthPriority.action.tab); };
+
+  // 3. Opcjonalnie: podpięcie pod istniejący lifecycle
+  const prevAfterLoad = app.afterLoadData;
+  app.afterLoadData = async function (...args) {
+    if (typeof prevAfterLoad === 'function') await prevAfterLoad.apply(this, args);
+    await this.loadGrowthData();
+    this.refreshGrowthPriority();
+  };
+};
+```
+
+**W monolicie** (`buildAdminAlpineState`, na końcu):
+
+```javascript
+const fromApp = createAdminApp();
+// … istniejąca mutacja content/isLoading …
+if (typeof window.DFOPS_attachGrowthPanel === 'function') {
+  window.DFOPS_attachGrowthPanel(fromApp);
+}
+return fromApp;
+```
+
+**Reguła:** monolit **nie importuje** implementacji growth — tylko woła attach, jeśli skrypt załadowany.
+
+### 14.4 Co growth bierze z hosta (interfejs)
+
+Moduł growth **nie duplikuje** stanu panelu — czyta z `this`:
+
+| Pole hosta | Użycie |
+|------------|--------|
+| `this.theme`, `this.slug`, `this.pageId` | kontekst reguł + zapytania |
+| `this.content`, `this._publishedContentRaw` | draft vs published (§6.4) |
+| `this.supabase` | przekazane do repository |
+| `this.setTab(tabId)` | nawigacja CTA |
+| `this.saveDraft` / istniejący autosave | zapis `settings.growth` |
+
+Jeśli host nie ma pola — growth **nie crashuje** (guard + `growthLoading: false`).
+
+### 14.5 Kolejne moduły (po Growth)
+
+Ten sam wzorzec dla przyszłych wycinków — **nie** powrót do mixins per warstwa techniczna:
+
+| Moduł (przyszłość) | Katalog | Hook |
+|--------------------|---------|------|
+| Subskrypcja / billing UI | `js/features/billing-panel/` | `DFOPS_attachBillingPanel` |
+| Kreator | `js/features/wizard-panel/` | `DFOPS_attachWizardPanel` |
+
+Build JS (`npm run build:admin-js`) — **dopiero gdy ≥2 moduły**; do tego osobne `<script defer>` (debugowalne na localhost).
+
+Vite / ESM (`PRODUCT_ROADMAP` Faza 1–2) — growth jako pierwszy pakiet do `src/features/growth/`; attach zostaje composition root.
+
+### 14.6 Kolejność PR (rekomendowana)
+
+| PR | Zakres | Monolit |
+|----|--------|---------|
+| **PR-1 G0** | `growthRules.js`, `growthPanel.js` (mock stats), UI dashboard, hook attach | ~5 linii |
+| **PR-2 G1** | migracja `analytics_events`, Edge, `siteAnalytics.js`, hooki szablonów, usuń `DFOPS_trackEvent` | usuń ~8 wywołań trackEvent |
+| **PR-3 G2** | `growth_benchmarks`, cron, `growthRepository.js` (prawdziwe dane) | 0 linii |
+| **PR-4 G3** | schema `settings.growth`, dismiss, refresh po publish | 0 linii (ew. `afterPublish`) |
+
+Każdy PR = deployowalny na Staging; G0 daje wartość UX (reguły + mock) bez DB.
 
 ### G4 — One-click (post-MVP)
 
