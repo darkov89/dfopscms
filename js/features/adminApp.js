@@ -119,6 +119,7 @@
   /** Zakładki Studia — zgodnie z przyciskami w `admin.html` (hash w URL przy `setTab`). */
   const ADMIN_TAB_IDS = new Set([
     'dashboard',
+    'stats',
     'hero',
     'manifesto',
     'services',
@@ -4096,9 +4097,13 @@
         : createAdminContentShell();
     fromApp.isLoading = fromApp.isLoading === true || fromApp.isLoading === false ? fromApp.isLoading : false;
 
-    // Silnik Wzrostu — jedyny punkt wejścia modułu js/features/growth/ do monolitu (§14 spec).
+    // Silnik Wzrostu — jedyne punkty wejścia modułu js/features/growth/ do monolitu (§14 spec).
     if (typeof window.DFOPS_attachGrowthPanel === 'function') {
       window.DFOPS_attachGrowthPanel(fromApp);
+    }
+    // Zakładka „Statystyki” (Faza B) — osobny moduł, owija setTab do leniwego ładowania.
+    if (typeof window.DFOPS_attachStatsPanel === 'function') {
+      window.DFOPS_attachStatsPanel(fromApp);
     }
 
     return fromApp;

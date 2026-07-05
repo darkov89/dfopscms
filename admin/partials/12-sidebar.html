@@ -10,6 +10,12 @@
                             </button>
                         </div>
 
+                        <div class="mb-2 flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'stats' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                            <button type="button" @click="setTab('stats')" class="min-w-0 flex-1 rounded-r-lg py-3 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                <span :class="activeTab === 'stats' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Statystyki</span>
+                            </button>
+                        </div>
+
                         <!-- GRUPA 1: Na start -->
                         <div class="mb-1 mt-2">
                             <button type="button" @click="navGroupStart = !navGroupStart" class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-bold uppercase tracking-widest text-slate-500 transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35" :aria-expanded="navGroupStart ? 'true' : 'false'">

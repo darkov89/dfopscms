@@ -48,10 +48,11 @@
     <script defer src="js/core/analytics.js?v=20260403t"></script>
     <!-- Silnik Wzrostu (Growth Autopilot) — lite hexagonal, ładowane przed adminApp.js (§14 spec). -->
     <script defer src="js/core/growthRules.js?v=20260705a"></script>
-    <script defer src="js/features/growth/growthRepository.js?v=20260705a"></script>
+    <script defer src="js/features/growth/growthRepository.js?v=20260705b"></script>
     <script defer src="js/features/growth/growthPanel.js?v=20260705a"></script>
+    <script defer src="js/features/growth/statsPanel.js?v=20260705a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260705a"></script>
+    <script defer src="js/features/adminApp.js?v=20260705b"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -784,6 +785,12 @@
                             </button>
                         </div>
 
+                        <div class="mb-2 flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="activeTab === 'stats' ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                            <button type="button" @click="setTab('stats')" class="min-w-0 flex-1 rounded-r-lg py-3 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                <span :class="activeTab === 'stats' ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Statystyki</span>
+                            </button>
+                        </div>
+
                         <!-- GRUPA 1: Na start -->
                         <div class="mb-1 mt-2">
                             <button type="button" @click="navGroupStart = !navGroupStart" class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-bold uppercase tracking-widest text-slate-500 transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35" :aria-expanded="navGroupStart ? 'true' : 'false'">
@@ -1009,6 +1016,99 @@
                         </div>
                     </div>
 
+                    <div x-show="activeTab === 'stats'" x-transition.opacity x-cloak>
+                        <!-- Zakładka „Statystyki” (js/features/growth/statsPanel.js) -->
+                        <div class="mb-6">
+                            <h2 class="font-serif text-2xl text-slate-900">Statystyki</h2>
+                            <p class="text-sm text-slate-500 mt-1">Odwiedziny i kliknięcia w przyciski kontaktu na Twojej stronie. „Unikalne” to jedna osoba dziennie (bez cookies, dane anonimowe).</p>
+                        </div>
+
+                        <div class="rounded-xl border border-slate-200/70 bg-white p-4 shadow-panel ring-1 ring-slate-900/5 md:p-6">
+                            <!-- Presety zakresu -->
+                            <div class="flex flex-wrap items-center gap-2">
+                                <template x-for="p in statsPresets" :key="p.id">
+                                    <button type="button" @click="setStatsPreset(p.id)"
+                                            class="rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35"
+                                            :class="statsRangePreset === p.id ? 'border-accent bg-accent/10 text-slate-900' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'"
+                                            x-text="p.label"></button>
+                                </template>
+                            </div>
+
+                            <!-- Zakres własny -->
+                            <div x-show="statsRangePreset === 'custom'" x-cloak class="mt-4 flex flex-col gap-3 rounded-lg bg-slate-50 p-3 sm:flex-row sm:items-end">
+                                <div class="flex-1">
+                                    <label class="block text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-1">Od</label>
+                                    <input type="date" x-model="statsFrom" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/40">
+                                </div>
+                                <div class="flex-1">
+                                    <label class="block text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-1">Do</label>
+                                    <input type="date" x-model="statsTo" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/40">
+                                </div>
+                                <button type="button" @click="applyStatsCustomRange()" :disabled="statsLoading"
+                                        class="rounded-lg bg-accent px-4 py-2 text-sm font-bold text-accent-fg shadow-sm transition-colors hover:bg-accent-soft disabled:cursor-wait disabled:opacity-60">Pokaż</button>
+                            </div>
+
+                            <!-- Pasek akcji -->
+                            <div class="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200/70 pt-4">
+                                <p class="text-xs text-slate-400">
+                                    <span x-show="statsAppliedRangeLabel" x-text="statsAppliedRangeLabel"></span>
+                                    <span x-show="statsLastUpdatedAt" x-text="' • zaktualizowano ' + statsLastUpdatedLabel()"></span>
+                                </p>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" @click="refreshStatsNow()" :disabled="statsLoading"
+                                            class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" :class="statsLoading ? 'animate-spin' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+                                        <span x-text="statsLoading ? 'Ładowanie…' : 'Odśwież'"></span>
+                                    </button>
+                                    <button type="button" @click="exportStatsCsv()" :disabled="statsLoading || !statsLoadedOnce"
+                                            class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:bg-slate-50 disabled:opacity-50">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                        Eksport (Excel)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Skeleton -->
+                            <template x-if="statsLoading && !statsLoadedOnce">
+                                <div class="mt-4 animate-pulse space-y-2">
+                                    <div class="h-9 w-full rounded bg-slate-100"></div>
+                                    <div class="h-9 w-full rounded bg-slate-100"></div>
+                                    <div class="h-9 w-full rounded bg-slate-100"></div>
+                                </div>
+                            </template>
+
+                            <!-- Błąd -->
+                            <template x-if="statsError">
+                                <p class="mt-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">Nie udało się wczytać statystyk. Sprawdź zakres dat i spróbuj ponownie.</p>
+                            </template>
+
+                            <!-- Tabela metryk -->
+                            <template x-if="!statsError && (statsLoadedOnce || !statsLoading)">
+                                <div class="mt-4 overflow-hidden rounded-lg border border-slate-200/70">
+                                    <table class="w-full text-sm">
+                                        <thead>
+                                            <tr class="bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                                                <th class="px-4 py-2.5">Metryka</th>
+                                                <th class="px-4 py-2.5 text-right">Wszystkie</th>
+                                                <th class="px-4 py-2.5 text-right">Unikalne</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100">
+                                            <template x-for="row in statsMetricRows()" :key="row.key">
+                                                <tr class="text-slate-800">
+                                                    <td class="px-4 py-2.5" x-text="row.label"></td>
+                                                    <td class="px-4 py-2.5 text-right font-bold tabular-nums" x-text="row.total"></td>
+                                                    <td class="px-4 py-2.5 text-right tabular-nums text-slate-500" x-text="row.unique"></td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </template>
+
+                            <p class="mt-3 text-[11px] text-slate-400">„Unikalne” liczone dziennie na podstawie jednorazowego, anonimowego skrótu (IP + strona + dzień) — bez plików cookie i bez śledzenia w czasie.</p>
+                        </div>
+                    </div>
                     <div x-show="activeTab === 'settings'" x-transition.opacity x-cloak>
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
                             <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Wygląd strony</h2>

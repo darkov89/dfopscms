@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-07-05 — Szybki czat: predefiniowane pytania (WhatsApp pre-fill / Messenger schowek)
+**Ostatnia aktualizacja treści:** 2026-07-05 — Zakładka „Statystyki” (zakres dat, unikalni dziennie, eksport Excel)
 
 ---
 
@@ -103,7 +103,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 
 **Security (skrót):** forced password reset, DOMPurify, sanitizacja URL-like pól `pages.content` na zapisie i odczycie, Cloudflare Turnstile dla rejestracji/custom inquiry/checkout, CSP/HSTS/XFO/nosniff w `functions/_middleware.js`, publiczny odczyt `pages` zawężony query+RLS+grantami kolumnowymi, Stripe webhook tylko Edge, Google Places/Maps klucz tylko Edge, `billing_profiles` SoT rozliczeń, draft preview tylko dla właściciela. Superadmini są wyłącznie w `public.superadmins`; RLS dodaje im SELECT/UPDATE/DELETE na `pages` i `analytics_events`, bez zmiany polityk właścicielskich.
 
-**Silnik Wzrostu (G0–G3 wdrożone na Staging i Produkcję):** CMS podpowiada co tydzień jedną zmianę związaną z konwersją (telefon, rezerwacja, opinie), liczniki kliknięć CTA, odwiedzin (`page_view`) i benchmarki branżowe per `theme`. **Spec:** [`docs/GROWTH_AUTOPILOT_ARCHITECTURE.md`](GROWTH_AUTOPILOT_ARCHITECTURE.md). **Repurpose** `analytics_events` (`event_scope`: `conversion` | `visit` | `legacy`) + `growth_benchmarks` + `pages.draft_updated_at` (trigger `publish_reminder`); Edge `record-site-event` i `aggregate-growth-benchmarks`; RPC `get_page_growth_stats` / `aggregate_growth_benchmarks`. Tracking: `siteAnalytics.js` + `publicSiteApp.onConversionClick` / `recordPageView()`. Panel: `js/features/growth/` + hook `DFOPS_attachGrowthPanel` (3 linie w `adminApp.js`). Dashboard: karta priorytetu + 4 liczniki (odwiedziny + 3× CTA) z przyciskiem „Odśwież”. RODO: klauzula w `infrastructurePrivacyHtml()`. **Pozostało operacyjnie:** harmonogram cron Dashboardu (`aggregate-growth-benchmarks`, `0 3 * * 1`, `Bearer CRON_SECRET`) na Staging **i** Prod; test manualny G1/G3 na żywym ruchu. G4 (one-click draft) — poza zakresem.
+**Silnik Wzrostu (G0–G3 wdrożone na Staging i Produkcję):** CMS podpowiada co tydzień jedną zmianę związaną z konwersją (telefon, rezerwacja, opinie), liczniki kliknięć CTA, odwiedzin (`page_view`) i benchmarki branżowe per `theme`. **Spec:** [`docs/GROWTH_AUTOPILOT_ARCHITECTURE.md`](GROWTH_AUTOPILOT_ARCHITECTURE.md). **Repurpose** `analytics_events` (`event_scope`: `conversion` | `visit` | `legacy`) + `growth_benchmarks` + `pages.draft_updated_at` (trigger `publish_reminder`); Edge `record-site-event` i `aggregate-growth-benchmarks`; RPC `get_page_growth_stats` / `aggregate_growth_benchmarks`. Tracking: `siteAnalytics.js` + `publicSiteApp.onConversionClick` / `recordPageView()`. Panel: `js/features/growth/` + hook `DFOPS_attachGrowthPanel` (3 linie w `adminApp.js`). Dashboard: karta priorytetu + 4 liczniki (odwiedziny + 3× CTA) z przyciskiem „Odśwież”. Zakładka „Statystyki” (`statsPanel.js` + `tab-stats.html`): zakres dat (presety + własny), total vs unikalni dziennie, eksport CSV/Excel — RPC `get_page_stats_range`. RODO: klauzula w `infrastructurePrivacyHtml()`. **Pozostało operacyjnie:** harmonogram cron Dashboardu (`aggregate-growth-benchmarks`, `0 3 * * 1`, `Bearer CRON_SECRET`) na Staging **i** Prod; test manualny G1/G3 na żywym ruchu. G4 (one-click draft) — poza zakresem.
 
 **Luki:** brak obowiązkowego E2E/CI dla Edge; wildcard `*.dfcms.pl` w Cloudflare Pages; RLS anon read wymaga GRANT + polityki; brak historii wersji treści; monolityczny panel (`admin.html` + `adminApp.js`) utrudnia kolejne zmiany IA — Silnik Wzrostu jest pierwszym wycinkiem poza monolitem (wzorzec do powielenia).
 
@@ -375,6 +375,14 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 
 ## 4. Dziennik transformacji
 
+### 2026-07-05 — Landing `index.html`: restrukturyzacja sekcji i copy
+
+Przepisany marketingowy landing pod konwersję. **Bez zmian w designie** — te same kolory (dark + złoto `#D4AF37`), Inter, klasy Tailwind, Alpine (`landingPricing()`) i skrypty routingu/SEO.
+
+- **Flow sekcji:** Hero → Jak to działa (4 kroki: szablon → edytor → publikacja/domena → statystyki) → Co dostajesz (6 korzyści) → Panel i statystyki (`#panel`, mock dashboardu 7-dniowego) → Integracje (`#integracje`: Booksy/Calendly/Opinie Google/Mapa) → Przykłady (`#demo` + CTA) → Święty spokój (`#spokoj`, hosting/SSL/domena) → Cennik → CTA.
+- **Nawigacja:** linki `#korzysci`, `#panel` zastąpiły `#wyposazenie`/`#spokoj` (desktop + mobile). Sekcja `#spokoj` przeniesiona za `#demo`.
+- **Copy realistyczne:** „gotowa w kilka minut”, trial 14 dni bez karty, własną domenę podłączasz sam (możemy pomóc), hosting+SSL+aktualizacje w cenie. USP zgodne z realnymi funkcjami (dashboard 7-dniowy, quick chat WhatsApp/Messenger z gotowymi pytaniami, edytor z autozapisem).
+
 ### 2026-07-05 — Szybki czat: predefiniowane pytania
 
 FAB WhatsApp/Messenger dostaje rozwijaną listę gotowych pytań; klient wybiera pytanie i czat otwiera się z wpisaną treścią.
@@ -387,6 +395,17 @@ FAB WhatsApp/Messenger dostaje rozwijaną listę gotowych pytań; klient wybiera
 ### 2026-07-05 — WhatsApp / Messenger na planie Starter
 
 - **`js/core/planUtils.js`:** `DFOPS_planAllowsQuickChat` zwraca `true` dla wszystkich planów (wcześniej blokada `tier0`). Odblokowuje pola w panelu (Kontakt → Szybki czat), FAB na stronie publicznej i regułę `whatsapp_available` w Silniku Wzrostu. Decyzja produktowa tymczasowa („póki co”).
+
+### 2026-07-05 — Zakładka „Statystyki” (Faza A+B: zakres dat + unikalne + eksport)
+
+Rozszerzenie analityki poza dashboard, w tym samym wzorcu Lite Hexagonal (moduł poza monolitem).
+
+- **DB:** `supabase/migrations/20260705030000_growth_stats_range.sql` — nowy RPC `get_page_stats_range(p_page_id, p_from, p_to)` (SECURITY INVOKER, `STABLE`): zwraca `{ event_name: { total, unique } }` dla dowolnego okna `[p_from, p_to)`; `NULL` = brak granicy (all-time / do teraz). `unique = count(distinct visitor_key)` = unikalni **dziennie** (świadoma decyzja pro-RODO — `visitor_key` to hash IP+slug+dzień). Osobny od `get_page_growth_stats` (dashboard, okno 7 dni + `draft_stale_days`). GRANT tylko `authenticated`, chroniony istniejącą polityką `analytics_events_owner_select_conversion` (obejmuje `conversion` + `visit`).
+- **Adapter DB:** `js/features/growth/growthRepository.js` — `fetchStatsRange(pageId, fromISO, toISO, client)` woła nowy RPC (bump `?v=20260705b`).
+- **Moduł (poza monolitem):** `js/features/growth/statsPanel.js` — `window.DFOPS_attachStatsPanel(app)`: presety (7/30/90 dni, Od zawsze, własny zakres), `resolveStatsRange()`, `loadStatsRange()` (leniwe — owija `setTab`, ładuje przy 1. wejściu w zakładkę), `statsMetricRows()`, `exportStatsCsv()` (CSV: BOM UTF-8 + separator `;`, otwiera się w polskim Excelu bez konfiguracji; native `.xlsx` dopiero jeśli będzie potrzebny), znaczniki czasu odświeżenia.
+- **UI:** nowy partial `admin/partials/tab-stats.html` (presety, datepickery custom, tabela Metryka/Wszystkie/Unikalne, „Odśwież”, „Eksport (Excel)”), wpis w `admin/manifest.json` (po `tab-dashboard`), pozycja „Statystyki” w `admin/partials/12-sidebar.html` (pod „Twoja strona”), import `statsPanel.js` w `01-head.html`; `npm run build:admin`.
+- **Monolit — 2 linie wiązania:** `adminApp.js` — `'stats'` w `ADMIN_TAB_IDS` (deep-link/hash) + wywołanie `DFOPS_attachStatsPanel(fromApp)` w `buildAdminAlpineState()` obok growth (bump `?v=20260705b`). Zero logiki analityki w monolicie.
+- **Region:** świadomie pominięte (wymaga GeoIP w Edge + migracja kolumny + klauzula RODO, działa tylko „od teraz”) — backlog.
 
 ### 2026-07-05 — Silnik Wzrostu: implementacja G0–G3 (Lite Hexagonal)
 

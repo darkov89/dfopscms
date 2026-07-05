@@ -55,6 +55,31 @@
     }
   }
 
+  /**
+   * RPC get_page_stats_range — total + unique per event_name w oknie [fromISO, toISO).
+   * `fromISO` / `toISO` = ISO string albo null (brak ograniczenia = all-time / do teraz).
+   * Zwraca { event_name: { total, unique } }.
+   */
+  async function fetchStatsRange(pageId, fromISO, toISO, supabaseClient) {
+    const sb = resolveClient(supabaseClient);
+    if (!sb || !pageId) return {};
+    try {
+      const { data, error } = await sb.rpc('get_page_stats_range', {
+        p_page_id: pageId,
+        p_from: fromISO || null,
+        p_to: toISO || null,
+      });
+      if (error || !data || typeof data !== 'object') {
+        if (error) debugLog('fetchStatsRange', error);
+        return {};
+      }
+      return { ...data };
+    } catch (e) {
+      debugLog('fetchStatsRange', e);
+      return {};
+    }
+  }
+
   /** Wiek strony w dniach (`pages.created_at`) — dla reguł typu `low_phone_clicks`. */
   async function fetchPageAgeDays(pageId, supabaseClient) {
     const sb = resolveClient(supabaseClient);
@@ -89,6 +114,7 @@
   window.DFOPS_growthRepository = {
     fetchBenchmarks,
     fetchWeekStats,
+    fetchStatsRange,
     fetchPageAgeDays,
     loadGrowthData,
   };
