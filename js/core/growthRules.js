@@ -56,7 +56,7 @@
     const quickChatPlanAllowed =
       typeof window.DFOPS_planAllowsQuickChat === 'function'
         ? window.DFOPS_planAllowsQuickChat(plan)
-        : plan !== 'tier0';
+        : true;
 
     return {
       theme: str(theme),

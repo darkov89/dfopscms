@@ -1171,7 +1171,7 @@
         return p === 'trial' || p === 'tier0';
       },
 
-      /** Opłacony Starter (tier0) — bez przycisku szybkiego kontaktu WhatsApp / Messenger. */
+      /** Szybki kontakt (WhatsApp / Messenger) — odblokowany także na Starterze (planUtils). */
       get isQuickChatLocked() {
         if (typeof window.DFOPS_planAllowsQuickChat === 'function') {
           return !window.DFOPS_planAllowsQuickChat(this.subscriptionPlan);

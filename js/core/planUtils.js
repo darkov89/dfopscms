@@ -25,9 +25,10 @@
     return p === 'trial' || p === 'tier0';
   }
 
-  /** Przycisk szybkiego kontaktu (WhatsApp / Messenger) — niedostępny na opłaconym Starterze (tier0). */
+  /** Przycisk szybkiego kontaktu (WhatsApp / Messenger) — od 2026-07-05 także na Starterze (tier0). */
   function planAllowsQuickChat(plan) {
-    return normalizePlan(plan) !== 'tier0';
+    void plan;
+    return true;
   }
 
   function planDisplayName(plan) {

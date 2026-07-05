@@ -1034,7 +1034,7 @@
         if (typeof window.DFOPS_planAllowsQuickChat === 'function') {
           return window.DFOPS_planAllowsQuickChat(this.billingPlan);
         }
-        return String(this.billingPlan || 'trial').trim() !== 'tier0';
+        return true;
       },
       quickChatWhatsApp() {
         if (!this.quickChatPlanAllowed()) return '';
