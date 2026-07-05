@@ -11,10 +11,11 @@ const corsHeaders: Record<string, string> = {
 };
 
 /**
- * Silnik Wzrostu (G1) — zapis konwersji publicznych do `analytics_events`.
+ * Silnik Wzrostu (G1) — zapis konwersji publicznych + odwiedzin do `analytics_events`.
  * Kontrakt: docs/GROWTH_AUTOPILOT_ARCHITECTURE.md §4.1.
  *
  * POST { slug, event_type, source? }
+ * `event_type: 'page_view'` → event_scope='visit' (odwiedziny); reszta → event_scope='conversion' (klik CTA).
  * 200 { ok: true } | { ok: true, skipped: 'preview' | 'rate_limited' }
  * 400 invalid payload | 404 unknown slug
  */
@@ -28,9 +29,15 @@ const EVENT_TYPES = new Set([
   "messenger_click",
   "email_click",
   "map_click",
+  "page_view",
 ]);
 
-const SOURCES = new Set(["hero", "nav", "footer", "booking_section", "fab", "contact", "gallery", "menu"]);
+const SOURCES = new Set(["hero", "nav", "footer", "booking_section", "fab", "contact", "gallery", "menu", "page"]);
+
+/** `page_view` to odwiedziny (event_scope='visit'), reszta to klik CTA (event_scope='conversion'). */
+function scopeForEventType(eventType: string): "conversion" | "visit" {
+  return eventType === "page_view" ? "visit" : "conversion";
+}
 
 /** In-memory rate limit — per instancję Edge (v0, wystarczające przeciw prostemu spamowi). */
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -175,7 +182,7 @@ serve(async (req) => {
     page_id: page.id,
     slug,
     event_name: eventType,
-    event_scope: "conversion",
+    event_scope: scopeForEventType(eventType),
     source: safeSource,
     visitor_key: visitorKey,
   });

@@ -144,6 +144,7 @@ COMMENT ON COLUMN public.analytics_events.event_scope IS
 | `messenger_click` | FAB Messenger |
 | `email_click` | `mailto:` |
 | `map_click` | link do mapy / Google Maps |
+| `page_view` | odsłona strony (surowa, bez odduplikowania) — `event_scope='visit'`, nie `'conversion'`; poza v0, dodane 2026-07-05 |
 
 **Nowy wiersz konwersji:**
 

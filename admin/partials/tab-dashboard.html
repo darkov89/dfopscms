@@ -52,7 +52,11 @@
                                     <span x-text="growthRefreshing ? 'Odświeżanie…' : 'Odśwież'"></span>
                                 </button>
                             </div>
-                            <div class="grid grid-cols-3 gap-3">
+                            <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                                <div class="rounded-xl border border-accent/25 bg-accent/5 p-4 text-center shadow-panel ring-1 ring-slate-900/5">
+                                    <p class="text-2xl font-bold text-slate-900" x-text="growthWeekStats.page_view || 0"></p>
+                                    <p class="text-xs text-slate-500 mt-1">Odwiedziny (7 dni)</p>
+                                </div>
                                 <div class="rounded-xl border border-slate-200/70 bg-white p-4 text-center shadow-panel ring-1 ring-slate-900/5">
                                     <p class="text-2xl font-bold text-slate-900" x-text="growthWeekStats.phone_click || 0"></p>
                                     <p class="text-xs text-slate-500 mt-1">Telefony (7 dni)</p>
