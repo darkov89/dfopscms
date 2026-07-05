@@ -33,3 +33,11 @@ verify_jwt = false
 
 [functions.telegram-webhook]
 verify_jwt = false
+
+# Silnik Wzrostu (G1) — publiczny tracking konwersji, wołany bez sesji użytkownika z frontu.
+[functions.record-site-event]
+verify_jwt = false
+
+# Silnik Wzrostu (G2) — wywołanie wyłącznie z cron (Authorization: Bearer CRON_SECRET), jak expire-trial-pages.
+[functions.aggregate-growth-benchmarks]
+verify_jwt = false
