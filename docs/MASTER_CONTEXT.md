@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-07-05 — Zakładka „Statystyki” (zakres dat, unikalni dziennie, eksport Excel)
+**Ostatnia aktualizacja treści:** 2026-07-08 — Rejestracja (zajęty e-mail + polityka/powtórz hasło) i rozdzielenie samouczka od kreatora
 
 ---
 
@@ -245,7 +245,7 @@ npm run dev   # http://localhost:3000 — pakiet serve
 - W Supabase Staging → Auth → URL Configuration: `http://localhost:3000/admin.html`.
 - Nie otwieraj `admin.html` z `file://`.
 - **Demo katalogowe (localhost):** `data/seeds/demo_pages.json` — 6 slugów (`demo-beauty` … `demo-consultant`); fallback gdy Staging DB nie ma wiersza (`pageRepository.loadDemoSeedAsPageRow`). SoT DB: migracja `20260616150000_*`. Regeneracja JSON: `node scripts/extract-demo-seeds-from-migration.mjs`; migracji z JSON: `node scripts/generate-demo-pages-migration.mjs`.
-- Lead-gen **nie** jest częścią runtime (`_lead-generator-export/` gitignored — §3.7).
+- Lead-gen **nie** jest częścią runtime — archiwum poza repo: `~/projekty/dfcms-lead-gen-archive/` (wcześniej lokalny `_lead-generator-export/`, gitignored).
 
 ### 3.2 Przełączanie projektu Supabase CLI
 
@@ -342,12 +342,12 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 | **Deployowane (CF Pages + git)** | `admin.html`, `templates/`, `js/`, `functions/`, `img/` | Push `staging` / `main` |
 | **Deployowane (Supabase CLI)** | `supabase/migrations/`, `supabase/functions/` | Osobno od frontu; secrets w Dashboard |
 | **W repo, nie runtime produktu** | `scripts/`, `docs/DFCMS-Architecture-and-Flow.html` | Tooling / dokumentacja; **nie** wdrażać na Pages |
-| **Gitignored — archiwum GTM (lokalne)** | `_lead-generator-export/` | CSV leadów, dataset Apify, skrypt leadów (40 wizytówek — **nie** demo katalogowe). **Nie ma w świeżym `git clone`**. Demo katalogowe → `data/seeds/demo_pages.json` + migracja `20260616150000_*`. |
+| **Poza repo (archiwum GTM, lokalne)** | `~/projekty/dfcms-lead-gen-archive/` | Dataset Apify / crawler Google Places (40 wizytówek — **nie** demo katalogowe). **Nigdy nie było w runtime DFCMS ani w adminie.** Demo katalogowe → `data/seeds/demo_pages.json` + migracja `20260616150000_*`. |
 | **Lokalne / pomocnicze** | `supabase/migrations_backup/`, `migrations_local_only/`, `snippets/` | Nie pushować na prod bez review; mogą być puste |
 | **Gitignored** | `.env*`, `node_modules/`, `supabase/.temp/`, `.supabase/`, `dataset_crawler-google-places_*.json` | Sekrety i cache CLI |
 | **Opcjonalne (AI)** | `.agents/skills/` | Instrukcje agentów (Stripe, **supabase-dfcms**, **cloudflare-dfcms**); nie wpływają na deploy |
 
-**`data/seeds/demo_pages.json`:** w repo (6 demo katalogowych, ~31 KB). Synchronizowany z migracją `20260616150000_*` skryptem `scripts/extract-demo-seeds-from-migration.mjs`. Nie mylić z `_lead-generator-export/demo_pages.json` (40 leadów, gitignored).
+**`data/seeds/demo_pages.json`:** w repo (6 demo katalogowych, ~31 KB). Synchronizowany z migracją `20260616150000_*` skryptem `scripts/extract-demo-seeds-from-migration.mjs`. Nie mylić z archiwum leadów w `~/projekty/dfcms-lead-gen-archive/` (40 leadów, poza repo).
 
 **Zależność npm:** pakiet `stripe` w `package.json` — pod skrypty/tooling; front ładuje JS z CDN/bez bundlera.
 
@@ -374,6 +374,15 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-07-08 — Rejestracja: zajęty e-mail, polityka + powtórz hasło; samouczek ↔ kreator
+
+Naprawa krytycznych UX przy logowaniu/rejestracji i pierwszym uruchomieniu.
+
+- **Zajęty e-mail (`registrationApp.js`):** wcześniej anty-enumeracja Supabase (dla istniejącego adresu `signUp` zwraca „usera” bez sesji) była traktowana jak sukces → „Sprawdź skrzynkę”. Teraz wykrywamy zajęty adres po `user.identities.length === 0` (brak sesji) i pokazujemy błąd „adres zajęty — zaloguj się / nie pamiętam hasła”. Usunięto fałszywie pozytywną ścieżkę „slug zajęty → sukces”.
+- **Polityka + powtórz hasło (`rejestracja.html` + `registrationApp.js`):** dodane pole „Powtórz hasło” (walidacja zgodności na żywo) oraz live-checklist polityki (min. 8 znaków, litera, cyfra) — spójna z wymuszonym resetem w panelu (wcześniej rejestracja miała tylko `min 6`). Przycisk „Utwórz konto” zablokowany do spełnienia polityki i zgodności. Bump `registrationApp.js?v=20260708a`.
+- **Samouczek ↔ kreator (`adminApp.js`):** samouczek (Driver.js) już **nie miga** kreatorem (usunięte otwieranie/zamykanie wizard step0/paths w trakcie touru). Tour = orientacja po panelu (podgląd, menu, kreator, subskrypcja), a na końcu (`onDestroyed` → `openWizardForBuilding()`, przycisk „Przejdź do kreatora →”) ląduje w kreatorze na kroku 1 — user od razu buduje stronę. `dismissWelcomeModalAndStartOnboarding()` startuje tour na dashboardzie bez otwartego kreatora. Zaktualizowany copy modala powitalnego (`admin.html` + `admin/partials/07-modals-checkout-welcome.html`). Bump `adminApp.js?v=20260708a`.
+- **Uwaga (nie nasz bug):** błędy w konsoli `background.js … FrameDoesNotExistError`, `DelayedMessageSender`, „Extension manifest must request permission”, `runtime.lastError` pochodzą z **rozszerzenia przeglądarki** (scraper), nie z DFCMS — znikają w trybie incognito bez rozszerzeń.
 
 ### 2026-07-05 — Landing `index.html`: restrukturyzacja sekcji i copy
 

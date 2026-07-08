@@ -1,4 +1,16 @@
 ;(function () {
+  var EMAIL_TAKEN_MSG =
+    'Ten adres e-mail jest już zajęty. Zaloguj się w panelu albo skorzystaj z opcji „Nie pamiętam hasła”.';
+
+  /** Wspólna polityka haseł dla rejestracji (spójna z wymuszonym resetem w panelu). */
+  function passwordPolicyError(pw) {
+    const s = String(pw || '');
+    if (s.length < 8) return 'Hasło musi mieć co najmniej 8 znaków.';
+    if (!/[\p{L}]/u.test(s)) return 'Hasło musi zawierać co najmniej jedną literę.';
+    if (!/\d/u.test(s)) return 'Hasło musi zawierać co najmniej jedną cyfrę.';
+    return null;
+  }
+
   function formatRegistrationAuthError(err) {
     if (!err) return 'Błąd tworzenia konta.';
     const code = err.code || err.name;
@@ -31,11 +43,27 @@
       slugCheckTimer: null,
       accepted: false,
       rememberMe: false,
-      form: { email: '', password: '', slug: '' },
+      form: { email: '', password: '', passwordConfirm: '', slug: '' },
       turnstileSiteKey: cfg.turnstileSiteKey || '0x4AAAAAADmt_cmVRzWtvglX',
 
       init() {
         this.supabase = window.DFOPS_getSupabaseClient();
+      },
+
+      /** Live checklist polityki hasła (do podświetlania wymagań pod polem). */
+      get passwordChecks() {
+        const s = String(this.form.password || '');
+        return {
+          length: s.length >= 8,
+          letter: /[\p{L}]/u.test(s),
+          digit: /\d/u.test(s),
+        };
+      },
+      get passwordConfirmMismatch() {
+        return (
+          !!this.form.passwordConfirm &&
+          this.form.password !== this.form.passwordConfirm
+        );
       },
 
       getTurnstileToken() {
@@ -70,8 +98,8 @@
 
       /**
        * Kolejność w bazie: 1) auth.signUp → wiersz auth.users, 2) trigger DB → pages (slug).
-       * Przy włączonym „Confirm email” Supabase często zwraca user:null bez błędu (ten sam e-mail) —
-       * wtedy strona może już istnieć z triggera; nie traktujemy tego jako błąd rejestracji.
+       * Zajęty e-mail rozpoznajemy po anti-enumeration Supabase (user z pustą tablicą
+       * identities i bez sesji) — wtedy pokazujemy błąd „adres zajęty”, a nie „sprawdź skrzynkę”.
        */
       async createPage() {
         this.loading = true;
@@ -80,6 +108,11 @@
         try {
           if (!this.accepted) {
             throw new Error('Zaakceptuj Regulamin oraz Politykę Prywatności.');
+          }
+          const policyError = passwordPolicyError(this.form.password);
+          if (policyError) throw new Error(policyError);
+          if (this.form.password !== this.form.passwordConfirm) {
+            throw new Error('Hasła nie są identyczne — wpisz to samo hasło w obu polach.');
           }
           const okSlug = await this.checkSlugUnique();
           if (!okSlug) throw new Error('Popraw slug (unikalny, format twoja-nazwa).');
@@ -106,8 +139,17 @@
           });
           if (authError) throw authError;
 
-          const userId = authData?.user?.id;
+          const user = authData?.user;
+          const userId = user?.id;
           const hasSession = !!authData?.session;
+
+          // Anti-enumeration Supabase: dla już istniejącego adresu przy włączonym
+          // potwierdzaniu e-maila zwracany jest "user" z pustą tablicą identities
+          // i bez sesji. To jedyny sygnał, że e-mail jest zajęty — nie udawaj sukcesu.
+          const identities = Array.isArray(user?.identities) ? user.identities : null;
+          if (userId && !hasSession && identities && identities.length === 0) {
+            throw new Error(EMAIL_TAKEN_MSG);
+          }
 
           if (userId) {
             this.pendingEmailConfirmation = !hasSession;
@@ -118,21 +160,9 @@
             return;
           }
 
-          // Brak user w odpowiedzi — typowe przy ponownym signUp na ten sam e-mail (anti-enumeration).
-          // Trigger mógł już utworzyć pages przy pierwszej próbie — slug zajęty = traktuj jak sukces.
-          const afterSignUp = await repo.isSlugAvailable(slugTrimmed);
-          if (afterSignUp.error) {
-            throw new Error('Nie udało się zweryfikować adresu strony po rejestracji. Spróbuj za chwilę.');
-          }
-          if (!afterSignUp.available) {
-            this.pendingEmailConfirmation = true;
-            this.success = true;
-            return;
-          }
-
-          throw new Error(
-            'Nie udało się dokończyć rejestracji. Sprawdź poprawność e-maila i hasła (min. 6 znaków) lub zaloguj się, jeśli konto już istnieje.',
-          );
+          // Brak user w odpowiedzi — najpewniej ponowna rejestracja na ten sam e-mail.
+          // Nie udajemy sukcesu ("sprawdź skrzynkę") — informujemy, że adres jest zajęty.
+          throw new Error(EMAIL_TAKEN_MSG);
         } catch (e) {
           this.errorMessage = formatRegistrationAuthError(e);
           this.resetTurnstile();

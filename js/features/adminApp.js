@@ -3101,8 +3101,8 @@
         if (this.content?.pl?.settings?.welcome_onboarding_completed === true) return;
         const driverFactory = this.resolveDriverFactory();
         if (!driverFactory) {
-          this.showWizard = false;
           await this.markWelcomeOnboardingSeen();
+          this.openWizardForBuilding();
           return;
         }
 
@@ -3116,17 +3116,10 @@
             });
           });
         };
-        const openWizardStep0ForTour = (driver) => {
-          self.showWizard = true;
-          self.wizardStep = 0;
-          self.wizardFieldWarning = '';
-          self.$nextTick(() => {
-            requestAnimationFrame(() => {
-              if (driver && typeof driver.refresh === 'function') driver.refresh();
-            });
-          });
-        };
-        const closeWizardForTour = (driver) => {
+        // Tour NIE otwiera/zamyka kreatora — pokazuje tylko stałe elementy panelu,
+        // żeby nie „migać” ekranem. Na końcu (przycisk „Przejdź do kreatora”) oddajemy
+        // sterowanie do kreatora na kroku 1 (patrz onDestroyed → openWizardForBuilding).
+        const goToDashboardForTour = (driver) => {
           self.showWizard = false;
           self.setTab('dashboard');
           self.$nextTick(() => {
@@ -3140,54 +3133,29 @@
           progressText: 'Krok {{current}} z {{total}}',
           nextBtnText: 'Dalej',
           prevBtnText: 'Wstecz',
-          doneBtnText: 'Zakończ',
+          doneBtnText: 'Przejdź do kreatora →',
           smoothScroll: true,
           allowClose: true,
           disableActiveInteraction: true,
           overlayOpacity: 0.55,
           overlayColor: '#0f172a',
           onDestroyed: () => {
-            self.showWizard = false;
             void self.markWelcomeOnboardingSeen();
+            // Po samouczku od razu ląduj w kreatorze — user zaczyna budować stronę.
+            self.openWizardForBuilding();
           },
           steps: [
             {
-              element: '#dfcms-onboarding-wizard-step0',
-              popover: {
-                title: 'Najpierw kreator',
-                description:
-                  'Zanim uzupełnisz treści w Studiu, wybierz szablon i przejdź przez krótki kreator — wtedy pola (nazwa, kolory, logo) mają sens. Ten krok jest tylko podglądem: nie musisz teraz nic klikać.',
-                side: 'bottom',
-                align: 'center',
-              },
-              onHighlightStarted: (element, step, { driver }) => {
-                openWizardStep0ForTour(driver);
-              },
-            },
-            {
-              element: '#dfcms-onboarding-wizard-paths',
-              popover: {
-                title: 'Dwie ścieżki',
-                description:
-                  '„Krok po kroku” prowadzi przez wybór szablonu i podstawy. „Studio” to od razu pełny panel — też OK, ale wtedy sam wybierzesz szablon w kreatorze z menu.',
-                side: 'top',
-                align: 'center',
-              },
-              onHighlightStarted: (element, step, { driver }) => {
-                openWizardStep0ForTour(driver);
-              },
-            },
-            {
               element: '#dfcms-onboarding-site-preview',
               popover: {
-                title: 'Podgląd na żywo',
+                title: 'Najpierw krótka orientacja',
                 description:
-                  'Gdy już masz szablon, link „Podgląd strony” pokaże witrynę tak, jak zobaczą ją goście.',
+                  'W kilku krokach pokażę Ci panel, a na końcu otworzę kreator, w którym zbudujesz stronę. Ten link „Podgląd strony” zawsze pokaże witrynę tak, jak zobaczą ją goście.',
                 side: 'bottom',
                 align: 'center',
               },
               onHighlightStarted: (element, step, { driver }) => {
-                closeWizardForTour(driver);
+                goToDashboardForTour(driver);
               },
             },
             {
@@ -3206,9 +3174,9 @@
             {
               element: '#dfcms-onboarding-wizard-btn',
               popover: {
-                title: 'Pomocnik krok po kroku',
+                title: 'Kreator krok po kroku',
                 description:
-                  'Gdy utkniesz — uruchom pomocnika. Przeprowadzi Cię przez wybór szablonu i podstawowe treści.',
+                  'To Twój przewodnik: wybór szablonu i podstawowe treści (nazwa, kolory, logo, oferta, kontakt). Zawsze możesz go tu uruchomić ponownie, gdy utkniesz.',
                 side: 'right',
                 align: 'center',
               },
@@ -3249,18 +3217,24 @@
           await this.markWelcomeOnboardingSeen();
           return;
         }
-        if (!this.resolveDriverFactory()) {
-          await this.markWelcomeOnboardingSeen();
-          return;
-        }
-        this.wizardStep = 0;
+        // Samouczek startuje na dashboardzie, bez otwierania kreatora — kreator
+        // otworzy się dopiero na końcu touru (onDestroyed → openWizardForBuilding).
+        this.showWizard = false;
+        this.setTab('dashboard');
+        this.sidebarOpen = false;
+        this.mobileMenuOpen = false;
+        await new Promise((resolve) => this.$nextTick(resolve));
+        await this.startOnboardingTour();
+      },
+      /** Otwiera kreator gotowy do budowania (krok 1, wybrany szablon) — używane po samouczku. */
+      openWizardForBuilding() {
+        this.wizardStep = 1;
         this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
         this.wizardFieldWarning = '';
         this.showWizard = true;
         this.sidebarOpen = false;
         this.mobileMenuOpen = false;
-        await new Promise((resolve) => this.$nextTick(resolve));
-        await this.startOnboardingTour();
+        this.persistWizardUiState();
       },
       /** Pełny ekran startowy kreatora (wybór ścieżki). */
       openWizardFromStudio() {

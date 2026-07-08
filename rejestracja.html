@@ -13,7 +13,7 @@
     <script defer src="js/core/pageRepository.js?v=20260622b"></script>
     <script defer src="js/templates/registry.js?v=20260622a"></script>
     <script defer src="js/core/contentSchema.js"></script>
-    <script defer src="js/features/registrationApp.js?v=20260617t"></script>
+    <script defer src="js/features/registrationApp.js?v=20260708a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <style>[x-cloak]{display:none!important}</style>
 </head>
@@ -36,7 +36,23 @@
                     <label for="reg-email" class="sr-only">Adres e-mail</label>
                     <input id="reg-email" type="email" x-model="form.email" required placeholder="Adres e-mail" class="w-full bg-[#1e1e1e] border border-gray-700 text-white rounded-sm px-4 py-3 focus:ring-1 focus:ring-[#D4AF37] outline-none transition-colors mb-3">
                     <label for="reg-password" class="sr-only">Hasło do panelu</label>
-                    <input id="reg-password" type="password" x-model="form.password" required minlength="6" placeholder="Hasło do panelu" class="w-full bg-[#1e1e1e] border border-gray-700 text-white rounded-sm px-4 py-3 focus:ring-1 focus:ring-[#D4AF37] outline-none transition-colors">
+                    <input id="reg-password" type="password" x-model="form.password" required minlength="8" placeholder="Hasło do panelu" autocomplete="new-password" class="w-full bg-[#1e1e1e] border border-gray-700 text-white rounded-sm px-4 py-3 focus:ring-1 focus:ring-[#D4AF37] outline-none transition-colors">
+
+                    <ul class="mt-2 space-y-1 text-xs" x-show="form.password" x-cloak>
+                        <li :class="passwordChecks.length ? 'text-green-400' : 'text-gray-400'">
+                            <span x-text="passwordChecks.length ? '✓' : '•'"></span> co najmniej 8 znaków
+                        </li>
+                        <li :class="passwordChecks.letter ? 'text-green-400' : 'text-gray-400'">
+                            <span x-text="passwordChecks.letter ? '✓' : '•'"></span> co najmniej jedna litera
+                        </li>
+                        <li :class="passwordChecks.digit ? 'text-green-400' : 'text-gray-400'">
+                            <span x-text="passwordChecks.digit ? '✓' : '•'"></span> co najmniej jedna cyfra
+                        </li>
+                    </ul>
+
+                    <label for="reg-password-confirm" class="sr-only">Powtórz hasło</label>
+                    <input id="reg-password-confirm" type="password" x-model="form.passwordConfirm" required placeholder="Powtórz hasło" autocomplete="new-password" class="w-full bg-[#1e1e1e] border text-white rounded-sm px-4 py-3 focus:ring-1 focus:ring-[#D4AF37] outline-none transition-colors mt-3" :class="passwordConfirmMismatch ? 'border-red-500' : 'border-gray-700'">
+                    <p class="mt-1 text-xs text-red-400 font-bold" x-show="passwordConfirmMismatch" x-cloak>Hasła nie są identyczne.</p>
                 </div>
             </div>
 
@@ -84,7 +100,7 @@
 
             <div class="cf-turnstile" data-sitekey="0x4AAAAAADmt_cmVRzWtvglX"></div>
 
-            <button type="submit" :disabled="!accepted || loading" class="w-full bg-[#D4AF37] hover:bg-white text-[#121212] px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-[0_0_20px_rgba(212,175,55,0.15)] mt-4 disabled:opacity-50 disabled:cursor-not-allowed">
+            <button type="submit" :disabled="!accepted || loading || !passwordChecks.length || !passwordChecks.letter || !passwordChecks.digit || passwordConfirmMismatch || !form.passwordConfirm" class="w-full bg-[#D4AF37] hover:bg-white text-[#121212] px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-[0_0_20px_rgba(212,175,55,0.15)] mt-4 disabled:opacity-50 disabled:cursor-not-allowed">
                 <span x-show="!loading">Utwórz konto i stronę</span>
                 <span x-show="loading" class="animate-pulse">Tworzenie konta...</span>
             </button>
