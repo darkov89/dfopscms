@@ -434,12 +434,12 @@ Wdrożenie wg [`docs/GROWTH_AUTOPILOT_ARCHITECTURE.md`](GROWTH_AUTOPILOT_ARCHITE
 - **Wdrożone na Produkcję (2026-07-05):** `git push origin main`, `npm run deploy:db:production` + `deploy:functions:production` (te same migracje i Edge Functions).
 - **Nie zrobione:** harmonogram cron w Dashboardzie (Staging **i** Prod), test manualny G1/G3 na żywym froncie, dedup `page_view` po `visitor_key` (backlog CTO — odłożone).
 
-### 2026-07-14 — SEO: robots.txt + host-aware sitemap.xml (Pages Functions)
+### 2026-07-16 — SEO: robots.txt + host-aware sitemap.xml (Pages Functions)
 
-- **`functions/robots.txt.js` (nowy):** `/robots.txt` per host. Produkcja (`dfcms.pl`, subdomeny tenantów, custom domains) → `Allow: /` + `Disallow` dla `/admin.html`, `/setup.html`, `/godmode.html`, `/router.html`, `/templates/`, `/*dfcms_preview` + wskazanie `Sitemap:`. **Staging/preview** (`*.pages.dev`, `staging.dfcms.pl`, `localhost`) → `Disallow: /` (poza indeksem).
-- **`functions/sitemap.xml.js` (rozszerzony):** host-aware. Apex platformy (`DFOPS_isPlatformApexHostname`) → sitemapa marketingowa (`/`, `/rejestracja.html`, `/polityka.html`, `/regulamin.html`); tenant/custom domain → `/` + `/polityka-prywatnosci` (bo apex ma `polityka.html`, a tenant trasę `polityka-prywatnosci` z middleware).
-- **Bezpieczeństwo:** hostname z nagłówka `Host` (fallback `url.hostname`), walidacja `HOSTNAME_RE` → brak wstrzyknięcia CRLF do XML/robots. Importują `js/core/utils.js` + `platformRouting.js` (ten sam wzorzec co middleware).
-- **Middleware:** bez zmian — `.xml`/`.txt` łapie `STATIC_EXT` i przechodzi przez `applySecurityHeaders(next())`; dla nie-HTML cache nie jest nadpisywany (`public, max-age=86400` zostaje), `Vary: Host` dokładany. Weryfikacja lokalna (node) klasyfikacji hostów i formatu wyjścia OK. **Nie wdrożone jeszcze** na Cloudflare (`git push`).
+- **`functions/robots.txt.js`:** `/robots.txt` per host. Produkcja → `Allow: /` + `Disallow` panel/setup/godmode/router/templates/preview + `Sitemap:`. Staging/preview (`*.pages.dev`, `staging.dfcms.pl`) → `Disallow: /`.
+- **`functions/sitemap.xml.js`:** apex → marketing (`/`, `/rejestracja.html`, `/polityka.html`, `/regulamin.html`); tenant/custom → `/` + `/polityka-prywatnosci`.
+- **`functions/_shared/requestHostname.js`:** wspólna resolucja publicznego hosta (jak middleware: `Host` / `X-Forwarded-Host` / `Forwarded` / `cf.hostMetadata`, preferencja tenant/`*.dfcms.pl` nad wewnętrznym `pages.dev` po rewrite CF). Hotfix po pierwszym deployu: bez tego tenant/staging dostawały `dfopscms.pages.dev` w `<loc>` i błędny `Disallow: /` na prod subdomenach.
+- **Middleware:** `.xml`/`.txt` → `STATIC_EXT` → `applySecurityHeaders(next())`; `Vary: Host`. Wdrożone: `git push` staging + main.
 
 ### 2026-07-04 — Czysty URL subdomen tenant (bez /templates/…)
 

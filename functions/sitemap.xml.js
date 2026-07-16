@@ -1,39 +1,17 @@
-import '../js/core/utils.js';
-import '../js/core/platformRouting.js';
+import {
+  resolvePublicHostname,
+  isPlatformApexHostname,
+} from './_shared/requestHostname.js';
 
 /**
  * Cloudflare Pages Function — /sitemap.xml per host.
- * - Apex platformy (dfcms.pl, dfopscms.pl, *.pages.dev, staging) → sitemapa marketingowa.
- * - Subdomena tenanta / custom domain klienta → sitemapa strony klienta (`/`, `/polityka-prywatnosci`).
- * Bez Supabase; hostname z nagłówka Host (fallback url.hostname), walidowany przeciw wstrzyknięciu.
+ * - Apex platformy → sitemapa marketingowa.
+ * - Subdomena tenanta / custom domain → `/` + `/polityka-prywatnosci`.
+ * Hostname: resolvePublicHostname (jak middleware — nie pages.dev po rewrite CF).
  */
 
-const normalizeHostname = globalThis.DFOPS_normalizeHostname;
-const HOSTNAME_RE =
-  /^(?:localhost|127\.0\.0\.1|(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63})$/;
-
-function resolveHost(request, url) {
-  const candidates = [
-    request.headers.get('Host'),
-    request.headers.get('X-Forwarded-Host'),
-    url.hostname,
-  ];
-  for (const raw of candidates) {
-    const host = normalizeHostname(String(raw || '').split(',')[0].split(':')[0]);
-    if (host && HOSTNAME_RE.test(host)) return host;
-  }
-  return normalizeHostname(url.hostname);
-}
-
-function isPlatformApex(host) {
-  return typeof globalThis.DFOPS_isPlatformApexHostname === 'function'
-    ? globalThis.DFOPS_isPlatformApexHostname(host, normalizeHostname)
-    : false;
-}
-
-/** Marketing (apex) vs publiczna strona klienta (tenant / custom domain). */
 function sitemapEntries(host) {
-  if (isPlatformApex(host)) {
+  if (isPlatformApexHostname(host)) {
     return [
       { loc: '/', changefreq: 'weekly', priority: '1.0' },
       { loc: '/rejestracja.html', changefreq: 'monthly', priority: '0.8' },
@@ -47,9 +25,9 @@ function sitemapEntries(host) {
   ];
 }
 
-export async function onRequest({ request }) {
+export async function onRequest({ request, cf }) {
   const url = new URL(request.url);
-  const host = resolveHost(request, url);
+  const host = resolvePublicHostname(request, url, cf);
 
   const urls = sitemapEntries(host)
     .map(
