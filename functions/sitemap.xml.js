@@ -1,6 +1,7 @@
 import {
   resolvePublicHostname,
   isPlatformApexHostname,
+  debugHostCandidates,
 } from './_shared/requestHostname.js';
 
 /**
@@ -41,7 +42,9 @@ export async function onRequest({ request, cf }) {
   return new Response(xml, {
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'public, max-age=86400',
+      'Cache-Control': 'private, no-store',
+      'X-DFCMS-Host': host || '',
+      'X-DFCMS-Host-Candidates': debugHostCandidates(request, url, cf),
     },
   });
 }

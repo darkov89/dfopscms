@@ -71,6 +71,11 @@ export function resolvePublicHostname(request, url, cf) {
   return pickPublicHostname(collectHostCandidates(request, url, cf));
 }
 
+/** Diagnostyka edge (tymczasowa) — lista kandydatów hosta widzianych przez worker. */
+export function debugHostCandidates(request, url, cf) {
+  return collectHostCandidates(request, url, cf).join('|') || '(none)';
+}
+
 export function isNonProductionHostname(host) {
   const h = normalizeHostname(host);
   return (
