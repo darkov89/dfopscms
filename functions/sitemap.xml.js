@@ -1,14 +1,15 @@
 import {
   resolvePublicHostname,
   isPlatformApexHostname,
-  debugHostCandidates,
+  isInternalPagesDevHostname,
 } from './_shared/requestHostname.js';
 
 /**
  * Cloudflare Pages Function — /sitemap.xml per host.
  * - Apex platformy → sitemapa marketingowa.
- * - Subdomena tenanta / custom domain → `/` + `/polityka-prywatnosci`.
- * Hostname: resolvePublicHostname (jak middleware — nie pages.dev po rewrite CF).
+ * - Tenant / custom domain z prawdziwym Host → `/` + `/polityka-prywatnosci`.
+ * - Wewnętrzny pages.dev (brak wildcard) → puste urlset (nie trucimy indeksu
+ *   URL-ami pages.dev; per-tenant sitemap wraca po dodaniu `*.dfcms.pl` w Pages).
  */
 
 function sitemapEntries(host) {
@@ -26,9 +27,22 @@ function sitemapEntries(host) {
   ];
 }
 
+function emptyUrlset() {
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n</urlset>`;
+}
+
 export async function onRequest({ request, cf }) {
   const url = new URL(request.url);
   const host = resolvePublicHostname(request, url, cf);
+
+  if (!host || isInternalPagesDevHostname(host)) {
+    return new Response(emptyUrlset(), {
+      headers: {
+        'Content-Type': 'application/xml; charset=utf-8',
+        'Cache-Control': 'public, max-age=300',
+      },
+    });
+  }
 
   const urls = sitemapEntries(host)
     .map(
@@ -42,9 +56,7 @@ export async function onRequest({ request, cf }) {
   return new Response(xml, {
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'private, no-store',
-      'X-DFCMS-Host': host || '',
-      'X-DFCMS-Host-Candidates': debugHostCandidates(request, url, cf),
+      'Cache-Control': 'public, max-age=86400',
     },
   });
 }

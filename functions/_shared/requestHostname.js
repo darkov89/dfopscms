@@ -5,6 +5,10 @@ import '../../js/core/platformRouting.js';
  * Publiczny hostname requestu — ten sam model co functions/_middleware.js.
  * Po wewnętrznym rewrite CF `Host` / `url.hostname` bywa pages.dev; bierzemy
  * X-Forwarded-Host / Forwarded / cf.hostMetadata i preferujemy host tenantowy.
+ *
+ * Znana luka infra: bez wildcard `*.dfcms.pl` w Cloudflare Pages worker widzi
+ * wyłącznie `dfopscms.pages.dev` dla subdomen — wtedy nie da się odtworzyć
+ * publicznego hosta na edge (to samo ograniczenie co middleware HTML).
  */
 
 const normalizeHostname = globalThis.DFOPS_normalizeHostname;
@@ -71,20 +75,26 @@ export function resolvePublicHostname(request, url, cf) {
   return pickPublicHostname(collectHostCandidates(request, url, cf));
 }
 
-/** Diagnostyka edge (tymczasowa) — lista kandydatów hosta widzianych przez worker. */
-export function debugHostCandidates(request, url, cf) {
-  return collectHostCandidates(request, url, cf).join('|') || '(none)';
-}
-
+/**
+ * Staging/preview poza indeksem.
+ * Uwaga: sam `dfopscms.pages.dev` NIE jest non-prod — przy braku wildcard
+ * `*.dfcms.pl` worker widzi ten host także dla produkcyjnych subdomen tenantów.
+ */
 export function isNonProductionHostname(host) {
   const h = normalizeHostname(host);
-  return (
-    h === 'localhost' ||
-    h === '127.0.0.1' ||
-    h.includes('pages.dev') ||
-    h === 'staging.dfcms.pl' ||
-    h.endsWith('.staging.dfcms.pl')
-  );
+  if (!h) return true;
+  if (h === 'localhost' || h === '127.0.0.1') return true;
+  if (h === 'staging.dfcms.pl' || h.endsWith('.staging.dfcms.pl')) return true;
+  if (h === 'staging.dfopscms.pages.dev' || h.endsWith('.staging.dfopscms.pages.dev')) return true;
+  // Preview deploy CF (hash.project.pages.dev), nie apex produkcyjnego projektu
+  if (h.includes('pages.dev') && h !== 'dfopscms.pages.dev') return true;
+  return false;
+}
+
+/** Host wewnętrzny po rewrite — nie emitujemy go w <loc> / Sitemap. */
+export function isInternalPagesDevHostname(host) {
+  const h = normalizeHostname(host);
+  return h.includes('pages.dev');
 }
 
 export function isPlatformApexHostname(host) {

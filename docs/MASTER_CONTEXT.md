@@ -436,10 +436,10 @@ Wdrożenie wg [`docs/GROWTH_AUTOPILOT_ARCHITECTURE.md`](GROWTH_AUTOPILOT_ARCHITE
 
 ### 2026-07-16 — SEO: robots.txt + host-aware sitemap.xml (Pages Functions)
 
-- **`functions/robots.txt.js`:** `/robots.txt` per host. Produkcja → `Allow: /` + `Disallow` panel/setup/godmode/router/templates/preview + `Sitemap:`. Staging/preview (`*.pages.dev`, `staging.dfcms.pl`) → `Disallow: /`.
-- **`functions/sitemap.xml.js`:** apex → marketing (`/`, `/rejestracja.html`, `/polityka.html`, `/regulamin.html`); tenant/custom → `/` + `/polityka-prywatnosci`.
-- **`functions/_shared/requestHostname.js`:** wspólna resolucja publicznego hosta (jak middleware: `Host` / `X-Forwarded-Host` / `Forwarded` / `cf.hostMetadata`, preferencja tenant/`*.dfcms.pl` nad wewnętrznym `pages.dev` po rewrite CF). Hotfix po pierwszym deployu: bez tego tenant/staging dostawały `dfopscms.pages.dev` w `<loc>` i błędny `Disallow: /` na prod subdomenach.
-- **Middleware:** `.xml`/`.txt` → `STATIC_EXT` → `applySecurityHeaders(next())`; `Vary: Host`. Wdrożone: `git push` staging + main.
+- **`functions/robots.txt.js` + `sitemap.xml.js` + `_shared/requestHostname.js`:** file-based routing per host; cache 24h; wspólna resolucja Host jak middleware.
+- **Działa dziś na edge z prawdziwym Host:** apex `dfcms.pl` (robots + pełna sitemapa marketingowa) oraz domeny klientów podpięte tak, że worker widzi publiczny hostname (Custom Hostname / custom domain w Pages).
+- **Ograniczenie infra (smoke 2026-07-16):** bez wildcard `*.dfcms.pl` w Cloudflare Pages requesty na `{slug}.dfcms.pl` / `staging.dfcms.pl` dochodzą do workera jako `Host=dfopscms.pages.dev` (kandydaci: tylko ten host; `x-dfcms-debug: FAIL[NO_ROW|…|host:[dfopscms.pages.dev]]` na HTML). W tym trybie: robots → `Allow` + Disallow panel **bez** linii `Sitemap:` (żeby nie noindexować tenantów); sitemap → **puste urlset** (żadnych URL-i `pages.dev` w indeksie). Per-tenant `Sitemap:` + `<loc>` wraca dopiero po dodaniu `*.dfcms.pl` w Pages (TO-DO już w lukach §1).
+- **Wdrożone:** `git push` staging + main.
 
 ### 2026-07-04 — Czysty URL subdomen tenant (bez /templates/…)
 
