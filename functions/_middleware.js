@@ -299,6 +299,8 @@ async function fetchPageRow(supabaseUrl, anonKey, slugTrimmed, hostnameNorm) {
 
   if (!safeSlug && !safeHost) return null;
   if (safeSlug && !isSafeSlugValue(safeSlug)) return null;
+  // Bez slug: tylko custom domain klienta — nie apex platformy (dfcms.pl / pages.dev).
+  if (!safeSlug && !isCustomDomainHost(safeHost)) return null;
   if (!safeSlug && !isSafeHostnameValue(safeHost)) return null;
 
   const params = new URLSearchParams({
@@ -315,18 +317,19 @@ async function fetchPageRow(supabaseUrl, anonKey, slugTrimmed, hostnameNorm) {
   }
   const restUrl = `${supabaseUrl}/rest/v1/pages?${params.toString()}`;
 
+  // Tablica JSON (nie object+json): 0 wierszy → 200 [] zamiast 406 (szum w logach Supabase).
   const supaRes = await fetch(restUrl, {
     headers: {
       apikey: anonKey,
       Authorization: `Bearer ${anonKey}`,
-      Accept: 'application/vnd.pgrst.object+json',
+      Accept: 'application/json',
     },
   });
 
-  if (supaRes.status === 406) return null;
   if (!supaRes.ok) return null;
 
-  const row = await supaRes.json();
+  const rows = await supaRes.json();
+  const row = Array.isArray(rows) ? rows[0] : null;
   return row && typeof row === 'object' ? row : null;
 }
 

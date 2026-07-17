@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-07-14 — SEO: `/robots.txt` + host-aware `/sitemap.xml` (Pages Functions)
+**Ostatnia aktualizacja treści:** 2026-07-17 — middleware: brak 406 przy pustym `pages` lookup
 
 ---
 
@@ -185,7 +185,7 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 - **Smart Booking:** `settings.booking_mode` + `contact.booking_url`; Booksy embed — ostrzeżenie X-Frame-Options.
 - **Nagłówki HTTP:** Cloudflare middleware dokleja CSP (Supabase/Stripe/Google Maps/CDN/Sentry/Calendly), `X-Content-Type-Options`, `X-Frame-Options: DENY`, HSTS dla HTTPS, Referrer/Permissions Policy.
 - **Anti-abuse:** Turnstile widget w `rejestracja.html`, `zapytanie-custom.html` i panelu subskrypcji; `create-checkout` weryfikuje `turnstileToken` przez `_shared/turnstileVerification.ts` przed Supabase/Stripe. Secrets: `PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`.
-- **Publiczny odczyt stron:** `pageRepository` i `functions/_middleware.js` pobierają wyłącznie konkretny `slug`/`custom_domain`, z `limit=1`, `content IS NOT NULL`, `trial_blocked_at IS NULL` i grace 14 dni dla `billing_failed_at`; edge `fetchPageRow` waliduje format slug/host i używa pojedynczej odpowiedzi PostgREST; migracja `20260617221000` usuwa szerokie `SELECT true` i grant `ALL` dla `anon` na `pages`.
+- **Publiczny odczyt stron:** `pageRepository` i `functions/_middleware.js` pobierają wyłącznie konkretny `slug`/`custom_domain`, z `limit=1`, `content IS NOT NULL`, `trial_blocked_at IS NULL` i grace 14 dni dla `billing_failed_at`; edge `fetchPageRow` waliduje format slug/host, bez slug woła DB tylko dla custom domain (nie apex platformy), odpowiedź jako tablica JSON (`Accept: application/json`) — unika 406 PostgREST z `object+json` przy 0 wierszach; migracja `20260617221000` usuwa szerokie `SELECT true` i grant `ALL` dla `anon` na `pages`.
 - **God Mode RLS:** `superadmins` ma SELECT tylko własnego wiersza dla `authenticated`; wpisy dodaje/usuwa operacyjnie `service_role`. Polityki superadminów na `pages` i `analytics_events` są dodatkowymi OR-ścieżkami RLS, nie zastępują dostępu właściciela.
 - **Widoczność sekcji:** toggles per zakładka (`showGallery`, `showGoogleReviews`, …); hero bez toggle.
 
@@ -374,6 +374,12 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-07-17 — Middleware: cisza 406 przy pustym lookup `pages`
+
+Warningi API Supabase `GET /rest/v1/pages → 406` pochodziły z edge `fetchPageRow` (`Accept: application/vnd.pgrst.object+json` → PostgREST 406 przy 0 wierszach). Middleware traktował 406 jako „brak strony”, ale logi były zaśmiecone — m.in. apex `dfopscms.pages.dev` bez `?site=` szukał `custom_domain=eq.dfopscms.pages.dev`.
+
+- **`functions/_middleware.js`:** `Accept: application/json` + `rows[0]`; bez slug DB tylko dla `isCustomDomainHost` (nie apex platformy / pages.dev).
 
 ### 2026-07-08 — Rejestracja: zajęty e-mail, polityka + powtórz hasło; samouczek ↔ kreator
 
