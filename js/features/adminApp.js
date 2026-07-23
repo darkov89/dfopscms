@@ -1278,13 +1278,18 @@
         }
         try {
           if (!this.slug || !this.content?.pl) return;
+          if (typeof this.prepareContentForPersist === 'function') {
+            this.prepareContentForPersist();
+          }
           const payload = {
             slug: this.slug,
             theme: this.theme,
             content: this.content,
+            previewLocale: this.editLocale || 'pl',
             ts: Date.now(),
           };
           window.localStorage.setItem('dfops_preview_draft:' + this.slug, JSON.stringify(payload));
+          if (typeof this._bindEditLocaleShim === 'function') this._bindEditLocaleShim();
         } catch (_) {
           /* brak localStorage — fallback do draftu z bazy (getDraftContentForOwner) */
         }
@@ -1294,7 +1299,8 @@
       getPublicSiteUrl() {
         const preview = 'dfcms_preview=1';
         if (!this.slug || !this.theme) return '#';
-        const siteQs = `site=${encodeURIComponent(this.slug)}&${preview}`;
+        const loc = this.editLocale && this.editLocale !== 'pl' ? this.editLocale : '';
+        const siteQs = `site=${encodeURIComponent(this.slug)}&${preview}${loc ? `&dfcms_lang=${encodeURIComponent(loc)}` : ''}`;
 
         // Podgląd wersji roboczej MUSI być na tym samym originie co panel — inaczej handoff draftu
         // (`localStorage` `dfops_preview_draft:{slug}`) i sesja właściciela nie są dostępne w nowej karcie
@@ -2600,6 +2606,9 @@
           const serverWelcomeOnboardingDone =
             workingRaw?.pl?.settings?.welcome_onboarding_completed === true;
           this.content = window.DFOPS_normalizeContent(workingRaw, this.theme);
+          if (typeof this.i18nAfterContentLoad === 'function') {
+            this.i18nAfterContentLoad();
+          }
           if (this.content?.pl) normalizeBookingSettings(this.content.pl);
           if (serverWelcomeOnboardingDone && this.content?.pl?.settings) {
             this.content.pl.settings.welcome_onboarding_completed = true;
@@ -3576,12 +3585,19 @@
       async _persistDraft(opts) {
         const options = opts && typeof opts === 'object' ? opts : {};
         if (!this.content?.pl || !this.pageId || !this.user?.id) return false;
+        if (typeof this.prepareContentForPersist === 'function') {
+          this.prepareContentForPersist();
+        }
         normalizeBookingSettings(this.content.pl);
         if (this.content.pl.settings) this.content.pl.settings.theme = this.theme;
         const { error } = await this.saveActivePage({ draft_content: this.content });
         if (error) {
           if (!options.silent) console.error(error);
           return false;
+        }
+        // Po zapisie przywróć shim edycji (prepare ustawia pl = default)
+        if (typeof this._bindEditLocaleShim === 'function') {
+          this._bindEditLocaleShim();
         }
         return true;
       },
@@ -3678,6 +3694,9 @@
 
         this.saving = true;
         try {
+          if (typeof this.prepareContentForPersist === 'function') {
+            this.prepareContentForPersist();
+          }
           const syncFn = window.DFOPS_googlePlacesSync?.syncGooglePlacesForPublish;
           if (typeof syncFn === 'function' && this.supabase) {
             const syncResult = await syncFn(this.supabase, this.content.pl);
@@ -3728,6 +3747,11 @@
             this.message = 'Zmiany zostały opublikowane!';
             this.showToast('Zmiany zostały opublikowane i są widoczne dla klientów.', 'success');
             setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
+          }
+          if (typeof this.i18nAfterContentLoad === 'function') {
+            this.i18nAfterContentLoad();
+          } else if (typeof this._bindEditLocaleShim === 'function') {
+            this._bindEditLocaleShim();
           }
           return true;
         } catch (e) {
@@ -4082,6 +4106,10 @@
     // AI Site Generator — modal + generateSiteWithAi (js/features/aiGenerator.js).
     if (typeof window.DFOPS_attachAiGenerator === 'function') {
       window.DFOPS_attachAiGenerator(fromApp);
+    }
+    // i18n — przełącznik języka edycji (js/features/i18nPanel.js).
+    if (typeof window.DFOPS_attachI18nPanel === 'function') {
+      window.DFOPS_attachI18nPanel(fromApp);
     }
 
     return fromApp;

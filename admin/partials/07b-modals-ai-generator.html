@@ -6,12 +6,12 @@
                 <button type="button" class="absolute top-3 right-3 text-slate-400 hover:text-slate-800 text-xl leading-none disabled:opacity-40"
                         @click="closeAiGeneratorModal()" :disabled="isGeneratingAi" aria-label="Zamknij">×</button>
                 <p class="text-[10px] font-bold uppercase tracking-[0.28em] text-slate-400 mb-2">AI Site Generator</p>
-                <h2 id="dfcms-ai-gen-title" class="text-lg font-bold text-slate-900 mb-2">Wygeneruj treść przez AI</h2>
-                <p class="text-sm text-slate-600 leading-relaxed mb-4">Opisz swój biznes w kilku zdaniach. AI przygotuje teksty do wersji roboczej — sprawdź podgląd i opublikuj, gdy będą gotowe.</p>
-                <label for="dfcms-ai-prompt" class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Opis biznesu</label>
+                <h2 id="dfcms-ai-gen-title" class="text-lg font-bold text-slate-900 mb-2" x-text="aiMode === 'adapt' ? 'Zlokalizuj treść przez AI' : 'Wygeneruj treść przez AI'"></h2>
+                <p class="text-sm text-slate-600 leading-relaxed mb-4" x-text="aiMode === 'adapt' ? 'AI zaadaptuje copy z języka podstawowego do aktualnie edytowanego języka.' : ('Opisz swój biznes. AI przygotuje teksty dla języka: ' + (typeof i18nLocaleLabel === 'function' ? i18nLocaleLabel(editLocale || 'pl') : 'PL') + '.')"></p>
+                <label for="dfcms-ai-prompt" class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2" x-text="aiMode === 'adapt' ? 'Opcjonalny kontekst' : 'Opis biznesu'"></label>
                 <textarea id="dfcms-ai-prompt" x-model="aiPrompt" rows="5" maxlength="1500"
                           :disabled="isGeneratingAi"
-                          placeholder="np. Salon fryzjerski Męski Zacięcie w Katowicach, broda, strzyżenie combo, miła atmosfera, kawiarnia w środku"
+                          :placeholder="aiMode === 'adapt' ? 'np. formalny ton, skup się na turystach…' : 'np. Salon fryzjerski Męski Zacięcie w Katowicach…'"
                           class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 focus:border-transparent focus:ring-2 focus:ring-accent/30 outline-none resize-y disabled:bg-slate-50 disabled:text-slate-500"></textarea>
                 <div class="mt-2 flex items-center justify-between gap-3 text-xs text-slate-500">
                     <span x-show="aiRemaining != null && aiLimit != null" x-cloak

@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-07-23 — AI Site Generator (Gemini)
+**Ostatnia aktualizacja:** 2026-07-23 — i18n witryn (PL/EN/DE) + AI Site Generator
 
 ---
 
@@ -376,6 +376,15 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-07-23 — Wielojęzyczność witryn (PL / EN / DE)
+
+Spec: [`docs/I18N_ARCHITECTURE.md`](I18N_ARCHITECTURE.md).
+
+- **Kontrakt:** `content.meta` (`defaultLocale`, `locales`) + top-level bloki `pl` / `en` / `de`; sync settings/kontaktu technicznego z default; `contentUpgrader` + `i18nContent.js` / `i18nLocales.js`.
+- **URL / SEO:** middleware path `/en`, `/de`; `html lang` + `hreflang` + canonical; redirect gdy locale wyłączone; sitemap z prefixami; public `lang` z URL (nie `navigator.language`).
+- **Panel:** przełącznik języka edycji (shim `content.pl`), Dashboard dodaj/usuń locale; gate Standard+ (`planMaxLocales` = 3).
+- **AI:** `generate-ai-content` z `locale` + `mode: generate|adapt` (zlokalizuj z PL).
 
 ### 2026-07-23 — AI Site Generator (Gemini)
 

@@ -38,10 +38,12 @@
     <script defer src="js/templates/registry.js?v=20260701a"></script>
     <script defer src="js/core/themeConfig.js?v=20260702a"></script>
     <script defer src="js/core/contentSchema.js?v=20260404c"></script>
-    <script defer src="js/core/contentUpgrader.js?v=20260622a"></script>
+    <script defer src="js/core/i18nLocales.js?v=20260723a"></script>
+    <script defer src="js/core/i18nContent.js?v=20260723a"></script>
+    <script defer src="js/core/contentUpgrader.js?v=20260723a"></script>
     <script defer src="js/core/themeStyling.js?v=20260404c"></script>
     <script defer src="js/core/pageRepository.js?v=20260704i"></script>
-    <script defer src="js/core/planUtils.js?v=20260723a"></script>
+    <script defer src="js/core/planUtils.js?v=20260723b"></script>
     <script defer src="js/core/trialBlocking.js?v=20260704h"></script>
     <script defer src="js/core/billingProfileView.js?v=20260523a"></script>
     <script defer src="js/core/googlePlacesSync.js?v=20260522d"></script>
@@ -51,9 +53,10 @@
     <script defer src="js/features/growth/growthRepository.js?v=20260705b"></script>
     <script defer src="js/features/growth/growthPanel.js?v=20260705a"></script>
     <script defer src="js/features/growth/statsPanel.js?v=20260705a"></script>
-    <script defer src="js/features/aiGenerator.js?v=20260723a"></script>
+    <script defer src="js/features/i18nPanel.js?v=20260723a"></script>
+    <script defer src="js/features/aiGenerator.js?v=20260723b"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260723a"></script>
+    <script defer src="js/features/adminApp.js?v=20260723b"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -654,12 +657,12 @@
                 <button type="button" class="absolute top-3 right-3 text-slate-400 hover:text-slate-800 text-xl leading-none disabled:opacity-40"
                         @click="closeAiGeneratorModal()" :disabled="isGeneratingAi" aria-label="Zamknij">×</button>
                 <p class="text-[10px] font-bold uppercase tracking-[0.28em] text-slate-400 mb-2">AI Site Generator</p>
-                <h2 id="dfcms-ai-gen-title" class="text-lg font-bold text-slate-900 mb-2">Wygeneruj treść przez AI</h2>
-                <p class="text-sm text-slate-600 leading-relaxed mb-4">Opisz swój biznes w kilku zdaniach. AI przygotuje teksty do wersji roboczej — sprawdź podgląd i opublikuj, gdy będą gotowe.</p>
-                <label for="dfcms-ai-prompt" class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Opis biznesu</label>
+                <h2 id="dfcms-ai-gen-title" class="text-lg font-bold text-slate-900 mb-2" x-text="aiMode === 'adapt' ? 'Zlokalizuj treść przez AI' : 'Wygeneruj treść przez AI'"></h2>
+                <p class="text-sm text-slate-600 leading-relaxed mb-4" x-text="aiMode === 'adapt' ? 'AI zaadaptuje copy z języka podstawowego do aktualnie edytowanego języka.' : ('Opisz swój biznes. AI przygotuje teksty dla języka: ' + (typeof i18nLocaleLabel === 'function' ? i18nLocaleLabel(editLocale || 'pl') : 'PL') + '.')"></p>
+                <label for="dfcms-ai-prompt" class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2" x-text="aiMode === 'adapt' ? 'Opcjonalny kontekst' : 'Opis biznesu'"></label>
                 <textarea id="dfcms-ai-prompt" x-model="aiPrompt" rows="5" maxlength="1500"
                           :disabled="isGeneratingAi"
-                          placeholder="np. Salon fryzjerski Męski Zacięcie w Katowicach, broda, strzyżenie combo, miła atmosfera, kawiarnia w środku"
+                          :placeholder="aiMode === 'adapt' ? 'np. formalny ton, skup się na turystach…' : 'np. Salon fryzjerski Męski Zacięcie w Katowicach…'"
                           class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 focus:border-transparent focus:ring-2 focus:ring-accent/30 outline-none resize-y disabled:bg-slate-50 disabled:text-slate-500"></textarea>
                 <div class="mt-2 flex items-center justify-between gap-3 text-xs text-slate-500">
                     <span x-show="aiRemaining != null && aiLimit != null" x-cloak
@@ -691,10 +694,20 @@
                     <div class="hidden h-8 shrink-0 items-center border-r border-slate-200/90 pr-5 md:flex" aria-hidden="false">
                         <button type="button" @click="setTab('dashboard')" class="text-sm font-semibold tracking-[0.18em] text-slate-900 transition-colors hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2">DF<span class="text-accent">CMS</span></button>
                     </div>
-                    <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1.5 leading-snug md:flex-nowrap md:items-center">
+                        <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1.5 leading-snug md:flex-nowrap md:items-center">
                         <div class="flex min-w-0 items-baseline gap-2">
                             <span class="shrink-0 text-slate-500">Szablon</span>
                             <span class="truncate font-medium text-slate-900" x-text="themeDisplayLabel"></span>
+                        </div>
+                        <span class="hidden h-3.5 w-px shrink-0 self-center bg-slate-200 sm:block" aria-hidden="true"></span>
+                        <div x-show="typeof i18nEnabledLocales === 'function' && i18nEnabledLocales().length" class="flex items-center gap-1.5" x-cloak>
+                            <span class="shrink-0 text-slate-500 text-xs">Język</span>
+                            <template x-for="loc in i18nEnabledLocales()" :key="'edit-loc-'+loc">
+                                <button type="button" @click="setEditLocale(loc)"
+                                        class="rounded-md px-2 py-1 text-xs font-semibold transition-colors"
+                                        :class="editLocale === loc ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                                        x-text="i18nLocaleLabel(loc)"></button>
+                            </template>
                         </div>
                         <span class="hidden h-3.5 w-px shrink-0 self-center bg-slate-200 sm:block" aria-hidden="true"></span>
                         <a :href="getLiveSiteUrl()"
@@ -1026,15 +1039,40 @@
                             <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Twoja strona</h2>
                             <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Tu zarządzasz treścią witryny. Zmiany zapisują się automatycznie — na końcu kliknij <strong>Opublikuj zmiany</strong> w górnym pasku, żeby klienci je zobaczyli.</p>
                             <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-                                <button type="button" @click="openAiGeneratorModal()"
+                                <button type="button" @click="openAiGeneratorModal('generate')"
                                         class="inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-bold shadow-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35"
                                         :class="canUseAiGenerator() ? 'bg-slate-900 text-white hover:bg-slate-800' : 'border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100'"
                                         :title="canUseAiGenerator() ? 'Wygeneruj teksty do wersji roboczej' : 'Dostępne na planach Starter i Standard'">
                                     Wygeneruj treść przez AI
                                 </button>
+                                <button type="button" x-show="canUseAiGenerator() && editLocale && editLocale !== i18nDefaultLocale()" x-cloak
+                                        @click="openAiGeneratorModal('adapt')"
+                                        class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
+                                    Zlokalizuj z PL
+                                </button>
                                 <p x-show="!canUseAiGenerator()" class="text-xs text-slate-500 leading-relaxed">Dostępne po wyborze pakietu Starter lub Standard.</p>
                                 <p x-show="canUseAiGenerator() && aiRemaining != null && aiLimit != null" class="text-xs text-slate-500" x-cloak
                                    x-text="'Pozostało generacji w tym miesiącu: ' + aiRemaining + ' / ' + aiLimit"></p>
+                            </div>
+                            <div x-show="typeof i18nEnabledLocales === 'function'" class="mb-6 rounded-xl border border-slate-200/80 bg-slate-50/60 p-5" x-cloak>
+                                <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Języki strony</p>
+                                <p class="text-sm text-slate-600 mb-3">Domyślny: Polski. Dodatkowe języki (EN, DE) od planu Standard — osobny adres np. <span class="font-mono text-xs">/en</span>.</p>
+                                <div class="flex flex-wrap gap-2 mb-3">
+                                    <template x-for="loc in i18nEnabledLocales()" :key="'dash-loc-'+loc">
+                                        <span class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-800">
+                                            <button type="button" class="hover:text-accent" @click="setEditLocale(loc)" x-text="i18nLocaleLabel(loc)"></button>
+                                            <button type="button" x-show="loc !== i18nDefaultLocale()" @click="disableSiteLocale(loc)" class="text-xs text-red-500 hover:text-red-700" title="Usuń język">×</button>
+                                        </span>
+                                    </template>
+                                </div>
+                                <div class="flex flex-wrap gap-2" x-show="i18nAvailableToAdd().length">
+                                    <template x-for="loc in i18nAvailableToAdd()" :key="'add-loc-'+loc">
+                                        <button type="button" @click="enableSiteLocale(loc)"
+                                                class="rounded-lg border border-dashed border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-accent hover:text-accent"
+                                                x-text="'+ ' + i18nLocaleLabel(loc)"></button>
+                                    </template>
+                                </div>
+                                <p x-show="!canUseExtraLocales()" class="mt-2 text-xs text-slate-500">Dodatkowe języki odblokujesz na planie Standard.</p>
                             </div>
                             <div class="rounded-xl border border-slate-200/80 bg-slate-50/60 p-5 md:p-6">
                                 <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Adres Twojej strony</p>

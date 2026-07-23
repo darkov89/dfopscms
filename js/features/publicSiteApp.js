@@ -124,10 +124,45 @@
   function normalizeEmbedFields(content) {
     const langs = Object.keys(content || {});
     for (const l of langs) {
-      if (!content[l]) continue;
+      if (l === 'meta' || l === 'shared') continue;
+      if (!content[l] || typeof content[l] !== 'object') continue;
       const c = content[l];
       if (c.contact?.map_embed_url) c.contact.map_embed_url = extractEmbedUrl(c.contact.map_embed_url);
       if (c.google_reviews?.embed_url) c.google_reviews.embed_url = extractEmbedUrl(c.google_reviews.embed_url);
+    }
+  }
+
+  function resolveLocaleFromLocation() {
+    try {
+      const qs = new URLSearchParams(window.location.search || '');
+      const qLang = qs.get('dfcms_lang');
+      if (qLang && typeof window.DFOPS_isAllowedSiteLocale === 'function' && window.DFOPS_isAllowedSiteLocale(qLang)) {
+        return String(qLang).trim().toLowerCase();
+      }
+      const htmlLoc = document.documentElement.getAttribute('data-dfcms-locale');
+      if (htmlLoc && typeof window.DFOPS_isAllowedSiteLocale === 'function' && window.DFOPS_isAllowedSiteLocale(htmlLoc)) {
+        return String(htmlLoc).toLowerCase();
+      }
+      if (typeof window.DFOPS_parseLocaleFromPathname === 'function') {
+        const info = window.DFOPS_parseLocaleFromPathname(window.location.pathname || '/');
+        if (info && info.locale) return info.locale;
+      }
+    } catch (_) {
+      /* ignore */
+    }
+    return '';
+  }
+
+  function isPrivacyPolicyPath() {
+    try {
+      let path = String(window.location.pathname || '').replace(/\/+$/, '') || '/';
+      if (typeof window.DFOPS_parseLocaleFromPathname === 'function') {
+        const info = window.DFOPS_parseLocaleFromPathname(path);
+        if (info && info.pathname) path = String(info.pathname).replace(/\/+$/, '') || '/';
+      }
+      return path === '/polityka-prywatnosci';
+    } catch (_) {
+      return false;
     }
   }
 
@@ -149,15 +184,6 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
-  }
-
-  function isPrivacyPolicyPath() {
-    try {
-      const path = String(window.location.pathname || '').replace(/\/+$/, '') || '/';
-      return path === '/polityka-prywatnosci';
-    } catch (_) {
-      return false;
-    }
   }
 
   function infrastructurePrivacyHtml() {
@@ -345,6 +371,13 @@
     const title = seoPlainText(seoData.title);
     if (title) document.title = title;
 
+    try {
+      document.documentElement.setAttribute('lang', lang || 'pl');
+      document.documentElement.setAttribute('data-dfcms-locale', lang || 'pl');
+    } catch (_) {
+      /* ignore */
+    }
+
     const desc = seoPlainText(seoData.description);
     if (desc) {
       let metaDesc = document.querySelector('meta[name="description"]');
@@ -361,6 +394,7 @@
     if (title) {
       ensureMetaByProperty('og:title', title);
       ensureMetaByName('twitter:title', title);
+      ensureMetaByProperty('og:locale', String(lang || 'pl'));
     }
 
     const og = typeof seoData.ogImage === 'string' ? seoData.ogImage.trim() : '';
@@ -368,6 +402,42 @@
       ensureMetaByProperty('og:image', og);
       ensureMetaByName('twitter:image', og);
       ensureMetaByName('twitter:card', 'summary_large_image');
+    }
+
+    // Client-side hreflang (uzupełnia edge rewrite)
+    try {
+      document.querySelectorAll('link[data-dfcms-hreflang]').forEach((n) => n.remove());
+      const enabled =
+        typeof window.DFOPS_enabledLocales === 'function'
+          ? window.DFOPS_enabledLocales(content)
+          : ['pl'];
+      const def =
+        typeof window.DFOPS_defaultLocale === 'function'
+          ? window.DFOPS_defaultLocale(content)
+          : 'pl';
+      const origin = window.location.origin;
+      enabled.forEach((loc) => {
+        const path =
+          typeof window.DFOPS_buildLocalizedPath === 'function'
+            ? window.DFOPS_buildLocalizedPath(loc, '/', def)
+            : loc === def
+              ? '/'
+              : '/' + loc;
+        const link = document.createElement('link');
+        link.setAttribute('rel', 'alternate');
+        link.setAttribute('hreflang', loc);
+        link.setAttribute('href', origin + (path || '/'));
+        link.setAttribute('data-dfcms-hreflang', '1');
+        document.head.appendChild(link);
+      });
+      const xd = document.createElement('link');
+      xd.setAttribute('rel', 'alternate');
+      xd.setAttribute('hreflang', 'x-default');
+      xd.setAttribute('href', origin + '/');
+      xd.setAttribute('data-dfcms-hreflang', '1');
+      document.head.appendChild(xd);
+    } catch (_) {
+      /* ignore */
     }
   }
 
@@ -932,6 +1002,40 @@
       getContentBlock() {
         return this.content?.[this.lang] || {};
       },
+      siteLocales() {
+        if (typeof window.DFOPS_enabledLocales === 'function') {
+          return window.DFOPS_enabledLocales(this.content).filter((c) => !!this.content[c]);
+        }
+        return ['pl'];
+      },
+      showLanguageSwitcher() {
+        return this.siteLocales().length > 1;
+      },
+      localeLabel(code) {
+        const map = window.DFOPS_SITE_LOCALE_LABELS || {};
+        return map[code] || String(code || '').toUpperCase();
+      },
+      localeHref(code) {
+        const def =
+          typeof window.DFOPS_defaultLocale === 'function'
+            ? window.DFOPS_defaultLocale(this.content)
+            : 'pl';
+        let logical = '/';
+        try {
+          if (typeof window.DFOPS_parseLocaleFromPathname === 'function') {
+            logical = window.DFOPS_parseLocaleFromPathname(window.location.pathname || '/').pathname || '/';
+          }
+        } catch (_) {
+          logical = '/';
+        }
+        const path =
+          typeof window.DFOPS_buildLocalizedPath === 'function'
+            ? window.DFOPS_buildLocalizedPath(code, logical, def)
+            : code === def
+              ? logical
+              : '/' + code + (logical === '/' ? '' : logical);
+        return path + (window.location.search || '');
+      },
       /** Paleta szablonu gastro/care — `content.pl.settings.color_palette` (domyślna per motyw). */
       colorPalette() {
         const s = this.getContentBlock().settings || {};
@@ -1383,8 +1487,20 @@
           normalizeEmbedFields(this.content);
           window.DFOPS_applyThemeStyling(this.content?.pl?.settings, this.theme, 'public');
 
-          const userLang = navigator.language.slice(0, 2);
-          this.lang = this.content[userLang] ? userLang : (Object.keys(this.content)[0] || 'pl');
+          const userLang = resolveLocaleFromLocation();
+          const enabled =
+            typeof window.DFOPS_enabledLocales === 'function'
+              ? window.DFOPS_enabledLocales(this.content)
+              : Object.keys(this.content).filter((k) => k !== 'meta' && k !== 'shared');
+          const def =
+            typeof window.DFOPS_defaultLocale === 'function'
+              ? window.DFOPS_defaultLocale(this.content)
+              : 'pl';
+          if (userLang && enabled.indexOf(userLang) !== -1 && this.content[userLang]) {
+            this.lang = userLang;
+          } else {
+            this.lang = this.content[def] ? def : enabled[0] || 'pl';
+          }
 
           if (isPrivacyPolicyPath()) {
             renderPrivacyPolicyPage(this.content, this.lang);
@@ -1403,12 +1519,38 @@
           this.recordPageView();
           this.dataLoaded = true;
           this.initQuickChatFab();
+          this.mountLanguageSwitcher();
           cleanTenantPublicUrl(page.slug);
         } catch (error) {
           console.error('Błąd krytyczny aplikacji:', error);
           this.bazaBlad = true;
           this.dataLoaded = false;
         }
+      },
+
+      mountLanguageSwitcher() {
+        if (!this.showLanguageSwitcher()) return;
+        if (document.getElementById('dfcms-lang-switcher')) return;
+        const wrap = document.createElement('div');
+        wrap.id = 'dfcms-lang-switcher';
+        wrap.setAttribute('style', 'position:fixed;left:12px;bottom:12px;z-index:2147483000;display:flex;gap:6px;flex-wrap:wrap;');
+        const locales = this.siteLocales();
+        for (let i = 0; i < locales.length; i++) {
+          const code = locales[i];
+          const a = document.createElement('a');
+          a.href = this.localeHref(code);
+          a.textContent = this.localeLabel(code);
+          a.setAttribute(
+            'style',
+            'font:600 12px/1.2 system-ui,sans-serif;padding:8px 10px;border-radius:999px;text-decoration:none;border:1px solid rgba(15,23,42,.12);background:' +
+              (code === this.lang ? '#111' : '#fff') +
+              ';color:' +
+              (code === this.lang ? '#fff' : '#334155') +
+              ';box-shadow:0 4px 14px rgba(15,23,42,.08);',
+          );
+          wrap.appendChild(a);
+        }
+        document.body.appendChild(wrap);
       },
 
     };

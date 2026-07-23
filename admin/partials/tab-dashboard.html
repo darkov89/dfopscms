@@ -76,15 +76,40 @@
                             <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Twoja strona</h2>
                             <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Tu zarządzasz treścią witryny. Zmiany zapisują się automatycznie — na końcu kliknij <strong>Opublikuj zmiany</strong> w górnym pasku, żeby klienci je zobaczyli.</p>
                             <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-                                <button type="button" @click="openAiGeneratorModal()"
+                                <button type="button" @click="openAiGeneratorModal('generate')"
                                         class="inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-bold shadow-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35"
                                         :class="canUseAiGenerator() ? 'bg-slate-900 text-white hover:bg-slate-800' : 'border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100'"
                                         :title="canUseAiGenerator() ? 'Wygeneruj teksty do wersji roboczej' : 'Dostępne na planach Starter i Standard'">
                                     Wygeneruj treść przez AI
                                 </button>
+                                <button type="button" x-show="canUseAiGenerator() && editLocale && editLocale !== i18nDefaultLocale()" x-cloak
+                                        @click="openAiGeneratorModal('adapt')"
+                                        class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
+                                    Zlokalizuj z PL
+                                </button>
                                 <p x-show="!canUseAiGenerator()" class="text-xs text-slate-500 leading-relaxed">Dostępne po wyborze pakietu Starter lub Standard.</p>
                                 <p x-show="canUseAiGenerator() && aiRemaining != null && aiLimit != null" class="text-xs text-slate-500" x-cloak
                                    x-text="'Pozostało generacji w tym miesiącu: ' + aiRemaining + ' / ' + aiLimit"></p>
+                            </div>
+                            <div x-show="typeof i18nEnabledLocales === 'function'" class="mb-6 rounded-xl border border-slate-200/80 bg-slate-50/60 p-5" x-cloak>
+                                <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Języki strony</p>
+                                <p class="text-sm text-slate-600 mb-3">Domyślny: Polski. Dodatkowe języki (EN, DE) od planu Standard — osobny adres np. <span class="font-mono text-xs">/en</span>.</p>
+                                <div class="flex flex-wrap gap-2 mb-3">
+                                    <template x-for="loc in i18nEnabledLocales()" :key="'dash-loc-'+loc">
+                                        <span class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-800">
+                                            <button type="button" class="hover:text-accent" @click="setEditLocale(loc)" x-text="i18nLocaleLabel(loc)"></button>
+                                            <button type="button" x-show="loc !== i18nDefaultLocale()" @click="disableSiteLocale(loc)" class="text-xs text-red-500 hover:text-red-700" title="Usuń język">×</button>
+                                        </span>
+                                    </template>
+                                </div>
+                                <div class="flex flex-wrap gap-2" x-show="i18nAvailableToAdd().length">
+                                    <template x-for="loc in i18nAvailableToAdd()" :key="'add-loc-'+loc">
+                                        <button type="button" @click="enableSiteLocale(loc)"
+                                                class="rounded-lg border border-dashed border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-accent hover:text-accent"
+                                                x-text="'+ ' + i18nLocaleLabel(loc)"></button>
+                                    </template>
+                                </div>
+                                <p x-show="!canUseExtraLocales()" class="mt-2 text-xs text-slate-500">Dodatkowe języki odblokujesz na planie Standard.</p>
                             </div>
                             <div class="rounded-xl border border-slate-200/80 bg-slate-50/60 p-5 md:p-6">
                                 <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Adres Twojej strony</p>

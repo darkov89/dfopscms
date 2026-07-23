@@ -142,22 +142,33 @@ function isStagingLogging(): boolean {
   return env !== "production" && env !== "prod";
 }
 
-function buildSystemPrompt(theme: string): string {
+function buildSystemPrompt(theme: string, locale: string, mode: string): string {
   const tone = THEME_TONE_HINTS[theme] || "naturalny, lokalny, przekonujący";
-  return `Jesteś profesjonalnym copywriterem stron lokalnych firm w Polsce (DFCMS).
-Twoim zadaniem jest wygenerowanie kompletnego obiektu JSON z treściami marketingowymi dla szablonu: ${theme}.
+  const langName =
+    locale === "en" ? "angielski" : locale === "de" ? "niemiecki" : "polski";
+  if (mode === "adapt") {
+    return `Jesteś profesjonalnym lokalizatorem treści stron lokalnych firm (DFCMS).
+Zaadaptuj podany JSON copy z języka źródłowego na język: ${langName} (kod: ${locale}), dla szablonu: ${theme}.
 
 Zasady:
-- Treść wyłącznie po polsku, naturalna i perswazyjna — unikaj korpo-mowy i pustych fraz („kompleksowe rozwiązania”, „pasja do…”, „innowacyjne podejście”).
+- Nie tłumacz słowo w słowo — lokalizuj pod rynek docelowy (CTA, SEO, naturalne frazy).
 - Ton: ${tone}.
-- Dostosuj copy do polskiego rynku lokalnego (miasto/dzielnica jeśli podane w opisie).
-- Nie zmyślaj numerów telefonów, e-maili ani adresów — wypełnij je tylko gdy użytkownik podał je wprost w opisie; w przeciwnym razie zostaw puste stringi "".
-- Nie generuj URL-i, obrazów ani ustawień technicznych — tylko pola tekstowe ze schematu JSON.
-- W headline możesz użyć prostych tagów HTML tylko gdy pasują do motywu: <span>, <br />, <i>, <em> — bez atrybutów class/style i bez skryptów.
-- FAQ: 4–6 praktycznych pytań; usługi/menu: konkretne, z sensownymi cenami tylko gdy pasują do branży.
-- seo.title i seo.description: pod SEO lokalne, bez keyword-stuffingu.
+- Zachowaj strukturę JSON (te same klucze); nie dodawaj pól spoza schematu.
+- Nie zmyślaj telefonów/e-maili/adresów — zostaw puste "" jeśli źródło też ma puste.
+- HTML w headline tylko proste tagi: <span>, <br />, <i>, <em> — bez atrybutów/skryptów.
+- Zwróć wyłącznie JSON zgodny ze schematem.`;
+  }
+  return `Jesteś profesjonalnym copywriterem stron lokalnych firm (DFCMS).
+Wygeneruj kompletny obiekt JSON z treściami marketingowymi w języku: ${langName} (kod: ${locale}), dla szablonu: ${theme}.
 
-Zwróć wyłącznie JSON zgodny ze schematem odpowiedzi.`;
+Zasady:
+- Treść naturalna i perswazyjna — unikaj korpo-mowy i pustych fraz.
+- Ton: ${tone}.
+- Dostosuj copy do rynku lokalnego (miasto jeśli podane w opisie).
+- Nie zmyślaj numerów telefonów, e-maili ani adresów — tylko gdy podane wprost; inaczej "".
+- Nie generuj URL-i, obrazów ani ustawień technicznych.
+- HTML w headline tylko: <span>, <br />, <i>, <em> — bez atrybutów/skryptów.
+- Zwróć wyłącznie JSON zgodny ze schematem odpowiedzi.`;
 }
 
 async function sleep(ms: number) {
@@ -335,19 +346,32 @@ serve(async (req) => {
     const theme = typeof body?.theme === "string"
       ? body.theme.trim().toLowerCase()
       : "";
+    const mode = body?.mode === "adapt" ? "adapt" : "generate";
+    const localeRaw = typeof body?.locale === "string"
+      ? body.locale.trim().toLowerCase()
+      : "pl";
+    const locale = ["pl", "en", "de"].includes(localeRaw) ? localeRaw : "pl";
+    const sourceLocaleRaw = typeof body?.sourceLocale === "string"
+      ? body.sourceLocale.trim().toLowerCase()
+      : "pl";
+    const sourceLocale = ["pl", "en", "de"].includes(sourceLocaleRaw)
+      ? sourceLocaleRaw
+      : "pl";
     pageIdLog = pageId;
     themeLog = theme;
 
     if (!Number.isFinite(pageId) || pageId < 1) {
       return errorResponse(cors, "INVALID_INPUT", 400, "Brak poprawnego pageId.");
     }
-    if (!prompt || prompt.length < 10) {
-      return errorResponse(
-        cors,
-        "INVALID_INPUT",
-        400,
-        "Opisz swój biznes w co najmniej kilku zdaniach (min. 10 znaków).",
-      );
+    if (mode === "generate") {
+      if (!prompt || prompt.length < 10) {
+        return errorResponse(
+          cors,
+          "INVALID_INPUT",
+          400,
+          "Opisz swój biznes w co najmniej kilku zdaniach (min. 10 znaków).",
+        );
+      }
     }
     if (prompt.length > PROMPT_MAX) {
       return errorResponse(
@@ -431,9 +455,44 @@ serve(async (req) => {
 
     lastCallByUser.set(userId, now);
 
-    const systemPrompt = buildSystemPrompt(theme);
-    const userPrompt =
-      `Motyw szablonu: ${theme}\nOpis biznesu od właściciela:\n${prompt}`;
+    const existingDraft =
+      page.draft_content && typeof page.draft_content === "object"
+        ? page.draft_content as Record<string, unknown>
+        : {};
+
+    // Zapewnij meta.locales zawiera target
+    if (!existingDraft.meta || typeof existingDraft.meta !== "object") {
+      existingDraft.meta = { defaultLocale: "pl", locales: ["pl"] };
+    }
+    const meta = existingDraft.meta as Record<string, unknown>;
+    let localesList = Array.isArray(meta.locales)
+      ? (meta.locales as unknown[]).map((x) => String(x))
+      : ["pl"];
+    if (!localesList.includes(locale)) localesList.push(locale);
+    if (!localesList.includes("pl")) localesList.unshift("pl");
+    meta.locales = localesList;
+    if (!meta.defaultLocale) meta.defaultLocale = "pl";
+
+    const systemPrompt = buildSystemPrompt(theme, locale, mode);
+    let userPrompt = "";
+    if (mode === "adapt") {
+      const srcBlock = existingDraft[sourceLocale];
+      if (!srcBlock || typeof srcBlock !== "object") {
+        return errorResponse(
+          cors,
+          "INVALID_INPUT",
+          400,
+          "Brak treści źródłowej do lokalizacji. Najpierw uzupełnij język podstawowy.",
+        );
+      }
+      userPrompt =
+        `Motyw: ${theme}\nZlocale: ${sourceLocale} → ${locale}\n` +
+        (prompt ? `Dodatkowy kontekst od właściciela:\n${prompt}\n\n` : "") +
+        `JSON źródłowy (zaadaptuj copy):\n${JSON.stringify(srcBlock).slice(0, 28000)}`;
+    } else {
+      userPrompt =
+        `Motyw szablonu: ${theme}\nJęzyk docelowy: ${locale}\nOpis biznesu od właściciela:\n${prompt}`;
+    }
 
     const gemini = await callGeminiWithRetry(
       geminiKey,
@@ -487,17 +546,27 @@ serve(async (req) => {
       return errorResponse(cors, "AI_BAD_RESPONSE", 502);
     }
 
-    const existingDraft =
-      page.draft_content && typeof page.draft_content === "object"
-        ? page.draft_content as Record<string, unknown>
-        : {};
     const existingPl =
       existingDraft.pl && typeof existingDraft.pl === "object"
         ? existingDraft.pl as Record<string, unknown>
         : {};
+    const existingLocaleBlock =
+      existingDraft[locale] && typeof existingDraft[locale] === "object"
+        ? existingDraft[locale] as Record<string, unknown>
+        : existingPl;
 
-    const mergedPl = mergeAiCopyPatch(existingPl, parsed, theme);
-    const nextDraft = { ...existingDraft, pl: mergedPl };
+    const mergedLocale = mergeAiCopyPatch(existingLocaleBlock, parsed, theme);
+    const nextDraft: Record<string, unknown> = {
+      ...existingDraft,
+      meta,
+      [locale]: mergedLocale,
+    };
+    // Kompatybilność: pl zawsze obecne
+    if (locale === "pl") {
+      nextDraft.pl = mergedLocale;
+    } else if (!nextDraft.pl) {
+      nextDraft.pl = existingPl;
+    }
 
     const { error: updErr } = await supabaseAdmin
       .from("pages")

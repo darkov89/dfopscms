@@ -23,7 +23,11 @@ function sitemapEntries(host) {
   }
   return [
     { loc: '/', changefreq: 'weekly', priority: '1.0' },
+    { loc: '/en', changefreq: 'weekly', priority: '0.8' },
+    { loc: '/de', changefreq: 'weekly', priority: '0.8' },
     { loc: '/polityka-prywatnosci', changefreq: 'yearly', priority: '0.3' },
+    { loc: '/en/polityka-prywatnosci', changefreq: 'yearly', priority: '0.2' },
+    { loc: '/de/polityka-prywatnosci', changefreq: 'yearly', priority: '0.2' },
   ];
 }
 

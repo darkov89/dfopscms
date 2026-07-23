@@ -1,6 +1,7 @@
 import '../js/core/utils.js';
 import '../js/core/publishedThemes.js';
 import '../js/core/platformRouting.js';
+import '../js/core/i18nLocales.js';
 
 /**
  * Cloudflare Pages — globalny middleware (SEO + edge routing szablonów + HTMLRewriter + Supabase).
@@ -41,6 +42,46 @@ const EDGE_ROUTE_PATHS = new Set([
   '/polityka-prywatnosci',
   '/polityka-prywatnosci/',
 ]);
+
+function enabledLocalesFromContent(content) {
+  const meta = content && content.meta;
+  const def =
+    typeof globalThis.DFOPS_DEFAULT_SITE_LOCALE === 'string'
+      ? globalThis.DFOPS_DEFAULT_SITE_LOCALE
+      : 'pl';
+  let list = meta && Array.isArray(meta.locales) ? meta.locales : null;
+  if (!list || !list.length) {
+    list = [];
+    if (content && content.pl) list.push('pl');
+    if (content && content.en) list.push('en');
+    if (content && content.de) list.push('de');
+  }
+  const allowed =
+    typeof globalThis.DFOPS_isAllowedSiteLocale === 'function'
+      ? (c) => globalThis.DFOPS_isAllowedSiteLocale(c)
+      : (c) => c === 'pl' || c === 'en' || c === 'de';
+  const out = [];
+  const seen = {};
+  for (let i = 0; i < list.length; i++) {
+    const c = String(list[i] || '')
+      .trim()
+      .toLowerCase();
+    if (!c || seen[c] || !allowed(c)) continue;
+    if (!content || typeof content[c] !== 'object' || !content[c]) continue;
+    seen[c] = true;
+    out.push(c);
+  }
+  if (!out.length) out.push(def);
+  return out;
+}
+
+function defaultLocaleFromContent(content) {
+  const meta = content && content.meta;
+  const raw = meta && meta.defaultLocale ? String(meta.defaultLocale).trim().toLowerCase() : 'pl';
+  const enabled = enabledLocalesFromContent(content);
+  if (enabled.indexOf(raw) !== -1) return raw;
+  return enabled[0] || 'pl';
+}
 
 /** Host z nagłówka (subdomeny SaaS) ma pierwszeństwo przed url.hostname po wewnętrznym rewrite CF. */
 function parseForwardedHost(request) {
@@ -353,29 +394,39 @@ async function fetchThemeAsset(env, request, theme, url) {
   return null;
 }
 
-function applySeoRewriter(htmlResponse, row, env, slugTrimmed, hostnameNorm) {
-  const seo = row?.content?.pl?.seo;
-  if (!seo || typeof seo !== 'object') {
-    return htmlResponse;
-  }
+function applySeoRewriter(htmlResponse, row, env, slugTrimmed, hostnameNorm, locale) {
+  const content = row?.content;
+  const def = defaultLocaleFromContent(content);
+  const loc = locale || def;
+  const enabled = enabledLocalesFromContent(content);
+  const block = (content && content[loc]) || content?.pl || {};
+  const seo = block.seo;
 
-  const titleRaw = seo.title != null ? String(seo.title) : '';
-  const descRaw = seo.description != null ? String(seo.description) : '';
-  const ogImageRaw = seo.ogImage != null ? String(seo.ogImage).trim() : '';
+  const titleRaw = seo && seo.title != null ? String(seo.title) : '';
+  const descRaw = seo && seo.description != null ? String(seo.description) : '';
+  const ogImageRaw = seo && seo.ogImage != null ? String(seo.ogImage).trim() : '';
 
   const title = stripHtmlMarkup(titleRaw);
   const description = stripHtmlMarkup(descRaw);
-
-  if (!title && !description && !ogImageRaw) {
-    return htmlResponse;
-  }
 
   const titleEsc = escapeHtmlText(title);
   const descAttr = escapeAttr(description);
   const titleAttr = escapeAttr(title);
   const debugOn = env.SEO_DEBUG === '1' || env.SEO_DEBUG === 'true';
+  const host = hostnameNorm || 'dfcms.pl';
+  const buildPath =
+    typeof globalThis.DFOPS_buildLocalizedPath === 'function'
+      ? globalThis.DFOPS_buildLocalizedPath
+      : (l, p, d) => (l && l !== d ? '/' + l + (p === '/' ? '' : p) : p);
 
   const rewriter = new HTMLRewriter();
+
+  rewriter.on('html', {
+    element(el) {
+      el.setAttribute('lang', loc);
+      el.setAttribute('data-dfcms-locale', loc);
+    },
+  });
 
   if (title) {
     rewriter.on('title', {
@@ -389,7 +440,7 @@ function applySeoRewriter(htmlResponse, row, env, slugTrimmed, hostnameNorm) {
     element(el) {
       el.prepend('<meta charset="UTF-8">', { html: true });
       if (debugOn) {
-        const msg = escapeAttr(`slug=${slugTrimmed || '-'} host=${hostnameNorm} ok=1`);
+        const msg = escapeAttr(`slug=${slugTrimmed || '-'} host=${hostnameNorm} loc=${loc} ok=1`);
         el.prepend(`<meta name="dfops-debug" content="${msg}">`, { html: true });
       }
       const parts = [];
@@ -398,6 +449,7 @@ function applySeoRewriter(htmlResponse, row, env, slugTrimmed, hostnameNorm) {
       }
       if (title) {
         parts.push(`<meta property="og:title" content="${titleAttr}">`);
+        parts.push(`<meta property="og:locale" content="${escapeAttr(loc)}">`);
       }
       if (description) {
         parts.push(`<meta property="og:description" content="${descAttr}">`);
@@ -405,6 +457,21 @@ function applySeoRewriter(htmlResponse, row, env, slugTrimmed, hostnameNorm) {
       if (ogImageRaw) {
         parts.push(`<meta property="og:image" content="${escapeAttr(ogImageRaw)}">`);
       }
+      // hreflang
+      for (let i = 0; i < enabled.length; i++) {
+        const hrefLoc = enabled[i];
+        const path = buildPath(hrefLoc, '/', def);
+        const href = `https://${host}${path === '' ? '/' : path}`;
+        parts.push(
+          `<link rel="alternate" hreflang="${escapeAttr(hrefLoc)}" href="${escapeAttr(href)}">`,
+        );
+      }
+      const defaultHref = `https://${host}/`;
+      parts.push(`<link rel="alternate" hreflang="x-default" href="${escapeAttr(defaultHref)}">`);
+      const canonicalPath = buildPath(loc, '/', def);
+      const canonical = `https://${host}${canonicalPath === '' ? '/' : canonicalPath}`;
+      parts.push(`<link rel="canonical" href="${escapeAttr(canonical)}">`);
+
       if (parts.length) {
         el.append(parts.join(''), { html: true });
       }
@@ -414,14 +481,21 @@ function applySeoRewriter(htmlResponse, row, env, slugTrimmed, hostnameNorm) {
   return rewriter.transform(htmlResponse);
 }
 
-async function serveThemedPage(request, env, row, slugTrimmed, hostnameNorm, url) {
+async function serveThemedPage(request, env, row, slugTrimmed, hostnameNorm, url, locale) {
   const theme = String(row.theme).trim().toLowerCase();
   if (theme !== 'setup' && !ALLOWED_THEMES.has(theme)) return null;
 
   const themeResponse = await fetchThemeAsset(env, request, theme, url);
   if (!themeResponse?.ok) return null;
 
-  const withSeo = applySeoRewriter(themeResponse, row, env, slugTrimmed, hostnameNorm);
+  const withSeo = applySeoRewriter(
+    themeResponse,
+    row,
+    env,
+    slugTrimmed,
+    hostnameNorm,
+    locale,
+  );
   return applySecurityHeaders(request, withSeo);
 }
 
@@ -452,7 +526,22 @@ export async function onRequest(context) {
       throw new Error(debugTrace);
     }
 
-    if (!isEdgeRoutePath(url.pathname)) {
+    const parseLocale =
+      typeof globalThis.DFOPS_parseLocaleFromPathname === 'function'
+        ? globalThis.DFOPS_parseLocaleFromPathname
+        : () => ({ locale: null, pathname: url.pathname, isPrefixed: false, unknownPrefix: '' });
+
+    const localeInfo = parseLocale(url.pathname);
+    // /pl → redirect na ścieżkę bez prefixu
+    if (localeInfo.unknownPrefix === 'pl') {
+      const dest = new URL(request.url);
+      dest.pathname = localeInfo.pathname || '/';
+      return Response.redirect(dest.toString(), 302);
+    }
+
+    const logicalPath = localeInfo.pathname || '/';
+    const pathForEdge = localeInfo.isPrefixed ? logicalPath : url.pathname;
+    if (!isEdgeRoutePath(pathForEdge)) {
       debugTrace = 'NOT_EDGE_ROUTE:' + url.pathname;
       throw new Error(debugTrace);
     }
@@ -491,7 +580,19 @@ export async function onRequest(context) {
       throw new Error(debugTrace);
     }
 
-    debugTrace = `FETCH_ASSET:${theme}`;
+    const enabled = enabledLocalesFromContent(row.content);
+    const def = defaultLocaleFromContent(row.content);
+    let activeLocale = def;
+    if (localeInfo.isPrefixed && localeInfo.locale) {
+      if (enabled.indexOf(localeInfo.locale) === -1) {
+        const dest = new URL(request.url);
+        dest.pathname = logicalPath || '/';
+        return Response.redirect(dest.toString(), 302);
+      }
+      activeLocale = localeInfo.locale;
+    }
+
+    debugTrace = `FETCH_ASSET:${theme}|loc:${activeLocale}`;
     if (!env.ASSETS) {
       debugTrace = 'NO_ENV_ASSETS';
       throw new Error(debugTrace);
@@ -504,7 +605,14 @@ export async function onRequest(context) {
     }
 
     debugTrace = 'SUCCESS_REWRITE';
-    const withSeo = applySeoRewriter(themeResponse, row, env, slugTrimmed, hostnameNorm);
+    const withSeo = applySeoRewriter(
+      themeResponse,
+      row,
+      env,
+      slugTrimmed,
+      hostnameNorm,
+      activeLocale,
+    );
     const finalResponse = new Response(withSeo.body, withSeo);
     if (env.SEO_DEBUG === '1' || env.SEO_DEBUG === 'true') {
       finalResponse.headers.set('X-DFCMS-Debug', debugTrace);
@@ -513,7 +621,15 @@ export async function onRequest(context) {
     return applySecurityHeaders(request, finalResponse);
   } catch (e) {
     const hostnameNorm = hostname || urlHostname;
-    if (isTenantPublicHost(hostnameNorm) && isEdgeRoutePath(url.pathname)) {
+    const parseLocale =
+      typeof globalThis.DFOPS_parseLocaleFromPathname === 'function'
+        ? globalThis.DFOPS_parseLocaleFromPathname
+        : null;
+    const logical = parseLocale ? parseLocale(url.pathname).pathname : url.pathname;
+    if (
+      isTenantPublicHost(hostnameNorm) &&
+      (isEdgeRoutePath(url.pathname) || isEdgeRoutePath(logical || '/'))
+    ) {
       const notFound = tenantNotFoundResponse(request);
       if (env.SEO_DEBUG === '1' || env.SEO_DEBUG === 'true') {
         notFound.headers.set('X-DFCMS-Debug', `FAIL[${debugTrace}]`);

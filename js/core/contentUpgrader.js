@@ -407,11 +407,16 @@
     }
 
     for (const _lang of Object.keys(merged)) {
+      if (_lang === 'meta' || _lang === 'shared') continue;
       ensureSeo(merged[_lang]);
       ensureLegal(merged[_lang]);
       ensureContactCta(merged[_lang], theme);
       ensureHeroButton(merged[_lang]);
       ensureMenuPanelFields(merged[_lang]);
+    }
+
+    if (typeof window.DFOPS_finalizeI18nContent === 'function') {
+      window.DFOPS_finalizeI18nContent(merged);
     }
 
     return merged;

@@ -32,6 +32,7 @@
     app.aiModalOpen = false;
     app.aiRemaining = null;
     app.aiLimit = null;
+    app.aiMode = 'generate'; // generate | adapt
 
     app.canUseAiGenerator = function canUseAiGenerator() {
       if (this.isImpersonating) return true;
@@ -51,7 +52,7 @@
       return 0;
     };
 
-    app.openAiGeneratorModal = function openAiGeneratorModal() {
+    app.openAiGeneratorModal = function openAiGeneratorModal(mode) {
       if (!this.canUseAiGenerator()) {
         this.showToast(
           'Generator AI jest dostępny na planach Starter i Standard. Przejdź do Subskrypcji, aby wybrać pakiet.',
@@ -69,6 +70,15 @@
         this.showToast('Najpierw wybierz szablon branżowy w kreatorze lub w ustawieniach.', 'info');
         return;
       }
+      this.aiMode = mode === 'adapt' ? 'adapt' : 'generate';
+      if (this.aiMode === 'adapt') {
+        const loc = this.editLocale || 'pl';
+        const def = typeof this.i18nDefaultLocale === 'function' ? this.i18nDefaultLocale() : 'pl';
+        if (loc === def) {
+          this.showToast('Zlokalizuj działa dla dodatkowego języka (EN/DE). Przełącz język edycji.', 'info');
+          return;
+        }
+      }
       this.aiModalOpen = true;
     };
 
@@ -83,8 +93,9 @@
         this.showToast('Generator AI wymaga aktywnego pakietu Starter lub Standard.', 'error');
         return;
       }
+      const mode = this.aiMode === 'adapt' ? 'adapt' : 'generate';
       const prompt = String(this.aiPrompt || '').trim();
-      if (prompt.length < 10) {
+      if (mode === 'generate' && prompt.length < 10) {
         this.showToast('Opisz swój biznes w kilku zdaniach (min. 10 znaków).', 'error');
         return;
       }
@@ -93,11 +104,17 @@
         return;
       }
 
+      const locale = this.editLocale || 'pl';
+      const sourceLocale =
+        typeof this.i18nDefaultLocale === 'function' ? this.i18nDefaultLocale() : 'pl';
+
       const ok = await this.confirmAsync({
-        title: 'Nadpisać treść roboczą?',
+        title: mode === 'adapt' ? 'Zlokalizować treść?' : 'Nadpisać treść roboczą?',
         message:
-          'AI uzupełni teksty w wersji roboczej (draft). Opublikowana strona LIVE się nie zmieni, dopóki nie klikniesz „Opublikuj zmiany”. Ustawienia, zdjęcia i linki zostaną zachowane.',
-        yesLabel: 'Generuj',
+          mode === 'adapt'
+            ? 'AI zaadaptuje copy z języka źródłowego do języka edycji w wersji roboczej. LIVE bez zmian do publikacji.'
+            : 'AI uzupełni teksty w wersji roboczej (draft) dla aktywnego języka. Opublikowana strona LIVE się nie zmieni, dopóki nie klikniesz „Opublikuj zmiany”.',
+        yesLabel: mode === 'adapt' ? 'Zlokalizuj' : 'Generuj',
         noLabel: 'Anuluj',
         tone: 'default',
       });
@@ -105,6 +122,9 @@
 
       this.isGeneratingAi = true;
       try {
+        if (typeof this.prepareContentForPersist === 'function') {
+          this.prepareContentForPersist();
+        }
         const {
           data: { session },
         } = await this.supabase.auth.getSession();
@@ -117,8 +137,11 @@
         const { data, error } = await this.supabase.functions.invoke('generate-ai-content', {
           body: {
             pageId: this.pageId,
-            prompt,
+            prompt: mode === 'adapt' ? prompt || '' : prompt,
             theme: String(this.theme || '').trim().toLowerCase(),
+            locale,
+            mode,
+            sourceLocale,
           },
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -131,6 +154,10 @@
 
         if (data.draft_content && typeof data.draft_content === 'object') {
           this.content = data.draft_content;
+          if (typeof this.i18nAfterContentLoad === 'function') {
+            this.i18nAfterContentLoad();
+            if (locale) this.setEditLocale(locale);
+          }
         }
         const remaining = typeof data.remaining === 'number' ? data.remaining : null;
         const limit = typeof data.limit === 'number' ? data.limit : this.aiGeneratorLimit();
@@ -140,13 +167,12 @@
         this.aiModalOpen = false;
         this.aiPrompt = '';
 
-        let toastMsg = 'AI wygenerowało nową treść! Sprawdź podgląd i opublikuj zmiany.';
+        let toastMsg =
+          mode === 'adapt'
+            ? 'AI zlokalizowało treść! Sprawdź podgląd i opublikuj.'
+            : 'AI wygenerowało nową treść! Sprawdź podgląd i opublikuj zmiany.';
         if (remaining != null && limit != null) {
-          toastMsg =
-            `AI wygenerowało nową treść! Zostało Ci ${remaining} z ${limit} generacji w tym miesiącu. Sprawdź podgląd i opublikuj.`;
-        } else if (remaining != null) {
-          toastMsg =
-            `AI wygenerowało nową treść! Pozostało generacji w tym miesiącu: ${remaining}. Sprawdź podgląd i opublikuj.`;
+          toastMsg += ` Zostało ${remaining} z ${limit} generacji w tym miesiącu.`;
         }
         this.showToast(toastMsg, 'success');
       } catch (e) {

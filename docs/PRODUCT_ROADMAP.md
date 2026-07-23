@@ -2,7 +2,7 @@
 
 > **Plan strategiczny** po fazie MVP / po ~10 płacących klientach. Stan bieżący produkcji: [`MASTER_CONTEXT.md`](MASTER_CONTEXT.md).
 
-**Ostatnia aktualizacja:** 2026-07-04 — link do Silnika Wzrostu
+**Ostatnia aktualizacja:** 2026-07-23 — link do planu i18n witryn
 
 ---
 
@@ -15,6 +15,14 @@
 Nie blokuje architektury V2 poniżej — fazy G0–G1 można wdrażać na obecnym stacku (bez Vite/bundlera).
 
 ---
+
+## 0b. Wielojęzyczność witryn (i18n) — PL + EN + DE
+
+**Spec:** [`docs/I18N_ARCHITECTURE.md`](I18N_ARCHITECTURE.md) — fazy L0–L4 (wdrożone w kodzie 2026-07-23).
+
+- Jeden `pages` row; `meta.locales` + bloki `pl`/`en`/`de`; URL `/` vs `/en` vs `/de`; hreflang; AI generate/adapt.
+- Starter = tylko PL; Standard/Custom = do 3 locale.
+- Panel: przełącznik języka edycji + Dashboard dodaj/usuń.---
 
 ## 1. Architektura V2
 

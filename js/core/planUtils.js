@@ -45,6 +45,20 @@
     return 0;
   }
 
+  /**
+   * Dodatkowe locale witryny (EN/DE…) poza domyślnym PL.
+   * Starter / trial: tylko PL. Standard / Custom: do 3 łącznie (pl+en+de).
+   */
+  function planAllowsExtraLocales(plan) {
+    const p = normalizePlan(plan);
+    return p === 'tier1' || p === 'tier_custom' || p === 'custom';
+  }
+
+  function planMaxLocales(plan) {
+    if (planAllowsExtraLocales(plan)) return 3;
+    return 1;
+  }
+
   function planDisplayName(plan) {
     const p = normalizePlan(plan);
     if (p === 'trial') return 'Okres próbny (14 dni)';
@@ -159,6 +173,8 @@
   window.DFOPS_planAllowsQuickChat = planAllowsQuickChat;
   window.DFOPS_planAllowsAiGenerator = planAllowsAiGenerator;
   window.DFOPS_aiGeneratorMonthlyLimit = aiGeneratorMonthlyLimit;
+  window.DFOPS_planAllowsExtraLocales = planAllowsExtraLocales;
+  window.DFOPS_planMaxLocales = planMaxLocales;
   window.DFOPS_planShowsWatermark = planShowsWatermark;
   window.DFOPS_planDisplayName = planDisplayName;
   window.DFOPS_subscriptionDisplayName = subscriptionDisplayName;
