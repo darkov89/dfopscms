@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-07-23 — i18n witryn (PL/EN/DE) + AI Site Generator
+**Ostatnia aktualizacja:** 2026-07-23 — landing: Buduj z AI + sprzedażowy copy
 
 ---
 
@@ -73,7 +73,7 @@ Użytkownik → Auth → pages.content + pages.billing_plan + billing_profiles
 
 | Warstwa | Kluczowe artefakty |
 |--------|---------------------|
-| **Front publiczny** | `index.html` (dark-mode SaaS landing spójny z admin/rejestracją: `#121212` + `#D4AF37`; hero 3 min, `#jak`, `#wyposazenie`, `#spokoj`, `#demo`, `#cennik`, SEO + `favicon.svg`), demo przez `router.html?site=demo-*` (beauty/services/care/gastro/fitness/consultant). Szablony branżowe HTML są w `/templates/` (`beauty`, `consultant`, `fitness`, `services`, `gastro`, `care`); media statyczne przenoszone z root trafiają do `/assets/images/`; boilerplate nowych szablonów: `/templates/_base_template.html`; klocki UI: `/templates/_components_library.html`; partial FAB czatu: `/templates/_partials/quick_chat_fab.html`. `setup.html` zostaje w root. `landingPricing.js` — plany cennika i dane landingowe. **Szybki kontakt:** pływający przycisk WhatsApp (`contact.whatsapp` → `wa.me`) lub Messenger (`contact.messenger` → `m.me`) — `publicSiteApp` + Alpine `x-show`; dostępny na wszystkich planach w tym Starter (`tier0`, `DFOPS_planAllowsQuickChat` — od 2026-07-05). Opcjonalna lista gotowych pytań (`contact.quick_chat_questions: string[]`, panel Kontakt → Szybki czat): klik w FAB rozwija popover, wybór pytania otwiera czat z wpisaną treścią (WhatsApp `?text=`; Messenger nie wspiera pre-fillu → kopiowanie do schowka + toast). |
+| **Front publiczny** | `index.html` (dark-mode SaaS landing spójny z admin/rejestracją: `#121212` + `#D4AF37`; hero (wynik biznesowy + AI w subcopy), `#jak`, `#ai`, `#korzysci`, `#panel`, `#demo`, `#spokoj`, `#cennik`, SEO + `favicon.svg`), demo przez `router.html?site=demo-*` (beauty/services/care/gastro/fitness/consultant). Szablony branżowe HTML są w `/templates/` (`beauty`, `consultant`, `fitness`, `services`, `gastro`, `care`); media statyczne przenoszone z root trafiają do `/assets/images/`; boilerplate nowych szablonów: `/templates/_base_template.html`; klocki UI: `/templates/_components_library.html`; partial FAB czatu: `/templates/_partials/quick_chat_fab.html`. `setup.html` zostaje w root. `landingPricing.js` — plany cennika i dane landingowe. **Szybki kontakt:** pływający przycisk WhatsApp (`contact.whatsapp` → `wa.me`) lub Messenger (`contact.messenger` → `m.me`) — `publicSiteApp` + Alpine `x-show`; dostępny na wszystkich planach w tym Starter (`tier0`, `DFOPS_planAllowsQuickChat` — od 2026-07-05). Opcjonalna lista gotowych pytań (`contact.quick_chat_questions: string[]`, panel Kontakt → Szybki czat): klik w FAB rozwija popover, wybór pytania otwiera czat z wpisaną treścią (WhatsApp `?text=`; Messenger nie wspiera pre-fillu → kopiowanie do schowka + toast). |
 | **Panel CMS** | `admin.html` (~2,5k linii HTML), `adminApp.js` (~4k linii Alpine). **IA (2026-07):** domyślny ekran `dashboard` (adres + checklista + **AI Site Generator**); sidebar w 3 grupach zwijanych (Na start / Więcej treści / Ustawienia); nagłówek z CTA „Opublikuj”, menu ⋯; rezerwacje w Kontakcie; scalone Opinie; bez Leady w menu; bez globalnej widoczności sekcji w Wyglądzie — szczegóły §1.5.2. **`js/core/themeConfig.js`** — sekcje per `pages.theme`; **`js/core/contentSchema.js`** + **`contentUpgrader.js`** — kontrakt/migracja pól JSON (`pages.content` / `draft_content`). **`js/templates/registry.js`** — domyślna treść startowa (nie mylić z `templates/*.html`). Draft vs published: `pages.draft_content` / `pages.content`. Subskrypcja, Smart Booking, szybki kontakt, God Mode — jak wcześniej. Adaptery poza monolitem: `growth/` + `aiGenerator.js`. |
 | **Backend** | `pages`, `billing_profiles`, `superadmins`, RLS. Schemat baseline: `20260603072317_remote_schema.sql`; God Mode: `20260623100512_add_god_mode.sql`. |
 | **Płatności** | Starter `tier0`, Standard `tier1`, Custom poza Stripe. Secrets: `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_STARTER_YEARLY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_PRO_YEARLY`. wFirma: `WFIRMA_*`, ledger `wfirma_invoice_ledger`. |
@@ -377,6 +377,16 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 
 ## 4. Dziennik transformacji
 
+### 2026-07-23 — Landing: Buduj z AI (sprzedażowy framing)
+
+AI Site Generator na landingu jako **akcelerator konwersji**, nie jako produkt sam w sobie.
+
+- **Hero:** H1 zostaje outcome („strona w kilka minut”); subcopy + trust bullet „Teksty napisze AI”; drugie CTA → `#demo`.
+- **`#jak`:** krok 2 = „Opisz firmę — AI napisze”; krok 4 = „Zdobywaj klientów”.
+- **Nowa `#ai`:** blok „Buduj z AI” (problem pustych pól → opis firmy → gotowe teksty) + mini demo Ty/AI + CTA trial.
+- **`#korzysci`:** karta „Teksty z AI” zamiast „Prosty edytor”; nav „Buduj z AI”.
+- **Cennik (`landingPricing.js`):** Starter/Standard — feature „Teksty z AI”.
+
 ### 2026-07-23 — Wielojęzyczność witryn (PL / EN / DE)
 
 Spec: [`docs/I18N_ARCHITECTURE.md`](I18N_ARCHITECTURE.md).
@@ -416,9 +426,9 @@ Naprawa krytycznych UX przy logowaniu/rejestracji i pierwszym uruchomieniu.
 
 Przepisany marketingowy landing pod konwersję. **Bez zmian w designie** — te same kolory (dark + złoto `#D4AF37`), Inter, klasy Tailwind, Alpine (`landingPricing()`) i skrypty routingu/SEO.
 
-- **Flow sekcji:** Hero → Jak to działa (4 kroki: szablon → edytor → publikacja/domena → statystyki) → Co dostajesz (6 korzyści) → Panel i statystyki (`#panel`, mock dashboardu 7-dniowego) → Integracje (`#integracje`: Booksy/Calendly/Opinie Google/Mapa) → Przykłady (`#demo` + CTA) → Święty spokój (`#spokoj`, hosting/SSL/domena) → Cennik → CTA.
-- **Nawigacja:** linki `#korzysci`, `#panel` zastąpiły `#wyposazenie`/`#spokoj` (desktop + mobile). Sekcja `#spokoj` przeniesiona za `#demo`.
-- **Copy realistyczne:** „gotowa w kilka minut”, trial 14 dni bez karty, własną domenę podłączasz sam (możemy pomóc), hosting+SSL+aktualizacje w cenie. USP zgodne z realnymi funkcjami (dashboard 7-dniowy, quick chat WhatsApp/Messenger z gotowymi pytaniami, edytor z autozapisem).
+- **Flow sekcji:** Hero → Jak to działa (4 kroki: szablon → opis+AI → publikacja → klienci) → Buduj z AI (`#ai`) → Co dostajesz (6 korzyści, w tym Teksty z AI) → Panel i statystyki (`#panel`) → Integracje → Przykłady (`#demo`) → Święty spokój (`#spokoj`) → Cennik → CTA.
+- **Nawigacja:** `#jak`, `#ai`, `#korzysci`, `#panel`, `#demo`, `#cennik` (desktop + mobile).
+- **Copy realistyczne:** „gotowa w kilka minut”, trial 14 dni bez karty, AI generuje teksty z opisu firmy (pełna kontrola edycji), własną domenę podłączasz sam (możemy pomóc), hosting+SSL+aktualizacje w cenie.
 
 ### 2026-07-05 — Szybki czat: predefiniowane pytania
 

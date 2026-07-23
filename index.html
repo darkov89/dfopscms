@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DFCMS — Piękna strona dla biznesu gotowa w 3 minuty</title>
-    <meta name="description" content="Piękna i nowoczesna strona dla Twojego biznesu gotowa w 3 minuty. Booksy, opinie Google, mapa, hosting i SSL bez wtyczek oraz technicznych zmartwień.">
+    <title>DFCMS — Profesjonalna strona dla biznesu w kilka minut</title>
+    <meta name="description" content="Gotowa strona dla lokalnego biznesu w kilka minut. Szablon branżowy, teksty z AI, Booksy, opinie Google, mapa, hosting i SSL — bez wtyczek i technicznych zmartwień.">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://dfcms.pl/">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="pl_PL">
     <meta property="og:site_name" content="DFCMS">
-    <meta property="og:title" content="DFCMS — Piękna strona dla biznesu gotowa w 3 minuty">
-    <meta property="og:description" content="Wybierasz projekt dla swojej branży, wpisujesz dane i gotowe. Booksy, opinie Google, mapa, hosting i SSL w jednym miejscu.">
+    <meta property="og:title" content="DFCMS — Profesjonalna strona dla biznesu w kilka minut">
+    <meta property="og:description" content="Wybierasz szablon, opisujesz firmę — AI przygotuje teksty. Booksy, opinie Google, mapa, hosting i SSL w jednym miejscu.">
     <meta property="og:url" content="https://dfcms.pl/">
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="DFCMS — strona biznesowa gotowa w 3 minuty">
-    <meta name="twitter:description" content="Nowoczesna wizytówka z Booksy, opiniami Google, mapą i panelem bez martwienia się o hosting.">
+    <meta name="twitter:title" content="DFCMS — strona biznesowa w kilka minut">
+    <meta name="twitter:description" content="Szablon branżowy, teksty z AI, Booksy i panel ze statystykami — bez martwienia się o hosting.">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/favicon.svg">
     <meta name="theme-color" content="#121212">
@@ -113,6 +113,7 @@
 
             <nav class="hidden items-center gap-8 text-sm font-medium text-gray-400 md:flex" aria-label="Nawigacja główna">
                 <a href="#jak" class="transition hover:text-white">Jak to działa</a>
+                <a href="#ai" class="transition hover:text-white">Buduj z AI</a>
                 <a href="#korzysci" class="transition hover:text-white">Co dostajesz</a>
                 <a href="#panel" class="transition hover:text-white">Panel i statystyki</a>
                 <a href="#demo" class="transition hover:text-white">Przykłady</a>
@@ -150,6 +151,7 @@
         >
             <nav class="flex flex-col gap-1 text-sm font-medium text-gray-300" aria-label="Menu mobilne">
                 <a href="#jak" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false">Jak to działa</a>
+                <a href="#ai" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false">Buduj z AI</a>
                 <a href="#korzysci" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false">Co dostajesz</a>
                 <a href="#panel" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false">Panel i statystyki</a>
                 <a href="#demo" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false">Przykłady</a>
@@ -165,21 +167,24 @@
             <div class="absolute left-1/2 top-0 -z-10 h-[32rem] w-[32rem] -translate-x-1/2 rounded-full bg-brand-gold/20 blur-3xl" aria-hidden="true"></div>
             <div class="absolute right-0 top-24 -z-10 h-96 w-96 rounded-full bg-amber-700/20 blur-3xl" aria-hidden="true"></div>
             <div class="mx-auto max-w-5xl text-center">
-                <p class="mb-6 inline-flex rounded-full border border-brand-gold/25 bg-brand-gold/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Strony WWW dla lokalnego biznesu</p>
+                <p class="mb-6 inline-flex rounded-full border border-brand-gold/25 bg-brand-gold/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Strona WWW, która zdobywa klientów</p>
                 <h1 class="font-display text-4xl font-black leading-[1.04] tracking-tight text-white sm:text-6xl lg:text-7xl">
                     Profesjonalna strona dla Twojego biznesu. Gotowa w kilka minut.
                 </h1>
                 <p class="mx-auto mt-7 max-w-3xl text-base leading-relaxed text-gray-300 sm:text-xl">
-                    Wybierasz gotowy szablon dla swojej branży, wpisujesz dane w prostym edytorze i publikujesz. A w panelu na bieżąco widzisz statystyki — ile osób wchodzi na stronę i ile klika, żeby zadzwonić lub zarezerwować. Bez wtyczek i martwienia się o hosting.
+                    Wybierasz szablon branżowy, opisujesz firmę w kilku zdaniach — AI przygotuje teksty. Ty dodajesz zdjęcia, publikujesz i w panelu widzisz, ile osób dzwoni albo rezerwuje. Bez wtyczek i martwienia się o hosting.
                 </p>
-                <div class="mt-10 flex justify-center">
+                <div class="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
                     <a href="rejestracja.html" class="inline-flex w-full max-w-sm items-center justify-center rounded-2xl bg-brand-gold px-8 py-4 text-sm font-bold uppercase tracking-widest text-brand-ink shadow-accent transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212] sm:w-auto sm:min-w-[280px]">
-                        Uruchom swoją stronę za darmo
+                        Uruchom stronę za darmo
+                    </a>
+                    <a href="#demo" class="inline-flex w-full max-w-sm items-center justify-center rounded-2xl border border-white/20 px-8 py-4 text-sm font-bold uppercase tracking-widest text-white transition hover:border-brand-gold/50 hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40 sm:w-auto">
+                        Zobacz przykłady
                     </a>
                 </div>
-                <ul class="mx-auto mt-7 flex max-w-2xl flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-gray-400">
-                    <li class="inline-flex items-center gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> 14 dni za darmo</li>
-                    <li class="inline-flex items-center gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Bez podawania karty</li>
+                <ul class="mx-auto mt-7 flex max-w-3xl flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-gray-400">
+                    <li class="inline-flex items-center gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> 14 dni za darmo · bez karty</li>
+                    <li class="inline-flex items-center gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Teksty napisze AI</li>
                     <li class="inline-flex items-center gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Hosting, SSL i aktualizacje w cenie</li>
                 </ul>
             </div>
@@ -189,8 +194,8 @@
             <div class="mx-auto max-w-6xl">
                 <div class="mx-auto max-w-3xl text-center">
                     <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Jak to działa</p>
-                    <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">Nie budujesz strony od zera. Kreator prowadzi Cię krok po kroku.</h2>
-                    <p class="mt-5 text-base leading-relaxed text-gray-400">Cztery proste kroki. Bez wiedzy technicznej — jeśli potrafisz wypełnić formularz, poradzisz sobie ze stroną.</p>
+                    <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">Nie budujesz strony od zera. Od opisu firmy do publikacji.</h2>
+                    <p class="mt-5 text-base leading-relaxed text-gray-400">Cztery kroki. Bez wiedzy technicznej — jeśli potrafisz opisać swój biznes, poradzisz sobie ze stroną.</p>
                 </div>
                 <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
                     <article class="rounded-2xl border border-gray-800 bg-white/[0.045] p-7 shadow-lift backdrop-blur">
@@ -200,8 +205,8 @@
                     </article>
                     <article class="rounded-2xl border border-gray-800 bg-white/[0.045] p-7 shadow-lift backdrop-blur">
                         <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-amber-700/15 text-2xl text-amber-200" aria-hidden="true">✦</div>
-                        <h3 class="text-lg font-bold text-white">2. Uzupełnij dane</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">W prostym edytorze wpisujesz cennik, godziny i dodajesz zdjęcia. Zmiany zapisują się same.</p>
+                        <h3 class="text-lg font-bold text-white">2. Opisz firmę — AI napisze</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Kilka zdań o ofercie i lokalizacji. AI przygotuje nagłówki, opisy i FAQ. Ty dodajesz zdjęcia, cennik i godziny.</p>
                     </article>
                     <article class="rounded-2xl border border-gray-800 bg-white/[0.045] p-7 shadow-lift backdrop-blur">
                         <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-gold/10 text-2xl text-brand-gold" aria-hidden="true">↗</div>
@@ -210,9 +215,46 @@
                     </article>
                     <article class="rounded-2xl border border-gray-800 bg-white/[0.045] p-7 shadow-lift backdrop-blur">
                         <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-gold/10 text-2xl text-brand-gold" aria-hidden="true">✓</div>
-                        <h3 class="text-lg font-bold text-white">4. Obserwuj wyniki</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">W panelu widzisz statystyki: ile było wejść i ile kliknięć w telefon, rezerwację i czat. Edytujesz stronę, kiedy chcesz.</p>
+                        <h3 class="text-lg font-bold text-white">4. Zdobywaj klientów</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300">W panelu widzisz wejścia i kliknięcia w telefon, rezerwację i czat. Wiesz, czy strona realnie pracuje.</p>
                     </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="ai" class="px-4 py-20 sm:px-6 sm:py-24 lg:px-8 scroll-mt-24">
+            <div class="mx-auto max-w-6xl">
+                <div class="overflow-hidden rounded-3xl border border-brand-gold/25 bg-gradient-to-br from-brand-gold/15 via-[#1e1e1e] to-[#121212] p-8 shadow-gold backdrop-blur sm:p-12 lg:p-14">
+                    <div class="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
+                        <div class="max-w-xl">
+                            <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Buduj z AI</p>
+                            <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">Nie musisz wymyślać tekstów. Opisz firmę — resztę zrobi AI.</h2>
+                            <p class="mt-6 text-base leading-relaxed text-gray-300 sm:text-lg">Największa blokada przy stronie to zwykle puste pola: hasła, opisy usług, FAQ. W DFCMS wpisujesz kilka zdań o biznesie, a generator AI uzupełnia treść pod Twoją branżę. Ty sprawdzasz, poprawiasz i publikujesz.</p>
+                            <ul class="mt-6 space-y-3 text-sm text-gray-300">
+                                <li class="flex gap-3"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span> Gotowe teksty zamiast godzin nad pustym edytorem</li>
+                                <li class="flex gap-3"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span> Copy dopasowane do beauty, gastro, fitness, usług i gabinetów</li>
+                                <li class="flex gap-3"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span> Pełna kontrola — zawsze możesz zmienić każde zdanie</li>
+                            </ul>
+                            <a href="rejestracja.html" class="mt-8 inline-flex items-center justify-center rounded-2xl bg-brand-gold px-7 py-3.5 text-sm font-bold uppercase tracking-widest text-brand-ink shadow-accent transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/60">
+                                Wypróbuj z AI za darmo
+                            </a>
+                        </div>
+                        <div class="rounded-2xl border border-white/10 bg-[#121212]/70 p-6 sm:p-8">
+                            <p class="text-[11px] font-bold uppercase tracking-widest text-gray-500">Jak wygląda start</p>
+                            <div class="mt-5 space-y-4">
+                                <div class="rounded-xl border border-gray-800 bg-white/[0.04] p-4">
+                                    <p class="text-xs font-semibold uppercase tracking-wider text-brand-gold">Ty piszesz</p>
+                                    <p class="mt-2 text-sm leading-relaxed text-gray-300">„Salon fryzjerski w centrum Katowic. Strzyżenie męskie, broda, koloryzacja. Booksy.”</p>
+                                </div>
+                                <div class="flex justify-center text-brand-gold" aria-hidden="true">↓</div>
+                                <div class="rounded-xl border border-brand-gold/30 bg-brand-gold/10 p-4">
+                                    <p class="text-xs font-semibold uppercase tracking-wider text-brand-gold">AI przygotowuje</p>
+                                    <p class="mt-2 text-sm leading-relaxed text-white">Nagłówek, opis oferty, sekcje usług i FAQ — gotowe do publikacji w Twoim szablonie.</p>
+                                </div>
+                            </div>
+                            <p class="mt-5 text-center text-[11px] text-gray-500">Potem dodajesz zdjęcia i podpinasz rezerwacje</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -230,10 +272,10 @@
                         <h3 class="font-bold text-white">Szablony branżowe</h3>
                         <p class="mt-3 text-sm leading-relaxed text-gray-300">Gotowe projekty dla beauty, gastro, fitness, usług, gabinetów i doradców. Każdy dopasowany do tego, jak działa Twoja branża.</p>
                     </article>
-                    <article class="rounded-2xl border border-gray-800 bg-[#1e1e1e]/80 p-6 backdrop-blur">
-                        <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-gold/10 text-xl text-brand-gold" aria-hidden="true">✎</div>
-                        <h3 class="font-bold text-white">Prosty edytor</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Zmieniasz teksty, cennik i zdjęcia jak w formularzu. Zmiany zapisują się same, a Ty publikujesz jednym kliknięciem.</p>
+                    <article class="rounded-2xl border border-brand-gold/25 bg-[#1e1e1e]/80 p-6 backdrop-blur">
+                        <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-gold/10 text-xl text-brand-gold" aria-hidden="true">✦</div>
+                        <h3 class="font-bold text-white">Teksty z AI</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Opisujesz biznes — dostajesz gotowe teksty. Potem poprawiasz w edytorze jak w formularzu i publikujesz jednym kliknięciem.</p>
                     </article>
                     <article class="rounded-2xl border border-gray-800 bg-[#1e1e1e]/80 p-6 backdrop-blur">
                         <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-gold/10 text-xl text-brand-gold" aria-hidden="true">▤</div>
@@ -495,7 +537,7 @@
         <section class="px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
             <div class="mx-auto max-w-3xl text-center">
                 <h2 class="font-display text-4xl font-bold tracking-tight text-white sm:text-5xl">Szkoda Twojego czasu na walkę z technologią.</h2>
-                <p class="mt-5 text-base leading-relaxed text-gray-300 sm:text-lg">Uruchom swoją stronę w kilka minut i wracaj do robienia tego, w czym jesteś najlepszy. Testujesz 14 dni za darmo — bez podawania karty.</p>
+                <p class="mt-5 text-base leading-relaxed text-gray-300 sm:text-lg">Opisz firmę, niech AI napisze teksty, opublikuj stronę i wracaj do klientów. Testujesz 14 dni za darmo — bez podawania karty.</p>
                 <a href="rejestracja.html" class="mt-8 inline-flex items-center justify-center rounded-2xl bg-brand-gold px-8 py-4 text-sm font-bold uppercase tracking-widest text-brand-ink shadow-gold transition hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212]">
                     Zacznij teraz →
                 </a>
@@ -531,7 +573,7 @@
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web",
         "url": "https://dfcms.pl/",
-        "description": "Piękna i nowoczesna strona dla lokalnego biznesu gotowa w 3 minuty — Booksy, opinie Google, mapa, hosting i SSL w jednym abonamencie.",
+        "description": "Profesjonalna strona dla lokalnego biznesu w kilka minut — szablon branżowy, teksty z AI, Booksy, opinie Google, mapa, hosting i SSL w jednym abonamencie.",
         "offers": {
             "@type": "AggregateOffer",
             "priceCurrency": "PLN",
@@ -546,7 +588,7 @@
         }
     }
     </script>
-    <script defer src="js/features/landingPricing.js?v=20260619c"></script>
+    <script defer src="js/features/landingPricing.js?v=20260723a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 </body>
 </html>

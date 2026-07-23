@@ -20,6 +20,7 @@
       features: [
         { strong: 'Adres strony', text: ' na subdomenie .dfcms.pl — online w minutę' },
         { strong: 'Szablon branżowy', text: ' dopasowany do niszy, bez układania klocków' },
+        { strong: 'Teksty z AI', text: ' — generator treści z opisu Twojej firmy' },
         { strong: 'Silnik operacyjny', text: ' — opinie Google, rezerwacje, mapa w standardzie' },
         { strong: 'Panel CMS', text: ', hosting i certyfikat SSL w cenie' },
       ],
@@ -40,7 +41,7 @@
       variant: 'gold',
       features: [
         { strong: 'Własna domena', text: ' .pl / .com — podpinamy za Ciebie' },
-        { strong: 'Pełna paleta', text: ' kolorów i motywów branżowych' },
+        { strong: 'Teksty z AI', text: ' i pełna paleta kolorów oraz motywów' },
         { strong: 'Bez logo DFCMS', text: ' na stronie publicznej' },
         { strong: 'Concierge', text: ' — asystent wdrożeniowy od 100 zł/h netto' },
       ],
