@@ -4079,6 +4079,10 @@
     if (typeof window.DFOPS_attachStatsPanel === 'function') {
       window.DFOPS_attachStatsPanel(fromApp);
     }
+    // AI Site Generator — modal + generateSiteWithAi (js/features/aiGenerator.js).
+    if (typeof window.DFOPS_attachAiGenerator === 'function') {
+      window.DFOPS_attachAiGenerator(fromApp);
+    }
 
     return fromApp;
   }

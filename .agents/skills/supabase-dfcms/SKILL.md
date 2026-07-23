@@ -73,6 +73,7 @@ For generic Supabase security (RLS, JWT, storage policies), follow the built-in 
 | `expire-trial-pages` | Cron — trial expiry |
 | `telegram-webhook` | Ops alerts (DB webhooks + cron) |
 | `get-google-reviews` | Places API proxy |
+| `generate-ai-content` | AI Site Generator (Gemini → draft_content) |
 | `retry-wfirma-invoice` | Invoice retry |
 
 Shared code: `supabase/functions/_shared/` (`stripeBilling.ts`, `turnstileVerification.ts`, …).

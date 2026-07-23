@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja treści:** 2026-07-17 — middleware: brak 406 przy pustym `pages` lookup
+**Ostatnia aktualizacja treści:** 2026-07-23 — AI Site Generator (Gemini)
 
 ---
 
@@ -16,7 +16,7 @@
 | **Frontend (public + panel)** | Landing, szablony branżowe, panel CMS, routing wielodomenowy | Statyczne HTML, `js/` (Alpine.js w panelu), `css/styles.css`, `js/core/config.js` |
 | **Hosting frontu** | CDN, preview deployów, custom hostnames klientów (SaaS) | **Cloudflare Pages** (`functions/_middleware.js` — SEO, CSP, proxy treści) |
 | **Backend / baza** | Auth, treść stron, rozliczenia, storage | **Supabase** — PostgreSQL (`pages`, `billing_profiles`), Auth (JWT), Storage, RLS |
-| **Funkcje serverless** | Płatności, domeny, cron trial, opinie Google, alerty | **Supabase Edge Functions** (Deno) w `supabase/functions/` |
+| **Funkcje serverless** | Płatności, domeny, cron trial, opinie Google, AI copy, alerty | **Supabase Edge Functions** (Deno) w `supabase/functions/` |
 | **Płatności** | Checkout, Customer Portal, webhooks | **Stripe** (Test na Staging, Live na Production) |
 | **DNS / domeny klientów** | Custom Hostnames w strefie Cloudflare | **Cloudflare for SaaS** — Edge `add-custom-domain` (`CF_ZONE_ID`, `CF_API_TOKEN`) |
 | **Observability** | Błędy panelu, alerty operacyjne | **Sentry** (panel), **Telegram** (`telegram-webhook` + Database Webhooks; cron trial → `expire-trial-pages`) |
@@ -74,7 +74,7 @@ Użytkownik → Auth → pages.content + pages.billing_plan + billing_profiles
 | Warstwa | Kluczowe artefakty |
 |--------|---------------------|
 | **Front publiczny** | `index.html` (dark-mode SaaS landing spójny z admin/rejestracją: `#121212` + `#D4AF37`; hero 3 min, `#jak`, `#wyposazenie`, `#spokoj`, `#demo`, `#cennik`, SEO + `favicon.svg`), demo przez `router.html?site=demo-*` (beauty/services/care/gastro/fitness/consultant). Szablony branżowe HTML są w `/templates/` (`beauty`, `consultant`, `fitness`, `services`, `gastro`, `care`); media statyczne przenoszone z root trafiają do `/assets/images/`; boilerplate nowych szablonów: `/templates/_base_template.html`; klocki UI: `/templates/_components_library.html`; partial FAB czatu: `/templates/_partials/quick_chat_fab.html`. `setup.html` zostaje w root. `landingPricing.js` — plany cennika i dane landingowe. **Szybki kontakt:** pływający przycisk WhatsApp (`contact.whatsapp` → `wa.me`) lub Messenger (`contact.messenger` → `m.me`) — `publicSiteApp` + Alpine `x-show`; dostępny na wszystkich planach w tym Starter (`tier0`, `DFOPS_planAllowsQuickChat` — od 2026-07-05). Opcjonalna lista gotowych pytań (`contact.quick_chat_questions: string[]`, panel Kontakt → Szybki czat): klik w FAB rozwija popover, wybór pytania otwiera czat z wpisaną treścią (WhatsApp `?text=`; Messenger nie wspiera pre-fillu → kopiowanie do schowka + toast). |
-| **Panel CMS** | `admin.html` (~2,5k linii HTML), `adminApp.js` (~4k linii Alpine). **IA (2026-07):** domyślny ekran `dashboard` (adres + checklista); sidebar w 3 grupach zwijanych (Na start / Więcej treści / Ustawienia); nagłówek z CTA „Opublikuj”, menu ⋯; rezerwacje w Kontakcie; scalone Opinie; bez Leady w menu; bez globalnej widoczności sekcji w Wyglądzie — szczegóły §1.5.2. **`js/core/themeConfig.js`** — sekcje per `pages.theme`; **`js/core/contentSchema.js`** + **`contentUpgrader.js`** — kontrakt/migracja pól JSON (`pages.content` / `draft_content`). **`js/templates/registry.js`** — domyślna treść startowa (nie mylić z `templates/*.html`). Draft vs published: `pages.draft_content` / `pages.content`. Subskrypcja, Smart Booking, szybki kontakt, God Mode — jak wcześniej. |
+| **Panel CMS** | `admin.html` (~2,5k linii HTML), `adminApp.js` (~4k linii Alpine). **IA (2026-07):** domyślny ekran `dashboard` (adres + checklista + **AI Site Generator**); sidebar w 3 grupach zwijanych (Na start / Więcej treści / Ustawienia); nagłówek z CTA „Opublikuj”, menu ⋯; rezerwacje w Kontakcie; scalone Opinie; bez Leady w menu; bez globalnej widoczności sekcji w Wyglądzie — szczegóły §1.5.2. **`js/core/themeConfig.js`** — sekcje per `pages.theme`; **`js/core/contentSchema.js`** + **`contentUpgrader.js`** — kontrakt/migracja pól JSON (`pages.content` / `draft_content`). **`js/templates/registry.js`** — domyślna treść startowa (nie mylić z `templates/*.html`). Draft vs published: `pages.draft_content` / `pages.content`. Subskrypcja, Smart Booking, szybki kontakt, God Mode — jak wcześniej. Adaptery poza monolitem: `growth/` + `aiGenerator.js`. |
 | **Backend** | `pages`, `billing_profiles`, `superadmins`, RLS. Schemat baseline: `20260603072317_remote_schema.sql`; God Mode: `20260623100512_add_god_mode.sql`. |
 | **Płatności** | Starter `tier0`, Standard `tier1`, Custom poza Stripe. Secrets: `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_STARTER_YEARLY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_PRO_YEARLY`. wFirma: `WFIRMA_*`, ledger `wfirma_invoice_ledger`. |
 
@@ -222,10 +222,11 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 | `sync-stripe-subscription` | Ręczna synchronizacja statusu subskrypcji |
 | `add-custom-domain` | Cloudflare Custom Hostname + zapis w DB |
 | `get-google-reviews` | Places / opinie (klucz tylko na Edge); wymaga sesji użytkownika |
+| `generate-ai-content` | AI Site Generator (Gemini): JWT + ownership + quota → merge copy do `pages.draft_content`; secrets `GEMINI_API_KEY`, opcjonalnie `GEMINI_MODEL` / `DFCMS_ENV` / `AI_LOG_PROMPTS` |
 | **`expire-trial-pages`** | **Cron** (`POST` + `Bearer CRON_SECRET`): `expire_trial_pages()` → `notify_purge_upcoming_pages()` → `list_pages_pending_purge()` → opcjonalnie `purge_trial_blocked_pages_after_grace()` gdy `AUTO_PURGE_ENABLED=true`. **Powiadomienia operacyjne przez Telegram** (Markdown): alert −7 dni per slug; raport ręcznej kasacji (30+ dni) z gotowym SQL. Brak alertów → `200` bez wiadomości. |
 | `telegram-webhook` | Router alertów (Sentry, Database Webhooks `users`/`pages`/`billing_profiles`, logi) → Telegram |
 
-**Współdzielona logika:** `supabase/functions/_shared/stripeBilling.ts`, `wfirmaBilling.ts`, `wfirmaInvoiceLedger.ts`.
+**Współdzielona logika:** `supabase/functions/_shared/stripeBilling.ts`, `wfirmaBilling.ts`, `wfirmaInvoiceLedger.ts`, `aiCopySchemas.ts` (whitelist copy per motyw + `buildGeminiResponseSchema`).
 
 **Pages Functions (Cloudflare):** `functions/_middleware.js`, `functions/api/verify-domain.js` (CNAME → `proxy.dfcms.pl`, `dfcms.pl`, `dfopscms.pages.dev`).
 
@@ -362,7 +363,8 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 | Domyślna treść motywów | `js/templates/registry.js` |
 | Panel subskrypcja | `admin.html`, `adminApp.js` |
 | God Mode / superadmin | `godmode.html`, `admin.html?impersonate={slug}`, `20260623100512_add_god_mode.sql` |
-| Plany / watermark | `js/core/planUtils.js` |
+| Plany / watermark | `js/core/planUtils.js` (m.in. `DFOPS_planAllowsAiGenerator`, limity AI) |
+| AI Site Generator | `js/features/aiGenerator.js`, Edge `generate-ai-content`, `_shared/aiCopySchemas.ts` |
 | Profil Stripe | `billingProfileView.js`, `loadBillingProfile()` |
 | Demo seeds (localhost fallback) | `data/seeds/demo_pages.json`, `scripts/extract-demo-seeds-from-migration.mjs` |
 | Demo seeds (DB / prod) | `supabase/migrations/20260616150000_seed_demo_catalog_pages.sql` |
@@ -374,6 +376,17 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-07-23 — AI Site Generator (Gemini)
+
+Generator copy dla płatnych planów: krótki opis biznesu → patch tekstów w `pages.draft_content` (bez nadpisywania LIVE `content`, settings, mediów, URL-i).
+
+- **Edge** `generate-ai-content`: JWT, ownership (lub superadmin), gate planu, quota (`billing_profiles.ai_gen_month` / `ai_gen_count`), Gemini structured JSON (`gemini-3.6-flash`, override `GEMINI_MODEL`), retry 1× przy 5xx/timeout, kody błędów PL, logi prompt/response na staging.
+- **Quota:** Starter (`tier0`) 10/mies., Standard/Custom 20/mies.; trial bez dostępu; God Mode omija gate/quota.
+- **Schema SoT:** `_shared/aiCopySchemas.ts` (mirror pól copy z `registry.js`); merge whitelist + kontakt phone/email/address tylko gdy puste.
+- **Panel:** `js/features/aiGenerator.js` (`DFOPS_attachAiGenerator`), przycisk na Dashboardzie, modal, toast z `remaining`; `planUtils` `DFOPS_planAllowsAiGenerator` / `DFOPS_aiGeneratorMonthlyLimit`.
+- **Migracja:** `20260723190000_ai_generator_quota.sql`. Secrets: `GEMINI_API_KEY` (+ opcjonalnie `GEMINI_MODEL`, `DFCMS_ENV=staging|production`).
+- **Checklist nowego motywu:** `registry.js` + `publishedThemes.js` + `aiCopySchemas.ts`.
 
 ### 2026-07-17 — Middleware: cisza 406 przy pustym lookup `pages`
 

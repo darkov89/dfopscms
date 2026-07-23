@@ -75,6 +75,17 @@
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5 md:p-8">
                             <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Twoja strona</h2>
                             <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Tu zarządzasz treścią witryny. Zmiany zapisują się automatycznie — na końcu kliknij <strong>Opublikuj zmiany</strong> w górnym pasku, żeby klienci je zobaczyli.</p>
+                            <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+                                <button type="button" @click="openAiGeneratorModal()"
+                                        class="inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-bold shadow-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35"
+                                        :class="canUseAiGenerator() ? 'bg-slate-900 text-white hover:bg-slate-800' : 'border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100'"
+                                        :title="canUseAiGenerator() ? 'Wygeneruj teksty do wersji roboczej' : 'Dostępne na planach Starter i Standard'">
+                                    Wygeneruj treść przez AI
+                                </button>
+                                <p x-show="!canUseAiGenerator()" class="text-xs text-slate-500 leading-relaxed">Dostępne po wyborze pakietu Starter lub Standard.</p>
+                                <p x-show="canUseAiGenerator() && aiRemaining != null && aiLimit != null" class="text-xs text-slate-500" x-cloak
+                                   x-text="'Pozostało generacji w tym miesiącu: ' + aiRemaining + ' / ' + aiLimit"></p>
+                            </div>
                             <div class="rounded-xl border border-slate-200/80 bg-slate-50/60 p-5 md:p-6">
                                 <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Adres Twojej strony</p>
                                 <p x-show="isTrialPublicBlocked" x-cloak class="text-xs text-amber-900 bg-amber-50 border border-amber-200/80 rounded-lg px-3 py-2 mb-3 leading-relaxed">Strona LIVE jest zablokowana dla gości. Użyj <strong>Podglądu prywatnego</strong> — widzisz ją tylko Ty.</p>

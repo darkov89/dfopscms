@@ -24,6 +24,10 @@ Configure **separate** webhook endpoints in Stripe Test vs Live dashboards.
 - `TURNSTILE_SECRET_KEY`, `PUBLIC_TURNSTILE_SITE_KEY`
 - `CRON_SECRET` (expire-trial-pages)
 - `TELEGRAM_*` (telegram-webhook)
+- `GEMINI_API_KEY` (generate-ai-content; wymagany)
+- `GEMINI_MODEL` (opcjonalnie; domyślnie `gemini-3.6-flash`)
+- `DFCMS_ENV` (`staging` | `production` — pełne logi promptów AI tylko poza prod, chyba że `AI_LOG_PROMPTS=1`)
+- `AI_LOG_PROMPTS` (opcjonalnie `1` — loguj prompt/response AI także na prod)
 
 ## Cron
 

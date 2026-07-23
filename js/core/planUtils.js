@@ -31,6 +31,20 @@
     return true;
   }
 
+  /** AI Site Generator — płatne plany (Starter / Standard / Custom); trial bez dostępu. */
+  function planAllowsAiGenerator(plan) {
+    const p = normalizePlan(plan);
+    return p === 'tier0' || p === 'tier1' || p === 'tier_custom' || p === 'custom';
+  }
+
+  /** Limit generacji AI / miesiąc kalendarzowy: Starter 10, Standard/Custom 20. */
+  function aiGeneratorMonthlyLimit(plan) {
+    const p = normalizePlan(plan);
+    if (p === 'tier0') return 10;
+    if (p === 'tier1' || p === 'tier_custom' || p === 'custom') return 20;
+    return 0;
+  }
+
   function planDisplayName(plan) {
     const p = normalizePlan(plan);
     if (p === 'trial') return 'Okres próbny (14 dni)';
@@ -143,6 +157,8 @@
   window.DFOPS_planAllowsCustomDomain = planAllowsCustomDomain;
   window.DFOPS_planAllowsCustomAppearance = planAllowsCustomAppearance;
   window.DFOPS_planAllowsQuickChat = planAllowsQuickChat;
+  window.DFOPS_planAllowsAiGenerator = planAllowsAiGenerator;
+  window.DFOPS_aiGeneratorMonthlyLimit = aiGeneratorMonthlyLimit;
   window.DFOPS_planShowsWatermark = planShowsWatermark;
   window.DFOPS_planDisplayName = planDisplayName;
   window.DFOPS_subscriptionDisplayName = subscriptionDisplayName;
