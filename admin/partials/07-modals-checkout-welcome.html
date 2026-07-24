@@ -32,7 +32,8 @@
         </div>
 
         <!-- Globalny confirm() → Promise<boolean> (async/await) -->
-        <div x-show="confirmDialog && confirmDialog.open" x-cloak class="fixed inset-0 z-[266] flex items-center justify-center p-4 bg-black/55 backdrop-blur-[2px]"
+        <!-- z-[280]: powyżej modala AI (268), żeby confirm po „Generuj” był widoczny -->
+        <div x-show="confirmDialog && confirmDialog.open" x-cloak class="fixed inset-0 z-[280] flex items-center justify-center p-4 bg-black/55 backdrop-blur-[2px]"
              @click.self="resolveConfirmDialog(false)" @keydown.escape.window="resolveConfirmDialog(false)" role="dialog" aria-modal="true" aria-labelledby="dfops-confirm-title">
             <div class="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-panel-md ring-1 ring-slate-900/10" @click.stop>
                 <button type="button" class="absolute top-3 right-3 text-slate-400 hover:text-slate-800 text-xl leading-none"

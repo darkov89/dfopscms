@@ -121,10 +121,18 @@
       if (!ok) return;
 
       this.isGeneratingAi = true;
+      this._suppressContentWatch = true;
+      if (this._draftAutosaveTimer) {
+        clearTimeout(this._draftAutosaveTimer);
+        this._draftAutosaveTimer = null;
+      }
       try {
-        if (typeof this.prepareContentForPersist === 'function') {
-          this.prepareContentForPersist();
+        // Edge czyta draft z DB — najpierw dopchnij lokalne edycje (1×, bez pętli watch)
+        if (typeof this._persistDraft === 'function') {
+          await this._persistDraft({ silent: true });
         }
+        this._suppressContentWatch = true;
+
         const {
           data: { session },
         } = await this.supabase.auth.getSession();
@@ -153,10 +161,13 @@
         }
 
         if (data.draft_content && typeof data.draft_content === 'object') {
+          this._suppressContentWatch = true;
           this.content = data.draft_content;
           if (typeof this.i18nAfterContentLoad === 'function') {
             this.i18nAfterContentLoad();
-            if (locale) this.setEditLocale(locale);
+            if (locale && typeof this.setEditLocale === 'function') {
+              this.setEditLocale(locale);
+            }
           }
         }
         const remaining = typeof data.remaining === 'number' ? data.remaining : null;
@@ -180,6 +191,9 @@
         this.showToast('Nie udało się wygenerować treści. Spróbuj ponownie.', 'error');
       } finally {
         this.isGeneratingAi = false;
+        setTimeout(() => {
+          this._suppressContentWatch = false;
+        }, 0);
       }
     };
   };

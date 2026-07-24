@@ -63,38 +63,50 @@
     /** Po loadData / normalize — zbuduj pack i podepnij shim pl. */
     app.i18nAfterContentLoad = function i18nAfterContentLoad() {
       if (!this.content || typeof this.content !== 'object') return;
-      if (typeof window.DFOPS_finalizeI18nContent === 'function') {
-        window.DFOPS_finalizeI18nContent(this.content);
-      }
-      const def = this.i18nDefaultLocale();
-      this._localePack = {};
-      const enabled = this.i18nEnabledLocales();
-      for (let i = 0; i < enabled.length; i++) {
-        const loc = enabled[i];
-        if (this.content[loc] && typeof this.content[loc] === 'object') {
-          this._localePack[loc] = this.content[loc];
+      const prevSuppress = this._suppressContentWatch;
+      this._suppressContentWatch = true;
+      try {
+        if (typeof window.DFOPS_finalizeI18nContent === 'function') {
+          window.DFOPS_finalizeI18nContent(this.content);
         }
+        const def = this.i18nDefaultLocale();
+        this._localePack = {};
+        const enabled = this.i18nEnabledLocales();
+        for (let i = 0; i < enabled.length; i++) {
+          const loc = enabled[i];
+          if (this.content[loc] && typeof this.content[loc] === 'object') {
+            this._localePack[loc] = this.content[loc];
+          }
+        }
+        if (!this._localePack[def] && this.content.pl) {
+          this._localePack[def] = this.content.pl;
+        }
+        if (!this.editLocale || enabled.indexOf(this.editLocale) === -1) {
+          this.editLocale = def;
+        }
+        this._bindEditLocaleShim();
+      } finally {
+        this._suppressContentWatch = prevSuppress;
       }
-      if (!this._localePack[def] && this.content.pl) {
-        this._localePack[def] = this.content.pl;
-      }
-      this.editLocale = def;
-      this._bindEditLocaleShim();
     };
 
     app._bindEditLocaleShim = function _bindEditLocaleShim() {
-      if (!this._localePack) return;
+      if (!this._localePack || !this.content) return;
       const loc = this.editLocale || this.i18nDefaultLocale();
       if (!this._localePack[loc]) {
         const def = this.i18nDefaultLocale();
         this._localePack[loc] = deepClone(this._localePack[def] || this.content.pl || {});
       }
-      this.content.pl = this._localePack[loc];
-      // Utrzymaj top-level klucze dla save
+      // Unikaj zbędnego przypisania (deep $watch → pętla autosave)
+      if (this.content.pl !== this._localePack[loc]) {
+        this.content.pl = this._localePack[loc];
+      }
       const enabled = this.i18nEnabledLocales();
       for (let i = 0; i < enabled.length; i++) {
         const code = enabled[i];
-        if (this._localePack[code]) this.content[code] = this._localePack[code];
+        if (this._localePack[code] && this.content[code] !== this._localePack[code]) {
+          this.content[code] = this._localePack[code];
+        }
       }
     };
 
@@ -103,13 +115,20 @@
         .trim()
         .toLowerCase();
       if (!loc || this.i18nEnabledLocales().indexOf(loc) === -1) return;
-      // Zapisz aktualny shim z powrotem do packa
-      if (this.editLocale && this.content && this.content.pl) {
-        this._localePack[this.editLocale] = this.content.pl;
-        this.content[this.editLocale] = this.content.pl;
+      if (loc === this.editLocale) return;
+      this._suppressContentWatch = true;
+      try {
+        if (this.editLocale && this.content && this.content.pl) {
+          this._localePack[this.editLocale] = this.content.pl;
+          this.content[this.editLocale] = this.content.pl;
+        }
+        this.editLocale = loc;
+        this._bindEditLocaleShim();
+      } finally {
+        setTimeout(() => {
+          this._suppressContentWatch = false;
+        }, 0);
       }
-      this.editLocale = loc;
-      this._bindEditLocaleShim();
     };
 
     app.enableSiteLocale = function enableSiteLocale(code) {

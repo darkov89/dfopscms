@@ -53,10 +53,10 @@
     <script defer src="js/features/growth/growthRepository.js?v=20260705b"></script>
     <script defer src="js/features/growth/growthPanel.js?v=20260705a"></script>
     <script defer src="js/features/growth/statsPanel.js?v=20260705a"></script>
-    <script defer src="js/features/i18nPanel.js?v=20260723a"></script>
-    <script defer src="js/features/aiGenerator.js?v=20260723b"></script>
+    <script defer src="js/features/i18nPanel.js?v=20260724a"></script>
+    <script defer src="js/features/aiGenerator.js?v=20260724a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260723b"></script>
+    <script defer src="js/features/adminApp.js?v=20260724a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -580,7 +580,8 @@
         </div>
 
         <!-- Globalny confirm() → Promise<boolean> (async/await) -->
-        <div x-show="confirmDialog && confirmDialog.open" x-cloak class="fixed inset-0 z-[266] flex items-center justify-center p-4 bg-black/55 backdrop-blur-[2px]"
+        <!-- z-[280]: powyżej modala AI (268), żeby confirm po „Generuj” był widoczny -->
+        <div x-show="confirmDialog && confirmDialog.open" x-cloak class="fixed inset-0 z-[280] flex items-center justify-center p-4 bg-black/55 backdrop-blur-[2px]"
              @click.self="resolveConfirmDialog(false)" @keydown.escape.window="resolveConfirmDialog(false)" role="dialog" aria-modal="true" aria-labelledby="dfops-confirm-title">
             <div class="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-panel-md ring-1 ring-slate-900/10" @click.stop>
                 <button type="button" class="absolute top-3 right-3 text-slate-400 hover:text-slate-800 text-xl leading-none"

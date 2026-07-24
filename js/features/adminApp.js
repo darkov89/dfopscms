@@ -2678,6 +2678,10 @@
               }
               this.hasUnsavedChanges = false;
               this._stopContentWatch = this.$watch('content', () => {
+                // i18n prepare/shim i AI mutate `content` przy zapisie — bez flagi = pętla PATCH pages
+                if (this._suppressContentWatch || this.isGeneratingAi || this.draftSaving || this.saving) {
+                  return;
+                }
                 this.hasUnsavedChanges = true;
                 this.scheduleDraftAutosave();
               }, { deep: true });
@@ -3585,21 +3589,32 @@
       async _persistDraft(opts) {
         const options = opts && typeof opts === 'object' ? opts : {};
         if (!this.content?.pl || !this.pageId || !this.user?.id) return false;
-        if (typeof this.prepareContentForPersist === 'function') {
-          this.prepareContentForPersist();
+        const wasSuppressed = this._suppressContentWatch === true;
+        this._suppressContentWatch = true;
+        try {
+          if (typeof this.prepareContentForPersist === 'function') {
+            this.prepareContentForPersist();
+          }
+          normalizeBookingSettings(this.content.pl);
+          if (this.content.pl.settings) this.content.pl.settings.theme = this.theme;
+          const { error } = await this.saveActivePage({ draft_content: this.content });
+          if (error) {
+            if (!options.silent) console.error(error);
+            return false;
+          }
+          // Po zapisie przywróć shim edycji (prepare ustawia pl = default)
+          if (typeof this._bindEditLocaleShim === 'function') {
+            this._bindEditLocaleShim();
+          }
+          return true;
+        } finally {
+          // Nie zdejmuj flagi, jeśli caller (np. AI) nadal tłumi watch
+          if (!wasSuppressed) {
+            setTimeout(() => {
+              this._suppressContentWatch = false;
+            }, 0);
+          }
         }
-        normalizeBookingSettings(this.content.pl);
-        if (this.content.pl.settings) this.content.pl.settings.theme = this.theme;
-        const { error } = await this.saveActivePage({ draft_content: this.content });
-        if (error) {
-          if (!options.silent) console.error(error);
-          return false;
-        }
-        // Po zapisie przywróć shim edycji (prepare ustawia pl = default)
-        if (typeof this._bindEditLocaleShim === 'function') {
-          this._bindEditLocaleShim();
-        }
-        return true;
       },
 
       /**
@@ -3608,6 +3623,7 @@
        */
       scheduleDraftAutosave() {
         if (!this.pageId || !this.user?.id || this.isLoading || this.isForcedPasswordReset) return;
+        if (this._suppressContentWatch || this.isGeneratingAi || this.draftSaving || this.saving) return;
         if (this._draftAutosaveTimer) clearTimeout(this._draftAutosaveTimer);
         const delay = (cfg?.timeouts?.draftAutosave) ?? 1000;
         this._draftAutosaveTimer = setTimeout(() => {
@@ -3618,7 +3634,7 @@
 
       async autosaveDraftNow() {
         if (!this.content?.pl || !this.pageId || !this.user?.id) return;
-        if (this.isLoading || this.saving || this.draftSaving) return;
+        if (this.isLoading || this.saving || this.draftSaving || this.isGeneratingAi) return;
         this.draftSaving = true;
         try {
           const ok = await this._persistDraft({ silent: true });
