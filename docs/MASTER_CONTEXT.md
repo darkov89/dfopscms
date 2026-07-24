@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-07-23 — landing: Buduj z AI + sprzedażowy copy
+**Ostatnia aktualizacja:** 2026-07-24 — fix AI Generuj (confirm z-index + autosave loop)
 
 ---
 
@@ -376,6 +376,12 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-07-24 — Fix: AI Generuj „nic się nie dzieje” + pętla `pages`
+
+- **Confirm pod AI modalem:** dialog potwierdzenia miał niższy `z-index` niż modal generatora → po „Generuj” ekran wyglądał na martwy.
+- **Pętla PATCH `pages`:** deep `$watch('content')` → autosave → `prepareContentForPersist` / `_bindEditLocaleShim` mutowały `content` → ponowny watch. Flaga `_suppressContentWatch`, skip autosave podczas `isGeneratingAi` / zapisu, bezpieczniejszy shim i18n.
+- Front: commit `c8fd852` na `main` + `staging`.
 
 ### 2026-07-23 — Landing: Buduj z AI (sprzedażowy framing)
 
