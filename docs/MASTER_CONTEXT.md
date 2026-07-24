@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-07-24 — fix AI Generuj (confirm z-index + autosave loop)
+**Ostatnia aktualizacja:** 2026-07-24 — UI platformy PL/EN (landing, auth)
 
 ---
 
@@ -376,6 +376,15 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-07-24 — UI platformy PL / EN (landing + auth)
+
+Język **interfejsu SaaS** (nie treści witryn klientów):
+
+- **SoT:** `localStorage` `dfcms_ui_locale` + opcjonalnie `?lang=en|pl`; startowa sugestia z `navigator.language` tylko gdy brak zapisu.
+- **Przełącznik PL | EN** na landingu, rejestracji i ekranie logowania (`admin.html`).
+- **Kod:** `js/core/uiI18n.js`, `js/i18n/uiPlatformCopy.js`; Alpine `t()` / `setUiLocale()`; cennik landingu z lokalizowanych planów.
+- **Poza scope tej fali:** pełne tłumaczenie panelu CMS po zalogowaniu (nadal PL).
 
 ### 2026-07-24 — Fix: AI Generuj „nic się nie dzieje” + pętla `pages`
 

@@ -2215,7 +2215,7 @@
         this.forgotPasswordInfo = '';
         const em = String(this.forgotPasswordEmail || '').trim();
         if (!em) {
-          this.authError = 'Podaj adres e-mail.';
+          this.authError = this.t('login.errEmailRequired');
           return;
         }
         if (!this.supabase) {
@@ -2225,7 +2225,7 @@
         try {
           const redirectTo = resolvePasswordResetRedirectUrl();
           if (!redirectTo) {
-            this.authError = 'Nie można ustalić adresu powrotu (redirect). Odśwież stronę i spróbuj ponownie.';
+            this.authError = this.t('login.errRedirect');
             return;
           }
           if (typeof console !== 'undefined' && console.debug) {
@@ -2235,12 +2235,8 @@
             redirectTo,
           });
           if (error) throw error;
-          this.forgotPasswordInfo =
-            'Na podany adres — jeśli jest zarejestrowany w DFCMS — wysłaliśmy wiadomość z linkiem. Sprawdź skrzynkę i spam. Gdy nic nie dojdzie w kilka minut: upewnij się, że to ten sam e-mail co przy rejestracji, albo skontaktuj się z pomocą.';
-          this.showToast(
-            'Jeśli konto istnieje, mail z linkiem został wysłany — sprawdź skrzynkę i folder spam.',
-            'success',
-          );
+          this.forgotPasswordInfo = this.t('login.resetSentInfo');
+          this.showToast(this.t('login.resetSentToast'), 'success');
         } catch (err) {
           const raw =
             err && typeof err === 'object'
@@ -2255,7 +2251,7 @@
               'Serwer odrzucił adres powrotu. W Supabase: Authentication → URL Configuration → Redirect URLs — dodaj dokładnie ten adres (lub wildcard): ' +
               String(resolvePasswordResetRedirectUrl() || '…/admin.html');
           } else {
-            this.authError = raw || 'Nie udało się wysłać wiadomości.';
+            this.authError = raw || this.t('login.errSendFail');
           }
         } finally {
           this.forgotPasswordSending = false;
@@ -2397,7 +2393,7 @@
           email: this.email,
           password: this.password,
         });
-        if (error) this.authError = 'Błędny e-mail lub hasło.';
+        if (error) this.authError = this.t('login.errBadCredentials');
         else {
           localStorage.setItem('dfops_login_time', String(Date.now()));
           this.isLoading = true;
@@ -4110,6 +4106,41 @@
         ? fromApp.content
         : createAdminContentShell();
     fromApp.isLoading = fromApp.isLoading === true || fromApp.isLoading === false ? fromApp.isLoading : false;
+
+    // UI platformy PL/EN (ekran logowania) — nie mylić z lang / editLocale treści witryny.
+    if (typeof window.DFOPS_uiI18nState === 'function') {
+      const ui = window.DFOPS_uiI18nState();
+      fromApp.uiLocale = ui.uiLocale;
+      fromApp.t = function uiPlatformT(path, vars) {
+        return typeof window.DFOPS_uiT === 'function'
+          ? window.DFOPS_uiT(path, vars, this.uiLocale)
+          : path;
+      };
+      fromApp.setUiLocale = function setUiLocale(loc) {
+        const next =
+          typeof window.DFOPS_setUiLocale === 'function'
+            ? window.DFOPS_setUiLocale(loc)
+            : loc;
+        this.uiLocale = next;
+        if (!this.user && typeof window.DFOPS_uiT === 'function') {
+          const title = window.DFOPS_uiT('meta.loginTitle', null, next);
+          if (title) document.title = title;
+        }
+        return next;
+      };
+      if (!fromApp.user && typeof window.DFOPS_uiT === 'function') {
+        const title = window.DFOPS_uiT('meta.loginTitle', null, fromApp.uiLocale);
+        if (title) document.title = title;
+      }
+    } else {
+      fromApp.uiLocale = 'pl';
+      fromApp.t = function fallbackT(path) {
+        return path;
+      };
+      fromApp.setUiLocale = function noopLocale() {
+        return this.uiLocale;
+      };
+    }
 
     // Silnik Wzrostu — jedyne punkty wejścia modułu js/features/growth/ do monolitu (§14 spec).
     if (typeof window.DFOPS_attachGrowthPanel === 'function') {

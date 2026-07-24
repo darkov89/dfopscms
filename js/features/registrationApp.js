@@ -1,38 +1,56 @@
 ;(function () {
-  var EMAIL_TAKEN_MSG =
-    'Ten adres e-mail jest już zajęty. Zaloguj się w panelu albo skorzystaj z opcji „Nie pamiętam hasła”.';
+  function tr(path, vars, locale) {
+    if (typeof window.DFOPS_uiT === 'function') return window.DFOPS_uiT(path, vars, locale);
+    return path;
+  }
 
   /** Wspólna polityka haseł dla rejestracji (spójna z wymuszonym resetem w panelu). */
-  function passwordPolicyError(pw) {
+  function passwordPolicyError(pw, locale) {
     const s = String(pw || '');
-    if (s.length < 8) return 'Hasło musi mieć co najmniej 8 znaków.';
-    if (!/[\p{L}]/u.test(s)) return 'Hasło musi zawierać co najmniej jedną literę.';
-    if (!/\d/u.test(s)) return 'Hasło musi zawierać co najmniej jedną cyfrę.';
+    if (s.length < 8) return tr('register.errPwLen', null, locale);
+    if (!/[\p{L}]/u.test(s)) return tr('register.errPwLetter', null, locale);
+    if (!/\d/u.test(s)) return tr('register.errPwDigit', null, locale);
     return null;
   }
 
-  function formatRegistrationAuthError(err) {
-    if (!err) return 'Błąd tworzenia konta.';
+  function formatRegistrationAuthError(err, locale) {
+    if (!err) return tr('register.errCreate', null, locale);
     const code = err.code || err.name;
     const msg = String(err.message || '');
     if (code === 'over_email_send_rate_limit' || msg.includes('over_email_send_rate_limit')) {
       const secMatch = msg.match(/(\d+)\s*seconds?/i);
-      const sec = secMatch ? secMatch[1] : 'kilka';
-      return `Wysłano już niedawno wiadomość na ten adres. Ze względów bezpieczeństwa odczekaj ok. ${sec} s i spróbuj ponownie — albo sprawdź skrzynkę, czy wcześniejszy mail z linkiem już doszedł.`;
+      const sec = secMatch ? secMatch[1] : tr('register.errRateLimitSecFallback', null, locale);
+      return tr('register.errRateLimit', { sec: sec }, locale);
     }
     if (
       code === 'user_already_registered' ||
       /already registered|already been registered|email address is already/i.test(msg)
     ) {
-      return 'Ten adres e-mail jest już zarejestrowany. Sprawdź skrzynkę (link potwierdzający) lub zaloguj się w panelu.';
+      return tr('register.errAlreadyRegistered', null, locale);
     }
-    return msg || 'Błąd tworzenia konta.';
+    return msg || tr('register.errCreate', null, locale);
+  }
+
+  function applyRegisterMeta(locale) {
+    const title = tr('meta.registerTitle', null, locale);
+    if (title) document.title = title;
   }
 
   function createRegistrationApp() {
     const cfg = window.DFOPS_CONFIG;
     const repo = window.DFOPS_pageRepository;
-    return {
+    const i18n =
+      typeof window.DFOPS_uiI18nState === 'function'
+        ? window.DFOPS_uiI18nState()
+        : {
+            uiLocale: 'pl',
+            t: function (k) {
+              return k;
+            },
+            setUiLocale: function () {},
+          };
+
+    return Object.assign({}, i18n, {
       supabase: null,
       loading: false,
       success: false,
@@ -48,6 +66,11 @@
 
       init() {
         this.supabase = window.DFOPS_getSupabaseClient();
+        applyRegisterMeta(this.uiLocale);
+      },
+
+      onUiLocaleChange(loc) {
+        applyRegisterMeta(loc);
       },
 
       /** Live checklist polityki hasła (do podświetlania wymagań pod polem). */
@@ -105,20 +128,21 @@
         this.loading = true;
         this.errorMessage = '';
         const slugTrimmed = (this.form.slug || '').trim();
+        const loc = this.uiLocale;
         try {
           if (!this.accepted) {
-            throw new Error('Zaakceptuj Regulamin oraz Politykę Prywatności.');
+            throw new Error(tr('register.errAccept', null, loc));
           }
-          const policyError = passwordPolicyError(this.form.password);
+          const policyError = passwordPolicyError(this.form.password, loc);
           if (policyError) throw new Error(policyError);
           if (this.form.password !== this.form.passwordConfirm) {
-            throw new Error('Hasła nie są identyczne — wpisz to samo hasło w obu polach.');
+            throw new Error(tr('register.errPwMatch', null, loc));
           }
           const okSlug = await this.checkSlugUnique();
-          if (!okSlug) throw new Error('Popraw slug (unikalny, format twoja-nazwa).');
+          if (!okSlug) throw new Error(tr('register.errSlug', null, loc));
           const turnstileToken = this.getTurnstileToken();
           if (!turnstileToken) {
-            throw new Error('Potwierdź, że nie jesteś botem.');
+            throw new Error(tr('register.errCaptcha', null, loc));
           }
 
           localStorage.setItem('dfops_remember', String(!!this.rememberMe));
@@ -148,7 +172,7 @@
           // i bez sesji. To jedyny sygnał, że e-mail jest zajęty — nie udawaj sukcesu.
           const identities = Array.isArray(user?.identities) ? user.identities : null;
           if (userId && !hasSession && identities && identities.length === 0) {
-            throw new Error(EMAIL_TAKEN_MSG);
+            throw new Error(tr('register.errEmailTaken', null, loc));
           }
 
           if (userId) {
@@ -162,15 +186,15 @@
 
           // Brak user w odpowiedzi — najpewniej ponowna rejestracja na ten sam e-mail.
           // Nie udajemy sukcesu ("sprawdź skrzynkę") — informujemy, że adres jest zajęty.
-          throw new Error(EMAIL_TAKEN_MSG);
+          throw new Error(tr('register.errEmailTaken', null, loc));
         } catch (e) {
-          this.errorMessage = formatRegistrationAuthError(e);
+          this.errorMessage = formatRegistrationAuthError(e, loc);
           this.resetTurnstile();
         } finally {
           this.loading = false;
         }
       },
-    };
+    });
   }
   window.createRegistrationApp = createRegistrationApp;
 })();

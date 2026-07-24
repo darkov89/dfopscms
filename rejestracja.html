@@ -13,108 +13,122 @@
     <script defer src="js/core/pageRepository.js?v=20260622b"></script>
     <script defer src="js/templates/registry.js?v=20260622a"></script>
     <script defer src="js/core/contentSchema.js"></script>
-    <script defer src="js/features/registrationApp.js?v=20260708a"></script>
+    <script defer src="js/core/uiI18n.js?v=20260724a"></script>
+    <script defer src="js/i18n/uiPlatformCopy.js?v=20260724a"></script>
+    <script defer src="js/features/registrationApp.js?v=20260724a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <style>[x-cloak]{display:none!important}</style>
 </head>
-<body class="bg-[#121212] text-gray-200 font-sans min-h-screen flex items-center justify-center p-6" x-data="createRegistrationApp()">
+<body class="bg-[#121212] text-gray-200 font-sans min-h-screen flex items-center justify-center p-6" x-data="createRegistrationApp()" x-init="init()">
 
     <div class="bg-white/5 p-10 rounded-sm shadow-2xl border border-white/10 w-full max-w-xl relative overflow-hidden my-8">
         
         <div class="absolute -top-20 -right-20 w-64 h-64 bg-[#D4AF37] opacity-20 blur-[80px] rounded-full pointer-events-none"></div>
 
+        <div class="absolute right-4 top-4 z-20">
+            <div class="inline-flex items-center rounded-lg border border-white/10 p-0.5 text-[11px] font-bold tracking-wide" role="group" :aria-label="t('common.language')">
+                <button type="button" @click="setUiLocale('pl')" :aria-pressed="uiLocale === 'pl'" :class="uiLocale === 'pl' ? 'bg-white/15 text-white' : 'text-gray-500 hover:text-white'" class="rounded-md px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/50">PL</button>
+                <button type="button" @click="setUiLocale('en')" :aria-pressed="uiLocale === 'en'" :class="uiLocale === 'en' ? 'bg-white/15 text-white' : 'text-gray-500 hover:text-white'" class="rounded-md px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/50">EN</button>
+            </div>
+        </div>
+
         <div class="text-center mb-10 relative z-10">
             <h1 class="text-3xl font-black tracking-widest text-white mb-2">DF<span class="text-[#D4AF37]">CMS</span></h1>
-            <p class="text-sm text-gray-400 uppercase tracking-widest">Twoje konto i adres w sieci</p>
+            <p class="text-sm text-gray-400 uppercase tracking-widest" x-text="t('register.subtitle')">Twoje konto i adres w sieci</p>
         </div>
 
         <form @submit.prevent="createPage" x-show="!success" class="space-y-8 relative z-10">
 
             <div class="space-y-4">
-                <h3 class="text-[#D4AF37] text-xs font-bold uppercase tracking-widest border-b border-white/10 pb-2">1. Dane logowania</h3>
+                <h3 class="text-[#D4AF37] text-xs font-bold uppercase tracking-widest border-b border-white/10 pb-2" x-text="t('register.step1')">1. Dane logowania</h3>
                 <div>
-                    <label for="reg-email" class="sr-only">Adres e-mail</label>
-                    <input id="reg-email" type="email" x-model="form.email" required placeholder="Adres e-mail" class="w-full bg-[#1e1e1e] border border-gray-700 text-white rounded-sm px-4 py-3 focus:ring-1 focus:ring-[#D4AF37] outline-none transition-colors mb-3">
-                    <label for="reg-password" class="sr-only">Hasło do panelu</label>
-                    <input id="reg-password" type="password" x-model="form.password" required minlength="8" placeholder="Hasło do panelu" autocomplete="new-password" class="w-full bg-[#1e1e1e] border border-gray-700 text-white rounded-sm px-4 py-3 focus:ring-1 focus:ring-[#D4AF37] outline-none transition-colors">
+                    <label for="reg-email" class="sr-only" x-text="t('register.emailPh')">Adres e-mail</label>
+                    <input id="reg-email" type="email" x-model="form.email" required :placeholder="t('register.emailPh')" class="w-full bg-[#1e1e1e] border border-gray-700 text-white rounded-sm px-4 py-3 focus:ring-1 focus:ring-[#D4AF37] outline-none transition-colors mb-3">
+                    <label for="reg-password" class="sr-only" x-text="t('register.passwordPh')">Hasło do panelu</label>
+                    <input id="reg-password" type="password" x-model="form.password" required minlength="8" :placeholder="t('register.passwordPh')" autocomplete="new-password" class="w-full bg-[#1e1e1e] border border-gray-700 text-white rounded-sm px-4 py-3 focus:ring-1 focus:ring-[#D4AF37] outline-none transition-colors">
 
                     <ul class="mt-2 space-y-1 text-xs" x-show="form.password" x-cloak>
                         <li :class="passwordChecks.length ? 'text-green-400' : 'text-gray-400'">
-                            <span x-text="passwordChecks.length ? '✓' : '•'"></span> co najmniej 8 znaków
+                            <span x-text="passwordChecks.length ? '✓' : '•'"></span> <span x-text="t('register.pwLen')">co najmniej 8 znaków</span>
                         </li>
                         <li :class="passwordChecks.letter ? 'text-green-400' : 'text-gray-400'">
-                            <span x-text="passwordChecks.letter ? '✓' : '•'"></span> co najmniej jedna litera
+                            <span x-text="passwordChecks.letter ? '✓' : '•'"></span> <span x-text="t('register.pwLetter')">co najmniej jedna litera</span>
                         </li>
                         <li :class="passwordChecks.digit ? 'text-green-400' : 'text-gray-400'">
-                            <span x-text="passwordChecks.digit ? '✓' : '•'"></span> co najmniej jedna cyfra
+                            <span x-text="passwordChecks.digit ? '✓' : '•'"></span> <span x-text="t('register.pwDigit')">co najmniej jedna cyfra</span>
                         </li>
                     </ul>
 
-                    <label for="reg-password-confirm" class="sr-only">Powtórz hasło</label>
-                    <input id="reg-password-confirm" type="password" x-model="form.passwordConfirm" required placeholder="Powtórz hasło" autocomplete="new-password" class="w-full bg-[#1e1e1e] border text-white rounded-sm px-4 py-3 focus:ring-1 focus:ring-[#D4AF37] outline-none transition-colors mt-3" :class="passwordConfirmMismatch ? 'border-red-500' : 'border-gray-700'">
-                    <p class="mt-1 text-xs text-red-400 font-bold" x-show="passwordConfirmMismatch" x-cloak>Hasła nie są identyczne.</p>
+                    <label for="reg-password-confirm" class="sr-only" x-text="t('register.passwordConfirmPh')">Powtórz hasło</label>
+                    <input id="reg-password-confirm" type="password" x-model="form.passwordConfirm" required :placeholder="t('register.passwordConfirmPh')" autocomplete="new-password" class="w-full bg-[#1e1e1e] border text-white rounded-sm px-4 py-3 focus:ring-1 focus:ring-[#D4AF37] outline-none transition-colors mt-3" :class="passwordConfirmMismatch ? 'border-red-500' : 'border-gray-700'">
+                    <p class="mt-1 text-xs text-red-400 font-bold" x-show="passwordConfirmMismatch" x-cloak x-text="t('register.pwMismatch')">Hasła nie są identyczne.</p>
                 </div>
             </div>
 
             <div class="space-y-4">
-                <h3 class="text-[#D4AF37] text-xs font-bold uppercase tracking-widest border-b border-white/10 pb-2">2. Wybierz adres swojej strony</h3>
+                <h3 class="text-[#D4AF37] text-xs font-bold uppercase tracking-widest border-b border-white/10 pb-2" x-text="t('register.step2')">2. Wybierz adres swojej strony</h3>
                 <div>
-                    <label for="reg-slug" class="sr-only">Wybierz unikalny adres dla swojej nowej strony</label>
+                    <label for="reg-slug" class="sr-only" x-text="t('register.step2')">Wybierz unikalny adres dla swojej nowej strony</label>
                     <div class="flex items-center bg-[#1e1e1e] border border-gray-700 rounded-sm overflow-hidden focus-within:ring-1 focus-within:ring-[#D4AF37] transition-colors">
                         <input id="reg-slug" type="text"
                                x-model="form.slug"
                                @input="formatSlug(); scheduleSlugCheck()"
                                required
-                               placeholder="twoja-nazwa"
+                               :placeholder="t('register.slugPh')"
                                class="w-full bg-transparent text-white px-3 py-3 outline-none">
                         <span class="px-3 text-gray-500 text-sm border-l border-gray-700">.dfcms.pl</span>
                     </div>
                     <div class="mt-2 text-xs text-gray-300" x-show="form.slug">
-                        Twój adres: <span class="text-[#D4AF37] font-bold" x-text="form.slug"></span><span class="text-gray-200">.dfcms.pl</span>
+                        <span x-text="t('register.yourAddress')">Twój adres:</span> <span class="text-[#D4AF37] font-bold" x-text="form.slug"></span><span class="text-gray-200">.dfcms.pl</span>
                     </div>
-                    <div class="mt-1 text-[11px] text-gray-400">
+                    <div class="mt-1 text-[11px] text-gray-400" x-text="t('register.domainHint')">
                         (W pakiecie Standard możesz podpiąć własną domenę .pl/.com)
                     </div>
                     <div class="mt-2 text-xs" x-show="form.slug">
-                        <span class="text-gray-500" x-show="slugStatus === 'idle'">Za chwilę sprawdzę, czy ten adres jest wolny…</span>
-                        <span class="text-gray-500" x-show="slugStatus === 'checking'">Sprawdzam dostępność…</span>
-                        <span class="text-green-400 font-bold" x-show="slugStatus === 'available'">Ten adres jest wolny — możesz z niego skorzystać</span>
-                        <span class="text-red-400 font-bold" x-show="slugStatus === 'taken'">Ten adres jest już zajęty — wybierz inny</span>
-                        <span class="text-red-400 font-bold" x-show="slugStatus === 'invalid'">Użyj litery, cyfr i myślników (np. moja-marka)</span>
-                        <span class="text-red-400 font-bold" x-show="slugStatus === 'error'">Nie udało się sprawdzić adresu — spróbuj za chwilę</span>
+                        <span class="text-gray-500" x-show="slugStatus === 'idle'" x-text="t('register.slugIdle')">Za chwilę sprawdzę, czy ten adres jest wolny…</span>
+                        <span class="text-gray-500" x-show="slugStatus === 'checking'" x-text="t('register.slugChecking')">Sprawdzam dostępność…</span>
+                        <span class="text-green-400 font-bold" x-show="slugStatus === 'available'" x-text="t('register.slugAvailable')">Ten adres jest wolny — możesz z niego skorzystać</span>
+                        <span class="text-red-400 font-bold" x-show="slugStatus === 'taken'" x-text="t('register.slugTaken')">Ten adres jest już zajęty — wybierz inny</span>
+                        <span class="text-red-400 font-bold" x-show="slugStatus === 'invalid'" x-text="t('register.slugInvalid')">Użyj litery, cyfr i myślników (np. moja-marka)</span>
+                        <span class="text-red-400 font-bold" x-show="slugStatus === 'error'" x-text="t('register.slugError')">Nie udało się sprawdzić adresu — spróbuj za chwilę</span>
                     </div>
                 </div>
             </div>
 
             <label class="flex items-start gap-3 cursor-pointer">
                 <input type="checkbox" x-model="accepted" class="mt-1 w-4 h-4 rounded border-gray-600 bg-[#1e1e1e] text-[#D4AF37] focus:ring-[#D4AF37]">
-                <span class="text-sm text-gray-300">Akceptuję <a href="/regulamin.html" class="text-white underline hover:text-[#D4AF37]">Regulamin</a> oraz <a href="/polityka.html" class="text-white underline hover:text-[#D4AF37]">Politykę Prywatności</a>.</span>
+                <span class="text-sm text-gray-300">
+                    <span x-text="t('register.acceptBefore')">Akceptuję</span>
+                    <a href="/regulamin.html" class="text-white underline hover:text-[#D4AF37]" x-text="t('register.acceptTerms')">Regulamin</a>
+                    <span x-text="t('register.acceptAnd')">oraz</span>
+                    <a href="/polityka.html" class="text-white underline hover:text-[#D4AF37]" x-text="t('register.acceptPrivacy')">Politykę Prywatności</a>.
+                </span>
             </label>
 
             <div x-show="errorMessage" class="text-red-400 text-sm font-bold text-center bg-red-400/10 py-2 rounded-sm border border-red-400/20" x-text="errorMessage"></div>
 
             <label class="flex items-center gap-2 mt-4 cursor-pointer">
                 <input type="checkbox" x-model="rememberMe" class="rounded border-gray-600 bg-[#1e1e1e] text-[#D4AF37] focus:ring-[#D4AF37]">
-                <span class="text-sm text-gray-500">Zapamiętaj mnie na tym urządzeniu</span>
+                <span class="text-sm text-gray-500" x-text="t('register.remember')">Zapamiętaj mnie na tym urządzeniu</span>
             </label>
 
             <div class="cf-turnstile" data-sitekey="0x4AAAAAADmt_cmVRzWtvglX"></div>
 
             <button type="submit" :disabled="!accepted || loading || !passwordChecks.length || !passwordChecks.letter || !passwordChecks.digit || passwordConfirmMismatch || !form.passwordConfirm" class="w-full bg-[#D4AF37] hover:bg-white text-[#121212] px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all duration-300 shadow-[0_0_20px_rgba(212,175,55,0.15)] mt-4 disabled:opacity-50 disabled:cursor-not-allowed">
-                <span x-show="!loading">Utwórz konto i stronę</span>
-                <span x-show="loading" class="animate-pulse">Tworzenie konta...</span>
+                <span x-show="!loading" x-text="t('register.submit')">Utwórz konto i stronę</span>
+                <span x-show="loading" class="animate-pulse" x-text="t('register.submitting')">Tworzenie konta...</span>
             </button>
         </form>
 
         <nav x-show="!success" aria-label="Powiązane strony" class="relative z-10 mt-10 flex flex-col items-center gap-3 text-center sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-8 sm:gap-y-2">
-            <a href="admin.html" class="text-sm text-gray-400 transition-colors duration-200 hover:text-[#D4AF37] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212] rounded-sm">
+            <a href="admin.html" class="text-sm text-gray-400 transition-colors duration-200 hover:text-[#D4AF37] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212] rounded-sm" x-text="t('register.haveAccount')">
                 Masz już konto? Zaloguj się
             </a>
             <a href="index.html" class="inline-flex items-center gap-1.5 text-sm text-gray-400 transition-colors duration-200 hover:text-[#D4AF37] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212] rounded-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4 shrink-0 opacity-90" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
-                Wróć na stronę główną
+                <span x-text="t('common.backHome')">Wróć na stronę główną</span>
             </a>
         </nav>
 
@@ -122,14 +136,14 @@
             <div class="w-20 h-20 bg-[#D4AF37]/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#D4AF37]/50">
                 <svg class="w-10 h-10 text-[#D4AF37]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
             </div>
-            <h2 class="text-2xl font-serif text-white mb-2">Konto założone</h2>
+            <h2 class="text-2xl font-serif text-white mb-2" x-text="t('register.successTitle')">Konto założone</h2>
             <p class="text-gray-400 mb-3 leading-relaxed">
-                Adres strony: <span class="text-[#D4AF37] font-bold" x-text="form.slug"></span><span class="text-gray-500">.dfcms.pl</span>
+                <span x-text="t('register.successAddress')">Adres strony:</span> <span class="text-[#D4AF37] font-bold" x-text="form.slug"></span><span class="text-gray-500">.dfcms.pl</span>
             </p>
-            <p class="text-sm text-gray-500 mb-8 leading-relaxed max-w-md mx-auto">
-                Możesz przejść do panelu — <strong class="text-gray-300">kreator uruchomi się dopiero po potwierdzeniu e-maila</strong>, jeśli w projekcie jest włączone potwierdzanie adresu (zalecane). W przeciwnym razie od razu zobaczysz pełny panel.
+            <p class="text-sm text-gray-500 mb-8 leading-relaxed max-w-md mx-auto" x-text="t('register.successBody')">
+                Możesz przejść do panelu — kreator uruchomi się dopiero po potwierdzeniu e-maila, jeśli w projekcie jest włączone potwierdzanie adresu (zalecane). W przeciwnym razie od razu zobaczysz pełny panel.
             </p>
-            <a :href="'admin.html?site=' + encodeURIComponent(form.slug)" class="block w-full bg-[#D4AF37] hover:bg-white text-[#121212] px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all text-center">
+            <a :href="'admin.html?site=' + encodeURIComponent(form.slug)" class="block w-full bg-[#D4AF37] hover:bg-white text-[#121212] px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all text-center" x-text="t('register.goPanel')">
                 Przejdź do panelu →
             </a>
         </div>
@@ -138,21 +152,21 @@
             <div class="w-20 h-20 bg-[#D4AF37]/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#D4AF37]/50">
                 <svg class="w-10 h-10 text-[#D4AF37]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
             </div>
-            <h2 class="text-2xl font-serif text-white mb-2">Sprawdź skrzynkę</h2>
-            <p class="text-gray-400 mb-4 leading-relaxed">
-                Wysłaliśmy wiadomość od <span class="text-[#D4AF37] font-semibold">DFCMS</span> na <span class="text-[#D4AF37] font-semibold" x-text="form.email"></span>. <strong class="text-gray-300">Kliknij link w mailu</strong> — wtedy zostaniesz zalogowany do panelu i <strong class="text-gray-300">uruchomisz kreator</strong> pierwszej strony.
+            <h2 class="text-2xl font-serif text-white mb-2" x-text="t('register.checkInboxTitle')">Sprawdź skrzynkę</h2>
+            <p class="text-gray-400 mb-4 leading-relaxed" x-text="t('register.checkInboxBody', { email: form.email })">
+                Wysłaliśmy wiadomość od DFCMS na adres e-mail. Kliknij link w mailu.
             </p>
             <p class="text-sm text-gray-500 mb-8">
-                Twój adres w sieci: <span class="text-gray-300 font-mono" x-text="form.slug"></span><span class="text-gray-500">.dfcms.pl</span> — strona powstanie w tle po utworzeniu konta.
+                <span x-text="t('register.checkInboxAddress')">Twój adres w sieci:</span> <span class="text-gray-300 font-mono" x-text="form.slug"></span><span class="text-gray-500">.dfcms.pl</span>
             </p>
-            <p class="text-xs text-gray-600 mb-6 leading-relaxed max-w-md mx-auto">Nie widzisz maila? Sprawdź folder spam — powiadomienia wysyłamy z <strong class="text-gray-400">notifications@dfops.eu</strong> (nadawcę ustaw w Supabase → Authentication → SMTP / szablony e-mail).</p>
-            <a :href="'admin.html?site=' + encodeURIComponent(form.slug)" class="inline-block w-full bg-white/10 hover:bg-white/15 border border-white/20 text-white px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all text-center">
+            <p class="text-xs text-gray-600 mb-6 leading-relaxed max-w-md mx-auto" x-text="t('register.checkInboxSpam')">Nie widzisz maila? Sprawdź folder spam.</p>
+            <a :href="'admin.html?site=' + encodeURIComponent(form.slug)" class="inline-block w-full bg-white/10 hover:bg-white/15 border border-white/20 text-white px-8 py-4 rounded-sm text-sm font-bold tracking-widest uppercase transition-all text-center" x-text="t('register.alreadyConfirmed')">
                 Mam już konto — loguję się w panelu
             </a>
         </div>
 
         <p class="text-center text-xs text-gray-500 mt-10 pt-6 border-t border-white/10 relative z-10">
-            Pytania lub problemy? Napisz na
+            <span x-text="t('common.questions')">Pytania lub problemy? Napisz na</span>
             <a href="mailto:kontakt@dfops.eu" class="text-[#D4AF37] underline hover:no-underline font-semibold">kontakt@dfops.eu</a>
         </p>
 

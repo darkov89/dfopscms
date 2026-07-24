@@ -2,7 +2,7 @@
 
 > **Plan strategiczny** po fazie MVP / po ~10 płacących klientach. Stan bieżący produkcji: [`MASTER_CONTEXT.md`](MASTER_CONTEXT.md).
 
-**Ostatnia aktualizacja:** 2026-07-23 — link do planu i18n witryn
+**Ostatnia aktualizacja:** 2026-07-24 — UI platformy PL/EN
 
 ---
 
@@ -22,7 +22,23 @@ Nie blokuje architektury V2 poniżej — fazy G0–G1 można wdrażać na obecny
 
 - Jeden `pages` row; `meta.locales` + bloki `pl`/`en`/`de`; URL `/` vs `/en` vs `/de`; hreflang; AI generate/adapt.
 - Starter = tylko PL; Standard/Custom = do 3 locale.
-- Panel: przełącznik języka edycji + Dashboard dodaj/usuń.---
+- Panel: przełącznik języka edycji + Dashboard dodaj/usuń.
+
+---
+
+## 0c. Język UI platformy (PL / EN)
+
+**Cel:** landing, rejestracja i logowanie w EN dla użytkowników spoza PL (VPN / zagraniczny rynek). **Nie** mylić z i18n treści witryn (§0b).
+
+| Faza | Zakres | Status |
+|------|--------|--------|
+| U1 | Landing + rejestracja + ekran logowania; przełącznik PL\|EN; `localStorage` | **wdrożone** 2026-07-24 |
+| U2 | Panel CMS po zalogowaniu (toasty, zakładki, kreator) | backlog |
+| U3 | Regulamin / Polityka EN albo jasny disclaimer | backlog |
+
+**Decyzja:** ręczny wybór > geo/IP (VPN myli). Auto z przeglądarki tylko jako sugestia startowa.
+
+---
 
 ## 1. Architektura V2
 

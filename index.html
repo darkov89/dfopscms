@@ -53,8 +53,10 @@
     </style>
     <script src="js/core/utils.js?v=20260617a"></script>
     <script src="js/core/platformRouting.js?v=20260704c"></script>
+    <script src="js/core/uiI18n.js?v=20260724a"></script>
+    <script src="js/i18n/uiPlatformCopy.js?v=20260724a"></script>
 </head>
-<body class="min-h-screen bg-[#121212] font-sans text-gray-300 antialiased selection:bg-brand-gold selection:text-brand-ink" x-data="landingPricing()">
+<body class="min-h-screen bg-[#121212] font-sans text-gray-300 antialiased selection:bg-brand-gold selection:text-brand-ink" x-data="landingPricing()" x-init="init()">
 
     <!-- Marketing na gołej domenie. Subdomeny tenantów → router (bez ?site=); apex ?site=slug tylko preview. -->
     <script>
@@ -98,11 +100,10 @@
         })();
     </script>
 
-    <a href="#main" class="sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:inline-block focus:rounded-lg focus:bg-brand-gold focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-brand-ink focus:outline-none focus:ring-2 focus:ring-brand-gold/50">Przejdź do treści</a>
+    <a href="#main" class="sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:inline-block focus:rounded-lg focus:bg-brand-gold focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-brand-ink focus:outline-none focus:ring-2 focus:ring-brand-gold/50" x-text="t('common.skipToContent')">Przejdź do treści</a>
 
     <header
         class="sticky top-0 z-50 border-b border-white/10 bg-[#121212]/90 text-white backdrop-blur-xl"
-        x-data="{ mobileOpen: false }"
         @keydown.escape.window="mobileOpen = false"
     >
         <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3.5 sm:px-6 lg:px-8">
@@ -111,18 +112,23 @@
                 <span><span class="text-brand-gold">DF</span>CMS</span>
             </a>
 
-            <nav class="hidden items-center gap-5 whitespace-nowrap text-sm font-medium text-gray-400 xl:flex xl:gap-6" aria-label="Nawigacja główna">
-                <a href="#jak" class="transition hover:text-white">Jak to działa</a>
-                <a href="#ai" class="transition hover:text-white">Buduj z AI</a>
-                <a href="#demo" class="transition hover:text-white">Przykłady</a>
-                <a href="#cennik" class="transition hover:text-white">Cennik</a>
+            <nav class="hidden items-center gap-5 whitespace-nowrap text-sm font-medium text-gray-400 xl:flex xl:gap-6" :aria-label="t('nav.mainNav')">
+                <a href="#jak" class="transition hover:text-white" x-text="t('nav.how')">Jak to działa</a>
+                <a href="#ai" class="transition hover:text-white" x-text="t('nav.ai')">Buduj z AI</a>
+                <a href="#demo" class="transition hover:text-white" x-text="t('nav.demos')">Przykłady</a>
+                <a href="#cennik" class="transition hover:text-white" x-text="t('nav.pricing')">Cennik</a>
             </nav>
 
             <div class="flex shrink-0 items-center gap-2 sm:gap-3">
-                <a href="admin.html" class="hidden text-sm font-medium text-gray-400 transition hover:text-white lg:inline-flex">Zaloguj się</a>
+                <div class="inline-flex items-center rounded-lg border border-white/10 p-0.5 text-[11px] font-bold tracking-wide" role="group" :aria-label="t('common.language')">
+                    <button type="button" @click="setUiLocale('pl')" :aria-pressed="uiLocale === 'pl'" :class="uiLocale === 'pl' ? 'bg-white/15 text-white' : 'text-gray-500 hover:text-white'" class="rounded-md px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/50">PL</button>
+                    <button type="button" @click="setUiLocale('en')" :aria-pressed="uiLocale === 'en'" :class="uiLocale === 'en' ? 'bg-white/15 text-white' : 'text-gray-500 hover:text-white'" class="rounded-md px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/50">EN</button>
+                </div>
+                <a href="admin.html" class="hidden text-sm font-medium text-gray-400 transition hover:text-white lg:inline-flex" x-text="t('nav.login')">Zaloguj się</a>
                 <a
                     href="rejestracja.html"
                     class="hidden rounded-xl bg-brand-gold px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-brand-ink shadow-accent transition hover:bg-white sm:inline-flex sm:px-5"
+                    x-text="t('nav.ctaFree')"
                 >
                     Uruchom za darmo
                 </a>
@@ -132,7 +138,7 @@
                     @click="mobileOpen = !mobileOpen"
                     :aria-expanded="mobileOpen"
                     aria-controls="mobile-menu"
-                    aria-label="Otwórz menu"
+                    :aria-label="t('nav.openMenu')"
                 >
                     <svg x-show="!mobileOpen" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                     <svg x-cloak x-show="mobileOpen" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -147,15 +153,15 @@
             x-transition.opacity
             class="border-t border-white/10 bg-[#121212] px-4 py-4 xl:hidden"
         >
-            <nav class="flex flex-col gap-1 text-sm font-medium text-gray-300" aria-label="Menu mobilne">
-                <a href="#jak" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false">Jak to działa</a>
-                <a href="#ai" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false">Buduj z AI</a>
-                <a href="#korzysci" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false">Co dostajesz</a>
-                <a href="#panel" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false">Panel i statystyki</a>
-                <a href="#demo" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false">Przykłady</a>
-                <a href="#cennik" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false">Cennik</a>
-                <a href="admin.html" class="rounded-lg px-3 py-3 hover:bg-white/5">Zaloguj się</a>
-                <a href="rejestracja.html" class="mt-2 rounded-xl bg-brand-gold px-4 py-3.5 text-center text-xs font-bold uppercase tracking-widest text-brand-ink shadow-accent" @click="mobileOpen = false">Uruchom stronę za darmo</a>
+            <nav class="flex flex-col gap-1 text-sm font-medium text-gray-300" :aria-label="t('nav.mobileNav')">
+                <a href="#jak" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false" x-text="t('nav.how')">Jak to działa</a>
+                <a href="#ai" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false" x-text="t('nav.ai')">Buduj z AI</a>
+                <a href="#korzysci" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false" x-text="t('nav.benefits')">Co dostajesz</a>
+                <a href="#panel" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false" x-text="t('nav.panel')">Panel i statystyki</a>
+                <a href="#demo" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false" x-text="t('nav.demos')">Przykłady</a>
+                <a href="#cennik" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false" x-text="t('nav.pricing')">Cennik</a>
+                <a href="admin.html" class="rounded-lg px-3 py-3 hover:bg-white/5" x-text="t('nav.login')">Zaloguj się</a>
+                <a href="rejestracja.html" class="mt-2 rounded-xl bg-brand-gold px-4 py-3.5 text-center text-xs font-bold uppercase tracking-widest text-brand-ink shadow-accent" @click="mobileOpen = false" x-text="t('nav.ctaFreeLong')">Uruchom stronę za darmo</a>
             </nav>
         </div>
     </header>
@@ -165,25 +171,25 @@
             <div class="absolute left-1/2 top-0 -z-10 h-[32rem] w-[32rem] -translate-x-1/2 rounded-full bg-brand-gold/20 blur-3xl" aria-hidden="true"></div>
             <div class="absolute right-0 top-24 -z-10 h-96 w-96 rounded-full bg-amber-700/20 blur-3xl" aria-hidden="true"></div>
             <div class="mx-auto max-w-5xl text-center">
-                <p class="mb-6 inline-flex rounded-full border border-brand-gold/25 bg-brand-gold/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Strona WWW, która zdobywa klientów</p>
-                <h1 class="font-display text-4xl font-black leading-[1.04] tracking-tight text-white sm:text-6xl lg:text-7xl">
+                <p class="mb-6 inline-flex rounded-full border border-brand-gold/25 bg-brand-gold/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold" x-text="t('hero.eyebrow')">Strona WWW, która zdobywa klientów</p>
+                <h1 class="font-display text-4xl font-black leading-[1.04] tracking-tight text-white sm:text-6xl lg:text-7xl" x-text="t('hero.title')">
                     Profesjonalna strona dla Twojego biznesu. Gotowa w kilka minut.
                 </h1>
-                <p class="mx-auto mt-7 max-w-3xl text-base leading-relaxed text-gray-300 sm:text-xl">
+                <p class="mx-auto mt-7 max-w-3xl text-base leading-relaxed text-gray-300 sm:text-xl" x-text="t('hero.sub')">
                     Wybierasz szablon branżowy, opisujesz firmę w kilku zdaniach — AI przygotuje teksty. Ty dodajesz zdjęcia, publikujesz i w panelu widzisz, ile osób dzwoni albo rezerwuje. Bez wtyczek i martwienia się o hosting.
                 </p>
                 <div class="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
-                    <a href="rejestracja.html" class="inline-flex w-full max-w-sm items-center justify-center rounded-2xl bg-brand-gold px-8 py-4 text-sm font-bold uppercase tracking-widest text-brand-ink shadow-accent transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212] sm:w-auto sm:min-w-[280px]">
+                    <a href="rejestracja.html" class="inline-flex w-full max-w-sm items-center justify-center rounded-2xl bg-brand-gold px-8 py-4 text-sm font-bold uppercase tracking-widest text-brand-ink shadow-accent transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212] sm:w-auto sm:min-w-[280px]" x-text="t('hero.ctaPrimary')">
                         Uruchom stronę za darmo
                     </a>
-                    <a href="#demo" class="inline-flex w-full max-w-sm items-center justify-center rounded-2xl border border-white/20 px-8 py-4 text-sm font-bold uppercase tracking-widest text-white transition hover:border-brand-gold/50 hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40 sm:w-auto">
+                    <a href="#demo" class="inline-flex w-full max-w-sm items-center justify-center rounded-2xl border border-white/20 px-8 py-4 text-sm font-bold uppercase tracking-widest text-white transition hover:border-brand-gold/50 hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40 sm:w-auto" x-text="t('hero.ctaSecondary')">
                         Zobacz przykłady
                     </a>
                 </div>
                 <ul class="mx-auto mt-7 flex max-w-3xl flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-gray-400">
-                    <li class="inline-flex items-center gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> 14 dni za darmo · bez karty</li>
-                    <li class="inline-flex items-center gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Teksty napisze AI</li>
-                    <li class="inline-flex items-center gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> Hosting, SSL i aktualizacje w cenie</li>
+                    <li class="inline-flex items-center gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> <span x-text="t('hero.trust1')">14 dni za darmo · bez karty</span></li>
+                    <li class="inline-flex items-center gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> <span x-text="t('hero.trust2')">Teksty napisze AI</span></li>
+                    <li class="inline-flex items-center gap-2"><span class="text-brand-gold" aria-hidden="true">✓</span> <span x-text="t('hero.trust3')">Hosting, SSL i aktualizacje w cenie</span></li>
                 </ul>
             </div>
         </section>
@@ -191,30 +197,30 @@
         <section id="jak" class="px-4 py-20 sm:px-6 sm:py-24 lg:px-8 scroll-mt-24">
             <div class="mx-auto max-w-6xl">
                 <div class="mx-auto max-w-3xl text-center">
-                    <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Jak to działa</p>
-                    <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">Nie budujesz strony od zera. Od opisu firmy do publikacji.</h2>
-                    <p class="mt-5 text-base leading-relaxed text-gray-400">Cztery kroki. Bez wiedzy technicznej — jeśli potrafisz opisać swój biznes, poradzisz sobie ze stroną.</p>
+                    <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold" x-text="t('how.eyebrow')">Jak to działa</p>
+                    <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl" x-text="t('how.title')">Nie budujesz strony od zera. Od opisu firmy do publikacji.</h2>
+                    <p class="mt-5 text-base leading-relaxed text-gray-400" x-text="t('how.sub')">Cztery kroki. Bez wiedzy technicznej — jeśli potrafisz opisać swój biznes, poradzisz sobie ze stroną.</p>
                 </div>
                 <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
                     <article class="rounded-2xl border border-gray-800 bg-white/[0.045] p-7 shadow-lift backdrop-blur">
                         <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-gold/10 text-2xl text-brand-gold" aria-hidden="true">◈</div>
-                        <h3 class="text-lg font-bold text-white">1. Wybierz szablon</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Salon, gabinet, restauracja, siłownia czy usługi? Wybierz gotowy układ dla swojej branży.</p>
+                        <h3 class="text-lg font-bold text-white" x-text="t('how.s1t')">1. Wybierz szablon</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300" x-text="t('how.s1d')">Salon, gabinet, restauracja, siłownia czy usługi? Wybierz gotowy układ dla swojej branży.</p>
                     </article>
                     <article class="rounded-2xl border border-gray-800 bg-white/[0.045] p-7 shadow-lift backdrop-blur">
                         <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-amber-700/15 text-2xl text-amber-200" aria-hidden="true">✦</div>
-                        <h3 class="text-lg font-bold text-white">2. Opisz firmę — AI napisze</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Kilka zdań o ofercie i lokalizacji. AI przygotuje nagłówki, opisy i FAQ. Ty dodajesz zdjęcia, cennik i godziny.</p>
+                        <h3 class="text-lg font-bold text-white" x-text="t('how.s2t')">2. Opisz firmę — AI napisze</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300" x-text="t('how.s2d')">Kilka zdań o ofercie i lokalizacji. AI przygotuje nagłówki, opisy i FAQ. Ty dodajesz zdjęcia, cennik i godziny.</p>
                     </article>
                     <article class="rounded-2xl border border-gray-800 bg-white/[0.045] p-7 shadow-lift backdrop-blur">
                         <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-gold/10 text-2xl text-brand-gold" aria-hidden="true">↗</div>
-                        <h3 class="text-lg font-bold text-white">3. Opublikuj</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Jeden klik i strona jest w internecie — na darmowym adresie. Masz własną domenę? Podłączysz ją sam, a jak wolisz, pomożemy.</p>
+                        <h3 class="text-lg font-bold text-white" x-text="t('how.s3t')">3. Opublikuj</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300" x-text="t('how.s3d')">Jeden klik i strona jest w internecie — na darmowym adresie. Masz własną domenę? Podłączysz ją sam, a jak wolisz, pomożemy.</p>
                     </article>
                     <article class="rounded-2xl border border-gray-800 bg-white/[0.045] p-7 shadow-lift backdrop-blur">
                         <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-gold/10 text-2xl text-brand-gold" aria-hidden="true">✓</div>
-                        <h3 class="text-lg font-bold text-white">4. Zdobywaj klientów</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">W panelu widzisz wejścia i kliknięcia w telefon, rezerwację i czat. Wiesz, czy strona realnie pracuje.</p>
+                        <h3 class="text-lg font-bold text-white" x-text="t('how.s4t')">4. Zdobywaj klientów</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300" x-text="t('how.s4d')">W panelu widzisz wejścia i kliknięcia w telefon, rezerwację i czat. Wiesz, czy strona realnie pracuje.</p>
                     </article>
                 </div>
             </div>
@@ -225,32 +231,32 @@
                 <div class="overflow-hidden rounded-3xl border border-brand-gold/25 bg-gradient-to-br from-brand-gold/15 via-[#1e1e1e] to-[#121212] p-8 shadow-gold backdrop-blur sm:p-12 lg:p-14">
                     <div class="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
                         <div class="max-w-xl">
-                            <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Buduj z AI</p>
-                            <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">Nie musisz wymyślać tekstów. Opisz firmę — resztę zrobi AI.</h2>
-                            <p class="mt-6 text-base leading-relaxed text-gray-300 sm:text-lg">Największa blokada przy stronie to zwykle puste pola: hasła, opisy usług, FAQ. W DFCMS wpisujesz kilka zdań o biznesie, a generator AI uzupełnia treść pod Twoją branżę. Ty sprawdzasz, poprawiasz i publikujesz.</p>
+                            <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold" x-text="t('ai.eyebrow')">Buduj z AI</p>
+                            <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl" x-text="t('ai.title')">Nie musisz wymyślać tekstów. Opisz firmę — resztę zrobi AI.</h2>
+                            <p class="mt-6 text-base leading-relaxed text-gray-300 sm:text-lg" x-text="t('ai.body')">Największa blokada przy stronie to zwykle puste pola: hasła, opisy usług, FAQ. W DFCMS wpisujesz kilka zdań o biznesie, a generator AI uzupełnia treść pod Twoją branżę. Ty sprawdzasz, poprawiasz i publikujesz.</p>
                             <ul class="mt-6 space-y-3 text-sm text-gray-300">
-                                <li class="flex gap-3"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span> Gotowe teksty zamiast godzin nad pustym edytorem</li>
-                                <li class="flex gap-3"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span> Copy dopasowane do beauty, gastro, fitness, usług i gabinetów</li>
-                                <li class="flex gap-3"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span> Pełna kontrola — zawsze możesz zmienić każde zdanie</li>
+                                <li class="flex gap-3"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span> <span x-text="t('ai.b1')">Gotowe teksty zamiast godzin nad pustym edytorem</span></li>
+                                <li class="flex gap-3"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span> <span x-text="t('ai.b2')">Copy dopasowane do beauty, gastro, fitness, usług i gabinetów</span></li>
+                                <li class="flex gap-3"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span> <span x-text="t('ai.b3')">Pełna kontrola — zawsze możesz zmienić każde zdanie</span></li>
                             </ul>
-                            <a href="rejestracja.html" class="mt-8 inline-flex items-center justify-center rounded-2xl bg-brand-gold px-7 py-3.5 text-sm font-bold uppercase tracking-widest text-brand-ink shadow-accent transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/60">
+                            <a href="rejestracja.html" class="mt-8 inline-flex items-center justify-center rounded-2xl bg-brand-gold px-7 py-3.5 text-sm font-bold uppercase tracking-widest text-brand-ink shadow-accent transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/60" x-text="t('ai.cta')">
                                 Wypróbuj z AI za darmo
                             </a>
                         </div>
                         <div class="rounded-2xl border border-white/10 bg-[#121212]/70 p-6 sm:p-8">
-                            <p class="text-[11px] font-bold uppercase tracking-widest text-gray-500">Jak wygląda start</p>
+                            <p class="text-[11px] font-bold uppercase tracking-widest text-gray-500" x-text="t('ai.demoLabel')">Jak wygląda start</p>
                             <div class="mt-5 space-y-4">
                                 <div class="rounded-xl border border-gray-800 bg-white/[0.04] p-4">
-                                    <p class="text-xs font-semibold uppercase tracking-wider text-brand-gold">Ty piszesz</p>
-                                    <p class="mt-2 text-sm leading-relaxed text-gray-300">„Salon fryzjerski w centrum Katowic. Strzyżenie męskie, broda, koloryzacja. Booksy.”</p>
+                                    <p class="text-xs font-semibold uppercase tracking-wider text-brand-gold" x-text="t('ai.youWrite')">Ty piszesz</p>
+                                    <p class="mt-2 text-sm leading-relaxed text-gray-300" x-text="t('ai.youSample')">„Salon fryzjerski w centrum Katowic. Strzyżenie męskie, broda, koloryzacja. Booksy.”</p>
                                 </div>
                                 <div class="flex justify-center text-brand-gold" aria-hidden="true">↓</div>
                                 <div class="rounded-xl border border-brand-gold/30 bg-brand-gold/10 p-4">
-                                    <p class="text-xs font-semibold uppercase tracking-wider text-brand-gold">AI przygotowuje</p>
-                                    <p class="mt-2 text-sm leading-relaxed text-white">Nagłówek, opis oferty, sekcje usług i FAQ — gotowe do publikacji w Twoim szablonie.</p>
+                                    <p class="text-xs font-semibold uppercase tracking-wider text-brand-gold" x-text="t('ai.aiPrepares')">AI przygotowuje</p>
+                                    <p class="mt-2 text-sm leading-relaxed text-white" x-text="t('ai.aiSample')">Nagłówek, opis oferty, sekcje usług i FAQ — gotowe do publikacji w Twoim szablonie.</p>
                                 </div>
                             </div>
-                            <p class="mt-5 text-center text-[11px] text-gray-500">Potem dodajesz zdjęcia i podpinasz rezerwacje</p>
+                            <p class="mt-5 text-center text-[11px] text-gray-500" x-text="t('ai.after')">Potem dodajesz zdjęcia i podpinasz rezerwacje</p>
                         </div>
                     </div>
                 </div>
@@ -260,40 +266,40 @@
         <section id="korzysci" class="px-4 py-20 sm:px-6 sm:py-24 lg:px-8 scroll-mt-24">
             <div class="mx-auto max-w-6xl">
                 <div class="max-w-3xl">
-                    <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Co dostajesz</p>
-                    <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">Wszystko, czego potrzebuje Twój biznes — w jednym miejscu.</h2>
-                    <p class="mt-5 text-base leading-relaxed text-gray-400">Nie tylko ładna wizytówka. Narzędzia, które realnie pomagają zdobywać klientów.</p>
+                    <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold" x-text="t('benefits.eyebrow')">Co dostajesz</p>
+                    <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl" x-text="t('benefits.title')">Wszystko, czego potrzebuje Twój biznes — w jednym miejscu.</h2>
+                    <p class="mt-5 text-base leading-relaxed text-gray-400" x-text="t('benefits.sub')">Nie tylko ładna wizytówka. Narzędzia, które realnie pomagają zdobywać klientów.</p>
                 </div>
                 <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     <article class="rounded-2xl border border-gray-800 bg-[#1e1e1e]/80 p-6 backdrop-blur">
                         <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-gold/10 text-xl text-brand-gold" aria-hidden="true">◈</div>
-                        <h3 class="font-bold text-white">Szablony branżowe</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Gotowe projekty dla beauty, gastro, fitness, usług, gabinetów i doradców. Każdy dopasowany do tego, jak działa Twoja branża.</p>
+                        <h3 class="font-bold text-white" x-text="t('benefits.t1')">Szablony branżowe</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300" x-text="t('benefits.d1')">Gotowe projekty dla beauty, gastro, fitness, usług, gabinetów i doradców. Każdy dopasowany do tego, jak działa Twoja branża.</p>
                     </article>
                     <article class="rounded-2xl border border-brand-gold/25 bg-[#1e1e1e]/80 p-6 backdrop-blur">
                         <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-gold/10 text-xl text-brand-gold" aria-hidden="true">✦</div>
-                        <h3 class="font-bold text-white">Teksty z AI</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Opisujesz biznes — dostajesz gotowe teksty. Potem poprawiasz w edytorze jak w formularzu i publikujesz jednym kliknięciem.</p>
+                        <h3 class="font-bold text-white" x-text="t('benefits.t2')">Teksty z AI</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300" x-text="t('benefits.d2')">Opisujesz biznes — dostajesz gotowe teksty. Potem poprawiasz w edytorze jak w formularzu i publikujesz jednym kliknięciem.</p>
                     </article>
                     <article class="rounded-2xl border border-gray-800 bg-[#1e1e1e]/80 p-6 backdrop-blur">
                         <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-gold/10 text-xl text-brand-gold" aria-hidden="true">▤</div>
-                        <h3 class="font-bold text-white">Dashboard ze statystykami</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Widzisz, ilu klientów weszło na stronę oraz ile było kliknięć w telefon, rezerwację i czat. Wiesz, co działa.</p>
+                        <h3 class="font-bold text-white" x-text="t('benefits.t3')">Dashboard ze statystykami</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300" x-text="t('benefits.d3')">Widzisz, ilu klientów weszło na stronę oraz ile było kliknięć w telefon, rezerwację i czat. Wiesz, co działa.</p>
                     </article>
                     <article class="rounded-2xl border border-gray-800 bg-[#1e1e1e]/80 p-6 backdrop-blur">
                         <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-gold/10 text-xl text-brand-gold" aria-hidden="true">✆</div>
-                        <h3 class="font-bold text-white">Szybki czat WhatsApp / Messenger</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Klient klika i pisze do Ciebie z gotowymi pytaniami („Czy jest wolny termin?”). Rozmowa ląduje prosto na Twoim telefonie.</p>
+                        <h3 class="font-bold text-white" x-text="t('benefits.t4')">Szybki czat WhatsApp / Messenger</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300" x-text="t('benefits.d4')">Klient klika i pisze do Ciebie z gotowymi pytaniami („Czy jest wolny termin?”). Rozmowa ląduje prosto na Twoim telefonie.</p>
                     </article>
                     <article class="rounded-2xl border border-gray-800 bg-[#1e1e1e]/80 p-6 backdrop-blur">
                         <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-gold/10 text-xl text-brand-gold" aria-hidden="true">↻</div>
-                        <h3 class="font-bold text-white">Integracje, których używasz</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Booksy, Calendly, opinie i mapa z Google. Klienci rezerwują i znajdują dojazd bez jednego telefonu.</p>
+                        <h3 class="font-bold text-white" x-text="t('benefits.t5')">Integracje, których używasz</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300" x-text="t('benefits.d5')">Booksy, Calendly, opinie i mapa z Google. Klienci rezerwują i znajdują dojazd bez jednego telefonu.</p>
                     </article>
                     <article class="rounded-2xl border border-gray-800 bg-[#1e1e1e]/80 p-6 backdrop-blur">
                         <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-gold/10 text-xl text-brand-gold" aria-hidden="true">⛨</div>
-                        <h3 class="font-bold text-white">Hosting, SSL i aktualizacje</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">W cenie abonamentu. Bez wtyczek, bez faktur za serwer, bez „strona przestała działać”. Technologia gra w tle.</p>
+                        <h3 class="font-bold text-white" x-text="t('benefits.t6')">Hosting, SSL i aktualizacje</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300" x-text="t('benefits.d6')">W cenie abonamentu. Bez wtyczek, bez faktur za serwer, bez „strona przestała działać”. Technologia gra w tle.</p>
                     </article>
                 </div>
             </div>
@@ -303,40 +309,40 @@
             <div class="mx-auto max-w-6xl">
                 <div class="grid items-center gap-10 lg:grid-cols-2">
                     <div class="max-w-xl">
-                        <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Panel i statystyki</p>
-                        <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">Wreszcie wiesz, czy strona przynosi klientów.</h2>
-                        <p class="mt-6 text-base leading-relaxed text-gray-300 sm:text-lg">Twój panel to nie tylko edytor. To prosty dashboard, który po ludzku pokazuje, co się dzieje: ile osób odwiedziło stronę i ile razy kliknęły, żeby zadzwonić, zarezerwować albo napisać. Bez wykresów, których nie da się zrozumieć.</p>
+                        <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold" x-text="t('panel.eyebrow')">Panel i statystyki</p>
+                        <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl" x-text="t('panel.title')">Wreszcie wiesz, czy strona przynosi klientów.</h2>
+                        <p class="mt-6 text-base leading-relaxed text-gray-300 sm:text-lg" x-text="t('panel.body')">Twój panel to nie tylko edytor. To prosty dashboard, który po ludzku pokazuje, co się dzieje: ile osób odwiedziło stronę i ile razy kliknęły, żeby zadzwonić, zarezerwować albo napisać. Bez wykresów, których nie da się zrozumieć.</p>
                         <ul class="mt-6 space-y-3 text-sm text-gray-300">
-                            <li class="flex gap-3"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span> Liczby z ostatnich 7 dni — od razu po zalogowaniu.</li>
-                            <li class="flex gap-3"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span> Podpowiedź „priorytet na ten tydzień” — co poprawić, by mieć więcej klientów.</li>
-                            <li class="flex gap-3"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span> Wszystko na telefonie — sprawdzasz między klientami.</li>
+                            <li class="flex gap-3"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span> <span x-text="t('panel.b1')">Liczby z ostatnich 7 dni — od razu po zalogowaniu.</span></li>
+                            <li class="flex gap-3"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span> <span x-text="t('panel.b2')">Podpowiedź „priorytet na ten tydzień” — co poprawić, by mieć więcej klientów.</span></li>
+                            <li class="flex gap-3"><span class="shrink-0 text-brand-gold" aria-hidden="true">✓</span> <span x-text="t('panel.b3')">Wszystko na telefonie — sprawdzasz między klientami.</span></li>
                         </ul>
                     </div>
                     <div class="rounded-3xl border border-gray-800 bg-gradient-to-br from-white/[0.08] via-[#1e1e1e] to-[#121212] p-6 shadow-lift backdrop-blur sm:p-8">
-                        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-gray-500">Twój tydzień w skrócie</p>
+                        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-gray-500" x-text="t('panel.weekLabel')">Twój tydzień w skrócie</p>
                         <div class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
                             <div class="rounded-2xl border border-brand-gold/30 bg-brand-gold/10 p-4 text-center">
                                 <p class="font-display text-3xl font-bold tabular-nums text-white">248</p>
-                                <p class="mt-1 text-xs text-gray-400">Wejścia</p>
+                                <p class="mt-1 text-xs text-gray-400" x-text="t('panel.visits')">Wejścia</p>
                             </div>
                             <div class="rounded-2xl border border-gray-800 bg-white/[0.045] p-4 text-center">
                                 <p class="font-display text-3xl font-bold tabular-nums text-white">37</p>
-                                <p class="mt-1 text-xs text-gray-400">Telefony</p>
+                                <p class="mt-1 text-xs text-gray-400" x-text="t('panel.phones')">Telefony</p>
                             </div>
                             <div class="rounded-2xl border border-gray-800 bg-white/[0.045] p-4 text-center">
                                 <p class="font-display text-3xl font-bold tabular-nums text-white">21</p>
-                                <p class="mt-1 text-xs text-gray-400">Rezerwacje</p>
+                                <p class="mt-1 text-xs text-gray-400" x-text="t('panel.bookings')">Rezerwacje</p>
                             </div>
                             <div class="rounded-2xl border border-gray-800 bg-white/[0.045] p-4 text-center">
                                 <p class="font-display text-3xl font-bold tabular-nums text-white">14</p>
-                                <p class="mt-1 text-xs text-gray-400">Czat</p>
+                                <p class="mt-1 text-xs text-gray-400" x-text="t('panel.chat')">Czat</p>
                             </div>
                         </div>
                         <div class="mt-5 rounded-2xl border border-gray-800 bg-white/[0.045] p-5">
-                            <p class="text-[11px] font-bold uppercase tracking-widest text-brand-gold">Priorytet na ten tydzień</p>
-                            <p class="mt-2 text-sm leading-relaxed text-gray-300">Dodaj 3 zdjęcia do galerii — strony ze zdjęciami mają więcej rezerwacji.</p>
+                            <p class="text-[11px] font-bold uppercase tracking-widest text-brand-gold" x-text="t('panel.priority')">Priorytet na ten tydzień</p>
+                            <p class="mt-2 text-sm leading-relaxed text-gray-300" x-text="t('panel.priorityText')">Dodaj 3 zdjęcia do galerii — strony ze zdjęciami mają więcej rezerwacji.</p>
                         </div>
-                        <p class="mt-4 text-center text-[11px] text-gray-500">Przykładowe dane poglądowe</p>
+                        <p class="mt-4 text-center text-[11px] text-gray-500" x-text="t('panel.sampleNote')">Przykładowe dane poglądowe</p>
                     </div>
                 </div>
             </div>
@@ -345,26 +351,26 @@
         <section id="integracje" class="px-4 py-20 sm:px-6 sm:py-24 lg:px-8 scroll-mt-24">
             <div class="mx-auto max-w-6xl">
                 <div class="mx-auto max-w-3xl text-center">
-                    <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Integracje</p>
-                    <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">Łączy się z tym, czego już używasz.</h2>
-                    <p class="mt-5 text-base leading-relaxed text-gray-400">Wklejasz link, my zajmujemy się resztą. Klient rezerwuje i znajduje Cię bez dzwonienia.</p>
+                    <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold" x-text="t('integrations.eyebrow')">Integracje</p>
+                    <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl" x-text="t('integrations.title')">Łączy się z tym, czego już używasz.</h2>
+                    <p class="mt-5 text-base leading-relaxed text-gray-400" x-text="t('integrations.sub')">Wklejasz link, my zajmujemy się resztą. Klient rezerwuje i znajduje Cię bez dzwonienia.</p>
                 </div>
                 <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
                     <article class="rounded-2xl border border-gray-800 bg-white/[0.045] p-6 text-center shadow-lift backdrop-blur">
                         <h3 class="font-bold text-white">Booksy</h3>
-                        <p class="mt-2 text-sm leading-relaxed text-gray-300">Przycisk rezerwacji prosto z Twojego profilu.</p>
+                        <p class="mt-2 text-sm leading-relaxed text-gray-300" x-text="t('integrations.booksy')">Przycisk rezerwacji prosto z Twojego profilu.</p>
                     </article>
                     <article class="rounded-2xl border border-gray-800 bg-white/[0.045] p-6 text-center shadow-lift backdrop-blur">
                         <h3 class="font-bold text-white">Calendly</h3>
-                        <p class="mt-2 text-sm leading-relaxed text-gray-300">Kalendarz wolnych terminów wprost na stronie.</p>
+                        <p class="mt-2 text-sm leading-relaxed text-gray-300" x-text="t('integrations.calendly')">Kalendarz wolnych terminów wprost na stronie.</p>
                     </article>
                     <article class="rounded-2xl border border-gray-800 bg-white/[0.045] p-6 text-center shadow-lift backdrop-blur">
                         <h3 class="font-bold text-white">Opinie Google</h3>
-                        <p class="mt-2 text-sm leading-relaxed text-gray-300">Twoje gwiazdki i recenzje budują zaufanie za Ciebie.</p>
+                        <p class="mt-2 text-sm leading-relaxed text-gray-300" x-text="t('integrations.reviews')">Twoje gwiazdki i recenzje budują zaufanie za Ciebie.</p>
                     </article>
                     <article class="rounded-2xl border border-gray-800 bg-white/[0.045] p-6 text-center shadow-lift backdrop-blur">
                         <h3 class="font-bold text-white">Mapa Google</h3>
-                        <p class="mt-2 text-sm leading-relaxed text-gray-300">Interaktywny dojazd pod same Twoje drzwi.</p>
+                        <p class="mt-2 text-sm leading-relaxed text-gray-300" x-text="t('integrations.maps')">Interaktywny dojazd pod same Twoje drzwi.</p>
                     </article>
                 </div>
             </div>
@@ -373,50 +379,50 @@
         <section id="demo" class="px-4 py-20 sm:px-6 sm:py-24 lg:px-8 scroll-mt-24">
             <div class="mx-auto max-w-6xl">
                 <div class="mx-auto max-w-3xl text-center">
-                    <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Przykłady</p>
-                    <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">Zobacz przykłady szablonów</h2>
-                    <p class="mt-5 text-base leading-relaxed text-gray-400">Mamy więcej niż jeden układ: beauty, usługi, gabinet, gastro, fitness i konsultant. Każdy template ma własną strukturę, klimat i sekcje dopasowane do branży.</p>
+                    <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold" x-text="t('demos.eyebrow')">Przykłady</p>
+                    <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl" x-text="t('demos.title')">Zobacz przykłady szablonów</h2>
+                    <p class="mt-5 text-base leading-relaxed text-gray-400" x-text="t('demos.sub')">Mamy więcej niż jeden układ: beauty, usługi, gabinet, gastro, fitness i konsultant. Każdy template ma własną strukturę, klimat i sekcje dopasowane do branży.</p>
                 </div>
                 <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     <a href="router.html?site=demo-beauty" target="_blank" rel="noopener noreferrer" class="group rounded-2xl border border-gray-800 bg-white/[0.045] p-7 shadow-lift backdrop-blur transition hover:border-brand-gold/60">
                         <p class="text-sm font-semibold uppercase tracking-[0.22em] text-brand-gold">Beauty</p>
-                        <h3 class="mt-4 text-xl font-bold text-white">Salon, fryzjer, barber</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Galeria, cennik usług i szybkie przejście do rezerwacji.</p>
-                        <span class="mt-6 inline-flex text-sm font-semibold text-brand-gold group-hover:text-white">Zobacz demo →</span>
+                        <h3 class="mt-4 text-xl font-bold text-white" x-text="t('demos.beautyT')">Salon, fryzjer, barber</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300" x-text="t('demos.beautyD')">Galeria, cennik usług i szybkie przejście do rezerwacji.</p>
+                        <span class="mt-6 inline-flex text-sm font-semibold text-brand-gold group-hover:text-white" x-text="t('demos.seeDemo')">Zobacz demo →</span>
                     </a>
                     <a href="router.html?site=demo-services" target="_blank" rel="noopener noreferrer" class="group rounded-2xl border border-gray-800 bg-white/[0.045] p-7 shadow-lift backdrop-blur transition hover:border-brand-gold/60">
                         <p class="text-sm font-semibold uppercase tracking-[0.22em] text-brand-gold">Services</p>
-                        <h3 class="mt-4 text-xl font-bold text-white">Mechanik, hydraulik, fachowiec</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Telefon, godziny pracy, mapa i konkretna oferta.</p>
-                        <span class="mt-6 inline-flex text-sm font-semibold text-brand-gold group-hover:text-white">Zobacz demo →</span>
+                        <h3 class="mt-4 text-xl font-bold text-white" x-text="t('demos.servicesT')">Mechanik, hydraulik, fachowiec</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300" x-text="t('demos.servicesD')">Telefon, godziny pracy, mapa i konkretna oferta.</p>
+                        <span class="mt-6 inline-flex text-sm font-semibold text-brand-gold group-hover:text-white" x-text="t('demos.seeDemo')">Zobacz demo →</span>
                     </a>
                     <a href="router.html?site=demo-care" target="_blank" rel="noopener noreferrer" class="group rounded-2xl border border-gray-800 bg-white/[0.045] p-7 shadow-lift backdrop-blur transition hover:border-brand-gold/60">
                         <p class="text-sm font-semibold uppercase tracking-[0.22em] text-brand-gold">Care</p>
-                        <h3 class="mt-4 text-xl font-bold text-white">Gabinet, dentysta, fizjoterapeuta</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Opinie, zaufanie i spokojna ścieżka kontaktu.</p>
-                        <span class="mt-6 inline-flex text-sm font-semibold text-brand-gold group-hover:text-white">Zobacz demo →</span>
+                        <h3 class="mt-4 text-xl font-bold text-white" x-text="t('demos.careT')">Gabinet, dentysta, fizjoterapeuta</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300" x-text="t('demos.careD')">Opinie, zaufanie i spokojna ścieżka kontaktu.</p>
+                        <span class="mt-6 inline-flex text-sm font-semibold text-brand-gold group-hover:text-white" x-text="t('demos.seeDemo')">Zobacz demo →</span>
                     </a>
                     <a href="router.html?site=demo-gastro" target="_blank" rel="noopener noreferrer" class="group rounded-2xl border border-gray-800 bg-white/[0.045] p-7 shadow-lift backdrop-blur transition hover:border-brand-gold/60">
                         <p class="text-sm font-semibold uppercase tracking-[0.22em] text-brand-gold">Gastro</p>
-                        <h3 class="mt-4 text-xl font-bold text-white">Restauracja, kawiarnia, bar</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Menu, godziny otwarcia i klimat miejsca od pierwszego ekranu.</p>
-                        <span class="mt-6 inline-flex text-sm font-semibold text-brand-gold group-hover:text-white">Zobacz demo →</span>
+                        <h3 class="mt-4 text-xl font-bold text-white" x-text="t('demos.gastroT')">Restauracja, kawiarnia, bar</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300" x-text="t('demos.gastroD')">Menu, godziny otwarcia i klimat miejsca od pierwszego ekranu.</p>
+                        <span class="mt-6 inline-flex text-sm font-semibold text-brand-gold group-hover:text-white" x-text="t('demos.seeDemo')">Zobacz demo →</span>
                     </a>
                     <a href="router.html?site=demo-fitness" target="_blank" rel="noopener noreferrer" class="group rounded-2xl border border-gray-800 bg-white/[0.045] p-7 shadow-lift backdrop-blur transition hover:border-brand-gold/60">
                         <p class="text-sm font-semibold uppercase tracking-[0.22em] text-brand-gold">Fitness</p>
-                        <h3 class="mt-4 text-xl font-bold text-white">Trener, studio, siłownia</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Mocny wizual, oferta treningów i jasna ścieżka zapisu.</p>
-                        <span class="mt-6 inline-flex text-sm font-semibold text-brand-gold group-hover:text-white">Zobacz demo →</span>
+                        <h3 class="mt-4 text-xl font-bold text-white" x-text="t('demos.fitnessT')">Trener, studio, siłownia</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300" x-text="t('demos.fitnessD')">Mocny wizual, oferta treningów i jasna ścieżka zapisu.</p>
+                        <span class="mt-6 inline-flex text-sm font-semibold text-brand-gold group-hover:text-white" x-text="t('demos.seeDemo')">Zobacz demo →</span>
                     </a>
                     <a href="router.html?site=demo-consultant" target="_blank" rel="noopener noreferrer" class="group rounded-2xl border border-gray-800 bg-white/[0.045] p-7 shadow-lift backdrop-blur transition hover:border-brand-gold/60">
                         <p class="text-sm font-semibold uppercase tracking-[0.22em] text-brand-gold">Consultant</p>
-                        <h3 class="mt-4 text-xl font-bold text-white">Doradca, ekspert, B2B</h3>
-                        <p class="mt-3 text-sm leading-relaxed text-gray-300">Profesjonalny układ pod usługi eksperckie, proces i dowody zaufania.</p>
-                        <span class="mt-6 inline-flex text-sm font-semibold text-brand-gold group-hover:text-white">Zobacz demo →</span>
+                        <h3 class="mt-4 text-xl font-bold text-white" x-text="t('demos.consultantT')">Doradca, ekspert, B2B</h3>
+                        <p class="mt-3 text-sm leading-relaxed text-gray-300" x-text="t('demos.consultantD')">Profesjonalny układ pod usługi eksperckie, proces i dowody zaufania.</p>
+                        <span class="mt-6 inline-flex text-sm font-semibold text-brand-gold group-hover:text-white" x-text="t('demos.seeDemo')">Zobacz demo →</span>
                     </a>
                 </div>
                 <div class="mt-10 text-center">
-                    <a href="rejestracja.html" class="inline-flex items-center justify-center rounded-2xl border border-white/20 bg-transparent px-7 py-3.5 text-sm font-bold uppercase tracking-widest text-white transition hover:bg-white hover:text-brand-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/50">
+                    <a href="rejestracja.html" class="inline-flex items-center justify-center rounded-2xl border border-white/20 bg-transparent px-7 py-3.5 text-sm font-bold uppercase tracking-widest text-white transition hover:bg-white hover:text-brand-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/50" x-text="t('demos.likeCta')">
                         Podoba się? Zrób taką u siebie →
                     </a>
                 </div>
@@ -427,10 +433,10 @@
             <div class="mx-auto max-w-6xl">
                 <div class="overflow-hidden rounded-3xl border border-gray-800 bg-gradient-to-br from-white/[0.08] via-[#1e1e1e] to-[#121212] p-8 shadow-lift backdrop-blur sm:p-12">
                     <div class="max-w-3xl">
-                        <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold">Święty spokój</p>
-                        <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">Ty przyjmujesz klientów. Technologię bierzemy na siebie.</h2>
-                        <p class="mt-6 text-base leading-relaxed text-gray-300 sm:text-lg">Tradycyjne strony to często ukryte koszty: trzeba opłacać hosting, dokupować certyfikaty bezpieczeństwa (SSL) i ciągle aktualizować wtyczki. W DFCMS masz to z głowy — hosting, SSL i aktualizacje są w abonamencie, a technologia działa w tle.</p>
-                        <p class="mt-4 text-base leading-relaxed text-gray-300 sm:text-lg">Masz własną domenę (np. <span class="text-white">twojbiznes.pl</span>)? Podłączasz ją samodzielnie w panelu — a jeśli wolisz, pomożemy Ci to ustawić. Nie masz domeny? Startujesz od razu na darmowym adresie i nic Cię to nie kosztuje.</p>
+                        <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold" x-text="t('calm.eyebrow')">Święty spokój</p>
+                        <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl" x-text="t('calm.title')">Ty przyjmujesz klientów. Technologię bierzemy na siebie.</h2>
+                        <p class="mt-6 text-base leading-relaxed text-gray-300 sm:text-lg" x-text="t('calm.p1')">Tradycyjne strony to często ukryte koszty: trzeba opłacać hosting, dokupować certyfikaty bezpieczeństwa (SSL) i ciągle aktualizować wtyczki. W DFCMS masz to z głowy — hosting, SSL i aktualizacje są w abonamencie, a technologia działa w tle.</p>
+                        <p class="mt-4 text-base leading-relaxed text-gray-300 sm:text-lg" x-text="t('calm.p2')">Masz własną domenę (np. twojbiznes.pl)? Podłączasz ją samodzielnie w panelu — a jeśli wolisz, pomożemy Ci to ustawić. Nie masz domeny? Startujesz od razu na darmowym adresie i nic Cię to nie kosztuje.</p>
                     </div>
                 </div>
             </div>
@@ -439,19 +445,19 @@
         <section id="cennik" class="px-4 py-20 sm:px-6 sm:py-24 lg:px-8 scroll-mt-24">
             <div class="mx-auto max-w-6xl">
                 <div class="mx-auto max-w-4xl text-center">
-                    <h2 class="font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">Prosty Abonament</h2>
+                    <h2 class="font-display text-3xl font-bold tracking-tight text-white sm:text-5xl" x-text="t('pricing.title')">Prosty Abonament</h2>
                 </div>
 
-                <div class="mt-10 flex flex-col items-center gap-2" role="group" aria-label="Okres rozliczenia">
+                <div class="mt-10 flex flex-col items-center gap-2" role="group" :aria-label="t('pricing.billingLabel')">
                     <div class="inline-flex max-w-full flex-wrap items-center justify-center gap-1 rounded-full border border-gray-800 bg-white/[0.04] p-1 shadow-sm">
-                        <button type="button" @click="billingInterval = 'monthly'" :aria-pressed="billingInterval === 'monthly'" :class="billingInterval === 'monthly' ? 'bg-white text-brand-ink shadow-sm' : 'text-gray-400 hover:text-white'" class="rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-wide transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/50 sm:text-xs">Płatność miesięczna</button>
-                        <button type="button" @click="billingInterval = 'yearly'" :aria-pressed="billingInterval === 'yearly'" :class="billingInterval === 'yearly' ? 'bg-brand-gold text-brand-ink shadow-accent' : 'text-gray-400 hover:text-white'" class="rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-wide transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/50 sm:text-xs">Płatność roczna <span class="font-semibold normal-case tracking-normal opacity-90">(−20%)</span></button>
+                        <button type="button" @click="billingInterval = 'monthly'" :aria-pressed="billingInterval === 'monthly'" :class="billingInterval === 'monthly' ? 'bg-white text-brand-ink shadow-sm' : 'text-gray-400 hover:text-white'" class="rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-wide transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/50 sm:text-xs" x-text="t('pricing.monthly')">Płatność miesięczna</button>
+                        <button type="button" @click="billingInterval = 'yearly'" :aria-pressed="billingInterval === 'yearly'" :class="billingInterval === 'yearly' ? 'bg-brand-gold text-brand-ink shadow-accent' : 'text-gray-400 hover:text-white'" class="rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-wide transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/50 sm:text-xs"><span x-text="t('pricing.yearly')">Płatność roczna</span> <span class="font-semibold normal-case tracking-normal opacity-90" x-text="t('pricing.yearlyDiscount')">(−20%)</span></button>
                     </div>
-                    <p class="text-center text-[11px] text-gray-500" x-show="billingInterval === 'yearly'" x-cloak>Roczna opłata z rabatem 20% — rozliczenie jednorazowo na 12 miesięcy.</p>
+                    <p class="text-center text-[11px] text-gray-500" x-show="billingInterval === 'yearly'" x-cloak x-text="t('pricing.yearlyNote')">Roczna opłata z rabatem 20% — rozliczenie jednorazowo na 12 miesięcy.</p>
                 </div>
 
                 <div class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
-                    <template x-for="plan in plans" :key="plan.id">
+                    <template x-for="plan in plans" :key="plan.id + '-' + uiLocale">
                         <article
                             class="flex flex-col rounded-2xl border bg-white/[0.045] p-8 shadow-lift backdrop-blur sm:p-9"
                             :class="{
@@ -470,17 +476,17 @@
                                     <div>
                                         <div x-show="billingInterval === 'monthly'">
                                             <p class="font-display text-4xl font-bold tabular-nums text-white">
-                                                <span x-text="formatPln(plan.monthly)"></span> zł<span class="text-lg font-semibold text-gray-500"> / msc</span>
+                                                <span x-text="formatPln(plan.monthly)"></span> zł<span class="text-lg font-semibold text-gray-500" x-text="' ' + t('pricing.perMonth')"> / msc</span>
                                             </p>
                                         </div>
                                         <div x-show="billingInterval === 'yearly'" x-cloak>
                                             <p class="text-xs font-medium line-through tabular-nums text-gray-600" x-text="formatPln(plan.yearlyStrike) + ' zł'"></p>
                                             <p class="font-display text-4xl font-bold tabular-nums text-white">
-                                                <span x-text="formatPln(plan.yearlyTotal)"></span> zł<span class="text-lg font-semibold text-gray-500"> / rok</span>
+                                                <span x-text="formatPln(plan.yearlyTotal)"></span> zł<span class="text-lg font-semibold text-gray-500" x-text="' ' + t('pricing.perYear')"> / rok</span>
                                             </p>
-                                            <p class="mt-1 text-xs font-medium text-brand-gold" x-text="formatPln(plan.yearlyPerMonth) + ' zł / mc przy płatności rocznej'"></p>
+                                            <p class="mt-1 text-xs font-medium text-brand-gold" x-text="yearlyPerMonthLabel(plan)"></p>
                                         </div>
-                                        <p class="mt-2 text-xs text-gray-500">netto · +23% VAT</p>
+                                        <p class="mt-2 text-xs text-gray-500" x-text="t('pricing.netVat')">netto · +23% VAT</p>
                                         <p x-show="plan.trialNote" class="mt-1 text-xs font-medium text-gray-400" x-text="plan.trialNote"></p>
                                     </div>
                                 </template>
@@ -528,15 +534,15 @@
                         </article>
                     </template>
                 </div>
-                <p class="mt-10 text-center text-xs leading-relaxed text-gray-500">Ceny netto. Hosting, SSL i aktualizacje są w abonamencie.</p>
+                <p class="mt-10 text-center text-xs leading-relaxed text-gray-500" x-text="t('pricing.footerNote')">Ceny netto. Hosting, SSL i aktualizacje są w abonamencie.</p>
             </div>
         </section>
 
         <section class="px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
             <div class="mx-auto max-w-3xl text-center">
-                <h2 class="font-display text-4xl font-bold tracking-tight text-white sm:text-5xl">Szkoda Twojego czasu na walkę z technologią.</h2>
-                <p class="mt-5 text-base leading-relaxed text-gray-300 sm:text-lg">Opisz firmę, niech AI napisze teksty, opublikuj stronę i wracaj do klientów. Testujesz 14 dni za darmo — bez podawania karty.</p>
-                <a href="rejestracja.html" class="mt-8 inline-flex items-center justify-center rounded-2xl bg-brand-gold px-8 py-4 text-sm font-bold uppercase tracking-widest text-brand-ink shadow-gold transition hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212]">
+                <h2 class="font-display text-4xl font-bold tracking-tight text-white sm:text-5xl" x-text="t('finalCta.title')">Szkoda Twojego czasu na walkę z technologią.</h2>
+                <p class="mt-5 text-base leading-relaxed text-gray-300 sm:text-lg" x-text="t('finalCta.sub')">Opisz firmę, niech AI napisze teksty, opublikuj stronę i wracaj do klientów. Testujesz 14 dni za darmo — bez podawania karty.</p>
+                <a href="rejestracja.html" class="mt-8 inline-flex items-center justify-center rounded-2xl bg-brand-gold px-8 py-4 text-sm font-bold uppercase tracking-widest text-brand-ink shadow-gold transition hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212]" x-text="t('finalCta.cta')">
                     Zacznij teraz →
                 </a>
             </div>
@@ -550,13 +556,13 @@
                     <p class="font-display text-lg font-bold text-white flex items-center gap-2"><img src="/favicon.svg" alt="" width="24" height="24" class="rounded" aria-hidden="true"><span><span class="text-brand-gold">DF</span>CMS</span></p>
                     <p class="mt-3 text-sm leading-relaxed">Dragonfly Operations</p>
                 </div>
-                <nav class="flex flex-col gap-3 text-sm sm:items-end" aria-label="Stopka">
-                    <a href="regulamin.html" class="transition hover:text-brand-gold">Regulamin</a>
-                    <a href="polityka.html" class="transition hover:text-brand-gold">Polityka prywatności</a>
-                    <a href="mailto:kontakt@dfops.eu" class="transition hover:text-brand-gold">Kontakt</a>
+                <nav class="flex flex-col gap-3 text-sm sm:items-end" :aria-label="t('nav.footer')">
+                    <a href="regulamin.html" class="transition hover:text-brand-gold" x-text="t('common.terms')">Regulamin</a>
+                    <a href="polityka.html" class="transition hover:text-brand-gold" x-text="t('common.privacy')">Polityka prywatności</a>
+                    <a href="mailto:kontakt@dfops.eu" class="transition hover:text-brand-gold" x-text="t('common.contact')">Kontakt</a>
                 </nav>
             </div>
-            <p class="mt-10 border-t border-white/10 pt-8 text-center text-xs text-zinc-500">© <span id="y"></span> Dragonfly Operations. Wszystkie prawa zastrzeżone.</p>
+            <p class="mt-10 border-t border-white/10 pt-8 text-center text-xs text-zinc-500">© <span id="y"></span> Dragonfly Operations. <span x-text="t('common.copyright')">Wszystkie prawa zastrzeżone.</span></p>
         </div>
     </footer>
 
@@ -586,7 +592,7 @@
         }
     }
     </script>
-    <script defer src="js/features/landingPricing.js?v=20260723a"></script>
+    <script defer src="js/features/landingPricing.js?v=20260724a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 </body>
 </html>
