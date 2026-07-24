@@ -427,7 +427,7 @@ Naprawa krytycznych UX przy logowaniu/rejestracji i pierwszym uruchomieniu.
 Przepisany marketingowy landing pod konwersję. **Bez zmian w designie** — te same kolory (dark + złoto `#D4AF37`), Inter, klasy Tailwind, Alpine (`landingPricing()`) i skrypty routingu/SEO.
 
 - **Flow sekcji:** Hero → Jak to działa (4 kroki: szablon → opis+AI → publikacja → klienci) → Buduj z AI (`#ai`) → Co dostajesz (6 korzyści, w tym Teksty z AI) → Panel i statystyki (`#panel`) → Integracje → Przykłady (`#demo`) → Święty spokój (`#spokoj`) → Cennik → CTA.
-- **Nawigacja:** `#jak`, `#ai`, `#korzysci`, `#panel`, `#demo`, `#cennik` (desktop + mobile).
+- **Nawigacja:** desktop (xl+): `#jak`, `#ai`, `#demo`, `#cennik` + „Zaloguj” przy CTA; poniżej xl hamburger z pełną listą (`#korzysci`, `#panel` też). CTA skrócone do „Uruchom za darmo”.
 - **Copy realistyczne:** „gotowa w kilka minut”, trial 14 dni bez karty, AI generuje teksty z opisu firmy (pełna kontrola edycji), własną domenę podłączasz sam (możemy pomóc), hosting+SSL+aktualizacje w cenie.
 
 ### 2026-07-05 — Szybki czat: predefiniowane pytania

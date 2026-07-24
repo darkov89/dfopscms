@@ -105,32 +105,30 @@
         x-data="{ mobileOpen: false }"
         @keydown.escape.window="mobileOpen = false"
     >
-        <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6 lg:px-8">
-            <a href="index.html" class="flex items-center gap-2 font-display text-lg font-bold tracking-tight text-white sm:text-xl">
+        <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3.5 sm:px-6 lg:px-8">
+            <a href="index.html" class="flex shrink-0 items-center gap-2 font-display text-lg font-bold tracking-tight text-white sm:text-xl">
                 <img src="/favicon.svg" alt="" width="28" height="28" class="rounded-md" aria-hidden="true">
                 <span><span class="text-brand-gold">DF</span>CMS</span>
             </a>
 
-            <nav class="hidden items-center gap-8 text-sm font-medium text-gray-400 md:flex" aria-label="Nawigacja główna">
+            <nav class="hidden items-center gap-5 whitespace-nowrap text-sm font-medium text-gray-400 xl:flex xl:gap-6" aria-label="Nawigacja główna">
                 <a href="#jak" class="transition hover:text-white">Jak to działa</a>
                 <a href="#ai" class="transition hover:text-white">Buduj z AI</a>
-                <a href="#korzysci" class="transition hover:text-white">Co dostajesz</a>
-                <a href="#panel" class="transition hover:text-white">Panel i statystyki</a>
                 <a href="#demo" class="transition hover:text-white">Przykłady</a>
                 <a href="#cennik" class="transition hover:text-white">Cennik</a>
-                <a href="admin.html" class="transition hover:text-white">Zaloguj się</a>
             </nav>
 
-            <div class="flex items-center gap-2 sm:gap-3">
+            <div class="flex shrink-0 items-center gap-2 sm:gap-3">
+                <a href="admin.html" class="hidden text-sm font-medium text-gray-400 transition hover:text-white lg:inline-flex">Zaloguj się</a>
                 <a
                     href="rejestracja.html"
                     class="hidden rounded-xl bg-brand-gold px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-brand-ink shadow-accent transition hover:bg-white sm:inline-flex sm:px-5"
                 >
-                    Uruchom stronę za darmo
+                    Uruchom za darmo
                 </a>
                 <button
                     type="button"
-                    class="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-white/10 text-white md:hidden"
+                    class="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-white/10 text-white xl:hidden"
                     @click="mobileOpen = !mobileOpen"
                     :aria-expanded="mobileOpen"
                     aria-controls="mobile-menu"
@@ -147,7 +145,7 @@
             x-cloak
             x-show="mobileOpen"
             x-transition.opacity
-            class="border-t border-white/10 bg-[#121212] px-4 py-4 md:hidden"
+            class="border-t border-white/10 bg-[#121212] px-4 py-4 xl:hidden"
         >
             <nav class="flex flex-col gap-1 text-sm font-medium text-gray-300" aria-label="Menu mobilne">
                 <a href="#jak" class="rounded-lg px-3 py-3 hover:bg-white/5" @click="mobileOpen = false">Jak to działa</a>
