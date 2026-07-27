@@ -395,6 +395,7 @@ Migracja `20260727180000_security_harden_crit_high.sql` + Edge + front:
 - **H4:** `GOOGLE_MAPS_EMBED_API_KEY` osobno od Places.
 - **Ops Staging/Prod:** `secrets set` obu kluczy; Dashboard DB Webhook + Sentry → Bearer header; potem `db push` + `functions deploy`.
 - **Wdrożone 2026-07-27:** migracja + Edge na Staging i Production; sekrety `TELEGRAM_WEBHOOK_SECRET` i `GOOGLE_MAPS_EMBED_API_KEY` ustawione. **Wymagane ręcznie:** w Dashboard (oba projekty) dodać nagłówek `Authorization: Bearer <TELEGRAM_WEBHOOK_SECRET>` do Database Webhooks i Sentry → `telegram-webhook` (bez tego alerty ops wrócą 401). Wartość secreta: `supabase secrets list` nie pokazuje plaintext — użyć lokalnie wygenerowanej przy deployu lub `secrets set` ponownie i zaktualizować webhooki.
+- **Fix publish 403:** `protect_pages_billing_columns` → `SECURITY DEFINER` + detekcja po `auth.jwt()` (`20260727190000`, `20260727191000`) — INVOKER + przypisanie `billing_*` bez GRANT UPDATE blokowało Opublikuj.
 
 ### 2026-07-24 — UI platformy PL / EN (landing + auth)
 
