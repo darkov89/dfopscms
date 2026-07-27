@@ -270,6 +270,27 @@ serve(async (req) => {
     });
   }
 
+  const webhookSecret = (Deno.env.get("TELEGRAM_WEBHOOK_SECRET") ?? "").trim();
+  if (!webhookSecret) {
+    return new Response(
+      JSON.stringify({ error: "TELEGRAM_WEBHOOK_SECRET is not configured" }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
+  }
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const token = authHeader.startsWith("Bearer ")
+    ? authHeader.slice(7).trim()
+    : "";
+  if (!token || token !== webhookSecret) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   let raw: unknown = null;
   try {
     raw = await req.json();

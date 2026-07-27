@@ -327,7 +327,7 @@ serve(async (req) => {
     });
   }
 
-  /** Mapa: URL iframe (Maps Embed API). */
+  /** Mapa: URL iframe (Maps Embed API) — osobny klucz przeglądarkowy, nie Places server. */
   if (typeof payload.embed_for_place_id === "string" && payload.embed_for_place_id.trim() !== "") {
     const placeId = sanitizePlaceIdForEmbed(payload.embed_for_place_id);
     if (!placeId) {
@@ -336,11 +336,24 @@ serve(async (req) => {
         headers: { ...cors, "content-type": "application/json; charset=utf-8" },
       });
     }
+    const embedApiKey = (Deno.env.get("GOOGLE_MAPS_EMBED_API_KEY") ?? "").trim();
+    if (!embedApiKey) {
+      return new Response(
+        JSON.stringify({
+          ok: false,
+          error: "Brak GOOGLE_MAPS_EMBED_API_KEY w środowisku Edge Function.",
+        }),
+        {
+          status: 503,
+          headers: { ...cors, "content-type": "application/json; charset=utf-8" },
+        },
+      );
+    }
     const q = `place_id:${placeId}`;
     const embedUrl =
       `https://www.google.com/maps/embed/v1/place?` +
       new URLSearchParams({
-        key: googleApiKey,
+        key: embedApiKey,
         q,
         zoom: "15",
       }).toString();

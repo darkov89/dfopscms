@@ -3737,16 +3737,10 @@
             payload.custom_domain = null;
             payload.custom_domain_status = 'none';
           }
-          if (this.subscriptionPaymentActive()) {
-            payload.trial_blocked_at = null;
-            payload.billing_failed_at = null;
-          }
           const { error } = await this.saveActivePage(payload);
           if (error) throw error;
           if (this.isCustomDomainLocked) this.customDomain = '';
-          if (this.subscriptionPaymentActive()) {
-            this.trialBlockedAt = null;
-          }
+          /** Odblokowanie trial_blocked_at / billing_failed_at tylko przez Stripe webhook / sync (service_role). */
           /** Migawka produkcji po udanej publikacji — żeby „Odrzuć zmiany” wracało do świeżo opublikowanej wersji. */
           this._publishedContentRaw = JSON.parse(JSON.stringify(this.content));
           this._publishedTheme = this.theme;
@@ -3849,7 +3843,8 @@
           }
 
           const fileExt = file.name.split('.').pop() || 'png';
-          const fileName = `${this.slug}-${section}-${field}-${Date.now()}.${fileExt}`;
+          const ownerPrefix = this.user?.id ? `${this.user.id}/` : '';
+          const fileName = `${ownerPrefix}${this.slug}-${section}-${field}-${Date.now()}.${fileExt}`;
           const { error } = await this.supabase.storage.from('images').upload(fileName, file);
           if (error) throw error;
           const { data: publicUrlData } = this.supabase.storage.from('images').getPublicUrl(fileName);

@@ -22,8 +22,11 @@ Configure **separate** webhook endpoints in Stripe Test vs Live dashboards.
 - `WFIRMA_*` (invoice ledger)
 - `CF_ZONE_ID`, `CF_API_TOKEN` (add-custom-domain)
 - `TURNSTILE_SECRET_KEY`, `PUBLIC_TURNSTILE_SITE_KEY`
-- `CRON_SECRET` (expire-trial-pages)
-- `TELEGRAM_*` (telegram-webhook)
+- `CRON_SECRET` (expire-trial-pages, aggregate-growth-benchmarks, retry-wfirma-invoice)
+- `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`
+- `TELEGRAM_WEBHOOK_SECRET` (`telegram-webhook` — wymagany Bearer; osobny od `CRON_SECRET`)
+- `GOOGLE_MAPS_API_KEY` (Places server — `get-google-reviews`)
+- `GOOGLE_MAPS_EMBED_API_KEY` (Maps Embed iframe URL; HTTP referrer; nie współdzielić z Places)
 - `GEMINI_API_KEY` (generate-ai-content; wymagany)
 - `GEMINI_MODEL` (opcjonalnie; domyślnie `gemini-3.6-flash`)
 - `DFCMS_ENV` (`staging` | `production` — pełne logi promptów AI tylko poza prod, chyba że `AI_LOG_PROMPTS=1`)
@@ -45,7 +48,13 @@ Ręczny test Edge: `POST …/functions/v1/expire-trial-pages` + `Authorization: 
 
 ## Database Webhooks
 
-Dashboard → Database Webhooks → POST to `…/functions/v1/telegram-webhook`. Do not replicate with SQL `http_request` triggers in migrations.
+Dashboard → Database Webhooks → POST to `…/functions/v1/telegram-webhook` z nagłówkiem:
+
+`Authorization: Bearer <TELEGRAM_WEBHOOK_SECRET>`
+
+To samo dla Sentry outbound. Bez headera funkcja zwraca **401**. Do not replicate with SQL `http_request` triggers in migrations.
+
+Checkout/Portal: `returnUrl` musi być hostem z allowlist (`dfcms.pl`, `*.dfcms.pl`, localhost) — `_shared/allowedOrigins.ts` (bez `*.pages.dev`).
 
 ## Deploy checklist
 

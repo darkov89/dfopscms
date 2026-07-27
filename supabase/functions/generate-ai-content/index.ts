@@ -6,6 +6,7 @@ import {
   mergeAiCopyPatch,
   THEME_TONE_HINTS,
 } from "../_shared/aiCopySchemas.ts";
+import { buildCorsHeadersForRequest } from "../_shared/allowedOrigins.ts";
 
 /** Deno global - available at runtime in Supabase Edge Functions. */
 declare const Deno: { env: { get: (k: string) => string | undefined } };
@@ -51,31 +52,8 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   INTERNAL: "Wystąpił błąd serwera. Spróbuj ponownie.",
 };
 
-function isAllowedOrigin(origin: string) {
-  const o = origin.trim();
-  if (o === "https://dfcms.pl") return true;
-  if (o === "http://localhost:5500") return true;
-  try {
-    const u = new URL(o);
-    if (u.protocol !== "https:" && u.protocol !== "http:") return false;
-    const h = u.hostname.toLowerCase();
-    if (h.endsWith(".dfcms.pl")) return true;
-    if (h.endsWith(".pages.dev")) return true;
-    if (h === "localhost" || h === "127.0.0.1") return true;
-    return false;
-  } catch {
-    return false;
-  }
-}
-
 function buildCorsHeaders(req: Request) {
-  const origin = req.headers.get("Origin") ?? "";
-  if (!origin || !isAllowedOrigin(origin)) return null;
-  return {
-    ...corsHeadersBase,
-    "Access-Control-Allow-Origin": origin,
-    Vary: "Origin",
-  } as Record<string, string>;
+  return buildCorsHeadersForRequest(req, corsHeadersBase);
 }
 
 function jsonResponse(

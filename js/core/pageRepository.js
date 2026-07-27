@@ -221,6 +221,7 @@
     'ogImage',
     'profile_photo_url',
     'qrImage',
+    'menu_image',
   ]);
 
   const HREF_URL_KEYS = new Set([
@@ -324,7 +325,12 @@
       if (HREF_URL_KEYS.has(keyHint)) return sanitizeUrlField(obj, 'href');
       return sanitizeHtml(obj);
     }
-    if (Array.isArray(obj)) return obj.map((x) => sanitizeContent(x));
+    if (Array.isArray(obj)) {
+      const childHint = keyHint === 'images' || SRC_URL_KEYS.has(keyHint) || HREF_URL_KEYS.has(keyHint)
+        ? keyHint
+        : undefined;
+      return obj.map((x) => sanitizeContent(x, childHint));
+    }
     if (typeof obj === 'object') {
       if (keyHint === 'subscription' && typeof window.DFOPS_stripBillingFromContentSubscription === 'function') {
         return window.DFOPS_stripBillingFromContentSubscription(obj);

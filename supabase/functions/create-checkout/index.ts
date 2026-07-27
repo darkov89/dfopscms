@@ -3,6 +3,10 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "npm:stripe@^14.0.0";
 import { createClient } from "npm:@supabase/supabase-js@^2.39.0";
 import { verifyTurnstileToken } from "../_shared/turnstileVerification.ts";
+import {
+  assertAllowedReturnUrl,
+  buildCorsHeadersForRequest,
+} from "../_shared/allowedOrigins.ts";
 
 /** Deno global - available at runtime in Supabase Edge Functions. */
 declare const Deno: { env: { get: (k: string) => string | undefined } };
@@ -12,24 +16,6 @@ const corsHeaders: Record<string, string> = {
     "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
-
-function isAllowedOrigin(origin: string) {
-  const o = origin.trim();
-  if (o === "https://dfcms.pl") return true;
-  if (o === "http://localhost:5500") return true;
-  try {
-    const u = new URL(o);
-    if (u.protocol !== "https:" && u.protocol !== "http:") return false;
-    const h = u.hostname.toLowerCase();
-    if (h.endsWith(".dfcms.pl")) return true;
-    /** Cloudflare Pages (staging / preview), np. *.pages.dev */
-    if (h.endsWith(".pages.dev")) return true;
-    if (h === "localhost" || h === "127.0.0.1") return true;
-    return false;
-  } catch {
-    return false;
-  }
-}
 
 /** Checkout wymaga price_; prod_ → domyślna cena produktu. */
 async function resolveToPriceId(
@@ -56,13 +42,7 @@ async function resolveToPriceId(
 }
 
 function buildCorsHeaders(req: Request) {
-  const origin = req.headers.get("Origin") ?? "";
-  if (!origin || !isAllowedOrigin(origin)) return null;
-  return {
-    ...corsHeaders,
-    "Access-Control-Allow-Origin": origin,
-    Vary: "Origin",
-  } as Record<string, string>;
+  return buildCorsHeadersForRequest(req, corsHeaders);
 }
 
 /**
@@ -208,12 +188,9 @@ serve(async (req) => {
       );
     }
 
-    const returnUrlRaw =
-      typeof body?.returnUrl === "string" ? body.returnUrl.trim() : "";
-    if (!returnUrlRaw || !/^https?:\/\//i.test(returnUrlRaw)) {
-      throw new Error("Brak lub nieprawidłowy returnUrl");
-    }
-    const returnUrl = returnUrlRaw.replace(/\/$/, "");
+    const returnUrl = assertAllowedReturnUrl(
+      typeof body?.returnUrl === "string" ? body.returnUrl : "",
+    );
 
     const stripe = new Stripe(stripeSecret, {
       apiVersion: "2022-11-15",

@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-07-24 — UI platformy PL/EN (landing, auth)
+**Ostatnia aktualizacja:** 2026-07-27 — Security hotfix Crit+High
 
 ---
 
@@ -101,7 +101,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 
 **Prawo & Bezpieczeństwo:** panel `admin.html#legal` zarządza `pages.content.pl.privacy` (`mode: 'default' | 'custom'`, `customText`). Publiczny route `/polityka-prywatnosci` renderuje standardową politykę DFCMS albo własny dokument użytkownika przez DOMPurify i zawsze dokleja klauzulę infrastruktury DFCMS/Supabase/Cloudflare.
 
-**Security (skrót):** forced password reset, DOMPurify, sanitizacja URL-like pól `pages.content` na zapisie i odczycie, Cloudflare Turnstile dla rejestracji/custom inquiry/checkout, CSP/HSTS/XFO/nosniff w `functions/_middleware.js`, publiczny odczyt `pages` zawężony query+RLS+grantami kolumnowymi, Stripe webhook tylko Edge, Google Places/Maps klucz tylko Edge, `billing_profiles` SoT rozliczeń, draft preview tylko dla właściciela. Superadmini są wyłącznie w `public.superadmins`; RLS dodaje im SELECT/UPDATE/DELETE na `pages` i `analytics_events`, bez zmiany polityk właścicielskich.
+**Security (skrót):** forced password reset, DOMPurify, sanitizacja URL-like pól `pages.content` na zapisie i odczycie, Cloudflare Turnstile dla rejestracji/custom inquiry/checkout, CSP/HSTS/XFO/nosniff w `functions/_middleware.js`, publiczny odczyt `pages` (anon + query); authenticated SELECT tylko własne wiersze (+ God Mode); `billing_plan` / `trial_*` tylko `service_role` (trigger); brak client INSERT na `billing_profiles`; Storage `images` z ownership; Stripe webhook tylko Edge; Places key vs Embed key osobno; `telegram-webhook` wymaga `Bearer TELEGRAM_WEBHOOK_SECRET`; Checkout/Portal `returnUrl` na allowliście hostów (bez `*.pages.dev`).
 
 **Silnik Wzrostu (G0–G3 wdrożone na Staging i Produkcję):** CMS podpowiada co tydzień jedną zmianę związaną z konwersją (telefon, rezerwacja, opinie), liczniki kliknięć CTA, odwiedzin (`page_view`) i benchmarki branżowe per `theme`. **Spec:** [`docs/GROWTH_AUTOPILOT_ARCHITECTURE.md`](GROWTH_AUTOPILOT_ARCHITECTURE.md). **Repurpose** `analytics_events` (`event_scope`: `conversion` | `visit` | `legacy`) + `growth_benchmarks` + `pages.draft_updated_at` (trigger `publish_reminder`); Edge `record-site-event` i `aggregate-growth-benchmarks`; RPC `get_page_growth_stats` / `aggregate_growth_benchmarks`. Tracking: `siteAnalytics.js` + `publicSiteApp.onConversionClick` / `recordPageView()`. Panel: `js/features/growth/` + hook `DFOPS_attachGrowthPanel` (3 linie w `adminApp.js`). Dashboard: karta priorytetu + 4 liczniki (odwiedziny + 3× CTA) z przyciskiem „Odśwież”. Zakładka „Statystyki” (`statsPanel.js` + `tab-stats.html`): zakres dat (presety + własny), total vs unikalni dziennie, eksport CSV/Excel — RPC `get_page_stats_range`. RODO: klauzula w `infrastructurePrivacyHtml()`. **Pozostało operacyjnie:** harmonogram cron Dashboardu (`aggregate-growth-benchmarks`, `0 3 * * 1`, `Bearer CRON_SECRET`) na Staging **i** Prod; test manualny G1/G3 na żywym ruchu. G4 (one-click draft) — poza zakresem.
 
@@ -179,15 +179,19 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 ### 1.6 Security (szczegóły)
 
 - **Forced password reset:** recovery → `isForcedPasswordReset` → izolatka bez `loadData()` do zmiany hasła.
-- **Treść:** DOMPurify + `pageRepository.sanitizeContent`; mapy — tylko Google embed URL; GTM/Pixel — walidacja formatu ID; custom privacy policy renderowana przez `sanitizeHtml`.
-- **Stripe:** webhook secret tylko Edge; `billing_profiles` zapis `service_role`.
-- **Google Reviews Edge:** sesja wymagana; klucz `GOOGLE_MAPS_API_KEY` tylko serwer; panel autocomplete → `place_id`.
+- **Treść:** DOMPurify + `pageRepository.sanitizeContent` (w tym `menu_image` / elementy `gallery.images`); mapy — tylko Google embed URL; GTM/Pixel — walidacja formatu ID; custom privacy policy renderowana przez `sanitizeHtml`.
+- **Stripe / billing SoT:** webhook secret tylko Edge; `billing_profiles` zapis wyłącznie `service_role` (brak INSERT policy dla `authenticated`); lustro `pages.billing_plan` / `trial_blocked_at` / `billing_failed_at` chronione triggerem `protect_pages_billing_columns` — panel **nie** czyści blokad przy publish.
+- **Google Reviews Edge:** sesja wymagana; Places: `GOOGLE_MAPS_API_KEY` tylko serwer; embed iframe: osobny `GOOGLE_MAPS_EMBED_API_KEY` (HTTP referrer); panel autocomplete → `place_id`.
+- **Checkout / Portal:** `returnUrl` walidowany przez `_shared/allowedOrigins.ts` (`dfcms.pl`, `*.dfcms.pl`, localhost) — bez `*.pages.dev`. CORS billing/AI ten sam allowlist.
+- **Telegram:** `telegram-webhook` wymaga `Authorization: Bearer TELEGRAM_WEBHOOK_SECRET` (fail-closed). Database Webhooks + Sentry muszą mieć ten header. Osobny od `CRON_SECRET`.
 - **Smart Booking:** `settings.booking_mode` + `contact.booking_url`; Booksy embed — ostrzeżenie X-Frame-Options.
 - **Nagłówki HTTP:** Cloudflare middleware dokleja CSP (Supabase/Stripe/Google Maps/CDN/Sentry/Calendly), `X-Content-Type-Options`, `X-Frame-Options: DENY`, HSTS dla HTTPS, Referrer/Permissions Policy.
 - **Anti-abuse:** Turnstile widget w `rejestracja.html`, `zapytanie-custom.html` i panelu subskrypcji; `create-checkout` weryfikuje `turnstileToken` przez `_shared/turnstileVerification.ts` przed Supabase/Stripe. Secrets: `PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`.
-- **Publiczny odczyt stron:** `pageRepository` i `functions/_middleware.js` pobierają wyłącznie konkretny `slug`/`custom_domain`, z `limit=1`, `content IS NOT NULL`, `trial_blocked_at IS NULL` i grace 14 dni dla `billing_failed_at`; edge `fetchPageRow` waliduje format slug/host, bez slug woła DB tylko dla custom domain (nie apex platformy), odpowiedź jako tablica JSON (`Accept: application/json`) — unika 406 PostgREST z `object+json` przy 0 wierszach; migracja `20260617221000` usuwa szerokie `SELECT true` i grant `ALL` dla `anon` na `pages`.
+- **Publiczny odczyt stron:** anon — polityka `pages_select_public` + granty kolumnowe **bez** `draft_content`; authenticated — tylko `pages_select_owner` (`user_id = auth.uid()`); `purge_trial_blocked_pages_after_grace` tylko `service_role`/`postgres`.
+- **Storage images:** upload `{user_id}/{slug}-…`; INSERT/UPDATE/DELETE wymaga ownership (prefix uid lub legacy flat `{slug}-…` własnej strony).
 - **God Mode RLS:** `superadmins` ma SELECT tylko własnego wiersza dla `authenticated`; wpisy dodaje/usuwa operacyjnie `service_role`. Polityki superadminów na `pages` i `analytics_events` są dodatkowymi OR-ścieżkami RLS, nie zastępują dostępu właściciela.
 - **Widoczność sekcji:** toggles per zakładka (`showGallery`, `showGoogleReviews`, …); hero bez toggle.
+- **Migracja:** `20260727180000_security_harden_crit_high.sql`.
 
 ### 1.7 User journey (skrót)
 
@@ -221,10 +225,10 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 | `retry-wfirma-invoice` | Ręczny retry FV wFirma (`POST` + `Bearer CRON_SECRET`, `checkoutSessionId` lub `stripeInvoiceId`) |
 | `sync-stripe-subscription` | Ręczna synchronizacja statusu subskrypcji |
 | `add-custom-domain` | Cloudflare Custom Hostname + zapis w DB |
-| `get-google-reviews` | Places / opinie (klucz tylko na Edge); wymaga sesji użytkownika |
+| `get-google-reviews` | Places / opinie (`GOOGLE_MAPS_API_KEY`); embed iframe (`GOOGLE_MAPS_EMBED_API_KEY`); wymaga sesji |
 | `generate-ai-content` | AI Site Generator (Gemini): JWT + ownership + quota → merge copy do `pages.draft_content`; secrets `GEMINI_API_KEY`, opcjonalnie `GEMINI_MODEL` / `DFCMS_ENV` / `AI_LOG_PROMPTS` |
 | **`expire-trial-pages`** | **Cron** (`POST` + `Bearer CRON_SECRET`): `expire_trial_pages()` → `notify_purge_upcoming_pages()` → `list_pages_pending_purge()` → opcjonalnie `purge_trial_blocked_pages_after_grace()` gdy `AUTO_PURGE_ENABLED=true`. **Powiadomienia operacyjne przez Telegram** (Markdown): alert −7 dni per slug; raport ręcznej kasacji (30+ dni) z gotowym SQL. Brak alertów → `200` bez wiadomości. |
-| `telegram-webhook` | Router alertów (Sentry, Database Webhooks `users`/`pages`/`billing_profiles`, logi) → Telegram |
+| `telegram-webhook` | Router alertów (Sentry, Database Webhooks `users`/`pages`/`billing_profiles`, logi) → Telegram; **`Bearer TELEGRAM_WEBHOOK_SECRET`** |
 
 **Współdzielona logika:** `supabase/functions/_shared/stripeBilling.ts`, `wfirmaBilling.ts`, `wfirmaInvoiceLedger.ts`, `aiCopySchemas.ts` (whitelist copy per motyw + `buildGeminiResponseSchema`).
 
@@ -286,7 +290,7 @@ supabase db push
 
 **Baseline:** `supabase/migrations/20260603072317_remote_schema.sql`. Oficjalny seed demo: `supabase/migrations/20260616150000_seed_demo_catalog_pages.sql`.
 
-**Database Webhooks (Telegram):** Dashboard → Database Webhooks → `…/functions/v1/telegram-webhook`. **Nie** commituj triggerów SQL z `http_request`.
+**Database Webhooks (Telegram):** Dashboard → Database Webhooks → `…/functions/v1/telegram-webhook` z nagłówkiem `Authorization: Bearer <TELEGRAM_WEBHOOK_SECRET>`. **Nie** commituj triggerów SQL z `http_request`. To samo dla Sentry outbound webhook.
 
 ### 3.4 Stripe Test vs Live
 
@@ -376,6 +380,21 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-07-27 — Security hotfix Critical + High
+
+Migracja `20260727180000_security_harden_crit_high.sql` + Edge + front:
+
+- **C1:** `purge_trial_blocked_pages_after_grace` — EXECUTE tylko `postgres`/`service_role`.
+- **C2:** trigger `protect_pages_billing_columns` — client nie zmienia `billing_plan` / `trial_*` / `purge_warning_sent_at`; panel nie czyści blokad przy publish.
+- **C3:** usunięta polityka INSERT `billing_profiles` dla authenticated.
+- **H2:** SELECT `pages` — anon publiczny; authenticated tylko owner (+ God Mode); zawężone GRANT kolumn.
+- **H3:** Storage `images` ownership; upload `{user_id}/…`.
+- **C4:** `telegram-webhook` + `TELEGRAM_WEBHOOK_SECRET`.
+- **H1:** `returnUrl` / CORS via `_shared/allowedOrigins.ts` (bez `*.pages.dev`).
+- **H4:** `GOOGLE_MAPS_EMBED_API_KEY` osobno od Places.
+- **Ops Staging/Prod:** `secrets set` obu kluczy; Dashboard DB Webhook + Sentry → Bearer header; potem `db push` + `functions deploy`.
+- **Wdrożone 2026-07-27:** migracja + Edge na Staging i Production; sekrety `TELEGRAM_WEBHOOK_SECRET` i `GOOGLE_MAPS_EMBED_API_KEY` ustawione. **Wymagane ręcznie:** w Dashboard (oba projekty) dodać nagłówek `Authorization: Bearer <TELEGRAM_WEBHOOK_SECRET>` do Database Webhooks i Sentry → `telegram-webhook` (bez tego alerty ops wrócą 401). Wartość secreta: `supabase secrets list` nie pokazuje plaintext — użyć lokalnie wygenerowanej przy deployu lub `secrets set` ponownie i zaktualizować webhooki.
 
 ### 2026-07-24 — UI platformy PL / EN (landing + auth)
 
