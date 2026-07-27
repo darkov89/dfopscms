@@ -127,6 +127,11 @@
       async createPage() {
         this.loading = true;
         this.errorMessage = '';
+        // Autofill czasem wypełnia DOM bez x-model — zsynchronizuj przed walidacją.
+        const pwEl = document.getElementById('reg-password');
+        const pw2El = document.getElementById('reg-password-confirm');
+        if (pwEl && typeof pwEl.value === 'string') this.form.password = pwEl.value;
+        if (pw2El && typeof pw2El.value === 'string') this.form.passwordConfirm = pw2El.value;
         const slugTrimmed = (this.form.slug || '').trim();
         const loc = this.uiLocale;
         try {
