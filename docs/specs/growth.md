@@ -1,6 +1,6 @@
-# DFCMS — Silnik Wzrostu (Growth Autopilot)
+# Growth
 
-> **Spec wdrożeniowy dla agentów.** Stan produkcji i konwencje repo: [`MASTER_CONTEXT.md`](MASTER_CONTEXT.md).  
+> **Spec wdrożeniowy dla agentów.** Stan produkcji i konwencje repo: [`CONTEXT.md`](../CONTEXT.md).  
 > **Cel produktu:** CMS, który po publikacji strony co tydzień podpowiada **jedną** konkretną zmianę związaną z klientami (telefon, rezerwacja, opinie), a nie kolejny wykres odwiedzin.
 
 **Ostatnia aktualizacja:** 2026-07-04 (v2 — repurposing `analytics_events`, bez `site_events`)
@@ -360,7 +360,7 @@ Tracking konwersji DFCMS (first-party, brak cookies marketingowych) traktować j
 
 ## 6. Silnik reguł — `js/core/growthRules.js`
 
-**Wzorzec:** [`js/core/themeConfig.js`](../js/core/themeConfig.js) — IIFE, eksporty `window.DFOPS_*`.
+**Wzorzec:** [`js/core/themeConfig.js`](../../js/core/themeConfig.js) — IIFE, eksporty `window.DFOPS_*`.
 
 ### 6.1 Kontekst ewaluacji
 
@@ -433,7 +433,7 @@ Getter w `adminApp.js` ładuje oba jak dziś (`this.content` = draft, `_publishe
 
 ## 7. Kontrakt JSON — `pages.content.pl.settings.growth`
 
-**Pliki obowiązkowe przy dodaniu pola:** [`contentSchema.js`](../js/core/contentSchema.js), [`contentUpgrader.js`](../js/core/contentUpgrader.js), [`registry.js`](../js/templates/registry.js) (defaults per theme).
+**Pliki obowiązkowe przy dodaniu pola:** [`contentSchema.js`](../../js/core/contentSchema.js), [`contentUpgrader.js`](../../js/core/contentUpgrader.js), [`registry.js`](../../js/templates/registry.js) (defaults per theme).
 
 ```json
 {
@@ -700,7 +700,7 @@ Ten sam wzorzec dla przyszłych wycinków — **nie** powrót do mixins per wars
 
 Build JS (`npm run build:admin-js`) — **dopiero gdy ≥2 moduły**; do tego osobne `<script defer>` (debugowalne na localhost).
 
-Vite / ESM (`PRODUCT_ROADMAP` Faza 1–2) — growth jako pierwszy pakiet do `src/features/growth/`; attach zostaje composition root.
+Vite / ESM (`ROADMAP` Faza 1–2) — growth jako pierwszy pakiet do `src/features/growth/`; attach zostaje composition root.
 
 ### 14.6 Kolejność PR (rekomendowana)
 
@@ -727,13 +727,13 @@ Każdy PR = deployowalny na Staging; G0 daje wartość UX (reguły + mock) bez D
 - Integracja z `expire-trial-pages`: miękkie nudge przed blokadą trial („Dodaj telefon — 0 kliknięć w 14 dni”).
 - A/B hero — dopiero po G4 + historia wersji treści.
 - **Dedup `page_view` (feedback CTO 2026-07-05):** dziś surowe odsłony (celowa decyzja v0 — spójność z licznikami CTA). Przy realnym wzroście ruchu rozważyć unikalny indeks `(page_id, event_name, visitor_key) WHERE event_scope='visit'` w `record-site-event` (odrzuca duplikaty tego samego odwiedzającego/dnia po stronie serwera, bez `sessionStorage` — `sessionStorage` podlegałby art. 173 Prawo Telekomunikacyjne jak cookies i wymagałby zmiany klauzuli RODO). Świadomie odłożone — ruch SMB dziś rzędy wielkości poniżej darmowych limitów Supabase Edge Functions.
-- **Zakładka „Statystyki” (Faza A+B) — ZROBIONE 2026-07-05:** dowolny zakres dat (presety 7/30/90 dni + Od zawsze + własny) i unikalni **dziennie** (`count(distinct visitor_key)`) przez RPC `get_page_stats_range`; eksport CSV/Excel; moduł `js/features/growth/statsPanel.js` + `admin/partials/tab-stats.html`. Szczegóły w `MASTER_CONTEXT.md` §4.
+- **Zakładka „Statystyki” (Faza A+B) — ZROBIONE 2026-07-05:** dowolny zakres dat (presety 7/30/90 dni + Od zawsze + własny) i unikalni **dziennie** (`count(distinct visitor_key)`) przez RPC `get_page_stats_range`; eksport CSV/Excel; moduł `js/features/growth/statsPanel.js` + `admin/partials/tab-stats.html`. Szczegóły w `docs/CONTEXT.md` §4.
 - **Region/kraj (backlog):** wymaga GeoIP w `record-site-event` (nagłówek `cf-ipcountry` niegwarantowany), migracji kolumny `analytics_events.country` i aktualizacji klauzuli RODO; działa tylko „od teraz” (brak danych wstecz). Odłożone.
 
 ---
 
 ## Powiązane dokumenty
 
-- [`MASTER_CONTEXT.md`](MASTER_CONTEXT.md) — środowiska, panel IA, themeConfig, Edge, migracje
-- [`PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md) — architektura V2 (nie blokuje Silnika Wzrostu)
-- [`system-flow.mermaid`](system-flow.mermaid) — diagram ogólny (można dodać gałąź po wdrożeniu G1)
+- [`CONTEXT.md`](../CONTEXT.md) — środowiska, panel IA, themeConfig, Edge, migracje
+- [`ROADMAP.md`](../ROADMAP.md) — architektura V2 (nie blokuje Silnika Wzrostu)
+- [`system-flow.mermaid`](../system-flow.mermaid) — diagram ogólny (można dodać gałąź po wdrożeniu G1)

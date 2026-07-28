@@ -12,7 +12,7 @@ const corsHeaders: Record<string, string> = {
 
 /**
  * Silnik Wzrostu (G1) — zapis konwersji publicznych + odwiedzin do `analytics_events`.
- * Kontrakt: docs/GROWTH_AUTOPILOT_ARCHITECTURE.md §4.1.
+ * Kontrakt: docs/specs/growth.md §4.1.
  *
  * POST { slug, event_type, source? }
  * `event_type: 'page_view'` → event_scope='visit' (odwiedziny); reszta → event_scope='conversion' (klik CTA).

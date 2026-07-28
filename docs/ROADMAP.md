@@ -1,8 +1,8 @@
-# DFCMS — PRODUCT ROADMAP (Post-MVP)
+# Roadmap
 
-> **Plan strategiczny** po fazie MVP / po ~10 płacących klientach. Stan bieżący produkcji: [`MASTER_CONTEXT.md`](MASTER_CONTEXT.md).
+> **Plan strategiczny** po fazie MVP / po ~10 płacących klientach. Stan bieżący produkcji: [`CONTEXT.md`](CONTEXT.md).
 
-**Ostatnia aktualizacja:** 2026-07-24 — UI platformy PL/EN
+**Ostatnia aktualizacja:** 2026-07-28 — Uniwersalne nazwy docs
 
 ---
 
@@ -10,7 +10,7 @@
 
 **Priorytet produktowy post-MVP** — CMS, który po publikacji strony co tydzień podpowiada jedną zmianę związaną z klientami (telefon, rezerwacja, opinie), z licznikami konwersji i benchmarkami branżowymi.
 
-**Spec wdrożeniowy (fazy G0–G4, DB, Edge, panel):** [`docs/GROWTH_AUTOPILOT_ARCHITECTURE.md`](GROWTH_AUTOPILOT_ARCHITECTURE.md).
+**Spec wdrożeniowy (fazy G0–G4, DB, Edge, panel):** [`docs/specs/growth.md`](specs/growth.md).
 
 Nie blokuje architektury V2 poniżej — fazy G0–G1 można wdrażać na obecnym stacku (bez Vite/bundlera).
 
@@ -18,7 +18,7 @@ Nie blokuje architektury V2 poniżej — fazy G0–G1 można wdrażać na obecny
 
 ## 0b. Wielojęzyczność witryn (i18n) — PL + EN + DE
 
-**Spec:** [`docs/I18N_ARCHITECTURE.md`](I18N_ARCHITECTURE.md) — fazy L0–L4 (wdrożone w kodzie 2026-07-23).
+**Spec:** [`docs/specs/i18n.md`](specs/i18n.md) — fazy L0–L4 (wdrożone w kodzie 2026-07-23).
 
 - Jeden `pages` row; `meta.locales` + bloki `pl`/`en`/`de`; URL `/` vs `/en` vs `/de`; hreflang; AI generate/adapt.
 - Starter = tylko PL; Standard/Custom = do 3 locale.

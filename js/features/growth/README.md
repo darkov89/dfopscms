@@ -1,7 +1,7 @@
 # Silnik Wzrostu (Growth Autopilot) — moduł panelu
 
 Pierwszy pionowy wycinek produktowy poza monolitem `js/features/adminApp.js`.
-Pełna specyfikacja: [`docs/GROWTH_AUTOPILOT_ARCHITECTURE.md`](../../../docs/GROWTH_AUTOPILOT_ARCHITECTURE.md) (§14).
+Pełna specyfikacja: [`docs/specs/growth.md`](../../../docs/specs/growth.md) (§14).
 
 ## Warstwy
 
@@ -45,7 +45,7 @@ Growth dodaje na `app`: `growthLoading`, `growthBenchmarks`, `growthWeekStats`, 
 ## Kolejne moduły panelu (po Growth)
 
 Ten sam wzorzec — **nie** powrót do mixins per warstwa techniczna (rollback 2026-07-04,
-`docs/MASTER_CONTEXT.md` §4):
+`docs/CONTEXT.md` §4):
 
 | Moduł (przyszłość) | Katalog | Hook |
 |---------------------|---------|------|

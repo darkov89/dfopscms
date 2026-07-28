@@ -13,7 +13,7 @@ description: >-
 
 ## Before any change
 
-1. Read **`docs/MASTER_CONTEXT.md`** (§1.2 środowiska, §3 migracje/deploy, §3.4 Stripe).
+1. Read **`docs/CONTEXT.md`** (§1.2 środowiska, §3 migracje/deploy, §3.4 Stripe).
 2. Confirm **linked project** before `db push` / `functions deploy`:
 
 ```bash
@@ -88,7 +88,7 @@ Staging Auth → URL Configuration must include `http://localhost:3000/admin.htm
 
 - Run/advise smoke: Checkout on Staging (card `4242…`), webhook delivery in Stripe Dashboard.
 - After schema change: `supabase migration list` and test panel load (`billingProfileReady`).
-- Update **`docs/MASTER_CONTEXT.md`** §4 when production behavior or deploy steps change.
+- Update **`docs/CONTEXT.md`** §4 when production behavior or deploy steps change.
 
 ## References
 

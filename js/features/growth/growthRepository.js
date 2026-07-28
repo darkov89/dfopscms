@@ -1,5 +1,5 @@
 // Silnik Wzrostu (G2/G3) — adapter DB. Warstwa: Supabase + config, BEZ Alpine i BEZ reguł UI
-// (patrz docs/GROWTH_AUTOPILOT_ARCHITECTURE.md §14.2). Wołane wyłącznie z growthPanel.js.
+// (patrz docs/specs/growth.md §14.2). Wołane wyłącznie z growthPanel.js.
 ;(function () {
   function resolveClient(explicitClient) {
     if (explicitClient) return explicitClient;

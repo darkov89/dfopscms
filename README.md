@@ -6,10 +6,11 @@ Lekki CMS pod strony wizytówkowe: statyczny front (HTML + JavaScript), treść 
 
 | Plik | Po co |
 |------|--------|
-| [`docs/MASTER_CONTEXT.md`](docs/MASTER_CONTEXT.md) | Stan techniczny: architektura, środowiska, Edge, migracje, Stripe, changelog |
-| [`docs/PRODUCT_ROADMAP.md`](docs/PRODUCT_ROADMAP.md) | Plany post-MVP: architektura V2, UX, backlog ticketów |
+| [`docs/CONTEXT.md`](docs/CONTEXT.md) | Stan techniczny: architektura, środowiska, Edge, migracje, Stripe, changelog |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md) | Plany post-MVP: architektura V2, UX, backlog ticketów |
+| [`docs/specs/`](docs/specs/) | Specyfikacje feature (`growth.md`, `i18n.md`) |
 
-**Supabase w dev:** bez Dockera; `js/core/config.js` kieruje localhost na projekt **Staging** (`asxrsdsprrbvjvgcsckh`). Szczegóły: [`docs/MASTER_CONTEXT.md`](docs/MASTER_CONTEXT.md) §3.
+**Supabase w dev:** bez Dockera; `js/core/config.js` kieruje localhost na projekt **Staging** (`asxrsdsprrbvjvgcsckh`). Szczegóły: [`docs/CONTEXT.md`](docs/CONTEXT.md) §3.
 
 ## Szybki start
 
@@ -31,7 +32,7 @@ Front: **http://localhost:3000** (`serve`). Nie otwieraj `admin.html` z `file://
 | `functions/_middleware.js` | Middleware **Cloudflare Pages** |
 | `supabase/functions/` | **Supabase Edge Functions** (Deno) |
 | `supabase/migrations/` | Migracje DB (baseline: `20260603072317_remote_schema.sql`) |
-| `docs/MASTER_CONTEXT.md`, `docs/PRODUCT_ROADMAP.md` | Kontekst techniczny i roadmap post-MVP |
+| `docs/CONTEXT.md`, `docs/ROADMAP.md`, `docs/specs/` | Kontekst, roadmap, feature specs |
 | `index.html`, `router.html`, … (root) | Pozostałe wejścia statyczne (Cloudflare Pages) |
 | `scripts/` | Generatory: demo seeds, **`build:admin`**, `split:admin` |
 
@@ -51,7 +52,7 @@ Front: **http://localhost:3000** (`serve`). Nie otwieraj `admin.html` z `file://
 | DB + Edge Staging | `npm run deploy:db:staging` · `npm run deploy:functions:staging` |
 | DB + Edge Production | `npm run deploy:db:production` · `npm run deploy:functions:production` |
 
-Pełna checklista: [`docs/MASTER_CONTEXT.md`](docs/MASTER_CONTEXT.md) §3.5.
+Pełna checklista: [`docs/CONTEXT.md`](docs/CONTEXT.md) §3.5.
 
 ## Demo katalogowe
 

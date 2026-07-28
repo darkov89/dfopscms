@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Generuje docs/DFCMS-Architecture-and-Flow.pdf z docs/DFCMS-Architecture-and-Flow.html
+ * Generuje docs/architecture-flow.pdf z docs/architecture-flow.html
  * Wymaga Google Chrome (macOS) lub ustaw CHROME_PATH.
  */
 import { spawnSync } from 'node:child_process';
@@ -9,8 +9,8 @@ import path from 'node:path';
 import fs from 'node:fs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const html = path.join(root, 'docs/DFCMS-Architecture-and-Flow.html');
-const pdf = path.join(root, 'docs/DFCMS-Architecture-and-Flow.pdf');
+const html = path.join(root, 'docs/architecture-flow.html');
+const pdf = path.join(root, 'docs/architecture-flow.pdf');
 
 const chromeCandidates = [
   process.env.CHROME_PATH,

@@ -1,7 +1,7 @@
 // Silnik Wzrostu (G1) — tracking konwersji publicznych (telefon/rezerwacja/WhatsApp).
 // Wzorzec: IIFE + window.DFOPS_* (jak js/core/analytics.js), ale osobny moduł —
 // stary DFOPS_trackEvent (panel) NIE jest używany przez Silnik Wzrostu.
-// Kontrakt: docs/GROWTH_AUTOPILOT_ARCHITECTURE.md §5.1.
+// Kontrakt: docs/specs/growth.md §5.1.
 ;(function () {
   const DEBOUNCE_MS = 2000;
   const lastSentAt = new Map();

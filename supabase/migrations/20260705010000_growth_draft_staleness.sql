@@ -1,4 +1,4 @@
--- Silnik Wzrostu — domknięcie reguły `publish_reminder` (docs/GROWTH_AUTOPILOT_ARCHITECTURE.md §6.3, §11).
+-- Silnik Wzrostu — domknięcie reguły `publish_reminder` (docs/specs/growth.md §6.3, §11).
 -- Problem: reguła sprawdzała `weekStats.draft_stale_days`, ale nic go nie liczyło — reguła nigdy
 -- się nie wyzwalała. Rozwiązanie: znacznik czasu rozbieżności draft/content liczony triggerem
 -- w bazie (zero zmian w adminApp.js — zgodnie z ochroną monolitu, §14).

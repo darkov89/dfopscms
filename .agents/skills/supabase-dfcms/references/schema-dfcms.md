@@ -27,4 +27,4 @@
 - Owner writes via `auth.uid()` matching page owner.
 - Never authorize from `user_metadata` — use `app_metadata` or DB columns.
 
-Full security notes: `docs/MASTER_CONTEXT.md` §1.5, §2.
+Full security notes: `docs/CONTEXT.md` §1.5, §2.

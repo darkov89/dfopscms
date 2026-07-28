@@ -1,5 +1,5 @@
 // Silnik Wzrostu (G0) — reguły branżowe + kontekst ewaluacji. Warstwa domenowa: PURE
-// functions, bez Alpine, bez Supabase (patrz docs/GROWTH_AUTOPILOT_ARCHITECTURE.md §6, §14.2).
+// functions, bez Alpine, bez Supabase (patrz docs/specs/growth.md §6, §14.2).
 // Wzorzec: js/core/themeConfig.js (IIFE, window.DFOPS_*).
 ;(function () {
   function str(v) {

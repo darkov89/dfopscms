@@ -14,7 +14,7 @@
 
   /**
    * Silnik Wzrostu (G3) — kontrakt `pages.content.pl.settings.growth`.
-   * Zapis WYŁĄCZNIE w `draft_content` (autosave panelu) — patrz docs/GROWTH_AUTOPILOT_ARCHITECTURE.md §7.
+   * Zapis WYŁĄCZNIE w `draft_content` (autosave panelu) — patrz docs/specs/growth.md §7.
    * `dismissed_rule_ids` — max 50 ID (obcinane w growthPanel.js); `last_shown_rule_id` + `last_shown_at`
    * sterują rotacją tygodniową rekomendacji.
    */

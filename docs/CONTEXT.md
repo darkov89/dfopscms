@@ -1,9 +1,9 @@
-# DFCMS — MASTER CONTEXT
+# Context
 
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
-> Plany post-MVP: [`docs/PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
+> Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-07-27 — Security hotfix Crit+High
+**Ostatnia aktualizacja:** 2026-07-28 — Uniwersalne nazwy docs (`CONTEXT` / `ROADMAP` / `specs/`)
 
 ---
 
@@ -103,7 +103,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 
 **Security (skrót):** forced password reset, DOMPurify, sanitizacja URL-like pól `pages.content` na zapisie i odczycie, Cloudflare Turnstile dla rejestracji/custom inquiry/checkout, CSP/HSTS/XFO/nosniff w `functions/_middleware.js`, publiczny odczyt `pages` (anon + query); authenticated SELECT tylko własne wiersze (+ God Mode); `billing_plan` / `trial_*` tylko `service_role` (trigger); brak client INSERT na `billing_profiles`; Storage `images` z ownership; Stripe webhook tylko Edge; Places key vs Embed key osobno; `telegram-webhook` wymaga `Bearer TELEGRAM_WEBHOOK_SECRET`; Checkout/Portal `returnUrl` na allowliście hostów (bez `*.pages.dev`).
 
-**Silnik Wzrostu (G0–G3 wdrożone na Staging i Produkcję):** CMS podpowiada co tydzień jedną zmianę związaną z konwersją (telefon, rezerwacja, opinie), liczniki kliknięć CTA, odwiedzin (`page_view`) i benchmarki branżowe per `theme`. **Spec:** [`docs/GROWTH_AUTOPILOT_ARCHITECTURE.md`](GROWTH_AUTOPILOT_ARCHITECTURE.md). **Repurpose** `analytics_events` (`event_scope`: `conversion` | `visit` | `legacy`) + `growth_benchmarks` + `pages.draft_updated_at` (trigger `publish_reminder`); Edge `record-site-event` i `aggregate-growth-benchmarks`; RPC `get_page_growth_stats` / `aggregate_growth_benchmarks`. Tracking: `siteAnalytics.js` + `publicSiteApp.onConversionClick` / `recordPageView()`. Panel: `js/features/growth/` + hook `DFOPS_attachGrowthPanel` (3 linie w `adminApp.js`). Dashboard: karta priorytetu + 4 liczniki (odwiedziny + 3× CTA) z przyciskiem „Odśwież”. Zakładka „Statystyki” (`statsPanel.js` + `tab-stats.html`): zakres dat (presety + własny), total vs unikalni dziennie, eksport CSV/Excel — RPC `get_page_stats_range`. RODO: klauzula w `infrastructurePrivacyHtml()`. **Pozostało operacyjnie:** harmonogram cron Dashboardu (`aggregate-growth-benchmarks`, `0 3 * * 1`, `Bearer CRON_SECRET`) na Staging **i** Prod; test manualny G1/G3 na żywym ruchu. G4 (one-click draft) — poza zakresem.
+**Silnik Wzrostu (G0–G3 wdrożone na Staging i Produkcję):** CMS podpowiada co tydzień jedną zmianę związaną z konwersją (telefon, rezerwacja, opinie), liczniki kliknięć CTA, odwiedzin (`page_view`) i benchmarki branżowe per `theme`. **Spec:** [`docs/specs/growth.md`](specs/growth.md). **Repurpose** `analytics_events` (`event_scope`: `conversion` | `visit` | `legacy`) + `growth_benchmarks` + `pages.draft_updated_at` (trigger `publish_reminder`); Edge `record-site-event` i `aggregate-growth-benchmarks`; RPC `get_page_growth_stats` / `aggregate_growth_benchmarks`. Tracking: `siteAnalytics.js` + `publicSiteApp.onConversionClick` / `recordPageView()`. Panel: `js/features/growth/` + hook `DFOPS_attachGrowthPanel` (3 linie w `adminApp.js`). Dashboard: karta priorytetu + 4 liczniki (odwiedziny + 3× CTA) z przyciskiem „Odśwież”. Zakładka „Statystyki” (`statsPanel.js` + `tab-stats.html`): zakres dat (presety + własny), total vs unikalni dziennie, eksport CSV/Excel — RPC `get_page_stats_range`. RODO: klauzula w `infrastructurePrivacyHtml()`. **Pozostało operacyjnie:** harmonogram cron Dashboardu (`aggregate-growth-benchmarks`, `0 3 * * 1`, `Bearer CRON_SECRET`) na Staging **i** Prod; test manualny G1/G3 na żywym ruchu. G4 (one-click draft) — poza zakresem.
 
 **Luki:** brak obowiązkowego E2E/CI dla Edge; wildcard `*.dfcms.pl` w Cloudflare Pages; RLS anon read wymaga GRANT + polityki; brak historii wersji treści; monolityczny panel (`admin.html` + `adminApp.js`) utrudnia kolejne zmiany IA — Silnik Wzrostu jest pierwszym wycinkiem poza monolitem (wzorzec do powielenia).
 
@@ -142,7 +142,7 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 
 **Progressive disclosure:** Kontakt (rezerwacje na górze; adres/mapa, WhatsApp, social w `<details>`); Baner (CTA w `<details>`; manifesto → osobna zakładka); Wygląd (logo + presety kolorów; reszta w „Ustawienia zaawansowane…”).
 
-**Panel JS:** monolit `adminApp.js` + **pierwszy moduł feature** `js/features/growth/` (attach hook — §14 w [`GROWTH_AUTOPILOT_ARCHITECTURE.md`](GROWTH_AUTOPILOT_ARCHITECTURE.md)). HTML partials + `build:admin` bez zmian.
+**Panel JS:** monolit `adminApp.js` + **pierwszy moduł feature** `js/features/growth/` (attach hook — §14 w [`specs/growth.md`](specs/growth.md)). HTML partials + `build:admin` bez zmian.
 
 ### 1.5.1 Theme-aware panel (`themeConfig`) — wzorzec
 
@@ -338,7 +338,7 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 | `css/`, `img/`, `assets/images/` | Statyka; placeholdery demo w `img/`; docelowo logo/obrazy w `assets/images/` |
 | `data/seeds/` | JSON demo katalogowych dla localhost (`demo_pages.json`) — w repo, deployowane na CF Pages |
 | `scripts/` | Generatory (migracja demo, extract seeds) — nie deployowane jako runtime |
-| `docs/` | Dokumentacja (`MASTER_CONTEXT`, roadmap, eksporty architektury) |
+| `docs/` | `CONTEXT.md`, `ROADMAP.md`, `specs/` (feature specs), `architecture-flow.html` |
 
 **Co jest w repo a co nie (deploy vs archiwum):**
 
@@ -346,7 +346,7 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 |-----------|-----------|--------|
 | **Deployowane (CF Pages + git)** | `admin.html`, `templates/`, `js/`, `functions/`, `img/` | Push `staging` / `main` |
 | **Deployowane (Supabase CLI)** | `supabase/migrations/`, `supabase/functions/` | Osobno od frontu; secrets w Dashboard |
-| **W repo, nie runtime produktu** | `scripts/`, `docs/DFCMS-Architecture-and-Flow.html` | Tooling / dokumentacja; **nie** wdrażać na Pages |
+| **W repo, nie runtime produktu** | `scripts/`, `docs/architecture-flow.html` | Tooling / dokumentacja; **nie** wdrażać na Pages |
 | **Poza repo (archiwum GTM, lokalne)** | `~/projekty/dfcms-lead-gen-archive/` | Dataset Apify / crawler Google Places (40 wizytówek — **nie** demo katalogowe). **Nigdy nie było w runtime DFCMS ani w adminie.** Demo katalogowe → `data/seeds/demo_pages.json` + migracja `20260616150000_*`. |
 | **Lokalne / pomocnicze** | `supabase/migrations_backup/`, `migrations_local_only/`, `snippets/` | Nie pushować na prod bez review; mogą być puste |
 | **Gitignored** | `.env*`, `node_modules/`, `supabase/.temp/`, `.supabase/`, `dataset_crawler-google-places_*.json` | Sekrety i cache CLI |
@@ -375,11 +375,18 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 | Szablony publiczne | `templates/{beauty,fitness,services,consultant,gastro,care}.html`, boilerplate `templates/_base_template.html` |
 | Rejestracja | `rejestracja.html`, `registrationApp.js`, trigger `handle_new_user` |
 | Edge Stripe | `create-checkout`, `stripe-webhook`, `sync-stripe-subscription`, `_shared/stripeBilling.ts` |
-| Silnik Wzrostu (spec) | [`docs/GROWTH_AUTOPILOT_ARCHITECTURE.md`](GROWTH_AUTOPILOT_ARCHITECTURE.md) |
+| Silnik Wzrostu (spec) | [`docs/specs/growth.md`](specs/growth.md) |
 
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-07-28 — Uniwersalne nazwy docs (agent context)
+
+- Renames: `MASTER_CONTEXT.md` → `CONTEXT.md`, `PRODUCT_ROADMAP.md` → `ROADMAP.md`.
+- Feature specs: `docs/specs/growth.md`, `docs/specs/i18n.md` (było `*_ARCHITECTURE.md` w korzeniu `docs/`).
+- Eksport flow: `docs/architecture-flow.html` (+ skrypt PDF).
+- Zaktualizowane odniesienia: README, `.cursor/rules/living-context.mdc`, skills, komentarze w JS/SQL/Edge.
 
 ### 2026-07-27 — Security hotfix Critical + High
 
@@ -424,7 +431,7 @@ AI Site Generator na landingu jako **akcelerator konwersji**, nie jako produkt s
 
 ### 2026-07-23 — Wielojęzyczność witryn (PL / EN / DE)
 
-Spec: [`docs/I18N_ARCHITECTURE.md`](I18N_ARCHITECTURE.md).
+Spec: [`docs/specs/i18n.md`](specs/i18n.md).
 
 - **Kontrakt:** `content.meta` (`defaultLocale`, `locales`) + top-level bloki `pl` / `en` / `de`; sync settings/kontaktu technicznego z default; `contentUpgrader` + `i18nContent.js` / `i18nLocales.js`.
 - **URL / SEO:** middleware path `/en`, `/de`; `html lang` + `hreflang` + canonical; redirect gdy locale wyłączone; sitemap z prefixami; public `lang` z URL (nie `navigator.language`).
@@ -491,7 +498,7 @@ Rozszerzenie analityki poza dashboard, w tym samym wzorcu Lite Hexagonal (moduł
 
 ### 2026-07-05 — Silnik Wzrostu: implementacja G0–G3 (Lite Hexagonal)
 
-Wdrożenie wg [`docs/GROWTH_AUTOPILOT_ARCHITECTURE.md`](GROWTH_AUTOPILOT_ARCHITECTURE.md) — **wdrożone na Staging i Produkcję (2026-07-05).**
+Wdrożenie wg [`docs/specs/growth.md`](specs/growth.md) — **wdrożone na Staging i Produkcję (2026-07-05).**
 
 - **DB:** `supabase/migrations/20260705000000_growth_engine.sql` — repurpose `analytics_events` (`page_id`, `slug`, `source`, `visitor_key`, `event_scope`; `created_at` → `timestamptz` z defaultem); RLS: usunięty stary insert właściciela, nowa `analytics_events_owner_select_conversion` (SELECT `event_scope='conversion'` + `page_id` własny), INSERT tylko `service_role`; nowa tabela `growth_benchmarks` (RLS: SELECT `authenticated`, insert/update `service_role`); RPC `aggregate_growth_benchmarks()` (SECURITY DEFINER, wyklucza `demo-*`) i `get_page_growth_stats(page_id, days)` (SECURITY INVOKER).
 - **Edge:** `supabase/functions/record-site-event` (insert konwersji, walidacja slug/event_type/source, blokada `dfcms_preview=1`, rate-limit per IP+slug, `visitor_key` hash bez PII) i `aggregate-growth-benchmarks` (cron `Bearer CRON_SECRET`, wzorzec `expire-trial-pages`).
@@ -538,7 +545,7 @@ Wdrożenie wg [`docs/GROWTH_AUTOPILOT_ARCHITECTURE.md`](GROWTH_AUTOPILOT_ARCHITE
 
 ### 2026-07-04 — Spec architektury Silnika Wzrostu
 
-- **Dokument:** [`docs/GROWTH_AUTOPILOT_ARCHITECTURE.md`](GROWTH_AUTOPILOT_ARCHITECTURE.md) — plan wdrożenia Growth Autopilot dla agentów: fazy G0–G4, rozszerzenie `analytics_events` + `growth_benchmarks`, Edge Functions, `growthRules.js` / `siteAnalytics.js`, integracja z `themeConfig`, dashboard, RLS, checklist plików i testów.
+- **Dokument:** [`docs/specs/growth.md`](specs/growth.md) — plan wdrożenia Growth Autopilot dla agentów: fazy G0–G4, rozszerzenie `analytics_events` + `growth_benchmarks`, Edge Functions, `growthRules.js` / `siteAnalytics.js`, integracja z `themeConfig`, dashboard, RLS, checklist plików i testów.
 - **Decyzje:** rozszerzyć `analytics_events` (stary telemetry panelu nieużywany); reguły branżowe jak `themeConfig`; panel JS = monolit `adminApp.js`; HTML dashboard przez partials + `build:admin`.
 - **Rev 2 (2026-07-04):** rezygnacja z osobnej tabeli `site_events` — jedna tabela zdarzeń, cleanup `DFOPS_trackEvent` w panelu.
 - **Status:** spec tylko — brak kodu produkcyjnego do momentu ticketów G0+.
@@ -588,4 +595,4 @@ Na gałęzi `staging` przetestowano podział logiki panelu — **cofnięto**; st
 
 1. Na koniec sesji zmieniającej produkcję: zaktualizuj sekcje **1–3** i wpis w **§4**.
 2. Szczegóły implementacyjne zostaw w kodzie; tutaj **decyzje, stany, luki**.
-3. Plany post-MVP → [`PRODUCT_ROADMAP.md`](PRODUCT_ROADMAP.md).
+3. Plany post-MVP → [`ROADMAP.md`](ROADMAP.md).

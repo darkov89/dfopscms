@@ -12,7 +12,7 @@ description: >-
 
 ## Before any change
 
-1. Read **`docs/MASTER_CONTEXT.md`** (§1.2, §3.5 deploy, routing paths §1.3).
+1. Read **`docs/CONTEXT.md`** (§1.2, §3.5 deploy, routing paths §1.3).
 2. DFCMS front is **static** — no CF build step for JS bundling. Exception: **`admin.html` is generated** — run `npm run build:admin` after editing `admin/partials/`, then commit `admin.html`.
 
 ## Deploy model
@@ -62,7 +62,7 @@ Public URL cleanup: `publicSiteApp.cleanTenantPublicUrl()`.
 ## Custom domains (client `.pl` / `.com`)
 
 1. Panel → Edge `add-custom-domain` (Cloudflare for SaaS + `pages.custom_domain`).
-2. DNS CNAME → platform proxy (`proxy.dfcms.pl` / per MASTER_CONTEXT).
+2. DNS CNAME → platform proxy (`proxy.dfcms.pl` / per CONTEXT).
 3. Verify: `GET /api/verify-domain?domain=…` on Pages.
 
 Secrets for CF API live in **Supabase Edge** (`CF_ZONE_ID`, `CF_API_TOKEN`), not in static front.
@@ -85,7 +85,7 @@ When adding a new third-party script domain, update CSP in `_middleware.js` and 
 ## Verification after changes
 
 - Test: staging subdomain, `?site=` on apex, one custom domain flow, panel preview link.
-- Update **`docs/MASTER_CONTEXT.md`** §4 if routing or deploy behavior changes.
+- Update **`docs/CONTEXT.md`** §4 if routing or deploy behavior changes.
 
 ## References
 

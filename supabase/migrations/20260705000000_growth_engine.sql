@@ -1,5 +1,5 @@
 -- Silnik Wzrostu (Growth Autopilot) — G1 + G2.
--- Spec: docs/GROWTH_AUTOPILOT_ARCHITECTURE.md (§3).
+-- Spec: docs/specs/growth.md (§3).
 -- Repurpose `analytics_events` (stary telemetry panelu — event_scope='legacy', nieużywany) na
 -- konwersje publiczne (klik tel/rezerwacja/WhatsApp) + nowa tabela `growth_benchmarks`.
 
