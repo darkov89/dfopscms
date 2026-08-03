@@ -32,18 +32,11 @@ const SERVICE_TRADES: Record<string, FieldDef> = {
   icon: "string",
 };
 
+/** Tylko pola z edytorem w panelu (telefon / e-mail / adres). CTA rezerwacji = booking w adminie. */
 const CONTACT_COPY: Record<string, FieldDef> = {
   phone: "string",
   email: "string",
   address: "string",
-  cta: {
-    type: "object",
-    fields: {
-      title: "string",
-      description: "string",
-      button_text: "string",
-    },
-  },
 };
 
 const CONTACT_BASIC: Record<string, FieldDef> = {
@@ -61,19 +54,19 @@ const NAV_MENU_BEAUTY: Record<string, FieldDef> = {
   reviews: "string",
 };
 
+/** nav.logo = nazwa w menu (admin → Wygląd). Bez nav.cta — brak pola w panelu / szablonach. */
 const BASE_NAV = (menu: Record<string, FieldDef>): FieldDef => ({
   type: "object",
   fields: {
     logo: "string",
-    cta: "string",
     menu: { type: "object", fields: menu },
   },
 });
 
+/** Pola hero z zakładki Baner (+ opcjonalne w details). Bez subheadline — brak inputu w adminie. */
 const HERO_COMMON: Record<string, FieldDef> = {
   name: "string",
   headline: "string",
-  subheadline: "string",
   description: "string",
   button: "string",
 };
@@ -97,7 +90,7 @@ export const AI_COPY_SCHEMAS: Record<string, Record<string, FieldDef>> = {
       fields: { ...HERO_COMMON, qrText: "string" },
     },
     manifesto: MANIFESTO,
-    services: { type: "array", item: SERVICE_BASIC, maxItems: 8 },
+    services: { type: "array", item: SERVICE_PRICED, maxItems: 8 },
     faq: { type: "array", item: FAQ_ITEM, maxItems: 8 },
     contact: { type: "object", fields: CONTACT_COPY },
     google_reviews: { type: "object", fields: { title: "string" } },
@@ -115,17 +108,6 @@ export const AI_COPY_SCHEMAS: Record<string, Record<string, FieldDef>> = {
     hero: { type: "object", fields: HERO_COMMON },
     manifesto: MANIFESTO,
     services: { type: "array", item: SERVICE_BASIC, maxItems: 8 },
-    proof: {
-      type: "object",
-      fields: {
-        label: "string",
-        title: "string",
-        text: "string",
-        statNumber: "string",
-        statLabel: "string",
-        statDesc: "string",
-      },
-    },
     faq: { type: "array", item: FAQ_ITEM, maxItems: 8 },
     reviews: {
       type: "array",
@@ -136,10 +118,6 @@ export const AI_COPY_SCHEMAS: Record<string, Record<string, FieldDef>> = {
     google_reviews: { type: "object", fields: { title: "string" } },
     gallery: { type: "object", fields: { title: "string" } },
     seo: SEO,
-    footer: {
-      type: "object",
-      fields: { quote: "string", copyright: "string", privacy: "string" },
-    },
   },
   fitness: {
     nav: BASE_NAV({
@@ -305,6 +283,8 @@ function fieldDefToGeminiSchema(def: FieldDef): Record<string, unknown> {
       type: "OBJECT",
       properties,
       required,
+      // Blokuj klucze spoza schematu (np. „meta” w nav / root) — tylko pola z panelu.
+      propertyOrdering: required,
     };
   }
   if (def.type === "stringArray") {
@@ -328,6 +308,7 @@ function fieldDefToGeminiSchema(def: FieldDef): Record<string, unknown> {
       type: "OBJECT",
       properties: itemProps,
       required: itemRequired,
+      propertyOrdering: itemRequired,
     },
   };
   if (typeof def.maxItems === "number") {
@@ -338,7 +319,7 @@ function fieldDefToGeminiSchema(def: FieldDef): Record<string, unknown> {
 
 /**
  * Merge patch copy into existing `pl` according to schema whitelist.
- * contact.phone/email/address: only fill when existing value is empty.
+ * contact.phone/email/address + nav.logo: only fill when existing value is empty.
  */
 export function mergeAiCopyPatch(
   existingPl: Record<string, unknown>,
@@ -348,9 +329,15 @@ export function mergeAiCopyPatch(
   const schema = getCopySchemaForTheme(theme);
   if (!schema) return existingPl;
   const out = deepClone(existingPl);
+  // Usuń przypadkowe klucze techniczne, które model mógł dodać poza schematem.
+  for (const bad of ["meta", "shared", "settings"]) {
+    if (bad in (patch || {})) {
+      /* ignore — nie kopiujemy do pl */
+    }
+  }
   for (const key of Object.keys(schema)) {
     if (!(key in patch)) continue;
-    out[key] = mergeNode(out[key], patch[key], schema[key], key === "contact");
+    out[key] = mergeNode(out[key], patch[key], schema[key], key === "contact", key === "nav");
   }
   return out;
 }
@@ -360,6 +347,7 @@ function mergeNode(
   patch: unknown,
   def: FieldDef,
   isContactRoot: boolean,
+  isNavRoot = false,
 ): unknown {
   if (def === "string") {
     if (typeof patch !== "string") return existing ?? "";
@@ -380,6 +368,7 @@ function mergeNode(
           (item as Record<string, unknown>)[k],
           childDef,
           false,
+          false,
         );
       }
       return row;
@@ -394,16 +383,36 @@ function mergeNode(
   const p = patch as Record<string, unknown>;
   for (const [k, childDef] of Object.entries(def.fields)) {
     if (!(k in p)) continue;
-    if (isContactRoot && (k === "phone" || k === "email" || k === "address")) {
+    if (
+      (isContactRoot && (k === "phone" || k === "email" || k === "address")) ||
+      (isNavRoot && k === "logo")
+    ) {
       const cur = typeof base[k] === "string" ? String(base[k]).trim() : "";
       if (cur) continue;
       const next = typeof p[k] === "string" ? String(p[k]).trim() : "";
-      if (next) base[k] = next;
+      // Blokuj techniczne śmieci w nazwie marki / logo.
+      if (next && !isTechnicalJunkLabel(next)) base[k] = next;
       continue;
     }
-    base[k] = mergeNode(base[k], p[k], childDef, false);
+    base[k] = mergeNode(base[k], p[k], childDef, false, false);
   }
   return base;
+}
+
+/** Model czasem wpisuje „meta” / „seo” jako logo — nie zapisuj tego w menu. */
+function isTechnicalJunkLabel(s: string): boolean {
+  const t = s.trim().toLowerCase();
+  return (
+    t === "meta" ||
+    t === "seo" ||
+    t === "shared" ||
+    t === "null" ||
+    t === "undefined" ||
+    t === "logo" ||
+    t === "nav" ||
+    /^meta\s/i.test(t) ||
+    /^<\/?meta\b/i.test(t)
+  );
 }
 
 function deepClone<T>(v: T): T {
@@ -418,3 +427,61 @@ export const THEME_TONE_HINTS: Record<string, string> = {
   gastro: "apetyczny, gościnny, zmysłowy — restauracja/kawiarnia",
   care: "spokojny, profesjonalny, empatyczny — gabinet medyczny/terapia",
 };
+
+/**
+ * Po generacji AI: włącz flagi widoczności sekcji, gdy jest treść
+ * (inaczej usługi są w JSON, ale panel/public ich nie pokazuje).
+ */
+export function applyAiGeneratedSectionFlags(
+  pl: Record<string, unknown>,
+  theme: string,
+): void {
+  if (!pl || typeof pl !== "object") return;
+  const settings =
+    pl.settings && typeof pl.settings === "object" && !Array.isArray(pl.settings)
+      ? (pl.settings as Record<string, unknown>)
+      : {};
+  pl.settings = settings;
+
+  const hasTitle = (rows: unknown) =>
+    Array.isArray(rows) &&
+    rows.some((s) => s && typeof s === "object" && String((s as Record<string, unknown>).title || "").trim());
+
+  if (hasTitle(pl.services)) settings.showServices = true;
+  if (Array.isArray(pl.menu_items) && pl.menu_items.length > 0) {
+    /* gastro — brak showMenu; sekcja zawsze gdy są pozycje */
+  }
+  const manifesto = pl.manifesto as Record<string, unknown> | undefined;
+  if (
+    manifesto &&
+    (String(manifesto.title || "").trim() || String(manifesto.text || "").trim())
+  ) {
+    settings.showManifesto = true;
+  }
+  if (
+    Array.isArray(pl.faq) &&
+    pl.faq.some(
+      (f) =>
+        f &&
+        typeof f === "object" &&
+        String((f as Record<string, unknown>).question || "").trim(),
+    )
+  ) {
+    settings.showFaq = true;
+  }
+  const trust = pl.trust as Record<string, unknown> | undefined;
+  if (trust && String(trust.quote || "").trim()) settings.showTrust = true;
+  if (
+    Array.isArray(pl.reviews) &&
+    pl.reviews.some(
+      (r) =>
+        r &&
+        typeof r === "object" &&
+        String((r as Record<string, unknown>).content || "").trim(),
+    )
+  ) {
+    settings.showReviews = true;
+  }
+  settings.showContact = true;
+  void theme;
+}

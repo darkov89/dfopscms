@@ -48,7 +48,8 @@
     <script defer src="js/core/planUtils.js?v=20260723b"></script>
     <script defer src="js/core/trialBlocking.js?v=20260704h"></script>
     <script defer src="js/core/billingProfileView.js?v=20260523a"></script>
-    <script defer src="js/core/googlePlacesSync.js?v=20260522d"></script>
+    <script defer src="js/core/imageCompress.js?v=20260803a"></script>
+    <script defer src="js/core/googlePlacesSync.js?v=20260803a"></script>
     <script defer src="js/core/analytics.js?v=20260403t"></script>
     <!-- Silnik Wzrostu (Growth Autopilot) — lite hexagonal, ładowane przed adminApp.js (§14 spec). -->
     <script defer src="js/core/growthRules.js?v=20260705a"></script>
@@ -56,9 +57,9 @@
     <script defer src="js/features/growth/growthPanel.js?v=20260705a"></script>
     <script defer src="js/features/growth/statsPanel.js?v=20260705a"></script>
     <script defer src="js/features/i18nPanel.js?v=20260724a"></script>
-    <script defer src="js/features/aiGenerator.js?v=20260724a"></script>
+    <script defer src="js/features/aiGenerator.js?v=20260803a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260727a"></script>
+    <script defer src="js/features/adminApp.js?v=20260803b"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -1988,22 +1989,50 @@
                                         <input type="email" x-model="content.pl.contact.email" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="np. kontakt@twojafirma.pl">
                                     </div>
 
-                                    <details class="mb-4 border border-slate-200/80 rounded-xl p-4 md:p-5">
+                                    <details class="mb-4 border border-slate-200/80 rounded-xl p-4 md:p-5" open>
                                         <summary class="cursor-pointer text-sm font-bold text-slate-900">Adres i mapa Google</summary>
-                                        <div class="mt-4 space-y-4">
-                                            <div>
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Adres</label>
-                                                <input type="text" x-model="content.pl.contact.address" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none">
-                                            </div>
-                                            <div x-show="['beauty','consultant','fitness','services'].includes(theme)">
-                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Mapa Google</label>
-                                                <input type="text" x-model="content.pl.contact.map_embed_url" autocomplete="off" class="w-full rounded-lg border border-slate-200 px-4 py-3 mb-3 outline-none focus:ring-2 focus:ring-[#D4AF37]" placeholder="Link z Google Maps (Udostępnij → Umieść mapę)">
-                                                <div class="flex gap-2 mb-3">
-                                                    <input type="text" x-model="mapPlaceQuery" @keydown.enter.prevent="searchPlacesForMap()" placeholder="Szukaj firmy po nazwie lub adresie" class="flex-1 rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#D4AF37]">
-                                                    <button type="button" @click="searchPlacesForMap()" :disabled="mapPlaceLoading" class="shrink-0 px-5 py-3 bg-[#121212] text-white text-xs font-bold uppercase rounded-sm disabled:opacity-50">Szukaj</button>
+                                        <div class="mt-4 space-y-5">
+                                            <p class="text-xs text-slate-500 leading-relaxed">Mapa na stronie powstaje z jednego z dwóch sposobów — wybierz wygodniejszy:</p>
+
+                                            <!-- Ścieżka A: ręczny adres -->
+                                            <div class="rounded-xl border border-slate-200/80 bg-slate-50/50 p-4 space-y-3">
+                                                <h4 class="text-xs font-bold uppercase tracking-widest text-slate-700">1. Wpisz adres ręcznie</h4>
+                                                <input type="text"
+                                                       x-model="content.pl.contact.address"
+                                                       @blur="syncMapFromAddressField()"
+                                                       @keydown.enter.prevent="syncMapFromAddressField()"
+                                                       class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none"
+                                                       placeholder="ul. Przykładowa 1, 00-001 Warszawa">
+                                                <div class="flex flex-wrap items-center gap-2">
+                                                    <button type="button"
+                                                            @click="syncMapFromAddressField()"
+                                                            :disabled="mapPlaceLoading || !String(content.pl.contact?.address || '').trim()"
+                                                            class="px-4 py-2.5 bg-[#121212] text-white text-xs font-bold uppercase rounded-sm disabled:opacity-50">
+                                                        Ustaw mapę z adresu
+                                                    </button>
+                                                    <span x-show="mapPlaceLoading" class="text-xs text-[#D4AF37] font-semibold animate-pulse">Przygotowuję mapę…</span>
                                                 </div>
-                                                <p x-show="mapPlaceError" class="text-xs text-red-600 mb-2" x-text="mapPlaceError"></p>
-                                                <ul x-show="mapPlaceResults.length" class="border border-gray-200 rounded-sm divide-y divide-gray-100 max-h-56 overflow-y-auto mb-3">
+                                            </div>
+
+                                            <!-- Ścieżka B: firma z Google -->
+                                            <div class="rounded-xl border border-slate-200/80 bg-slate-50/50 p-4 space-y-3">
+                                                <h4 class="text-xs font-bold uppercase tracking-widest text-slate-700">2. Albo wyszukaj firmę w Google</h4>
+                                                <p class="text-xs text-slate-500 leading-relaxed">Po wyborze uzupełnimy adres i mapę automatycznie.</p>
+                                                <div class="flex gap-2">
+                                                    <input type="text"
+                                                           x-model="mapPlaceQuery"
+                                                           @keydown.enter.prevent="searchPlacesForMap()"
+                                                           placeholder="Nazwa firmy + miasto"
+                                                           class="flex-1 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#D4AF37]">
+                                                    <button type="button"
+                                                            @click="searchPlacesForMap()"
+                                                            :disabled="mapPlaceLoading"
+                                                            class="shrink-0 px-5 py-3 bg-[#121212] text-white text-xs font-bold uppercase rounded-sm disabled:opacity-50">
+                                                        Szukaj
+                                                    </button>
+                                                </div>
+                                                <p x-show="mapPlaceError" class="text-xs text-red-600" x-text="mapPlaceError"></p>
+                                                <ul x-show="mapPlaceResults.length" class="border border-gray-200 rounded-sm divide-y divide-gray-100 max-h-56 overflow-y-auto bg-white">
                                                     <template x-for="p in mapPlaceResults" :key="p.id">
                                                         <li class="flex items-start gap-3 p-3 hover:bg-slate-50/90 cursor-pointer" @click="mapPlaceSelectedId = p.id">
                                                             <input type="radio" :value="p.id" x-model="mapPlaceSelectedId" class="mt-1">
@@ -2014,11 +2043,48 @@
                                                         </li>
                                                     </template>
                                                 </ul>
-                                                <div class="flex flex-wrap gap-2">
-                                                    <button type="button" x-show="mapPlaceSelectedId" @click="confirmMapPlaceSelection()" class="px-5 py-2.5 bg-emerald-600 text-white text-xs font-bold uppercase rounded-sm">Użyj lokalizacji</button>
-                                                    <button type="button" x-show="content.pl.contact?.map_place_id" @click="clearMapPlaceSelection()" class="px-5 py-2.5 border border-gray-300 text-xs font-bold uppercase rounded-sm">Usuń mapę</button>
+                                                <button type="button"
+                                                        x-show="mapPlaceSelectedId"
+                                                        @click="confirmMapPlaceSelection()"
+                                                        :disabled="mapPlaceLoading"
+                                                        class="px-5 py-2.5 bg-emerald-600 text-white text-xs font-bold uppercase rounded-sm disabled:opacity-50">
+                                                    Użyj tej lokalizacji
+                                                </button>
+                                            </div>
+
+                                            <!-- Status + podgląd -->
+                                            <div class="space-y-3">
+                                                <div class="flex flex-wrap items-center gap-2">
+                                                    <span x-show="content.pl.contact?.map_embed_url"
+                                                          class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
+                                                        Mapa gotowa
+                                                        <span x-show="content.pl.contact?.map_place_id" class="ml-1 font-normal text-emerald-700/80">· z firmy Google</span>
+                                                        <span x-show="!content.pl.contact?.map_place_id" class="ml-1 font-normal text-emerald-700/80">· z adresu</span>
+                                                    </span>
+                                                    <button type="button"
+                                                            x-show="content.pl.contact?.map_embed_url || content.pl.contact?.map_place_id"
+                                                            @click="clearMapPlaceSelection()"
+                                                            class="px-3 py-1.5 border border-gray-300 text-xs font-bold uppercase rounded-sm text-slate-600">
+                                                        Usuń mapę
+                                                    </button>
+                                                </div>
+                                                <div x-show="content.pl.contact?.map_embed_url" class="overflow-hidden rounded-xl border border-slate-200 bg-slate-100 aspect-[16/9] max-h-56">
+                                                    <iframe class="w-full h-full min-h-[12rem]"
+                                                            loading="lazy"
+                                                            referrerpolicy="no-referrer-when-downgrade"
+                                                            :src="content.pl.contact.map_embed_url"
+                                                            title="Podgląd mapy"></iframe>
                                                 </div>
                                             </div>
+
+                                            <details class="text-xs text-slate-500">
+                                                <summary class="cursor-pointer font-semibold text-slate-600">Zaawansowane: własny link osadzenia mapy</summary>
+                                                <input type="text"
+                                                       x-model="content.pl.contact.map_embed_url"
+                                                       autocomplete="off"
+                                                       class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                                                       placeholder="Link z Google Maps (Udostępnij → Umieść mapę)">
+                                            </details>
                                         </div>
                                     </details>
 

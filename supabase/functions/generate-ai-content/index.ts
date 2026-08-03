@@ -4,6 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
   buildGeminiResponseSchema,
   mergeAiCopyPatch,
+  applyAiGeneratedSectionFlags,
   THEME_TONE_HINTS,
 } from "../_shared/aiCopySchemas.ts";
 import { buildCorsHeadersForRequest } from "../_shared/allowedOrigins.ts";
@@ -145,8 +146,10 @@ Zasady:
 - Dostosuj copy do rynku lokalnego (miasto jeśli podane w opisie).
 - Nie zmyślaj numerów telefonów, e-maili ani adresów — tylko gdy podane wprost; inaczej "".
 - Nie generuj URL-i, obrazów ani ustawień technicznych.
-- HTML w headline tylko: <span>, <br />, <i>, <em> — bez atrybutów/skryptów.
-- Zwróć wyłącznie JSON zgodny ze schematem odpowiedzi.`;
+- nav.logo = krótka nazwa firmy widoczna w górnym menu (np. „Studio Fit”). NIGDY nie wpisuj słów technicznych: meta, seo, html, json, shared, settings.
+- seo.title / seo.description = wyłącznie pod Google (zakładka SEO w panelu) — nie myl z logo / nagłówkiem strony.
+- HTML w headline tylko: <span>, <br />, <i>, <em> — bez atrybutów/skryptów i bez tagów <meta>.
+- Zwróć wyłącznie JSON zgodny ze schematem odpowiedzi — bez dodatkowych kluczy.`;
 }
 
 async function sleep(ms: number) {
@@ -438,18 +441,28 @@ serve(async (req) => {
         ? page.draft_content as Record<string, unknown>
         : {};
 
-    // Zapewnij meta.locales zawiera target
+    // Zapewnij meta.locales zawiera target (tylko pl/en/de — nigdy „meta” itd.)
+    const ALLOWED_LOCALES = new Set(["pl", "en", "de"]);
     if (!existingDraft.meta || typeof existingDraft.meta !== "object") {
       existingDraft.meta = { defaultLocale: "pl", locales: ["pl"] };
     }
     const meta = existingDraft.meta as Record<string, unknown>;
     let localesList = Array.isArray(meta.locales)
-      ? (meta.locales as unknown[]).map((x) => String(x))
+      ? (meta.locales as unknown[])
+        .map((x) => String(x || "").trim().toLowerCase())
+        .filter((x) => ALLOWED_LOCALES.has(x))
       : ["pl"];
     if (!localesList.includes(locale)) localesList.push(locale);
     if (!localesList.includes("pl")) localesList.unshift("pl");
+    // dedup
+    localesList = [...new Set(localesList)];
     meta.locales = localesList;
-    if (!meta.defaultLocale) meta.defaultLocale = "pl";
+    const defLoc = String(meta.defaultLocale || "pl").trim().toLowerCase();
+    meta.defaultLocale = ALLOWED_LOCALES.has(defLoc) ? defLoc : "pl";
+    // Usuń przypadkowe pola SEO-like na obiekcie meta (model / stare drafty).
+    for (const junk of ["title", "description", "ogImage", "keywords"]) {
+      if (junk in meta) delete meta[junk];
+    }
 
     const systemPrompt = buildSystemPrompt(theme, locale, mode);
     let userPrompt = "";
@@ -534,6 +547,11 @@ serve(async (req) => {
         : existingPl;
 
     const mergedLocale = mergeAiCopyPatch(existingLocaleBlock, parsed, theme);
+    // Usuń techniczne klucze gdyby kiedyś wpadły do bloku locale.
+    for (const junk of ["meta", "shared"]) {
+      if (junk in mergedLocale) delete mergedLocale[junk];
+    }
+    applyAiGeneratedSectionFlags(mergedLocale, theme);
     const nextDraft: Record<string, unknown> = {
       ...existingDraft,
       meta,

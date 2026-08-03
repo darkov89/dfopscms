@@ -316,6 +316,7 @@ serve(async (req) => {
     maxResults?: unknown;
     listPlaces?: boolean;
     embed_for_place_id?: string;
+    embed_for_query?: string;
     reviews_for_place_id?: string;
   } = {};
   try {
@@ -355,6 +356,47 @@ serve(async (req) => {
       new URLSearchParams({
         key: embedApiKey,
         q,
+        zoom: "15",
+      }).toString();
+    return new Response(JSON.stringify({ ok: true, embedUrl }), {
+      status: 200,
+      headers: { ...cors, "content-type": "application/json; charset=utf-8" },
+    });
+  }
+
+  /** Mapa z samego adresu / frazy (bez place_id) — np. „ul. Kwiatowa 1, Kraków”. */
+  if (typeof payload.embed_for_query === "string" && payload.embed_for_query.trim() !== "") {
+    const rawQ = payload.embed_for_query.trim();
+    if (rawQ.length < 3 || rawQ.length > 300) {
+      return new Response(JSON.stringify({ ok: false, error: "Nieprawidłowe embed_for_query." }), {
+        status: 400,
+        headers: { ...cors, "content-type": "application/json; charset=utf-8" },
+      });
+    }
+    if (/[<>'"\\]/.test(rawQ)) {
+      return new Response(JSON.stringify({ ok: false, error: "Nieprawidłowe znaki w adresie mapy." }), {
+        status: 400,
+        headers: { ...cors, "content-type": "application/json; charset=utf-8" },
+      });
+    }
+    const embedApiKey = (Deno.env.get("GOOGLE_MAPS_EMBED_API_KEY") ?? "").trim();
+    if (!embedApiKey) {
+      return new Response(
+        JSON.stringify({
+          ok: false,
+          error: "Brak GOOGLE_MAPS_EMBED_API_KEY w środowisku Edge Function.",
+        }),
+        {
+          status: 503,
+          headers: { ...cors, "content-type": "application/json; charset=utf-8" },
+        },
+      );
+    }
+    const embedUrl =
+      `https://www.google.com/maps/embed/v1/place?` +
+      new URLSearchParams({
+        key: embedApiKey,
+        q: rawQ,
         zoom: "15",
       }).toString();
     return new Response(JSON.stringify({ ok: true, embedUrl }), {

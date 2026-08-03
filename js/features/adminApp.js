@@ -3842,10 +3842,29 @@
             throw new Error('Ten typ pliku jest zablokowany ze względów bezpieczeństwa.');
           }
 
-          const fileExt = file.name.split('.').pop() || 'png';
+          let uploadFile = file;
+          if (typeof window.DFOPS_compressImageFile === 'function') {
+            try {
+              uploadFile = await window.DFOPS_compressImageFile(file, section, field);
+            } catch (compErr) {
+              console.warn('DFOPS image compress — używam oryginału:', compErr);
+              uploadFile = file;
+            }
+          }
+
+          const fileExt =
+            (uploadFile.name && uploadFile.name.split('.').pop()) ||
+            (String(uploadFile.type || '').includes('webp')
+              ? 'webp'
+              : String(uploadFile.type || '').includes('png')
+                ? 'png'
+                : 'jpg');
           const ownerPrefix = this.user?.id ? `${this.user.id}/` : '';
           const fileName = `${ownerPrefix}${this.slug}-${section}-${field}-${Date.now()}.${fileExt}`;
-          const { error } = await this.supabase.storage.from('images').upload(fileName, file);
+          const { error } = await this.supabase.storage.from('images').upload(fileName, uploadFile, {
+            contentType: uploadFile.type || mime,
+            upsert: false,
+          });
           if (error) throw error;
           const { data: publicUrlData } = this.supabase.storage.from('images').getPublicUrl(fileName);
           if (section === 'gallery' && field === 'images') {
@@ -4056,32 +4075,87 @@
         if (!this.content.pl.contact) this.content.pl.contact = {};
         this.content.pl.contact.map_place_id = hit.id;
         this.content.pl.contact.map_embed_url = '';
-        if (hit.address && !String(this.content.pl.contact.address || '').trim()) {
+        // Firma z Google → zawsze wstaw adres z Places (mapa + tekst na stronie).
+        if (hit.address) {
           this.content.pl.contact.address = hit.address;
+        } else if (hit.name) {
+          this.content.pl.contact.address = hit.name;
         }
         this.mapPlaceLoading = true;
+        this.mapPlaceError = '';
         try {
           const syncEmbed = window.DFOPS_googlePlacesSync?.syncMapEmbedIntoContact;
           if (typeof syncEmbed === 'function' && this.supabase) {
             await syncEmbed(this.supabase, this.content.pl.contact);
           }
+          // Fallback: gdy place_id nie dał embedu — spróbuj z adresu.
+          if (!String(this.content.pl.contact.map_embed_url || '').trim()) {
+            const syncAddr = window.DFOPS_googlePlacesSync?.syncMapEmbedFromAddress;
+            if (typeof syncAddr === 'function') {
+              await syncAddr(this.supabase, this.content.pl.contact, { force: true });
+            }
+          }
         } catch (e) {
           console.warn('DFOPS map embed po wyborze miejsca:', e);
+          this.mapPlaceError = 'Nie udało się przygotować mapy dla tej lokalizacji.';
         } finally {
           this.mapPlaceLoading = false;
         }
         const hasEmbed = !!String(this.content.pl.contact.map_embed_url || '').trim();
-        this.message = hasEmbed
-          ? 'Wybrano lokalizację mapy. Opublikuj zmiany, żeby była widoczna na stronie.'
-          : 'Wybrano lokalizację. Opublikuj zmiany — system spróbuje ponownie przygotować mapę.';
-        setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
+        if (hasEmbed) {
+          this.mapPlaceResults = [];
+          this.mapPlaceSelectedId = null;
+          this.mapPlaceQuery = hit.name || '';
+          this.message = 'Adres i mapa ustawione z Google. Opublikuj zmiany, żeby były widoczne na stronie.';
+          setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
+        }
       },
 
       clearMapPlaceSelection() {
         if (this.content?.pl?.contact) {
           this.content.pl.contact.map_place_id = '';
+          this.content.pl.contact.map_embed_url = '';
         }
         this.mapPlaceSelectedId = null;
+        this.mapPlaceResults = [];
+        this.mapPlaceError = '';
+      },
+
+      /**
+       * Ścieżka ręczna: adres w polu → mapa z frazy adresowej.
+       * Czyści powiązanie z firmą Google, bo źródłem staje się wpisany adres.
+       */
+      async syncMapFromAddressField() {
+        const contact = this.content?.pl?.contact;
+        if (!contact || !this.supabase) return;
+        const address = String(contact.address || '').trim();
+        if (address.length < 3) {
+          this.mapPlaceError = 'Wpisz pełniejszy adres (min. ulica i miasto).';
+          return;
+        }
+        this.mapPlaceError = '';
+        // Ręczny adres = źródło prawdy; odpinamy poprzedni place_id.
+        contact.map_place_id = '';
+        this.mapPlaceSelectedId = null;
+        this.mapPlaceLoading = true;
+        try {
+          const syncAddr = window.DFOPS_googlePlacesSync?.syncMapEmbedFromAddress;
+          if (typeof syncAddr !== 'function') {
+            throw new Error('Brak modułu mapy.');
+          }
+          const changed = await syncAddr(this.supabase, contact, { force: true });
+          if (changed || String(contact.map_embed_url || '').trim()) {
+            this.message = 'Mapa ustawiona z adresu. Opublikuj zmiany, żeby była widoczna na stronie.';
+            setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
+          } else {
+            this.mapPlaceError = 'Nie udało się przygotować mapy z tego adresu.';
+          }
+        } catch (e) {
+          console.warn('DFOPS map from address:', e);
+          this.mapPlaceError = 'Nie udało się przygotować mapy z adresu. Sprawdź zapis lub wyszukaj firmę poniżej.';
+        } finally {
+          this.mapPlaceLoading = false;
+        }
       },
     };
   }

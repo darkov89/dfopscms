@@ -162,12 +162,23 @@
 
         if (data.draft_content && typeof data.draft_content === 'object') {
           this._suppressContentWatch = true;
-          this.content = data.draft_content;
+          const theme = String(this.theme || '').trim().toLowerCase() || 'beauty';
+          // Normalizacja jak po loadData — pełne pola admina + tablica services zawsze obecna.
+          this.content =
+            typeof window.DFOPS_normalizeContent === 'function'
+              ? window.DFOPS_normalizeContent(data.draft_content, theme)
+              : data.draft_content;
           if (typeof this.i18nAfterContentLoad === 'function') {
             this.i18nAfterContentLoad();
             if (locale && typeof this.setEditLocale === 'function') {
               this.setEditLocale(locale);
             }
+          }
+          // Upewnij się, że usługi są tablicą (x-for w zakładce Oferta).
+          const pl = this.content && this.content.pl;
+          if (pl && !Array.isArray(pl.services)) pl.services = [];
+          if (pl && pl.settings && Array.isArray(pl.services) && pl.services.some((s) => s && String(s.title || '').trim())) {
+            pl.settings.showServices = true;
           }
         }
         const remaining = typeof data.remaining === 'number' ? data.remaining : null;
@@ -181,11 +192,19 @@
         let toastMsg =
           mode === 'adapt'
             ? 'AI zlokalizowało treść! Sprawdź podgląd i opublikuj.'
-            : 'AI wygenerowało nową treść! Sprawdź podgląd i opublikuj zmiany.';
+            : 'AI wygenerowało teksty w polach panelu (oferta, baner, FAQ…). Sprawdź zakładkę „Twoja oferta i ceny” i opublikuj.';
         if (remaining != null && limit != null) {
           toastMsg += ` Zostało ${remaining} z ${limit} generacji w tym miesiącu.`;
         }
         this.showToast(toastMsg, 'success');
+        // Po generacji otwórz ofertę, jeśli motyw ma usługi / menu — od razu widać edycję.
+        if (mode === 'generate' && typeof this.setTab === 'function') {
+          if (typeof this.adminTabVisible === 'function' && this.adminTabVisible('services')) {
+            this.setTab('services');
+          } else if (typeof this.adminTabVisible === 'function' && this.adminTabVisible('menu')) {
+            this.setTab('menu');
+          }
+        }
       } catch (e) {
         safeDebug('generateSiteWithAi', e);
         this.showToast('Nie udało się wygenerować treści. Spróbuj ponownie.', 'error');

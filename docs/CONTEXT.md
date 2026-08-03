@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-07-28 — Uniwersalne nazwy docs (`CONTEXT` / `ROADMAP` / `specs/`)
+**Ostatnia aktualizacja:** 2026-08-03 — Mapa: adres ręczny LUB firma Google
 
 ---
 
@@ -380,6 +380,17 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-08-03 — Mapa: adres ręczny LUB firma Google
+
+Panel Kontakt → dwa równorzędne sposoby: (1) wpisz adres + „Ustaw mapę z adresu” / blur → `embed_for_query`; (2) wyszukaj firmę → adres + `place_id` + embed. Podgląd iframe w panelu; surowy link embed w „Zaawansowane”.
+
+### 2026-08-03 — Fix: upload zdjęć, AI Site Generator, mapa z adresu
+
+- **Kompresja uploadu:** `js/core/imageCompress.js` — przed Storage downscale (logo ≤1024, hero ≤1920, galeria ≤1600) + WebP/JPEG; wywołanie w `adminApp.uploadImage`.
+- **AI → tylko pola panelu:** `_shared/aiCopySchemas.ts` — usunięte `nav.cta`, `contact.cta`, `hero.subheadline`, `proof`/`footer` (brak edytorów); beauty services = priced jak w adminie; filtr „meta”/śmieci w `nav.logo`; `applyAiGeneratedSectionFlags` włącza `showServices` itd.; Edge czyści `meta.locales` do pl/en/de.
+- **Po AI w panelu:** `aiGenerator.js` robi `normalizeContent`, otwiera zakładkę oferty.
+- **Mapa bez firmy:** `get-google-reviews` + `embed_for_query`; blur pola Adres → `syncMapFromAddressField`; publish sync też z samego adresu.
 
 ### 2026-07-28 — Uniwersalne nazwy docs (agent context)
 

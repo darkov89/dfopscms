@@ -23,6 +23,25 @@
     return data.embedUrl;
   }
 
+  /** Embed mapy z samego adresu tekstowego (bez firmy / place_id). */
+  async function fetchMapEmbedUrlForAddress(supabase, address) {
+    const q = String(address || '').trim();
+    if (!q || q.length < 3) {
+      throw new Error('Adres jest za krótki do mapy.');
+    }
+    const { data, error } = await supabase.functions.invoke('get-google-reviews', {
+      body: { embed_for_query: q },
+    });
+    if (error) throw new Error(error.message || String(error));
+    if (!data?.ok || typeof data.embedUrl !== 'string') {
+      throw new Error(typeof data?.error === 'string' ? data.error : 'Brak adresu embed mapy.');
+    }
+    if (!data.embedUrl.startsWith('https://')) {
+      throw new Error('Nieprawidłowy adres embed mapy.');
+    }
+    return data.embedUrl;
+  }
+
   async function parseGoogleReviewsInvokeData(data) {
     if (!data?.ok) {
       throw new Error(typeof data?.error === 'string' ? data.error : 'Błąd pobierania opinii Google.');
@@ -71,6 +90,27 @@
     if (!pid) return false;
     if (String(contact.map_embed_url || '').trim()) return false;
     contact.map_embed_url = await fetchMapEmbedUrl(supabase, pid);
+    return true;
+  }
+
+  /**
+   * Gdy jest adres tekstowy, a brak place_id — zbuduj mapę z zapytania adresowego.
+   */
+  async function syncMapEmbedFromAddress(supabase, contact, opts) {
+    if (!contact || typeof contact !== 'object') return false;
+    const force = !!(opts && opts.force);
+    const address = String(contact.address || '').trim();
+    if (!address || address.length < 3) return false;
+    if (!force && String(contact.map_embed_url || '').trim()) return false;
+    const pid = String(contact.map_place_id || '').trim();
+    if (pid && !force) {
+      if (!String(contact.map_embed_url || '').trim()) {
+        contact.map_embed_url = await fetchMapEmbedUrl(supabase, pid);
+        return true;
+      }
+      return false;
+    }
+    contact.map_embed_url = await fetchMapEmbedUrlForAddress(supabase, address);
     return true;
   }
 
@@ -127,6 +167,13 @@
         console.warn('DFOPS sync map embed:', e);
         out.warnings.push('mapa');
       }
+    } else if (contact && String(contact.address || '').trim() && !String(contact.map_embed_url || '').trim()) {
+      try {
+        out.mapEmbed = await syncMapEmbedFromAddress(supabase, contact);
+      } catch (e) {
+        console.warn('DFOPS sync map embed from address:', e);
+        out.warnings.push('mapa');
+      }
     }
 
     const gr = pl.google_reviews;
@@ -148,10 +195,12 @@
 
   window.DFOPS_googlePlacesSync = {
     fetchMapEmbedUrl,
+    fetchMapEmbedUrlForAddress,
     fetchGoogleReviewsBundle,
     fetchGoogleReviewsByPlaceId,
     apiReviewsToContentRows,
     syncMapEmbedIntoContact,
+    syncMapEmbedFromAddress,
     syncGoogleReviewsIntoPl,
     syncGooglePlacesForPublish,
   };
