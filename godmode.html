@@ -134,52 +134,46 @@
                 </div>
             </section>
 
-            <section class="overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-panel ring-1 ring-slate-900/5">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200">
-                        <thead class="bg-slate-50/90">
-                            <tr>
-                                <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Slug</th>
-                                <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Theme</th>
-                                <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Plan (profil)</th>
-                                <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Lustro pages</th>
-                                <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Źródło</th>
-                                <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Status</th>
-                                <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Ważność</th>
-                                <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Utworzono</th>
-                                <th class="px-5 py-3 text-right text-xs font-bold uppercase tracking-widest text-slate-500">Akcje</th>
+            <section class="rounded-2xl border border-slate-200/70 bg-white shadow-panel ring-1 ring-slate-900/5">
+                <table class="w-full table-fixed divide-y divide-slate-200">
+                    <thead class="bg-slate-50/90">
+                        <tr>
+                            <th class="w-[14%] px-3 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Slug</th>
+                            <th class="w-[12%] px-3 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Theme</th>
+                            <th class="w-[10%] px-3 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Plan</th>
+                            <th class="w-[12%] px-3 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Źródło</th>
+                            <th class="w-[16%] px-3 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Ważność</th>
+                            <th class="w-[16%] px-3 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Utworzono</th>
+                            <th class="w-[20%] px-3 py-3 text-right text-xs font-bold uppercase tracking-widest text-slate-500">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 bg-white">
+                        <template x-for="page in pages" :key="page.id || page.slug">
+                            <tr class="transition-colors hover:bg-amber-50/40">
+                                <td class="truncate px-3 py-3">
+                                    <span class="font-mono text-sm font-semibold text-slate-950" x-text="page.slug" :title="page.slug"></span>
+                                </td>
+                                <td class="px-3 py-3">
+                                    <span class="inline-flex max-w-full truncate rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-700" x-text="page.theme || 'brak'"></span>
+                                </td>
+                                <td class="truncate px-3 py-3 text-sm font-medium text-slate-800" x-text="displayPlan(page)"></td>
+                                <td class="truncate px-3 py-3 text-[11px] font-semibold uppercase tracking-wide text-slate-600" x-text="grantSourceLabel(page)"></td>
+                                <td class="truncate px-3 py-3 text-sm text-slate-500" x-text="formatDate(page.current_period_end)"></td>
+                                <td class="truncate px-3 py-3 text-sm text-slate-500" x-text="formatDate(page.created_at)"></td>
+                                <td class="px-3 py-3 text-right">
+                                    <div class="inline-flex flex-wrap items-center justify-end gap-1.5">
+                                        <a :href="manageUrl(page.slug)" class="inline-flex items-center justify-center rounded-lg bg-accent px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-accent-fg shadow-sm hover:bg-accent/90">Zarządzaj</a>
+                                        <button type="button" @click="openGrant(page)" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-700 hover:bg-slate-50">Aktywuj</button>
+                                        <button type="button" x-show="canRevoke(page)" x-cloak @click="revokeGrant(page)" :disabled="busy" class="inline-flex items-center justify-center rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-red-700 hover:bg-red-50 disabled:opacity-50">Cofnij</button>
+                                    </div>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 bg-white">
-                            <template x-for="page in pages" :key="page.id || page.slug">
-                                <tr class="transition-colors hover:bg-amber-50/40">
-                                    <td class="whitespace-nowrap px-5 py-4">
-                                        <span class="font-mono text-sm font-semibold text-slate-950" x-text="page.slug"></span>
-                                    </td>
-                                    <td class="whitespace-nowrap px-5 py-4">
-                                        <span class="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-slate-700" x-text="page.theme || 'brak'"></span>
-                                    </td>
-                                    <td class="whitespace-nowrap px-5 py-4 text-sm font-medium text-slate-800" x-text="displayPlan(page)"></td>
-                                    <td class="whitespace-nowrap px-5 py-4 text-xs text-slate-500" x-text="page.billing_plan || 'trial'"></td>
-                                    <td class="whitespace-nowrap px-5 py-4 text-xs font-semibold uppercase tracking-wide text-slate-600" x-text="grantSourceLabel(page)"></td>
-                                    <td class="whitespace-nowrap px-5 py-4 text-xs text-slate-600" x-text="page.billing_status || '—'"></td>
-                                    <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500" x-text="formatDate(page.current_period_end)"></td>
-                                    <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500" x-text="formatDate(page.created_at)"></td>
-                                    <td class="whitespace-nowrap px-5 py-4 text-right">
-                                        <div class="inline-flex flex-wrap items-center justify-end gap-2">
-                                            <a :href="manageUrl(page.slug)" class="inline-flex items-center justify-center rounded-lg bg-accent px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-accent-fg shadow-sm hover:bg-accent/90">Zarządzaj</a>
-                                            <button type="button" @click="openGrant(page)" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-700 hover:bg-slate-50">Aktywuj plan</button>
-                                            <button type="button" x-show="canRevoke(page)" x-cloak @click="revokeGrant(page)" :disabled="busy" class="inline-flex items-center justify-center rounded-lg border border-red-200 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-red-700 hover:bg-red-50 disabled:opacity-50">Cofnij</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </template>
-                            <tr x-show="!pages.length && !errorMessage" x-cloak>
-                                <td colspan="9" class="px-5 py-12 text-center text-sm text-slate-500">Brak stron do wyświetlenia.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                        </template>
+                        <tr x-show="!pages.length && !errorMessage" x-cloak>
+                            <td colspan="7" class="px-3 py-12 text-center text-sm text-slate-500">Brak stron do wyświetlenia.</td>
+                        </tr>
+                    </tbody>
+                </table>
             </section>
         </div>
     </main>
@@ -307,14 +301,9 @@
             });
           },
 
-          /** Plan z billing_profiles (SoT) albo adnotacja gdy tylko lustro pages. */
+          /** Plan z billing_profiles, inaczej z pages (np. demo bez profilu). */
           displayPlan(page) {
-            if (page.profile_plan) return page.profile_plan;
-            const mirror = String(page.billing_plan || 'trial').toLowerCase();
-            if ((mirror === 'tier0' || mirror === 'tier1') && !page.has_billing_profile) {
-              return `${mirror} (tylko lustro)`;
-            }
-            return mirror || 'trial';
+            return page.profile_plan || page.billing_plan || 'trial';
           },
 
           grantSourceLabel(page) {
@@ -325,7 +314,7 @@
             if (String(page.grant_source || '').toLowerCase() === 'manual') return 'manual';
             const mirror = String(page.billing_plan || '').toLowerCase();
             if ((mirror === 'tier0' || mirror === 'tier1') && !page.has_billing_profile) {
-              return 'demo/mirror';
+              return 'demo';
             }
             return 'trial';
           },
