@@ -118,7 +118,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 - **i18n treści:** `meta.locales` + `meta.translationMode` (`ai`|`manual`); przełącznik języka w headerze tylko gdy >1 locale; sync AI po zmianie PL.
 - **Draft vs published:** auto-save debounce 1000ms → `draft_content`; `publishChanges()` → `content`; **Podgląd prywatny** (`dfcms_preview=1` + sesja właściciela) działa przy wygasłym trial / `billing_failed_at` — baner czerwony, LIVE zablokowany dla gości; link w panelu: „Podgląd prywatny”.
 - **Subskrypcja panel:** `hasActivePaidSubscription` = żywa sub Stripe **lub** aktywny grant ręczny (`grant_source=manual` + `current_period_end` w przyszłości). Portal / upgrade Stripe tylko przy `hasStripeLiveSubscription`. Przy samym grancie: karta statusu + karuzela Checkout (klient może podpiąć kartę — webhook ustawia `grant_source=stripe`).
-- **God Mode:** `godmode.html` — lista stron + **Nowy klient** (`god-provision-site`: invite Auth + strona) + **Aktywuj plan / Cofnij** (`god-grant-subscription`). Impersonacja: `admin.html?impersonate={slug}` — panel ładuje `billing_profiles` **właściciela** (read-only; checkout nadal zablokowany). Tabela: SoT plan z profilu vs lustro `pages.billing_plan` (demo często ma `tier1` bez profilu → „demo/mirror”).
+- **God Mode:** `godmode.html` — **Nowy klient** (`god-provision-site`), **Nowa strona demo** / usuwanie z wpisem slug (`god-manage-demo`: bez Auth, `is_demo_catalog`, bez subskrypcji; 6 dem landingowych chronionych), **Aktywuj plan / Cofnij** (`god-grant-subscription`). Impersonacja: `admin.html?impersonate={slug}` — billing właściciela read-only; checkout zablokowany.
 - **Multi-site:** jeden `user_id` może mieć wiele `pages`; panel: `listCurrentUserPages` + selektor w nagłówku gdy >1; zapis po `pages.id`. Billing nadal 1:1 `billing_profiles` ↔ user (lustro na wszystkie strony usera).
 
 ### 1.5.2 Panel admin — IA (2026-07)
@@ -227,6 +227,7 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 | `stripe-webhook` | Zdarzenia Stripe → `billing_profiles` + `pages`; wFirma faktury (`WFIRMA_*`); ustawia `grant_source=stripe` |
 | `god-provision-site` | God Mode: invite Auth + `pages` (email/slug/theme); opcjonalny grant ręczny |
 | `god-grant-subscription` | God Mode: grant / revoke planu (`grant_source=manual`, `expiresAt`) |
+| `god-manage-demo` | God Mode: create/delete stron demo (`demo-*`, bez user_id / bez subskrypcji; delete wymaga `confirmSlug`) |
 | `retry-wfirma-invoice` | Ręczny retry FV wFirma (`POST` + `Bearer CRON_SECRET`, `checkoutSessionId` lub `stripeInvoiceId`) |
 | `sync-stripe-subscription` | Ręczna synchronizacja statusu subskrypcji |
 | `add-custom-domain` | Cloudflare Custom Hostname + zapis w DB |

@@ -122,11 +122,43 @@
             </section>
 
             <section class="mb-6 rounded-2xl border border-slate-200/70 bg-white p-6 shadow-panel ring-1 ring-slate-900/5">
+                <div class="mb-5">
+                    <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Demo dla klienta</p>
+                    <h2 class="mt-1 text-2xl font-black tracking-tight text-slate-950">Nowa strona demo</h2>
+                    <p class="mt-2 max-w-3xl text-sm leading-relaxed text-slate-500">
+                        Bez konta Auth i bez subskrypcji — publiczny podgląd szablonu (<code class="rounded bg-slate-100 px-1 text-xs">is_demo_catalog</code>).
+                        Slug dostaje prefix <code class="rounded bg-slate-100 px-1 text-xs">demo-</code>. Treść startowa z katalogu <code class="rounded bg-slate-100 px-1 text-xs">demo-{motyw}</code>.
+                        Sześć dem landingowych nie da się usunąć.
+                    </p>
+                </div>
+                <form class="grid gap-4 md:grid-cols-3" @submit.prevent="createDemo()">
+                    <label class="block text-sm md:col-span-1">
+                        <span class="mb-1 block font-semibold text-slate-700">Motyw</span>
+                        <select x-model="demoForm.theme" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30">
+                            <template x-for="t in themes" :key="'demo-'+t">
+                                <option :value="t" x-text="t"></option>
+                            </template>
+                        </select>
+                    </label>
+                    <label class="block text-sm md:col-span-1">
+                        <span class="mb-1 block font-semibold text-slate-700">Slug (bez lub z demo-)</span>
+                        <input type="text" required x-model="demoForm.slug" pattern="(?:demo-)?[a-z0-9]+(?:-[a-z0-9]+)*" class="w-full rounded-lg border border-slate-200 px-3 py-2 font-mono text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder="klient-janek">
+                    </label>
+                    <div class="flex items-end md:col-span-1">
+                        <button type="submit" :disabled="busy" class="inline-flex w-full items-center justify-center rounded-lg border border-slate-800 bg-slate-900 px-5 py-2.5 text-sm font-bold uppercase tracking-widest text-white shadow-sm transition-colors hover:bg-slate-800 disabled:opacity-50">
+                            <span x-show="!busy">Utwórz demo</span>
+                            <span x-show="busy" x-cloak>Przetwarzam…</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="mb-6 rounded-2xl border border-slate-200/70 bg-white p-6 shadow-panel ring-1 ring-slate-900/5">
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
                         <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Wszystkie strony</p>
                         <h2 class="mt-1 text-3xl font-black tracking-tight text-slate-950">Zarządzanie klientami</h2>
-                        <p class="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">Grant ręczny lub Checkout klienta. Dostęp wynika z tabeli <code class="rounded bg-slate-100 px-1.5 py-0.5 text-xs">superadmins</code>.</p>
+                        <p class="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">Grant / Checkout dla klientów; dema: podgląd + usuwanie z potwierdzeniem slugiem.</p>
                     </div>
                     <div class="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600 ring-1 ring-slate-200/80">
                         Rekordy: <strong class="text-slate-950" x-text="pages.length"></strong>
@@ -162,9 +194,11 @@
                                 <td class="truncate px-3 py-3 text-sm text-slate-500" x-text="formatDate(page.created_at)"></td>
                                 <td class="px-3 py-3 text-right">
                                     <div class="inline-flex flex-wrap items-center justify-end gap-1.5">
-                                        <a :href="manageUrl(page.slug)" class="inline-flex items-center justify-center rounded-lg bg-accent px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-accent-fg shadow-sm hover:bg-accent/90">Zarządzaj</a>
-                                        <button type="button" @click="openGrant(page)" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-700 hover:bg-slate-50">Aktywuj</button>
+                                        <a x-show="isDemoPage(page)" :href="demoPreviewUrl(page.slug)" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-700 hover:bg-slate-50" x-cloak>Podgląd</a>
+                                        <a x-show="!isDemoPage(page)" :href="manageUrl(page.slug)" class="inline-flex items-center justify-center rounded-lg bg-accent px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-accent-fg shadow-sm hover:bg-accent/90">Zarządzaj</a>
+                                        <button type="button" x-show="!isDemoPage(page)" @click="openGrant(page)" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-700 hover:bg-slate-50">Aktywuj</button>
                                         <button type="button" x-show="canRevoke(page)" x-cloak @click="revokeGrant(page)" :disabled="busy" class="inline-flex items-center justify-center rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-red-700 hover:bg-red-50 disabled:opacity-50">Cofnij</button>
+                                        <button type="button" x-show="canDeleteDemo(page)" x-cloak @click="openDeleteDemo(page)" :disabled="busy" class="inline-flex items-center justify-center rounded-lg border border-red-300 bg-red-50 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-red-800 hover:bg-red-100 disabled:opacity-50">Usuń</button>
                                     </div>
                                 </td>
                             </tr>
@@ -202,6 +236,26 @@
         </div>
     </div>
 
+    <div x-show="deleteModal.open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4" role="alertdialog" aria-modal="true" @keydown.escape.window="deleteModal.open = false">
+        <div class="w-full max-w-md rounded-2xl border border-red-200 bg-white p-6 shadow-panel-md" @click.outside="deleteModal.open = false">
+            <p class="text-xs font-bold uppercase tracking-widest text-red-700">Usuwanie nieodwracalne</p>
+            <h3 class="mt-1 text-lg font-bold text-slate-950">Usunąć stronę demo?</h3>
+            <p class="mt-2 text-sm leading-relaxed text-slate-600">
+                Usuniesz publiczne demo
+                <span class="font-mono font-semibold text-slate-900" x-text="deleteModal.slug"></span>.
+                Tej operacji nie da się cofnąć. Wpisz slug poniżej, żeby potwierdzić.
+            </p>
+            <label class="mt-4 block text-sm">
+                <span class="mb-1 block font-semibold text-slate-700">Wpisz slug do potwierdzenia</span>
+                <input type="text" x-model="deleteModal.confirmSlug" class="w-full rounded-lg border border-red-200 px-3 py-2 font-mono text-sm shadow-sm focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-200" :placeholder="deleteModal.slug" autocomplete="off">
+            </label>
+            <div class="mt-6 flex justify-end gap-2">
+                <button type="button" @click="deleteModal.open = false" class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Anuluj</button>
+                <button type="button" @click="confirmDeleteDemo()" :disabled="busy || !canConfirmDelete()" class="rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-40">Usuń na zawsze</button>
+            </div>
+        </div>
+    </div>
+
     <script>
       function godModeApp() {
         const defaultExpiry = () => {
@@ -225,6 +279,10 @@
             plan: 'tier0',
             expiresAt: defaultExpiry(),
           },
+          demoForm: {
+            theme: 'services',
+            slug: '',
+          },
           grantModal: {
             open: false,
             slug: '',
@@ -232,6 +290,19 @@
             plan: 'tier0',
             expiresAt: defaultExpiry(),
           },
+          deleteModal: {
+            open: false,
+            slug: '',
+            confirmSlug: '',
+          },
+          protectedDemoSlugs: [
+            'demo-beauty',
+            'demo-fitness',
+            'demo-services',
+            'demo-gastro',
+            'demo-care',
+            'demo-consultant',
+          ],
           billingByUserId: {},
 
           async init() {
@@ -241,6 +312,9 @@
                 this.themes = window.DFOPS_getPublishedThemeIds();
                 if (this.themes.length && !this.themes.includes(this.form.theme)) {
                   this.form.theme = this.themes[0];
+                }
+                if (this.themes.length && !this.themes.includes(this.demoForm.theme)) {
+                  this.demoForm.theme = this.themes[0];
                 }
               }
               const { data: { user } = { user: null } } = await this.supabase.auth.getUser();
@@ -272,7 +346,7 @@
           async reloadPages() {
             const { data, error } = await this.supabase
               .from('pages')
-              .select('id, slug, theme, created_at, user_id, billing_plan')
+              .select('id, slug, theme, created_at, user_id, billing_plan, content')
               .order('created_at', { ascending: false });
             if (error) throw error;
             const pages = Array.isArray(data) ? data : [];
@@ -288,9 +362,13 @@
               }
             }
             this.pages = pages.map((p) => {
-              const b = this.billingByUserId[p.user_id] || null;
+              const b = p.user_id ? this.billingByUserId[p.user_id] || null : null;
+              const isDemoCatalog = p?.content?.pl?.settings?.is_demo_catalog === true;
+              const isDemoSlug = typeof p.slug === 'string' && p.slug.startsWith('demo-');
               return {
                 ...p,
+                content: undefined,
+                is_demo: isDemoCatalog || (!p.user_id && isDemoSlug),
                 profile_plan: b?.plan || null,
                 grant_source: b?.grant_source || null,
                 current_period_end: b?.current_period_end || null,
@@ -303,24 +381,36 @@
 
           /** Plan z billing_profiles, inaczej z pages (np. demo bez profilu). */
           displayPlan(page) {
+            if (page.is_demo) return 'demo';
             return page.profile_plan || page.billing_plan || 'trial';
           },
 
           grantSourceLabel(page) {
+            if (page.is_demo) return 'demo';
             const sid = typeof page.stripe_subscription_id === 'string' ? page.stripe_subscription_id.trim() : '';
             const st = String(page.billing_status || '').toLowerCase();
             if (sid && (st === 'active' || st === 'trialing')) return 'stripe';
             if (sid && st) return `stripe:${st}`;
             if (String(page.grant_source || '').toLowerCase() === 'manual') return 'manual';
-            const mirror = String(page.billing_plan || '').toLowerCase();
-            if ((mirror === 'tier0' || mirror === 'tier1') && !page.has_billing_profile) {
-              return 'demo';
-            }
             return 'trial';
+          },
+
+          isDemoPage(page) {
+            return !!page?.is_demo;
+          },
+
+          canDeleteDemo(page) {
+            if (!this.isDemoPage(page)) return false;
+            if (this.protectedDemoSlugs.includes(page.slug)) return false;
+            return !page.user_id;
           },
 
           canRevoke(page) {
             return this.grantSourceLabel(page) === 'manual';
+          },
+
+          demoPreviewUrl(slug) {
+            return `router.html?site=${encodeURIComponent(slug || '')}`;
           },
 
           formatDate(value) {
@@ -383,7 +473,73 @@
             }
           },
 
+          async createDemo() {
+            this.errorMessage = '';
+            this.successMessage = '';
+            this.busy = true;
+            try {
+              const { data, error } = await this.supabase.functions.invoke('god-manage-demo', {
+                body: {
+                  action: 'create',
+                  theme: this.demoForm.theme,
+                  slug: this.demoForm.slug.trim().toLowerCase(),
+                },
+              });
+              if (error) throw error;
+              if (!data?.success) throw new Error(data?.error || 'Tworzenie demo nieudane');
+              this.successMessage = data.message || `Utworzono ${data.slug}`;
+              this.demoForm.slug = '';
+              await this.reloadPages();
+            } catch (err) {
+              console.error(err);
+              this.errorMessage = err?.message || 'Nie udało się utworzyć demo.';
+            } finally {
+              this.busy = false;
+            }
+          },
+
+          openDeleteDemo(page) {
+            this.deleteModal = {
+              open: true,
+              slug: page.slug,
+              confirmSlug: '',
+            };
+          },
+
+          canConfirmDelete() {
+            const a = String(this.deleteModal.slug || '').trim().toLowerCase();
+            const b = String(this.deleteModal.confirmSlug || '').trim().toLowerCase();
+            return !!a && a === b;
+          },
+
+          async confirmDeleteDemo() {
+            if (!this.canConfirmDelete()) return;
+            this.errorMessage = '';
+            this.successMessage = '';
+            this.busy = true;
+            try {
+              const { data, error } = await this.supabase.functions.invoke('god-manage-demo', {
+                body: {
+                  action: 'delete',
+                  slug: this.deleteModal.slug,
+                  confirmSlug: this.deleteModal.confirmSlug,
+                },
+              });
+              if (error) throw error;
+              if (!data?.success) throw new Error(data?.error || 'Usuwanie nieudane');
+              this.successMessage = data.message || `Usunięto ${this.deleteModal.slug}`;
+              this.deleteModal.open = false;
+              await this.reloadPages();
+            } catch (err) {
+              console.error(err);
+              this.errorMessage = err?.message || 'Nie udało się usunąć demo.';
+            } finally {
+              this.busy = false;
+            }
+          },
+
           openGrant(page) {
+            if (this.isDemoPage(page)) return;
             this.grantModal = {
               open: true,
               slug: page.slug,
