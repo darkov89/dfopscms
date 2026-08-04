@@ -13,7 +13,7 @@
                             <span class="truncate font-medium text-slate-900" x-text="themeDisplayLabel"></span>
                         </div>
                         <span class="hidden h-3.5 w-px shrink-0 self-center bg-slate-200 sm:block" aria-hidden="true"></span>
-                        <div x-show="typeof i18nEnabledLocales === 'function' && i18nEnabledLocales().length" class="flex items-center gap-1.5" x-cloak>
+                        <div x-show="typeof i18nEnabledLocales === 'function' && i18nEnabledLocales().length > 1" class="flex items-center gap-1.5" x-cloak>
                             <span class="shrink-0 text-slate-500 text-xs">Język</span>
                             <template x-for="loc in i18nEnabledLocales()" :key="'edit-loc-'+loc">
                                 <button type="button" @click="setEditLocale(loc)"
@@ -21,6 +21,9 @@
                                         :class="editLocale === loc ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
                                         x-text="i18nLocaleLabel(loc)"></button>
                             </template>
+                            <span class="hidden sm:inline text-[10px] font-semibold uppercase tracking-wider text-slate-400 ml-1"
+                                  x-text="i18nTranslationMode() === 'ai' ? 'AI' : 'ręcznie'"
+                                  :title="i18nTranslationMode() === 'ai' ? 'Tłumaczenie przez AI' : 'Tłumaczenie ręczne'"></span>
                         </div>
                         <span class="hidden h-3.5 w-px shrink-0 self-center bg-slate-200 sm:block" aria-hidden="true"></span>
                         <div x-show="showOwnedPagesSelector" x-cloak class="flex min-w-0 items-center gap-1.5">

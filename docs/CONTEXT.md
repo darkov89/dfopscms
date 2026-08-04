@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-08-04 — God Mode: konto klienta + grant ręczny + multi-site
+**Ostatnia aktualizacja:** 2026-08-04 — Kreator UX + i18n AI/ręcznie + fix Storage staging
 
 ---
 
@@ -114,7 +114,8 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 
 - **Modal powitalny** (`showWelcomeModal`): warunek — `welcome_onboarding_completed` w `content.pl.settings`.
 - **Driver.js** (CDN 1.4.0): tour → kreator (krok 0) → podgląd strony → sidebar (`#dfops-admin-sidebar`) → **Pomocnik krok po kroku** → Subskrypcja. Po tour domyślny widok: **`dashboard`** (nie `hero`).
-- **Kreator:** kroki logiczne z `js/core/themeConfig.js` (`template` → `brand` → `hero` → `offer` → `about` → `contact`); aktywna lista per motyw (`DFOPS_getActiveWizardStepIds`) — np. gastro pomija `about`, w `offer` zbiera `menu_items` zamiast `services`; sync `nav.logo` → `business_name` / `hero.name` / SEO; `finishWizard` → `finalizeWizardContent` (ukrywa puste sekcje); stan w `localStorage` (`dfops_wizard_state_v1:{slug}`, `v:2`); czyszczenie po `finishWizard` / `switchTemplate`.
+- **Kreator:** kroki logiczne z `js/core/themeConfig.js` (`template` → `brand` → `hero` → `offer` → `about` → `contact`); aktywna lista per motyw (`DFOPS_getActiveWizardStepIds`) — np. gastro pomija `about`, w `offer` zbiera `menu_items` zamiast `services`; sync `nav.logo` → `business_name` / `hero.name` / SEO; wejście w hero czyści przykładowe teksty; **Pomiń sekcję** (offer/about); **Generuj z AI** per pole; `finishWizard` → `finalizeWizardContent` (ukrywa puste sekcje); stan w `localStorage` (`dfops_wizard_state_v1:{slug}`, `v:2`); czyszczenie po `finishWizard` / `switchTemplate`.
+- **i18n treści:** `meta.locales` + `meta.translationMode` (`ai`|`manual`); przełącznik języka w headerze tylko gdy >1 locale; sync AI po zmianie PL.
 - **Draft vs published:** auto-save debounce 1000ms → `draft_content`; `publishChanges()` → `content`; **Podgląd prywatny** (`dfcms_preview=1` + sesja właściciela) działa przy wygasłym trial / `billing_failed_at` — baner czerwony, LIVE zablokowany dla gości; link w panelu: „Podgląd prywatny”.
 - **Subskrypcja panel:** `hasActivePaidSubscription` = żywa sub Stripe **lub** aktywny grant ręczny (`grant_source=manual` + `current_period_end` w przyszłości). Portal / upgrade Stripe tylko przy `hasStripeLiveSubscription`. Przy samym grancie: karta statusu + karuzela Checkout (klient może podpiąć kartę — webhook ustawia `grant_source=stripe`).
 - **God Mode:** `godmode.html` — lista stron + **Nowy klient** (`god-provision-site`: invite Auth + strona) + **Aktywuj plan / Cofnij** (`god-grant-subscription`). Impersonacja: `admin.html?impersonate={slug}` — panel ładuje `billing_profiles` **właściciela** (read-only; checkout nadal zablokowany). Tabela: SoT plan z profilu vs lustro `pages.billing_plan` (demo często ma `tier1` bez profilu → „demo/mirror”).
@@ -372,7 +373,8 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 | Panel subskrypcja | `admin.html`, `adminApp.js` |
 | God Mode / superadmin | `godmode.html`, `god-provision-site`, `god-grant-subscription`, `admin.html?impersonate={slug}`, `20260623100512_add_god_mode.sql`, `20260804180000_manual_grant_source.sql` |
 | Plany / watermark | `js/core/planUtils.js` (m.in. `DFOPS_planAllowsAiGenerator`, limity AI) |
-| AI Site Generator | `js/features/aiGenerator.js`, Edge `generate-ai-content`, `_shared/aiCopySchemas.ts` |
+| AI Site Generator | `js/features/aiGenerator.js` (generate / adapt / **field**), Edge `generate-ai-content`, `_shared/aiCopySchemas.ts` |
+| i18n treści witryn | `js/features/i18nPanel.js`, `js/core/i18nContent.js`, `meta.translationMode` |
 | Profil Stripe | `billingProfileView.js`, `loadBillingProfile()`, `grant_source` |
 | Multi-site panel | `pageRepository.listCurrentUserPages`, selektor w `08-header.html` |
 | Demo seeds (localhost fallback) | `data/seeds/demo_pages.json`, `scripts/extract-demo-seeds-from-migration.mjs` |
@@ -385,6 +387,13 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-08-04 — Kreator UX, i18n AI/ręcznie, fix Storage staging
+
+- **Staging upload:** brakowało bucketa `images` (był tylko na Prod) — migracja `20260804190000_ensure_images_storage_bucket.sql` + public SELECT; lepsze błędy uploadu (HEIC, sesja, MIME).
+- **Kreator:** puste pola zamiast HTML z szablonu (`prepareWizardHeroStep` + plain text w `registry.js`); „Pomiń tę sekcję” (oferta / o nas); „Generuj z AI” przy polach tekstowych (`mode: field` w `generate-ai-content`).
+- **i18n stron:** tryb `meta.translationMode` = `ai` | `manual`; przy dodaniu języka wybór AI/ręcznie; po zmianie PL pytanie o sync innych locale (przełącznik języka / publikacja). Panel admina zostaje PL (tłumaczenie przeglądarki OK).
+- **AI copy:** prompt bez HTML w headline — plain text.
 
 ### 2026-08-04 — God Mode: konto klienta, grant ręczny, multi-site
 

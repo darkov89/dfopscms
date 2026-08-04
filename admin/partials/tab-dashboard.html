@@ -94,6 +94,16 @@
                             <div x-show="typeof i18nEnabledLocales === 'function'" class="mb-6 rounded-xl border border-slate-200/80 bg-slate-50/60 p-5" x-cloak>
                                 <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Języki strony</p>
                                 <p class="text-sm text-slate-600 mb-3">Domyślny: Polski. Dodatkowe języki (EN, DE) od planu Standard — osobny adres np. <span class="font-mono text-xs">/en</span>.</p>
+                                <div class="mb-4 flex flex-wrap items-center gap-2" x-show="i18nEnabledLocales().length > 1">
+                                    <span class="text-xs text-slate-500">Tłumaczenie:</span>
+                                    <button type="button" @click="setTranslationMode('ai')"
+                                            class="rounded-md px-2.5 py-1 text-xs font-semibold transition-colors"
+                                            :class="i18nTranslationMode() === 'ai' ? 'bg-slate-900 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'">AI</button>
+                                    <button type="button" @click="setTranslationMode('manual')"
+                                            class="rounded-md px-2.5 py-1 text-xs font-semibold transition-colors"
+                                            :class="i18nTranslationMode() === 'manual' ? 'bg-slate-900 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'">Ręcznie</button>
+                                    <p class="w-full text-[11px] text-slate-500 leading-relaxed">Przy AI — po zmianie tekstów w polskim zapytamy, czy zaktualizować inne języki. Przy ręcznym edytujesz każdy język osobno.</p>
+                                </div>
                                 <div class="flex flex-wrap gap-2 mb-3">
                                     <template x-for="loc in i18nEnabledLocales()" :key="'dash-loc-'+loc">
                                         <span class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-800">

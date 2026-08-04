@@ -462,6 +462,28 @@
     if (isWizardPlaceholder(pl.manifesto.title, tmpl?.manifesto?.title)) {
       pl.manifesto.title = '';
     }
+    if (isWizardPlaceholder(pl.manifesto.label, tmpl?.manifesto?.label)) {
+      pl.manifesto.label = '';
+    }
+  }
+
+  /** Wejście w krok banera — wyczyść przykładowe teksty (bez HTML z szablonu w polach). */
+  function prepareWizardHeroStep(pl, theme) {
+    const tmpl = getWizardTemplatePl(theme);
+    if (!pl.hero) pl.hero = {};
+    if (isWizardPlaceholder(pl.hero.headline, tmpl?.hero?.headline)) {
+      pl.hero.headline = '';
+    } else if (pl.hero.headline) {
+      pl.hero.headline = String(pl.hero.headline).replace(/<[^>]*>/g, '').trim();
+    }
+    if (isWizardPlaceholder(pl.hero.description, tmpl?.hero?.description)) {
+      pl.hero.description = '';
+    }
+  }
+
+  /** Czy krok kreatora da się pominąć (ukryje sekcję przy publikacji). */
+  function wizardStepSkippable(stepId) {
+    return stepId === 'offer' || stepId === 'about';
   }
 
   function finalizeWizardContent(pl, theme) {
@@ -2761,6 +2783,7 @@
                   return;
                 }
                 this.hasUnsavedChanges = true;
+                if (typeof this.markLocaleCopyDirty === 'function') this.markLocaleCopyDirty();
                 this.scheduleDraftAutosave();
               }, { deep: true });
             }, 0);
@@ -3019,6 +3042,42 @@
         this.wizardFieldWarning = '';
         this.showWizardDismissModal = true;
       },
+      /** Pomiń bieżącą sekcję kreatora (oferta / o nas) — ukryje ją przy publikacji. */
+      async skipWizardSection() {
+        const activeTheme = this.wizardTheme || this.theme;
+        const stepId = wizardStepIdAtIndex(activeTheme, this.wizardStep);
+        if (!wizardStepSkippable(stepId)) return;
+        const pl = this.content?.pl;
+        if (!pl) return;
+        this.wizardFieldWarning = '';
+        if (!pl.settings) pl.settings = {};
+        if (stepId === 'offer') {
+          if (wizardOfferSection(activeTheme) === 'menu') {
+            pl.menu_items = [];
+          } else {
+            pl.services = [];
+            pl.settings.showServices = false;
+          }
+          prepareWizardManifestoStep(pl, activeTheme);
+        } else if (stepId === 'about') {
+          pl.manifesto = { label: '', title: '', text: '' };
+          pl.settings.showManifesto = false;
+        }
+        const savedOk = await this.saveData({ silentSuccess: true });
+        if (!savedOk) {
+          this.wizardFieldWarning =
+            'Nie udało się zapisać na serwerze. Sprawdź połączenie i spróbuj ponownie.';
+          return;
+        }
+        if (this.wizardStep < this.wizardStepCount) {
+          this.wizardStep++;
+        }
+        this.persistWizardUiState();
+      },
+      wizardCanSkipSection() {
+        const activeTheme = this.wizardTheme || this.theme;
+        return wizardStepSkippable(wizardStepIdAtIndex(activeTheme, this.wizardStep));
+      },
       async nextWizardStep() {
         const err = this.validateWizardStep(this.wizardStep);
         if (err) {
@@ -3032,6 +3091,9 @@
         const stepId = wizardStepIdAtIndex(activeTheme, this.wizardStep);
         if (pl && (stepId === 'brand' || stepId === 'hero')) {
           syncWizardDerivedFields(pl, activeTheme);
+        }
+        if (pl && stepId === 'brand') {
+          prepareWizardHeroStep(pl, activeTheme);
         }
         if (pl && stepId === 'hero') {
           const offerKind = wizardOfferSection(activeTheme);
@@ -3803,6 +3865,15 @@
           return false;
         }
 
+        // Przed publikacją: pytanie o sync tłumaczeń AI (gdy zmieniono PL i są inne locale)
+        if (
+          !silentSuccess &&
+          typeof this.promptSyncOtherLocales === 'function' &&
+          this._localeCopyDirty
+        ) {
+          await this.promptSyncOtherLocales({ reason: 'publish' });
+        }
+
         this.saving = true;
         try {
           if (typeof this.prepareContentForPersist === 'function') {
@@ -3929,14 +4000,44 @@
         this.uploadingMessage = uploadingMessageFor(section, field);
         this.uploadingImage = true;
         try {
+          // Odśwież sesję — Storage RLS wymaga ważnego JWT + auth.uid().
+          let ownerId = this.user?.id || '';
+          if (this.supabase?.auth?.getUser) {
+            try {
+              const { data: udata } = await this.supabase.auth.getUser();
+              if (udata?.user?.id) {
+                ownerId = udata.user.id;
+                if (!this.user) this.user = { ...udata.user };
+                else if (!this.user.id) this.user = { ...this.user, id: ownerId };
+              }
+            } catch (_) {
+              /* ignore — spróbujemy z this.user */
+            }
+          }
+          if (!ownerId) {
+            throw new Error('Brak sesji użytkownika. Odśwież stronę i zaloguj się ponownie.');
+          }
+
+          const nameLower = String(file.name || '').toLowerCase();
+          let mime = String(file.type || '').toLowerCase();
+          if (!mime || mime === 'application/octet-stream') {
+            if (/\.jpe?g$/i.test(nameLower)) mime = 'image/jpeg';
+            else if (/\.png$/i.test(nameLower)) mime = 'image/png';
+            else if (/\.webp$/i.test(nameLower)) mime = 'image/webp';
+          }
+          if (mime === 'image/jpg') mime = 'image/jpeg';
+
+          if (/\.(heic|heif)$/i.test(nameLower) || mime === 'image/heic' || mime === 'image/heif') {
+            throw new Error(
+              'Format HEIC (iPhone) nie jest obsługiwany. Wybierz JPG, PNG lub WEBP — w iPhone: Ustawienia → Aparat → Formaty → „Najbardziej kompatybilne”.',
+            );
+          }
+
           const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
-          const mime = String(file.type || '').toLowerCase();
           if (!allowedTypes.has(mime)) {
             throw new Error('Nieprawidłowy typ pliku. Dozwolone: JPG, PNG, WEBP.');
           }
 
-          // Dodatkowy bezpiecznik: blokuj svg/html nawet przy błędnym MIME od systemu.
-          const nameLower = String(file.name || '').toLowerCase();
           if (/\.(svg|html?|xml)$/i.test(nameLower) || mime === 'image/svg+xml') {
             throw new Error('Ten typ pliku jest zablokowany ze względów bezpieczeństwa.');
           }
@@ -3958,8 +4059,7 @@
               : String(uploadFile.type || '').includes('png')
                 ? 'png'
                 : 'jpg');
-          const ownerPrefix = this.user?.id ? `${this.user.id}/` : '';
-          const fileName = `${ownerPrefix}${this.slug}-${section}-${field}-${Date.now()}.${fileExt}`;
+          const fileName = `${ownerId}/${this.slug}-${section}-${field}-${Date.now()}.${fileExt}`;
           const { error } = await this.supabase.storage.from('images').upload(fileName, uploadFile, {
             contentType: uploadFile.type || mime,
             upsert: false,
@@ -3987,7 +4087,15 @@
           setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
         } catch (e) {
           console.error(e);
-          this.showError('Nie udało się dodać zdjęcia. Spróbuj jeszcze raz.');
+          const detail =
+            (e && typeof e.message === 'string' && e.message.trim()) ||
+            (e && typeof e.error === 'string' && e.error.trim()) ||
+            '';
+          this.showError(
+            detail && detail.length < 220
+              ? detail
+              : 'Nie udało się dodać zdjęcia. Spróbuj jeszcze raz (JPG, PNG lub WEBP).',
+          );
         } finally {
           this.uploadingImage = false;
           this.uploadingMessage = '';

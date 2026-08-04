@@ -15,7 +15,24 @@ declare const Deno: { env: { get: (k: string) => string | undefined } };
 const DEFAULT_MODEL = "gemini-3.6-flash";
 const PROMPT_MAX = 1500;
 const RATE_LIMIT_MS = 30_000;
+const RATE_LIMIT_FIELD_MS = 6_000;
 const GEMINI_TIMEOUT_MS = 45_000;
+const ALLOWED_LOCALES = new Set(["pl", "en", "de"]);
+
+/** Ścieżki pól dotrybu field (kreator / pojedyncze inputy). */
+const FIELD_PATH_RE =
+  /^(hero\.(headline|description|button|name)|manifesto\.(label|title|text)|nav\.logo|services\.\d+\.(title|desc|price|duration|details)|menu_items\.\d+\.(name|ingredients|price|category))$/;
+
+const FIELD_LABELS: Record<string, string> = {
+  "hero.headline": "główne hasło (nagłówek banera)",
+  "hero.description": "krótki opis pod nagłówkiem",
+  "hero.button": "tekst przycisku banera",
+  "hero.name": "nazwa w banerze",
+  "manifesto.label": "etykieta sekcji O nas",
+  "manifesto.title": "tytuł sekcji O nas",
+  "manifesto.text": "treść sekcji O nas",
+  "nav.logo": "nazwa firmy w menu",
+};
 
 const corsHeadersBase: Record<string, string> = {
   "Access-Control-Allow-Headers":
@@ -134,8 +151,19 @@ Zasady:
 - Ton: ${tone}.
 - Zachowaj strukturę JSON (te same klucze); nie dodawaj pól spoza schematu.
 - Nie zmyślaj telefonów/e-maili/adresów — zostaw puste "" jeśli źródło też ma puste.
-- HTML w headline tylko proste tagi: <span>, <br />, <i>, <em> — bez atrybutów/skryptów.
+- Zwykły tekst — BEZ HTML, BEZ tagów, BEZ markdown.
 - Zwróć wyłącznie JSON zgodny ze schematem.`;
+  }
+  if (mode === "field") {
+    return `Jesteś copywriterem stron lokalnych firm (DFCMS).
+Napisz JEDNO krótkie pole tekstowe w języku: ${langName} (kod: ${locale}), dla szablonu: ${theme}.
+
+Zasady:
+- Ton: ${tone}.
+- Naturalny, konkretny tekst — bez korpo-mowy.
+- Zwykły tekst — BEZ HTML, BEZ tagów, BEZ markdown.
+- Nie zmyślaj telefonów, e-maili ani adresów.
+- Zwróć wyłącznie JSON: { "value": "..." }.`;
   }
   return `Jesteś profesjonalnym copywriterem stron lokalnych firm (DFCMS).
 Wygeneruj kompletny obiekt JSON z treściami marketingowymi w języku: ${langName} (kod: ${locale}), dla szablonu: ${theme}.
@@ -148,8 +176,86 @@ Zasady:
 - Nie generuj URL-i, obrazów ani ustawień technicznych.
 - nav.logo = krótka nazwa firmy widoczna w górnym menu (np. „Studio Fit”). NIGDY nie wpisuj słów technicznych: meta, seo, html, json, shared, settings.
 - seo.title / seo.description = wyłącznie pod Google (zakładka SEO w panelu) — nie myl z logo / nagłówkiem strony.
-- HTML w headline tylko: <span>, <br />, <i>, <em> — bez atrybutów/skryptów i bez tagów <meta>.
+- Zwykły tekst we wszystkich polach — BEZ HTML, BEZ tagów, BEZ markdown.
 - Zwróć wyłącznie JSON zgodny ze schematem odpowiedzi — bez dodatkowych kluczy.`;
+}
+
+function fieldPathLabel(path: string): string {
+  if (FIELD_LABELS[path]) return FIELD_LABELS[path];
+  const svc = path.match(/^services\.(\d+)\.(title|desc|price|duration|details)$/);
+  if (svc) {
+    const map: Record<string, string> = {
+      title: "nazwa usługi",
+      desc: "opis usługi",
+      price: "cena usługi",
+      duration: "czas / zakres usługi",
+      details: "szczegóły usługi",
+    };
+    return `${map[svc[2]] || svc[2]} (pozycja ${Number(svc[1]) + 1})`;
+  }
+  const menu = path.match(/^menu_items\.(\d+)\.(name|ingredients|price|category)$/);
+  if (menu) {
+    const map: Record<string, string> = {
+      name: "nazwa dania",
+      ingredients: "składniki / opis dania",
+      price: "cena dania",
+      category: "kategoria menu",
+    };
+    return `${map[menu[2]] || menu[2]} (pozycja ${Number(menu[1]) + 1})`;
+  }
+  return path;
+}
+
+function setByPath(root: Record<string, unknown>, path: string, value: string): boolean {
+  const parts = path.split(".");
+  let cur: unknown = root;
+  for (let i = 0; i < parts.length - 1; i++) {
+    const key = parts[i];
+    const nextKey = parts[i + 1];
+    const nextIsIndex = /^\d+$/.test(nextKey);
+    if (Array.isArray(cur)) {
+      const idx = Number(key);
+      if (!Number.isFinite(idx) || idx < 0) return false;
+      if (!cur[idx] || typeof cur[idx] !== "object") {
+        cur[idx] = nextIsIndex ? [] : {};
+      }
+      cur = cur[idx];
+    } else if (cur && typeof cur === "object") {
+      const obj = cur as Record<string, unknown>;
+      if (!(key in obj) || obj[key] == null) {
+        obj[key] = nextIsIndex ? [] : {};
+      }
+      cur = obj[key];
+    } else {
+      return false;
+    }
+  }
+  const last = parts[parts.length - 1];
+  if (Array.isArray(cur) && /^\d+$/.test(last)) {
+    cur[Number(last)] = value;
+    return true;
+  }
+  if (cur && typeof cur === "object" && !Array.isArray(cur)) {
+    (cur as Record<string, unknown>)[last] = value;
+    return true;
+  }
+  return false;
+}
+
+function businessContextFromLocale(block: Record<string, unknown>): string {
+  const nav = block.nav as Record<string, unknown> | undefined;
+  const hero = block.hero as Record<string, unknown> | undefined;
+  const settings = block.settings as Record<string, unknown> | undefined;
+  const bits = [
+    nav?.logo,
+    settings?.business_name,
+    hero?.name,
+    hero?.headline,
+    hero?.description,
+  ]
+    .map((x) => String(x || "").replace(/<[^>]*>/g, "").trim())
+    .filter(Boolean);
+  return [...new Set(bits)].slice(0, 4).join(" · ");
 }
 
 async function sleep(ms: number) {
@@ -324,18 +430,21 @@ serve(async (req) => {
       ? pageIdRaw
       : Number(pageIdRaw);
     const prompt = typeof body?.prompt === "string" ? body.prompt.trim() : "";
-    const theme = typeof body?.theme === "string"
+    const themeRaw = typeof body?.theme === "string"
       ? body.theme.trim().toLowerCase()
       : "";
-    const mode = body?.mode === "adapt" ? "adapt" : "generate";
+    let theme = themeRaw;
+    const modeRaw = typeof body?.mode === "string" ? body.mode.trim().toLowerCase() : "generate";
+    const mode = modeRaw === "adapt" || modeRaw === "field" ? modeRaw : "generate";
+    const targetPath = typeof body?.targetPath === "string" ? body.targetPath.trim() : "";
     const localeRaw = typeof body?.locale === "string"
       ? body.locale.trim().toLowerCase()
       : "pl";
-    const locale = ["pl", "en", "de"].includes(localeRaw) ? localeRaw : "pl";
+    const locale = ALLOWED_LOCALES.has(localeRaw) ? localeRaw : "pl";
     const sourceLocaleRaw = typeof body?.sourceLocale === "string"
       ? body.sourceLocale.trim().toLowerCase()
       : "pl";
-    const sourceLocale = ["pl", "en", "de"].includes(sourceLocaleRaw)
+    const sourceLocale = ALLOWED_LOCALES.has(sourceLocaleRaw)
       ? sourceLocaleRaw
       : "pl";
     pageIdLog = pageId;
@@ -344,7 +453,16 @@ serve(async (req) => {
     if (!Number.isFinite(pageId) || pageId < 1) {
       return errorResponse(cors, "INVALID_INPUT", 400, "Brak poprawnego pageId.");
     }
-    if (mode === "generate") {
+    if (mode === "field") {
+      if (!FIELD_PATH_RE.test(targetPath)) {
+        return errorResponse(
+          cors,
+          "INVALID_INPUT",
+          400,
+          "Nieprawidłowe pole do generacji AI.",
+        );
+      }
+    } else if (mode === "generate") {
       if (!prompt || prompt.length < 10) {
         return errorResponse(
           cors,
@@ -363,7 +481,14 @@ serve(async (req) => {
       );
     }
 
-    const responseSchema = buildGeminiResponseSchema(theme);
+    const responseSchema = mode === "field"
+      ? {
+        type: "OBJECT",
+        properties: { value: { type: "STRING" } },
+        required: ["value"],
+        propertyOrdering: ["value"],
+      }
+      : buildGeminiResponseSchema(theme);
     if (!responseSchema) {
       return errorResponse(
         cors,
@@ -375,7 +500,8 @@ serve(async (req) => {
 
     const now = Date.now();
     const last = lastCallByUser.get(userId) || 0;
-    if (now - last < RATE_LIMIT_MS) {
+    const rateMs = mode === "field" ? RATE_LIMIT_FIELD_MS : RATE_LIMIT_MS;
+    if (now - last < rateMs) {
       return errorResponse(cors, "RATE_LIMITED", 429);
     }
 
@@ -401,6 +527,11 @@ serve(async (req) => {
       return errorResponse(cors, "INTERNAL", 500);
     }
     if (!page) return errorResponse(cors, "FORBIDDEN", 403);
+
+    if (!theme) {
+      theme = String(page.theme || "").trim().toLowerCase();
+      themeLog = theme;
+    }
 
     const ownerId = page.user_id as string;
     if (!isGod && ownerId !== userId) {
@@ -442,7 +573,6 @@ serve(async (req) => {
         : {};
 
     // Zapewnij meta.locales zawiera target (tylko pl/en/de — nigdy „meta” itd.)
-    const ALLOWED_LOCALES = new Set(["pl", "en", "de"]);
     if (!existingDraft.meta || typeof existingDraft.meta !== "object") {
       existingDraft.meta = { defaultLocale: "pl", locales: ["pl"] };
     }
@@ -464,6 +594,15 @@ serve(async (req) => {
       if (junk in meta) delete meta[junk];
     }
 
+    const existingPl =
+      existingDraft.pl && typeof existingDraft.pl === "object"
+        ? existingDraft.pl as Record<string, unknown>
+        : {};
+    const existingLocaleBlock =
+      existingDraft[locale] && typeof existingDraft[locale] === "object"
+        ? existingDraft[locale] as Record<string, unknown>
+        : existingPl;
+
     const systemPrompt = buildSystemPrompt(theme, locale, mode);
     let userPrompt = "";
     if (mode === "adapt") {
@@ -480,6 +619,14 @@ serve(async (req) => {
         `Motyw: ${theme}\nZlocale: ${sourceLocale} → ${locale}\n` +
         (prompt ? `Dodatkowy kontekst od właściciela:\n${prompt}\n\n` : "") +
         `JSON źródłowy (zaadaptuj copy):\n${JSON.stringify(srcBlock).slice(0, 28000)}`;
+    } else if (mode === "field") {
+      const ctx = businessContextFromLocale(existingLocaleBlock) ||
+        businessContextFromLocale(existingPl);
+      userPrompt =
+        `Motyw: ${theme}\nPole: ${fieldPathLabel(targetPath)} (${targetPath})\n` +
+        (ctx ? `Kontekst firmy: ${ctx}\n` : "") +
+        (prompt ? `Dodatkowa wskazówka: ${prompt}\n` : "") +
+        `Napisz treść pola „value” (krótko, gotową do wklejenia w formularz).`;
     } else {
       userPrompt =
         `Motyw szablonu: ${theme}\nJęzyk docelowy: ${locale}\nOpis biznesu od właściciela:\n${prompt}`;
@@ -499,6 +646,8 @@ serve(async (req) => {
           scope: "generate-ai-content",
           pageId,
           theme,
+          mode,
+          targetPath: mode === "field" ? targetPath : undefined,
           model: modelLog,
           prompt,
           geminiOk: gemini.ok,
@@ -515,6 +664,7 @@ serve(async (req) => {
           scope: "generate-ai-content",
           pageId,
           theme,
+          mode,
           model: modelLog,
           ok: gemini.ok,
           code: gemini.ok ? "OK" : "AI_FAIL",
@@ -537,31 +687,45 @@ serve(async (req) => {
       return errorResponse(cors, "AI_BAD_RESPONSE", 502);
     }
 
-    const existingPl =
-      existingDraft.pl && typeof existingDraft.pl === "object"
-        ? existingDraft.pl as Record<string, unknown>
-        : {};
-    const existingLocaleBlock =
-      existingDraft[locale] && typeof existingDraft[locale] === "object"
-        ? existingDraft[locale] as Record<string, unknown>
-        : existingPl;
+    let nextDraft: Record<string, unknown>;
+    let fieldValue: string | undefined;
 
-    const mergedLocale = mergeAiCopyPatch(existingLocaleBlock, parsed, theme);
-    // Usuń techniczne klucze gdyby kiedyś wpadły do bloku locale.
-    for (const junk of ["meta", "shared"]) {
-      if (junk in mergedLocale) delete mergedLocale[junk];
-    }
-    applyAiGeneratedSectionFlags(mergedLocale, theme);
-    const nextDraft: Record<string, unknown> = {
-      ...existingDraft,
-      meta,
-      [locale]: mergedLocale,
-    };
-    // Kompatybilność: pl zawsze obecne
-    if (locale === "pl") {
-      nextDraft.pl = mergedLocale;
-    } else if (!nextDraft.pl) {
-      nextDraft.pl = existingPl;
+    if (mode === "field") {
+      const rawVal = typeof parsed.value === "string" ? parsed.value.trim() : "";
+      if (!rawVal) return errorResponse(cors, "AI_BAD_RESPONSE", 502);
+      // Twardy strip HTML — copy w polach formularza ma być plain text.
+      fieldValue = rawVal.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+      if (!fieldValue) return errorResponse(cors, "AI_BAD_RESPONSE", 502);
+      const mergedLocale = JSON.parse(JSON.stringify(existingLocaleBlock)) as Record<
+        string,
+        unknown
+      >;
+      if (!setByPath(mergedLocale, targetPath, fieldValue)) {
+        return errorResponse(cors, "INVALID_INPUT", 400, "Nie udało się zapisać wygenerowanego pola.");
+      }
+      nextDraft = {
+        ...existingDraft,
+        meta,
+        [locale]: mergedLocale,
+      };
+      if (locale === "pl") nextDraft.pl = mergedLocale;
+      else if (!nextDraft.pl) nextDraft.pl = existingPl;
+    } else {
+      const mergedLocale = mergeAiCopyPatch(existingLocaleBlock, parsed, theme);
+      for (const junk of ["meta", "shared"]) {
+        if (junk in mergedLocale) delete mergedLocale[junk];
+      }
+      applyAiGeneratedSectionFlags(mergedLocale, theme);
+      nextDraft = {
+        ...existingDraft,
+        meta,
+        [locale]: mergedLocale,
+      };
+      if (locale === "pl") {
+        nextDraft.pl = mergedLocale;
+      } else if (!nextDraft.pl) {
+        nextDraft.pl = existingPl;
+      }
     }
 
     const { error: updErr } = await supabaseAdmin
@@ -606,6 +770,8 @@ serve(async (req) => {
     return jsonResponse(cors, {
       success: true,
       draft_content: nextDraft,
+      value: fieldValue,
+      targetPath: mode === "field" ? targetPath : undefined,
       remaining,
       limit: isGod ? null : limit,
     });

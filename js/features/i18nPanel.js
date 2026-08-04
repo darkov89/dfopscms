@@ -10,11 +10,20 @@
     return window.DFOPS_SITE_LOCALE_LABELS || { pl: 'Polski', en: 'English', de: 'Deutsch' };
   }
 
+  function ensureTranslationMode(content) {
+    if (!content || typeof content !== 'object') return 'manual';
+    if (!content.meta || typeof content.meta !== 'object') content.meta = {};
+    const mode = content.meta.translationMode === 'ai' ? 'ai' : 'manual';
+    content.meta.translationMode = mode;
+    return mode;
+  }
+
   window.DFOPS_attachI18nPanel = function attachI18nPanel(app) {
     if (!app || typeof app !== 'object') return;
 
     app.editLocale = 'pl';
     app._localePack = null;
+    app._localeCopyDirty = false;
 
     app.i18nEnabledLocales = function i18nEnabledLocales() {
       if (typeof window.DFOPS_enabledLocales === 'function' && this.content) {
@@ -33,6 +42,34 @@
     app.i18nLocaleLabel = function i18nLocaleLabel(code) {
       const map = labels();
       return map[code] || String(code || '').toUpperCase();
+    };
+
+    app.i18nTranslationMode = function i18nTranslationMode() {
+      return ensureTranslationMode(this.content);
+    };
+
+    app.setTranslationMode = function setTranslationMode(mode) {
+      if (!this.content) return;
+      if (!this.content.meta || typeof this.content.meta !== 'object') this.content.meta = {};
+      this.content.meta.translationMode = mode === 'ai' ? 'ai' : 'manual';
+      if (typeof this.scheduleDraftAutosave === 'function') this.scheduleDraftAutosave();
+      this.showToast(
+        mode === 'ai'
+          ? 'Tryb tłumaczenia: AI — przy zmianach w języku podstawowym zapytamy o aktualizację innych języków.'
+          : 'Tryb tłumaczenia: ręcznie — edytujesz każdy język osobno.',
+        'info',
+      );
+    };
+
+    app.markLocaleCopyDirty = function markLocaleCopyDirty() {
+      const def = this.i18nDefaultLocale();
+      if ((this.editLocale || def) === def && this.i18nEnabledLocales().length > 1) {
+        this._localeCopyDirty = true;
+      }
+    };
+
+    app.clearLocaleCopyDirty = function clearLocaleCopyDirty() {
+      this._localeCopyDirty = false;
     };
 
     app.canUseExtraLocales = function canUseExtraLocales() {
@@ -69,6 +106,7 @@
         if (typeof window.DFOPS_finalizeI18nContent === 'function') {
           window.DFOPS_finalizeI18nContent(this.content);
         }
+        ensureTranslationMode(this.content);
         const def = this.i18nDefaultLocale();
         this._localePack = {};
         const enabled = this.i18nEnabledLocales();
@@ -85,6 +123,7 @@
           this.editLocale = def;
         }
         this._bindEditLocaleShim();
+        this._localeCopyDirty = false;
       } finally {
         this._suppressContentWatch = prevSuppress;
       }
@@ -110,12 +149,25 @@
       }
     };
 
-    app.setEditLocale = function setEditLocale(code) {
+    app.setEditLocale = async function setEditLocale(code) {
       const loc = String(code || '')
         .trim()
         .toLowerCase();
       if (!loc || this.i18nEnabledLocales().indexOf(loc) === -1) return;
       if (loc === this.editLocale) return;
+
+      const def = this.i18nDefaultLocale();
+      // Przy wyjściu z języka podstawowego — pytanie o sync AI
+      if (
+        this.editLocale === def &&
+        loc !== def &&
+        this._localeCopyDirty &&
+        this.i18nTranslationMode() === 'ai' &&
+        typeof this.promptSyncOtherLocales === 'function'
+      ) {
+        await this.promptSyncOtherLocales({ reason: 'switch' });
+      }
+
       this._suppressContentWatch = true;
       try {
         if (this.editLocale && this.content && this.content.pl) {
@@ -131,7 +183,64 @@
       }
     };
 
-    app.enableSiteLocale = function enableSiteLocale(code) {
+    /** Pytanie: zaktualizować inne języki przez AI? */
+    app.promptSyncOtherLocales = async function promptSyncOtherLocales(opts) {
+      const options = opts && typeof opts === 'object' ? opts : {};
+      if (!this._localeCopyDirty) return false;
+      if (this.i18nTranslationMode() !== 'ai') {
+        this._localeCopyDirty = false;
+        return false;
+      }
+      const enabled = this.i18nEnabledLocales();
+      const def = this.i18nDefaultLocale();
+      const others = enabled.filter((c) => c !== def);
+      if (!others.length) {
+        this._localeCopyDirty = false;
+        return false;
+      }
+      if (!this.canUseAiGenerator || !this.canUseAiGenerator()) {
+        this.showToast(
+          'Zmieniłeś treść w języku podstawowym. Zaktualizuj tłumaczenia ręcznie (lub włącz AI na planie Starter+).',
+          'info',
+        );
+        this._localeCopyDirty = false;
+        return false;
+      }
+
+      const names = others.map((c) => this.i18nLocaleLabel(c)).join(', ');
+      const ok = await this.confirmAsync({
+        title: 'Zaktualizować inne języki?',
+        message:
+          'Zmieniłeś treści w języku podstawowym. Czy AI ma zaktualizować tłumaczenia (' +
+          names +
+          ')?' +
+          (options.reason === 'publish' ? ' (przed publikacją)' : ''),
+        yesLabel: 'Tak, przetłumacz AI',
+        noLabel: 'Nie teraz',
+        tone: 'default',
+      });
+      if (!ok) {
+        this._localeCopyDirty = false;
+        return false;
+      }
+
+      let allOk = true;
+      for (let i = 0; i < others.length; i++) {
+        if (typeof this.adaptLocaleWithAi !== 'function') {
+          allOk = false;
+          break;
+        }
+        const adapted = await this.adaptLocaleWithAi(others[i], { silent: others.length > 1 });
+        if (!adapted) allOk = false;
+      }
+      this._localeCopyDirty = false;
+      if (allOk && others.length > 1) {
+        this.showToast('Zaktualizowano tłumaczenia AI.', 'success');
+      }
+      return allOk;
+    };
+
+    app.enableSiteLocale = async function enableSiteLocale(code) {
       const loc = String(code || '')
         .trim()
         .toLowerCase();
@@ -146,6 +255,21 @@
       }
       if (!this.content) return;
       const def = this.i18nDefaultLocale();
+
+      // Wybór: AI vs ręcznie
+      const useAi = await this.confirmAsync({
+        title: 'Jak tłumaczyć treści?',
+        message:
+          'Dodajesz język ' +
+          this.i18nLocaleLabel(loc) +
+          '. AI może od razu przetłumaczyć teksty z ' +
+          this.i18nLocaleLabel(def) +
+          ', albo skopiujemy treść i przetłumaczysz ręcznie.',
+        yesLabel: 'Przez AI',
+        noLabel: 'Ręcznie',
+        tone: 'default',
+      });
+
       // Flush current edit
       if (this.editLocale && this.content.pl) {
         this._localePack = this._localePack || {};
@@ -159,10 +283,27 @@
         if (!this.content.meta) this.content.meta = { defaultLocale: def, locales: [def] };
         if (this.content.meta.locales.indexOf(loc) === -1) this.content.meta.locales.push(loc);
       }
+      ensureTranslationMode(this.content);
+      this.content.meta.translationMode = useAi ? 'ai' : 'manual';
       this._localePack[loc] = this.content[loc];
       this.setEditLocale(loc);
       if (typeof this.scheduleDraftAutosave === 'function') this.scheduleDraftAutosave();
-      this.showToast('Dodano język: ' + this.i18nLocaleLabel(loc) + '. Możesz teraz edytować treści.', 'success');
+
+      if (useAi && typeof this.adaptLocaleWithAi === 'function') {
+        this.showToast('Dodano język — tłumaczę przez AI…', 'info');
+        const adapted = await this.adaptLocaleWithAi(loc, { silent: false });
+        if (!adapted) {
+          this.showToast(
+            'Język dodany (kopia PL). AI nie przetłumaczyło — możesz spróbować „Zlokalizuj z PL”.',
+            'info',
+          );
+        }
+      } else {
+        this.showToast(
+          'Dodano język: ' + this.i18nLocaleLabel(loc) + '. Edytuj teksty ręcznie.',
+          'success',
+        );
+      }
     };
 
     app.disableSiteLocale = async function disableSiteLocale(code) {
@@ -176,7 +317,10 @@
       }
       const ok = await this.confirmAsync({
         title: 'Usunąć język?',
-        message: 'Treści w języku ' + this.i18nLocaleLabel(loc) + ' zostaną usunięte z wersji roboczej. Opublikuj, żeby zniknęły też z LIVE.',
+        message:
+          'Treści w języku ' +
+          this.i18nLocaleLabel(loc) +
+          ' zostaną usunięte z wersji roboczej. Opublikuj, żeby zniknęły też z LIVE.',
         yesLabel: 'Usuń',
         noLabel: 'Anuluj',
         tone: 'danger',
@@ -214,6 +358,7 @@
       // Domyślny locale zawsze pod swoim kluczem i jako pl dla kompatybilności loaderów
       const def = this.i18nDefaultLocale();
       if (this.content[def]) this.content.pl = this.content[def];
+      ensureTranslationMode(this.content);
       if (typeof window.DFOPS_prepareContentForSave === 'function') {
         window.DFOPS_prepareContentForSave(this.content);
       }

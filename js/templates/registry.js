@@ -177,7 +177,7 @@
         },
         hero: {
           name: "Witaj na pokładzie",
-          headline: "Twoja przestrzeń <span class='text-brand-gold italic'>Ekspercka</span>.",
+          headline: "Twoja przestrzeń ekspercka",
           subheadline: "",
           description: "Panel dla konsultantów i specjalistów. Gotowy na opinie i akordeony.",
           button: "Zaczynamy",
@@ -255,7 +255,7 @@
         },
         hero: {
           name: "Twoje miejsce",
-          headline: "Odkryj <i>siebie</i> na nowo",
+          headline: "Odkryj siebie na nowo",
           description: "Krótki opis Twojej oferty i atmosfery.",
           button: "Umów wizytę",
           button_enabled: true,
@@ -335,7 +335,7 @@
         },
         hero: {
           name: "Trener personalny",
-          headline: "SILNIEJ. SZYBCIEJ.<br />BEZ WYMÓWEK.",
+          headline: "Silniej. Szybciej. Bez wymówek.",
           subheadline: "",
           description: "Treningi personalne i małe grupy. Cel: Twoja forma — mierzalnie, bezpiecznie, bez chaosu.",
           button: "Umów trening",
@@ -439,7 +439,7 @@
         },
         hero: {
           name: "Usługi remontowo-budowlane",
-          headline: "Szybko i <span class=\"text-amber-500\">solidnie</span>",
+          headline: "Szybko i solidnie",
           subheadline: "",
           description:
             "Dojazd na terenie miasta i okolic. Wycena po oględzinach — bez ukrytych kosztów.",
@@ -559,7 +559,7 @@
         },
         hero: {
           name: 'Nazwa lokalu',
-          headline: 'Smak, który <em>zostaje w pamięci</em>',
+          headline: 'Smak, który zostaje w pamięci',
           subheadline: 'Kuchnia autorska · sezonowe menu',
           description: 'Sezonowe składniki, domowe receptury i ciepła atmosfera — zapraszamy na lunch, kolację i weekendowy brunch.',
           button: 'Zarezerwuj stolik',

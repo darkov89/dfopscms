@@ -24,11 +24,44 @@
     return { code: 'INTERNAL', message: msg };
   }
 
+  function setByPath(root, path, value) {
+    const parts = String(path || '').split('.');
+    if (!parts.length || !root) return false;
+    let cur = root;
+    for (let i = 0; i < parts.length - 1; i++) {
+      const key = parts[i];
+      const nextKey = parts[i + 1];
+      const nextIsIndex = /^\d+$/.test(nextKey);
+      if (Array.isArray(cur)) {
+        const idx = Number(key);
+        if (!Number.isFinite(idx)) return false;
+        if (!cur[idx] || typeof cur[idx] !== 'object') cur[idx] = nextIsIndex ? [] : {};
+        cur = cur[idx];
+      } else if (cur && typeof cur === 'object') {
+        if (!(key in cur) || cur[key] == null) cur[key] = nextIsIndex ? [] : {};
+        cur = cur[key];
+      } else {
+        return false;
+      }
+    }
+    const last = parts[parts.length - 1];
+    if (Array.isArray(cur) && /^\d+$/.test(last)) {
+      cur[Number(last)] = value;
+      return true;
+    }
+    if (cur && typeof cur === 'object') {
+      cur[last] = value;
+      return true;
+    }
+    return false;
+  }
+
   window.DFOPS_attachAiGenerator = function attachAiGenerator(app) {
     if (!app || typeof app !== 'object') return;
 
     app.aiPrompt = '';
     app.isGeneratingAi = false;
+    app.aiGeneratingField = '';
     app.aiModalOpen = false;
     app.aiRemaining = null;
     app.aiLimit = null;
@@ -65,7 +98,9 @@
         this.showToast('Brak aktywnej strony.', 'error');
         return;
       }
-      const theme = String(this.theme || '').trim().toLowerCase();
+      const theme = String(this.wizardTheme || this.theme || '')
+        .trim()
+        .toLowerCase();
       if (!theme || theme === 'setup') {
         this.showToast('Najpierw wybierz szablon branżowy w kreatorze lub w ustawieniach.', 'info');
         return;
@@ -85,6 +120,209 @@
     app.closeAiGeneratorModal = function closeAiGeneratorModal() {
       if (this.isGeneratingAi) return;
       this.aiModalOpen = false;
+    };
+
+    /** Generuj pojedyncze pole (kreator / panel) — mode: field. */
+    app.generateFieldWithAi = async function generateFieldWithAi(targetPath, hint) {
+      if (this.isGeneratingAi) return;
+      if (!this.canUseAiGenerator()) {
+        this.showToast(
+          'Generowanie AI jest dostępne na planach Starter i Standard. Przejdź do Subskrypcji.',
+          'info',
+        );
+        if (typeof this.setTab === 'function') this.setTab('subscription');
+        return;
+      }
+      const path = String(targetPath || '').trim();
+      if (!path) return;
+      if (!this.pageId || !this.supabase) {
+        this.showToast('Brak połączenia z serwisem. Odśwież stronę.', 'error');
+        return;
+      }
+      const theme = String(this.wizardTheme || this.theme || '')
+        .trim()
+        .toLowerCase();
+      if (!theme || theme === 'setup') {
+        this.showToast('Najpierw wybierz szablon branżowy.', 'info');
+        return;
+      }
+
+      this.isGeneratingAi = true;
+      this.aiGeneratingField = path;
+      this._suppressContentWatch = true;
+      if (this._draftAutosaveTimer) {
+        clearTimeout(this._draftAutosaveTimer);
+        this._draftAutosaveTimer = null;
+      }
+      try {
+        if (typeof this._persistDraft === 'function') {
+          await this._persistDraft({ silent: true });
+        }
+        this._suppressContentWatch = true;
+
+        const {
+          data: { session },
+        } = await this.supabase.auth.getSession();
+        const token = session?.access_token;
+        if (!token) {
+          this.showToast('Sesja wygasła — zaloguj się ponownie.', 'error');
+          return;
+        }
+
+        const locale = this.editLocale || 'pl';
+        const { data, error } = await this.supabase.functions.invoke('generate-ai-content', {
+          body: {
+            pageId: this.pageId,
+            prompt: String(hint || '').trim(),
+            theme,
+            locale,
+            mode: 'field',
+            targetPath: path,
+          },
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (error || !data?.success) {
+          const parsed = await parseInvokeError(error, data);
+          this.showToast(parsed.message, 'error');
+          return;
+        }
+
+        const value =
+          typeof data.value === 'string'
+            ? data.value
+            : data.draft_content && this.content
+              ? null
+              : '';
+
+        if (data.draft_content && typeof data.draft_content === 'object') {
+          this._suppressContentWatch = true;
+          this.content =
+            typeof window.DFOPS_normalizeContent === 'function'
+              ? window.DFOPS_normalizeContent(data.draft_content, theme)
+              : data.draft_content;
+          if (typeof this.i18nAfterContentLoad === 'function') {
+            this.i18nAfterContentLoad();
+            if (locale && typeof this.setEditLocale === 'function') {
+              this.setEditLocale(locale);
+            }
+          }
+        } else if (value != null && this.content?.pl) {
+          setByPath(this.content.pl, path, value);
+        }
+
+        if (typeof data.remaining === 'number') this.aiRemaining = data.remaining;
+        if (typeof data.limit === 'number') this.aiLimit = data.limit;
+        this.showToast('Wygenerowano tekst AI — możesz go edytować.', 'success');
+        if (typeof this.markLocaleCopyDirty === 'function') this.markLocaleCopyDirty();
+      } catch (e) {
+        safeDebug('generateFieldWithAi', e);
+        this.showToast('Nie udało się wygenerować tekstu. Spróbuj ponownie.', 'error');
+      } finally {
+        this.isGeneratingAi = false;
+        this.aiGeneratingField = '';
+        setTimeout(() => {
+          this._suppressContentWatch = false;
+        }, 0);
+      }
+    };
+
+    /** Adaptuj locale źródłowe → docelowe (bez modala). Używane przy włączaniu języka / sync. */
+    app.adaptLocaleWithAi = async function adaptLocaleWithAi(targetLocale, opts) {
+      const options = opts && typeof opts === 'object' ? opts : {};
+      const silent = options.silent === true;
+      if (this.isGeneratingAi) return false;
+      if (!this.canUseAiGenerator()) {
+        if (!silent) {
+          this.showToast('Lokalizacja AI wymaga planu Starter lub Standard.', 'info');
+        }
+        return false;
+      }
+      const locale = String(targetLocale || '')
+        .trim()
+        .toLowerCase();
+      const sourceLocale =
+        typeof this.i18nDefaultLocale === 'function' ? this.i18nDefaultLocale() : 'pl';
+      if (!locale || locale === sourceLocale) return false;
+      if (!this.pageId || !this.supabase) return false;
+
+      const theme = String(this.theme || '')
+        .trim()
+        .toLowerCase();
+      if (!theme || theme === 'setup') return false;
+
+      this.isGeneratingAi = true;
+      this._suppressContentWatch = true;
+      if (this._draftAutosaveTimer) {
+        clearTimeout(this._draftAutosaveTimer);
+        this._draftAutosaveTimer = null;
+      }
+      try {
+        if (typeof this._persistDraft === 'function') {
+          await this._persistDraft({ silent: true });
+        }
+        this._suppressContentWatch = true;
+
+        const {
+          data: { session },
+        } = await this.supabase.auth.getSession();
+        const token = session?.access_token;
+        if (!token) {
+          if (!silent) this.showToast('Sesja wygasła — zaloguj się ponownie.', 'error');
+          return false;
+        }
+
+        const { data, error } = await this.supabase.functions.invoke('generate-ai-content', {
+          body: {
+            pageId: this.pageId,
+            prompt: '',
+            theme,
+            locale,
+            mode: 'adapt',
+            sourceLocale,
+          },
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (error || !data?.success) {
+          const parsed = await parseInvokeError(error, data);
+          if (!silent) this.showToast(parsed.message, 'error');
+          return false;
+        }
+
+        if (data.draft_content && typeof data.draft_content === 'object') {
+          this._suppressContentWatch = true;
+          this.content =
+            typeof window.DFOPS_normalizeContent === 'function'
+              ? window.DFOPS_normalizeContent(data.draft_content, theme)
+              : data.draft_content;
+          if (typeof this.i18nAfterContentLoad === 'function') {
+            this.i18nAfterContentLoad();
+            if (typeof this.setEditLocale === 'function') this.setEditLocale(locale);
+          }
+        }
+        if (typeof data.remaining === 'number') this.aiRemaining = data.remaining;
+        if (typeof data.limit === 'number') this.aiLimit = data.limit;
+        if (!silent) {
+          this.showToast(
+            'AI przetłumaczyło treści na ' +
+              (typeof this.i18nLocaleLabel === 'function' ? this.i18nLocaleLabel(locale) : locale) +
+              '.',
+            'success',
+          );
+        }
+        if (typeof this.clearLocaleCopyDirty === 'function') this.clearLocaleCopyDirty();
+        return true;
+      } catch (e) {
+        safeDebug('adaptLocaleWithAi', e);
+        if (!silent) this.showToast('Nie udało się przetłumaczyć. Spróbuj ponownie.', 'error');
+        return false;
+      } finally {
+        this.isGeneratingAi = false;
+        setTimeout(() => {
+          this._suppressContentWatch = false;
+        }, 0);
+      }
     };
 
     app.generateSiteWithAi = async function generateSiteWithAi() {
@@ -197,6 +435,7 @@
           toastMsg += ` Zostało ${remaining} z ${limit} generacji w tym miesiącu.`;
         }
         this.showToast(toastMsg, 'success');
+        if (typeof this.clearLocaleCopyDirty === 'function') this.clearLocaleCopyDirty();
         // Po generacji otwórz ofertę, jeśli motyw ma usługi / menu — od razu widać edycję.
         if (mode === 'generate' && typeof this.setTab === 'function') {
           if (typeof this.adminTabVisible === 'function' && this.adminTabVisible('services')) {
