@@ -819,7 +819,11 @@
       get billingSubscriptionView() {
         const trialSub = this.content?.pl?.settings?.subscription;
         if (typeof window.DFOPS_billingRowToSubscriptionView === 'function') {
-          return window.DFOPS_billingRowToSubscriptionView(this.billingProfile, trialSub);
+          return window.DFOPS_billingRowToSubscriptionView(
+            this.billingProfile,
+            trialSub,
+            this.pageBillingPlan,
+          );
         }
         return trialSub && typeof trialSub === 'object' ? trialSub : { plan: 'trial' };
       },
@@ -1527,6 +1531,7 @@
       /** Jednorazowy toast po pełnym wczytaniu billing_profiles (bez duplikatu przy drugim loadData). */
       maybeShowBillingStatusToastOnce() {
         if (this._billingStatusToastShown || !this.billingProfileReady || !this.user) return;
+        if (this.isImpersonating) return;
         if (this.isSubscriptionCanceledButValid) {
           this._billingStatusToastShown = true;
           const when = this.subscriptionRenewalDateFormatted;
@@ -2534,14 +2539,22 @@
       },
 
       async loadBillingProfile() {
-        if (!this.user?.id || !this.supabase) {
+        if (!this.supabase) {
+          this.billingProfile = null;
+          return;
+        }
+        // Impersonacja: profil właściciela strony (read-only). Checkout i tak zablokowany.
+        const ownerId = this.isImpersonating
+          ? this.impersonatedPageOwnerId
+          : this.user?.id;
+        if (!ownerId) {
           this.billingProfile = null;
           return;
         }
         const { data, error } = await this.supabase
           .from('billing_profiles')
           .select('*')
-          .eq('user_id', this.user.id)
+          .eq('user_id', ownerId)
           .maybeSingle();
         if (error) {
           console.warn('[DFCMS] loadBillingProfile:', error.message || error);
@@ -2690,11 +2703,7 @@
               this.content.pl.settings.subscription,
             );
           }
-          if (this.isImpersonating) {
-            this.billingProfile = null;
-          } else {
-            await this.loadBillingProfile();
-          }
+          await this.loadBillingProfile();
           this.billingProfileReady = true;
           this.syncUserPlanFromBilling();
           this.syncTrialSuspendedModalVisibility();

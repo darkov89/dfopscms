@@ -141,8 +141,10 @@
                             <tr>
                                 <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Slug</th>
                                 <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Theme</th>
-                                <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Plan</th>
+                                <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Plan (profil)</th>
+                                <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Lustro pages</th>
                                 <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Źródło</th>
+                                <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Status</th>
                                 <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Ważność</th>
                                 <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Utworzono</th>
                                 <th class="px-5 py-3 text-right text-xs font-bold uppercase tracking-widest text-slate-500">Akcje</th>
@@ -157,8 +159,10 @@
                                     <td class="whitespace-nowrap px-5 py-4">
                                         <span class="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-slate-700" x-text="page.theme || 'brak'"></span>
                                     </td>
-                                    <td class="whitespace-nowrap px-5 py-4 text-sm font-medium text-slate-800" x-text="page.billing_plan || 'trial'"></td>
+                                    <td class="whitespace-nowrap px-5 py-4 text-sm font-medium text-slate-800" x-text="displayPlan(page)"></td>
+                                    <td class="whitespace-nowrap px-5 py-4 text-xs text-slate-500" x-text="page.billing_plan || 'trial'"></td>
                                     <td class="whitespace-nowrap px-5 py-4 text-xs font-semibold uppercase tracking-wide text-slate-600" x-text="grantSourceLabel(page)"></td>
+                                    <td class="whitespace-nowrap px-5 py-4 text-xs text-slate-600" x-text="page.billing_status || '—'"></td>
                                     <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500" x-text="formatDate(page.current_period_end)"></td>
                                     <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500" x-text="formatDate(page.created_at)"></td>
                                     <td class="whitespace-nowrap px-5 py-4 text-right">
@@ -171,7 +175,7 @@
                                 </tr>
                             </template>
                             <tr x-show="!pages.length && !errorMessage" x-cloak>
-                                <td colspan="7" class="px-5 py-12 text-center text-sm text-slate-500">Brak stron do wyświetlenia.</td>
+                                <td colspan="9" class="px-5 py-12 text-center text-sm text-slate-500">Brak stron do wyświetlenia.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -293,19 +297,36 @@
               const b = this.billingByUserId[p.user_id] || null;
               return {
                 ...p,
+                profile_plan: b?.plan || null,
                 grant_source: b?.grant_source || null,
                 current_period_end: b?.current_period_end || null,
                 billing_status: b?.status || null,
                 stripe_subscription_id: b?.stripe_subscription_id || null,
+                has_billing_profile: !!b,
               };
             });
+          },
+
+          /** Plan z billing_profiles (SoT) albo adnotacja gdy tylko lustro pages. */
+          displayPlan(page) {
+            if (page.profile_plan) return page.profile_plan;
+            const mirror = String(page.billing_plan || 'trial').toLowerCase();
+            if ((mirror === 'tier0' || mirror === 'tier1') && !page.has_billing_profile) {
+              return `${mirror} (tylko lustro)`;
+            }
+            return mirror || 'trial';
           },
 
           grantSourceLabel(page) {
             const sid = typeof page.stripe_subscription_id === 'string' ? page.stripe_subscription_id.trim() : '';
             const st = String(page.billing_status || '').toLowerCase();
             if (sid && (st === 'active' || st === 'trialing')) return 'stripe';
+            if (sid && st) return `stripe:${st}`;
             if (String(page.grant_source || '').toLowerCase() === 'manual') return 'manual';
+            const mirror = String(page.billing_plan || '').toLowerCase();
+            if ((mirror === 'tier0' || mirror === 'tier1') && !page.has_billing_profile) {
+              return 'demo/mirror';
+            }
             return 'trial';
           },
 
