@@ -3634,7 +3634,8 @@
           .trim()
           .replace(/^https?:\/\//i, '')
           .replace(/\/.*$/, '')
-          .replace(/[?#].*$/, '');
+          .replace(/[?#].*$/, '')
+          .replace(/^www\./i, '');
         return window.DFOPS_normalizeHostname(withoutProtocolAndPath);
       },
 
@@ -3656,13 +3657,52 @@
           return;
         }
 
+        if (!this.supabase) {
+          this.domainError = 'Brak połączenia z serwisem. Odśwież stronę.';
+          this.domainMessage = '';
+          return;
+        }
+
         this.isVerifyingDomain = true;
         this.domainMessage = '';
         this.domainError = '';
 
         try {
+          const { data: sessionData } = await this.supabase.auth.getSession();
+          const token = sessionData?.session?.access_token;
+          if (!token) {
+            this.domainError = 'Brak sesji. Zaloguj się ponownie.';
+            return;
+          }
+
+          const { data: cfData, error: cfError } = await this.supabase.functions.invoke(
+            'add-custom-domain',
+            {
+              body: { domain: cleanDomain, pageId: this.pageId },
+              headers: { Authorization: `Bearer ${token}` },
+            },
+          );
+          if (cfError) {
+            const detail =
+              (cfData && typeof cfData.error === 'string' && cfData.error) ||
+              (typeof cfError.message === 'string' && cfError.message) ||
+              '';
+            throw new Error(detail || 'Nie udało się zarejestrować domeny w Cloudflare.');
+          }
+          if (cfData && cfData.success === false) {
+            throw new Error(
+              (typeof cfData.error === 'string' && cfData.error) ||
+                'Nie udało się zarejestrować domeny w Cloudflare.',
+            );
+          }
+
+          const hostname =
+            (cfData && typeof cfData.hostname === 'string' && cfData.hostname.trim()) ||
+            cleanDomain;
+          this.domainInput = hostname;
+
           const response = await fetch(
-            `/api/verify-domain?domain=${encodeURIComponent(cleanDomain)}`,
+            `/api/verify-domain?domain=${encodeURIComponent(hostname)}`,
           );
           const result = await response.json().catch(() => ({}));
 
@@ -3674,12 +3714,12 @@
           const dbStatus = result.status === 'verified' ? 'active' : 'pending';
 
           const { error } = await this.saveActivePage({
-            custom_domain: cleanDomain,
+            custom_domain: hostname,
             custom_domain_status: dbStatus,
           });
           if (error) throw error;
 
-          this.customDomain = cleanDomain;
+          this.customDomain = hostname;
           this.customDomainStatus = dbStatus;
 
           if (dbStatus === 'active') {
@@ -3688,7 +3728,7 @@
             this.showToast('Własna domena jest aktywna.', 'success');
           } else {
             this.domainMessage =
-              'Domena zapisana. Dodaj rekord CNAME u operatora — po propagacji DNS kliknij „Zapisz i sprawdź” ponownie.';
+              'Domena zapisana w Cloudflare. Ustaw rekordy DNS u operatora (A dla @ oraz CNAME dla www) — po propagacji kliknij „Zapisz i sprawdź” ponownie.';
             this.showDnsInstructions = true;
           }
         } catch (e) {

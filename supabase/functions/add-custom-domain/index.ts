@@ -1,6 +1,7 @@
 // @ts-ignore - remote Deno std module isn't resolvable by local TS linter.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@^2.39.0";
+import { buildCorsHeadersForRequest } from "../_shared/allowedOrigins.ts";
 
 /** Deno global - available at runtime in Supabase Edge Functions. */
 declare const Deno: { env: { get: (k: string) => string | undefined } };
@@ -11,32 +12,20 @@ const corsHeaders: Record<string, string> = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-function isAllowedOrigin(origin: string) {
-  const o = origin.trim();
-  if (o === "https://dfcms.pl") return true;
-  if (o === "http://localhost:5500") return true;
-  try {
-    const u = new URL(o);
-    if (u.protocol !== "https:" && u.protocol !== "http:") return false;
-    const h = u.hostname.toLowerCase();
-    return h.endsWith(".dfcms.pl");
-  } catch {
-    return false;
-  }
-}
-
-function buildCorsHeaders(req: Request) {
-  const origin = req.headers.get("Origin") ?? "";
-  if (!origin || !isAllowedOrigin(origin)) return null;
-  return {
-    ...corsHeaders,
-    "Access-Control-Allow-Origin": origin,
-    Vary: "Origin",
-  } as Record<string, string>;
+/** Cloudflare for SaaS: 1406 = Duplicate custom hostname found. */
+function isDuplicateCustomHostname(cfData: {
+  errors?: Array<{ code?: number; message?: string }>;
+}): boolean {
+  const errors = Array.isArray(cfData?.errors) ? cfData.errors : [];
+  return errors.some((e) => {
+    if (Number(e?.code) === 1406) return true;
+    const msg = String(e?.message || "").toLowerCase();
+    return msg.includes("duplicate custom hostname");
+  });
 }
 
 serve(async (req) => {
-  const cors = buildCorsHeaders(req);
+  const cors = buildCorsHeadersForRequest(req, corsHeaders);
   if (!cors) {
     return new Response(JSON.stringify({ success: false, error: "CORS: origin not allowed" }), {
       status: 403,
@@ -92,8 +81,21 @@ serve(async (req) => {
       .maybeSingle();
 
     if (pageErr) throw pageErr;
-    if (!pageRow || pageRow.user_id !== user.id) {
+    if (!pageRow) {
       throw new Error("Brak uprawnień do tej strony");
+    }
+
+    const isOwner = pageRow.user_id === user.id;
+    if (!isOwner) {
+      const { data: superRow, error: superErr } = await supabaseAdmin
+        .from("superadmins")
+        .select("user_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (superErr) throw superErr;
+      if (!superRow?.user_id) {
+        throw new Error("Brak uprawnień do tej strony");
+      }
     }
 
     const CF_ZONE_ID = Deno.env.get("CF_ZONE_ID");
@@ -121,9 +123,10 @@ serve(async (req) => {
       },
     );
 
-    const cfData = await cfResponse.json();
+    const cfData = await cfResponse.json().catch(() => ({}));
+    const alreadyExists = isDuplicateCustomHostname(cfData);
 
-    if (!cfResponse.ok || !cfData.success) {
+    if ((!cfResponse.ok || !cfData.success) && !alreadyExists) {
       console.error("Błąd Cloudflare:", cfData);
       throw new Error(
         cfData.errors?.[0]?.message || "Błąd integracji z Cloudflare",
@@ -134,7 +137,7 @@ serve(async (req) => {
       .from("pages")
       .update({
         custom_domain: hostname,
-        custom_domain_status: "pending_validation",
+        custom_domain_status: "pending",
       })
       .eq("id", pageId);
 
@@ -143,8 +146,12 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Domena dodana do Cloudflare",
-        data: cfData.result,
+        message: alreadyExists
+          ? "Domena już była w Cloudflare — odświeżono zapis"
+          : "Domena dodana do Cloudflare",
+        hostname,
+        alreadyExists,
+        data: alreadyExists ? null : cfData.result,
       }),
       {
         headers: { ...cors, "Content-Type": "application/json" },
