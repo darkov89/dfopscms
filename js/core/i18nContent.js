@@ -25,26 +25,39 @@
   function ensureMeta(content) {
     if (!content || typeof content !== 'object') return content;
     if (!content.meta || typeof content.meta !== 'object') content.meta = {};
-    const def = String(content.meta.defaultLocale || DEFAULT)
+    const defRaw = String(content.meta.defaultLocale || DEFAULT)
       .trim()
       .toLowerCase();
-    content.meta.defaultLocale = isLocaleKey(def) ? def : DEFAULT;
+    const def = isLocaleKey(defRaw) ? defRaw : DEFAULT;
     let list = Array.isArray(content.meta.locales) ? content.meta.locales : [];
     list = list
       .map((x) => String(x || '').trim().toLowerCase())
       .filter((x) => isLocaleKey(x));
-    if (list.indexOf(content.meta.defaultLocale) === -1) {
-      list.unshift(content.meta.defaultLocale);
+    if (list.indexOf(def) === -1) {
+      list = [def].concat(list);
     }
-    // Zawsze miej co najmniej default
-    if (!list.length) list = [content.meta.defaultLocale];
-    // Dedup
+    if (!list.length) list = [def];
+    // Dedup zachowując kolejność
     const seen = {};
-    content.meta.locales = list.filter((x) => {
-      if (seen[x]) return false;
+    const deduped = [];
+    for (let i = 0; i < list.length; i++) {
+      const x = list[i];
+      if (seen[x]) continue;
       seen[x] = true;
-      return true;
-    });
+      deduped.push(x);
+    }
+    // Idempotentnie — bez zbędnych zapisów (deep $watch Alpine → pętla / freeze UI)
+    if (content.meta.defaultLocale !== def) {
+      content.meta.defaultLocale = def;
+    }
+    const prev = content.meta.locales;
+    const same =
+      Array.isArray(prev) &&
+      prev.length === deduped.length &&
+      prev.every((x, i) => x === deduped[i]);
+    if (!same) {
+      content.meta.locales = deduped;
+    }
     return content;
   }
 

@@ -2783,7 +2783,14 @@
                   return;
                 }
                 this.hasUnsavedChanges = true;
-                if (typeof this.markLocaleCopyDirty === 'function') this.markLocaleCopyDirty();
+                // Tylko flaga — bez ensureMeta/i18n* (mutacja meta w watch = freeze UI)
+                if (typeof this.markLocaleCopyDirty === 'function') {
+                  try {
+                    this.markLocaleCopyDirty();
+                  } catch (_) {
+                    /* ignore */
+                  }
+                }
                 this.scheduleDraftAutosave();
               }, { deep: true });
             }, 0);

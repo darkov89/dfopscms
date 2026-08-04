@@ -388,6 +388,10 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 
 ## 4. Dziennik transformacji
 
+### 2026-08-04 — Fix: freeze kreatora (pętla Alpine $watch)
+
+Deep `$watch('content')` + `markLocaleCopyDirty` → `ensureMeta` zawsze nadpisywał `meta.locales` nową tablicą → nieskończona pętla (UI nieklikalny). `ensureMeta` idempotentny; dirty-flag czyta meta bez mutacji.
+
 ### 2026-08-04 — Kreator UX, i18n AI/ręcznie, fix Storage staging
 
 - **Staging upload:** brakowało bucketa `images` (był tylko na Prod) — migracja `20260804190000_ensure_images_storage_bucket.sql` + public SELECT; lepsze błędy uploadu (HEIC, sesja, MIME).

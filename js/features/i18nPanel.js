@@ -14,8 +14,38 @@
     if (!content || typeof content !== 'object') return 'manual';
     if (!content.meta || typeof content.meta !== 'object') content.meta = {};
     const mode = content.meta.translationMode === 'ai' ? 'ai' : 'manual';
-    content.meta.translationMode = mode;
+    if (content.meta.translationMode !== mode) {
+      content.meta.translationMode = mode;
+    }
     return mode;
+  }
+
+  /** Odczyt bez mutacji — bezpieczny w deep $watch('content'). */
+  function readDefaultLocale(content) {
+    if (!content || typeof content !== 'object') return 'pl';
+    const def = String(content.meta?.defaultLocale || 'pl')
+      .trim()
+      .toLowerCase();
+    return def === 'en' || def === 'de' || def === 'pl' ? def : 'pl';
+  }
+
+  function readEnabledLocales(content) {
+    if (!content || typeof content !== 'object') return ['pl'];
+    const def = readDefaultLocale(content);
+    const raw = Array.isArray(content.meta?.locales) ? content.meta.locales : [def];
+    const out = [];
+    const seen = {};
+    for (let i = 0; i < raw.length; i++) {
+      const c = String(raw[i] || '')
+        .trim()
+        .toLowerCase();
+      if ((c !== 'pl' && c !== 'en' && c !== 'de') || seen[c]) continue;
+      seen[c] = true;
+      out.push(c);
+    }
+    if (!seen[def]) out.unshift(def);
+    if (!out.length) out.push('pl');
+    return out;
   }
 
   window.DFOPS_attachI18nPanel = function attachI18nPanel(app) {
@@ -51,10 +81,12 @@
     app.setTranslationMode = function setTranslationMode(mode) {
       if (!this.content) return;
       if (!this.content.meta || typeof this.content.meta !== 'object') this.content.meta = {};
-      this.content.meta.translationMode = mode === 'ai' ? 'ai' : 'manual';
+      const next = mode === 'ai' ? 'ai' : 'manual';
+      if (this.content.meta.translationMode === next) return;
+      this.content.meta.translationMode = next;
       if (typeof this.scheduleDraftAutosave === 'function') this.scheduleDraftAutosave();
       this.showToast(
-        mode === 'ai'
+        next === 'ai'
           ? 'Tryb tłumaczenia: AI — przy zmianach w języku podstawowym zapytamy o aktualizację innych języków.'
           : 'Tryb tłumaczenia: ręcznie — edytujesz każdy język osobno.',
         'info',
@@ -62,8 +94,10 @@
     };
 
     app.markLocaleCopyDirty = function markLocaleCopyDirty() {
-      const def = this.i18nDefaultLocale();
-      if ((this.editLocale || def) === def && this.i18nEnabledLocales().length > 1) {
+      // Bez ensureMeta / i18nDefaultLocale — te mutują content.meta i w deep $watch = freeze UI
+      const def = readDefaultLocale(this.content);
+      if ((this.editLocale || def) !== def) return;
+      if (readEnabledLocales(this.content).length > 1) {
         this._localeCopyDirty = true;
       }
     };
