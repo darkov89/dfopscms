@@ -184,7 +184,7 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 - **Treść:** DOMPurify + `pageRepository.sanitizeContent` (w tym `menu_image` / elementy `gallery.images`); mapy — tylko Google embed URL; GTM/Pixel — walidacja formatu ID; custom privacy policy renderowana przez `sanitizeHtml`.
 - **Stripe / billing SoT:** webhook secret tylko Edge; `billing_profiles` zapis wyłącznie `service_role` (brak INSERT policy dla `authenticated`); lustro `pages.billing_plan` / `trial_blocked_at` / `billing_failed_at` chronione triggerem `protect_pages_billing_columns` — panel **nie** czyści blokad przy publish.
 - **Google Reviews Edge:** sesja wymagana; Places: `GOOGLE_MAPS_API_KEY` tylko serwer; embed iframe: osobny `GOOGLE_MAPS_EMBED_API_KEY` (HTTP referrer); panel autocomplete → `place_id`.
-- **Checkout / Portal:** `returnUrl` walidowany przez `_shared/allowedOrigins.ts` (`dfcms.pl`, `*.dfcms.pl`, localhost) — bez `*.pages.dev`. CORS billing/AI ten sam allowlist.
+- **Checkout / Portal / God Mode CORS:** `returnUrl` i CORS przez `_shared/allowedOrigins.ts` — `dfcms.pl`, `*.dfcms.pl`, localhost oraz preview tego projektu (`dfopscms.pages.dev`, `*.dfopscms.pages.dev`). Nie dowolne `*.pages.dev`.
 - **Telegram:** `telegram-webhook` wymaga `Authorization: Bearer TELEGRAM_WEBHOOK_SECRET` (fail-closed). Database Webhooks + Sentry muszą mieć ten header. Osobny od `CRON_SECRET`.
 - **Smart Booking:** `settings.booking_mode` + `contact.booking_url`; Booksy embed — ostrzeżenie X-Frame-Options.
 - **Nagłówki HTTP:** Cloudflare middleware dokleja CSP (Supabase/Stripe/Google Maps/CDN/Sentry/Calendly), `X-Content-Type-Options`, `X-Frame-Options: DENY`, HSTS dla HTTPS, Referrer/Permissions Policy.

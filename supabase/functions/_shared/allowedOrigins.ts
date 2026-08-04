@@ -1,7 +1,16 @@
 /**
- * Shared origin / returnUrl allowlist for Edge Functions (billing, AI).
- * No *.pages.dev — staging uses *.dfcms.pl; local uses localhost.
+ * Shared origin / returnUrl allowlist for Edge Functions (billing, AI, God Mode).
+ * Includes Cloudflare Pages preview hosts for this project (`*.dfopscms.pages.dev`).
  */
+
+/** Preview / Pages host for this repo (branch previews + apex). */
+function isDfopscmsPagesDevHost(hostname: string): boolean {
+  const h = (hostname || "").trim().toLowerCase();
+  if (!h) return false;
+  if (h === "dfopscms.pages.dev") return true;
+  if (h.endsWith(".dfopscms.pages.dev")) return true;
+  return false;
+}
 
 export function isAllowedOrigin(origin: string): boolean {
   const o = (origin || "").trim();
@@ -14,6 +23,7 @@ export function isAllowedOrigin(origin: string): boolean {
     const h = u.hostname.toLowerCase();
     if (h.endsWith(".dfcms.pl")) return true;
     if (h === "localhost" || h === "127.0.0.1") return true;
+    if (isDfopscmsPagesDevHost(h)) return true;
     return false;
   } catch {
     return false;
@@ -30,6 +40,7 @@ export function isAllowedReturnUrl(url: string): boolean {
     const h = u.hostname.toLowerCase();
     if (h === "dfcms.pl" || h.endsWith(".dfcms.pl")) return true;
     if (h === "localhost" || h === "127.0.0.1") return true;
+    if (isDfopscmsPagesDevHost(h)) return true;
     return false;
   } catch {
     return false;
