@@ -22,10 +22,17 @@
               panel: '0 1px 2px 0 rgb(15 23 42 / 0.04), 0 2px 8px 0 rgb(15 23 42 / 0.06)',
               'panel-md': '0 4px 12px -2px rgb(15 23 42 / 0.08), 0 2px 4px -2px rgb(15 23 42 / 0.04)',
             },
+            fontFamily: {
+              display: ['"Fraunces"', 'Georgia', 'serif'],
+              sans: ['"DM Sans"', 'system-ui', 'sans-serif'],
+            },
           },
         },
       };
     </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
     <script defer src="js/core/utils.js?v=20260617a"></script>
@@ -34,53 +41,167 @@
     <script defer src="js/core/publishedThemes.js?v=20260804a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
+    <style>
+      [x-cloak] { display: none !important; }
+      .god-shell {
+        background:
+          radial-gradient(1200px 480px at 8% -10%, rgba(212, 175, 55, 0.16), transparent 55%),
+          radial-gradient(900px 420px at 92% 0%, rgba(15, 23, 42, 0.06), transparent 50%),
+          #f8fafc;
+      }
+      .god-card {
+        transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+      }
+      .god-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 28px -12px rgb(15 23 42 / 0.18);
+      }
+    </style>
 </head>
-<body class="min-h-screen bg-slate-50 font-sans text-slate-800 antialiased" x-data="godModeApp()" x-init="init()">
-    <header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur">
-        <div class="mx-auto flex min-h-16 w-full max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between md:px-8">
-            <div>
-                <p class="text-xs font-bold uppercase tracking-[0.3em] text-accent">DFCMS God Mode</p>
-                <h1 class="mt-1 text-2xl font-black tracking-tight text-slate-950">Master Admin Dashboard</h1>
+<body class="god-shell min-h-screen font-sans text-slate-800 antialiased" x-data="godModeApp()" x-init="init()">
+    <header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur">
+        <div class="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-4 md:px-8">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-accent">DFCMS God Mode</p>
+                    <h1 class="font-display mt-1 text-2xl font-bold tracking-tight text-slate-950">Master Dashboard</h1>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <a href="admin.html" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50">Panel CMS</a>
+                    <button type="button" @click="logout()" class="inline-flex items-center justify-center rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-800">Wyloguj</button>
+                </div>
             </div>
-            <div class="flex flex-wrap items-center gap-3">
-                <a href="admin.html" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50">Panel</a>
-                <button type="button" @click="logout()" class="inline-flex items-center justify-center rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-800">Wyloguj</button>
-            </div>
+            <nav x-show="!loading" x-cloak class="flex flex-wrap gap-2" aria-label="Sekcje God Mode">
+                <button type="button" @click="setView('home')"
+                        class="rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors"
+                        :class="view === 'home' ? 'bg-slate-950 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50'">
+                    Start
+                </button>
+                <button type="button" @click="setView('demo')"
+                        class="rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors"
+                        :class="view === 'demo' ? 'bg-slate-950 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50'">
+                    Strona demo
+                </button>
+                <button type="button" @click="setView('client')"
+                        class="rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors"
+                        :class="view === 'client' ? 'bg-slate-950 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50'">
+                    Strona klienta
+                </button>
+                <button type="button" @click="setView('manage')"
+                        class="rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors"
+                        :class="view === 'manage' ? 'bg-slate-950 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50'">
+                    Zarządzaj stronami
+                    <span class="ml-1 tabular-nums opacity-70" x-text="'(' + pages.length + ')'"></span>
+                </button>
+            </nav>
         </div>
     </header>
 
-    <main class="mx-auto w-full max-w-7xl px-4 py-8 md:px-8 md:py-10">
+    <main class="mx-auto w-full max-w-6xl px-4 py-8 md:px-8 md:py-10">
         <div x-show="loading" class="flex min-h-64 items-center justify-center rounded-2xl border border-slate-200/70 bg-white shadow-panel">
             <p class="animate-pulse text-sm font-semibold uppercase tracking-widest text-slate-400">Weryfikuję uprawnienia...</p>
         </div>
 
         <div x-show="!loading" x-cloak>
             <div x-show="errorMessage" x-text="errorMessage" class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-900" role="alert"></div>
-            <div x-show="successMessage" x-text="successMessage" class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-900" role="status"></div>
+            <div x-show="successMessage" class="mb-6 flex flex-col gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-900 sm:flex-row sm:items-center sm:justify-between" role="status">
+                <span x-text="successMessage"></span>
+                <button type="button" x-show="view !== 'manage'" @click="setView('manage')" class="shrink-0 text-xs font-bold uppercase tracking-widest text-emerald-900 underline underline-offset-2">Przejdź do listy</button>
+            </div>
 
-            <section class="mb-6 rounded-2xl border border-slate-200/70 bg-white p-6 shadow-panel ring-1 ring-slate-900/5">
-                <div class="mb-5">
-                    <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Nowy klient</p>
-                    <h2 class="mt-1 text-2xl font-black tracking-tight text-slate-950">Załóż konto i stronę</h2>
-                    <p class="mt-2 max-w-3xl text-sm leading-relaxed text-slate-500">
-                        Wysyła zaproszenie Auth na email klienta (ustawia hasło i loguje się do panelu).
-                        Plan: <strong class="text-slate-700">trial</strong> / <strong class="text-slate-700">grant ręczny</strong> (data ważności) /
-                        <strong class="text-slate-700">klient sam podpina kartę</strong> w Subskrypcji (Stripe Checkout).
-                        FV za godziny/wdrożenie — poza systemem.
-                    </p>
+            <!-- HOME -->
+            <section x-show="view === 'home'" x-cloak>
+                <div class="mb-8 max-w-2xl">
+                    <h2 class="font-display text-3xl font-bold tracking-tight text-slate-950">Co chcesz zrobić?</h2>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-500">Wybierz zadanie. Formularze i lista stron są w osobnych widokach — bez przewijania wszystkiego naraz.</p>
                 </div>
-                <form class="grid gap-4 md:grid-cols-2" @submit.prevent="provisionClient()">
+                <div class="grid gap-4 md:grid-cols-3">
+                    <button type="button" @click="setView('demo')" class="god-card group rounded-2xl border border-slate-200/80 bg-white p-6 text-left shadow-panel ring-1 ring-slate-900/5">
+                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-sm font-bold text-slate-700 group-hover:bg-accent/20 group-hover:text-accent-soft">01</span>
+                        <h3 class="font-display mt-5 text-xl font-bold text-slate-950">Załóż stronę demo</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-500">Publiczny podgląd szablonu dla klienta. Bez konta Auth i bez subskrypcji.</p>
+                        <p class="mt-5 text-xs font-bold uppercase tracking-widest text-accent">Otwórz →</p>
+                    </button>
+                    <button type="button" @click="setView('client')" class="god-card group rounded-2xl border border-slate-200/80 bg-white p-6 text-left shadow-panel ring-1 ring-slate-900/5">
+                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-sm font-bold text-slate-700 group-hover:bg-accent/20 group-hover:text-accent-soft">02</span>
+                        <h3 class="font-display mt-5 text-xl font-bold text-slate-950">Załóż stronę klienta</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-500">Invite na email, konto do panelu oraz trial / grant ręczny / Checkout.</p>
+                        <p class="mt-5 text-xs font-bold uppercase tracking-widest text-accent">Otwórz →</p>
+                    </button>
+                    <button type="button" @click="setView('manage')" class="god-card group rounded-2xl border border-accent/40 bg-gradient-to-br from-white to-amber-50/40 p-6 text-left shadow-panel ring-1 ring-accent/20">
+                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-accent/15 text-sm font-bold text-accent-soft">03</span>
+                        <h3 class="font-display mt-5 text-xl font-bold text-slate-950">Zarządzaj stronami</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-500">Lista klientów i dem: impersonacja, grant planu, podgląd i usuwanie dem.</p>
+                        <p class="mt-4 text-sm font-semibold tabular-nums text-slate-800">
+                            <span x-text="clientPagesCount"></span> klientów ·
+                            <span x-text="demoPagesCount"></span> dem
+                        </p>
+                        <p class="mt-3 text-xs font-bold uppercase tracking-widest text-accent">Otwórz →</p>
+                    </button>
+                </div>
+            </section>
+
+            <!-- DEMO -->
+            <section x-show="view === 'demo'" x-cloak class="rounded-2xl border border-slate-200/70 bg-white p-6 shadow-panel ring-1 ring-slate-900/5 md:p-8">
+                <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Nowe demo</p>
+                        <h2 class="font-display mt-1 text-2xl font-bold tracking-tight text-slate-950">Załóż stronę demo</h2>
+                        <p class="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">
+                            Bez konta i bez subskrypcji. Slug dostaje prefix <code class="rounded bg-slate-100 px-1 text-xs">demo-</code>.
+                            Treść startowa z katalogu. Sześć dem landingowych jest chronionych przed usunięciem.
+                        </p>
+                    </div>
+                    <button type="button" @click="setView('home')" class="shrink-0 text-sm font-semibold text-slate-500 hover:text-slate-800">← Start</button>
+                </div>
+                <form class="grid max-w-3xl gap-4 md:grid-cols-2" @submit.prevent="createDemo()">
+                    <label class="block text-sm">
+                        <span class="mb-1 block font-semibold text-slate-700">Motyw</span>
+                        <select x-model="demoForm.theme" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30">
+                            <template x-for="t in themes" :key="'demo-'+t">
+                                <option :value="t" x-text="t"></option>
+                            </template>
+                        </select>
+                    </label>
+                    <label class="block text-sm">
+                        <span class="mb-1 block font-semibold text-slate-700">Slug (z lub bez demo-)</span>
+                        <input type="text" required x-model="demoForm.slug" pattern="(?:demo-)?[a-z0-9]+(?:-[a-z0-9]+)*" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 font-mono text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder="klient-janek">
+                    </label>
+                    <div class="md:col-span-2 flex flex-wrap items-center gap-3">
+                        <button type="submit" :disabled="busy" class="inline-flex items-center justify-center rounded-lg bg-slate-950 px-5 py-2.5 text-sm font-bold uppercase tracking-widest text-white shadow-sm transition-colors hover:bg-slate-800 disabled:opacity-50">
+                            <span x-show="!busy">Utwórz demo</span>
+                            <span x-show="busy" x-cloak>Przetwarzam…</span>
+                        </button>
+                        <button type="button" @click="setView('manage'); listFilter = 'demo'" class="text-sm font-semibold text-slate-500 hover:text-slate-800">Lista dem →</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- CLIENT -->
+            <section x-show="view === 'client'" x-cloak class="rounded-2xl border border-slate-200/70 bg-white p-6 shadow-panel ring-1 ring-slate-900/5 md:p-8">
+                <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Nowy klient</p>
+                        <h2 class="font-display mt-1 text-2xl font-bold tracking-tight text-slate-950">Załóż stronę klienta</h2>
+                        <p class="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">
+                            Wysyła zaproszenie Auth na email. Klient ustawia hasło i loguje się do panelu.
+                            Plan: trial, grant ręczny z datą albo Checkout (karta w Subskrypcji).
+                        </p>
+                    </div>
+                    <button type="button" @click="setView('home')" class="shrink-0 text-sm font-semibold text-slate-500 hover:text-slate-800">← Start</button>
+                </div>
+                <form class="grid max-w-3xl gap-4 md:grid-cols-2" @submit.prevent="provisionClient()">
                     <label class="block text-sm">
                         <span class="mb-1 block font-semibold text-slate-700">Email klienta</span>
-                        <input type="email" required x-model="form.email" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder="klient@firma.pl">
+                        <input type="email" required x-model="form.email" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder="klient@firma.pl">
                     </label>
                     <label class="block text-sm">
                         <span class="mb-1 block font-semibold text-slate-700">Slug</span>
-                        <input type="text" required x-model="form.slug" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" class="w-full rounded-lg border border-slate-200 px-3 py-2 font-mono text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder="nazwa-firmy">
+                        <input type="text" required x-model="form.slug" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 font-mono text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder="nazwa-firmy">
                     </label>
                     <label class="block text-sm">
                         <span class="mb-1 block font-semibold text-slate-700">Motyw</span>
-                        <select x-model="form.theme" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30">
+                        <select x-model="form.theme" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30">
                             <template x-for="t in themes" :key="t">
                                 <option :value="t" x-text="t"></option>
                             </template>
@@ -88,7 +209,7 @@
                     </label>
                     <label class="block text-sm">
                         <span class="mb-1 block font-semibold text-slate-700">Tryb planu</span>
-                        <select x-model="form.planMode" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30">
+                        <select x-model="form.planMode" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30">
                             <option value="trial">Trial — klient później w panelu</option>
                             <option value="client_checkout">Klient sam podpina kartę (Checkout)</option>
                             <option value="manual_grant">Ręczny grant z datą ważności</option>
@@ -97,7 +218,7 @@
                     <template x-if="form.planMode === 'manual_grant'">
                         <label class="block text-sm">
                             <span class="mb-1 block font-semibold text-slate-700">Plan</span>
-                            <select x-model="form.plan" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-sm">
+                            <select x-model="form.plan" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm shadow-sm">
                                 <option value="tier0">Starter (tier0)</option>
                                 <option value="tier1">Standard (tier1)</option>
                             </select>
@@ -106,7 +227,7 @@
                     <template x-if="form.planMode === 'manual_grant'">
                         <label class="block text-sm">
                             <span class="mb-1 block font-semibold text-slate-700">Ważny do</span>
-                            <input type="date" x-model="form.expiresAt" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-sm" required>
+                            <input type="date" x-model="form.expiresAt" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm shadow-sm" required>
                         </label>
                     </template>
                     <div class="md:col-span-2 flex flex-wrap items-center gap-3">
@@ -115,106 +236,81 @@
                             <span x-show="busy" x-cloak>Przetwarzam…</span>
                         </button>
                         <p x-show="form.planMode === 'client_checkout'" class="text-xs text-slate-500" x-cloak>
-                            Po zaproszeniu: klient → Subskrypcja → wybór pakietu → Stripe Checkout.
+                            Po zaproszeniu: klient → Subskrypcja → Stripe Checkout.
                         </p>
                     </div>
                 </form>
             </section>
 
-            <section class="mb-6 rounded-2xl border border-slate-200/70 bg-white p-6 shadow-panel ring-1 ring-slate-900/5">
-                <div class="mb-5">
-                    <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Demo dla klienta</p>
-                    <h2 class="mt-1 text-2xl font-black tracking-tight text-slate-950">Nowa strona demo</h2>
-                    <p class="mt-2 max-w-3xl text-sm leading-relaxed text-slate-500">
-                        Bez konta Auth i bez subskrypcji — publiczny podgląd szablonu (<code class="rounded bg-slate-100 px-1 text-xs">is_demo_catalog</code>).
-                        Slug dostaje prefix <code class="rounded bg-slate-100 px-1 text-xs">demo-</code>. Treść startowa z katalogu <code class="rounded bg-slate-100 px-1 text-xs">demo-{motyw}</code>.
-                        Sześć dem landingowych nie da się usunąć.
-                    </p>
-                </div>
-                <form class="grid gap-4 md:grid-cols-3" @submit.prevent="createDemo()">
-                    <label class="block text-sm md:col-span-1">
-                        <span class="mb-1 block font-semibold text-slate-700">Motyw</span>
-                        <select x-model="demoForm.theme" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30">
-                            <template x-for="t in themes" :key="'demo-'+t">
-                                <option :value="t" x-text="t"></option>
-                            </template>
-                        </select>
-                    </label>
-                    <label class="block text-sm md:col-span-1">
-                        <span class="mb-1 block font-semibold text-slate-700">Slug (bez lub z demo-)</span>
-                        <input type="text" required x-model="demoForm.slug" pattern="(?:demo-)?[a-z0-9]+(?:-[a-z0-9]+)*" class="w-full rounded-lg border border-slate-200 px-3 py-2 font-mono text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder="klient-janek">
-                    </label>
-                    <div class="flex items-end md:col-span-1">
-                        <button type="submit" :disabled="busy" class="inline-flex w-full items-center justify-center rounded-lg border border-slate-800 bg-slate-900 px-5 py-2.5 text-sm font-bold uppercase tracking-widest text-white shadow-sm transition-colors hover:bg-slate-800 disabled:opacity-50">
-                            <span x-show="!busy">Utwórz demo</span>
-                            <span x-show="busy" x-cloak>Przetwarzam…</span>
-                        </button>
-                    </div>
-                </form>
-            </section>
-
-            <section class="mb-6 rounded-2xl border border-slate-200/70 bg-white p-6 shadow-panel ring-1 ring-slate-900/5">
-                <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <!-- MANAGE -->
+            <section x-show="view === 'manage'" x-cloak>
+                <div class="mb-5 flex flex-col gap-4 rounded-2xl border border-slate-200/70 bg-white p-5 shadow-panel ring-1 ring-slate-900/5 sm:flex-row sm:items-end sm:justify-between md:p-6">
                     <div>
-                        <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Wszystkie strony</p>
-                        <h2 class="mt-1 text-3xl font-black tracking-tight text-slate-950">Zarządzanie klientami</h2>
-                        <p class="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">Grant / Checkout dla klientów; dema: podgląd + usuwanie z potwierdzeniem slugiem.</p>
+                        <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Lista</p>
+                        <h2 class="font-display mt-1 text-2xl font-bold tracking-tight text-slate-950">Zarządzaj stronami</h2>
+                        <p class="mt-2 max-w-xl text-sm text-slate-500">Klienci: impersonacja i grant. Dema: podgląd i usuwanie (z potwierdzeniem slugiem).</p>
                     </div>
-                    <div class="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600 ring-1 ring-slate-200/80">
-                        Rekordy: <strong class="text-slate-950" x-text="pages.length"></strong>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" @click="listFilter = 'all'" class="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider transition-colors"
+                                :class="listFilter === 'all' ? 'bg-slate-950 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">Wszystkie</button>
+                        <button type="button" @click="listFilter = 'client'" class="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider transition-colors"
+                                :class="listFilter === 'client' ? 'bg-slate-950 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">Klienci</button>
+                        <button type="button" @click="listFilter = 'demo'" class="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider transition-colors"
+                                :class="listFilter === 'demo' ? 'bg-slate-950 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">Demo</button>
+                        <button type="button" @click="setView('home')" class="ml-1 text-sm font-semibold text-slate-500 hover:text-slate-800">← Start</button>
                     </div>
                 </div>
-            </section>
 
-            <section class="rounded-2xl border border-slate-200/70 bg-white shadow-panel ring-1 ring-slate-900/5">
-                <table class="w-full table-fixed divide-y divide-slate-200">
-                    <thead class="bg-slate-50/90">
-                        <tr>
-                            <th class="w-[14%] px-3 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Slug</th>
-                            <th class="w-[12%] px-3 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Theme</th>
-                            <th class="w-[10%] px-3 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Plan</th>
-                            <th class="w-[12%] px-3 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Źródło</th>
-                            <th class="w-[16%] px-3 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Ważność</th>
-                            <th class="w-[16%] px-3 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Utworzono</th>
-                            <th class="w-[20%] px-3 py-3 text-right text-xs font-bold uppercase tracking-widest text-slate-500">Akcje</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 bg-white">
-                        <template x-for="page in pages" :key="page.id || page.slug">
-                            <tr class="transition-colors hover:bg-amber-50/40">
-                                <td class="truncate px-3 py-3">
-                                    <span class="font-mono text-sm font-semibold text-slate-950" x-text="page.slug" :title="page.slug"></span>
-                                </td>
-                                <td class="px-3 py-3">
-                                    <span class="inline-flex max-w-full truncate rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-700" x-text="page.theme || 'brak'"></span>
-                                </td>
-                                <td class="truncate px-3 py-3 text-sm font-medium text-slate-800" x-text="displayPlan(page)"></td>
-                                <td class="truncate px-3 py-3 text-[11px] font-semibold uppercase tracking-wide text-slate-600" x-text="grantSourceLabel(page)"></td>
-                                <td class="truncate px-3 py-3 text-sm text-slate-500" x-text="formatDate(page.current_period_end)"></td>
-                                <td class="truncate px-3 py-3 text-sm text-slate-500" x-text="formatDate(page.created_at)"></td>
-                                <td class="px-3 py-3 text-right">
-                                    <div class="inline-flex flex-wrap items-center justify-end gap-1.5">
-                                        <a x-show="isDemoPage(page)" :href="demoPreviewUrl(page.slug)" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-700 hover:bg-slate-50" x-cloak>Podgląd</a>
-                                        <a x-show="!isDemoPage(page)" :href="manageUrl(page.slug)" class="inline-flex items-center justify-center rounded-lg bg-accent px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-accent-fg shadow-sm hover:bg-accent/90">Zarządzaj</a>
-                                        <button type="button" x-show="!isDemoPage(page)" @click="openGrant(page)" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-700 hover:bg-slate-50">Aktywuj</button>
-                                        <button type="button" x-show="canRevoke(page)" x-cloak @click="revokeGrant(page)" :disabled="busy" class="inline-flex items-center justify-center rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-red-700 hover:bg-red-50 disabled:opacity-50">Cofnij</button>
-                                        <button type="button" x-show="canDeleteDemo(page)" x-cloak @click="openDeleteDemo(page)" :disabled="busy" class="inline-flex items-center justify-center rounded-lg border border-red-300 bg-red-50 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-red-800 hover:bg-red-100 disabled:opacity-50">Usuń</button>
-                                    </div>
-                                </td>
+                <div class="rounded-2xl border border-slate-200/70 bg-white shadow-panel ring-1 ring-slate-900/5">
+                    <table class="w-full table-fixed divide-y divide-slate-200">
+                        <thead class="bg-slate-50/90">
+                            <tr>
+                                <th class="w-[16%] px-3 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Slug</th>
+                                <th class="w-[12%] px-3 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Theme</th>
+                                <th class="w-[10%] px-3 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Plan</th>
+                                <th class="w-[12%] px-3 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Źródło</th>
+                                <th class="w-[16%] px-3 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Ważność</th>
+                                <th class="w-[14%] px-3 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Utworzono</th>
+                                <th class="w-[20%] px-3 py-3 text-right text-xs font-bold uppercase tracking-widest text-slate-500">Akcje</th>
                             </tr>
-                        </template>
-                        <tr x-show="!pages.length && !errorMessage" x-cloak>
-                            <td colspan="7" class="px-3 py-12 text-center text-sm text-slate-500">Brak stron do wyświetlenia.</td>
-                        </tr>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            <template x-for="page in filteredPages" :key="page.id || page.slug">
+                                <tr class="transition-colors hover:bg-amber-50/40">
+                                    <td class="truncate px-3 py-3">
+                                        <span class="font-mono text-sm font-semibold text-slate-950" x-text="page.slug" :title="page.slug"></span>
+                                    </td>
+                                    <td class="px-3 py-3">
+                                        <span class="inline-flex max-w-full truncate rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-700" x-text="page.theme || 'brak'"></span>
+                                    </td>
+                                    <td class="truncate px-3 py-3 text-sm font-medium text-slate-800" x-text="displayPlan(page)"></td>
+                                    <td class="truncate px-3 py-3 text-[11px] font-semibold uppercase tracking-wide text-slate-600" x-text="grantSourceLabel(page)"></td>
+                                    <td class="truncate px-3 py-3 text-sm text-slate-500" x-text="formatDate(page.current_period_end)"></td>
+                                    <td class="truncate px-3 py-3 text-sm text-slate-500" x-text="formatDate(page.created_at)"></td>
+                                    <td class="px-3 py-3 text-right">
+                                        <div class="inline-flex flex-wrap items-center justify-end gap-1.5">
+                                            <a x-show="isDemoPage(page)" :href="demoPreviewUrl(page.slug)" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-700 hover:bg-slate-50" x-cloak>Podgląd</a>
+                                            <a x-show="!isDemoPage(page)" :href="manageUrl(page.slug)" class="inline-flex items-center justify-center rounded-lg bg-accent px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-accent-fg shadow-sm hover:bg-accent/90">Zarządzaj</a>
+                                            <button type="button" x-show="!isDemoPage(page)" @click="openGrant(page)" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-700 hover:bg-slate-50">Aktywuj</button>
+                                            <button type="button" x-show="canRevoke(page)" x-cloak @click="revokeGrant(page)" :disabled="busy" class="inline-flex items-center justify-center rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-red-700 hover:bg-red-50 disabled:opacity-50">Cofnij</button>
+                                            <button type="button" x-show="canDeleteDemo(page)" x-cloak @click="openDeleteDemo(page)" :disabled="busy" class="inline-flex items-center justify-center rounded-lg border border-red-300 bg-red-50 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-red-800 hover:bg-red-100 disabled:opacity-50">Usuń</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                            <tr x-show="!filteredPages.length && !errorMessage" x-cloak>
+                                <td colspan="7" class="px-3 py-12 text-center text-sm text-slate-500">Brak stron w tym filtrze.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </section>
         </div>
     </main>
 
     <div x-show="grantModal.open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4" @keydown.escape.window="grantModal.open = false">
         <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-panel-md" @click.outside="grantModal.open = false">
-            <h3 class="text-lg font-bold text-slate-950">Aktywuj plan ręcznie</h3>
+            <h3 class="font-display text-lg font-bold text-slate-950">Aktywuj plan ręcznie</h3>
             <p class="mt-1 text-sm text-slate-500">Slug: <span class="font-mono font-semibold text-slate-800" x-text="grantModal.slug"></span></p>
             <div class="mt-4 space-y-3">
                 <label class="block text-sm">
@@ -239,7 +335,7 @@
     <div x-show="deleteModal.open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4" role="alertdialog" aria-modal="true" @keydown.escape.window="deleteModal.open = false">
         <div class="w-full max-w-md rounded-2xl border border-red-200 bg-white p-6 shadow-panel-md" @click.outside="deleteModal.open = false">
             <p class="text-xs font-bold uppercase tracking-widest text-red-700">Usuwanie nieodwracalne</p>
-            <h3 class="mt-1 text-lg font-bold text-slate-950">Usunąć stronę demo?</h3>
+            <h3 class="font-display mt-1 text-lg font-bold text-slate-950">Usunąć stronę demo?</h3>
             <p class="mt-2 text-sm leading-relaxed text-slate-600">
                 Usuniesz publiczne demo
                 <span class="font-mono font-semibold text-slate-900" x-text="deleteModal.slug"></span>.
@@ -263,10 +359,13 @@
           d.setUTCDate(d.getUTCDate() + 30);
           return d.toISOString().slice(0, 10);
         };
+        const VALID_VIEWS = ['home', 'demo', 'client', 'manage'];
         return {
           supabase: null,
           loading: true,
           busy: false,
+          view: 'home',
+          listFilter: 'all',
           pages: [],
           themes: ['beauty', 'consultant', 'fitness', 'services', 'gastro', 'care'],
           errorMessage: '',
@@ -305,8 +404,38 @@
           ],
           billingByUserId: {},
 
+          get filteredPages() {
+            if (this.listFilter === 'demo') return this.pages.filter((p) => p.is_demo);
+            if (this.listFilter === 'client') return this.pages.filter((p) => !p.is_demo);
+            return this.pages;
+          },
+          get clientPagesCount() {
+            return this.pages.filter((p) => !p.is_demo).length;
+          },
+          get demoPagesCount() {
+            return this.pages.filter((p) => p.is_demo).length;
+          },
+
+          setView(next) {
+            const v = VALID_VIEWS.includes(next) ? next : 'home';
+            this.view = v;
+            this.errorMessage = '';
+            try {
+              const url = new URL(window.location.href);
+              if (v === 'home') url.searchParams.delete('view');
+              else url.searchParams.set('view', v);
+              window.history.replaceState({}, '', url.toString());
+            } catch (_) {
+              /* ignore */
+            }
+          },
+
           async init() {
             try {
+              const params = new URLSearchParams(window.location.search);
+              const qView = params.get('view');
+              if (VALID_VIEWS.includes(qView)) this.view = qView;
+
               this.supabase = window.DFOPS_getSupabaseClient();
               if (typeof window.DFOPS_getPublishedThemeIds === 'function') {
                 this.themes = window.DFOPS_getPublishedThemeIds();
@@ -379,7 +508,6 @@
             });
           },
 
-          /** Plan z billing_profiles, inaczej z pages (np. demo bez profilu). */
           displayPlan(page) {
             if (page.is_demo) return 'demo';
             return page.profile_plan || page.billing_plan || 'trial';
@@ -435,7 +563,6 @@
           expiresAtIso(dateStr) {
             const raw = String(dateStr || '').trim();
             if (!raw) return '';
-            // Koniec dnia UTC wybranej daty
             return `${raw}T23:59:59.000Z`;
           },
 
@@ -465,6 +592,7 @@
               this.form.email = '';
               this.form.slug = '';
               await this.reloadPages();
+              this.listFilter = 'client';
             } catch (err) {
               console.error(err);
               this.errorMessage = err?.message || 'Nie udało się utworzyć klienta.';
@@ -490,6 +618,7 @@
               this.successMessage = data.message || `Utworzono ${data.slug}`;
               this.demoForm.slug = '';
               await this.reloadPages();
+              this.listFilter = 'demo';
             } catch (err) {
               console.error(err);
               this.errorMessage = err?.message || 'Nie udało się utworzyć demo.';
