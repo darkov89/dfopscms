@@ -28,23 +28,11 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
     <script defer src="js/core/utils.js?v=20260617a"></script>
     <script defer src="js/core/config.js?v=20260617t"></script>
     <script defer src="js/core/supabaseClient.js?v=20260619a"></script>
-    <script defer src="js/templates/registry.js?v=20260622a"></script>
-    <script defer src="js/core/contentSchema.js?v=20260404c"></script>
-    <script defer src="js/core/contentUpgrader.js?v=20260622a"></script>
-    <script defer src="js/core/themeStyling.js?v=20260404c"></script>
-    <script defer src="js/core/pageRepository.js?v=20260623h"></script>
-    <script defer src="js/core/planUtils.js?v=20260522e"></script>
-    <script defer src="js/core/billingProfileView.js?v=20260523a"></script>
-    <script defer src="js/core/googlePlacesSync.js?v=20260522d"></script>
-    <script defer src="js/core/analytics.js?v=20260403t"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260623h"></script>
+    <script defer src="js/core/publishedThemes.js?v=20260804a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
 </head>
 <body class="min-h-screen bg-slate-50 font-sans text-slate-800 antialiased" x-data="godModeApp()" x-init="init()">
@@ -67,12 +55,78 @@
         </div>
 
         <div x-show="!loading" x-cloak>
+            <div x-show="errorMessage" x-text="errorMessage" class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-900" role="alert"></div>
+            <div x-show="successMessage" x-text="successMessage" class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-900" role="status"></div>
+
+            <section class="mb-6 rounded-2xl border border-slate-200/70 bg-white p-6 shadow-panel ring-1 ring-slate-900/5">
+                <div class="mb-5">
+                    <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Nowy klient</p>
+                    <h2 class="mt-1 text-2xl font-black tracking-tight text-slate-950">Załóż konto i stronę</h2>
+                    <p class="mt-2 max-w-3xl text-sm leading-relaxed text-slate-500">
+                        Wysyła zaproszenie Auth na email klienta (ustawia hasło i loguje się do panelu).
+                        Plan: <strong class="text-slate-700">trial</strong> / <strong class="text-slate-700">grant ręczny</strong> (data ważności) /
+                        <strong class="text-slate-700">klient sam podpina kartę</strong> w Subskrypcji (Stripe Checkout).
+                        FV za godziny/wdrożenie — poza systemem.
+                    </p>
+                </div>
+                <form class="grid gap-4 md:grid-cols-2" @submit.prevent="provisionClient()">
+                    <label class="block text-sm">
+                        <span class="mb-1 block font-semibold text-slate-700">Email klienta</span>
+                        <input type="email" required x-model="form.email" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder="klient@firma.pl">
+                    </label>
+                    <label class="block text-sm">
+                        <span class="mb-1 block font-semibold text-slate-700">Slug</span>
+                        <input type="text" required x-model="form.slug" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" class="w-full rounded-lg border border-slate-200 px-3 py-2 font-mono text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder="nazwa-firmy">
+                    </label>
+                    <label class="block text-sm">
+                        <span class="mb-1 block font-semibold text-slate-700">Motyw</span>
+                        <select x-model="form.theme" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30">
+                            <template x-for="t in themes" :key="t">
+                                <option :value="t" x-text="t"></option>
+                            </template>
+                        </select>
+                    </label>
+                    <label class="block text-sm">
+                        <span class="mb-1 block font-semibold text-slate-700">Tryb planu</span>
+                        <select x-model="form.planMode" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30">
+                            <option value="trial">Trial — klient później w panelu</option>
+                            <option value="client_checkout">Klient sam podpina kartę (Checkout)</option>
+                            <option value="manual_grant">Ręczny grant z datą ważności</option>
+                        </select>
+                    </label>
+                    <template x-if="form.planMode === 'manual_grant'">
+                        <label class="block text-sm">
+                            <span class="mb-1 block font-semibold text-slate-700">Plan</span>
+                            <select x-model="form.plan" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-sm">
+                                <option value="tier0">Starter (tier0)</option>
+                                <option value="tier1">Standard (tier1)</option>
+                            </select>
+                        </label>
+                    </template>
+                    <template x-if="form.planMode === 'manual_grant'">
+                        <label class="block text-sm">
+                            <span class="mb-1 block font-semibold text-slate-700">Ważny do</span>
+                            <input type="date" x-model="form.expiresAt" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-sm" required>
+                        </label>
+                    </template>
+                    <div class="md:col-span-2 flex flex-wrap items-center gap-3">
+                        <button type="submit" :disabled="busy" class="inline-flex items-center justify-center rounded-lg bg-accent px-5 py-2.5 text-sm font-bold uppercase tracking-widest text-accent-fg shadow-sm transition-colors hover:bg-accent/90 disabled:opacity-50">
+                            <span x-show="!busy">Utwórz konto + stronę</span>
+                            <span x-show="busy" x-cloak>Przetwarzam…</span>
+                        </button>
+                        <p x-show="form.planMode === 'client_checkout'" class="text-xs text-slate-500" x-cloak>
+                            Po zaproszeniu: klient → Subskrypcja → wybór pakietu → Stripe Checkout.
+                        </p>
+                    </div>
+                </form>
+            </section>
+
             <section class="mb-6 rounded-2xl border border-slate-200/70 bg-white p-6 shadow-panel ring-1 ring-slate-900/5">
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
                         <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Wszystkie strony</p>
                         <h2 class="mt-1 text-3xl font-black tracking-tight text-slate-950">Zarządzanie klientami</h2>
-                        <p class="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">Lista pobierana bez paginacji. Dostęp do tej strony wynika wyłącznie z wpisu w tabeli <code class="rounded bg-slate-100 px-1.5 py-0.5 text-xs">superadmins</code>.</p>
+                        <p class="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">Grant ręczny lub Checkout klienta. Dostęp wynika z tabeli <code class="rounded bg-slate-100 px-1.5 py-0.5 text-xs">superadmins</code>.</p>
                     </div>
                     <div class="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600 ring-1 ring-slate-200/80">
                         Rekordy: <strong class="text-slate-950" x-text="pages.length"></strong>
@@ -80,21 +134,22 @@
                 </div>
             </section>
 
-            <div x-show="errorMessage" x-text="errorMessage" class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-900" role="alert"></div>
-
             <section class="overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-panel ring-1 ring-slate-900/5">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-slate-200">
                         <thead class="bg-slate-50/90">
                             <tr>
-                                <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Slug strony</th>
-                                <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Branża / Theme</th>
-                                <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Data utworzenia</th>
-                                <th class="px-5 py-3 text-right text-xs font-bold uppercase tracking-widest text-slate-500">Akcja</th>
+                                <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Slug</th>
+                                <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Theme</th>
+                                <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Plan</th>
+                                <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Źródło</th>
+                                <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Ważność</th>
+                                <th class="px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-500">Utworzono</th>
+                                <th class="px-5 py-3 text-right text-xs font-bold uppercase tracking-widest text-slate-500">Akcje</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 bg-white">
-                            <template x-for="page in pages" :key="page.slug">
+                            <template x-for="page in pages" :key="page.id || page.slug">
                                 <tr class="transition-colors hover:bg-amber-50/40">
                                     <td class="whitespace-nowrap px-5 py-4">
                                         <span class="font-mono text-sm font-semibold text-slate-950" x-text="page.slug"></span>
@@ -102,14 +157,21 @@
                                     <td class="whitespace-nowrap px-5 py-4">
                                         <span class="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-slate-700" x-text="page.theme || 'brak'"></span>
                                     </td>
+                                    <td class="whitespace-nowrap px-5 py-4 text-sm font-medium text-slate-800" x-text="page.billing_plan || 'trial'"></td>
+                                    <td class="whitespace-nowrap px-5 py-4 text-xs font-semibold uppercase tracking-wide text-slate-600" x-text="grantSourceLabel(page)"></td>
+                                    <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500" x-text="formatDate(page.current_period_end)"></td>
                                     <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500" x-text="formatDate(page.created_at)"></td>
                                     <td class="whitespace-nowrap px-5 py-4 text-right">
-                                        <a :href="manageUrl(page.slug)" class="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-2 text-xs font-bold uppercase tracking-widest text-accent-fg shadow-sm transition-colors hover:bg-accent/90">Zarządzaj</a>
+                                        <div class="inline-flex flex-wrap items-center justify-end gap-2">
+                                            <a :href="manageUrl(page.slug)" class="inline-flex items-center justify-center rounded-lg bg-accent px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-accent-fg shadow-sm hover:bg-accent/90">Zarządzaj</a>
+                                            <button type="button" @click="openGrant(page)" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-700 hover:bg-slate-50">Aktywuj plan</button>
+                                            <button type="button" x-show="canRevoke(page)" x-cloak @click="revokeGrant(page)" :disabled="busy" class="inline-flex items-center justify-center rounded-lg border border-red-200 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-red-700 hover:bg-red-50 disabled:opacity-50">Cofnij</button>
+                                        </div>
                                     </td>
                                 </tr>
                             </template>
                             <tr x-show="!pages.length && !errorMessage" x-cloak>
-                                <td colspan="4" class="px-5 py-12 text-center text-sm text-slate-500">Brak stron do wyświetlenia.</td>
+                                <td colspan="7" class="px-5 py-12 text-center text-sm text-slate-500">Brak stron do wyświetlenia.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -118,17 +180,71 @@
         </div>
     </main>
 
+    <div x-show="grantModal.open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4" @keydown.escape.window="grantModal.open = false">
+        <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-panel-md" @click.outside="grantModal.open = false">
+            <h3 class="text-lg font-bold text-slate-950">Aktywuj plan ręcznie</h3>
+            <p class="mt-1 text-sm text-slate-500">Slug: <span class="font-mono font-semibold text-slate-800" x-text="grantModal.slug"></span></p>
+            <div class="mt-4 space-y-3">
+                <label class="block text-sm">
+                    <span class="mb-1 block font-semibold">Plan</span>
+                    <select x-model="grantModal.plan" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
+                        <option value="tier0">Starter</option>
+                        <option value="tier1">Standard</option>
+                    </select>
+                </label>
+                <label class="block text-sm">
+                    <span class="mb-1 block font-semibold">Ważny do</span>
+                    <input type="date" x-model="grantModal.expiresAt" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
+                </label>
+            </div>
+            <div class="mt-6 flex justify-end gap-2">
+                <button type="button" @click="grantModal.open = false" class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Anuluj</button>
+                <button type="button" @click="submitGrant()" :disabled="busy" class="rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Zapisz</button>
+            </div>
+        </div>
+    </div>
+
     <script>
       function godModeApp() {
+        const defaultExpiry = () => {
+          const d = new Date();
+          d.setUTCDate(d.getUTCDate() + 30);
+          return d.toISOString().slice(0, 10);
+        };
         return {
           supabase: null,
           loading: true,
+          busy: false,
           pages: [],
+          themes: ['beauty', 'consultant', 'fitness', 'services', 'gastro', 'care'],
           errorMessage: '',
+          successMessage: '',
+          form: {
+            email: '',
+            slug: '',
+            theme: 'services',
+            planMode: 'trial',
+            plan: 'tier0',
+            expiresAt: defaultExpiry(),
+          },
+          grantModal: {
+            open: false,
+            slug: '',
+            userId: '',
+            plan: 'tier0',
+            expiresAt: defaultExpiry(),
+          },
+          billingByUserId: {},
 
           async init() {
             try {
               this.supabase = window.DFOPS_getSupabaseClient();
+              if (typeof window.DFOPS_getPublishedThemeIds === 'function') {
+                this.themes = window.DFOPS_getPublishedThemeIds();
+                if (this.themes.length && !this.themes.includes(this.form.theme)) {
+                  this.form.theme = this.themes[0];
+                }
+              }
               const { data: { user } = { user: null } } = await this.supabase.auth.getUser();
               if (!user?.id) {
                 window.location.href = 'index.html';
@@ -146,12 +262,7 @@
                 return;
               }
 
-              const { data, error } = await this.supabase
-                .from('pages')
-                .select('slug, theme, created_at')
-                .order('created_at', { ascending: false });
-              if (error) throw error;
-              this.pages = Array.isArray(data) ? data : [];
+              await this.reloadPages();
             } catch (err) {
               console.error('[DFCMS God Mode]', err);
               this.errorMessage = 'Nie udało się wczytać listy stron.';
@@ -160,8 +271,50 @@
             }
           },
 
+          async reloadPages() {
+            const { data, error } = await this.supabase
+              .from('pages')
+              .select('id, slug, theme, created_at, user_id, billing_plan')
+              .order('created_at', { ascending: false });
+            if (error) throw error;
+            const pages = Array.isArray(data) ? data : [];
+            const userIds = [...new Set(pages.map((p) => p.user_id).filter(Boolean))];
+            this.billingByUserId = {};
+            if (userIds.length) {
+              const { data: bills } = await this.supabase
+                .from('billing_profiles')
+                .select('user_id, plan, status, grant_source, current_period_end, stripe_subscription_id')
+                .in('user_id', userIds);
+              for (const b of bills || []) {
+                this.billingByUserId[b.user_id] = b;
+              }
+            }
+            this.pages = pages.map((p) => {
+              const b = this.billingByUserId[p.user_id] || null;
+              return {
+                ...p,
+                grant_source: b?.grant_source || null,
+                current_period_end: b?.current_period_end || null,
+                billing_status: b?.status || null,
+                stripe_subscription_id: b?.stripe_subscription_id || null,
+              };
+            });
+          },
+
+          grantSourceLabel(page) {
+            const sid = typeof page.stripe_subscription_id === 'string' ? page.stripe_subscription_id.trim() : '';
+            const st = String(page.billing_status || '').toLowerCase();
+            if (sid && (st === 'active' || st === 'trialing')) return 'stripe';
+            if (String(page.grant_source || '').toLowerCase() === 'manual') return 'manual';
+            return 'trial';
+          },
+
+          canRevoke(page) {
+            return this.grantSourceLabel(page) === 'manual';
+          },
+
           formatDate(value) {
-            if (!value) return '-';
+            if (!value) return '—';
             try {
               return new Intl.DateTimeFormat('pl-PL', {
                 year: 'numeric',
@@ -177,6 +330,105 @@
 
           manageUrl(slug) {
             return `admin.html?impersonate=${encodeURIComponent(slug || '')}`;
+          },
+
+          expiresAtIso(dateStr) {
+            const raw = String(dateStr || '').trim();
+            if (!raw) return '';
+            // Koniec dnia UTC wybranej daty
+            return `${raw}T23:59:59.000Z`;
+          },
+
+          async provisionClient() {
+            this.errorMessage = '';
+            this.successMessage = '';
+            this.busy = true;
+            try {
+              const body = {
+                email: this.form.email.trim(),
+                slug: this.form.slug.trim().toLowerCase(),
+                theme: this.form.theme,
+                planMode: this.form.planMode,
+              };
+              if (this.form.planMode === 'manual_grant') {
+                body.plan = this.form.plan;
+                body.expiresAt = this.expiresAtIso(this.form.expiresAt);
+              }
+              const { data, error } = await this.supabase.functions.invoke('god-provision-site', { body });
+              if (error) throw error;
+              if (!data?.success) {
+                throw new Error(data?.error || data?.message || 'Provision nieudany');
+              }
+              let msg = data.message || 'OK';
+              if (data.warning) msg += ` (uwaga: ${data.warning})`;
+              this.successMessage = msg;
+              this.form.email = '';
+              this.form.slug = '';
+              await this.reloadPages();
+            } catch (err) {
+              console.error(err);
+              this.errorMessage = err?.message || 'Nie udało się utworzyć klienta.';
+            } finally {
+              this.busy = false;
+            }
+          },
+
+          openGrant(page) {
+            this.grantModal = {
+              open: true,
+              slug: page.slug,
+              userId: page.user_id,
+              plan: page.billing_plan === 'tier1' ? 'tier1' : 'tier0',
+              expiresAt: defaultExpiry(),
+            };
+          },
+
+          async submitGrant() {
+            this.errorMessage = '';
+            this.successMessage = '';
+            this.busy = true;
+            try {
+              const { data, error } = await this.supabase.functions.invoke('god-grant-subscription', {
+                body: {
+                  action: 'grant',
+                  userId: this.grantModal.userId,
+                  slug: this.grantModal.slug,
+                  plan: this.grantModal.plan,
+                  expiresAt: this.expiresAtIso(this.grantModal.expiresAt),
+                },
+              });
+              if (error) throw error;
+              if (!data?.success) throw new Error(data?.error || 'Grant nieudany');
+              this.successMessage = `Aktywowano ${this.grantModal.plan} dla ${this.grantModal.slug}`;
+              this.grantModal.open = false;
+              await this.reloadPages();
+            } catch (err) {
+              console.error(err);
+              this.errorMessage = err?.message || 'Nie udało się aktywować planu.';
+            } finally {
+              this.busy = false;
+            }
+          },
+
+          async revokeGrant(page) {
+            if (!confirm(`Cofnąć ręczny dostęp dla ${page.slug}?`)) return;
+            this.errorMessage = '';
+            this.successMessage = '';
+            this.busy = true;
+            try {
+              const { data, error } = await this.supabase.functions.invoke('god-grant-subscription', {
+                body: { action: 'revoke', userId: page.user_id, slug: page.slug },
+              });
+              if (error) throw error;
+              if (!data?.success) throw new Error(data?.error || 'Revoke nieudany');
+              this.successMessage = `Cofnięto grant dla ${page.slug}`;
+              await this.reloadPages();
+            } catch (err) {
+              console.error(err);
+              this.errorMessage = err?.message || 'Nie udało się cofnąć grantu.';
+            } finally {
+              this.busy = false;
+            }
           },
 
           async logout() {

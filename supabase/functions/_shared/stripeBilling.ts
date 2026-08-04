@@ -24,6 +24,8 @@ export type BillingProfileRow = {
   status: string | null;
   current_period_end: string | null;
   cancel_at_period_end: boolean;
+  /** 'stripe' | 'manual' | null */
+  grant_source?: string | null;
   created_at?: string;
   updated_at?: string;
 };
@@ -161,6 +163,7 @@ export type BillingProfileUpsert = {
   status: string | null;
   current_period_end: string | null;
   cancel_at_period_end: boolean;
+  grant_source?: string | null;
 };
 
 /** Patch `billing_profiles` z obiektu Subscription Stripe. */
@@ -183,6 +186,7 @@ export function billingProfileUpsertFromStripe(
       status: st,
       current_period_end: period,
       cancel_at_period_end: cancelAtPeriodEnd,
+      grant_source: "stripe",
     };
   }
 
@@ -194,7 +198,126 @@ export function billingProfileUpsertFromStripe(
     status: st,
     current_period_end: period,
     cancel_at_period_end: false,
+    grant_source: null,
   };
+}
+
+/** Żywa subskrypcja Stripe w profilu (blokuje ręczny grant). */
+export function billingProfileHasLiveStripeSubscription(
+  profile: BillingProfileRow | null,
+): boolean {
+  if (!profile) return false;
+  const sid =
+    typeof profile.stripe_subscription_id === "string"
+      ? profile.stripe_subscription_id.trim()
+      : "";
+  if (!sid) return false;
+  const st = billingProfileStatusNormalized(profile.status);
+  return st === "active" || st === "trialing" || st === "past_due";
+}
+
+export type ManualGrantInput = {
+  userId: string;
+  plan: StripePaidTier;
+  expiresAtIso: string;
+};
+
+/** God Mode: aktywacja planu bez Stripe (grant_source=manual). */
+export async function applyManualGrantToUser(
+  supabase: SupabaseClient,
+  input: ManualGrantInput,
+): Promise<{ ok: boolean; error?: string; code?: string }> {
+  const uid = String(input.userId || "").trim();
+  if (!uid) return { ok: false, error: "Brak user_id", code: "INVALID_INPUT" };
+
+  const expires = new Date(input.expiresAtIso);
+  if (Number.isNaN(expires.getTime())) {
+    return { ok: false, error: "Nieprawidłowa data ważności", code: "INVALID_INPUT" };
+  }
+  if (expires.getTime() <= Date.now()) {
+    return { ok: false, error: "Data ważności musi być w przyszłości", code: "INVALID_INPUT" };
+  }
+
+  const plan = normalizeStripePaidTier(input.plan);
+  const existing = await findBillingProfileByUserId(supabase, uid);
+  if (billingProfileHasLiveStripeSubscription(existing)) {
+    return {
+      ok: false,
+      error:
+        "Klient ma aktywną subskrypcję Stripe. Zmiana planu tylko przez portal / Checkout klienta.",
+      code: "HAS_STRIPE_SUBSCRIPTION",
+    };
+  }
+
+  const up = await upsertBillingProfile(supabase, {
+    user_id: uid,
+    stripe_subscription_id: null,
+    plan,
+    status: "active",
+    current_period_end: expires.toISOString(),
+    cancel_at_period_end: false,
+    grant_source: "manual",
+  });
+  if (!up.ok) return up;
+
+  return clearPageBillingBlocksForPaidUser(supabase, uid, plan);
+}
+
+/** Cofnięcie ręcznego grantu (nie rusza żywej sub Stripe). */
+export async function revokeManualGrant(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<{ ok: boolean; error?: string; code?: string }> {
+  const uid = String(userId || "").trim();
+  if (!uid) return { ok: false, error: "Brak user_id", code: "INVALID_INPUT" };
+
+  const existing = await findBillingProfileByUserId(supabase, uid);
+  if (billingProfileHasLiveStripeSubscription(existing)) {
+    return {
+      ok: false,
+      error: "Nie można cofnąć — klient ma aktywną subskrypcję Stripe.",
+      code: "HAS_STRIPE_SUBSCRIPTION",
+    };
+  }
+
+  const grantSrc = String(existing?.grant_source || "").trim().toLowerCase();
+  if (existing && grantSrc !== "manual") {
+    const plan = String(existing.plan || "").trim().toLowerCase();
+    const paid = plan === "tier0" || plan === "tier1";
+    const st = billingProfileStatusNormalized(existing.status);
+    if (!(paid && st === "active" && !String(existing.stripe_subscription_id || "").trim())) {
+      return {
+        ok: false,
+        error: "Brak aktywnego grantu ręcznego do cofnięcia.",
+        code: "NO_MANUAL_GRANT",
+      };
+    }
+  }
+
+  const up = await upsertBillingProfile(supabase, {
+    user_id: uid,
+    stripe_subscription_id: null,
+    plan: "trial",
+    status: "canceled",
+    current_period_end: null,
+    cancel_at_period_end: false,
+    grant_source: null,
+  });
+  if (!up.ok) return up;
+
+  const nowIso = new Date().toISOString();
+  const { error } = await supabase
+    .from("pages")
+    .update({
+      billing_plan: "trial",
+      trial_blocked_at: nowIso,
+    })
+    .eq("user_id", uid);
+  if (error) {
+    console.error("revokeManualGrant pages", error);
+    return { ok: false, error: error.message };
+  }
+  return { ok: true };
 }
 
 export async function findBillingProfileByUserId(

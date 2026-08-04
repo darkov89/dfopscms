@@ -149,6 +149,18 @@ serve(async (req) => {
   const autoPurge = envTruthy("AUTO_PURGE_ENABLED");
   const ts = new Date().toISOString();
 
+  const { data: grantData, error: grantError } = await supabase.rpc("expire_manual_grants");
+  if (grantError) {
+    console.error("expire_manual_grants RPC error:", grantError);
+  }
+  const { count: expiredGrantCount, slugs: expiredGrantSlugs } = parseRpcPayload(grantData);
+  if (expiredGrantCount > 0) {
+    console.log(
+      `expire_manual_grants: revoked ${expiredGrantCount}`,
+      expiredGrantSlugs.length ? expiredGrantSlugs : "",
+    );
+  }
+
   const { data, error } = await supabase.rpc("expire_trial_pages");
   if (error) {
     console.error("expire_trial_pages RPC error:", error);
@@ -211,6 +223,8 @@ serve(async (req) => {
       ok: true,
       ts,
       auto_purge_enabled: autoPurge,
+      expired_manual_grants: expiredGrantCount,
+      expired_manual_grant_slugs: expiredGrantSlugs,
       newly_blocked_pages: blockedCount,
       blocked_slugs: blockedSlugs,
       purge_warning_7d_count: warnCount,

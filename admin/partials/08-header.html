@@ -23,6 +23,19 @@
                             </template>
                         </div>
                         <span class="hidden h-3.5 w-px shrink-0 self-center bg-slate-200 sm:block" aria-hidden="true"></span>
+                        <div x-show="showOwnedPagesSelector" x-cloak class="flex min-w-0 items-center gap-1.5">
+                            <span class="shrink-0 text-slate-500 text-xs">Strona</span>
+                            <select
+                                class="max-w-[10rem] truncate rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 sm:max-w-[14rem]"
+                                :value="pageId"
+                                @change="switchOwnedPage($event.target.value)"
+                                aria-label="Wybierz stronę">
+                                <template x-for="p in ownedPages" :key="'owned-'+p.id">
+                                    <option :value="p.id" :selected="String(p.id) === String(pageId)" x-text="p.slug"></option>
+                                </template>
+                            </select>
+                        </div>
+                        <span x-show="showOwnedPagesSelector" x-cloak class="hidden h-3.5 w-px shrink-0 self-center bg-slate-200 sm:block" aria-hidden="true"></span>
                         <a :href="getLiveSiteUrl()"
                            target="_blank" rel="noopener noreferrer"
                            class="group inline-flex min-w-0 items-center gap-1 truncate font-medium text-slate-900 underline decoration-slate-200 underline-offset-4 hover:decoration-slate-400"

@@ -2,7 +2,7 @@
 
 > **Plan strategiczny** po fazie MVP / po ~10 płacących klientach. Stan bieżący produkcji: [`CONTEXT.md`](CONTEXT.md).
 
-**Ostatnia aktualizacja:** 2026-07-28 — Uniwersalne nazwy docs
+**Ostatnia aktualizacja:** 2026-08-04 — FV wdrożeniowe w ROADMAP; God Mode worker flow w kodzie
 
 ---
 
@@ -37,6 +37,20 @@ Nie blokuje architektury V2 poniżej — fazy G0–G1 można wdrażać na obecny
 | U3 | Regulamin / Polityka EN albo jasny disclaimer | backlog |
 
 **Decyzja:** ręczny wybór > geo/IP (VPN myli). Auto z przeglądarki tylko jako sugestia startowa.
+
+---
+
+## 0d. FV / Checkout one-time za wdrożenie (marketing — później)
+
+**Świadomie poza MVP pracownika.** Dziś: godziny/wdrożenie rozliczane **poza Stripe** (własna FV księgowa). Subskrypcja SaaS zostaje w Checkout / grancie God Mode.
+
+| Pomysł | Opis |
+|--------|------|
+| Checkout `mode: payment` | Jednorazowa opłata za wdrożenie (osobna od subskrypcji) |
+| wFirma | Osobna linia / `stripe_source` w ledgerze — nie mieszać z FV cykliczną SaaS |
+| God Mode | Formularz „wystaw link do FV usługowej” dla klienta |
+
+Nie blokuje obecnego flow (invite + grant + multi-site).
 
 ---
 

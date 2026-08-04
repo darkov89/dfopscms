@@ -722,6 +722,8 @@
       customDomainStatus: '',
       domainInput: '',
       pageId: null,
+      /** Multi-site: lista stron właściciela (bez impersonacji). */
+      ownedPages: [],
       isVerifyingDomain: false,
       domainMessage: '',
       domainError: '',
@@ -1017,10 +1019,9 @@
         }
       },
       /**
-       * Aktywna opłacona subskrypcja Stripe (`billing_profiles` → billingSubscriptionView).
-       * Wyłącznie: niepuste `stripe_subscription_id` + status `active` lub `trialing`.
+       * Żywa subskrypcja Stripe (SID + active/trialing).
        */
-      get hasActivePaidSubscription() {
+      get hasStripeLiveSubscription() {
         const sub = this.billingSubscriptionView;
         if (!sub || typeof sub !== 'object') return false;
         const sid =
@@ -1030,20 +1031,48 @@
         return st === 'active' || st === 'trialing';
       },
       /**
+       * Ręczny grant God Mode (bez Stripe SID) z przyszłym current_period_end.
+       */
+      get hasManualGrantAccess() {
+        const sub = this.billingSubscriptionView;
+        if (!sub || typeof sub !== 'object') return false;
+        if (this.hasStripeLiveSubscription) return false;
+        const src = String(sub.grant_source || '').trim().toLowerCase();
+        if (src !== 'manual') return false;
+        const st = typeof sub.status === 'string' ? sub.status.trim().toLowerCase() : '';
+        if (st !== 'active') return false;
+        const plan = String(sub.plan || '').trim().toLowerCase();
+        if (plan !== 'tier0' && plan !== 'tier1') return false;
+        const raw = sub.current_period_end;
+        if (raw == null || raw === '') return false;
+        try {
+          const end = new Date(typeof raw === 'number' ? raw * 1000 : String(raw));
+          if (Number.isNaN(end.getTime())) return false;
+          return end.getTime() > Date.now();
+        } catch {
+          return false;
+        }
+      },
+      /**
+       * Aktywny płatny dostęp: Stripe Checkout albo grant ręczny z God Mode.
+       */
+      get hasActivePaidSubscription() {
+        return this.hasStripeLiveSubscription || this.hasManualGrantAccess;
+      },
+      /**
        * Subskrypcja opłacona do końca okresu, ale zaplanowane zamknięcie (nie odnowi się).
        */
       get isSubscriptionCanceledButValid() {
+        if (!this.hasStripeLiveSubscription) return false;
         const sub = this.billingSubscriptionView;
         if (!sub || typeof sub !== 'object') return false;
-        const st = typeof sub.status === 'string' ? sub.status.trim().toLowerCase() : '';
-        if (st !== 'active' && st !== 'trialing') return false;
         return sub.cancel_at_period_end === true;
       },
       /**
-       * Portal Stripe — aktywny pakiet lub anulowana subskrypcja z nadal istniejącym klientem (faktury, karta).
+       * Portal Stripe — tylko przy żywej / anulowanej sub Stripe (nie przy samym grancie ręcznym).
        */
       get showStripeBillingPortal() {
-        if (this.hasActivePaidSubscription) return true;
+        if (this.hasStripeLiveSubscription) return true;
         const sub = this.billingSubscriptionView;
         const cid = typeof sub?.stripe_customer_id === 'string' ? sub.stripe_customer_id.trim() : '';
         if (!cid) return false;
@@ -1083,10 +1112,13 @@
         const t = this.activePaidTierForUi;
         if (t === 'tier1' || t === 'tier2') return 'STANDARD';
         if (t === 'tier0') return 'STARTER';
-        if (this.hasActivePaidSubscription) return 'SUBSKRYPCJA STRIPE';
+        if (this.hasActivePaidSubscription) return 'SUBSKRYPCJA';
         return '';
       },
       get activeSubscriptionPriceLine() {
+        if (this.hasManualGrantAccess && !this.hasStripeLiveSubscription) {
+          return 'Plan aktywowany ręcznie (bez karty Stripe)';
+        }
         const t = this.activePaidTierForUi;
         if (t === 'tier1' || t === 'tier2') return '49 PLN netto / msc';
         if (t === 'tier0') return '29 PLN netto / msc';
@@ -2554,7 +2586,34 @@
           } else {
             this.isImpersonating = false;
             this.impersonatedPageOwnerId = null;
-            ({ data, error } = await repo.getCurrentUserPage(this.user.id));
+            const listed = await repo.listCurrentUserPages(this.user.id);
+            if (listed.error) {
+              this.showError('Nie udało się wczytać listy stron.');
+              return;
+            }
+            this.ownedPages = Array.isArray(listed.data) ? listed.data : [];
+            let preferredId = null;
+            try {
+              const raw = window.localStorage.getItem('dfcms_active_page_id:' + this.user.id);
+              if (raw) preferredId = Number(raw) || raw;
+            } catch (_) {
+              /* ignore */
+            }
+            let targetId = null;
+            if (
+              preferredId != null &&
+              this.ownedPages.some((p) => String(p.id) === String(preferredId))
+            ) {
+              targetId = preferredId;
+            } else if (this.ownedPages.length) {
+              targetId = this.ownedPages[0].id;
+            }
+
+            if (targetId != null) {
+              ({ data, error } = await repo.getPageByIdForOwner(this.user.id, targetId));
+            } else {
+              ({ data, error } = await repo.getCurrentUserPage(this.user.id));
+            }
             if (error) {
               this.showError('Nie udało się wczytać strony.');
               return;
@@ -2564,12 +2623,26 @@
               if (!created) {
                 return;
               }
-              const retry = await repo.getCurrentUserPage(this.user.id);
+              const retryList = await repo.listCurrentUserPages(this.user.id);
+              this.ownedPages = Array.isArray(retryList.data) ? retryList.data : [];
+              const retry = this.ownedPages.length
+                ? await repo.getPageByIdForOwner(this.user.id, this.ownedPages[0].id)
+                : await repo.getCurrentUserPage(this.user.id);
               if (retry.error || !retry.data) {
                 this.showError('Nie znaleziono Twojej strony.');
                 return;
               }
               data = retry.data;
+            }
+            try {
+              if (data?.id != null) {
+                window.localStorage.setItem(
+                  'dfcms_active_page_id:' + this.user.id,
+                  String(data.id),
+                );
+              }
+            } catch (_) {
+              /* ignore */
             }
           }
           this.pageId = data.id;
@@ -3578,7 +3651,24 @@
           }
           return repo.savePageByIdForSuperadmin(this.pageId, payload);
         }
-        return repo.saveCurrentUserPage(this.user.id, payload);
+        return repo.savePageByIdForOwner(this.user.id, this.pageId, payload);
+      },
+
+      get showOwnedPagesSelector() {
+        return !this.isImpersonating && Array.isArray(this.ownedPages) && this.ownedPages.length > 1;
+      },
+
+      async switchOwnedPage(pageId) {
+        if (this.isImpersonating || !this.user?.id) return;
+        const id = pageId;
+        if (id == null || String(id) === String(this.pageId)) return;
+        if (!this.ownedPages.some((p) => String(p.id) === String(id))) return;
+        try {
+          window.localStorage.setItem('dfcms_active_page_id:' + this.user.id, String(id));
+        } catch (_) {
+          /* ignore */
+        }
+        await this.loadData();
       },
 
       /** Zapis WYŁĄCZNIE stanu roboczego (`draft_content`) — nic nie trafia na stronę publiczną. */

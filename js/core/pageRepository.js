@@ -538,6 +538,30 @@
       .from('pages')
       .select('id, slug, theme, content, draft_content, color_preset, custom_domain, custom_domain_status, trial_blocked_at, billing_failed_at, billing_plan')
       .eq('user_id', userId)
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    return { data: sanitizePageRow(data), error };
+  }
+
+  async function listCurrentUserPages(userId) {
+    const { data, error } = await supabase()
+      .from('pages')
+      .select('id, slug, theme, created_at, billing_plan')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: true });
+    return { data: Array.isArray(data) ? data : [], error };
+  }
+
+  async function getPageByIdForOwner(userId, pageId) {
+    if (!userId || pageId == null || pageId === '') {
+      return { data: null, error: null };
+    }
+    const { data, error } = await supabase()
+      .from('pages')
+      .select('id, created_at, slug, user_id, theme, content, draft_content, color_preset, custom_domain, custom_domain_status, trial_blocked_at, billing_failed_at, billing_plan')
+      .eq('user_id', userId)
+      .eq('id', pageId)
       .limit(1)
       .maybeSingle();
     return { data: sanitizePageRow(data), error };
@@ -563,6 +587,20 @@
       .select('id, created_at, slug, user_id, theme, content, draft_content, color_preset, custom_domain, custom_domain_status, trial_blocked_at, billing_failed_at, billing_plan')
       .eq('slug', slugTrimmed)
       .limit(1)
+      .maybeSingle();
+    return { data: sanitizePageRow(data), error };
+  }
+
+  async function savePageByIdForOwner(userId, pageId, payload) {
+    const safe = { ...payload };
+    if (safe.content) safe.content = sanitizeContent(safe.content);
+    if (safe.draft_content) safe.draft_content = sanitizeContent(safe.draft_content);
+    const { data, error } = await supabase()
+      .from('pages')
+      .update(safe)
+      .eq('id', pageId)
+      .eq('user_id', userId)
+      .select()
       .maybeSingle();
     return { data: sanitizePageRow(data), error };
   }
@@ -609,9 +647,12 @@
     getPublicSiteRoute,
     isSlugAvailable,
     getCurrentUserPage,
+    listCurrentUserPages,
+    getPageByIdForOwner,
     isCurrentUserSuperadmin,
     getPageBySlugForSuperadmin,
     saveCurrentUserPage,
+    savePageByIdForOwner,
     savePageByIdForSuperadmin,
     createPage,
     sanitizeHtml,

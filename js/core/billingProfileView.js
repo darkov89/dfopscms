@@ -29,6 +29,7 @@
           current_period_end: '',
           cancel_at_period_end: false,
           cancel_at: trial.cancel_at ?? null,
+          grant_source: '',
         };
       }
       return {
@@ -42,6 +43,7 @@
         current_period_end: '',
         cancel_at_period_end: false,
         cancel_at: trial.cancel_at ?? null,
+        grant_source: '',
       };
     }
     const st = String(billing.status || '').trim().toLowerCase();
@@ -63,6 +65,7 @@
       cancel_at: trial.cancel_at ?? null,
       trial_started_at: trial.trial_started_at,
       selected_plan: trial.selected_plan ?? null,
+      grant_source: String(billing.grant_source || '').trim().toLowerCase(),
       payment_completed:
         paidTier &&
         (!st ||

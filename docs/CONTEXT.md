@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-08-04 — Soft-block bez wycieku content
+**Ostatnia aktualizacja:** 2026-08-04 — God Mode: konto klienta + grant ręczny + multi-site
 
 ---
 
@@ -116,8 +116,9 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 - **Driver.js** (CDN 1.4.0): tour → kreator (krok 0) → podgląd strony → sidebar (`#dfops-admin-sidebar`) → **Pomocnik krok po kroku** → Subskrypcja. Po tour domyślny widok: **`dashboard`** (nie `hero`).
 - **Kreator:** kroki logiczne z `js/core/themeConfig.js` (`template` → `brand` → `hero` → `offer` → `about` → `contact`); aktywna lista per motyw (`DFOPS_getActiveWizardStepIds`) — np. gastro pomija `about`, w `offer` zbiera `menu_items` zamiast `services`; sync `nav.logo` → `business_name` / `hero.name` / SEO; `finishWizard` → `finalizeWizardContent` (ukrywa puste sekcje); stan w `localStorage` (`dfops_wizard_state_v1:{slug}`, `v:2`); czyszczenie po `finishWizard` / `switchTemplate`.
 - **Draft vs published:** auto-save debounce 1000ms → `draft_content`; `publishChanges()` → `content`; **Podgląd prywatny** (`dfcms_preview=1` + sesja właściciela) działa przy wygasłym trial / `billing_failed_at` — baner czerwony, LIVE zablokowany dla gości; link w panelu: „Podgląd prywatny”.
-- **Subskrypcja panel:** `hasActivePaidSubscription` / `isSubscriptionCanceledButValid` — tylko Stripe (`billing_profiles`), nie samo `payment_completed` w JSON. Po aktywnej płatności: karta statusu + portal Stripe (upgrade/downgrade kontekstowo: Starter→Standard / Standard→Starter); karuzela pakietów ukryta; baner sukcesu po `?payment=success` (`subscriptionActivationBanner`).
-- **God Mode:** `godmode.html` wymaga sesji i widocznego własnego wpisu w `superadmins`; lista pobiera wszystkie `pages`. Panel po zalogowaniu sprawdza `superadmins` i pokazuje w sidebarze „Master Dashboard” tylko superadminom. Przycisk „Zarządzaj” otwiera `admin.html?impersonate={slug}`. W impersonacji panel zapisuje konkretny rekord po `pages.id`, pomija profil billingowy superadmina i blokuje checkout z sesji operatora.
+- **Subskrypcja panel:** `hasActivePaidSubscription` = żywa sub Stripe **lub** aktywny grant ręczny (`grant_source=manual` + `current_period_end` w przyszłości). Portal / upgrade Stripe tylko przy `hasStripeLiveSubscription`. Przy samym grancie: karta statusu + karuzela Checkout (klient może podpiąć kartę — webhook ustawia `grant_source=stripe`).
+- **God Mode:** `godmode.html` — lista stron + **Nowy klient** (`god-provision-site`: invite Auth + strona) + **Aktywuj plan / Cofnij** (`god-grant-subscription`). Impersonacja: `admin.html?impersonate={slug}`. Panel po zalogowaniu sprawdza `superadmins` i pokazuje „Master Dashboard”. Przy impersonacji zapis po `pages.id`, pomija profil billingowy operatora i blokuje checkout z sesji operatora.
+- **Multi-site:** jeden `user_id` może mieć wiele `pages`; panel: `listCurrentUserPages` + selektor w nagłówku gdy >1; zapis po `pages.id`. Billing nadal 1:1 `billing_profiles` ↔ user (lustro na wszystkie strony usera).
 
 ### 1.5.2 Panel admin — IA (2026-07)
 
@@ -222,13 +223,15 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 |---------|------|
 | `create-checkout` | Sesja Stripe Checkout (`plan`, `interval`); Stripe Tax opcjonalnie (`STRIPE_AUTOMATIC_TAX`); returning customer reuse `cus_…` |
 | `create-portal-session` | Stripe Customer Portal; deep link `subscription_update` |
-| `stripe-webhook` | Zdarzenia Stripe → `billing_profiles` + `pages`; wFirma faktury (`WFIRMA_*`) |
+| `stripe-webhook` | Zdarzenia Stripe → `billing_profiles` + `pages`; wFirma faktury (`WFIRMA_*`); ustawia `grant_source=stripe` |
+| `god-provision-site` | God Mode: invite Auth + `pages` (email/slug/theme); opcjonalny grant ręczny |
+| `god-grant-subscription` | God Mode: grant / revoke planu (`grant_source=manual`, `expiresAt`) |
 | `retry-wfirma-invoice` | Ręczny retry FV wFirma (`POST` + `Bearer CRON_SECRET`, `checkoutSessionId` lub `stripeInvoiceId`) |
 | `sync-stripe-subscription` | Ręczna synchronizacja statusu subskrypcji |
 | `add-custom-domain` | Cloudflare Custom Hostname + zapis w DB |
 | `get-google-reviews` | Places / opinie (`GOOGLE_MAPS_API_KEY`); embed iframe (`GOOGLE_MAPS_EMBED_API_KEY`); wymaga sesji |
 | `generate-ai-content` | AI Site Generator (Gemini): JWT + ownership + quota → merge copy do `pages.draft_content`; secrets `GEMINI_API_KEY`, opcjonalnie `GEMINI_MODEL` / `DFCMS_ENV` / `AI_LOG_PROMPTS` |
-| **`expire-trial-pages`** | **Cron** (`POST` + `Bearer CRON_SECRET`): `expire_trial_pages()` → `notify_purge_upcoming_pages()` → `list_pages_pending_purge()` → opcjonalnie `purge_trial_blocked_pages_after_grace()` gdy `AUTO_PURGE_ENABLED=true`. **Powiadomienia operacyjne przez Telegram** (Markdown): alert −7 dni per slug; raport ręcznej kasacji (30+ dni) z gotowym SQL. Brak alertów → `200` bez wiadomości. |
+| **`expire-trial-pages`** | **Cron** (`POST` + `Bearer CRON_SECRET`): `expire_manual_grants()` → `expire_trial_pages()` → `notify_purge_upcoming_pages()` → `list_pages_pending_purge()` → opcjonalnie `purge_trial_blocked_pages_after_grace()` gdy `AUTO_PURGE_ENABLED=true`. **Powiadomienia operacyjne przez Telegram** (Markdown): alert −7 dni per slug; raport ręcznej kasacji (30+ dni) z gotowym SQL. Brak alertów → `200` bez wiadomości. |
 | `telegram-webhook` | Router alertów (Sentry, Database Webhooks `users`/`pages`/`billing_profiles`, logi) → Telegram; **`Bearer TELEGRAM_WEBHOOK_SECRET`** |
 
 **Współdzielona logika:** `supabase/functions/_shared/stripeBilling.ts`, `wfirmaBilling.ts`, `wfirmaInvoiceLedger.ts`, `aiCopySchemas.ts` (whitelist copy per motyw + `buildGeminiResponseSchema`).
@@ -367,10 +370,11 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 | Kontrakt JSON treści | `js/core/contentSchema.js`, `js/core/contentUpgrader.js` |
 | Domyślna treść motywów | `js/templates/registry.js` |
 | Panel subskrypcja | `admin.html`, `adminApp.js` |
-| God Mode / superadmin | `godmode.html`, `admin.html?impersonate={slug}`, `20260623100512_add_god_mode.sql` |
+| God Mode / superadmin | `godmode.html`, `god-provision-site`, `god-grant-subscription`, `admin.html?impersonate={slug}`, `20260623100512_add_god_mode.sql`, `20260804180000_manual_grant_source.sql` |
 | Plany / watermark | `js/core/planUtils.js` (m.in. `DFOPS_planAllowsAiGenerator`, limity AI) |
 | AI Site Generator | `js/features/aiGenerator.js`, Edge `generate-ai-content`, `_shared/aiCopySchemas.ts` |
-| Profil Stripe | `billingProfileView.js`, `loadBillingProfile()` |
+| Profil Stripe | `billingProfileView.js`, `loadBillingProfile()`, `grant_source` |
+| Multi-site panel | `pageRepository.listCurrentUserPages`, selektor w `08-header.html` |
 | Demo seeds (localhost fallback) | `data/seeds/demo_pages.json`, `scripts/extract-demo-seeds-from-migration.mjs` |
 | Demo seeds (DB / prod) | `supabase/migrations/20260616150000_seed_demo_catalog_pages.sql` |
 | Szablony publiczne | `templates/{beauty,fitness,services,consultant,gastro,care}.html`, boilerplate `templates/_base_template.html` |
@@ -381,6 +385,10 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-08-04 — God Mode: konto klienta, grant ręczny, multi-site
+
+Flow pracownika (superadmin): `god-provision-site` (invite email + strona + tryb planu), `god-grant-subscription` (grant/revoke z `expiresAt`), kolumna `billing_profiles.grant_source`, RPC `expire_manual_grants` w cronie `expire-trial-pages`. Panel: `hasManualGrantAccess` / `hasStripeLiveSubscription`; karuzela Checkout widoczna bez żywej sub Stripe (można podpiąć kartę przy grancie). Multi-site: load/save po `pages.id` + dropdown gdy >1 strona. FV godzinowe / one-time wdrożenie — poza systemem (ROADMAP).
 
 ### 2026-08-04 — Soft-block bez wycieku content
 
