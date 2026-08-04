@@ -492,6 +492,36 @@
     return { data: sanitizePageRow(data), error };
   }
 
+  /**
+   * Meta publicznego routingu (RPC) — slug/theme/blocked bez content.
+   * Używane gdy getPageBySlug / getPageByCustomDomain zwraca null (soft-block vs 404).
+   * @param {{ slug?: string|null, host?: string|null }} opts
+   */
+  async function getPublicSiteRoute(opts) {
+    const slugRaw = opts && opts.slug != null ? String(opts.slug).trim().toLowerCase() : '';
+    const hostRaw =
+      opts && opts.host != null ? normalizeHostname(String(opts.host).trim()).toLowerCase() : '';
+    const p_slug = slugRaw || null;
+    const p_host = p_slug ? null : hostRaw || null;
+    if (!p_slug && !p_host) return { data: null, error: null };
+
+    const { data, error } = await supabase().rpc('get_public_site_route', { p_slug, p_host });
+    if (error) return { data: null, error };
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row || typeof row !== 'object' || !row.slug) return { data: null, error: null };
+    return {
+      data: {
+        slug: String(row.slug),
+        theme: row.theme != null ? String(row.theme) : null,
+        billing_plan: row.billing_plan != null ? String(row.billing_plan) : 'trial',
+        trial_blocked_at: row.trial_blocked_at ?? null,
+        billing_failed_at: row.billing_failed_at ?? null,
+        blocked: !!row.blocked,
+      },
+      error: null,
+    };
+  }
+
   async function isSlugAvailable(slug) {
     const { data, error } = await supabase()
       .from('pages')
@@ -576,6 +606,7 @@
     getPageForAuthenticatedPreview,
     getDraftContentForOwner,
     getPageByCustomDomain,
+    getPublicSiteRoute,
     isSlugAvailable,
     getCurrentUserPage,
     isCurrentUserSuperadmin,

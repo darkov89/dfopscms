@@ -120,10 +120,26 @@
         const res = await repo.getPageBySlug(slug);
         if (res.error) throw res.error;
         page = res.data;
+        if (!page && typeof repo.getPublicSiteRoute === 'function') {
+          const routeRes = await repo.getPublicSiteRoute({ slug: slug });
+          if (routeRes.error) throw routeRes.error;
+          const route = routeRes.data;
+          if (route && route.blocked && route.slug && route.theme) {
+            page = { slug: route.slug, theme: route.theme };
+          }
+        }
       } else {
         const res = await repo.getPageByCustomDomain(hostname);
         if (res.error) throw res.error;
         page = res.data;
+        if (!page && typeof repo.getPublicSiteRoute === 'function') {
+          const routeRes = await repo.getPublicSiteRoute({ host: hostname });
+          if (routeRes.error) throw routeRes.error;
+          const route = routeRes.data;
+          if (route && route.blocked && route.slug && route.theme) {
+            page = { slug: route.slug, theme: route.theme };
+          }
+        }
       }
 
       if (!page || !page.theme || !page.slug) throw new Error('Strona nie istnieje');

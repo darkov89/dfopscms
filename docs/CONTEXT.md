@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-08-03 — Mapa: adres ręczny LUB firma Google
+**Ostatnia aktualizacja:** 2026-08-04 — Soft-block bez wycieku content
 
 ---
 
@@ -59,7 +59,7 @@ W konsoli: `window.DFOPS_DEPLOY_ENVIRONMENT` → `'staging'` | `'production'`.
 2. **Publikacja treści** — panel kopiuje `draft_content` → `content`; strony publiczne czytają wyłącznie `content` (preview: `dfcms_preview=1` + właściciel).
 3. **Płatność** — panel → `create-checkout` → Stripe Checkout → `stripe-webhook` / `sync-stripe-subscription` → `billing_profiles` + lustrzane `pages.billing_plan`.
 4. **Własna domena** — panel → `add-custom-domain` + `GET /api/verify-domain?domain=…` (Pages Function, DoH CNAME) → Cloudflare Custom Hostname → `pages.custom_domain`.
-5. **Routing publiczny** — `functions/_middleware.js` (slug z nagłówka `Host` / kandydatów); gdy edge widzi tylko `*.pages.dev` (brak wildcard `*.dfcms.pl` w Pages), **fallback w przeglądarce:** `index.html` → `router.html` → `/templates/{theme}.html` (slug z `window.location.hostname`); **`js/core/tenantPublicUrlClean.js`** (sync w `<head>` szablonu) + `publicSiteApp.cleanTenantPublicUrl()` normalizują pasek do `/` (także przy blokadzie trial); apex `dfcms.pl?site=slug` → preview z query; nieistniejący tenant → 404 HTML.
+5. **Routing publiczny** — `functions/_middleware.js` (slug z nagłówka `Host` / kandydatów); RPC `get_public_site_route` → soft-block HTML gdy `blocked`, live SEO rewrite gdy publicznie czytelne, preview bez content SEO; gdy edge widzi tylko `*.pages.dev` (brak wildcard `*.dfcms.pl` w Pages), **fallback w przeglądarce:** `index.html` → `router.html` → `/templates/{theme}.html` (slug z `window.location.hostname` + meta RPC przy soft-block); **`js/core/tenantPublicUrlClean.js`** (sync w `<head>` szablonu) + `publicSiteApp.cleanTenantPublicUrl()` normalizują pasek do `/` (także przy blokadzie trial); apex `dfcms.pl?site=slug` → preview z query; nieistniejący tenant → 404 HTML.
 6. **Alerty** — Sentry / Database Webhooks / cron → Telegram (**bez** triggerów SQL `http_request` w migracjach).
 
 ```
@@ -91,6 +91,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 **Trial i retencja:**
 
 - **Blokada publiczna (14 dni):** wspólna logika `js/core/trialBlocking.js` (`DFOPS_shouldBlockPublicPageView`) — używana w `publicSiteApp` i panelu (`isTrialPublicBlocked`). Źródła: `trial_started_at` w JSON, `trial_blocked_at`, `billing_failed_at`, `billing_plan`. **Podgląd panelu** (`?dfcms_preview=1` + sesja właściciela) omija blokadę.
+- **Soft-block vs 404 (2026-08-04):** po `trial_blocked_at` / końcu grace `billing_failed_at` gość **nie** dostaje twardego 404 ani `pages.content`. RPC `get_public_site_route` (anon, bez content) + middleware → HTML soft-block (200, `noindex`); fallback w `publicSiteApp` / `routerApp` przez `getPublicSiteRoute`. RLS `pages_select_public` **bez zmian** (zablokowany wiersz niewidoczny w SELECT tabeli). Preview: edge serwuje szablon bez SEO content; treść przez `getPageForAuthenticatedPreview`. Nieistniejący slug → nadal 404.
 - **Cron DB (pg_cron):** migracja `20260704223000` — codziennie 03:00 UTC `run_expire_trial_pages_cron()` → `expire_trial_pages()` + `notify_purge_upcoming_pages()`; backfill przy `db push`. Wymaga **pg_cron** w Dashboard → Extensions.
 - **Edge `expire-trial-pages`:** opcjonalnie Telegram (alert −7 dni, raport kasacji) — `scripts/cron-expire-trial-edge.sql` + Vault (`dfcms_project_url`, `dfcms_cron_secret`); `verify_jwt = false`.
 - **Ostrzeżenie −7 dni:** `pages.purge_warning_sent_at` + RPC `notify_purge_upcoming_pages()` (≥23 dni od blokady).
@@ -187,11 +188,11 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 - **Smart Booking:** `settings.booking_mode` + `contact.booking_url`; Booksy embed — ostrzeżenie X-Frame-Options.
 - **Nagłówki HTTP:** Cloudflare middleware dokleja CSP (Supabase/Stripe/Google Maps/CDN/Sentry/Calendly), `X-Content-Type-Options`, `X-Frame-Options: DENY`, HSTS dla HTTPS, Referrer/Permissions Policy.
 - **Anti-abuse:** Turnstile widget w `rejestracja.html`, `zapytanie-custom.html` i panelu subskrypcji; `create-checkout` weryfikuje `turnstileToken` przez `_shared/turnstileVerification.ts` przed Supabase/Stripe. Secrets: `PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`.
-- **Publiczny odczyt stron:** anon — polityka `pages_select_public` + granty kolumnowe **bez** `draft_content`; authenticated — tylko `pages_select_owner` (`user_id = auth.uid()`); `purge_trial_blocked_pages_after_grace` tylko `service_role`/`postgres`.
+- **Publiczny odczyt stron:** anon — polityka `pages_select_public` + granty kolumnowe **bez** `draft_content` (zablokowane wiersze niewidoczne); authenticated — tylko `pages_select_owner` (`user_id = auth.uid()`); soft-block meta: RPC `get_public_site_route` (bez content); `purge_trial_blocked_pages_after_grace` tylko `service_role`/`postgres`.
 - **Storage images:** upload `{user_id}/{slug}-…`; INSERT/UPDATE/DELETE wymaga ownership (prefix uid lub legacy flat `{slug}-…` własnej strony).
 - **God Mode RLS:** `superadmins` ma SELECT tylko własnego wiersza dla `authenticated`; wpisy dodaje/usuwa operacyjnie `service_role`. Polityki superadminów na `pages` i `analytics_events` są dodatkowymi OR-ścieżkami RLS, nie zastępują dostępu właściciela.
 - **Widoczność sekcji:** toggles per zakładka (`showGallery`, `showGoogleReviews`, …); hero bez toggle.
-- **Migracja:** `20260727180000_security_harden_crit_high.sql`.
+- **Migracja:** `20260727180000_security_harden_crit_high.sql`; soft-block meta: `20260804160000_get_public_site_route.sql`.
 
 ### 1.7 User journey (skrót)
 
@@ -380,6 +381,10 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-08-04 — Soft-block bez wycieku content
+
+Po wygaśnięciu subskrypcji (`trial_blocked_at`) gość widział twarde 404, bo RLS + middleware ukrywały wiersz. Naprawa: RPC `get_public_site_route` (meta bez `content`) + middleware soft-block HTML (200) / preview szablonu bez SEO; `pageRepository.getPublicSiteRoute` + fallback w `publicSiteApp` / `routerApp`. RLS `pages_select_public` bez zmian — anon nadal nie czyta zablokowanego `content`.
 
 ### 2026-08-03 — Mapa: adres ręczny LUB firma Google
 

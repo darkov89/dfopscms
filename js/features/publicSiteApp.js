@@ -1402,6 +1402,29 @@
               cleanTenantPublicUrl(currentSlug || '');
               return;
             }
+            // Soft-block: strona istnieje, ale anon nie dostaje content — tylko meta RPC.
+            if (typeof repo.getPublicSiteRoute === 'function') {
+              const routeRes = await repo.getPublicSiteRoute({
+                slug: currentSlug || null,
+                host: currentCustomDomain || null,
+              });
+              if (routeRes?.error) throw routeRes.error;
+              const route = routeRes?.data;
+              if (route && route.blocked && route.slug) {
+                window.DFOPS__applyAnalyticsConsentNow = function noopAnalyticsConsent() {};
+                this.slug = route.slug;
+                this.theme = route.theme || expectedTheme;
+                this.billingPlan = route.billing_plan || 'trial';
+                const links = this.buildSubscriptionLinks(route.slug);
+                this.subscriptionPanelUrl = links.panel;
+                this.landingPricingUrl = links.landingCennik;
+                this.trialBlocked = true;
+                this.dataLoaded = true;
+                document.title = 'Strona chwilowo niedostępna';
+                cleanTenantPublicUrl(route.slug);
+                return;
+              }
+            }
             throw new Error('Brak strony');
           }
 

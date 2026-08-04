@@ -243,6 +243,44 @@ function tenantNotFoundResponse(request) {
   );
 }
 
+/** Soft-block: strona istnieje, ale publiczny widok zablokowany — bez content w odpowiedzi. */
+function tenantSoftBlockedHtml(slug) {
+  const safeSlug = isSafeSlugValue(slug) ? String(slug).trim().toLowerCase() : '';
+  const panelHref = safeSlug
+    ? `/admin.html?site=${encodeURIComponent(safeSlug)}`
+    : '/admin.html';
+  const cennikHref = 'https://dfcms.pl/index.html#cennik';
+  return `<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Strona chwilowo niedostępna — DFCMS</title>
+</head>
+<body style="margin:0;padding:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#121212;font-family:system-ui,sans-serif">
+  <div style="text-align:center;padding:2rem;max-width:28rem">
+    <h1 style="font-size:1.75rem;color:#f3f4f6;margin:0 0 1rem;font-weight:700;line-height:1.3">Ta strona jest chwilowo niedostępna</h1>
+    <p style="font-size:1rem;color:#9ca3af;margin:0 0 2rem;font-weight:300;line-height:1.5">Trwają prace techniczne albo witryna jest w aktualizacji. Spróbuj ponownie później — przepraszamy za utrudnienia.</p>
+    <div style="display:flex;flex-direction:column;gap:0.75rem;align-items:center">
+      <a href="${panelHref}" style="display:inline-block;padding:0.875rem 1.75rem;background:#D4AF37;color:#121212;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;font-size:0.8125rem;text-decoration:none;border-radius:2px">Panel właściciela</a>
+      <a href="${cennikHref}" style="display:inline-block;padding:0.5rem 1rem;color:#9ca3af;font-size:0.875rem;text-decoration:underline">Cennik DFCMS</a>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+function tenantSoftBlockedResponse(request, slug) {
+  return applySecurityHeaders(
+    request,
+    new Response(tenantSoftBlockedHtml(slug), {
+      status: 200,
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    }),
+  );
+}
+
 function isEdgeRoutePath(pathname) {
   if (EDGE_ROUTE_PATHS.has(pathname)) return true;
   const bare = pathname
@@ -333,6 +371,43 @@ function isSafeHostnameValue(value) {
   return /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(host);
 }
 
+/**
+ * Meta routingu (RPC) — slug/theme/blocked bez content.
+ * Lookup po slug albo custom_domain (host tylko gdy brak slug i to domena klienta).
+ */
+async function fetchPublicSiteRoute(supabaseUrl, anonKey, slugTrimmed, hostnameNorm) {
+  const safeSlug = String(slugTrimmed || '').trim().toLowerCase();
+  const safeHost = String(hostnameNorm || '').trim().toLowerCase();
+
+  if (!safeSlug && !safeHost) return null;
+  if (safeSlug && !isSafeSlugValue(safeSlug)) return null;
+  if (!safeSlug && !isCustomDomainHost(safeHost)) return null;
+  if (!safeSlug && !isSafeHostnameValue(safeHost)) return null;
+
+  const body = {
+    p_slug: safeSlug || null,
+    p_host: safeSlug ? null : safeHost,
+  };
+  const rpcUrl = `${supabaseUrl}/rest/v1/rpc/get_public_site_route`;
+  const supaRes = await fetch(rpcUrl, {
+    method: 'POST',
+    headers: {
+      apikey: anonKey,
+      Authorization: `Bearer ${anonKey}`,
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!supaRes.ok) return null;
+
+  const rows = await supaRes.json();
+  const row = Array.isArray(rows) ? rows[0] : rows;
+  return row && typeof row === 'object' && row.slug ? row : null;
+}
+
+/** Pełny wiersz z content — tylko strony publicznie czytelne (RLS + filtry). */
 async function fetchPageRow(supabaseUrl, anonKey, slugTrimmed, hostnameNorm) {
   const safeSlug = String(slugTrimmed || '').trim().toLowerCase();
   const safeHost = String(hostnameNorm || '').trim().toLowerCase();
@@ -555,10 +630,12 @@ export async function onRequest(context) {
       throw new Error(debugTrace);
     }
 
-    debugTrace = `FETCH_DB|slug:${slugTrimmed}|host:${hostnameNorm}`;
-    const row = await fetchPageRow(supabaseUrl, anonKey, slugTrimmed, hostnameNorm);
+    const isPreview = url.searchParams.get('dfcms_preview') === '1';
+    const routeHost = slugTrimmed ? '' : hostnameNorm;
+    debugTrace = `FETCH_ROUTE|slug:${slugTrimmed}|host:${routeHost || hostnameNorm}`;
+    const route = await fetchPublicSiteRoute(supabaseUrl, anonKey, slugTrimmed, routeHost || hostnameNorm);
 
-    if (!row) {
+    if (!route) {
       if (
         tenantSub ||
         isCustomDomainHost(hostnameNorm) ||
@@ -569,14 +646,59 @@ export async function onRequest(context) {
       debugTrace = `NO_ROW|slug:[${slugTrimmed}]|host:[${hostnameNorm}]`;
       throw new Error(debugTrace);
     }
-    if (!row.theme) {
+
+    const routeSlug = String(route.slug || slugTrimmed || '').trim().toLowerCase();
+    const theme = String(route.theme || '').trim().toLowerCase();
+    if (!theme) {
       debugTrace = 'NO_THEME_IN_DB';
       throw new Error(debugTrace);
     }
-
-    const theme = String(row.theme).trim().toLowerCase();
     if (theme !== 'setup' && !ALLOWED_THEMES.has(theme)) {
       debugTrace = 'INVALID_THEME:' + theme;
+      throw new Error(debugTrace);
+    }
+
+    if (route.blocked && !isPreview) {
+      debugTrace = `SOFT_BLOCK|slug:${routeSlug}`;
+      const blockedRes = tenantSoftBlockedResponse(request, routeSlug);
+      if (env.SEO_DEBUG === '1' || env.SEO_DEBUG === 'true') {
+        blockedRes.headers.set('X-DFCMS-Debug', debugTrace);
+      }
+      return blockedRes;
+    }
+
+    if (!env.ASSETS) {
+      debugTrace = 'NO_ENV_ASSETS';
+      throw new Error(debugTrace);
+    }
+
+    // Preview zablokowanej strony: szablon bez SEO z content (treść ładuje sesja właściciela).
+    if (route.blocked && isPreview) {
+      debugTrace = `PREVIEW_BLOCKED:${theme}|slug:${routeSlug}`;
+      const themeResponse = await fetchThemeAsset(env, request, theme, url);
+      if (!themeResponse?.ok) {
+        debugTrace = 'ASSET_404';
+        throw new Error(debugTrace);
+      }
+      const previewRes = new Response(themeResponse.body, themeResponse);
+      if (env.SEO_DEBUG === '1' || env.SEO_DEBUG === 'true') {
+        previewRes.headers.set('X-DFCMS-Debug', debugTrace);
+      }
+      return applySecurityHeaders(request, previewRes);
+    }
+
+    debugTrace = `FETCH_DB|slug:${routeSlug}|host:${hostnameNorm}`;
+    const row = await fetchPageRow(supabaseUrl, anonKey, routeSlug || slugTrimmed, hostnameNorm);
+    if (!row || !row.content) {
+      // Meta mówi „live”, ale RLS/content niedostępne — nie ujawniaj soft-blocku z contentem.
+      debugTrace = `LIVE_NO_CONTENT|slug:${routeSlug}`;
+      if (
+        tenantSub ||
+        isCustomDomainHost(hostnameNorm) ||
+        (slugTrimmed && isSafeSlugValue(slugTrimmed))
+      ) {
+        return tenantNotFoundResponse(request);
+      }
       throw new Error(debugTrace);
     }
 
@@ -593,11 +715,6 @@ export async function onRequest(context) {
     }
 
     debugTrace = `FETCH_ASSET:${theme}|loc:${activeLocale}`;
-    if (!env.ASSETS) {
-      debugTrace = 'NO_ENV_ASSETS';
-      throw new Error(debugTrace);
-    }
-
     const themeResponse = await fetchThemeAsset(env, request, theme, url);
     if (!themeResponse?.ok) {
       debugTrace = 'ASSET_404';
@@ -609,7 +726,7 @@ export async function onRequest(context) {
       themeResponse,
       row,
       env,
-      slugTrimmed,
+      routeSlug || slugTrimmed,
       hostnameNorm,
       activeLocale,
     );
