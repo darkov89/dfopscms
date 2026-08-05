@@ -58,7 +58,7 @@ W konsoli: `window.DFOPS_DEPLOY_ENVIRONMENT` → `'staging'` | `'production'`.
 1. **Rejestracja / edycja** — przeglądarka → Supabase Auth + PostgREST (`pages`, `draft_content` / `content`) z kluczem **anon** (RLS).
 2. **Publikacja treści** — panel kopiuje `draft_content` → `content`; strony publiczne czytają wyłącznie `content` (preview: `dfcms_preview=1` + właściciel).
 3. **Płatność** — panel → `create-checkout` → Stripe Checkout → `stripe-webhook` / `sync-stripe-subscription` → `billing_profiles` + lustrzane `pages.billing_plan`.
-4. **Własna domena** — panel „Zapisz i sprawdź” → Edge `add-custom-domain` (Custom Hostname w CF, idempotentny przy duplikacie 1406) → `GET /api/verify-domain?domain=…` (DoH CNAME) → status `active`/`pending` w `pages`. Instrukcja DNS: **A** `@` → `172.67.154.121` oraz `104.21.66.9` + **CNAME** `www` → `proxy.dfcms.pl` (bez CNAME na apex — ochrona MX).
+4. **Własna domena** — panel „Zapisz i sprawdź” → Edge `add-custom-domain` (Custom Hostname **apex + www** w CF, idempotentny przy duplikacie 1406, odświeża SSL gdy pending) → `GET /api/verify-domain?domain=…` (DoH: A na apex i/lub CNAME na www) → status `active`/`pending` w `pages`. Instrukcja DNS: **A** `@` → `172.67.154.121` oraz `104.21.66.9` + **CNAME** `www` → `proxy.dfcms.pl` (bez CNAME na apex — ochrona MX). Sam apex bez www zwykle daje CF Error 1001 / SSL mismatch.
 5. **Routing publiczny** — `functions/_middleware.js` (slug z nagłówka `Host` / kandydatów); RPC `get_public_site_route` → soft-block HTML gdy `blocked`, live SEO rewrite gdy publicznie czytelne, preview bez content SEO; gdy edge widzi tylko `*.pages.dev` (brak wildcard `*.dfcms.pl` w Pages), **fallback w przeglądarce:** `index.html` → `router.html` → `/templates/{theme}.html` (slug z `window.location.hostname` + meta RPC przy soft-block); **`js/core/tenantPublicUrlClean.js`** (sync w `<head>` szablonu) + `publicSiteApp.cleanTenantPublicUrl()` normalizują pasek do `/` (także przy blokadzie trial); apex `dfcms.pl?site=slug` → preview z query; nieistniejący tenant → 404 HTML.
 6. **Alerty** — Sentry / Database Webhooks / cron → Telegram (**bez** triggerów SQL `http_request` w migracjach).
 
@@ -238,7 +238,7 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 
 **Współdzielona logika:** `supabase/functions/_shared/stripeBilling.ts`, `wfirmaBilling.ts`, `wfirmaInvoiceLedger.ts`, `aiCopySchemas.ts` (whitelist copy per motyw + `buildGeminiResponseSchema`).
 
-**Pages Functions (Cloudflare):** `functions/_middleware.js`, `functions/api/verify-domain.js` (CNAME → `proxy.dfcms.pl`, `dfcms.pl`, `dfopscms.pages.dev`).
+**Pages Functions (Cloudflare):** `functions/_middleware.js`, `functions/api/verify-domain.js` (A apex + CNAME www → `proxy.dfcms.pl`, `dfcms.pl`, `dfopscms.pages.dev`).
 
 ---
 
@@ -388,6 +388,13 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-08-05 — Fix domeny: Error 1001 / SSL mismatch (dfops.eu)
+
+- **Diagnoza:** DNS klienta OK (A + www CNAME), `pages.custom_domain` ustawione, ale CF Custom Hostname nieaktywny → HTTP 1001 / `ERR_SSL_VERSION_OR_CIPHER_MISMATCH` (brak certyfikatu). `verify-domain` uznawał tylko CNAME na apex (po strip `www`), więc nigdy nie przechodził przy poprawnej instrukcji A+www.
+- **Edge** `add-custom-domain`: rejestruje **apex i www**, przy 1406 pobiera stan hostname, PATCH odświeża SSL; zwraca `apex`/`www` status.
+- **Pages** `verify-domain`: DoH A (oba IP) + CNAME `www` → `proxy.dfcms.pl` (oraz legacy CNAME na apex).
+- **Panel:** jaśniejszy komunikat o obowiązkowym www; po deployu Edge: „Zapisz i sprawdź” ponownie, test najpierw `https://www.…`.
 
 ### 2026-08-04 — Własna domena: Edge CF + instrukcja A/A/CNAME
 

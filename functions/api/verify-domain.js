@@ -2,7 +2,9 @@ import '../../js/core/utils.js';
 
 /**
  * GET /api/verify-domain?domain=klient.pl
- * Sprawdza rekord CNAME domeny klienta (Cloudflare DNS over HTTPS).
+ * Sprawdza DNS domeny klienta (Cloudflare DNS over HTTPS):
+ * - A na apex → IP Cloudflare SaaS (instrukcja panelu)
+ * - CNAME na www → proxy.dfcms.pl (lub inny dozwolony target)
  */
 
 const VALID_CNAME_TARGETS = new Set([
@@ -11,6 +13,9 @@ const VALID_CNAME_TARGETS = new Set([
   'www.dfcms.pl',
   'proxy.dfcms.pl',
 ]);
+
+/** Anycast IP strefy dfcms — wpisy A dla apex z instrukcji DNS w panelu. */
+const VALID_APEX_A_IPS = new Set(['172.67.154.121', '104.21.66.9']);
 
 /** Prosty hostname FQDN (bez protokołu, ścieżki, portu). */
 const DOMAIN_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/;
@@ -71,8 +76,8 @@ function isValidCnameTarget(target) {
   return false;
 }
 
-async function queryCname(domain) {
-  const url = `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(domain)}&type=CNAME`;
+async function queryDns(name, type) {
+  const url = `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(name)}&type=${encodeURIComponent(type)}`;
   const response = await fetch(url, {
     headers: { Accept: 'application/dns-json' },
   });
@@ -82,6 +87,44 @@ async function queryCname(domain) {
   }
 
   return response.json();
+}
+
+function cnameAnswers(dns) {
+  const answers = Array.isArray(dns?.Answer) ? dns.Answer : [];
+  const out = [];
+  for (let i = 0; i < answers.length; i++) {
+    const entry = answers[i];
+    if (Number(entry.type) !== 5 && String(entry.type).toUpperCase() !== 'CNAME') continue;
+    out.push(entry);
+  }
+  return out;
+}
+
+function aRecordIps(dns) {
+  const answers = Array.isArray(dns?.Answer) ? dns.Answer : [];
+  const ips = new Set();
+  for (let i = 0; i < answers.length; i++) {
+    const entry = answers[i];
+    if (Number(entry.type) !== 1 && String(entry.type).toUpperCase() !== 'A') continue;
+    const ip = String(entry.data || '').trim();
+    if (ip) ips.add(ip);
+  }
+  return ips;
+}
+
+function findValidCname(answers) {
+  for (let i = 0; i < answers.length; i++) {
+    const match = isValidCnameTarget(answers[i].data);
+    if (match) return typeof match === 'string' ? match : normalizeDnsTarget(answers[i].data);
+  }
+  return null;
+}
+
+function hasRequiredApexA(ips) {
+  for (const ip of VALID_APEX_A_IPS) {
+    if (!ips.has(ip)) return false;
+  }
+  return true;
 }
 
 export async function onRequestOptions() {
@@ -103,22 +146,56 @@ export async function onRequestGet({ request }) {
     );
   }
 
+  const wwwHost = `www.${domain}`;
+
   try {
-    const dns = await queryCname(domain);
-    const answers = Array.isArray(dns?.Answer) ? dns.Answer : [];
+    const [apexCnameDns, wwwCnameDns, apexADns] = await Promise.all([
+      queryDns(domain, 'CNAME'),
+      queryDns(wwwHost, 'CNAME'),
+      queryDns(domain, 'A'),
+    ]);
 
-    for (let i = 0; i < answers.length; i++) {
-      const entry = answers[i];
-      if (Number(entry.type) !== 5 && String(entry.type).toUpperCase() !== 'CNAME') continue;
+    const apexCname = findValidCname(cnameAnswers(apexCnameDns));
+    if (apexCname) {
+      return jsonResponse({
+        status: 'verified',
+        domain,
+        target: apexCname,
+        checked: 'apex_cname',
+      });
+    }
 
-      const match = isValidCnameTarget(entry.data);
-      if (match) {
-        return jsonResponse({
-          status: 'verified',
-          domain,
-          target: typeof match === 'string' ? match : normalizeDnsTarget(entry.data),
-        });
-      }
+    const wwwCname = findValidCname(cnameAnswers(wwwCnameDns));
+    const apexIps = aRecordIps(apexADns);
+    const apexAOk = hasRequiredApexA(apexIps);
+
+    if (apexAOk && wwwCname) {
+      return jsonResponse({
+        status: 'verified',
+        domain,
+        target: wwwCname,
+        checked: 'apex_a_www_cname',
+        apex_a: [...VALID_APEX_A_IPS],
+      });
+    }
+
+    if (wwwCname) {
+      return jsonResponse({
+        status: 'verified',
+        domain,
+        target: wwwCname,
+        checked: 'www_cname',
+      });
+    }
+
+    if (apexAOk) {
+      // Same IP co strefa — bez CNAME www CF for SaaS często nie aktywuje hostname (Error 1001).
+      return jsonResponse({
+        status: 'pending',
+        domain,
+        error: 'MISSING_WWW_CNAME',
+        apex_a: [...VALID_APEX_A_IPS],
+      });
     }
 
     return jsonResponse({

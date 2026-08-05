@@ -12,16 +12,180 @@ const corsHeaders: Record<string, string> = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-/** Cloudflare for SaaS: 1406 = Duplicate custom hostname found. */
-function isDuplicateCustomHostname(cfData: {
+type CfHostname = {
+  id?: string;
+  hostname?: string;
+  status?: string;
+  verification_errors?: string[];
+  ssl?: { status?: string; method?: string };
+  ownership_verification?: {
+    type?: string;
+    name?: string;
+    value?: string;
+  };
+};
+
+type CfApiBody = {
+  success?: boolean;
+  result?: CfHostname | CfHostname[] | null;
+  result_info?: { count?: number };
   errors?: Array<{ code?: number; message?: string }>;
-}): boolean {
+};
+
+/** Cloudflare for SaaS: 1406 = Duplicate custom hostname found. */
+function isDuplicateCustomHostname(cfData: CfApiBody): boolean {
   const errors = Array.isArray(cfData?.errors) ? cfData.errors : [];
   return errors.some((e) => {
     if (Number(e?.code) === 1406) return true;
     const msg = String(e?.message || "").toLowerCase();
     return msg.includes("duplicate custom hostname");
   });
+}
+
+function cfAuthHeaders(token: string): HeadersInit {
+  return {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+}
+
+function summarizeHostname(row: CfHostname | null | undefined) {
+  if (!row || typeof row !== "object") return null;
+  return {
+    id: row.id || null,
+    hostname: row.hostname || null,
+    status: row.status || null,
+    ssl_status: row.ssl?.status || null,
+    verification_errors: Array.isArray(row.verification_errors)
+      ? row.verification_errors
+      : [],
+    ownership_verification: row.ownership_verification || null,
+  };
+}
+
+async function fetchCustomHostname(
+  zoneId: string,
+  token: string,
+  hostname: string,
+): Promise<CfHostname | null> {
+  const url =
+    `https://api.cloudflare.com/client/v4/zones/${zoneId}/custom_hostnames` +
+    `?hostname=${encodeURIComponent(hostname)}`;
+  const res = await fetch(url, { headers: cfAuthHeaders(token) });
+  const data = (await res.json().catch(() => ({}))) as CfApiBody;
+  if (!res.ok || !data.success) {
+    console.error("CF GET custom_hostname failed:", hostname, data);
+    return null;
+  }
+  const list = Array.isArray(data.result) ? data.result : [];
+  return list.find((r) => String(r?.hostname || "").toLowerCase() === hostname) ||
+    list[0] ||
+    null;
+}
+
+async function refreshCustomHostnameSsl(
+  zoneId: string,
+  token: string,
+  id: string,
+): Promise<CfHostname | null> {
+  const res = await fetch(
+    `https://api.cloudflare.com/client/v4/zones/${zoneId}/custom_hostnames/${id}`,
+    {
+      method: "PATCH",
+      headers: cfAuthHeaders(token),
+      body: JSON.stringify({
+        ssl: {
+          method: "http",
+          type: "dv",
+        },
+      }),
+    },
+  );
+  const data = (await res.json().catch(() => ({}))) as CfApiBody;
+  if (!res.ok || !data.success) {
+    console.error("CF PATCH custom_hostname failed:", id, data);
+    return null;
+  }
+  return (data.result && !Array.isArray(data.result) ? data.result : null) as
+    | CfHostname
+    | null;
+}
+
+/**
+ * Tworzy Custom Hostname albo zwraca istniejący (1406) + odświeża SSL gdy utknął.
+ */
+async function ensureCustomHostname(
+  zoneId: string,
+  token: string,
+  hostname: string,
+): Promise<{
+  hostname: string;
+  alreadyExists: boolean;
+  record: CfHostname | null;
+  error?: string;
+}> {
+  const createRes = await fetch(
+    `https://api.cloudflare.com/client/v4/zones/${zoneId}/custom_hostnames`,
+    {
+      method: "POST",
+      headers: cfAuthHeaders(token),
+      body: JSON.stringify({
+        hostname,
+        ssl: {
+          method: "http",
+          type: "dv",
+        },
+      }),
+    },
+  );
+
+  const createData = (await createRes.json().catch(() => ({}))) as CfApiBody;
+  const alreadyExists = isDuplicateCustomHostname(createData);
+
+  if ((!createRes.ok || !createData.success) && !alreadyExists) {
+    console.error("Błąd Cloudflare create:", hostname, createData);
+    return {
+      hostname,
+      alreadyExists: false,
+      record: null,
+      error:
+        createData.errors?.[0]?.message || "Błąd integracji z Cloudflare",
+    };
+  }
+
+  let record: CfHostname | null = alreadyExists
+    ? null
+    : (createData.result && !Array.isArray(createData.result)
+      ? createData.result
+      : null);
+
+  if (alreadyExists || !record) {
+    record = await fetchCustomHostname(zoneId, token, hostname);
+  }
+
+  const sslStatus = String(record?.ssl?.status || "").toLowerCase();
+  const hostStatus = String(record?.status || "").toLowerCase();
+  const needsRefresh =
+    !!record?.id &&
+    (hostStatus === "pending" ||
+      sslStatus === "pending_validation" ||
+      sslStatus === "pending_issuance" ||
+      sslStatus === "pending_deployment" ||
+      sslStatus === "expired" ||
+      sslStatus === "deleted" ||
+      sslStatus === "initialization_error" ||
+      sslStatus === "validation_timed_out");
+
+  if (needsRefresh && record?.id) {
+    const refreshed = await refreshCustomHostnameSsl(zoneId, token, record.id);
+    if (refreshed) record = refreshed;
+    else {
+      // PATCH bywa pusty — pobierz świeży stan.
+      record = (await fetchCustomHostname(zoneId, token, hostname)) || record;
+    }
+  }
+
+  return { hostname, alreadyExists, record };
 }
 
 serve(async (req) => {
@@ -105,39 +269,39 @@ serve(async (req) => {
       throw new Error("Brak konfiguracji Cloudflare na serwerze");
     }
 
-    const cfResponse = await fetch(
-      `https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/custom_hostnames`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${CF_API_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          hostname,
-          ssl: {
-            method: "http",
-            type: "dv",
-          },
-        }),
-      },
-    );
+    // Apex + www: CNAME na www to wspierana ścieżka CF for SaaS; sam apex na A
+    // bez Apex Proxying często zostaje w pending → Error 1001 / SSL mismatch.
+    const wwwHostname = `www.${hostname}`;
+    const [apexResult, wwwResult] = await Promise.all([
+      ensureCustomHostname(CF_ZONE_ID, CF_API_TOKEN, hostname),
+      ensureCustomHostname(CF_ZONE_ID, CF_API_TOKEN, wwwHostname),
+    ]);
 
-    const cfData = await cfResponse.json().catch(() => ({}));
-    const alreadyExists = isDuplicateCustomHostname(cfData);
-
-    if ((!cfResponse.ok || !cfData.success) && !alreadyExists) {
-      console.error("Błąd Cloudflare:", cfData);
-      throw new Error(
-        cfData.errors?.[0]?.message || "Błąd integracji z Cloudflare",
-      );
+    if (apexResult.error && wwwResult.error) {
+      throw new Error(apexResult.error || wwwResult.error);
     }
+    // Wystarczy jeden hostname (zwykle www) — apex może czekać na Apex Proxying.
+    if (apexResult.error && !wwwResult.record) {
+      throw new Error(apexResult.error);
+    }
+    if (wwwResult.error && !apexResult.record) {
+      throw new Error(wwwResult.error);
+    }
+
+    const apexSummary = summarizeHostname(apexResult.record);
+    const wwwSummary = summarizeHostname(wwwResult.record);
+    const alreadyExists = !!(apexResult.alreadyExists || wwwResult.alreadyExists);
+    const cfActive = [apexSummary, wwwSummary].some(
+      (r) =>
+        String(r?.status || "").toLowerCase() === "active" &&
+        String(r?.ssl_status || "").toLowerCase() === "active",
+    );
 
     const { error: dbError } = await supabaseAdmin
       .from("pages")
       .update({
         custom_domain: hostname,
-        custom_domain_status: "pending",
+        custom_domain_status: cfActive ? "active" : "pending",
       })
       .eq("id", pageId);
 
@@ -147,11 +311,14 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         message: alreadyExists
-          ? "Domena już była w Cloudflare — odświeżono zapis"
-          : "Domena dodana do Cloudflare",
+          ? "Domena już była w Cloudflare — odświeżono hostname (apex + www)"
+          : "Domena dodana do Cloudflare (apex + www)",
         hostname,
         alreadyExists,
-        data: alreadyExists ? null : cfData.result,
+        cfActive,
+        apex: apexSummary,
+        www: wwwSummary,
+        data: apexResult.record,
       }),
       {
         headers: { ...cors, "Content-Type": "application/json" },

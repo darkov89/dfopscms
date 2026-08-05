@@ -3711,7 +3711,9 @@
             return;
           }
 
-          const dbStatus = result.status === 'verified' ? 'active' : 'pending';
+          const dnsVerified = result.status === 'verified';
+          const cfActive = !!(cfData && cfData.cfActive);
+          const dbStatus = dnsVerified || cfActive ? 'active' : 'pending';
 
           const { error } = await this.saveActivePage({
             custom_domain: hostname,
@@ -3722,13 +3724,30 @@
           this.customDomain = hostname;
           this.customDomainStatus = dbStatus;
 
+          const wwwStatus = cfData && cfData.www && cfData.www.status;
+          const apexErrors =
+            cfData &&
+            cfData.apex &&
+            Array.isArray(cfData.apex.verification_errors) &&
+            cfData.apex.verification_errors.length
+              ? cfData.apex.verification_errors.join('; ')
+              : '';
+
           if (dbStatus === 'active') {
-            this.domainMessage = 'Domena zweryfikowana i zapisana.';
+            this.domainMessage = cfActive
+              ? 'Domena zweryfikowana i zapisana (Cloudflare aktywny).'
+              : 'DNS wygląda poprawnie — certyfikat SSL może jeszcze chwilę się aktywować (spróbuj też https://www.…).';
             this.showDnsInstructions = false;
             this.showToast('Własna domena jest aktywna.', 'success');
+          } else if (result.error === 'MISSING_WWW_CNAME') {
+            this.domainMessage =
+              'Rekordy A na @ są OK, ale brakuje CNAME www → proxy.dfcms.pl. Bez www Cloudflare często zwraca Error 1001 / błąd SSL.';
+            this.showDnsInstructions = true;
           } else {
             this.domainMessage =
-              'Domena zapisana w Cloudflare. Ustaw rekordy DNS u operatora (A dla @ oraz CNAME dla www) — po propagacji kliknij „Zapisz i sprawdź” ponownie.';
+              'Domena zapisana w Cloudflare (apex + www). Ustaw rekordy DNS u operatora (A dla @ oraz CNAME dla www) — po propagacji kliknij „Zapisz i sprawdź” ponownie.' +
+              (wwwStatus ? ` Status www: ${wwwStatus}.` : '') +
+              (apexErrors ? ` Apex: ${apexErrors}` : '');
             this.showDnsInstructions = true;
           }
         } catch (e) {
