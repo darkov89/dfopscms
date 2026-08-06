@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-08-06 — Custom domain: TXT ownership + strict CF active
+**Ostatnia aktualizacja:** 2026-08-06 — Formularz Custom → Edge e-mail; consultant typografia; fix i18n „meta”
 
 ---
 
@@ -190,7 +190,7 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 - **Telegram:** `telegram-webhook` wymaga `Authorization: Bearer TELEGRAM_WEBHOOK_SECRET` (fail-closed). Database Webhooks + Sentry muszą mieć ten header. Osobny od `CRON_SECRET`.
 - **Smart Booking:** `settings.booking_mode` + `contact.booking_url`; Booksy embed — ostrzeżenie X-Frame-Options.
 - **Nagłówki HTTP:** Cloudflare middleware dokleja CSP (Supabase/Stripe/Google Maps/CDN/Sentry/Calendly), `X-Content-Type-Options`, `X-Frame-Options: DENY`, HSTS dla HTTPS, Referrer/Permissions Policy.
-- **Anti-abuse:** Turnstile widget w `rejestracja.html`, `zapytanie-custom.html` i panelu subskrypcji; `create-checkout` weryfikuje `turnstileToken` przez `_shared/turnstileVerification.ts` przed Supabase/Stripe. Secrets: `PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`.
+- **Anti-abuse:** Turnstile widget w `rejestracja.html`, `zapytanie-custom.html` i panelu subskrypcji; `create-checkout` i `send-custom-inquiry` weryfikują `turnstileToken` przez `_shared/turnstileVerification.ts`. Secrets: `PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`.
 - **Publiczny odczyt stron:** anon — polityka `pages_select_public` + granty kolumnowe **bez** `draft_content` (zablokowane wiersze niewidoczne); authenticated — tylko `pages_select_owner` (`user_id = auth.uid()`); soft-block meta: RPC `get_public_site_route` (bez content); `purge_trial_blocked_pages_after_grace` tylko `service_role`/`postgres`.
 - **Storage images:** upload `{user_id}/{slug}-…`; INSERT/UPDATE/DELETE/SELECT (authenticated) wymaga ownership (prefix uid lub legacy flat `{slug}-…` własnej strony); publiczny odczyt URL bez listingu cudzych obiektów.
 - **God Mode RLS:** `superadmins` ma SELECT tylko własnego wiersza dla `authenticated`; wpisy dodaje/usuwa operacyjnie `service_role`. Polityki superadminów na `pages` i `analytics_events` są dodatkowymi OR-ścieżkami RLS, nie zastępują dostępu właściciela.
@@ -236,8 +236,9 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 | `generate-ai-content` | AI Site Generator (Gemini): JWT + ownership + quota → merge copy do `pages.draft_content`; secrets `GEMINI_API_KEY`, opcjonalnie `GEMINI_MODEL` / `DFCMS_ENV` / `AI_LOG_PROMPTS` |
 | **`expire-trial-pages`** | **Cron** (`POST` + `Bearer CRON_SECRET`): `expire_manual_grants()` → `expire_trial_pages()` → `notify_purge_upcoming_pages()` → `list_pages_pending_purge()` → opcjonalnie `purge_trial_blocked_pages_after_grace()` gdy `AUTO_PURGE_ENABLED=true`. **Powiadomienia operacyjne przez Telegram** (Markdown): alert −7 dni per slug; raport ręcznej kasacji (30+ dni) z gotowym SQL. Brak alertów → `200` bez wiadomości. |
 | `telegram-webhook` | Router alertów (Sentry, Database Webhooks `users`/`pages`/`billing_profiles`, logi) → Telegram; **`Bearer TELEGRAM_WEBHOOK_SECRET`** |
+| `send-custom-inquiry` | Publiczny formularz Custom (`zapytanie-custom.html`): Turnstile → SMTP (`SMTP_*`, jak Auth) + Telegram ops (`verify_jwt=false`) |
 
-**Współdzielona logika:** `supabase/functions/_shared/stripeBilling.ts`, `wfirmaBilling.ts`, `wfirmaInvoiceLedger.ts`, `aiCopySchemas.ts` (whitelist copy per motyw + `buildGeminiResponseSchema`).
+**Współdzielona logika:** `supabase/functions/_shared/stripeBilling.ts`, `wfirmaBilling.ts`, `wfirmaInvoiceLedger.ts`, `aiCopySchemas.ts` (whitelist copy per motyw + `buildGeminiResponseSchema`), `sendTransactionalEmail.ts` (Resend / SMTP).
 
 **Pages Functions (Cloudflare):** `functions/_middleware.js`, `functions/api/verify-domain.js` (A apex + CNAME www → `proxy.dfcms.pl`, `dfcms.pl`, `dfopscms.pages.dev`).
 
@@ -389,6 +390,12 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-08-06 — Formularz Custom → Edge e-mail; consultant UX; fix i18n „meta”
+
+- **`send-custom-inquiry`:** `zapytanie-custom.html` → POST (Turnstile); czyste SMTP (`SMTP_HOST`/`PORT`/`USER`/`PASS`, te same co Auth → SMTP — bez Resend) + Telegram ops. Auth SMTP w Dashboard nie jest współdzielony z Edge — secrets trzeba ustawić osobno.
+- **Consultant:** ujednolicona typografia (serif nagłówki / sans body, jedna skala kolorów sattva); bez zmiany układu i teł.
+- **i18n:** switcher w `consultant.html` używa `siteLocales()` — nie pokazuje klucza `meta`.
 
 ### 2026-08-06 — Custom domain: TXT ownership + bez fałszywej zielonej OK
 

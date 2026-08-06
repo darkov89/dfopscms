@@ -31,7 +31,10 @@ Configure **separate** webhook endpoints in Stripe Test vs Live dashboards.
 - `GEMINI_MODEL` (opcjonalnie; domyślnie `gemini-3.6-flash`)
 - `DFCMS_ENV` (`staging` | `production` — pełne logi promptów AI tylko poza prod, chyba że `AI_LOG_PROMPTS=1`)
 - `AI_LOG_PROMPTS` (opcjonalnie `1` — loguj prompt/response AI także na prod)
-
+- `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` (`send-custom-inquiry` — te same dane co Auth → SMTP; bez Resend)
+- `SMTP_FROM` / `INQUIRY_FROM_EMAIL` (opcjonalnie; domyślnie `DFCMS <notifications@dfops.eu>`)
+- `INQUIRY_TO_EMAIL` (opcjonalnie; domyślnie `kontakt@dfops.eu`)
+- `SMTP_SECURE` (opcjonalnie `true`/`false`; domyślnie `true` przy porcie 465)
 ## Cron
 
 ### Trial expiry (wymagane)

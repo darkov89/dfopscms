@@ -7,8 +7,8 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Tylko fonty używane w szablonie konsultanta (bez Poppins/Oswald z beauty) -->
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- Display: Playfair / Cormorant (preset elegant) · UI: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -61,8 +61,7 @@
 
 <body 
     :class="content && content[lang].settings?.darkMode ? 'dark' : ''"
-    class="font-sans antialiased selection:bg-sattva-brand selection:text-sattva-white transition-colors duration-500 bg-transparent"
-    style="color: var(--text-main, #1f2937);"
+    class="font-sans antialiased text-sattva-text selection:bg-sattva-brand selection:text-sattva-white transition-colors duration-500 bg-transparent"
     x-data="createPublicSiteApp('consultant')"
 >
 
@@ -108,7 +107,7 @@
                 </a>                
                 <div class="flex items-center gap-5">
                     <template x-if="content[lang].social?.linkedin">
-                        <a :href="content[lang].social.linkedin" target="_blank" rel="noopener noreferrer" class="text-sattva-text/80 hover:text-sattva-brand transition-colors">
+                        <a :href="content[lang].social.linkedin" target="_blank" rel="noopener noreferrer" class="text-sattva-text/70 hover:text-sattva-brand transition-colors">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
                                 <rect x="2" y="9" width="4" height="12"></rect>
@@ -117,36 +116,36 @@
                         </a>
                     </template>
 
-                    <template x-if="Object.keys(content).length > 1">
+                    <template x-if="showLanguageSwitcher()">
                         <div class="flex items-center gap-6">
-                            <div class="h-4 w-px bg-sattva-text/30"></div> 
-                            <div class="flex space-x-3 text-xs uppercase tracking-widest">
-                                <template x-for="(langKey, index) in Object.keys(content)" :key="langKey">
+                            <div class="h-4 w-px bg-sattva-text/30"></div>
+                            <div class="flex space-x-3 text-xs font-sans font-semibold uppercase tracking-[0.18em]">
+                                <template x-for="(langKey, index) in siteLocales()" :key="langKey">
                                     <div class="flex items-center space-x-3">
-                                        <button @click="lang = langKey" :class="lang === langKey ? 'text-sattva-brand font-bold scale-110' : 'text-sattva-text/70 hover:text-sattva-text transition-all'" x-text="langKey"></button>
-                                        <span class="text-sattva-text/60" x-show="index < Object.keys(content).length - 1">|</span>
+                                        <button type="button" @click="lang = langKey" :class="lang === langKey ? 'text-sattva-brand' : 'text-sattva-text/65 hover:text-sattva-text transition-colors'" x-text="localeLabel(langKey)"></button>
+                                        <span class="text-sattva-text/35 font-normal" x-show="index < siteLocales().length - 1" aria-hidden="true">|</span>
                                     </div>
                                 </template>
                             </div>
                         </div>
                     </template>
 
-                    <div class="hidden md:flex items-center gap-4 text-sm uppercase tracking-widest">
+                    <div class="hidden md:flex items-center gap-5 text-[11px] font-sans font-medium uppercase tracking-[0.16em]">
                         <template x-if="content[lang].settings?.showManifesto !== false">
-                            <a href="#manifesto" class="text-sattva-text/80 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.about || 'O nas'"></a>
+                            <a href="#manifesto" class="text-sattva-text/70 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.about || 'O nas'"></a>
                         </template>
                         <template x-if="content[lang].settings?.showServices !== false">
-                            <a href="#uslugi" class="text-sattva-text/80 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.pricing || 'Usługi'"></a>
+                            <a href="#uslugi" class="text-sattva-text/70 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.pricing || 'Usługi'"></a>
                         </template>
                         <template x-if="content[lang].settings?.showFaq !== false && content[lang].faq?.length">
-                            <a href="#faq" class="text-sattva-text/80 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.faq || 'Pytania i odpowiedzi (Q&amp;A)'"></a>
+                            <a href="#faq" class="text-sattva-text/70 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.faq || 'Pytania i odpowiedzi (Q&amp;A)'"></a>
                         </template>
                         <template x-if="content[lang].settings?.showReviews !== false && content[lang].reviews?.length">
-                            <a href="#opinie" class="text-sattva-text/80 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.reviews || 'Opinie'"></a>
+                            <a href="#opinie" class="text-sattva-text/70 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.reviews || 'Opinie'"></a>
                         </template>
-                        <a href="#rezerwacja" @click="onConversionClick('booking_click', 'nav')" x-show="bookingModuleActive() || footerCtaEnabled()" x-cloak class="text-sattva-text/80 hover:text-sattva-brand transition-colors">Rezerwacja</a>
+                        <a href="#rezerwacja" @click="onConversionClick('booking_click', 'nav')" x-show="bookingModuleActive() || footerCtaEnabled()" x-cloak class="text-sattva-text/70 hover:text-sattva-brand transition-colors">Rezerwacja</a>
                         <template x-if="content[lang].settings?.showContact !== false">
-                            <a href="#kontakt" class="text-sattva-brand hover:text-sattva-text transition-colors duration-300" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></a>
+                            <a href="#kontakt" class="text-sattva-brand hover:opacity-80 transition-opacity duration-300" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></a>
                         </template>
                     </div>
                 </div>
@@ -171,17 +170,17 @@
                </template>
             </div>
 
-            <h3 class="font-serif text-lg md:text-xl text-sattva-brand tracking-[0.2em] uppercase mb-4 reveal delay-100" x-text="content[lang].hero.name"></h3>
+            <h3 class="font-serif text-base md:text-lg text-sattva-brand tracking-[0.22em] uppercase mb-4 reveal delay-100" x-text="content[lang].hero.name"></h3>
 
-            <h1 class="font-serif text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-sattva-text max-w-3xl mb-5 reveal delay-200" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].hero.headline)"></h1>
-            <p class="font-serif text-lg font-light leading-relaxed text-sattva-text/80 mb-3 max-w-2xl reveal delay-300" x-text="content[lang].hero.subheadline"></p>
-            <p class="max-w-xl text-sm md:text-base text-sattva-text/75 mb-8 font-light leading-relaxed reveal delay-500" x-text="content[lang].hero.description"></p>
+            <h1 class="font-serif text-4xl lg:text-5xl font-semibold tracking-tight leading-[1.15] text-sattva-text max-w-3xl mb-5 reveal delay-200" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].hero.headline)"></h1>
+            <p class="font-sans text-base md:text-lg font-normal leading-relaxed text-sattva-text/75 mb-3 max-w-2xl reveal delay-300" x-text="content[lang].hero.subheadline"></p>
+            <p class="font-sans max-w-xl text-sm md:text-[15px] text-sattva-text/65 mb-8 font-normal leading-relaxed reveal delay-500" x-text="content[lang].hero.description"></p>
             
             <template x-if="heroCtaEnabled()">
                 <a :href="resolveHeroButtonUrl()"
                    :target="ctaLinkTarget(resolveHeroButtonUrl())"
                    :rel="ctaLinkRel(resolveHeroButtonUrl())"
-                   class="group relative px-6 py-2.5 border border-sattva-brand text-sattva-brand font-serif text-sm font-semibold tracking-wide hover:bg-sattva-brand hover:text-sattva-white transition-all duration-300 reveal delay-500"
+                   class="group relative inline-flex px-7 py-2.5 border border-sattva-brand text-sattva-brand font-sans text-xs font-semibold uppercase tracking-[0.14em] hover:bg-sattva-brand hover:text-sattva-white transition-all duration-300 reveal delay-500"
                    x-text="content[lang].hero.button"></a>
             </template>
         </header>
@@ -190,13 +189,13 @@
     <div class="max-w-3xl mx-auto reveal">
         
         <div class="text-center mb-10">
-            <span class="text-[10px] uppercase tracking-[0.2em] text-sattva-text/60 mb-3 block" x-text="content && content[lang].manifesto?.label"></span>
-            <h2 class="text-3xl font-bold tracking-tight text-sattva-text" x-text="content && content[lang].manifesto?.title"></h2>
-            <div class="h-px w-20 bg-sattva-brand mx-auto mt-5"></div>
+            <span class="font-sans text-[10px] font-semibold uppercase tracking-[0.25em] text-sattva-brand mb-3 block" x-text="content && content[lang].manifesto?.label"></span>
+            <h2 class="font-serif text-3xl font-semibold tracking-tight text-sattva-text" x-text="content && content[lang].manifesto?.title"></h2>
+            <div class="h-px w-16 bg-sattva-brand mx-auto mt-5"></div>
         </div>
 
         <div class="px-2 md:px-6">
-            <p class="text-base md:text-lg text-sattva-text/80 leading-relaxed text-left font-light" 
+            <p class="font-sans text-base md:text-lg text-sattva-text/75 leading-[1.75] text-left font-normal" 
                x-html="DFOPS_pageRepository.sanitizeHtml(content && content[lang].manifesto?.text)">
             </p>
         </div>
@@ -208,12 +207,12 @@
             <div class="max-w-6xl mx-auto">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <template x-for="(service, index) in content[lang].services">
-                        <div class="service-card reveal border border-sattva-text/20 p-6 hover:border-sattva-brand/40 transition-all duration-500 bg-sattva-accent flex flex-col shadow-lg hover:-translate-y-0.5" :class="'delay-' + (index * 100)">
+                        <div class="service-card reveal border border-sattva-text/15 p-6 hover:border-sattva-brand/40 transition-all duration-500 bg-sattva-accent flex flex-col shadow-lg hover:-translate-y-0.5" :class="'delay-' + (index * 100)">
                             <div class="text-sattva-brand mb-3">
                                 <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
                             </div>
-                            <h3 class="font-serif text-xl font-bold tracking-tight text-sattva-text mb-3" x-text="service.title"></h3>
-                            <p class="text-sm text-sattva-text/80 font-light leading-relaxed flex-grow" x-text="service.desc"></p>
+                            <h3 class="font-serif text-xl font-semibold tracking-tight text-sattva-text mb-3" x-text="service.title"></h3>
+                            <p class="font-sans text-sm text-sattva-text/70 font-normal leading-relaxed flex-grow" x-text="service.desc"></p>
                         </div>
                     </template>
                 </div>
@@ -223,15 +222,15 @@
         <section class="py-20 px-6 bg-sattva-accent" x-show="content[lang].settings?.showProof !== false && content[lang].proof">
             <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-10">
                 <div class="md:w-1/2 reveal">
-                    <span class="text-[10px] uppercase tracking-[0.2em] text-sattva-brand mb-2 block" x-text="content[lang].proof?.label"></span>
-                    <h2 class="font-serif text-3xl font-bold tracking-tight text-sattva-text mb-4" x-text="content[lang].proof?.title"></h2>
-                    <p class="text-sm text-sattva-text/80 leading-relaxed mb-4 font-light" x-text="content[lang].proof?.text"></p>
+                    <span class="font-sans text-[10px] font-semibold uppercase tracking-[0.25em] text-sattva-brand mb-2 block" x-text="content[lang].proof?.label"></span>
+                    <h2 class="font-serif text-3xl font-semibold tracking-tight text-sattva-text mb-4" x-text="content[lang].proof?.title"></h2>
+                    <p class="font-sans text-sm md:text-base text-sattva-text/70 leading-relaxed mb-4 font-normal" x-text="content[lang].proof?.text"></p>
                 </div>
                 <div class="md:w-1/2 w-full reveal">
                     <div class="bg-sattva-bg p-6 border-l-2 border-sattva-brand shadow-md">
-                        <span class="block text-3xl md:text-4xl font-serif text-sattva-text mb-1 tabular-nums tracking-tight" x-text="content[lang].proof?.statNumber"></span>
-                        <span class="text-sm text-sattva-brand uppercase tracking-wider mb-3 block" x-text="content[lang].proof?.statLabel"></span>
-                        <p class="text-sattva-text/80 text-xs italic leading-relaxed" x-text="content[lang].proof?.statDesc"></p>
+                        <span class="block text-3xl md:text-4xl font-serif font-semibold text-sattva-text mb-1 tabular-nums tracking-tight" x-text="content[lang].proof?.statNumber"></span>
+                        <span class="font-sans text-xs font-semibold text-sattva-brand uppercase tracking-[0.16em] mb-3 block" x-text="content[lang].proof?.statLabel"></span>
+                        <p class="font-sans text-sattva-text/65 text-sm leading-relaxed" x-text="content[lang].proof?.statDesc"></p>
                     </div>
                 </div>
             </div>
@@ -241,19 +240,19 @@
         <section id="faq" class="py-20 px-6 relative" x-show="content[lang].settings?.showFaq !== false && content[lang].faq && content[lang].faq.length > 0">
             <div class="max-w-3xl mx-auto">
                 <div class="text-center mb-12 reveal">
-                    <span class="text-[10px] uppercase tracking-[0.2em] text-sattva-brand mb-3 block">Częste pytania</span>
-                    <h2 class="text-3xl font-bold tracking-tight font-serif text-sattva-text" x-text="content[lang].nav?.menu?.faq || 'Pytania i odpowiedzi (Q&amp;A)'"></h2>
+                    <span class="font-sans text-[10px] font-semibold uppercase tracking-[0.25em] text-sattva-brand mb-3 block">Częste pytania</span>
+                    <h2 class="font-serif text-3xl font-semibold tracking-tight text-sattva-text" x-text="content[lang].nav?.menu?.faq || 'Pytania i odpowiedzi (Q&amp;A)'"></h2>
                 </div>
                 
                 <div class="space-y-3">
                     <template x-for="(item, index) in content[lang].faq" :key="index">
-                        <div class="reveal border border-sattva-text/20 bg-sattva-accent overflow-hidden shadow-md" x-data="{ expanded: false }">
+                        <div class="reveal border border-sattva-text/15 bg-sattva-accent overflow-hidden shadow-md" x-data="{ expanded: false }">
                             <button @click="expanded = !expanded" :aria-expanded="expanded" :aria-controls="'faq-answer-' + index" class="w-full px-5 py-4 flex justify-between items-center text-left hover:bg-sattva-text/5 transition-colors gap-3">
-                                <span class="font-semibold text-sattva-text text-base leading-snug" x-text="item.question"></span>
+                                <span class="font-sans font-semibold text-sattva-text text-[15px] leading-snug" x-text="item.question"></span>
                                 <svg class="w-4 h-4 shrink-0 text-sattva-brand transform transition-transform duration-300" :class="expanded ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                             </button>
                             <div x-show="expanded" x-collapse x-cloak :id="'faq-answer-' + index">
-                                <div class="px-5 pb-4 text-sm text-sattva-text/80 leading-relaxed" x-text="item.answer"></div>
+                                <div class="px-5 pb-4 font-sans text-sm text-sattva-text/70 leading-relaxed" x-text="item.answer"></div>
                             </div>
                         </div>
                     </template>
@@ -265,8 +264,8 @@
         <section id="opinie" class="py-20 px-6 bg-sattva-accent" x-show="content[lang].settings?.showReviews !== false && content[lang].reviews && content[lang].reviews.length > 0">
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-12 reveal">
-                    <span class="text-[10px] uppercase tracking-[0.2em] text-sattva-brand mb-3 block">Głos Klientów</span>
-                    <h2 class="text-3xl font-bold tracking-tight font-serif text-sattva-text">Opinie i Współpraca</h2>
+                    <span class="font-sans text-[10px] font-semibold uppercase tracking-[0.25em] text-sattva-brand mb-3 block">Głos klientów</span>
+                    <h2 class="font-serif text-3xl font-semibold tracking-tight text-sattva-text">Opinie i współpraca</h2>
                 </div>
 
                 <div x-data="{ idx: 0, timer: null, init(){ if ((content[lang].reviews || []).length > 1) { this.timer = setInterval(() => { this.idx = (this.idx + 1) % content[lang].reviews.length }, 4500); } } }"
@@ -275,21 +274,21 @@
                          :style="`transform: translateX(-${idx * 100}%);`">
                         <template x-for="(review, index) in content[lang].reviews" :key="index">
                             <div class="w-full shrink-0 px-2 md:px-6">
-                                <div class="reveal bg-sattva-accent p-6 border border-sattva-text/20 flex flex-col shadow-lg min-h-[240px]">
+                                <div class="reveal bg-sattva-accent p-6 border border-sattva-text/15 flex flex-col shadow-lg min-h-[240px]">
                                     <div class="mb-6">
-                                        <div class="h-16 w-full max-w-[220px] rounded-sm border border-sattva-text/20 bg-sattva-bg flex items-center justify-center overflow-hidden px-3">
+                                        <div class="h-16 w-full max-w-[220px] rounded-sm border border-sattva-text/15 bg-sattva-bg flex items-center justify-center overflow-hidden px-3">
                                             <template x-if="review.logoImage">
                                                 <img :src="review.logoImage" class="max-h-12 w-full object-contain opacity-95">
                                             </template>
                                             <template x-if="!review.logoImage">
-                                                <span class="text-[10px] uppercase tracking-[0.2em] text-sattva-text/60">Logo Klienta</span>
+                                                <span class="font-sans text-[10px] font-semibold uppercase tracking-[0.2em] text-sattva-text/50">Logo klienta</span>
                                             </template>
                                         </div>
                                     </div>
-                                    <p class="text-sattva-text/80 font-light italic mb-6 flex-grow text-base leading-relaxed" x-text="'„' + review.content + '”'"></p>
+                                    <p class="font-sans text-sattva-text/75 font-normal mb-6 flex-grow text-base leading-relaxed" x-text="'„' + review.content + '”'"></p>
                                     <div class="flex items-center gap-3">
                                         <div class="h-px w-6 bg-sattva-brand"></div>
-                                        <span class="text-xs font-semibold uppercase tracking-wider text-sattva-text" x-text="review.author"></span>
+                                        <span class="font-sans text-xs font-semibold uppercase tracking-[0.14em] text-sattva-text" x-text="review.author"></span>
                                     </div>
                                 </div>
                             </div>
@@ -311,8 +310,8 @@
             <section class="py-20 px-4 sm:px-6 bg-sattva-accent overflow-hidden">
                 <div class="max-w-5xl mx-auto">
                     <div class="text-center mb-8 reveal">
-                        <span class="text-[10px] uppercase tracking-[0.2em] text-sattva-brand mb-3 block">Zaufanie</span>
-                        <h2 class="text-3xl font-bold tracking-tight font-serif text-sattva-text" x-text="content[lang].google_reviews?.title || 'Opinie z Google'"></h2>
+                        <span class="font-sans text-[10px] font-semibold uppercase tracking-[0.25em] text-sattva-brand mb-3 block">Zaufanie</span>
+                        <h2 class="font-serif text-3xl font-semibold tracking-tight text-sattva-text" x-text="content[lang].google_reviews?.title || 'Opinie z Google'"></h2>
                     </div>
 
                     <div
@@ -320,8 +319,8 @@
                         class="reveal"
                     >
                         <template x-if="loading">
-                            <div class="bg-sattva-accent border border-sattva-text/20 rounded-full sm:rounded-2xl shadow-xl p-8 text-center">
-                                <div class="text-sattva-text/80 text-sm font-bold">Ładowanie opinii z Google…</div>
+                            <div class="bg-sattva-accent border border-sattva-text/15 rounded-full sm:rounded-2xl shadow-xl p-8 text-center">
+                                <div class="font-sans text-sattva-text/70 text-sm font-medium">Ładowanie opinii z Google…</div>
                             </div>
                         </template>
 
@@ -330,7 +329,7 @@
                                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-6 py-3 rounded-full border border-sattva-brand/30 bg-sattva-accent shadow-md backdrop-blur-sm">
                                     <div class="flex flex-wrap items-center gap-2 sm:gap-3 justify-center sm:justify-start">
                                         <svg class="h-6 w-6 shrink-0" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.666 32.657 29.234 36 24 36c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.222 0-9.673-3.453-11.284-8.091l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>
-                                        <span class="text-sm font-semibold text-sattva-text tracking-wide" x-text="$root.lang === 'en' ? 'Google reviews' : 'Opinie Google'"></span>
+                                        <span class="font-sans text-sm font-medium text-sattva-text tracking-wide" x-text="$root.lang === 'en' ? 'Google reviews' : 'Opinie Google'"></span>
                                         <div class="flex items-center gap-1 text-sattva-brand text-base leading-none" aria-hidden="true">
                                             <template x-for="si in [1,2,3,4,5]" :key="'h'+si">
                                                 <span x-text="si <= Math.round(headerRating() || 0) ? '★' : '☆'"></span>
@@ -341,7 +340,7 @@
                                         <span class="text-sm text-sattva-text/80" x-text="displayCount() + ' ' + ($root.lang === 'en' ? 'reviews' : 'opinii')"></span>
                                     </div>
                                     <a :href="writeReviewUrl()" target="_blank" rel="noopener noreferrer"
-                                       class="shrink-0 self-center rounded-full border border-sattva-brand/40 px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-sattva-brand hover:bg-sattva-brand hover:text-sattva-white transition-colors text-center"
+                                       class="shrink-0 self-center rounded-full border border-sattva-brand/40 px-5 py-2.5 font-sans text-xs font-semibold uppercase tracking-[0.14em] text-sattva-brand hover:bg-sattva-brand hover:text-sattva-white transition-colors text-center"
                                        x-text="$root.lang === 'en' ? 'Write a review' : 'Napisz recenzję'"></a>
                                 </div>
 
@@ -383,10 +382,10 @@
                                                                 </template>
                                                             </div>
                                                         </div>
-                                                        <p class="text-sattva-text/80 text-sm leading-relaxed flex-grow italic"
+                                                        <p class="font-sans text-sattva-text/70 text-sm leading-relaxed flex-grow"
                                                            :class="expanded ? '' : 'line-clamp-4'"
                                                            x-text="r.text"></p>
-                                                        <button type="button" class="mt-4 text-left text-xs font-bold uppercase tracking-widest text-sattva-brand/80 hover:text-sattva-brand transition-colors"
+                                                        <button type="button" class="mt-4 text-left font-sans text-xs font-semibold uppercase tracking-[0.14em] text-sattva-brand/80 hover:text-sattva-brand transition-colors"
                                                                 @click="expanded = !expanded"
                                                                 x-show="r.text && r.text.length > 180"
                                                                 x-text="expanded ? ($root.lang === 'en' ? 'Show less' : 'Zwiń') : ($root.lang === 'en' ? 'Read more' : 'Czytaj więcej')"></button>
@@ -420,8 +419,8 @@
                         </template>
 
                         <template x-if="!loading && !reviews.length">
-                            <div class="bg-sattva-accent border border-sattva-text/20 shadow-md p-6 text-center rounded-xl">
-                                <div class="text-sattva-text/80 text-sm font-bold" x-text="error || 'Brak opinii w tym miejscu.'"></div>
+                            <div class="bg-sattva-accent border border-sattva-text/15 shadow-md p-6 text-center rounded-xl">
+                                <div class="font-sans text-sattva-text/70 text-sm font-medium" x-text="error || 'Brak opinii w tym miejscu.'"></div>
                             </div>
                         </template>
                     </div>
@@ -433,40 +432,38 @@
         <section id="rezerwacja" class="py-20 md:py-24 px-6 scroll-mt-24 border-t border-sattva-text/10" x-show="bookingModuleActive() || footerCtaEnabled()" x-cloak>
             <div class="max-w-3xl mx-auto">
                 <div class="text-center mb-10" x-show="bookingModuleActive()" x-cloak>
-                    <p class="text-xs font-bold uppercase tracking-[0.3em] mb-3 text-sattva-brand">Rezerwacja</p>
-                    <h2 class="font-serif text-3xl md:text-4xl text-sattva-text" x-text="bookingCtaTitle()"></h2>
-                    <p class="mt-4 text-sattva-text/70 text-sm max-w-xl mx-auto" x-text="bookingCtaDescription()"></p>
+                    <p class="font-sans text-[10px] font-semibold uppercase tracking-[0.25em] mb-3 text-sattva-brand">Rezerwacja</p>
+                    <h2 class="font-serif text-3xl md:text-4xl font-semibold tracking-tight text-sattva-text" x-text="bookingCtaTitle()"></h2>
+                    <p class="mt-4 font-sans text-sattva-text/65 text-sm md:text-base leading-relaxed max-w-xl mx-auto" x-text="bookingCtaDescription()"></p>
                 </div>
                 <template x-if="showBookingEmbed()">
-                    <div class="p-4 sm:p-6 rounded-2xl border shadow-lg relative overflow-hidden" style="background-color: var(--surface-card, var(--bg-main)); border-color: var(--color-primary); color: var(--text-main);">
-                        <div class="absolute -top-10 -right-10 w-48 h-48 opacity-20 blur-3xl rounded-full pointer-events-none" style="background-color: var(--color-primary);"></div>
-                        <div class="w-full h-[520px] sm:h-[600px] rounded-xl overflow-hidden border relative z-[1]" style="border-color: color-mix(in srgb, var(--color-primary) 35%, transparent); background-color: var(--bg-main, #fff);">
+                    <div class="p-4 sm:p-6 rounded-2xl border border-sattva-brand/40 shadow-lg relative overflow-hidden bg-sattva-accent text-sattva-text">
+                        <div class="absolute -top-10 -right-10 w-48 h-48 opacity-20 blur-3xl rounded-full pointer-events-none bg-sattva-brand"></div>
+                        <div class="w-full h-[520px] sm:h-[600px] rounded-xl overflow-hidden border border-sattva-brand/30 relative z-[1] bg-sattva-bg">
                             <iframe :src="resolveCalendlyEmbedUrl(resolveBookingUrl())" class="w-full h-full border-0" loading="lazy" title="Rezerwacja online"></iframe>
                         </div>
                     </div>
                 </template>
                 <template x-if="showBookingButton()">
-                    <div class="p-8 md:p-10 rounded-2xl border shadow-lg relative overflow-hidden text-center" style="background-color: var(--surface-card, var(--bg-main)); border-color: var(--color-primary); color: var(--text-main);">
-                        <div class="absolute -top-10 -right-10 w-48 h-48 opacity-25 blur-3xl rounded-full pointer-events-none" style="background-color: var(--color-primary);"></div>
+                    <div class="p-8 md:p-10 rounded-2xl border border-sattva-brand/40 shadow-lg relative overflow-hidden text-center bg-sattva-accent text-sattva-text">
+                        <div class="absolute -top-10 -right-10 w-48 h-48 opacity-25 blur-3xl rounded-full pointer-events-none bg-sattva-brand"></div>
                         <a :href="resolveBookingUrl()" :target="ctaLinkTarget(resolveBookingUrl())" :rel="ctaLinkRel(resolveBookingUrl())"
                            @click="onConversionClick('booking_click', 'booking_section')"
-                           class="relative z-[1] inline-flex items-center justify-center w-full sm:w-auto gap-2 px-8 py-3.5 rounded-sm text-base font-semibold tracking-wide transition-all hover:-translate-y-0.5 shadow-md hover:shadow-xl"
-                           style="background-color: var(--color-primary); color: var(--color-accent-text);">
+                           class="relative z-[1] inline-flex items-center justify-center w-full sm:w-auto gap-2 px-8 py-3.5 rounded-sm font-sans text-sm font-semibold uppercase tracking-[0.12em] transition-all hover:-translate-y-0.5 shadow-md hover:shadow-xl bg-sattva-brand text-sattva-white">
                             <span x-text="bookingCtaButtonText()"></span>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                         </a>
                     </div>
                 </template>
                 <template x-if="footerCtaEnabled() && !bookingModuleActive()">
-                    <div class="p-8 md:p-10 rounded-2xl border shadow-lg relative overflow-hidden text-center" style="background-color: var(--surface-card, var(--bg-main)); border-color: var(--color-primary); color: var(--text-main);">
-                        <div class="absolute -top-10 -right-10 w-48 h-48 opacity-30 blur-3xl rounded-full pointer-events-none" style="background-color: var(--color-primary);"></div>
-                        <h2 class="font-serif text-2xl md:text-3xl mb-4 relative z-[1]" style="color: var(--color-primary)" x-text="content[lang].contact.cta.title || 'Umów się wygodnie'"></h2>
-                        <p class="mb-8 opacity-80 text-sm leading-relaxed relative z-[1] max-w-xl mx-auto" style="color: var(--color-text-body)" x-text="content[lang].contact.cta.description || 'Umów się na spotkanie.'"></p>
+                    <div class="p-8 md:p-10 rounded-2xl border border-sattva-brand/40 shadow-lg relative overflow-hidden text-center bg-sattva-accent text-sattva-text">
+                        <div class="absolute -top-10 -right-10 w-48 h-48 opacity-30 blur-3xl rounded-full pointer-events-none bg-sattva-brand"></div>
+                        <h2 class="font-serif text-2xl md:text-3xl font-semibold tracking-tight mb-4 relative z-[1] text-sattva-brand" x-text="content[lang].contact.cta.title || 'Umów się wygodnie'"></h2>
+                        <p class="mb-8 font-sans text-sattva-text/65 text-sm leading-relaxed relative z-[1] max-w-xl mx-auto" x-text="content[lang].contact.cta.description || 'Umów się na spotkanie.'"></p>
                         <a :href="resolveFooterCtaUrl()"
                            :target="ctaLinkTarget(resolveFooterCtaUrl())"
                            :rel="ctaLinkRel(resolveFooterCtaUrl())"
-                           class="relative z-[1] inline-flex items-center justify-center w-full sm:w-auto gap-2 px-8 py-3.5 rounded-sm text-base font-semibold tracking-wide transition-all hover:-translate-y-0.5 shadow-md hover:shadow-xl"
-                           style="background-color: var(--color-primary); color: var(--color-accent-text);">
+                           class="relative z-[1] inline-flex items-center justify-center w-full sm:w-auto gap-2 px-8 py-3.5 rounded-sm font-sans text-sm font-semibold uppercase tracking-[0.12em] transition-all hover:-translate-y-0.5 shadow-md hover:shadow-xl bg-sattva-brand text-sattva-white">
                             <span x-text="content[lang].contact.cta.button_text || 'Zarezerwuj'"></span>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                         </a>
@@ -490,45 +487,45 @@
                                 referrerpolicy="no-referrer-when-downgrade"></iframe>
                         </template>
                         <template x-if="!content[lang].contact?.map_embed_url && !mapIframeSrc">
-                            <div class="absolute inset-0 w-full h-full bg-gray-200 flex items-center justify-center text-gray-400 text-sm">Mapa niedostępna</div>
+                            <div class="absolute inset-0 w-full h-full bg-sattva-accent flex items-center justify-center font-sans text-sattva-text/50 text-sm">Mapa niedostępna</div>
                         </template>
                     </div>
 
                     <div class="min-w-0 space-y-4 text-sm">
-                        <h2 class="text-lg font-bold tracking-tight" style="color: var(--color-primary)">Kontakt</h2>
+                        <h2 class="font-serif text-xl font-semibold tracking-tight text-sattva-brand">Kontakt</h2>
                         <div class="space-y-3">
                                 <template x-if="content[lang].contact?.phone">
                                     <div class="flex items-center gap-3 min-w-0">
-                                        <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background-color: var(--color-primary); color: var(--color-accent-text)">
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-sattva-brand text-sattva-white">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                                         </div>
                                         <div class="min-w-0 flex-1">
-                                            <p class="text-[10px] font-semibold uppercase tracking-wider opacity-60" style="color: var(--color-text-body)">Telefon</p>
-                                            <a :href="'tel:' + content[lang].contact.phone.replace(/\s/g, '')" @click="onConversionClick('phone_click', 'footer')" class="text-base font-semibold hover:opacity-80 transition break-words" style="color: var(--color-text-body)" x-text="content[lang].contact.phone"></a>
+                                            <p class="font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-sattva-text/50">Telefon</p>
+                                            <a :href="'tel:' + content[lang].contact.phone.replace(/\s/g, '')" @click="onConversionClick('phone_click', 'footer')" class="font-sans text-base font-medium text-sattva-text hover:text-sattva-brand transition-colors break-words" x-text="content[lang].contact.phone"></a>
                                         </div>
                                     </div>
                                 </template>
 
                                 <template x-if="content[lang].contact?.email">
                                     <div class="flex items-center gap-3 min-w-0">
-                                        <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background-color: var(--color-primary); color: var(--color-accent-text)">
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-sattva-brand text-sattva-white">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                                         </div>
                                         <div class="min-w-0 flex-1">
-                                            <p class="text-[10px] font-semibold uppercase tracking-wider opacity-60" style="color: var(--color-text-body)">E-mail</p>
-                                            <a :href="'mailto:' + content[lang].contact.email" class="text-base font-semibold hover:opacity-80 transition break-words" style="color: var(--color-text-body)" x-text="content[lang].contact.email"></a>
+                                            <p class="font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-sattva-text/50">E-mail</p>
+                                            <a :href="'mailto:' + content[lang].contact.email" class="font-sans text-base font-medium text-sattva-text hover:text-sattva-brand transition-colors break-words" x-text="content[lang].contact.email"></a>
                                         </div>
                                     </div>
                                 </template>
 
                                 <template x-if="content[lang].contact?.address">
                                     <div class="flex items-start gap-3 min-w-0">
-                                        <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background-color: var(--color-primary); color: var(--color-accent-text)">
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-sattva-brand text-sattva-white">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21s-6-4.35-6-10a6 6 0 1112 0c0 5.65-6 10-6 10zm0-7a3 3 0 100-6 3 3 0 000 6z"/></svg>
                                         </div>
                                         <div class="min-w-0 flex-1">
-                                            <p class="text-[10px] font-semibold uppercase tracking-wider opacity-60" style="color: var(--color-text-body)">Adres</p>
-                                            <p class="text-base font-semibold leading-relaxed break-words" style="color: var(--color-text-body)" x-text="content[lang].contact.address"></p>
+                                            <p class="font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-sattva-text/50">Adres</p>
+                                            <p class="font-sans text-base font-medium leading-relaxed break-words text-sattva-text" x-text="content[lang].contact.address"></p>
                                         </div>
                                     </div>
                                 </template>
@@ -539,40 +536,40 @@
         </section>
 
         <footer class="py-8 border-t border-sattva-text/20 text-center bg-sattva-accent">
-            <p class="font-serif text-lg italic text-sattva-text/80 mb-5 max-w-2xl mx-auto leading-relaxed" x-text="content[lang].footer?.quote"></p>
+            <p class="font-serif text-lg italic text-sattva-text/70 mb-5 max-w-2xl mx-auto leading-relaxed" x-text="content[lang].footer?.quote"></p>
             
             <div class="flex justify-center gap-4 mb-6">
                 <template x-if="content[lang].social?.instagram">
-                    <a :href="content[lang].social.instagram" target="_blank" class="text-sattva-text/70 hover:text-sattva-brand transition-colors">
+                    <a :href="content[lang].social.instagram" target="_blank" class="text-sattva-text/60 hover:text-sattva-brand transition-colors">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
                     </a>
                 </template>
                 <template x-if="content[lang].social?.twitter">
-                    <a :href="content[lang].social.twitter" target="_blank" class="text-sattva-text/70 hover:text-sattva-brand transition-colors">
+                    <a :href="content[lang].social.twitter" target="_blank" class="text-sattva-text/60 hover:text-sattva-brand transition-colors">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
                     </a>
                 </template>
                 <template x-if="content[lang].social?.youtube">
-                    <a :href="content[lang].social.youtube" target="_blank" class="text-sattva-text/70 hover:text-sattva-brand transition-colors">
+                    <a :href="content[lang].social.youtube" target="_blank" class="text-sattva-text/60 hover:text-sattva-brand transition-colors">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21.582 6.186a2.665 2.665 0 0 0-1.875-1.884C17.986 3.843 12 3.843 12 3.843s-5.986 0-7.707.459a2.665 2.665 0 0 0-1.875 1.884C2 7.915 2 12 2 12s0 4.085.418 5.814a2.665 2.665 0 0 0 1.875 1.884C5.986 20.157 12 20.157 12 20.157s5.986 0 7.707-.459a2.665 2.665 0 0 0 1.875-1.884C22 16.085 22 12 22 12s0-4.085-.418-5.814zM9.99 15.443V8.557l5.986 3.443-5.986 3.443z"/></svg>
                     </a>
                 </template>
                 <template x-if="content[lang].social?.facebook">
-                    <a :href="content[lang].social.facebook" target="_blank" class="text-sattva-text/70 hover:text-sattva-brand transition-colors">
+                    <a :href="content[lang].social.facebook" target="_blank" class="text-sattva-text/60 hover:text-sattva-brand transition-colors">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
                     </a>
                 </template>
             </div>
             
-            <div class="flex flex-wrap items-center justify-center gap-3 text-sm">
+            <div class="flex flex-wrap items-center justify-center gap-3 text-sm font-sans">
                 <template x-if="true">
-                    <a :href="privacyPolicyUrl()" class="underline text-sattva-text/80 hover:text-sattva-brand transition-colors">Polityka Prywatności</a>
+                    <a :href="privacyPolicyUrl()" class="underline text-sattva-text/65 hover:text-sattva-brand transition-colors">Polityka Prywatności</a>
                 </template>
                 <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.terms">
-                    <a href="#" @click.prevent="openModal('terms')" class="underline text-sattva-text/80 hover:text-sattva-brand transition-colors">Regulamin</a>
+                    <a href="#" @click.prevent="openModal('terms')" class="underline text-sattva-text/65 hover:text-sattva-brand transition-colors">Regulamin</a>
                 </template>
-                <span class="text-sattva-text/60">|</span>
-                <p class="text-xs text-sattva-text/80 tracking-widest">© <span x-text="new Date().getFullYear()"></span> <span x-text="content[lang].hero?.name || 'Twoja Firma'"></span>. Wszelkie prawa zastrzeżone.</p>
+                <span class="text-sattva-text/35">|</span>
+                <p class="text-xs text-sattva-text/55 tracking-[0.12em]">© <span x-text="new Date().getFullYear()"></span> <span x-text="content[lang].hero?.name || 'Twoja Firma'"></span>. Wszelkie prawa zastrzeżone.</p>
             </div>
         </footer>
 
