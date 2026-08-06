@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-08-06 — Custom domain: instrukcja DNS w 2 krokach + Worker route `*/*`
+**Ostatnia aktualizacja:** 2026-08-06 — Fix consultant accent-contrast per palette
 
 ---
 
