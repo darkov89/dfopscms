@@ -59,7 +59,7 @@
     <script defer src="js/features/i18nPanel.js?v=20260724a"></script>
     <script defer src="js/features/aiGenerator.js?v=20260803a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260806b"></script>
+    <script defer src="js/features/adminApp.js?v=20260806c"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -1493,34 +1493,34 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <p class="text-xs text-slate-500 mt-1">Dla planów z własną domeną — podłączenie u operatora domeny.</p>
+                                        <p class="text-xs text-slate-500 mt-1">Żeby klienci wchodzili na Twoją stronę pod własnym adresem, np. twojsalon.pl</p>
                                     </div>
                                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Opcja Pro</span>
                                 </div>
                                 <div class="p-5 md:p-6 space-y-4">
                                     <div x-show="customDomain && customDomainStatus === 'active'" x-cloak class="flex items-start gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-900">
                                         <span class="shrink-0" aria-hidden="true">🟢</span>
-                                        <span><strong>Aktywna (Połączono)</strong> — <span class="font-mono" x-text="customDomain"></span></span>
+                                        <span><strong>Gotowe</strong> — strona działa pod adresem <span class="font-mono" x-text="customDomain"></span></span>
                                     </div>
                                     <div x-show="customDomain && customDomainStatus === 'pending'" x-cloak class="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
                                         <span class="shrink-0" aria-hidden="true">🟡</span>
-                                        <span><strong>Oczekuje na weryfikację Cloudflare</strong> (ustaw 2× A + TXT + CNAME www — tabela poniżej) — <span class="font-mono" x-text="customDomain"></span></span>
+                                        <span><strong>Jeszcze krok u rejestratora domeny</strong> — ustaw wpisy z tabeli poniżej dla <span class="font-mono" x-text="customDomain"></span>, potem wróć tu i kliknij „Zapisz i sprawdź”.</span>
                                     </div>
                                     <div class="flex flex-col sm:flex-row gap-2 sm:items-stretch">
-                                        <input type="text" x-model="domainInput" :disabled="isCustomDomainLocked || isVerifyingDomain" placeholder="np. twojadomena.pl"
+                                        <input type="text" x-model="domainInput" :disabled="isCustomDomainLocked || isVerifyingDomain" placeholder="np. twojsalon.pl"
                                                class="min-w-0 flex-1 rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" :class="isCustomDomainLocked ? 'opacity-50 bg-gray-100 cursor-not-allowed' : 'bg-white'">
                                         <button type="button" @click="verifyAndSaveDomain()"
-                                                title="Rejestruje domenę w Cloudflare i sprawdza status"
+                                                title="Zapisuje domenę i sprawdza, czy już działa"
                                                 :disabled="isVerifyingDomain || !domainInput || isCustomDomainLocked"
                                                 :class="{ 'animate-pulse': isVerifyingDomain }"
                                                 class="shrink-0 px-4 py-3 rounded-sm text-sm font-semibold border border-[#D4AF37] text-[#8B7355] bg-white hover:bg-[#faf8f3] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                                            <span x-text="isVerifyingDomain ? 'Sprawdzanie...' : 'Zapisz i sprawdź'"></span>
+                                            <span x-text="isVerifyingDomain ? 'Sprawdzam…' : 'Zapisz i sprawdź'"></span>
                                         </button>
                                     </div>
                                     <div x-show="domainMessage" x-cloak
-                                         class="p-4 rounded-sm text-sm font-medium flex items-start gap-2 border"
+                                         class="p-4 rounded-sm text-sm leading-relaxed border"
                                          :class="domainMessageTone === 'success'
-                                            ? 'bg-green-50 text-green-800 border-green-200'
+                                            ? 'bg-green-50 text-green-900 border-green-200'
                                             : 'bg-amber-50 text-amber-950 border-amber-200'">
                                         <span x-text="domainMessage"></span>
                                     </div>
@@ -1529,26 +1529,27 @@
                                                 @click="showDnsInstructions = !showDnsInstructions"
                                                 class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#8B7355] hover:text-slate-900 transition-colors">
                                             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                            <span x-text="showDnsInstructions ? 'Ukryj instrukcję DNS' : 'Pokaż instrukcję DNS'"></span>
+                                            <span x-text="showDnsInstructions ? 'Ukryj instrukcję' : 'Jak ustawić domenę u rejestratora'"></span>
                                         </button>
                                     </div>
                                     <div x-show="showDnsInstructions" x-cloak x-transition.opacity class="p-6 bg-blue-50 border border-blue-200 rounded-sm shadow-sm">
                                         <h4 class="text-sm font-bold text-blue-900 mb-2 uppercase tracking-widest flex items-center gap-2">
                                             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
-                                            Rekordy DNS u operatora domeny
+                                            Co wpisać u rejestratora domeny
                                         </h4>
-                                        <p class="text-xs text-blue-800 mb-4 leading-relaxed">Zaloguj się do panelu operatora (OVH, Nazwa.pl, Home.pl, Cloudflare DNS…) → „Zarządzanie DNS” i ustaw wpisy z tabeli. Po „Zapisz i sprawdź” wartości <strong>TXT</strong> są pobierane z Cloudflare dla Twojej domeny.</p>
+                                        <p class="text-xs text-blue-800 mb-4 leading-relaxed">
+                                            Wejdź tam, gdzie kupiłeś domenę (np. home.pl, nazwa.pl, OVH) → strefa DNS / zarządzanie domeną.
+                                            Skopiuj dokładnie wpisy z tabeli. Najpierw kliknij „Zapisz i sprawdź” powyżej — wtedy uzupełnimy unikalny kod weryfikacyjny (wiersz TXT).
+                                        </p>
 
                                         <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="alert">
-                                            <p class="font-bold text-amber-950 mb-1.5 flex items-start gap-2">
-                                                <span class="shrink-0" aria-hidden="true">⚠️</span>
-                                                <span>Ważne</span>
-                                            </p>
-                                            <p class="text-xs leading-relaxed text-amber-950/90">
-                                                Usuń stare <strong>A</strong>/<strong>CNAME</strong> dla <span class="font-mono">@</span> i <span class="font-mono">www</span> (zostaw <strong>MX</strong> — poczta).
-                                                Rekord <strong>TXT</strong> <span class="font-mono">_cf-custom-hostname</span> z tabeli <strong>musisz dodać</strong> — to weryfikacja własności w Cloudflare (bez niego hostname zostaje Pending mimo wydanego certyfikatu).
-                                                Jeśli domena jest już w Cloudflare DNS: ustaw rekordy jako <strong>DNS only</strong> (szara chmurka), nie Proxied.
-                                            </p>
+                                            <p class="font-bold text-amber-950 mb-1.5">Zanim dodasz nowe wpisy</p>
+                                            <ul class="text-xs leading-relaxed text-amber-950/90 list-disc pl-4 space-y-1.5">
+                                                <li>Usuń stare wpisy typu <strong>A</strong> i <strong>CNAME</strong> dla głównej domeny i dla <span class="font-mono">www</span> — inaczej będą się gryźć z nowymi.</li>
+                                                <li><strong>Nie ruszaj</strong> wpisów <strong>MX</strong> — od nich zależy poczta (np. biuro@twojadomena.pl).</li>
+                                                <li>Wiersz <strong>TXT</strong> z tabeli jest obowiązkowy — bez niego nie potwierdzimy, że domena jest Twoja.</li>
+                                                <li>Jeśli zarządzasz DNS w Cloudflare: przy nowych wpisach wybierz <strong>tylko DNS</strong> (szara chmurka), nie pomarańczową „Proxied”.</li>
+                                            </ul>
                                         </div>
 
                                         <div class="bg-white border border-blue-100 rounded-sm overflow-hidden overflow-x-auto">
@@ -1556,9 +1557,9 @@
                                                 <thead class="bg-blue-100/50 text-blue-900 text-[10px] uppercase tracking-wider">
                                                     <tr>
                                                         <th class="px-4 py-3 font-bold">Typ</th>
-                                                        <th class="px-4 py-3 font-bold">Nazwa (Host)</th>
+                                                        <th class="px-4 py-3 font-bold">Nazwa</th>
                                                         <th class="px-4 py-3 font-bold">Wartość</th>
-                                                        <th class="px-4 py-3 font-bold">Po co</th>
+                                                        <th class="px-4 py-3 font-bold">Po co to jest</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="text-slate-700 text-xs">
@@ -1574,17 +1575,14 @@
                                             </table>
                                         </div>
                                         <p class="text-xs text-blue-800 mt-4 leading-relaxed">
-                                            Zielona „Aktywna” pojawia się dopiero gdy Cloudflare oznaczy <strong>apex i www</strong> jako Active (hostname + certyfikat) — nie wystarczy sam widoczny DNS.
-                                            Error <span class="font-mono">522</span> na www zwykle oznacza, że hostname nie jest Active albo DNS nie wskazuje strefy SaaS (<span class="font-mono">proxy.dfcms.pl</span> / A powyżej).
-                                        </p>
-                                        <p class="text-[10px] text-blue-700 mt-3 uppercase tracking-widest font-bold flex items-start gap-1.5 leading-relaxed">
-                                            <svg class="w-3 h-3 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                            <span>Po dodaniu TXT i DNS poczekaj kilka minut i kliknij »Zapisz i sprawdź« ponownie. Najpierw testuj https://www.…</span>
+                                            Po zapisaniu wpisów poczekaj kilka minut (czasem dłużej — rejestratorzy różnią się tempem) i kliknij tu ponownie <strong>„Zapisz i sprawdź”</strong>.
+                                            Zielony status „Gotowe” pojawi się dopiero gdy wszystko będzie naprawdę podłączone — nie wcześniej.
+                                            Najpierw sprawdź adres z <span class="font-mono">www</span> (np. https://www.twojsalon.pl).
                                         </p>
                                     </div>
-                                    <div x-show="domainError" x-cloak class="p-4 bg-red-50 text-red-800 border border-red-200 rounded-sm text-sm font-medium flex items-center gap-2"><span x-text="domainError"></span></div>
-                                    <p x-show="isCustomDomainLocked" class="text-xs text-amber-700">Własna domena od pakietu Standard — <button type="button" @click="setTab('subscription')" class="font-bold underline text-amber-900 hover:text-slate-900">Zobacz plany</button>.</p>
-                                    <p x-show="!isCustomDomainLocked" class="text-xs text-slate-500">Adres domeny (np. twojadomena.pl) — wpisy przekierowujące ustawiasz u rejestratora.</p>
+                                    <div x-show="domainError" x-cloak class="p-4 bg-red-50 text-red-800 border border-red-200 rounded-sm text-sm font-medium leading-relaxed"><span x-text="domainError"></span></div>
+                                    <p x-show="isCustomDomainLocked" class="text-xs text-amber-700">Własna domena jest dostępna od planu Standard. <button type="button" @click="setTab('subscription')" class="font-bold underline text-amber-900 hover:text-slate-900">Zobacz plany</button></p>
+                                    <p x-show="!isCustomDomainLocked" class="text-xs text-slate-500">Wpisz domenę bez „https://” — samej nazwy wystarczy, np. twojsalon.pl</p>
                                 </div>
                             </section>
                                 </div>

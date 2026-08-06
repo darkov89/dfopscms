@@ -3654,25 +3654,25 @@
             type: 'A',
             host: '@',
             value: '172.67.154.121',
-            purpose: 'Apex — kliknij „Zapisz i sprawdź”, żeby pobrać TXT',
+            purpose: 'Kieruje główną domenę na Twoją stronę',
           },
           {
             type: 'A',
             host: '@',
             value: '104.21.66.9',
-            purpose: 'Apex (drugi anycast)',
+            purpose: 'Drugi adres (oba są potrzebne)',
           },
           {
             type: 'TXT',
             host: '_cf-custom-hostname',
-            value: '— po „Zapisz i sprawdź” —',
-            purpose: 'Weryfikacja własności (unikalny token z Cloudflare)',
+            value: '— kliknij najpierw „Zapisz i sprawdź” —',
+            purpose: 'Potwierdza, że domena należy do Ciebie',
           },
           {
             type: 'CNAME',
             host: 'www',
             value: 'proxy.dfcms.pl',
-            purpose: 'Ruch www → SaaS DFCMS',
+            purpose: 'Żeby działał też adres z www',
           },
         ];
       },
@@ -3787,37 +3787,30 @@
             ? cfData.verificationErrors
             : [];
 
-          const apexStatus = cfData?.apex?.status || '—';
-          const wwwStatus = cfData?.www?.status || '—';
-          const apexSsl = cfData?.apex?.ssl_status || '—';
-          const wwwSsl = cfData?.www?.ssl_status || '—';
           const cfErrors = this.domainVerificationErrors.length
-            ? this.domainVerificationErrors.join(' · ')
+            ? this.domainVerificationErrors.join(' ')
             : '';
 
           if (dbStatus === 'active') {
             this.domainMessage =
-              'Domena aktywna w Cloudflare (apex + www, certyfikat OK).';
+              'Świetnie — domena jest podłączona. Klienci mogą wchodzić na Twoją stronę pod tym adresem (sprawdź też wersję z www).';
             this.domainMessageTone = 'success';
             this.showDnsInstructions = false;
-            this.showToast('Własna domena jest aktywna.', 'success');
+            this.showToast('Domena jest już aktywna.', 'success');
           } else {
             this.domainMessageTone = 'pending';
             this.showDnsInstructions = true;
             let msg =
-              'Domena zapisana — ustaw rekordy DNS z tabeli poniżej (2× A + TXT weryfikacji + CNAME www), potem kliknij ponownie „Zapisz i sprawdź”.';
-            msg += ` Status CF: apex ${apexStatus}/${apexSsl}, www ${wwwStatus}/${wwwSsl}.`;
-            if (cfErrors) {
-              msg += ` Cloudflare: ${cfErrors}`;
-              if (/using Cloudflare|does not CNAME/i.test(cfErrors)) {
-                msg +=
-                  ' Jeśli DNS domeny jest już w Cloudflare: wyłącz pomarańczową chmurkę / ustaw CNAME www → proxy.dfcms.pl (DNS only) oraz TXT własności.';
-              }
+              'Domena jest zapisana. Teraz skopiuj wpisy z tabeli poniżej do panelu rejestratora domeny, odczekaj chwilę i kliknij tu ponownie „Zapisz i sprawdź”.';
+            if (/using Cloudflare|does not CNAME/i.test(cfErrors)) {
+              msg =
+                'Prawie gotowe — domena jest zapisana, ale wpisy DNS jeszcze nie wskazują na DFCMS. Ustaw dokładnie wartości z tabeli. Jeśli DNS masz w Cloudflare, przy wpisach wybierz szarą chmurkę („tylko DNS”), nie pomarańczową.';
             } else if (result.error === 'MISSING_WWW_CNAME') {
               msg =
-                'Rekordy A na @ wyglądają OK, ale brakuje CNAME www → proxy.dfcms.pl oraz ewentualnie TXT weryfikacji — zobacz tabelę poniżej.';
+                'Główna domena wygląda OK, ale brakuje wpisu dla www. Dodaj wiersz CNAME z tabeli poniżej (oraz TXT, jeśli jeszcze go nie ma), potem sprawdź ponownie.';
             } else if (!dnsLooksOk) {
-              msg += ' DoH: rekordy A/CNAME jeszcze nie są widoczne globalnie.';
+              msg +=
+                ' Jeśli przed chwilą zapisałeś wpisy u rejestratora — daj im kilka minut na odświeżenie i spróbuj znowu.';
             }
             this.domainMessage = msg;
           }

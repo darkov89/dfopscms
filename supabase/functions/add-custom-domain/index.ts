@@ -185,11 +185,14 @@ function buildDnsInstructions(
   apex: HostnameSummary | null,
   www: HostnameSummary | null,
 ): DnsInstructionRow[] {
-  const rows: DnsInstructionRow[] = SAAS_APEX_A_IPS.map((ip) => ({
+  const rows: DnsInstructionRow[] = SAAS_APEX_A_IPS.map((ip, i) => ({
     type: "A",
     host: "@",
     value: ip,
-    purpose: "Ruch HTTPS na domenę główną (apex)",
+    purpose:
+      i === 0
+        ? "Kieruje główną domenę na Twoją stronę"
+        : "Drugi adres (oba są potrzebne)",
   }));
 
   const ownership =
@@ -209,8 +212,7 @@ function buildDnsInstructions(
       host: dnsHostLabel(String(ownership.name), apexHostname) ||
         String(ownership.name),
       value: String(ownership.value),
-      purpose:
-        "Weryfikacja własności w Cloudflare (wymagane zanim hostname stanie się Active)",
+      purpose: "Potwierdza, że domena należy do Ciebie",
     });
   }
 
@@ -218,10 +220,10 @@ function buildDnsInstructions(
     type: "CNAME",
     host: "www",
     value: SAAS_WWW_CNAME_TARGET,
-    purpose: "Ruch na www → strefa SaaS DFCMS (bez tego często Error 1001 / 522)",
+    purpose: "Żeby działał też adres z www",
   });
 
-  // Opcjonalnie osobny TXT DCV certyfikatu (gdy CF zwraca ssl txt — rzadziej przy metodzie http).
+  // Opcjonalnie osobny TXT certyfikatu SSL (gdy CF go wymaga).
   const sslTxt = apex?.ssl_txt || www?.ssl_txt;
   if (
     sslTxt?.name &&
@@ -233,7 +235,7 @@ function buildDnsInstructions(
       type: "TXT",
       host: dnsHostLabel(String(sslTxt.name), apexHostname) || String(sslTxt.name),
       value: String(sslTxt.value),
-      purpose: "Walidacja certyfikatu SSL (TXT)",
+      purpose: "Potrzebny do bezpiecznego połączenia (kłódka HTTPS)",
     });
   }
 
