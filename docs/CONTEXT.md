@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-08-06 — CSP: GTM / GA4 / Meta Pixel
+**Ostatnia aktualizacja:** 2026-08-06 — AI: tłumaczenie etykiet UI (Telefon, Polityka)
 
 ---
 
@@ -235,7 +235,7 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 | `get-google-reviews` | Places / opinie (`GOOGLE_MAPS_API_KEY`); embed iframe (`GOOGLE_MAPS_EMBED_API_KEY`); wymaga sesji |
 | `generate-ai-content` | AI Site Generator (Gemini): JWT + ownership + quota → merge copy do `pages.draft_content`; secrets `GEMINI_API_KEY`, opcjonalnie `GEMINI_MODEL` / `DFCMS_ENV` / `AI_LOG_PROMPTS` |
 | **`expire-trial-pages`** | **Cron** (`POST` + `Bearer CRON_SECRET`): `expire_manual_grants()` → `expire_trial_pages()` → `notify_purge_upcoming_pages()` → `list_pages_pending_purge()` → opcjonalnie `purge_trial_blocked_pages_after_grace()` gdy `AUTO_PURGE_ENABLED=true`. **Powiadomienia operacyjne przez Telegram** (Markdown): alert −7 dni per slug; raport ręcznej kasacji (30+ dni) z gotowym SQL. Brak alertów → `200` bez wiadomości. |
-| `telegram-webhook` | Router alertów (Sentry, Database Webhooks `users`/`pages`/`billing_profiles`, logi) → Telegram; **`Bearer TELEGRAM_WEBHOOK_SECRET`** |
+| `telegram-webhook` | Router alertów (Sentry, Database Webhooks `users`/`pages`/`billing_profiles`, logi) → Telegram; **`Bearer TELEGRAM_WEBHOOK_SECRET`**; prefix `[STAGING]` / `[PROD]` z `DFCMS_ENV` lub project ref |
 | `send-custom-inquiry` | Publiczny formularz Custom (`zapytanie-custom.html`): Turnstile → SMTP (`SMTP_*`, jak Auth) + Telegram ops (`verify_jwt=false`) |
 
 **Współdzielona logika:** `supabase/functions/_shared/stripeBilling.ts`, `wfirmaBilling.ts`, `wfirmaInvoiceLedger.ts`, `aiCopySchemas.ts` (whitelist copy per motyw + `buildGeminiResponseSchema`), `sendTransactionalEmail.ts` (Resend / SMTP).
@@ -390,6 +390,14 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-08-06 — AI: tłumaczenie etykiet UI (Telefon, Polityka, cookies)
+- `content.<locale>.ui` + `js/core/uiLabels.js` / `uiLabel()` — bez edycji w panelu.
+- Whitelist AI `ui` we wszystkich motywach; szablony podpięte; domyślna polityka prywatności EN/DE na stronie `/privacy`.
+
+### 2026-08-06 — Telegram: etykieta Staging / Prod
+
+Wiadomości ops (`telegram-webhook`, `expire-trial-pages`, `send-custom-inquiry`) mają prefix `🟡 [STAGING]` / `🟢 [PROD]` — `_shared/dfcmsEnv.ts` (`DFCMS_ENV` lub project ref z `SUPABASE_URL`). Deploy: `functions deploy` tych trzech na Staging + Prod.
 
 ### 2026-08-06 — CSP: odblokowanie GTM / GA4 / Meta Pixel
 - **Problem:** baner cookies wstrzykuje GTM (`googletagmanager.com`) i Meta Pixel (`connect.facebook.net`), ale CSP w `functions/_middleware.js` whitelistsował tylko Maps/Stripe/Sentry — konsola: naruszenia CSP przy skryptach Google.

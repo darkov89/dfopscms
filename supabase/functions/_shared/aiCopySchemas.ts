@@ -125,6 +125,28 @@ const COOKIES_COPY: FieldDef = {
   fields: { text: "string", accept: "string" },
 };
 
+/** Stałe etykiety UI (Telefon, Polityka…) — bez edycji w panelu, tłumaczone przez AI. */
+const UI_LABELS: FieldDef = {
+  type: "object",
+  fields: {
+    phone: "string",
+    email: "string",
+    address: "string",
+    privacy_policy: "string",
+    terms: "string",
+    back_to_site: "string",
+    map_unavailable: "string",
+    cookies_accept_all: "string",
+    cookies_essential_only: "string",
+    cookies_customize: "string",
+    cookies_necessary: "string",
+    cookies_analytics: "string",
+    cookies_marketing: "string",
+    cookies_save: "string",
+    cookies_banner: "string",
+  },
+};
+
 /** Drzewa copy per motyw (klucze pod `pl`). */
 export const AI_COPY_SCHEMAS: Record<string, Record<string, FieldDef>> = {
   beauty: {
@@ -141,6 +163,7 @@ export const AI_COPY_SCHEMAS: Record<string, Record<string, FieldDef>> = {
     gallery: { type: "object", fields: { title: "string" } },
     seo: SEO,
     cookies: COOKIES_COPY,
+    ui: UI_LABELS,
   },
   consultant: {
     nav: BASE_NAV({
@@ -172,6 +195,7 @@ export const AI_COPY_SCHEMAS: Record<string, Record<string, FieldDef>> = {
     footer: FOOTER_QUOTE,
     seo: SEO,
     cookies: COOKIES_COPY,
+    ui: UI_LABELS,
   },
   fitness: {
     nav: BASE_NAV({
@@ -200,6 +224,7 @@ export const AI_COPY_SCHEMAS: Record<string, Record<string, FieldDef>> = {
     gallery: { type: "object", fields: { title: "string" } },
     seo: SEO,
     cookies: COOKIES_COPY,
+    ui: UI_LABELS,
   },
   services: {
     nav: BASE_NAV({
@@ -232,6 +257,7 @@ export const AI_COPY_SCHEMAS: Record<string, Record<string, FieldDef>> = {
     gallery: { type: "object", fields: { title: "string" } },
     seo: SEO,
     cookies: COOKIES_COPY,
+    ui: UI_LABELS,
   },
   gastro: {
     nav: BASE_NAV({
@@ -284,6 +310,7 @@ export const AI_COPY_SCHEMAS: Record<string, Record<string, FieldDef>> = {
     contact: { type: "object", fields: CONTACT_BASIC },
     seo: SEO,
     cookies: COOKIES_COPY,
+    ui: UI_LABELS,
   },
   care: {
     nav: BASE_NAV({
@@ -309,6 +336,7 @@ export const AI_COPY_SCHEMAS: Record<string, Record<string, FieldDef>> = {
     contact: { type: "object", fields: CONTACT_BASIC },
     seo: SEO,
     cookies: COOKIES_COPY,
+    ui: UI_LABELS,
   },
 };
 

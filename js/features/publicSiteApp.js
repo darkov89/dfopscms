@@ -204,19 +204,73 @@
     `;
   }
 
-  function defaultPrivacyPolicyHtml(block) {
+  function defaultPrivacyPolicyHtml(block, lang) {
     const businessName = escapeHtml(
       block?.settings?.business_name || block?.hero?.name || block?.nav?.logo || 'Administrator strony',
     );
     const email = escapeHtml(block?.contact?.email || 'adres e-mail podany na stronie');
     const phone = escapeHtml(block?.contact?.phone || '');
     const address = escapeHtml(block?.contact?.address || 'adres podany na stronie');
+    const title =
+      typeof window.DFOPS_uiLabelFromPack === 'function'
+        ? escapeHtml(window.DFOPS_uiLabelFromPack(block, 'privacy_policy'))
+        : 'Polityka prywatności';
+    const loc = String(lang || 'pl').toLowerCase();
+
+    if (loc === 'en') {
+      const contactLine = phone
+        ? `You can contact the Controller at ${email} or by phone: ${phone}.`
+        : `You can contact the Controller at ${email}.`;
+      return `
+      <h2 class="text-2xl font-bold mb-4">${title}</h2>
+      <p class="mb-4">This Privacy Policy describes how personal data of website users is processed by <strong>${businessName}</strong>.</p>
+      <h3 class="mt-6 mb-3 text-lg font-bold">1. Data controller</h3>
+      <p class="mb-4">The controller is <strong>${businessName}</strong>, at: ${address}. ${contactLine}</p>
+      <h3 class="mt-6 mb-3 text-lg font-bold">2. Scope of data</h3>
+      <p class="mb-4">We may process data you voluntarily provide in contact or booking forms or messages, including name, email, phone number and message content.</p>
+      <h3 class="mt-6 mb-3 text-lg font-bold">3. Purposes and legal bases</h3>
+      <p class="mb-4">Data is processed to handle enquiries, contact you, provide services, correspondence and to keep the site secure and working. Legal bases include legitimate interest, contract performance or pre-contract steps, and consent where required.</p>
+      <h3 class="mt-6 mb-3 text-lg font-bold">4. Retention</h3>
+      <p class="mb-4">Data is kept only as long as needed to handle the matter, deliver services, establish or defend claims, and meet legal duties.</p>
+      <h3 class="mt-6 mb-3 text-lg font-bold">5. Your rights</h3>
+      <p class="mb-4">You may request access, rectification, erasure, restriction, portability, object to processing, and lodge a complaint with your supervisory authority.</p>
+      <h3 class="mt-6 mb-3 text-lg font-bold">6. Voluntary provision</h3>
+      <p class="mb-4">Providing data is voluntary but may be required to reply, take a booking or deliver a service.</p>
+      <h3 class="mt-6 mb-3 text-lg font-bold">7. Cookies and similar technologies</h3>
+      <p class="mb-4">The site may use cookies needed for operation, security and preferences. Optional analytics or marketing tools are used only with your consent settings.</p>
+    `;
+    }
+
+    if (loc === 'de') {
+      const contactLine = phone
+        ? `Sie erreichen den Verantwortlichen unter ${email} oder telefonisch: ${phone}.`
+        : `Sie erreichen den Verantwortlichen unter ${email}.`;
+      return `
+      <h2 class="text-2xl font-bold mb-4">${title}</h2>
+      <p class="mb-4">Diese Datenschutzerklärung beschreibt die Verarbeitung personenbezogener Daten der Nutzer der Website von <strong>${businessName}</strong>.</p>
+      <h3 class="mt-6 mb-3 text-lg font-bold">1. Verantwortlicher</h3>
+      <p class="mb-4">Verantwortlicher ist <strong>${businessName}</strong>, Anschrift: ${address}. ${contactLine}</p>
+      <h3 class="mt-6 mb-3 text-lg font-bold">2. Umfang der Daten</h3>
+      <p class="mb-4">Wir können Daten verarbeiten, die Sie freiwillig in Kontakt- oder Buchungsformularen oder Nachrichten angeben, insbesondere Name, E-Mail, Telefonnummer und Nachrichteninhalt.</p>
+      <h3 class="mt-6 mb-3 text-lg font-bold">3. Zwecke und Rechtsgrundlagen</h3>
+      <p class="mb-4">Die Verarbeitung erfolgt zur Bearbeitung von Anfragen, Kontaktaufnahme, Leistungserbringung, Korrespondenz sowie zur Sicherheit und Funktion der Website. Rechtsgrundlagen sind berechtigte Interessen, Vertragserfüllung bzw. vorvertragliche Maßnahmen und ggf. Einwilligung.</p>
+      <h3 class="mt-6 mb-3 text-lg font-bold">4. Speicherdauer</h3>
+      <p class="mb-4">Daten werden nur so lange gespeichert, wie es zur Bearbeitung, Leistungserbringung, Rechtsverteidigung und gesetzlichen Pflichten nötig ist.</p>
+      <h3 class="mt-6 mb-3 text-lg font-bold">5. Ihre Rechte</h3>
+      <p class="mb-4">Sie haben Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit, Widerspruch sowie Beschwerde bei der Aufsichtsbehörde.</p>
+      <h3 class="mt-6 mb-3 text-lg font-bold">6. Freiwilligkeit</h3>
+      <p class="mb-4">Die Angabe ist freiwillig, kann aber für Antwort, Buchung oder Leistung erforderlich sein.</p>
+      <h3 class="mt-6 mb-3 text-lg font-bold">7. Cookies und ähnliche Technologien</h3>
+      <p class="mb-4">Die Website kann technisch notwendige Cookies verwenden. Optionale Analyse- oder Marketing-Tools nur gemäß Ihren Einwilligungseinstellungen.</p>
+    `;
+    }
+
     const contactLine = phone
       ? `Kontakt z Administratorem jest możliwy pod adresem e-mail ${email} lub telefonicznie: ${phone}.`
       : `Kontakt z Administratorem jest możliwy pod adresem e-mail ${email}.`;
 
     return `
-      <h2 class="text-2xl font-bold mb-4">Polityka Prywatności</h2>
+      <h2 class="text-2xl font-bold mb-4">${title}</h2>
       <p class="mb-4">Niniejsza Polityka Prywatności opisuje zasady przetwarzania danych osobowych użytkowników strony internetowej prowadzonej przez <strong>${businessName}</strong>.</p>
       <h3 class="mt-6 mb-3 text-lg font-bold">1. Administrator danych</h3>
       <p class="mb-4">Administratorem danych osobowych jest <strong>${businessName}</strong>, działający pod adresem: ${address}. ${contactLine}</p>
@@ -247,13 +301,21 @@
     const mainHtml =
       mode === 'custom' && rawCustom
         ? sanitizer(rawCustom)
-        : defaultPrivacyPolicyHtml(block);
+        : defaultPrivacyPolicyHtml(block, lang);
     const businessName = escapeHtml(block?.settings?.business_name || block?.hero?.name || block?.nav?.logo || 'strony');
-    document.title = `Polityka Prywatności — ${businessName}`;
+    const privacyTitle =
+      typeof window.DFOPS_uiLabelFromPack === 'function'
+        ? window.DFOPS_uiLabelFromPack(block, 'privacy_policy')
+        : 'Polityka prywatności';
+    const backLabel =
+      typeof window.DFOPS_uiLabelFromPack === 'function'
+        ? window.DFOPS_uiLabelFromPack(block, 'back_to_site')
+        : '← Wróć na stronę';
+    document.title = `${privacyTitle} — ${businessName}`;
     document.body.className = 'min-h-screen bg-slate-50 text-slate-800 antialiased';
     document.body.innerHTML = `
       <main class="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
-        <a href="/" class="mb-8 inline-flex text-sm font-semibold text-slate-500 underline decoration-slate-300 underline-offset-4 hover:text-slate-900">← Wróć na stronę</a>
+        <a href="/" class="mb-8 inline-flex text-sm font-semibold text-slate-500 underline decoration-slate-300 underline-offset-4 hover:text-slate-900">${escapeHtml(backLabel)}</a>
         <article class="rounded-2xl border border-gray-200 bg-white p-6 leading-relaxed shadow-sm sm:p-8">
           <div class="prose prose-slate max-w-none">${mainHtml}${infrastructurePrivacyHtml()}</div>
         </article>
@@ -1001,6 +1063,13 @@
       },
       getContentBlock() {
         return this.content?.[this.lang] || {};
+      },
+      /** Etykiety UI (Telefon, Polityka…) — tłumaczone przez AI w content.ui. */
+      uiLabel(key) {
+        if (typeof window.DFOPS_uiLabelFromPack === 'function') {
+          return window.DFOPS_uiLabelFromPack(this.getContentBlock(), key);
+        }
+        return String(key || '');
       },
       siteLocales() {
         if (typeof window.DFOPS_enabledLocales === 'function') {

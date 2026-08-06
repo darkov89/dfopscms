@@ -52,13 +52,14 @@
     <script defer src="/js/core/contentSchema.js"></script>
     <script defer src="/js/core/i18nLocales.js?v=20260723a"></script>
     <script defer src="/js/core/i18nContent.js?v=20260723a"></script>
-    <script defer src="/js/core/contentUpgrader.js?v=20260723a"></script>
+    <script defer src="/js/core/uiLabels.js?v=20260806a"></script>
+    <script defer src="/js/core/contentUpgrader.js?v=20260806a"></script>
     <script defer src="/js/core/themeStyling.js"></script>
     <script defer src="/js/core/pageRepository.js?v=20260704i"></script>
     <script defer src="/js/core/planUtils.js?v=20260703a"></script>
     <script defer src="/js/core/trialBlocking.js?v=20260704h"></script>
     <script defer src="/js/core/siteAnalytics.js?v=20260705a"></script>
-    <script defer src="/js/features/publicSiteApp.js?v=20260723a"></script>
+    <script defer src="/js/features/publicSiteApp.js?v=20260806a"></script>
     <script defer src="/js/features/cookieConsentApp.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <script src="/js/ui/reveal.js" defer></script>
@@ -290,10 +291,10 @@
                     <p class="font-display text-xl" :class="paletteClass('footerTitle')" x-text="content[lang].hero.name"></p>
                     <div class="flex flex-wrap justify-center gap-4">
                         <template x-if="true">
-                            <a :href="privacyPolicyUrl()" class="underline" :class="paletteClass('accentText')">Polityka Prywatności</a>
+                            <a :href="privacyPolicyUrl()" class="underline" :class="paletteClass('accentText')" x-text="uiLabel('privacy_policy')"></a>
                         </template>
                         <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.terms">
-                            <a href="#" @click.prevent="openModal('terms')" class="underline" :class="paletteClass('accentText')">Regulamin</a>
+                            <a href="#" @click.prevent="openModal('terms')" class="underline" :class="paletteClass('accentText')" x-text="uiLabel('terms')"></a>
                         </template>
                     </div>
                     <p>&copy; <span x-text="new Date().getFullYear()"></span> <span x-text="content[lang].hero.name"></span>. Wszelkie prawa zastrzeżone.</p>
@@ -306,11 +307,11 @@
     <div x-show="content" x-cloak>
         <div x-data="cookieConsent" x-show="showBanner" x-transition.opacity class="fixed bottom-0 left-0 right-0 w-full shadow-2xl border-t" :class="paletteClass('cookie')" style="z-index: 2147483647 !important;">
             <div class="max-w-5xl mx-auto px-4 py-4 md:px-6">
-                <p class="text-sm mb-4" :class="paletteClass('cookieText')">Ta strona korzysta z ciasteczek w celach funkcjonalnych oraz opcjonalnej analityki i marketingu.</p>
+                <p class="text-sm mb-4" :class="paletteClass('cookieText')" x-text="uiLabel('cookies_banner')"></p>
                 <div class="flex flex-wrap gap-3" x-show="!showDetails">
-                    <button @click.prevent="acceptAll()" class="px-4 py-2 text-sm font-bold rounded-lg" :class="paletteClass('cookieBtn')">Akceptuję wszystkie</button>
-                    <button @click.prevent="rejectAll()" class="px-4 py-2 text-sm rounded-lg bg-stone-800 text-stone-200">Tylko niezbędne</button>
-                    <button @click.prevent="showDetails = true" class="px-4 py-2 border text-sm rounded-lg" :class="[paletteClass('borderAccent'), paletteClass('cookieText')]">Dostosuj</button>
+                    <button @click.prevent="acceptAll()" class="px-4 py-2 text-sm font-bold rounded-lg" :class="paletteClass('cookieBtn')" x-text="uiLabel('cookies_accept_all')"></button>
+                    <button @click.prevent="rejectAll()" class="px-4 py-2 text-sm rounded-lg bg-stone-800 text-stone-200" x-text="uiLabel('cookies_essential_only')"></button>
+                    <button @click.prevent="showDetails = true" class="px-4 py-2 border text-sm rounded-lg" :class="[paletteClass('borderAccent'), paletteClass('cookieText')]" x-text="uiLabel('cookies_customize')"></button>
                 </div>
             </div>
         </div>
@@ -320,7 +321,7 @@
         <div @click.self="closeModal()" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div class="relative bg-white text-gray-900 rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
             <div class="flex items-center justify-between p-4 border-b shrink-0">
-                <h2 class="text-xl font-display font-bold" x-text="activeModal === 'privacy' ? 'Polityka Prywatności' : 'Regulamin'"></h2>
+                <h2 class="text-xl font-display font-bold" x-text="activeModal === 'privacy' ? uiLabel('privacy_policy') : uiLabel('terms')"></h2>
                 <button @click="closeModal()" class="p-2 text-gray-500 hover:bg-gray-100 rounded-full" aria-label="Zamknij">✕</button>
             </div>
             <div class="overflow-y-auto p-6 text-gray-700 leading-relaxed" x-html="DFOPS_pageRepository.sanitizeHtml(activeModal === 'privacy' ? (content[lang]?.legal?.privacy_policy || '') : (content[lang]?.legal?.terms || ''))"></div>

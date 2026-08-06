@@ -427,6 +427,9 @@
       ensureContactCta(merged[_lang], theme);
       ensureHeroButton(merged[_lang]);
       ensureMenuPanelFields(merged[_lang]);
+      if (typeof window.DFOPS_ensureUiLabels === 'function') {
+        window.DFOPS_ensureUiLabels(merged[_lang]);
+      }
     }
 
     if (typeof window.DFOPS_finalizeI18nContent === 'function') {
