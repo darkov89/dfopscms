@@ -59,7 +59,7 @@
     <script defer src="js/features/i18nPanel.js?v=20260724a"></script>
     <script defer src="js/features/aiGenerator.js?v=20260803a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260806c"></script>
+    <script defer src="js/features/adminApp.js?v=20260806d"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -1504,7 +1504,7 @@
                                     </div>
                                     <div x-show="customDomain && customDomainStatus === 'pending'" x-cloak class="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
                                         <span class="shrink-0" aria-hidden="true">🟡</span>
-                                        <span><strong>Jeszcze krok u rejestratora domeny</strong> — ustaw wpisy z tabeli poniżej dla <span class="font-mono" x-text="customDomain"></span>, potem wróć tu i kliknij „Zapisz i sprawdź”.</span>
+                                        <span><strong>Prawie gotowe</strong> — dla <span class="font-mono" x-text="customDomain"></span> zrób najpierw <strong>krok 1</strong> z instrukcji (TXT + www), kliknij „Zapisz i sprawdź”, a <strong>rekordy A (krok 2) dodaj dopiero potem</strong>.</span>
                                     </div>
                                     <div class="flex flex-col sm:flex-row gap-2 sm:items-stretch">
                                         <input type="text" x-model="domainInput" :disabled="isCustomDomainLocked || isVerifyingDomain" placeholder="np. twojsalon.pl"
@@ -1532,53 +1532,91 @@
                                             <span x-text="showDnsInstructions ? 'Ukryj instrukcję' : 'Jak ustawić domenę u rejestratora'"></span>
                                         </button>
                                     </div>
-                                    <div x-show="showDnsInstructions" x-cloak x-transition.opacity class="p-6 bg-blue-50 border border-blue-200 rounded-sm shadow-sm">
-                                        <h4 class="text-sm font-bold text-blue-900 mb-2 uppercase tracking-widest flex items-center gap-2">
-                                            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
-                                            Co wpisać u rejestratora domeny
-                                        </h4>
-                                        <p class="text-xs text-blue-800 mb-4 leading-relaxed">
-                                            Wejdź tam, gdzie kupiłeś domenę (np. home.pl, nazwa.pl, OVH) → strefa DNS / zarządzanie domeną.
-                                            Skopiuj dokładnie wpisy z tabeli. Najpierw kliknij „Zapisz i sprawdź” powyżej — wtedy uzupełnimy unikalny kod weryfikacyjny (wiersz TXT).
-                                        </p>
+                                    <div x-show="showDnsInstructions" x-cloak x-transition.opacity class="p-6 bg-blue-50 border border-blue-200 rounded-sm shadow-sm space-y-5">
+                                        <div>
+                                            <h4 class="text-sm font-bold text-blue-900 mb-2 uppercase tracking-widest flex items-center gap-2">
+                                                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                                                Podłączenie domeny — dwa krótkie kroki
+                                            </h4>
+                                            <p class="text-xs text-blue-800 leading-relaxed">
+                                                Wejdź tam, gdzie kupiłeś domenę (home.pl, nazwa.pl, OVH…) → zarządzanie DNS.
+                                                Kolejność jest ważna: <strong>najpierw krok 1</strong>, sprawdzenie w panelu, <strong>dopiero potem krok 2</strong>.
+                                                Jeśli dodasz rekordy A za wcześnie, potwierdzenie domeny może się zablokować.
+                                            </p>
+                                        </div>
 
-                                        <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="alert">
-                                            <p class="font-bold text-amber-950 mb-1.5">Zanim dodasz nowe wpisy</p>
+                                        <div class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="alert">
+                                            <p class="font-bold text-amber-950 mb-1.5">Zanim zaczniesz</p>
                                             <ul class="text-xs leading-relaxed text-amber-950/90 list-disc pl-4 space-y-1.5">
-                                                <li>Usuń stare wpisy typu <strong>A</strong> i <strong>CNAME</strong> dla głównej domeny i dla <span class="font-mono">www</span> — inaczej będą się gryźć z nowymi.</li>
-                                                <li><strong>Nie ruszaj</strong> wpisów <strong>MX</strong> — od nich zależy poczta (np. biuro@twojadomena.pl).</li>
-                                                <li>Wiersz <strong>TXT</strong> z tabeli jest obowiązkowy — bez niego nie potwierdzimy, że domena jest Twoja.</li>
-                                                <li>Jeśli zarządzasz DNS w Cloudflare: przy nowych wpisach wybierz <strong>tylko DNS</strong> (szara chmurka), nie pomarańczową „Proxied”.</li>
+                                                <li>Usuń stare <strong>A</strong> / <strong>CNAME</strong> dla <span class="font-mono">@</span> i <span class="font-mono">www</span> (zostaw <strong>MX</strong> — poczta).</li>
+                                                <li>Najpierw kliknij tu „Zapisz i sprawdź” — wtedy uzupełnimy kod w wierszu <strong>TXT</strong>.</li>
+                                                <li>Jeśli DNS masz w Cloudflare: nowe wpisy jako <strong>tylko DNS</strong> (szara chmurka), nie „Proxied”.</li>
                                             </ul>
                                         </div>
 
-                                        <div class="bg-white border border-blue-100 rounded-sm overflow-hidden overflow-x-auto">
-                                            <table class="w-full text-left text-sm min-w-[32rem]">
-                                                <thead class="bg-blue-100/50 text-blue-900 text-[10px] uppercase tracking-wider">
-                                                    <tr>
-                                                        <th class="px-4 py-3 font-bold">Typ</th>
-                                                        <th class="px-4 py-3 font-bold">Nazwa</th>
-                                                        <th class="px-4 py-3 font-bold">Wartość</th>
-                                                        <th class="px-4 py-3 font-bold">Po co to jest</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody class="text-slate-700 text-xs">
-                                                    <template x-for="(row, idx) in domainDnsInstructionRows" :key="row.type + '-' + row.host + '-' + idx">
-                                                        <tr :class="idx ? 'border-t border-gray-100' : ''">
-                                                            <td class="px-4 py-3 font-mono font-bold" x-text="row.type"></td>
-                                                            <td class="px-4 py-3 font-mono break-all" x-text="row.host"></td>
-                                                            <td class="px-4 py-3 font-mono font-bold text-[#D4AF37] break-all select-all" x-text="row.value"></td>
-                                                            <td class="px-4 py-3 text-[11px] text-slate-500 leading-snug" x-text="row.purpose || ''"></td>
+                                        <!-- Krok 1 -->
+                                        <div class="rounded-lg border border-blue-200 bg-white overflow-hidden">
+                                            <div class="px-4 py-3 bg-blue-100/60 border-b border-blue-100">
+                                                <p class="text-sm font-bold text-blue-950">Krok 1 — potwierdź domenę i włącz www</p>
+                                                <p class="text-xs text-blue-800 mt-1 leading-relaxed">Dodaj tylko te wpisy. <strong>Nie dodawaj jeszcze rekordów A</strong> na główną domenę.</p>
+                                            </div>
+                                            <div class="overflow-x-auto">
+                                                <table class="w-full text-left text-sm min-w-[28rem]">
+                                                    <thead class="bg-slate-50 text-slate-600 text-[10px] uppercase tracking-wider">
+                                                        <tr>
+                                                            <th class="px-4 py-2.5 font-bold">Typ</th>
+                                                            <th class="px-4 py-2.5 font-bold">Nazwa</th>
+                                                            <th class="px-4 py-2.5 font-bold">Wartość</th>
+                                                            <th class="px-4 py-2.5 font-bold">Po co</th>
                                                         </tr>
-                                                    </template>
-                                                </tbody>
-                                            </table>
+                                                    </thead>
+                                                    <tbody class="text-slate-700 text-xs">
+                                                        <template x-for="(row, idx) in domainDnsStep1Rows" :key="'s1-' + row.type + '-' + row.host + '-' + idx">
+                                                            <tr :class="idx ? 'border-t border-gray-100' : ''">
+                                                                <td class="px-4 py-3 font-mono font-bold" x-text="row.type"></td>
+                                                                <td class="px-4 py-3 font-mono break-all" x-text="row.host"></td>
+                                                                <td class="px-4 py-3 font-mono font-bold text-[#D4AF37] break-all select-all" x-text="row.value"></td>
+                                                                <td class="px-4 py-3 text-[11px] text-slate-500 leading-snug" x-text="row.purpose || ''"></td>
+                                                            </tr>
+                                                        </template>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <p class="px-4 py-3 text-xs text-blue-900 bg-blue-50/80 border-t border-blue-100 leading-relaxed">
+                                                Zapisz u rejestratora → poczekaj kilka minut → wróć tu i kliknij <strong>„Zapisz i sprawdź”</strong>.
+                                                Sprawdź najpierw <span class="font-mono">https://www.…</span> — jak strona z www działa, idź do kroku 2.
+                                            </p>
                                         </div>
-                                        <p class="text-xs text-blue-800 mt-4 leading-relaxed">
-                                            Po zapisaniu wpisów poczekaj kilka minut (czasem dłużej — rejestratorzy różnią się tempem) i kliknij tu ponownie <strong>„Zapisz i sprawdź”</strong>.
-                                            Zielony status „Gotowe” pojawi się dopiero gdy wszystko będzie naprawdę podłączone — nie wcześniej.
-                                            Najpierw sprawdź adres z <span class="font-mono">www</span> (np. https://www.twojsalon.pl).
-                                        </p>
+
+                                        <!-- Krok 2 -->
+                                        <div class="rounded-lg border border-slate-200 bg-white overflow-hidden">
+                                            <div class="px-4 py-3 bg-slate-100/80 border-b border-slate-200">
+                                                <p class="text-sm font-bold text-slate-900">Krok 2 — włącz adres bez www</p>
+                                                <p class="text-xs text-slate-600 mt-1 leading-relaxed">Dopiero gdy www już działa (albo status jest „Gotowe”), dodaj oba rekordy A. Dzięki temu główna domena też otworzy stronę.</p>
+                                            </div>
+                                            <div class="overflow-x-auto">
+                                                <table class="w-full text-left text-sm min-w-[28rem]">
+                                                    <thead class="bg-slate-50 text-slate-600 text-[10px] uppercase tracking-wider">
+                                                        <tr>
+                                                            <th class="px-4 py-2.5 font-bold">Typ</th>
+                                                            <th class="px-4 py-2.5 font-bold">Nazwa</th>
+                                                            <th class="px-4 py-2.5 font-bold">Wartość</th>
+                                                            <th class="px-4 py-2.5 font-bold">Po co</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="text-slate-700 text-xs">
+                                                        <template x-for="(row, idx) in domainDnsStep2Rows" :key="'s2-' + row.type + '-' + row.host + '-' + idx">
+                                                            <tr :class="idx ? 'border-t border-gray-100' : ''">
+                                                                <td class="px-4 py-3 font-mono font-bold" x-text="row.type"></td>
+                                                                <td class="px-4 py-3 font-mono break-all" x-text="row.host"></td>
+                                                                <td class="px-4 py-3 font-mono font-bold text-[#D4AF37] break-all select-all" x-text="row.value"></td>
+                                                                <td class="px-4 py-3 text-[11px] text-slate-500 leading-snug" x-text="row.purpose || ''"></td>
+                                                            </tr>
+                                                        </template>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div x-show="domainError" x-cloak class="p-4 bg-red-50 text-red-800 border border-red-200 rounded-sm text-sm font-medium leading-relaxed"><span x-text="domainError"></span></div>
                                     <p x-show="isCustomDomainLocked" class="text-xs text-amber-700">Własna domena jest dostępna od planu Standard. <button type="button" @click="setTab('subscription')" class="font-bold underline text-amber-900 hover:text-slate-900">Zobacz plany</button></p>

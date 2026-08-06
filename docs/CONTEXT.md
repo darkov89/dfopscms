@@ -397,12 +397,17 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 - **Consultant:** ujednolicona typografia (serif nagłówki / sans body, jedna skala kolorów sattva); bez zmiany układu i teł.
 - **i18n:** switcher w `consultant.html` używa `siteLocales()` — nie pokazuje klucza `meta`.
 
+### 2026-08-06 — Custom domain: 2 kroki DNS + Worker SaaS `*/*`
+
+- **Instrukcja panelu:** krok 1 = TXT ownership + CNAME www (**bez** A na `@`); po działającym www → krok 2 = 2× A. Powód: A na IP CF za wcześnie blokuje weryfikację TXT („hostname is using Cloudflare…”).
+- **Ops CF for SaaS:** Fallback Origin + Worker router wymaga route **`*/*`** (nie tylko `dfcms.pl/*`) — inaczej custom hostname dostaje Error 522, bo ruch nie trafia do Workera. `proxy.dfcms.pl` originless / Worker `X-Forwarded-Host` → Pages.
+- **Status:** `active` tylko gdy CF apex+www `status+ssl=active` (nie DoH).
+
 ### 2026-08-06 — Custom domain: TXT ownership + bez fałszywej zielonej OK
 
 - **Problem:** panel oznaczał `active` gdy DoH widział A/CNAME (`dnsVerified`), mimo że Custom Hostname CF był Pending (`does not CNAME` / brak TXT) → Error 522 na www przy zielonej OK.
-- **Fix Edge** `add-custom-domain`: SSL method `txt`; `custom_domain_status=active` tylko gdy **apex i www** mają `status+ssl=active`; payload `dnsInstructions` (2× A + TXT `_cf-custom-hostname` + CNAME www).
+- **Fix Edge** `add-custom-domain`: SSL method `txt`; `custom_domain_status=active` tylko gdy **apex i www** mają `status+ssl=active`; payload `dnsInstructions`.
 - **Fix panel:** amber pending + tabela DNS z tokenem z CF; zielona OK wyłącznie po `cfActive`.
-- **dfops.eu:** dodać TXT ownership z dashboardu CF + DNS only (nie Proxied) jeśli strefa klienta jest w Cloudflare; potem ponów „Zapisz i sprawdź”.
 
 ### 2026-08-06 — Deploy security + hotfix cache panelu (zapis domeny)
 

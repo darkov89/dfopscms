@@ -100,6 +100,8 @@ type DnsInstructionRow = {
   host: string;
   value: string;
   purpose: string;
+  /** 1 = najpierw (TXT + www), 2 = potem (rekordy A na @) — kolejność chroni przed blokadą TXT w CF. */
+  step: 1 | 2;
 };
 
 type CfApiBody = {
@@ -177,23 +179,16 @@ function dnsHostLabel(fullName: string, apexHostname: string): string {
 }
 
 /**
- * Instrukcja DNS dla klienta: 2× A + TXT ownership (weryfikacja hostname).
- * CNAME www dokładamy jako 4. wiersz (ruch na SaaS) — bez niego www pada.
+ * Instrukcja DNS w 2 krokach:
+ * 1) TXT ownership + CNAME www (bez A na @ — inaczej CF blokuje weryfikację TXT)
+ * 2) dopiero potem 2× A na apex
  */
 function buildDnsInstructions(
   apexHostname: string,
   apex: HostnameSummary | null,
   www: HostnameSummary | null,
 ): DnsInstructionRow[] {
-  const rows: DnsInstructionRow[] = SAAS_APEX_A_IPS.map((ip, i) => ({
-    type: "A",
-    host: "@",
-    value: ip,
-    purpose:
-      i === 0
-        ? "Kieruje główną domenę na Twoją stronę"
-        : "Drugi adres (oba są potrzebne)",
-  }));
+  const rows: DnsInstructionRow[] = [];
 
   const ownership =
     apex?.ownership_verification?.type === "txt" &&
@@ -212,18 +207,12 @@ function buildDnsInstructions(
       host: dnsHostLabel(String(ownership.name), apexHostname) ||
         String(ownership.name),
       value: String(ownership.value),
-      purpose: "Potwierdza, że domena należy do Ciebie",
+      purpose: "Krok 1 — potwierdza, że domena należy do Ciebie",
+      step: 1,
     });
   }
 
-  rows.push({
-    type: "CNAME",
-    host: "www",
-    value: SAAS_WWW_CNAME_TARGET,
-    purpose: "Żeby działał też adres z www",
-  });
-
-  // Opcjonalnie osobny TXT certyfikatu SSL (gdy CF go wymaga).
+  // Opcjonalnie osobny TXT certyfikatu SSL (też w kroku 1).
   const sslTxt = apex?.ssl_txt || www?.ssl_txt;
   if (
     sslTxt?.name &&
@@ -235,7 +224,29 @@ function buildDnsInstructions(
       type: "TXT",
       host: dnsHostLabel(String(sslTxt.name), apexHostname) || String(sslTxt.name),
       value: String(sslTxt.value),
-      purpose: "Potrzebny do bezpiecznego połączenia (kłódka HTTPS)",
+      purpose: "Krok 1 — bezpieczne połączenie (kłódka HTTPS)",
+      step: 1,
+    });
+  }
+
+  rows.push({
+    type: "CNAME",
+    host: "www",
+    value: SAAS_WWW_CNAME_TARGET,
+    purpose: "Krok 1 — adres z www (np. www.twojsalon.pl)",
+    step: 1,
+  });
+
+  for (let i = 0; i < SAAS_APEX_A_IPS.length; i++) {
+    rows.push({
+      type: "A",
+      host: "@",
+      value: SAAS_APEX_A_IPS[i],
+      purpose:
+        i === 0
+          ? "Krok 2 — dopiero po „Gotowe” / gdy www już działa: główna domena bez www"
+          : "Krok 2 — drugi adres (oba są potrzebne)",
+      step: 2,
     });
   }
 

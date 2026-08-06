@@ -3644,37 +3644,49 @@
         return window.DFOPS_normalizeHostname(withoutProtocolAndPath);
       },
 
-      /** Wiersze instrukcji DNS — z Edge po verify, inaczej szablon 2×A + TXT + CNAME. */
+      /** Wiersze instrukcji DNS — z Edge po verify, inaczej szablon (krok 1 → krok 2). */
       get domainDnsInstructionRows() {
         if (Array.isArray(this.domainDnsInstructions) && this.domainDnsInstructions.length) {
           return this.domainDnsInstructions;
         }
         return [
           {
-            type: 'A',
-            host: '@',
-            value: '172.67.154.121',
-            purpose: 'Kieruje główną domenę na Twoją stronę',
-          },
-          {
-            type: 'A',
-            host: '@',
-            value: '104.21.66.9',
-            purpose: 'Drugi adres (oba są potrzebne)',
-          },
-          {
             type: 'TXT',
             host: '_cf-custom-hostname',
             value: '— kliknij najpierw „Zapisz i sprawdź” —',
-            purpose: 'Potwierdza, że domena należy do Ciebie',
+            purpose: 'Krok 1 — potwierdza, że domena należy do Ciebie',
+            step: 1,
           },
           {
             type: 'CNAME',
             host: 'www',
             value: 'proxy.dfcms.pl',
-            purpose: 'Żeby działał też adres z www',
+            purpose: 'Krok 1 — adres z www (np. www.twojsalon.pl)',
+            step: 1,
+          },
+          {
+            type: 'A',
+            host: '@',
+            value: '172.67.154.121',
+            purpose: 'Krok 2 — dopiero gdy www działa: główna domena bez www',
+            step: 2,
+          },
+          {
+            type: 'A',
+            host: '@',
+            value: '104.21.66.9',
+            purpose: 'Krok 2 — drugi adres (oba są potrzebne)',
+            step: 2,
           },
         ];
+      },
+
+      get domainDnsStep1Rows() {
+        return (this.domainDnsInstructionRows || []).filter((r) => Number(r.step) !== 2);
+      },
+
+      get domainDnsStep2Rows() {
+        return (this.domainDnsInstructionRows || []).filter((r) => Number(r.step) === 2);
       },
 
       async invokeAddCustomDomain(body) {
@@ -3801,16 +3813,16 @@
             this.domainMessageTone = 'pending';
             this.showDnsInstructions = true;
             let msg =
-              'Domena jest zapisana. Teraz skopiuj wpisy z tabeli poniżej do panelu rejestratora domeny, odczekaj chwilę i kliknij tu ponownie „Zapisz i sprawdź”.';
+              'Domena jest zapisana. Zrób najpierw krok 1 z instrukcji (TXT + www) — bez rekordów A — potem kliknij tu ponownie „Zapisz i sprawdź”. Rekordy A (krok 2) dodaj dopiero gdy www już działa.';
             if (/using Cloudflare|does not CNAME/i.test(cfErrors)) {
               msg =
-                'Prawie gotowe — domena jest zapisana, ale wpisy DNS jeszcze nie wskazują na DFCMS. Ustaw dokładnie wartości z tabeli. Jeśli DNS masz w Cloudflare, przy wpisach wybierz szarą chmurkę („tylko DNS”), nie pomarańczową.';
+                'Wygląda na to, że rekordy A są już ustawione za wcześnie albo DNS nie wskazuje jeszcze na DFCMS. Usuń tymczasowo A na @, zostaw TXT + www z kroku 1, sprawdź ponownie — A dodaj w kroku 2. W Cloudflare: szara chmurka („tylko DNS”).';
             } else if (result.error === 'MISSING_WWW_CNAME') {
               msg =
-                'Główna domena wygląda OK, ale brakuje wpisu dla www. Dodaj wiersz CNAME z tabeli poniżej (oraz TXT, jeśli jeszcze go nie ma), potem sprawdź ponownie.';
+                'Brakuje wpisu www z kroku 1. Dodaj CNAME www → proxy.dfcms.pl (oraz TXT, jeśli go nie ma), bez rekordów A na razie, potem sprawdź ponownie.';
             } else if (!dnsLooksOk) {
               msg +=
-                ' Jeśli przed chwilą zapisałeś wpisy u rejestratora — daj im kilka minut na odświeżenie i spróbuj znowu.';
+                ' Jeśli przed chwilą zapisałeś krok 1 — daj kilka minut i spróbuj znowu.';
             }
             this.domainMessage = msg;
           }

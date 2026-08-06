@@ -62,9 +62,10 @@ Public URL cleanup: `publicSiteApp.cleanTenantPublicUrl()`.
 ## Custom domains (client `.pl` / `.com`)
 
 1. Panel „Zapisz i sprawdź” → Edge `add-custom-domain` (Custom Hostname **apex + www**, SSL `txt`; duplicate 1406 = OK) → `pages.custom_domain`.
-2. DNS u klienta (z Edge `dnsInstructions`): **A** `@` → `172.67.154.121` + `104.21.66.9` + **TXT** `_cf-custom-hostname` (ownership z CF) + **CNAME** `www` → `proxy.dfcms.pl`. Jeśli DNS klienta jest w Cloudflare — **DNS only** (szara chmurka).
-3. Status `active` w DB/panelu **tylko** gdy CF apex+www mają `status` i `ssl.status` = `active` (nie na samym DoH).
-4. DoH `GET /api/verify-domain` — informacyjnie (A/CNAME); nie ustawia zielonej OK.
+2. DNS u klienta w **2 krokach** (`dnsInstructions.step`): (1) **TXT** `_cf-custom-hostname` + **CNAME** `www` → `proxy.dfcms.pl` — **bez A na @**; (2) po działającym www → **A** `@` → `172.67.154.121` + `104.21.66.9`. DNS w CF klienta → **DNS only**.
+3. Status `active` **tylko** gdy CF apex+www mają `status` i `ssl.status` = `active`.
+4. **SaaS Worker:** route **`*/*`** (nie `dfcms.pl/*`) + Fallback Origin; inaczej custom hostname → Error 522.
+5. DoH `GET /api/verify-domain` — informacyjnie; nie ustawia zielonej OK.
 
 Secrets for CF API live in **Supabase Edge** (`CF_ZONE_ID`, `CF_API_TOKEN`), not in static front.
 
