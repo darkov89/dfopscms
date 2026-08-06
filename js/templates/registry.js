@@ -220,7 +220,11 @@
             "Strona dla konsultantów, coachów i specjalistów. Umów rozmowę, poznaj ofertę i buduj zaufanie dzięki przejrzystemu, nowoczesnemu układowi.",
           ogImage: ""
         },
-        footer: { quote: "", copyright: "", privacy: "" },
+        footer: {
+          quote: 'Innowacja to nie dodatek – to fundament skutecznego biznesu.',
+          copyright: '',
+          privacy: '',
+        },
         privacy: { mode: "default", customText: "" },
         legal: { enabled: true, privacy_policy: "", terms: "" },
         cookies: { text: "Ta strona używa plików cookies w celach funkcjonalnych.", accept: "Akceptuję" },

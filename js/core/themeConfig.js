@@ -25,6 +25,7 @@
       'booking',
       'contact',
       'nav_labels',
+      'footer_quote',
     ],
     fitness: [
       'services',
