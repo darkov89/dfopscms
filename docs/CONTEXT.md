@@ -391,6 +391,12 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 
 ## 4. Dziennik transformacji
 
+### 2026-08-06 — Consultant: odblokowanie edycji sekcji (manifesto, CTA, nagłówki)
+- **`THEME_SECTIONS.consultant`:** dodane `manifesto` (zakładka „O nas”).
+- **Hero:** `hero.subheadline` w panelu; FAQ/reviews/Google: edytowalne etykiety i tytuły (`faq_heading`, `reviews_heading`, `google_reviews.label`).
+- **Rezerwacja:** teksty CTA (`contact.cta.*` + `section_label`) zawsze widoczne dla consultant; menu `nav.menu.booking`.
+- **Kontakt:** `contact.title`; szablon `consultant.html` podpięty pod te pola (bez hardcoded „Częste pytania” / „Zaufanie” itd.).
+
 ### 2026-08-06 — Fix i18n: tłumaczenie ginęło przy zapisie + switcher
 
 - **P0:** `_bindEditLocaleShim` po ustawieniu bufora EN (`content.pl = pack.en`) w pętli znów przypisywał `content.pl = pack.pl` → autosave/publish zapisywały polski klon jako `en`.
