@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-08-06 — Consultant: więcej pól edytowalnych w panelu
+**Ostatnia aktualizacja:** 2026-08-06 — AI tłumaczenie: całość vs brakujące; mobile menu
 
 ---
 
@@ -390,6 +390,11 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-08-06 — AI: wybór „tylko brakujące” / „całość”; mobile nav
+- **Tłumaczenie AI:** gdy locale już ma treści, modal pyta *Tylko brakujące* vs *Całość od nowa* (`confirmChoiceAsync`). Merge: `DFOPS_mergeLocaleFillMissing` w `i18nContent.js` (zachowuje stringi ≠ PL / niepuste).
+- **Panel mobile:** uproszczony sticky header (jedna linia: ☰ + DFCMS + język + akcje).
+- **Consultant public:** hamburger + rozwijane menu sekcji na mobile.
 
 ### 2026-08-06 — Consultant: odblokowanie edycji sekcji (manifesto, CTA, nagłówki)
 - **`THEME_SECTIONS.consultant`:** dodane `manifesto` (zakładka „O nas”).

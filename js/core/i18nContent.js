@@ -185,6 +185,77 @@
     return finalizeI18nContent(content);
   }
 
+  /**
+   * Scal wynik AI z istniejącym locale: zachowaj już przetłumaczone stringi
+   * (niepuste i różne od źródła PL), uzupełnij tylko brakujące / nadal po polsku.
+   */
+  function mergeLocaleFillMissing(existing, incoming, source) {
+    if (typeof incoming === 'string' || typeof existing === 'string') {
+      const e = String(existing == null ? '' : existing);
+      const eTrim = e.trim();
+      const sTrim = String(source == null ? '' : source).trim();
+      const next = typeof incoming === 'string' ? incoming : String(incoming == null ? '' : incoming);
+      if (!eTrim || (sTrim && eTrim === sTrim)) return next;
+      return e;
+    }
+    if (Array.isArray(incoming)) {
+      if (!Array.isArray(existing) || existing.length === 0) return deepClone(incoming);
+      const srcArr = Array.isArray(source) ? source : [];
+      const len = Math.max(existing.length, incoming.length);
+      const out = [];
+      for (let i = 0; i < len; i++) {
+        if (i >= incoming.length) {
+          out.push(deepClone(existing[i]));
+          continue;
+        }
+        if (i >= existing.length) {
+          out.push(deepClone(incoming[i]));
+          continue;
+        }
+        out.push(mergeLocaleFillMissing(existing[i], incoming[i], srcArr[i]));
+      }
+      return out;
+    }
+    const eObj =
+      existing && typeof existing === 'object' && !Array.isArray(existing) ? existing : null;
+    const iObj =
+      incoming && typeof incoming === 'object' && !Array.isArray(incoming) ? incoming : null;
+    if (!iObj && !eObj) {
+      if (existing === undefined || existing === null || existing === '') return incoming;
+      return existing;
+    }
+    const base = eObj ? deepClone(eObj) : {};
+    const srcObj =
+      source && typeof source === 'object' && !Array.isArray(source) ? source : {};
+    if (!iObj) return base;
+    // settings / analytics — nie nadpisuj lokalnych flag sekcji przy „tylko brakujące”
+    const preserveKeys = { settings: true };
+    const keys = {};
+    Object.keys(base).forEach((k) => {
+      keys[k] = true;
+    });
+    Object.keys(iObj).forEach((k) => {
+      keys[k] = true;
+    });
+    const out = {};
+    Object.keys(keys).forEach((k) => {
+      if (preserveKeys[k] && base[k] != null) {
+        out[k] = deepClone(base[k]);
+        return;
+      }
+      if (!(k in iObj)) {
+        out[k] = deepClone(base[k]);
+        return;
+      }
+      if (!(k in base)) {
+        out[k] = deepClone(iObj[k]);
+        return;
+      }
+      out[k] = mergeLocaleFillMissing(base[k], iObj[k], srcObj[k]);
+    });
+    return out;
+  }
+
   window.DFOPS_ensureI18nMeta = ensureMeta;
   window.DFOPS_enabledLocales = enabledLocales;
   window.DFOPS_defaultLocale = defaultLocale;
@@ -193,4 +264,5 @@
   window.DFOPS_removeLocale = removeLocale;
   window.DFOPS_finalizeI18nContent = finalizeI18nContent;
   window.DFOPS_prepareContentForSave = prepareContentForSave;
+  window.DFOPS_mergeLocaleFillMissing = mergeLocaleFillMissing;
 })();

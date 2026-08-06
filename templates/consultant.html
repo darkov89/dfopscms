@@ -95,20 +95,20 @@
     <template x-if="dataLoaded && !trialBlocked && content && content.pl">
         <div x-transition.opacity.duration.700ms>
         
-        <nav class="fixed w-full z-50 bg-sattva-accent/90 backdrop-blur-md border-b border-sattva-text/5 transition-all duration-300">
-            <div class="max-w-6xl mx-auto px-6 flex justify-between items-center py-4">
-                <a href="#" class="flex items-center shrink-0" aria-label="Strona główna">
+        <nav class="fixed w-full z-50 bg-sattva-accent/90 backdrop-blur-md border-b border-sattva-text/5 transition-all duration-300" x-data="{ mobileNavOpen: false }">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 flex justify-between items-center py-3 md:py-4 gap-3">
+                <a href="#" class="flex items-center shrink-0 min-w-0" aria-label="Strona główna" @click="mobileNavOpen = false">
                      <template x-if="content[lang].nav?.logoImage">
                         <img :src="content[lang].nav.logoImage" alt="Logo" class="h-7 md:h-9 object-contain">
                      </template>
     
                     <template x-if="!content[lang].nav?.logoImage">
-                        <div class="text-lg md:text-xl font-sans font-bold tracking-[0.15em] uppercase text-sattva-text" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].nav.logo || 'MOJA <span class=\'text-sattva-brand\'>FIRMA</span>')"></div>
+                        <div class="text-base sm:text-lg md:text-xl font-sans font-bold tracking-[0.12em] uppercase text-sattva-text truncate max-w-[9.5rem] sm:max-w-none" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].nav.logo || 'MOJA <span class=\'text-sattva-brand\'>FIRMA</span>')"></div>
                     </template>
-                </a>                
-                <div class="flex items-center gap-6">
+                </a>
+                <div class="flex items-center gap-3 sm:gap-4 shrink-0">
                     <template x-if="content[lang].social?.linkedin">
-                        <a :href="content[lang].social.linkedin" target="_blank" rel="noopener noreferrer" class="text-sattva-text/40 hover:text-sattva-brand transition-colors">
+                        <a :href="content[lang].social.linkedin" target="_blank" rel="noopener noreferrer" class="hidden sm:inline-flex text-sattva-text/40 hover:text-sattva-brand transition-colors" aria-label="LinkedIn">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
                                 <rect x="2" y="9" width="4" height="12"></rect>
@@ -118,19 +118,17 @@
                     </template>
 
                     <template x-if="showLanguageSwitcher()">
-                        <div class="flex items-center gap-6">
-                            <div class="h-4 w-px bg-sattva-text/25"></div>
-                            <div class="flex space-x-3 text-xs uppercase tracking-widest" role="navigation" aria-label="Language">
-                                <template x-for="(langKey, index) in siteLocales()" :key="langKey">
-                                    <div class="flex items-center space-x-3">
-                                        <a :href="localeHref(langKey)"
-                                           :class="lang === langKey ? 'text-sattva-brand font-bold scale-110' : 'text-sattva-text/40 hover:text-sattva-text transition-all'"
-                                           :aria-current="lang === langKey ? 'page' : null"
-                                           x-text="localeLabel(langKey)"></a>
-                                        <span class="text-sattva-text/20 font-normal" x-show="index < siteLocales().length - 1" aria-hidden="true">|</span>
-                                    </div>
-                                </template>
-                            </div>
+                        <div class="flex items-center gap-2" role="navigation" aria-label="Language">
+                            <template x-for="(langKey, index) in siteLocales()" :key="langKey">
+                                <div class="flex items-center gap-2">
+                                    <a :href="localeHref(langKey)"
+                                       class="text-[11px] sm:text-xs uppercase tracking-widest"
+                                       :class="lang === langKey ? 'text-sattva-brand font-bold' : 'text-sattva-text/40 hover:text-sattva-text transition-all'"
+                                       :aria-current="lang === langKey ? 'page' : null"
+                                       x-text="localeLabel(langKey)"></a>
+                                    <span class="text-sattva-text/20 font-normal text-xs" x-show="index < siteLocales().length - 1" aria-hidden="true">|</span>
+                                </div>
+                            </template>
                         </div>
                     </template>
 
@@ -152,6 +150,41 @@
                             <a href="#kontakt" class="text-sattva-brand hover:text-sattva-text transition-colors duration-300" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></a>
                         </template>
                     </div>
+
+                    <button type="button"
+                            class="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-lg border border-sattva-text/15 text-sattva-text/80 hover:border-sattva-brand/40 hover:text-sattva-brand transition-colors"
+                            @click="mobileNavOpen = !mobileNavOpen"
+                            :aria-expanded="mobileNavOpen ? 'true' : 'false'"
+                            aria-controls="consultant-mobile-nav"
+                            aria-label="Menu">
+                        <svg x-show="!mobileNavOpen" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 7h16M4 12h16M4 17h16"/></svg>
+                        <svg x-show="mobileNavOpen" x-cloak class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div id="consultant-mobile-nav"
+                 x-show="mobileNavOpen"
+                 x-cloak
+                 x-transition.origin.top.opacity
+                 class="md:hidden border-t border-sattva-text/10 bg-sattva-accent/95 backdrop-blur-md">
+                <div class="max-w-6xl mx-auto px-4 py-3 flex flex-col gap-1 text-sm uppercase tracking-widest">
+                    <template x-if="content[lang].settings?.showManifesto !== false">
+                        <a href="#manifesto" @click="mobileNavOpen = false" class="rounded-lg px-3 py-3 text-sattva-text/70 hover:bg-sattva-text/5 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.about || 'O nas'"></a>
+                    </template>
+                    <template x-if="content[lang].settings?.showServices !== false">
+                        <a href="#uslugi" @click="mobileNavOpen = false" class="rounded-lg px-3 py-3 text-sattva-text/70 hover:bg-sattva-text/5 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.pricing || 'Usługi'"></a>
+                    </template>
+                    <template x-if="content[lang].settings?.showFaq !== false && content[lang].faq?.length">
+                        <a href="#faq" @click="mobileNavOpen = false" class="rounded-lg px-3 py-3 text-sattva-text/70 hover:bg-sattva-text/5 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.faq || 'Pytania i odpowiedzi (Q&amp;A)'"></a>
+                    </template>
+                    <template x-if="content[lang].settings?.showReviews !== false && content[lang].reviews?.length">
+                        <a href="#opinie" @click="mobileNavOpen = false" class="rounded-lg px-3 py-3 text-sattva-text/70 hover:bg-sattva-text/5 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.reviews || 'Opinie'"></a>
+                    </template>
+                    <a href="#rezerwacja" @click="mobileNavOpen = false; onConversionClick('booking_click', 'nav')" x-show="bookingModuleActive() || footerCtaEnabled()" x-cloak class="rounded-lg px-3 py-3 text-sattva-text/70 hover:bg-sattva-text/5 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.booking || 'Rezerwacja'"></a>
+                    <template x-if="content[lang].settings?.showContact !== false">
+                        <a href="#kontakt" @click="mobileNavOpen = false" class="rounded-lg px-3 py-3 font-semibold text-sattva-brand hover:bg-sattva-text/5 transition-colors" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></a>
+                    </template>
                 </div>
             </div>
         </nav>

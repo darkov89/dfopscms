@@ -240,6 +240,7 @@
     app.adaptLocaleWithAi = async function adaptLocaleWithAi(targetLocale, opts) {
       const options = opts && typeof opts === 'object' ? opts : {};
       const silent = options.silent === true;
+      const fillMissingOnly = options.fillMissingOnly === true;
       const extraPrompt = String(options.prompt || '').trim();
       if (this.isGeneratingAi) {
         if (!silent) this.showToast('AI już pracuje — poczekaj na zakończenie.', 'info');
@@ -276,8 +277,33 @@
         return false;
       }
 
+      // Snapshot przed AI — Edge nadpisuje draft; przy „tylko brakujące” scalamy lokalnie.
+      let previousTarget = null;
+      let sourcePack = null;
+      try {
+        const pack =
+          (this._localePack && this._localePack[locale]) ||
+          (this.content && this.content[locale]) ||
+          null;
+        const src =
+          (this._localePack && this._localePack[sourceLocale]) ||
+          (this.content && (this.content[sourceLocale] || this.content.pl)) ||
+          null;
+        if (pack && typeof pack === 'object') {
+          previousTarget = JSON.parse(JSON.stringify(pack));
+        }
+        if (src && typeof src === 'object') {
+          sourcePack = JSON.parse(JSON.stringify(src));
+        }
+      } catch (_) {
+        previousTarget = null;
+        sourcePack = null;
+      }
+
       this.isGeneratingAi = true;
-      this.aiProgressLabel = 'Tłumaczę na ' + localeLabel + '… To zwykle trwa 15–40 sekund.';
+      this.aiProgressLabel = fillMissingOnly
+        ? 'Uzupełniam brakujące teksty (' + localeLabel + ')…'
+        : 'Tłumaczę na ' + localeLabel + '… To zwykle trwa 15–40 sekund.';
       this._suppressContentWatch = true;
       if (this._draftAutosaveTimer) {
         clearTimeout(this._draftAutosaveTimer);
@@ -306,6 +332,7 @@
             locale,
             mode: 'adapt',
             sourceLocale,
+            fillMissingOnly: fillMissingOnly || undefined,
           },
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -318,22 +345,49 @@
 
         if (data.draft_content && typeof data.draft_content === 'object') {
           this._suppressContentWatch = true;
-          this.content =
+          let next =
             typeof window.DFOPS_normalizeContent === 'function'
               ? window.DFOPS_normalizeContent(data.draft_content, theme)
               : data.draft_content;
+
+          if (
+            fillMissingOnly &&
+            previousTarget &&
+            sourcePack &&
+            typeof window.DFOPS_mergeLocaleFillMissing === 'function' &&
+            next[locale] &&
+            typeof next[locale] === 'object'
+          ) {
+            next = Object.assign({}, next, {
+              [locale]: window.DFOPS_mergeLocaleFillMissing(
+                previousTarget,
+                next[locale],
+                sourcePack,
+              ),
+            });
+          }
+
+          this.content = next;
           if (typeof this.i18nAfterContentLoad === 'function') {
             this.i18nAfterContentLoad();
             if (typeof this.setEditLocale === 'function') await this.setEditLocale(locale);
+          }
+          if (fillMissingOnly && typeof this._persistDraft === 'function') {
+            await this._persistDraft({ silent: true });
+            this._suppressContentWatch = true;
           }
         }
         if (typeof data.remaining === 'number') this.aiRemaining = data.remaining;
         if (typeof data.limit === 'number') this.aiLimit = data.limit;
         if (!silent) {
           this.showToast(
-            'Gotowe — strona ma wersję ' +
-              localeLabel +
-              '. Sprawdź Podgląd, potem kliknij Opublikuj zmiany.',
+            fillMissingOnly
+              ? 'Uzupełniono brakujące teksty (' +
+                  localeLabel +
+                  '). Sprawdź Podgląd, potem Opublikuj zmiany.'
+              : 'Gotowe — strona ma wersję ' +
+                  localeLabel +
+                  '. Sprawdź Podgląd, potem kliknij Opublikuj zmiany.',
             'success',
           );
         }
@@ -387,7 +441,28 @@
       }
 
       // Adapt: bez drugiego confirm — user już kliknął CTA w modalu (pusty prompt OK).
-      if (mode === 'generate') {
+      // Jeśli locale już ma treści, dopytaj: całość vs brakujące.
+      let fillMissingOnly = false;
+      if (mode === 'adapt') {
+        const alreadyStarted =
+          typeof this.localeLooksUntranslated === 'function'
+            ? !this.localeLooksUntranslated(locale)
+            : false;
+        if (alreadyStarted && typeof this.confirmChoiceAsync === 'function') {
+          const choice = await this.confirmChoiceAsync({
+            title: 'Jak przetłumaczyć na ' + localeLabel + '?',
+            message:
+              'Masz już treści w tym języku. Uzupełnić tylko brakujące pola, czy nadpisać całość?',
+            choices: [
+              { value: 'missing', label: 'Tylko brakujące', primary: true },
+              { value: 'all', label: 'Całość od nowa' },
+            ],
+            cancelLabel: 'Anuluj',
+          });
+          if (!choice) return;
+          fillMissingOnly = choice === 'missing';
+        }
+      } else if (mode === 'generate') {
         const ok = await this.confirmAsync({
           title: 'Nadpisać treść roboczą?',
           message:
@@ -399,10 +474,32 @@
         if (!ok) return;
       }
 
+      let previousTarget = null;
+      let sourcePack = null;
+      if (mode === 'adapt' && fillMissingOnly) {
+        try {
+          const pack =
+            (this._localePack && this._localePack[locale]) ||
+            (this.content && this.content[locale]) ||
+            null;
+          const src =
+            (this._localePack && this._localePack[sourceLocale]) ||
+            (this.content && (this.content[sourceLocale] || this.content.pl)) ||
+            null;
+          if (pack && typeof pack === 'object') previousTarget = JSON.parse(JSON.stringify(pack));
+          if (src && typeof src === 'object') sourcePack = JSON.parse(JSON.stringify(src));
+        } catch (_) {
+          previousTarget = null;
+          sourcePack = null;
+        }
+      }
+
       this.isGeneratingAi = true;
       this.aiProgressLabel =
         mode === 'adapt'
-          ? 'Tłumaczę na ' + localeLabel + '… To zwykle trwa 15–40 sekund.'
+          ? fillMissingOnly
+            ? 'Uzupełniam brakujące teksty (' + localeLabel + ')…'
+            : 'Tłumaczę na ' + localeLabel + '… To zwykle trwa 15–40 sekund.'
           : 'Generuję teksty AI…';
       this._suppressContentWatch = true;
       if (this._draftAutosaveTimer) {
@@ -433,6 +530,7 @@
             locale,
             mode,
             sourceLocale,
+            fillMissingOnly: fillMissingOnly || undefined,
           },
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -446,15 +544,36 @@
         if (data.draft_content && typeof data.draft_content === 'object') {
           this._suppressContentWatch = true;
           // Normalizacja jak po loadData — pełne pola admina + tablica services zawsze obecna.
-          this.content =
+          let next =
             typeof window.DFOPS_normalizeContent === 'function'
               ? window.DFOPS_normalizeContent(data.draft_content, theme)
               : data.draft_content;
+          if (
+            fillMissingOnly &&
+            previousTarget &&
+            sourcePack &&
+            typeof window.DFOPS_mergeLocaleFillMissing === 'function' &&
+            next[locale] &&
+            typeof next[locale] === 'object'
+          ) {
+            next = Object.assign({}, next, {
+              [locale]: window.DFOPS_mergeLocaleFillMissing(
+                previousTarget,
+                next[locale],
+                sourcePack,
+              ),
+            });
+          }
+          this.content = next;
           if (typeof this.i18nAfterContentLoad === 'function') {
             this.i18nAfterContentLoad();
             if (locale && typeof this.setEditLocale === 'function') {
               await this.setEditLocale(locale);
             }
+          }
+          if (fillMissingOnly && typeof this._persistDraft === 'function') {
+            await this._persistDraft({ silent: true });
+            this._suppressContentWatch = true;
           }
           // Upewnij się, że usługi są tablicą (x-for w zakładce Oferta).
           const pl = this.content && this.content.pl;
@@ -478,9 +597,13 @@
 
         let toastMsg =
           mode === 'adapt'
-            ? 'Gotowe — treść przetłumaczona na ' +
-              localeLabel +
-              '. Sprawdź Podgląd, potem Opublikuj zmiany.'
+            ? fillMissingOnly
+              ? 'Uzupełniono brakujące teksty (' +
+                localeLabel +
+                '). Sprawdź Podgląd, potem Opublikuj zmiany.'
+              : 'Gotowe — treść przetłumaczona na ' +
+                localeLabel +
+                '. Sprawdź Podgląd, potem Opublikuj zmiany.'
             : 'AI wygenerowało teksty w polach panelu (oferta, baner, FAQ…). Sprawdź zakładkę „Twoja oferta i ceny” i opublikuj.';
         if (remaining != null && limit != null) {
           toastMsg += ` Zostało ${remaining} z ${limit} generacji w tym miesiącu.`;

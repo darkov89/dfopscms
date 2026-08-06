@@ -770,7 +770,7 @@
       errorMessage: '',
       toast: { show: false, message: '', type: 'success' },
       _toastTimer: null,
-      /** Globalny modal confirm() (Promise<boolean>) — zastępuje systemowy `confirm()` w panelu. */
+      /** Globalny modal confirm() (Promise) — boolean albo value z choices. */
       confirmDialog: {
         open: false,
         title: '',
@@ -778,6 +778,8 @@
         yesLabel: 'Tak',
         noLabel: 'Nie',
         tone: 'default', // default | danger
+        choices: null, // [{ value, label, primary? }] | null → klasyczny Tak/Nie
+        cancelLabel: 'Anuluj',
       },
       _confirmDialogResolve: null,
       hasUnsavedChanges: false,
@@ -1491,7 +1493,60 @@
           try { this._confirmDialogResolve(false); } catch (_) { /* ignore */ }
         }
 
-        this.confirmDialog = { open: true, title, message, yesLabel, noLabel, tone };
+        this.confirmDialog = {
+          open: true,
+          title,
+          message,
+          yesLabel,
+          noLabel,
+          tone,
+          choices: null,
+          cancelLabel: 'Anuluj',
+        };
+        return new Promise((resolve) => {
+          this._confirmDialogResolve = resolve;
+        });
+      },
+
+      /**
+       * Confirm z wieloma akcjami (np. „tylko brakujące” / „całość”).
+       * Zwraca value wybranego choice albo false przy anulowaniu.
+       */
+      confirmChoiceAsync(opts) {
+        const options = opts && typeof opts === 'object' ? opts : {};
+        const title = typeof options.title === 'string' ? options.title : 'Wybierz';
+        const message = typeof options.message === 'string' ? options.message : '';
+        const tone = options.tone === 'danger' ? 'danger' : 'default';
+        const cancelLabel =
+          typeof options.cancelLabel === 'string' ? options.cancelLabel : 'Anuluj';
+        const choices = Array.isArray(options.choices)
+          ? options.choices
+              .filter((c) => c && typeof c === 'object' && c.value != null && c.label)
+              .map((c) => ({
+                value: c.value,
+                label: String(c.label),
+                primary: c.primary === true,
+              }))
+          : [];
+
+        if (this.confirmDialog?.open && typeof this._confirmDialogResolve === 'function') {
+          try {
+            this._confirmDialogResolve(false);
+          } catch (_) {
+            /* ignore */
+          }
+        }
+
+        this.confirmDialog = {
+          open: true,
+          title,
+          message,
+          yesLabel: 'Tak',
+          noLabel: 'Nie',
+          tone,
+          choices,
+          cancelLabel,
+        };
         return new Promise((resolve) => {
           this._confirmDialogResolve = resolve;
         });
@@ -1501,7 +1556,7 @@
         const r = typeof this._confirmDialogResolve === 'function' ? this._confirmDialogResolve : null;
         this._confirmDialogResolve = null;
         if (this.confirmDialog) this.confirmDialog.open = false;
-        if (r) r(result === true);
+        if (r) r(result === true ? true : result === false || result == null ? false : result);
       },
 
       /**

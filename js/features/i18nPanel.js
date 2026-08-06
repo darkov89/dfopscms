@@ -155,17 +155,35 @@
         return;
       }
       const label = this.i18nLocaleLabel(loc);
-      const ok = await this.confirmAsync({
-        title: 'Przetłumaczyć na ' + label + '?',
-        message:
-          'AI przetłumaczy teksty z języka polskiego do wersji roboczej (' +
-          label +
-          '). Strona LIVE nie zmieni się, dopóki nie klikniesz Opublikuj zmiany.',
-        yesLabel: 'Przetłumacz teraz',
-        noLabel: 'Anuluj',
-        tone: 'default',
-      });
-      if (!ok) return;
+      const alreadyStarted = !this.localeLooksUntranslated(loc);
+      let fillMissingOnly = false;
+      if (alreadyStarted && typeof this.confirmChoiceAsync === 'function') {
+        const choice = await this.confirmChoiceAsync({
+          title: 'Jak przetłumaczyć na ' + label + '?',
+          message:
+            'Masz już treści w tym języku. Możesz uzupełnić tylko puste / nadal polskie pola albo nadpisać całość tłumaczeniem AI. LIVE nie zmieni się, dopóki nie klikniesz Opublikuj zmiany.',
+          choices: [
+            { value: 'missing', label: 'Tylko brakujące', primary: true },
+            { value: 'all', label: 'Całość od nowa' },
+          ],
+          cancelLabel: 'Anuluj',
+          tone: 'default',
+        });
+        if (!choice) return;
+        fillMissingOnly = choice === 'missing';
+      } else {
+        const ok = await this.confirmAsync({
+          title: 'Przetłumaczyć na ' + label + '?',
+          message:
+            'AI przetłumaczy teksty z języka polskiego do wersji roboczej (' +
+            label +
+            '). Strona LIVE nie zmieni się, dopóki nie klikniesz Opublikuj zmiany.',
+          yesLabel: 'Przetłumacz teraz',
+          noLabel: 'Anuluj',
+          tone: 'default',
+        });
+        if (!ok) return;
+      }
 
       if (!this.content.meta) this.content.meta = {};
       this.content.meta.translationMode = 'ai';
@@ -176,7 +194,10 @@
         this.showToast('Funkcja tłumaczenia AI jest niedostępna. Odśwież stronę.', 'error');
         return;
       }
-      const adapted = await this.adaptLocaleWithAi(loc, { silent: false });
+      const adapted = await this.adaptLocaleWithAi(loc, {
+        silent: false,
+        fillMissingOnly,
+      });
       if (adapted && typeof this.setTab === 'function') {
         this.setTab('hero');
       }
@@ -383,20 +404,43 @@
       }
 
       const names = others.map((c) => this.i18nLocaleLabel(c)).join(', ');
-      const ok = await this.confirmAsync({
-        title: 'Zaktualizować inne języki?',
-        message:
-          'Zmieniłeś treści w języku podstawowym. Czy AI ma zaktualizować tłumaczenia (' +
-          names +
-          ')?' +
-          (options.reason === 'publish' ? ' (przed publikacją)' : ''),
-        yesLabel: 'Tak, przetłumacz AI',
-        noLabel: 'Nie teraz',
-        tone: 'default',
-      });
-      if (!ok) {
-        this._localeCopyDirty = false;
-        return false;
+      let fillMissingOnly = true;
+      if (typeof this.confirmChoiceAsync === 'function') {
+        const choice = await this.confirmChoiceAsync({
+          title: 'Zaktualizować inne języki?',
+          message:
+            'Zmieniłeś treści w języku podstawowym. Jak AI ma zaktualizować tłumaczenia (' +
+            names +
+            ')?' +
+            (options.reason === 'publish' ? ' (przed publikacją)' : ''),
+          choices: [
+            { value: 'missing', label: 'Tylko brakujące / zmienione', primary: true },
+            { value: 'all', label: 'Całość od nowa' },
+          ],
+          cancelLabel: 'Nie teraz',
+          tone: 'default',
+        });
+        if (!choice) {
+          this._localeCopyDirty = false;
+          return false;
+        }
+        fillMissingOnly = choice === 'missing';
+      } else {
+        const ok = await this.confirmAsync({
+          title: 'Zaktualizować inne języki?',
+          message:
+            'Zmieniłeś treści w języku podstawowym. Czy AI ma zaktualizować tłumaczenia (' +
+            names +
+            ')?' +
+            (options.reason === 'publish' ? ' (przed publikacją)' : ''),
+          yesLabel: 'Tak, przetłumacz AI',
+          noLabel: 'Nie teraz',
+          tone: 'default',
+        });
+        if (!ok) {
+          this._localeCopyDirty = false;
+          return false;
+        }
       }
 
       let allOk = true;
@@ -405,7 +449,10 @@
           allOk = false;
           break;
         }
-        const adapted = await this.adaptLocaleWithAi(others[i], { silent: others.length > 1 });
+        const adapted = await this.adaptLocaleWithAi(others[i], {
+          silent: others.length > 1,
+          fillMissingOnly,
+        });
         if (!adapted) allOk = false;
       }
       this._localeCopyDirty = false;

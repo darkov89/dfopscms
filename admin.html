@@ -41,7 +41,7 @@
     <script defer src="js/core/themeConfig.js?v=20260702a"></script>
     <script defer src="js/core/contentSchema.js?v=20260404c"></script>
     <script defer src="js/core/i18nLocales.js?v=20260723a"></script>
-    <script defer src="js/core/i18nContent.js?v=20260723a"></script>
+    <script defer src="js/core/i18nContent.js?v=20260806b"></script>
     <script defer src="js/core/contentUpgrader.js?v=20260723a"></script>
     <script defer src="js/core/themeStyling.js?v=20260404c"></script>
     <script defer src="js/core/pageRepository.js?v=20260806a"></script>
@@ -56,10 +56,10 @@
     <script defer src="js/features/growth/growthRepository.js?v=20260705b"></script>
     <script defer src="js/features/growth/growthPanel.js?v=20260705a"></script>
     <script defer src="js/features/growth/statsPanel.js?v=20260705a"></script>
-    <script defer src="js/features/i18nPanel.js?v=20260724a"></script>
-    <script defer src="js/features/aiGenerator.js?v=20260803a"></script>
+    <script defer src="js/features/i18nPanel.js?v=20260806b"></script>
+    <script defer src="js/features/aiGenerator.js?v=20260806b"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260806d"></script>
+    <script defer src="js/features/adminApp.js?v=20260806e"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -643,7 +643,18 @@
                 </div>
                 <h2 id="dfops-confirm-title" class="text-lg font-bold text-slate-900 mb-2" x-text="confirmDialog.title || 'Potwierdź'"></h2>
                 <p class="text-sm text-slate-600 leading-relaxed" x-text="confirmDialog.message || ''"></p>
-                <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row">
+                <div x-show="confirmDialog.choices && confirmDialog.choices.length" x-cloak class="mt-6 flex flex-col gap-2.5">
+                    <template x-for="(choice, cIdx) in (confirmDialog.choices || [])" :key="'confirm-choice-' + cIdx + '-' + choice.value">
+                        <button type="button" @click="resolveConfirmDialog(choice.value)"
+                                class="w-full inline-flex items-center justify-center rounded-lg px-4 py-3 text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2"
+                                :class="choice.primary ? (confirmDialog.tone === 'danger' ? 'bg-red-600 text-white hover:bg-red-500 shadow-sm' : 'bg-slate-900 text-white hover:bg-slate-800 shadow-sm') : 'border-2 border-slate-200 bg-white text-slate-800 hover:border-slate-300 hover:bg-slate-50/80'"
+                                x-text="choice.label"></button>
+                    </template>
+                    <button type="button" @click="resolveConfirmDialog(false)"
+                            class="w-full rounded-lg px-4 py-2.5 text-sm font-semibold text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/50 focus-visible:ring-offset-2"
+                            x-text="confirmDialog.cancelLabel || 'Anuluj'"></button>
+                </div>
+                <div x-show="!(confirmDialog.choices && confirmDialog.choices.length)" class="mt-6 flex flex-col-reverse gap-3 sm:flex-row">
                     <button type="button" @click="resolveConfirmDialog(false)"
                             class="flex-1 rounded-lg border-2 border-slate-200 px-4 py-3 text-sm font-semibold text-slate-800 transition-colors hover:border-slate-300 hover:bg-slate-50/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/50 focus-visible:ring-offset-2"
                             x-text="confirmDialog.noLabel || 'Nie'"></button>
@@ -751,38 +762,37 @@
                 <p class="mt-2 text-sm text-slate-600 leading-relaxed">Nie zamykaj tej karty. Po zakończeniu sprawdzisz Podgląd i opublikujesz zmiany.</p>
             </div>
         </div>
-        <header class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 shadow-sm backdrop-blur-md">
-            <div class="mx-auto flex min-h-16 w-full max-w-[1600px] flex-col items-stretch gap-2 px-4 py-3 md:min-h-16 md:flex-row md:items-center md:justify-between md:gap-6 md:px-8 md:py-0 xl:px-10">
-                <div class="flex min-w-0 flex-1 items-center gap-3 text-sm text-slate-700 md:gap-5">
+        <header class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur-md">
+            <div class="mx-auto flex w-full max-w-[1600px] items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4 md:min-h-16 md:gap-6 md:px-8 md:py-0 xl:px-10">
+                <!-- Lewa: menu + brand + meta -->
+                <div class="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 md:gap-5">
                     <button type="button" @click="mobileMenuOpen = !mobileMenuOpen" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-xl leading-none text-slate-700 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 md:hidden" :aria-expanded="mobileMenuOpen ? 'true' : 'false'" aria-controls="dfops-admin-sidebar" aria-label="Otwórz menu">
                         ☰
                     </button>
-                    <div class="hidden h-8 shrink-0 items-center border-r border-slate-200/90 pr-5 md:flex" aria-hidden="false">
-                        <button type="button" @click="setTab('dashboard')" class="text-sm font-semibold tracking-[0.18em] text-slate-900 transition-colors hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2">DF<span class="text-accent">CMS</span></button>
-                    </div>
-                        <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1.5 leading-snug md:flex-nowrap md:items-center">
+                    <button type="button" @click="setTab('dashboard')" class="shrink-0 text-sm font-semibold tracking-[0.14em] text-slate-900 transition-colors hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2 md:border-r md:border-slate-200/90 md:pr-5">
+                        DF<span class="text-accent">CMS</span>
+                    </button>
+
+                    <div class="hidden min-w-0 flex-1 items-center gap-x-3 gap-y-1 overflow-hidden md:flex md:flex-wrap lg:flex-nowrap">
                         <div class="flex min-w-0 items-baseline gap-2">
-                            <span class="shrink-0 text-slate-500">Szablon</span>
-                            <span class="truncate font-medium text-slate-900" x-text="themeDisplayLabel"></span>
+                            <span class="shrink-0 text-sm text-slate-500">Szablon</span>
+                            <span class="truncate text-sm font-medium text-slate-900" x-text="themeDisplayLabel"></span>
                         </div>
                         <span class="hidden h-3.5 w-px shrink-0 self-center bg-slate-200 sm:block" aria-hidden="true"></span>
                         <div x-show="typeof i18nEnabledLocales === 'function' && i18nEnabledLocales().length > 1" class="flex items-center gap-1.5" x-cloak>
-                            <span class="shrink-0 text-slate-500 text-xs">Język</span>
+                            <span class="shrink-0 text-xs text-slate-500">Język</span>
                             <template x-for="loc in i18nEnabledLocales()" :key="'edit-loc-'+loc">
                                 <button type="button" @click="setEditLocale(loc)"
                                         class="rounded-md px-2 py-1 text-xs font-semibold transition-colors"
                                         :class="editLocale === loc ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
                                         x-text="i18nLocaleLabel(loc)"></button>
                             </template>
-                            <span class="hidden sm:inline text-[10px] font-semibold uppercase tracking-wider text-slate-400 ml-1"
-                                  x-text="i18nTranslationMode() === 'ai' ? 'AI sync' : 'ręcznie'"
-                                  :title="i18nTranslationMode() === 'ai' ? 'Po zmianach w PL zapytamy o aktualizację innych języków' : 'Każdy język edytujesz osobno'"></span>
                         </div>
-                        <span class="hidden h-3.5 w-px shrink-0 self-center bg-slate-200 sm:block" aria-hidden="true"></span>
-                        <div x-show="showOwnedPagesSelector" x-cloak class="flex min-w-0 items-center gap-1.5">
-                            <span class="shrink-0 text-slate-500 text-xs">Strona</span>
+                        <span class="hidden h-3.5 w-px shrink-0 self-center bg-slate-200 lg:block" aria-hidden="true"></span>
+                        <div x-show="showOwnedPagesSelector" x-cloak class="hidden min-w-0 items-center gap-1.5 lg:flex">
+                            <span class="shrink-0 text-xs text-slate-500">Strona</span>
                             <select
-                                class="max-w-[10rem] truncate rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 sm:max-w-[14rem]"
+                                class="max-w-[14rem] truncate rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-800 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
                                 :value="pageId"
                                 @change="switchOwnedPage($event.target.value)"
                                 aria-label="Wybierz stronę">
@@ -791,71 +801,96 @@
                                 </template>
                             </select>
                         </div>
-                        <span x-show="showOwnedPagesSelector" x-cloak class="hidden h-3.5 w-px shrink-0 self-center bg-slate-200 sm:block" aria-hidden="true"></span>
                         <a :href="getLiveSiteUrl()"
                            target="_blank" rel="noopener noreferrer"
-                           class="group inline-flex min-w-0 items-center gap-1 truncate font-medium text-slate-900 underline decoration-slate-200 underline-offset-4 hover:decoration-slate-400"
+                           class="group hidden min-w-0 items-center gap-1 truncate text-sm font-medium text-slate-900 underline decoration-slate-200 underline-offset-4 hover:decoration-slate-400 lg:inline-flex"
                            :title="liveSiteLinkTitle">
                             <span class="min-w-0 truncate" x-text="slug"></span>
                             <span x-show="isTrialPublicBlocked" x-cloak class="shrink-0 text-[10px] font-bold uppercase tracking-wider text-red-700" title="Zablokowane dla gości">live ✕</span>
                             <span class="shrink-0 text-slate-400 transition-colors group-hover:text-slate-600" aria-hidden="true">↗</span>
                         </a>
                     </div>
+
+                    <!-- Mobile: tylko język (kompakt) -->
+                    <div x-show="typeof i18nEnabledLocales === 'function' && i18nEnabledLocales().length > 1" class="flex min-w-0 items-center gap-1 overflow-x-auto md:hidden" x-cloak>
+                        <template x-for="loc in i18nEnabledLocales()" :key="'m-edit-loc-'+loc">
+                            <button type="button" @click="setEditLocale(loc)"
+                                    class="shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold uppercase tracking-wide transition-colors"
+                                    :class="editLocale === loc ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'"
+                                    x-text="i18nLocaleLabel(loc)"></button>
+                        </template>
+                    </div>
                 </div>
 
-                <div class="flex w-full min-w-0 flex-col gap-1.5 md:w-auto md:max-w-none md:shrink-0 md:items-end">
-                    <div class="flex w-full min-w-0 items-center justify-end gap-2 sm:gap-3">
-                        <a id="dfcms-onboarding-site-preview"
-                           :href="getPublicSiteUrl()"
-                           @click="stashDraftForPreview()"
-                           :title="previewSiteButtonTitle"
-                           target="_blank" rel="noopener noreferrer"
-                           class="inline-flex min-w-0 items-center justify-center rounded-lg border px-3 py-2.5 text-sm font-medium shadow-sm transition-colors sm:px-4"
-                           :class="isTrialPublicBlocked ? 'border-amber-300 bg-amber-50 text-amber-950 hover:bg-amber-100' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900'">
-                            <span x-text="previewSiteButtonLabel"></span>
-                        </a>
+                <!-- Prawa: akcje -->
+                <div class="flex shrink-0 items-center gap-1.5 sm:gap-2">
+                    <a id="dfcms-onboarding-site-preview"
+                       :href="getPublicSiteUrl()"
+                       @click="stashDraftForPreview()"
+                       :title="previewSiteButtonTitle"
+                       target="_blank" rel="noopener noreferrer"
+                       class="inline-flex h-10 items-center justify-center rounded-lg border px-2.5 text-xs font-medium shadow-sm transition-colors sm:px-3 sm:text-sm"
+                       :class="isTrialPublicBlocked ? 'border-amber-300 bg-amber-50 text-amber-950 hover:bg-amber-100' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900'">
+                        <span class="sm:hidden" aria-hidden="true">👁</span>
+                        <span class="hidden sm:inline" x-text="previewSiteButtonLabel"></span>
+                    </a>
 
-                        <button @click="requestPublish()" x-show="content && panelContentReady" type="button"
-                                :disabled="saving"
-                                :title="isPublishBlockedByPlan ? 'Publikacja tego motywu wymaga planu Premium' : 'Skopiuj stan roboczy do wersji publicznej (na żywo)'"
-                                class="inline-flex min-w-0 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-accent bg-accent px-4 py-2.5 text-sm font-bold text-accent-fg shadow-panel transition-colors hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:px-6">
-                            <span x-show="isPublishBlockedByPlan" x-cloak aria-hidden="true">🔒</span>
-                            <span x-show="!saving">Opublikuj zmiany</span>
-                            <span x-show="saving" x-cloak class="animate-pulse">Zapisywanie…</span>
+                    <button @click="requestPublish()" x-show="content && panelContentReady" type="button"
+                            :disabled="saving"
+                            :title="isPublishBlockedByPlan ? 'Publikacja tego motywu wymaga planu Premium' : 'Skopiuj stan roboczy do wersji publicznej (na żywo)'"
+                            class="inline-flex h-10 min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-accent bg-accent px-3 text-xs font-bold text-accent-fg shadow-panel transition-colors hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:px-4 sm:text-sm">
+                        <span x-show="isPublishBlockedByPlan" x-cloak aria-hidden="true">🔒</span>
+                        <span x-show="!saving">Opublikuj</span>
+                        <span x-show="saving" x-cloak class="animate-pulse">…</span>
+                    </button>
+
+                    <div class="relative shrink-0" x-data="{ open: false }" @click.outside="open = false">
+                        <button type="button"
+                                @click="open = !open"
+                                class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2"
+                                :aria-expanded="open ? 'true' : 'false'"
+                                aria-label="Więcej opcji">
+                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/></svg>
                         </button>
-
-                        <div class="relative shrink-0" x-data="{ open: false }" @click.outside="open = false">
-                            <button type="button"
-                                    @click="open = !open"
-                                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35 focus-visible:ring-offset-2"
-                                    :aria-expanded="open ? 'true' : 'false'"
-                                    aria-label="Więcej opcji">
-                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/></svg>
-                            </button>
-                            <div x-show="open" x-cloak x-transition.opacity class="absolute right-0 top-full z-50 mt-1 min-w-[11rem] rounded-xl border border-slate-200/90 bg-white py-1 shadow-panel-md ring-1 ring-slate-900/5">
-                                <p class="px-3 py-2 text-[11px] text-slate-400 truncate border-b border-slate-100" x-text="user?.email" title="Zalogowany użytkownik"></p>
-                                <button type="button" @click="revertChanges(); open = false" x-show="content && panelContentReady" :disabled="saving"
-                                        class="block w-full px-3 py-2.5 text-left text-sm text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50">
-                                    Odrzuć zmiany
-                                </button>
-                                <button type="button" @click="setTab('subscription'); open = false; $nextTick(() => { const el = document.getElementById('dfops-platnosci-info'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); })"
-                                        class="block w-full px-3 py-2.5 text-left text-sm text-slate-700 transition-colors hover:bg-slate-50">
-                                    Warunki i płatności
-                                </button>
-                                <button type="button" @click="logout(); open = false"
-                                        class="block w-full px-3 py-2.5 text-left text-sm text-red-600 transition-colors hover:bg-red-50">
-                                    Wyloguj
-                                </button>
+                        <div x-show="open" x-cloak x-transition.opacity class="absolute right-0 top-full z-50 mt-1 min-w-[12rem] rounded-xl border border-slate-200/90 bg-white py-1 shadow-panel-md ring-1 ring-slate-900/5">
+                            <p class="truncate border-b border-slate-100 px-3 py-2 text-[11px] text-slate-400" x-text="user?.email" title="Zalogowany użytkownik"></p>
+                            <div class="border-b border-slate-100 px-3 py-2 md:hidden">
+                                <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Szablon</p>
+                                <p class="truncate text-sm font-medium text-slate-800" x-text="themeDisplayLabel"></p>
+                                <a :href="getLiveSiteUrl()" target="_blank" rel="noopener noreferrer" class="mt-1 inline-flex items-center gap-1 text-xs font-medium text-accent" x-text="slug || 'LIVE'"></a>
                             </div>
+                            <div x-show="showOwnedPagesSelector" x-cloak class="border-b border-slate-100 px-3 py-2 lg:hidden">
+                                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Strona</label>
+                                <select
+                                    class="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs font-semibold text-slate-800"
+                                    :value="pageId"
+                                    @change="switchOwnedPage($event.target.value); open = false"
+                                    aria-label="Wybierz stronę">
+                                    <template x-for="p in ownedPages" :key="'m-owned-'+p.id">
+                                        <option :value="p.id" :selected="String(p.id) === String(pageId)" x-text="p.slug"></option>
+                                    </template>
+                                </select>
+                            </div>
+                            <button type="button" @click="revertChanges(); open = false" x-show="content && panelContentReady" :disabled="saving"
+                                    class="block w-full px-3 py-2.5 text-left text-sm text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50">
+                                Odrzuć zmiany
+                            </button>
+                            <button type="button" @click="setTab('subscription'); open = false; $nextTick(() => { const el = document.getElementById('dfops-platnosci-info'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); })"
+                                    class="block w-full px-3 py-2.5 text-left text-sm text-slate-700 transition-colors hover:bg-slate-50">
+                                Warunki i płatności
+                            </button>
+                            <button type="button" @click="logout(); open = false"
+                                    class="block w-full px-3 py-2.5 text-left text-sm text-red-600 transition-colors hover:bg-red-50">
+                                Wyloguj
+                            </button>
                         </div>
                     </div>
-                    <p x-show="content && panelContentReady" x-cloak class="text-right text-[11px] leading-snug text-slate-500 max-w-md">
-                        Zmiany zapisane — kliknij <strong class="font-semibold text-slate-600">Opublikuj</strong>, żeby były widoczne dla klientów.
-                    </p>
                 </div>
             </div>
+            <p x-show="content && panelContentReady" x-cloak class="hidden border-t border-slate-100 bg-slate-50/80 px-4 py-1.5 text-center text-[11px] leading-snug text-slate-500 md:block">
+                Zmiany zapisane — kliknij <strong class="font-semibold text-slate-600">Opublikuj</strong>, żeby były widoczne dla klientów.
+            </p>
         </header>
-
         <div x-show="panelBootLoading" x-cloak class="flex flex-grow flex-col items-center justify-center px-6 py-20">
             <div class="mb-4 h-12 w-12 animate-spin rounded-full border-2 border-accent border-t-transparent"></div>
             <p class="text-center text-sm font-medium tracking-wide text-slate-600">Wczytuję panel…</p>
