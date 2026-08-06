@@ -12,6 +12,61 @@ const corsHeaders: Record<string, string> = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+/** Hostname FQDN (bez protokołu, ścieżki, portu). */
+const DOMAIN_RE =
+  /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/;
+
+/** Domeny platformy / lokalne — nie wolno ich claimować jako custom_domain klienta. */
+const RESERVED_DOMAIN_SUFFIXES = [
+  "dfcms.pl",
+  "dfopscms.pl",
+  "dfopscms.pages.dev",
+  "pages.dev",
+  "localhost",
+];
+
+function normalizeHostname(raw: string): string {
+  return String(raw || "")
+    .trim()
+    .replace(/^https?:\/\//i, "")
+    .replace(/\/.*$/, "")
+    .replace(/[?#].*$/, "")
+    .replace(/:\d+$/, "")
+    .replace(/^www\./i, "")
+    .toLowerCase();
+}
+
+function isValidCustomerHostname(hostname: string): boolean {
+  if (!hostname || hostname.length > 253) return false;
+  if (/[^a-z0-9.-]/.test(hostname)) return false;
+  if (hostname.startsWith(".") || hostname.endsWith(".") || hostname.includes("..")) {
+    return false;
+  }
+  if (!DOMAIN_RE.test(hostname)) return false;
+  // Wymagaj co najmniej jednej kropki (nie „localhost”, nie single-label).
+  if (!hostname.includes(".")) return false;
+  return true;
+}
+
+function isReservedHostname(hostname: string): boolean {
+  const h = hostname.toLowerCase();
+  for (const suffix of RESERVED_DOMAIN_SUFFIXES) {
+    if (h === suffix || h.endsWith("." + suffix)) return true;
+  }
+  return false;
+}
+
+function normalizePlan(plan: unknown): string {
+  const raw = plan && String(plan).trim() !== "" ? String(plan).trim() : "trial";
+  if (raw === "tier2" || raw === "premium") return "tier1";
+  return raw;
+}
+
+function planAllowsCustomDomain(plan: unknown): boolean {
+  const p = normalizePlan(plan);
+  return p !== "trial" && p !== "tier0";
+}
+
 type CfHostname = {
   id?: string;
   hostname?: string;
@@ -207,17 +262,27 @@ serve(async (req) => {
       throw new Error("Brak autoryzacji");
     }
 
-    const body = await req.json();
-    const rawDomain = typeof body?.domain === "string" ? body.domain.trim() : "";
-    const hostname = rawDomain
-      .replace(/^https?:\/\//i, "")
-      .replace(/\/.*$/, "")
-      .replace(/^www\./i, "")
-      .toLowerCase();
+    const body = await req.json().catch(() => ({}));
+    const clear = body?.clear === true || body?.action === "clear";
+    const dnsVerified = body?.dnsVerified === true;
     const pageId = body?.pageId;
+    const hostname = normalizeHostname(
+      typeof body?.domain === "string" ? body.domain : "",
+    );
 
-    if (!hostname || !pageId) {
+    if (!pageId) {
+      throw new Error("Brak wymaganego parametru: pageId");
+    }
+    if (!clear && !hostname) {
       throw new Error("Brak wymaganych parametrów: domain lub pageId");
+    }
+    if (!clear) {
+      if (!isValidCustomerHostname(hostname)) {
+        throw new Error("Nieprawidłowy adres domeny");
+      }
+      if (isReservedHostname(hostname)) {
+        throw new Error("Tej domeny nie można podłączyć (domena platformy)");
+      }
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
@@ -239,7 +304,7 @@ serve(async (req) => {
 
     const { data: pageRow, error: pageErr } = await supabaseAdmin
       .from("pages")
-      .select("id, user_id")
+      .select("id, user_id, billing_plan, custom_domain")
       .eq("id", pageId)
       .limit(1)
       .maybeSingle();
@@ -249,6 +314,7 @@ serve(async (req) => {
       throw new Error("Brak uprawnień do tej strony");
     }
 
+    let isGod = false;
     const isOwner = pageRow.user_id === user.id;
     if (!isOwner) {
       const { data: superRow, error: superErr } = await supabaseAdmin
@@ -260,6 +326,70 @@ serve(async (req) => {
       if (!superRow?.user_id) {
         throw new Error("Brak uprawnień do tej strony");
       }
+      isGod = true;
+    } else {
+      const { data: superRow } = await supabaseAdmin
+        .from("superadmins")
+        .select("user_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      isGod = !!superRow?.user_id;
+    }
+
+    if (clear) {
+      const { error: clearErr } = await supabaseAdmin
+        .from("pages")
+        .update({
+          custom_domain: null,
+          custom_domain_status: "none",
+        })
+        .eq("id", pageId);
+      if (clearErr) throw clearErr;
+      return new Response(
+        JSON.stringify({
+          success: true,
+          cleared: true,
+          hostname: null,
+          custom_domain_status: "none",
+        }),
+        {
+          headers: { ...cors, "Content-Type": "application/json" },
+          status: 200,
+        },
+      );
+    }
+
+    if (!isGod) {
+      const ownerId = String(pageRow.user_id || "");
+      const { data: profile } = await supabaseAdmin
+        .from("billing_profiles")
+        .select("plan")
+        .eq("user_id", ownerId)
+        .maybeSingle();
+      const planFromProfile = normalizePlan(profile?.plan);
+      const planFromPage = normalizePlan(pageRow.billing_plan);
+      const effectivePlan =
+        planFromProfile && planFromProfile !== "trial"
+          ? planFromProfile
+          : planFromPage;
+      if (!planAllowsCustomDomain(effectivePlan)) {
+        throw new Error(
+          "Własna domena jest dostępna od planu Standard. Ulepsz subskrypcję w panelu.",
+        );
+      }
+    }
+
+    // Unikalność: inna strona nie może trzymać tej samej domeny.
+    const { data: taken, error: takenErr } = await supabaseAdmin
+      .from("pages")
+      .select("id")
+      .eq("custom_domain", hostname)
+      .neq("id", pageId)
+      .limit(1)
+      .maybeSingle();
+    if (takenErr) throw takenErr;
+    if (taken?.id) {
+      throw new Error("Ta domena jest już przypisana do innej strony");
     }
 
     const CF_ZONE_ID = Deno.env.get("CF_ZONE_ID");
@@ -296,16 +426,23 @@ serve(async (req) => {
         String(r?.status || "").toLowerCase() === "active" &&
         String(r?.ssl_status || "").toLowerCase() === "active",
     );
+    const dbStatus = cfActive || dnsVerified ? "active" : "pending";
 
     const { error: dbError } = await supabaseAdmin
       .from("pages")
       .update({
         custom_domain: hostname,
-        custom_domain_status: cfActive ? "active" : "pending",
+        custom_domain_status: dbStatus,
       })
       .eq("id", pageId);
 
-    if (dbError) throw dbError;
+    if (dbError) {
+      // UNIQUE pages_custom_domain_key — race z innym claimem
+      if (String(dbError.code || "") === "23505") {
+        throw new Error("Ta domena jest już przypisana do innej strony");
+      }
+      throw dbError;
+    }
 
     return new Response(
       JSON.stringify({
@@ -316,6 +453,8 @@ serve(async (req) => {
         hostname,
         alreadyExists,
         cfActive,
+        dnsVerified,
+        custom_domain_status: dbStatus,
         apex: apexSummary,
         www: wwwSummary,
         data: apexResult.record,

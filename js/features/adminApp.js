@@ -3639,6 +3639,43 @@
         return window.DFOPS_normalizeHostname(withoutProtocolAndPath);
       },
 
+      async invokeAddCustomDomain(body) {
+        const { data: sessionData } = await this.supabase.auth.getSession();
+        const token = sessionData?.session?.access_token;
+        if (!token) {
+          throw new Error('Sesja wygasła. Odśwież stronę i zaloguj się ponownie.');
+        }
+        const { data: cfData, error: cfError } = await this.supabase.functions.invoke(
+          'add-custom-domain',
+          {
+            body,
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        if (cfError) {
+          const detail =
+            (cfData && typeof cfData.error === 'string' && cfData.error) ||
+            (typeof cfError.message === 'string' && cfError.message) ||
+            '';
+          throw new Error(detail || 'Nie udało się zaktualizować domeny.');
+        }
+        if (cfData && cfData.success === false) {
+          throw new Error(
+            (typeof cfData.error === 'string' && cfData.error) ||
+              'Nie udało się zaktualizować domeny.',
+          );
+        }
+        return cfData || {};
+      },
+
+      async clearCustomDomainViaEdge() {
+        if (!this.supabase || !this.pageId) return;
+        await this.invokeAddCustomDomain({ clear: true, pageId: this.pageId });
+        this.customDomain = '';
+        this.customDomainStatus = 'none';
+        this.domainInput = '';
+      },
+
       async verifyAndSaveDomain() {
         if (this.isCustomDomainLocked) return;
         if (window.location.protocol === 'file:') {
@@ -3668,41 +3705,9 @@
         this.domainError = '';
 
         try {
-          const { data: sessionData } = await this.supabase.auth.getSession();
-          const token = sessionData?.session?.access_token;
-          if (!token) {
-            this.domainError = 'Brak sesji. Zaloguj się ponownie.';
-            return;
-          }
-
-          const { data: cfData, error: cfError } = await this.supabase.functions.invoke(
-            'add-custom-domain',
-            {
-              body: { domain: cleanDomain, pageId: this.pageId },
-              headers: { Authorization: `Bearer ${token}` },
-            },
-          );
-          if (cfError) {
-            const detail =
-              (cfData && typeof cfData.error === 'string' && cfData.error) ||
-              (typeof cfError.message === 'string' && cfError.message) ||
-              '';
-            throw new Error(detail || 'Nie udało się zarejestrować domeny w Cloudflare.');
-          }
-          if (cfData && cfData.success === false) {
-            throw new Error(
-              (typeof cfData.error === 'string' && cfData.error) ||
-                'Nie udało się zarejestrować domeny w Cloudflare.',
-            );
-          }
-
-          const hostname =
-            (cfData && typeof cfData.hostname === 'string' && cfData.hostname.trim()) ||
-            cleanDomain;
-          this.domainInput = hostname;
-
+          // DNS check first — wynik przekazywany do Edge (zapis custom_domain tylko service_role).
           const response = await fetch(
-            `/api/verify-domain?domain=${encodeURIComponent(hostname)}`,
+            `/api/verify-domain?domain=${encodeURIComponent(cleanDomain)}`,
           );
           const result = await response.json().catch(() => ({}));
 
@@ -3712,15 +3717,21 @@
           }
 
           const dnsVerified = result.status === 'verified';
-          const cfActive = !!(cfData && cfData.cfActive);
-          const dbStatus = dnsVerified || cfActive ? 'active' : 'pending';
-
-          const { error } = await this.saveActivePage({
-            custom_domain: hostname,
-            custom_domain_status: dbStatus,
+          const cfData = await this.invokeAddCustomDomain({
+            domain: cleanDomain,
+            pageId: this.pageId,
+            dnsVerified,
           });
-          if (error) throw error;
 
+          const hostname =
+            (cfData && typeof cfData.hostname === 'string' && cfData.hostname.trim()) ||
+            cleanDomain;
+          const dbStatus =
+            (cfData && typeof cfData.custom_domain_status === 'string' &&
+              cfData.custom_domain_status) ||
+            (dnsVerified || (cfData && cfData.cfActive) ? 'active' : 'pending');
+
+          this.domainInput = hostname;
           this.customDomain = hostname;
           this.customDomainStatus = dbStatus;
 
@@ -3734,7 +3745,7 @@
               : '';
 
           if (dbStatus === 'active') {
-            this.domainMessage = cfActive
+            this.domainMessage = cfData && cfData.cfActive
               ? 'Domena zweryfikowana i zapisana (Cloudflare aktywny).'
               : 'DNS wygląda poprawnie — certyfikat SSL może jeszcze chwilę się aktywować (spróbuj też https://www.…).';
             this.showDnsInstructions = false;
@@ -3967,15 +3978,16 @@
             color_preset: this.content.pl.settings.color_preset,
             theme: this.theme,
           };
-          if (!this.isCustomDomainLocked) {
-            payload.custom_domain = this.customDomain;
-          } else {
-            payload.custom_domain = null;
-            payload.custom_domain_status = 'none';
+          // custom_domain* tylko przez Edge add-custom-domain (service_role) — nie przez publish.
+          if (this.isCustomDomainLocked && (this.customDomain || this.customDomainStatus === 'active' || this.customDomainStatus === 'pending')) {
+            try {
+              await this.clearCustomDomainViaEdge();
+            } catch (clearErr) {
+              console.warn('[DFCMS] clearCustomDomainViaEdge:', clearErr);
+            }
           }
           const { error } = await this.saveActivePage(payload);
           if (error) throw error;
-          if (this.isCustomDomainLocked) this.customDomain = '';
           /** Odblokowanie trial_blocked_at / billing_failed_at tylko przez Stripe webhook / sync (service_role). */
           /** Migawka produkcji po udanej publikacji — żeby „Odrzuć zmiany” wracało do świeżo opublikowanej wersji. */
           this._publishedContentRaw = JSON.parse(JSON.stringify(this.content));

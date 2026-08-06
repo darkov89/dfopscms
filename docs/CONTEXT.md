@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-08-04 — Własna domena: Edge CF + 2× A w instrukcji
+**Ostatnia aktualizacja:** 2026-08-05 — Security scan panelu: freeze custom_domain + Edge harden
 
 ---
 
@@ -184,6 +184,7 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 - **Forced password reset:** recovery → `isForcedPasswordReset` → izolatka bez `loadData()` do zmiany hasła.
 - **Treść:** DOMPurify + `pageRepository.sanitizeContent` (w tym `menu_image` / elementy `gallery.images`); mapy — tylko Google embed URL; GTM/Pixel — walidacja formatu ID; custom privacy policy renderowana przez `sanitizeHtml`.
 - **Stripe / billing SoT:** webhook secret tylko Edge; `billing_profiles` zapis wyłącznie `service_role` (brak INSERT policy dla `authenticated`); lustro `pages.billing_plan` / `trial_blocked_at` / `billing_failed_at` chronione triggerem `protect_pages_billing_columns` — panel **nie** czyści blokad przy publish.
+- **Custom domain SoT:** `pages.custom_domain` / `custom_domain_status` chronione triggerem `protect_pages_custom_domain_columns` — client JWT nie claimuje domeny przez PostgREST; zapis/clear tylko Edge `add-custom-domain` (`service_role`) po JWT + ownership/superadmin + walidacji hostname / blocklist domen platformy + gate planu Standard+.
 - **Google Reviews Edge:** sesja wymagana; Places: `GOOGLE_MAPS_API_KEY` tylko serwer; embed iframe: osobny `GOOGLE_MAPS_EMBED_API_KEY` (HTTP referrer); panel autocomplete → `place_id`.
 - **Checkout / Portal / God Mode CORS:** `returnUrl` i CORS przez `_shared/allowedOrigins.ts` — `dfcms.pl`, `*.dfcms.pl`, localhost oraz preview tego projektu (`dfopscms.pages.dev`, `*.dfopscms.pages.dev`). Nie dowolne `*.pages.dev`.
 - **Telegram:** `telegram-webhook` wymaga `Authorization: Bearer TELEGRAM_WEBHOOK_SECRET` (fail-closed). Database Webhooks + Sentry muszą mieć ten header. Osobny od `CRON_SECRET`.
@@ -191,10 +192,10 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 - **Nagłówki HTTP:** Cloudflare middleware dokleja CSP (Supabase/Stripe/Google Maps/CDN/Sentry/Calendly), `X-Content-Type-Options`, `X-Frame-Options: DENY`, HSTS dla HTTPS, Referrer/Permissions Policy.
 - **Anti-abuse:** Turnstile widget w `rejestracja.html`, `zapytanie-custom.html` i panelu subskrypcji; `create-checkout` weryfikuje `turnstileToken` przez `_shared/turnstileVerification.ts` przed Supabase/Stripe. Secrets: `PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`.
 - **Publiczny odczyt stron:** anon — polityka `pages_select_public` + granty kolumnowe **bez** `draft_content` (zablokowane wiersze niewidoczne); authenticated — tylko `pages_select_owner` (`user_id = auth.uid()`); soft-block meta: RPC `get_public_site_route` (bez content); `purge_trial_blocked_pages_after_grace` tylko `service_role`/`postgres`.
-- **Storage images:** upload `{user_id}/{slug}-…`; INSERT/UPDATE/DELETE wymaga ownership (prefix uid lub legacy flat `{slug}-…` własnej strony).
+- **Storage images:** upload `{user_id}/{slug}-…`; INSERT/UPDATE/DELETE/SELECT (authenticated) wymaga ownership (prefix uid lub legacy flat `{slug}-…` własnej strony); publiczny odczyt URL bez listingu cudzych obiektów.
 - **God Mode RLS:** `superadmins` ma SELECT tylko własnego wiersza dla `authenticated`; wpisy dodaje/usuwa operacyjnie `service_role`. Polityki superadminów na `pages` i `analytics_events` są dodatkowymi OR-ścieżkami RLS, nie zastępują dostępu właściciela.
 - **Widoczność sekcji:** toggles per zakładka (`showGallery`, `showGoogleReviews`, …); hero bez toggle.
-- **Migracja:** `20260727180000_security_harden_crit_high.sql`; soft-block meta: `20260804160000_get_public_site_route.sql`.
+- **Migracje security:** `20260727180000_security_harden_crit_high.sql`; soft-block meta: `20260804160000_get_public_site_route.sql`; custom domain freeze: `20260805120000_protect_custom_domain_columns.sql`; storage select own: `20260805121000_storage_images_select_own.sql`.
 
 ### 1.7 User journey (skrót)
 
@@ -388,6 +389,15 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-08-05 — Security scan panelu admina (custom_domain + storage)
+
+- **Finding High:** authenticated JWT mógł `UPDATE pages.custom_domain` / `custom_domain_status` (GRANT + brak triggera) — claim domeny bez Edge/Cloudflare.
+- **Fix DB:** `protect_pages_custom_domain_columns` (`20260805120000_*`) — freeze jak billing; revoke UPDATE/INSERT tych kolumn dla `authenticated`.
+- **Fix Edge** `add-custom-domain`: walidacja FQDN, blocklist domen platformy, gate planu Standard+, unik uniqueness, `clear: true`, `dnsVerified` → status; zapis wyłącznie `service_role`.
+- **Fix panel:** publish nie pisze `custom_domain*`; clear przy downgrade → Edge; verify → DNS + Edge (bez PostgREST write).
+- **Medium:** Storage `images` SELECT authenticated zawężony do własnych obiektów (`20260805121000_*`).
+- **Deploy:** `db push` + `functions deploy add-custom-domain` na Staging, potem Production po merge.
 
 ### 2026-08-05 — Fix domeny: Error 1001 / SSL mismatch (dfops.eu)
 
