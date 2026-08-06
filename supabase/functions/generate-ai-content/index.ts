@@ -149,8 +149,9 @@ Zaadaptuj podany JSON copy z języka źródłowego na język: ${langName} (kod: 
 Zasady:
 - Nie tłumacz słowo w słowo — lokalizuj pod rynek docelowy (CTA, SEO, naturalne frazy).
 - Ton: ${tone}.
+- Przetłumacz WSZYSTKIE pola tekstowe ze schematu: nagłówki sekcji, etykiety menu, FAQ, CTA rezerwacji, cytat stopki, SEO — nie pomijaj „małych” napisów.
 - Zachowaj strukturę JSON (te same klucze); nie dodawaj pól spoza schematu.
-- Nie zmyślaj telefonów/e-maili/adresów — zostaw puste "" jeśli źródło też ma puste.
+- Nie zmyślaj telefonów/e-maili/adresów — zostaw puste "" jeśli źródło też ma puste; numery/emaile zostaw bez zmian gdy są wypełnione.
 - Zwykły tekst — BEZ HTML, BEZ tagów, BEZ markdown.
 - Zwróć wyłącznie JSON zgodny ze schematem.`;
   }

@@ -32,11 +32,27 @@ const SERVICE_TRADES: Record<string, FieldDef> = {
   icon: "string",
 };
 
-/** Tylko pola z edytorem w panelu (telefon / e-mail / adres). CTA rezerwacji = booking w adminie. */
+/** Tylko pola z edytorem w panelu. CTA / tytuł sekcji — per motyw (consultant). */
 const CONTACT_COPY: Record<string, FieldDef> = {
   phone: "string",
   email: "string",
   address: "string",
+};
+
+const CONTACT_WITH_BOOKING_CTA: Record<string, FieldDef> = {
+  title: "string",
+  phone: "string",
+  email: "string",
+  address: "string",
+  cta: {
+    type: "object",
+    fields: {
+      section_label: "string",
+      title: "string",
+      description: "string",
+      button_text: "string",
+    },
+  },
 };
 
 const CONTACT_BASIC: Record<string, FieldDef> = {
@@ -63,10 +79,11 @@ const BASE_NAV = (menu: Record<string, FieldDef>): FieldDef => ({
   },
 });
 
-/** Pola hero z zakładki Baner (+ opcjonalne w details). Bez subheadline — brak inputu w adminie. */
+/** Pola hero z zakładki Baner (+ opcjonalne w details). */
 const HERO_COMMON: Record<string, FieldDef> = {
   name: "string",
   headline: "string",
+  subheadline: "string",
   description: "string",
   button: "string",
 };
@@ -76,9 +93,36 @@ const MANIFESTO: FieldDef = {
   fields: { label: "string", title: "string", text: "string" },
 };
 
+const PROOF: FieldDef = {
+  type: "object",
+  fields: {
+    label: "string",
+    title: "string",
+    text: "string",
+    statNumber: "string",
+    statLabel: "string",
+    statDesc: "string",
+  },
+};
+
+const SECTION_HEADING: FieldDef = {
+  type: "object",
+  fields: { label: "string", title: "string" },
+};
+
 const SEO: FieldDef = {
   type: "object",
   fields: { title: "string", description: "string" },
+};
+
+const FOOTER_QUOTE: FieldDef = {
+  type: "object",
+  fields: { quote: "string" },
+};
+
+const COOKIES_COPY: FieldDef = {
+  type: "object",
+  fields: { text: "string", accept: "string" },
 };
 
 /** Drzewa copy per motyw (klucze pod `pl`). */
@@ -96,6 +140,7 @@ export const AI_COPY_SCHEMAS: Record<string, Record<string, FieldDef>> = {
     google_reviews: { type: "object", fields: { title: "string" } },
     gallery: { type: "object", fields: { title: "string" } },
     seo: SEO,
+    cookies: COOKIES_COPY,
   },
   consultant: {
     nav: BASE_NAV({
@@ -103,21 +148,30 @@ export const AI_COPY_SCHEMAS: Record<string, Record<string, FieldDef>> = {
       pricing: "string",
       faq: "string",
       reviews: "string",
+      booking: "string",
       contact: "string",
     }),
     hero: { type: "object", fields: HERO_COMMON },
     manifesto: MANIFESTO,
     services: { type: "array", item: SERVICE_BASIC, maxItems: 8 },
+    proof: PROOF,
+    faq_heading: SECTION_HEADING,
     faq: { type: "array", item: FAQ_ITEM, maxItems: 8 },
+    reviews_heading: SECTION_HEADING,
     reviews: {
       type: "array",
       item: { author: "string", content: "string" },
       maxItems: 6,
     },
-    contact: { type: "object", fields: CONTACT_COPY },
-    google_reviews: { type: "object", fields: { title: "string" } },
+    contact: { type: "object", fields: CONTACT_WITH_BOOKING_CTA },
+    google_reviews: {
+      type: "object",
+      fields: { label: "string", title: "string" },
+    },
     gallery: { type: "object", fields: { title: "string" } },
+    footer: FOOTER_QUOTE,
     seo: SEO,
+    cookies: COOKIES_COPY,
   },
   fitness: {
     nav: BASE_NAV({
@@ -145,6 +199,7 @@ export const AI_COPY_SCHEMAS: Record<string, Record<string, FieldDef>> = {
     google_reviews: { type: "object", fields: { title: "string" } },
     gallery: { type: "object", fields: { title: "string" } },
     seo: SEO,
+    cookies: COOKIES_COPY,
   },
   services: {
     nav: BASE_NAV({
@@ -176,6 +231,7 @@ export const AI_COPY_SCHEMAS: Record<string, Record<string, FieldDef>> = {
     google_reviews: { type: "object", fields: { title: "string" } },
     gallery: { type: "object", fields: { title: "string" } },
     seo: SEO,
+    cookies: COOKIES_COPY,
   },
   gastro: {
     nav: BASE_NAV({
@@ -227,6 +283,7 @@ export const AI_COPY_SCHEMAS: Record<string, Record<string, FieldDef>> = {
     faq: { type: "array", item: FAQ_ITEM, maxItems: 6 },
     contact: { type: "object", fields: CONTACT_BASIC },
     seo: SEO,
+    cookies: COOKIES_COPY,
   },
   care: {
     nav: BASE_NAV({
@@ -251,6 +308,7 @@ export const AI_COPY_SCHEMAS: Record<string, Record<string, FieldDef>> = {
     faq: { type: "array", item: FAQ_ITEM, maxItems: 8 },
     contact: { type: "object", fields: CONTACT_BASIC },
     seo: SEO,
+    cookies: COOKIES_COPY,
   },
 };
 
@@ -457,6 +515,15 @@ export function applyAiGeneratedSectionFlags(
     (String(manifesto.title || "").trim() || String(manifesto.text || "").trim())
   ) {
     settings.showManifesto = true;
+  }
+  const proof = pl.proof as Record<string, unknown> | undefined;
+  if (
+    proof &&
+    (String(proof.title || "").trim() ||
+      String(proof.text || "").trim() ||
+      String(proof.statNumber || "").trim())
+  ) {
+    settings.showProof = true;
   }
   if (
     Array.isArray(pl.faq) &&
