@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-08-05 — Security scan panelu: freeze custom_domain + Edge harden
+**Ostatnia aktualizacja:** 2026-08-06 — Deploy security PR + cache-bust panelu po freeze custom_domain
 
 ---
 
@@ -389,6 +389,12 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-08-06 — Deploy security + hotfix cache panelu (zapis domeny)
+
+- **Merged/deployed** PR #2 (freeze `custom_domain` + storage SELECT) na Staging i Production (`db push` + `functions deploy add-custom-domain`; `main` → `staging`).
+- **Objaw po deployu:** stary panel jeszcze robił `PATCH pages.custom_domain` → `42501 permission denied` (grant już zdjęty).
+- **Hotfix:** bump `adminApp.js` / `pageRepository.js` `?v=20260806a`; `pageRepository` stripuje `custom_domain*` z client UPDATE.
 
 ### 2026-08-05 — Security scan panelu admina (custom_domain + storage)
 

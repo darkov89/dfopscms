@@ -591,8 +591,16 @@
     return { data: sanitizePageRow(data), error };
   }
 
-  async function savePageByIdForOwner(userId, pageId, payload) {
+  /** custom_domain* tylko Edge add-custom-domain (service_role) — nie PostgREST z panelu. */
+  function stripClientDomainFields(payload) {
     const safe = { ...payload };
+    delete safe.custom_domain;
+    delete safe.custom_domain_status;
+    return safe;
+  }
+
+  async function savePageByIdForOwner(userId, pageId, payload) {
+    const safe = stripClientDomainFields(payload);
     if (safe.content) safe.content = sanitizeContent(safe.content);
     if (safe.draft_content) safe.draft_content = sanitizeContent(safe.draft_content);
     const { data, error } = await supabase()
@@ -606,7 +614,7 @@
   }
 
   async function saveCurrentUserPage(userId, payload) {
-    const safe = { ...payload };
+    const safe = stripClientDomainFields(payload);
     // Sanityzacja dotyczy obu wariantów treści: publikowanej (`content`) oraz roboczej (`draft_content`).
     if (safe.content) safe.content = sanitizeContent(safe.content);
     if (safe.draft_content) safe.draft_content = sanitizeContent(safe.draft_content);
@@ -620,7 +628,7 @@
   }
 
   async function savePageByIdForSuperadmin(pageId, payload) {
-    const safe = { ...payload };
+    const safe = stripClientDomainFields(payload);
     if (safe.content) safe.content = sanitizeContent(safe.content);
     if (safe.draft_content) safe.draft_content = sanitizeContent(safe.draft_content);
     const { data, error } = await supabase()
@@ -633,7 +641,7 @@
   }
 
   async function createPage(payload) {
-    const safe = { ...payload };
+    const safe = stripClientDomainFields(payload);
     if (safe.content) safe.content = sanitizeContent(safe.content);
     const { data, error } = await supabase().from('pages').insert(safe).select().maybeSingle();
     return { data: sanitizePageRow(data), error };
