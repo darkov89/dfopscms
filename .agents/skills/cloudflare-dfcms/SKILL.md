@@ -71,7 +71,7 @@ Secrets for CF API live in **Supabase Edge** (`CF_ZONE_ID`, `CF_API_TOKEN`), not
 
 ## Security headers (middleware)
 
-CSP allows Supabase, Stripe, Google Maps, Sentry, Calendly, CDN assets. Also sets HSTS, `X-Frame-Options: DENY`, `X-Content-Type-Options`, Referrer/Permissions Policy.
+CSP allows Supabase, Stripe, Google Maps, GTM/GA4, Meta Pixel, Sentry, Calendly, CDN assets. Also sets HSTS, `X-Frame-Options: DENY`, `X-Content-Type-Options`, Referrer/Permissions Policy.
 
 When adding a new third-party script domain, update CSP in `_middleware.js` and test on staging.
 

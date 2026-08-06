@@ -312,12 +312,13 @@ function applySecurityHeaders(request, response) {
       "form-action 'self'",
       "upgrade-insecure-requests",
       "block-all-mixed-content",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://maps.googleapis.com https://js.stripe.com https://js-de.sentry-cdn.com https://browser.sentry-cdn.com https://challenges.cloudflare.com",
+      // GTM / GA4 / Meta Pixel: domains per Google Tag Manager CSP + Facebook Pixel loader
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://maps.googleapis.com https://js.stripe.com https://js-de.sentry-cdn.com https://browser.sentry-cdn.com https://challenges.cloudflare.com https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://connect.facebook.net",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: https: blob: https://maps.gstatic.com https://maps.googleapis.com",
-      "frame-src 'self' https://www.google.com https://www.google.com/maps/ https://js.stripe.com https://calendly.com https://challenges.cloudflare.com",
-      "connect-src 'self' https://*.supabase.co https://api.stripe.com https://maps.googleapis.com https://*.sentry.io https://js-de.sentry-cdn.com https://browser.sentry-cdn.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://challenges.cloudflare.com",
+      "frame-src 'self' https://www.google.com https://www.google.com/maps/ https://js.stripe.com https://calendly.com https://challenges.cloudflare.com https://www.googletagmanager.com",
+      "connect-src 'self' https://*.supabase.co https://api.stripe.com https://maps.googleapis.com https://*.sentry.io https://js-de.sentry-cdn.com https://browser.sentry-cdn.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://challenges.cloudflare.com https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://*.g.doubleclick.net https://www.google.com https://www.facebook.com https://connect.facebook.net",
       "worker-src 'self' blob:",
     ].join('; ');
     headers.set('Content-Security-Policy', csp);

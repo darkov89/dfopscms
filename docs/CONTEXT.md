@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-08-06 — AI schema: brakujące pola consultant (CTA, proof, headings)
+**Ostatnia aktualizacja:** 2026-08-06 — CSP: GTM / GA4 / Meta Pixel
 
 ---
 
@@ -189,7 +189,7 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 - **Checkout / Portal / God Mode CORS:** `returnUrl` i CORS przez `_shared/allowedOrigins.ts` — `dfcms.pl`, `*.dfcms.pl`, localhost oraz preview tego projektu (`dfopscms.pages.dev`, `*.dfopscms.pages.dev`). Nie dowolne `*.pages.dev`.
 - **Telegram:** `telegram-webhook` wymaga `Authorization: Bearer TELEGRAM_WEBHOOK_SECRET` (fail-closed). Database Webhooks + Sentry muszą mieć ten header. Osobny od `CRON_SECRET`.
 - **Smart Booking:** `settings.booking_mode` + `contact.booking_url`; Booksy embed — ostrzeżenie X-Frame-Options.
-- **Nagłówki HTTP:** Cloudflare middleware dokleja CSP (Supabase/Stripe/Google Maps/CDN/Sentry/Calendly), `X-Content-Type-Options`, `X-Frame-Options: DENY`, HSTS dla HTTPS, Referrer/Permissions Policy.
+- **Nagłówki HTTP:** Cloudflare middleware dokleja CSP (Supabase/Stripe/Google Maps/CDN/Sentry/Calendly/GTM/GA4/Meta Pixel), `X-Content-Type-Options`, `X-Frame-Options: DENY`, HSTS dla HTTPS, Referrer/Permissions Policy.
 - **Anti-abuse:** Turnstile widget w `rejestracja.html`, `zapytanie-custom.html` i panelu subskrypcji; `create-checkout` i `send-custom-inquiry` weryfikują `turnstileToken` przez `_shared/turnstileVerification.ts`. Secrets: `PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`.
 - **Publiczny odczyt stron:** anon — polityka `pages_select_public` + granty kolumnowe **bez** `draft_content` (zablokowane wiersze niewidoczne); authenticated — tylko `pages_select_owner` (`user_id = auth.uid()`); soft-block meta: RPC `get_public_site_route` (bez content); `purge_trial_blocked_pages_after_grace` tylko `service_role`/`postgres`.
 - **Storage images:** upload `{user_id}/{slug}-…`; INSERT/UPDATE/DELETE/SELECT (authenticated) wymaga ownership (prefix uid lub legacy flat `{slug}-…` własnej strony); publiczny odczyt URL bez listingu cudzych obiektów.
@@ -390,6 +390,10 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-08-06 — CSP: odblokowanie GTM / GA4 / Meta Pixel
+- **Problem:** baner cookies wstrzykuje GTM (`googletagmanager.com`) i Meta Pixel (`connect.facebook.net`), ale CSP w `functions/_middleware.js` whitelistsował tylko Maps/Stripe/Sentry — konsola: naruszenia CSP przy skryptach Google.
+- **Fix:** `script-src` / `connect-src` / `frame-src` — domeny GTM, GA4 (`*.google-analytics.com`, `*.analytics.google.com`, `*.g.doubleclick.net`) oraz Facebook Pixel; `img-src` już ma `https:`.
 
 ### 2026-08-06 — AI schema: pola które nie wchodziły w tłumaczenie
 - **Consultant (i wspólne):** `aiCopySchemas` — dodane m.in. `hero.subheadline`, `proof`, `faq_heading`, `reviews_heading`, `contact.title` + `contact.cta.*`, `nav.menu.booking`, `footer.quote`, `google_reviews.label`, `cookies`.
