@@ -56,12 +56,19 @@
     return false;
   }
 
+  function resolveAiTheme(self) {
+    return String(self.wizardTheme || self.theme || '')
+      .trim()
+      .toLowerCase();
+  }
+
   window.DFOPS_attachAiGenerator = function attachAiGenerator(app) {
     if (!app || typeof app !== 'object') return;
 
     app.aiPrompt = '';
     app.isGeneratingAi = false;
     app.aiGeneratingField = '';
+    app.aiProgressLabel = '';
     app.aiModalOpen = false;
     app.aiRemaining = null;
     app.aiLimit = null;
@@ -98,9 +105,7 @@
         this.showToast('Brak aktywnej strony.', 'error');
         return;
       }
-      const theme = String(this.wizardTheme || this.theme || '')
-        .trim()
-        .toLowerCase();
+      const theme = resolveAiTheme(this);
       if (!theme || theme === 'setup') {
         this.showToast('Najpierw wybierz szablon branżowy w kreatorze lub w ustawieniach.', 'info');
         return;
@@ -110,10 +115,14 @@
         const loc = this.editLocale || 'pl';
         const def = typeof this.i18nDefaultLocale === 'function' ? this.i18nDefaultLocale() : 'pl';
         if (loc === def) {
-          this.showToast('Zlokalizuj działa dla dodatkowego języka (EN/DE). Przełącz język edycji.', 'info');
+          this.showToast(
+            'Najpierw przełącz język edycji na English lub Deutsch (górny pasek), potem tłumacz.',
+            'info',
+          );
           return;
         }
       }
+      this.aiPrompt = '';
       this.aiModalOpen = true;
     };
 
@@ -139,15 +148,14 @@
         this.showToast('Brak połączenia z serwisem. Odśwież stronę.', 'error');
         return;
       }
-      const theme = String(this.wizardTheme || this.theme || '')
-        .trim()
-        .toLowerCase();
+      const theme = resolveAiTheme(this);
       if (!theme || theme === 'setup') {
         this.showToast('Najpierw wybierz szablon branżowy.', 'info');
         return;
       }
 
       this.isGeneratingAi = true;
+      this.aiProgressLabel = 'Generuję tekst…';
       this.aiGeneratingField = path;
       this._suppressContentWatch = true;
       if (this._draftAutosaveTimer) {
@@ -221,6 +229,7 @@
       } finally {
         this.isGeneratingAi = false;
         this.aiGeneratingField = '';
+        this.aiProgressLabel = '';
         setTimeout(() => {
           this._suppressContentWatch = false;
         }, 0);
@@ -231,10 +240,15 @@
     app.adaptLocaleWithAi = async function adaptLocaleWithAi(targetLocale, opts) {
       const options = opts && typeof opts === 'object' ? opts : {};
       const silent = options.silent === true;
-      if (this.isGeneratingAi) return false;
+      const extraPrompt = String(options.prompt || '').trim();
+      if (this.isGeneratingAi) {
+        if (!silent) this.showToast('AI już pracuje — poczekaj na zakończenie.', 'info');
+        return false;
+      }
       if (!this.canUseAiGenerator()) {
         if (!silent) {
-          this.showToast('Lokalizacja AI wymaga planu Starter lub Standard.', 'info');
+          this.showToast('Tłumaczenie AI wymaga planu Starter lub Standard.', 'info');
+          if (typeof this.setTab === 'function') this.setTab('subscription');
         }
         return false;
       }
@@ -243,15 +257,27 @@
         .toLowerCase();
       const sourceLocale =
         typeof this.i18nDefaultLocale === 'function' ? this.i18nDefaultLocale() : 'pl';
-      if (!locale || locale === sourceLocale) return false;
-      if (!this.pageId || !this.supabase) return false;
+      const localeLabel =
+        typeof this.i18nLocaleLabel === 'function' ? this.i18nLocaleLabel(locale) : locale;
+      if (!locale || locale === sourceLocale) {
+        if (!silent) this.showToast('Wybierz dodatkowy język (English / Deutsch).', 'info');
+        return false;
+      }
+      if (!this.pageId || !this.supabase) {
+        if (!silent) this.showToast('Brak połączenia z serwisem. Odśwież stronę.', 'error');
+        return false;
+      }
 
-      const theme = String(this.theme || '')
-        .trim()
-        .toLowerCase();
-      if (!theme || theme === 'setup') return false;
+      const theme = resolveAiTheme(this);
+      if (!theme || theme === 'setup') {
+        if (!silent) {
+          this.showToast('Najpierw wybierz szablon branżowy w kreatorze lub w ustawieniach.', 'info');
+        }
+        return false;
+      }
 
       this.isGeneratingAi = true;
+      this.aiProgressLabel = 'Tłumaczę na ' + localeLabel + '… To zwykle trwa 15–40 sekund.';
       this._suppressContentWatch = true;
       if (this._draftAutosaveTimer) {
         clearTimeout(this._draftAutosaveTimer);
@@ -275,7 +301,7 @@
         const { data, error } = await this.supabase.functions.invoke('generate-ai-content', {
           body: {
             pageId: this.pageId,
-            prompt: '',
+            prompt: extraPrompt,
             theme,
             locale,
             mode: 'adapt',
@@ -298,16 +324,16 @@
               : data.draft_content;
           if (typeof this.i18nAfterContentLoad === 'function') {
             this.i18nAfterContentLoad();
-            if (typeof this.setEditLocale === 'function') this.setEditLocale(locale);
+            if (typeof this.setEditLocale === 'function') await this.setEditLocale(locale);
           }
         }
         if (typeof data.remaining === 'number') this.aiRemaining = data.remaining;
         if (typeof data.limit === 'number') this.aiLimit = data.limit;
         if (!silent) {
           this.showToast(
-            'AI przetłumaczyło treści na ' +
-              (typeof this.i18nLocaleLabel === 'function' ? this.i18nLocaleLabel(locale) : locale) +
-              '.',
+            'Gotowe — strona ma wersję ' +
+              localeLabel +
+              '. Sprawdź Podgląd, potem kliknij Opublikuj zmiany.',
             'success',
           );
         }
@@ -319,6 +345,7 @@
         return false;
       } finally {
         this.isGeneratingAi = false;
+        this.aiProgressLabel = '';
         setTimeout(() => {
           this._suppressContentWatch = false;
         }, 0);
@@ -342,23 +369,41 @@
         return;
       }
 
+      const theme = resolveAiTheme(this);
+      if (!theme || theme === 'setup') {
+        this.showToast('Najpierw wybierz szablon branżowy w kreatorze lub w ustawieniach.', 'info');
+        return;
+      }
+
       const locale = this.editLocale || 'pl';
       const sourceLocale =
         typeof this.i18nDefaultLocale === 'function' ? this.i18nDefaultLocale() : 'pl';
+      const localeLabel =
+        typeof this.i18nLocaleLabel === 'function' ? this.i18nLocaleLabel(locale) : locale;
 
-      const ok = await this.confirmAsync({
-        title: mode === 'adapt' ? 'Zlokalizować treść?' : 'Nadpisać treść roboczą?',
-        message:
-          mode === 'adapt'
-            ? 'AI zaadaptuje copy z języka źródłowego do języka edycji w wersji roboczej. LIVE bez zmian do publikacji.'
-            : 'AI uzupełni teksty w wersji roboczej (draft) dla aktywnego języka. Opublikowana strona LIVE się nie zmieni, dopóki nie klikniesz „Opublikuj zmiany”.',
-        yesLabel: mode === 'adapt' ? 'Zlokalizuj' : 'Generuj',
-        noLabel: 'Anuluj',
-        tone: 'default',
-      });
-      if (!ok) return;
+      if (mode === 'adapt' && locale === sourceLocale) {
+        this.showToast('Przełącz język edycji na English lub Deutsch, potem tłumacz.', 'info');
+        return;
+      }
+
+      // Adapt: bez drugiego confirm — user już kliknął CTA w modalu (pusty prompt OK).
+      if (mode === 'generate') {
+        const ok = await this.confirmAsync({
+          title: 'Nadpisać treść roboczą?',
+          message:
+            'AI uzupełni teksty w wersji roboczej (draft) dla aktywnego języka. Opublikowana strona LIVE się nie zmieni, dopóki nie klikniesz „Opublikuj zmiany”.',
+          yesLabel: 'Generuj',
+          noLabel: 'Anuluj',
+          tone: 'default',
+        });
+        if (!ok) return;
+      }
 
       this.isGeneratingAi = true;
+      this.aiProgressLabel =
+        mode === 'adapt'
+          ? 'Tłumaczę na ' + localeLabel + '… To zwykle trwa 15–40 sekund.'
+          : 'Generuję teksty AI…';
       this._suppressContentWatch = true;
       if (this._draftAutosaveTimer) {
         clearTimeout(this._draftAutosaveTimer);
@@ -384,7 +429,7 @@
           body: {
             pageId: this.pageId,
             prompt: mode === 'adapt' ? prompt || '' : prompt,
-            theme: String(this.theme || '').trim().toLowerCase(),
+            theme,
             locale,
             mode,
             sourceLocale,
@@ -400,7 +445,6 @@
 
         if (data.draft_content && typeof data.draft_content === 'object') {
           this._suppressContentWatch = true;
-          const theme = String(this.theme || '').trim().toLowerCase() || 'beauty';
           // Normalizacja jak po loadData — pełne pola admina + tablica services zawsze obecna.
           this.content =
             typeof window.DFOPS_normalizeContent === 'function'
@@ -409,13 +453,18 @@
           if (typeof this.i18nAfterContentLoad === 'function') {
             this.i18nAfterContentLoad();
             if (locale && typeof this.setEditLocale === 'function') {
-              this.setEditLocale(locale);
+              await this.setEditLocale(locale);
             }
           }
           // Upewnij się, że usługi są tablicą (x-for w zakładce Oferta).
           const pl = this.content && this.content.pl;
           if (pl && !Array.isArray(pl.services)) pl.services = [];
-          if (pl && pl.settings && Array.isArray(pl.services) && pl.services.some((s) => s && String(s.title || '').trim())) {
+          if (
+            pl &&
+            pl.settings &&
+            Array.isArray(pl.services) &&
+            pl.services.some((s) => s && String(s.title || '').trim())
+          ) {
             pl.settings.showServices = true;
           }
         }
@@ -429,7 +478,9 @@
 
         let toastMsg =
           mode === 'adapt'
-            ? 'AI zlokalizowało treść! Sprawdź podgląd i opublikuj.'
+            ? 'Gotowe — treść przetłumaczona na ' +
+              localeLabel +
+              '. Sprawdź Podgląd, potem Opublikuj zmiany.'
             : 'AI wygenerowało teksty w polach panelu (oferta, baner, FAQ…). Sprawdź zakładkę „Twoja oferta i ceny” i opublikuj.';
         if (remaining != null && limit != null) {
           toastMsg += ` Zostało ${remaining} z ${limit} generacji w tym miesiącu.`;
@@ -443,12 +494,15 @@
           } else if (typeof this.adminTabVisible === 'function' && this.adminTabVisible('menu')) {
             this.setTab('menu');
           }
+        } else if (mode === 'adapt' && typeof this.setTab === 'function') {
+          this.setTab('hero');
         }
       } catch (e) {
         safeDebug('generateSiteWithAi', e);
         this.showToast('Nie udało się wygenerować treści. Spróbuj ponownie.', 'error');
       } finally {
         this.isGeneratingAi = false;
+        this.aiProgressLabel = '';
         setTimeout(() => {
           this._suppressContentWatch = false;
         }, 0);

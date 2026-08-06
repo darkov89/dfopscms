@@ -1270,7 +1270,37 @@
         if (this.isTrialPublicBlocked) {
           return 'Strona LIVE — zablokowana dla gości; zobaczysz komunikat o niedostępności.';
         }
+        const loc =
+          this.editLocale &&
+          typeof this.i18nDefaultLocale === 'function' &&
+          this.editLocale !== this.i18nDefaultLocale()
+            ? this.editLocale
+            : '';
+        if (loc) {
+          return (
+            'Otwórz opublikowaną stronę w języku ' +
+            (typeof this.i18nLocaleLabel === 'function' ? this.i18nLocaleLabel(loc) : loc) +
+            ' (…/' +
+            loc +
+            ')'
+          );
+        }
         return 'Otwórz opublikowaną stronę w nowej karcie';
+      },
+      /** Host + opcjonalny prefix locale do wyświetlenia przy linku LIVE. */
+      get liveSiteDisplayLabel() {
+        if (!this.slug) return '—';
+        const base = (cfg.appDomain || 'dfcms.pl').toLowerCase();
+        const def =
+          typeof this.i18nDefaultLocale === 'function' ? this.i18nDefaultLocale() : 'pl';
+        const loc = this.editLocale && this.editLocale !== def ? this.editLocale : '';
+        const path = loc ? '/' + loc : '';
+        const hostCustom = typeof this.customDomain === 'string' ? this.customDomain.trim() : '';
+        if (hostCustom && this.customDomainStatus === 'active') {
+          const h = hostCustom.replace(/^https?:\/\//i, '').split('/')[0];
+          return h + path;
+        }
+        return this.slug + '.' + base + path;
       },
       get previewUsesHtmlFallback() {
         const t = String(this.theme || '').trim().toLowerCase();
@@ -1362,7 +1392,9 @@
       getPublicSiteUrl() {
         const preview = 'dfcms_preview=1';
         if (!this.slug || !this.theme) return '#';
-        const loc = this.editLocale && this.editLocale !== 'pl' ? this.editLocale : '';
+        const def =
+          typeof this.i18nDefaultLocale === 'function' ? this.i18nDefaultLocale() : 'pl';
+        const loc = this.editLocale && this.editLocale !== def ? this.editLocale : '';
         const siteQs = `site=${encodeURIComponent(this.slug)}&${preview}${loc ? `&dfcms_lang=${encodeURIComponent(loc)}` : ''}`;
 
         // Podgląd wersji roboczej MUSI być na tym samym originie co panel — inaczej handoff draftu
@@ -1376,22 +1408,31 @@
         return origin ? `${origin}${path}` : path;
       },
 
-      /** Link do wersji opublikowanej (LIVE) — bez `dfcms_preview`, z preferencją custom domain. */
+      /** Link do wersji opublikowanej (LIVE) — bez `dfcms_preview`, z preferencją custom domain + locale path. */
       getLiveSiteUrl() {
         if (!this.slug) return '#';
+        const def =
+          typeof this.i18nDefaultLocale === 'function' ? this.i18nDefaultLocale() : 'pl';
+        const loc = this.editLocale && this.editLocale !== def ? this.editLocale : '';
+        const pathPrefix =
+          typeof window.DFOPS_localePathPrefix === 'function'
+            ? window.DFOPS_localePathPrefix(loc || def, def)
+            : loc
+              ? '/' + loc
+              : '';
         const isLocalhost =
           window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         if (isLocalhost) {
-          const qs = `site=${encodeURIComponent(this.slug)}`;
+          const qs = `site=${encodeURIComponent(this.slug)}${loc ? `&dfcms_lang=${encodeURIComponent(loc)}` : ''}`;
           return `/templates/${this.previewHtmlBasename}.html?${qs}`;
         }
         const hostCustom = typeof this.customDomain === 'string' ? this.customDomain.trim() : '';
         if (hostCustom && this.customDomainStatus === 'active') {
           const h = hostCustom.replace(/^https?:\/\//i, '').split('/')[0];
-          return `https://${h}/`;
+          return `https://${h}${pathPrefix || ''}/`;
         }
         const base = (cfg.appDomain || 'dfcms.pl').toLowerCase();
-        return `https://${this.slug}.${base}/`;
+        return `https://${this.slug}.${base}${pathPrefix || ''}/`;
       },
       get planDisplayLabel() {
         const sub = this.billingSubscriptionView;

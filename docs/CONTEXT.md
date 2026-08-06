@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-08-06 — Consultant ≈ DFOPS private (Inter tech vibe)
+**Ostatnia aktualizacja:** 2026-08-06 — i18n: flow tłumaczeń AI (UX + bugfix)
 
 ---
 
@@ -390,6 +390,17 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-08-06 — i18n: tłumaczenie AI działa jak w SaaS (UX + bugfix)
+
+User path „dodaję język → AI → nadal po polsku” wynikał z UX, nie z braku Edge:
+
+- **Bug:** modal adapt wymagał niepustego promptu (`Generuj` disabled), choć adapt dopuszcza pusty kontekst; CTA mówiło „Generuj stronę”.
+- **Bug:** `adaptLocaleWithAi` brał tylko `this.theme` (nie `wizardTheme`) i cicho wychodził bez toastu.
+- **Bug:** link LIVE zawsze PL (`/`) — ignorował `editLocale` (`/en`, `/de`).
+- **UX:** toggle „Tłumaczenie: AI” tylko ustawiał flagę sync — wyglądało jak „przetłumacz teraz”.
+- **Fix:** checklista 1–4 na Dashboardzie; status per język + CTA **Przetłumacz AI**; overlay progress; po sukcesie Podgląd → Opublikuj; LIVE/podgląd honorują aktywny język.
+- Kod: `i18nPanel.js`, `aiGenerator.js`, `adminApp.js` (URL), partials Dashboard / AI modal; `npm run build:admin`.
 
 ### 2026-08-06 — Consultant ≈ prywatny DFOPS (typografia + rytm)
 

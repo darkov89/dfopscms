@@ -22,8 +22,8 @@
                                         x-text="i18nLocaleLabel(loc)"></button>
                             </template>
                             <span class="hidden sm:inline text-[10px] font-semibold uppercase tracking-wider text-slate-400 ml-1"
-                                  x-text="i18nTranslationMode() === 'ai' ? 'AI' : 'ręcznie'"
-                                  :title="i18nTranslationMode() === 'ai' ? 'Tłumaczenie przez AI' : 'Tłumaczenie ręczne'"></span>
+                                  x-text="i18nTranslationMode() === 'ai' ? 'AI sync' : 'ręcznie'"
+                                  :title="i18nTranslationMode() === 'ai' ? 'Po zmianach w PL zapytamy o aktualizację innych języków' : 'Każdy język edytujesz osobno'"></span>
                         </div>
                         <span class="hidden h-3.5 w-px shrink-0 self-center bg-slate-200 sm:block" aria-hidden="true"></span>
                         <div x-show="showOwnedPagesSelector" x-cloak class="flex min-w-0 items-center gap-1.5">

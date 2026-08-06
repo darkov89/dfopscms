@@ -82,50 +82,91 @@
                                         :title="canUseAiGenerator() ? 'Wygeneruj teksty do wersji roboczej' : 'Dostępne na planach Starter i Standard'">
                                     Wygeneruj treść przez AI
                                 </button>
-                                <button type="button" x-show="canUseAiGenerator() && editLocale && editLocale !== i18nDefaultLocale()" x-cloak
-                                        @click="openAiGeneratorModal('adapt')"
-                                        class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
-                                    Zlokalizuj z PL
-                                </button>
                                 <p x-show="!canUseAiGenerator()" class="text-xs text-slate-500 leading-relaxed">Dostępne po wyborze pakietu Starter lub Standard.</p>
                                 <p x-show="canUseAiGenerator() && aiRemaining != null && aiLimit != null" class="text-xs text-slate-500" x-cloak
                                    x-text="'Pozostało generacji w tym miesiącu: ' + aiRemaining + ' / ' + aiLimit"></p>
                             </div>
                             <div x-show="typeof i18nEnabledLocales === 'function'" class="mb-6 rounded-xl border border-slate-200/80 bg-slate-50/60 p-5" x-cloak>
                                 <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Języki strony</p>
-                                <p class="text-sm text-slate-600 mb-3">Domyślny: Polski. Dodatkowe języki (EN, DE) od planu Standard — osobny adres np. <span class="font-mono text-xs">/en</span>.</p>
-                                <div class="mb-4 flex flex-wrap items-center gap-2" x-show="i18nEnabledLocales().length > 1">
-                                    <span class="text-xs text-slate-500">Tłumaczenie:</span>
-                                    <button type="button" @click="setTranslationMode('ai')"
-                                            class="rounded-md px-2.5 py-1 text-xs font-semibold transition-colors"
-                                            :class="i18nTranslationMode() === 'ai' ? 'bg-slate-900 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'">AI</button>
-                                    <button type="button" @click="setTranslationMode('manual')"
-                                            class="rounded-md px-2.5 py-1 text-xs font-semibold transition-colors"
-                                            :class="i18nTranslationMode() === 'manual' ? 'bg-slate-900 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'">Ręcznie</button>
-                                    <p class="w-full text-[11px] text-slate-500 leading-relaxed">Przy AI — po zmianie tekstów w polskim zapytamy, czy zaktualizować inne języki. Przy ręcznym edytujesz każdy język osobno.</p>
-                                </div>
-                                <div class="flex flex-wrap gap-2 mb-3">
+                                <p class="text-sm text-slate-600 mb-4 leading-relaxed">Domyślny język: Polski (<span class="font-mono text-xs">/</span>). Dodatkowe wersje mają własny adres — np. <span class="font-mono text-xs">/en</span>. Panel zostaje po polsku; zmieniasz tylko treść witryny.</p>
+
+                                <ol class="mb-5 space-y-2 rounded-lg border border-slate-200/80 bg-white/80 px-4 py-3 text-xs text-slate-600 leading-relaxed">
+                                    <li><span class="font-semibold text-slate-800">1.</span> Dodaj język (+ English / Deutsch)</li>
+                                    <li><span class="font-semibold text-slate-800">2.</span> Przetłumacz przez AI (albo edytuj ręcznie)</li>
+                                    <li><span class="font-semibold text-slate-800">3.</span> Sprawdź <strong>Podgląd</strong> w tym języku</li>
+                                    <li><span class="font-semibold text-slate-800">4.</span> Kliknij <strong>Opublikuj zmiany</strong> — dopiero wtedy klienci zobaczą wersję LIVE</li>
+                                </ol>
+
+                                <div class="space-y-2 mb-4">
                                     <template x-for="loc in i18nEnabledLocales()" :key="'dash-loc-'+loc">
-                                        <span class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-800">
-                                            <button type="button" class="hover:text-accent" @click="setEditLocale(loc)" x-text="i18nLocaleLabel(loc)"></button>
-                                            <button type="button" x-show="loc !== i18nDefaultLocale()" @click="disableSiteLocale(loc)" class="text-xs text-red-500 hover:text-red-700" title="Usuń język">×</button>
-                                        </span>
+                                        <div class="flex flex-col gap-2 rounded-lg border bg-white px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+                                             :class="editLocale === loc ? 'border-slate-900/30 ring-1 ring-slate-900/10' : 'border-slate-200'">
+                                            <div class="min-w-0">
+                                                <div class="flex flex-wrap items-center gap-2">
+                                                    <button type="button" @click="setEditLocale(loc)"
+                                                            class="text-sm font-semibold transition-colors"
+                                                            :class="editLocale === loc ? 'text-slate-900' : 'text-slate-700 hover:text-accent'"
+                                                            x-text="i18nLocaleLabel(loc)"></button>
+                                                    <span x-show="editLocale === loc" class="rounded-md bg-slate-900 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">Edytujesz</span>
+                                                    <span class="font-mono text-[11px] text-slate-400" x-text="loc === i18nDefaultLocale() ? '/' : ('/' + loc)"></span>
+                                                </div>
+                                                <p class="mt-0.5 text-[11px] leading-relaxed"
+                                                   :class="loc !== i18nDefaultLocale() && localeLooksUntranslated(loc) ? 'text-amber-800' : 'text-slate-500'"
+                                                   x-text="localeStatusLabel(loc)"></p>
+                                            </div>
+                                            <div class="flex flex-wrap items-center gap-2 shrink-0">
+                                                <button type="button"
+                                                        x-show="loc !== i18nDefaultLocale() && canUseAiGenerator()"
+                                                        x-cloak
+                                                        @click="translateLocaleNow(loc)"
+                                                        :disabled="isGeneratingAi"
+                                                        class="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:opacity-50"
+                                                        x-text="localeLooksUntranslated(loc) ? 'Przetłumacz AI' : 'Przetłumacz ponownie'"></button>
+                                                <button type="button"
+                                                        x-show="loc !== i18nDefaultLocale() && canUseAiGenerator()"
+                                                        x-cloak
+                                                        @click="setEditLocale(loc).then(() => openAiGeneratorModal('adapt'))"
+                                                        :disabled="isGeneratingAi"
+                                                        class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+                                                        title="Tłumaczenie z opcjonalnym kontekstem">Z kontekstem…</button>
+                                                <button type="button" x-show="loc !== i18nDefaultLocale()" @click="disableSiteLocale(loc)"
+                                                        class="rounded-lg px-2 py-1.5 text-xs font-semibold text-red-500 hover:bg-red-50 hover:text-red-700" title="Usuń język">Usuń</button>
+                                            </div>
+                                        </div>
                                     </template>
                                 </div>
-                                <div class="flex flex-wrap gap-2" x-show="i18nAvailableToAdd().length">
+
+                                <div class="flex flex-wrap gap-2 mb-3" x-show="i18nAvailableToAdd().length">
                                     <template x-for="loc in i18nAvailableToAdd()" :key="'add-loc-'+loc">
-                                        <button type="button" @click="enableSiteLocale(loc)"
-                                                class="rounded-lg border border-dashed border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-accent hover:text-accent"
-                                                x-text="'+ ' + i18nLocaleLabel(loc)"></button>
+                                        <button type="button" @click="enableSiteLocale(loc)" :disabled="isGeneratingAi"
+                                                class="rounded-lg border border-dashed border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-accent hover:text-accent disabled:opacity-50"
+                                                x-text="'+ Dodaj ' + i18nLocaleLabel(loc)"></button>
                                     </template>
                                 </div>
-                                <p x-show="!canUseExtraLocales()" class="mt-2 text-xs text-slate-500">Dodatkowe języki odblokujesz na planie Standard.</p>
+                                <p x-show="!canUseExtraLocales()" class="text-xs text-slate-500">Dodatkowe języki odblokujesz na planie Standard.</p>
+
+                                <div class="mt-4 border-t border-slate-200/80 pt-3" x-show="i18nEnabledLocales().length > 1">
+                                    <p class="text-[11px] text-slate-500 mb-2 leading-relaxed">Po zmianie polskich tekstów:</p>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <button type="button" @click="setTranslationMode('ai')"
+                                                class="rounded-md px-2.5 py-1 text-xs font-semibold transition-colors"
+                                                :class="i18nTranslationMode() === 'ai' ? 'bg-slate-900 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'">Pytaj o AI</button>
+                                        <button type="button" @click="setTranslationMode('manual')"
+                                                class="rounded-md px-2.5 py-1 text-xs font-semibold transition-colors"
+                                                :class="i18nTranslationMode() === 'manual' ? 'bg-slate-900 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'">Tylko ręcznie</button>
+                                    </div>
+                                    <p class="mt-1.5 text-[11px] text-slate-500 leading-relaxed">„Pytaj o AI” — przy wyjściu z polskiego lub przed publikacją zapytamy, czy zaktualizować inne języki. To nie tłumaczy od razu; użyj przycisku <strong>Przetłumacz AI</strong> powyżej.</p>
+                                </div>
                             </div>
                             <div class="rounded-xl border border-slate-200/80 bg-slate-50/60 p-5 md:p-6">
                                 <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Adres Twojej strony</p>
+                                <p x-show="editLocale && editLocale !== i18nDefaultLocale()" x-cloak class="text-xs text-slate-600 mb-2 leading-relaxed">
+                                    Link poniżej otwiera wersję w języku <span class="font-semibold" x-text="i18nLocaleLabel(editLocale)"></span>.
+                                    Pamiętaj: LIVE pokazuje tylko to, co opublikowałeś.
+                                </p>
                                 <p x-show="isTrialPublicBlocked" x-cloak class="text-xs text-amber-900 bg-amber-50 border border-amber-200/80 rounded-lg px-3 py-2 mb-3 leading-relaxed">Strona LIVE jest zablokowana dla gości. Użyj <strong>Podglądu prywatnego</strong> — widzisz ją tylko Ty.</p>
                                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                    <a :href="getLiveSiteUrl()" target="_blank" rel="noopener noreferrer" :title="liveSiteLinkTitle" class="text-lg font-semibold text-slate-900 underline decoration-slate-300 underline-offset-4 hover:decoration-accent break-all" x-text="slug ? (slug + '.dfcms.pl') : '—'"></a>
+                                    <a :href="getLiveSiteUrl()" target="_blank" rel="noopener noreferrer" :title="liveSiteLinkTitle" class="text-lg font-semibold text-slate-900 underline decoration-slate-300 underline-offset-4 hover:decoration-accent break-all" x-text="liveSiteDisplayLabel"></a>
                                     <a :href="getPublicSiteUrl()" @click="stashDraftForPreview()" target="_blank" rel="noopener noreferrer" :title="previewSiteButtonTitle" class="inline-flex shrink-0 items-center justify-center rounded-lg border px-4 py-2.5 text-sm font-semibold shadow-sm transition-colors" :class="isTrialPublicBlocked ? 'border-amber-300 bg-amber-50 text-amber-950 hover:bg-amber-100' : 'border-slate-200 bg-white text-slate-800 hover:border-slate-300 hover:bg-slate-50'">
                                         <span x-text="previewSiteButtonLabel"></span>
                                     </a>

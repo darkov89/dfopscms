@@ -78,19 +78,154 @@
       return ensureTranslationMode(this.content);
     };
 
-    app.setTranslationMode = function setTranslationMode(mode) {
+    /** Heurystyka: locale wygląda na nieprzetłumaczoną kopię PL (ten sam headline). */
+    app.localeLooksUntranslated = function localeLooksUntranslated(code) {
+      const loc = String(code || '')
+        .trim()
+        .toLowerCase();
+      const def = readDefaultLocale(this.content);
+      if (!loc || loc === def) return false;
+      const pack =
+        (this._localePack && this._localePack[loc]) ||
+        (this.content && this.content[loc]) ||
+        null;
+      const src =
+        (this._localePack && this._localePack[def]) ||
+        (this.content && (this.content[def] || this.content.pl)) ||
+        null;
+      if (!pack || !src) return true;
+      const a = String(pack.hero?.headline || pack.seo?.title || '').trim();
+      const b = String(src.hero?.headline || src.seo?.title || '').trim();
+      if (!a) return true;
+      return a === b;
+    };
+
+    app.localeStatusLabel = function localeStatusLabel(code) {
+      const loc = String(code || '')
+        .trim()
+        .toLowerCase();
+      const def = this.i18nDefaultLocale();
+      if (loc === def) return 'Język podstawowy';
+      if (this.isGeneratingAi && this.editLocale === loc) return 'Tłumaczenie w toku…';
+      if (this.localeLooksUntranslated(loc)) return 'Jeszcze po polsku — przetłumacz';
+      return 'Gotowe do sprawdzenia';
+    };
+
+    app.setTranslationMode = async function setTranslationMode(mode) {
       if (!this.content) return;
       if (!this.content.meta || typeof this.content.meta !== 'object') this.content.meta = {};
       const next = mode === 'ai' ? 'ai' : 'manual';
-      if (this.content.meta.translationMode === next) return;
+      const prev = this.content.meta.translationMode === 'ai' ? 'ai' : 'manual';
+      if (prev === next) {
+        // Ponowne kliknięcie AI przy nieprzetłumaczonych językach → zaproponuj tłumaczenie
+        if (next === 'ai' && typeof this.translatePendingLocalesWithAi === 'function') {
+          await this.translatePendingLocalesWithAi({ offerIfNone: false });
+        }
+        return;
+      }
       this.content.meta.translationMode = next;
       if (typeof this.scheduleDraftAutosave === 'function') this.scheduleDraftAutosave();
+
+      if (next === 'manual') {
+        this.showToast('Tryb ręczny — edytujesz każdy język osobno.', 'info');
+        return;
+      }
+
       this.showToast(
-        next === 'ai'
-          ? 'Tryb tłumaczenia: AI — przy zmianach w języku podstawowym zapytamy o aktualizację innych języków.'
-          : 'Tryb tłumaczenia: ręcznie — edytujesz każdy język osobno.',
+        'Tryb AI — po zmianach w polskim zapytamy o aktualizację innych języków.',
         'info',
       );
+      if (typeof this.translatePendingLocalesWithAi === 'function') {
+        // Tylko gdy są nieprzetłumaczone — nie spamuj toastem „wszystko OK”
+        await this.translatePendingLocalesWithAi({ offerIfNone: false });
+      }
+    };
+
+    /** Przetłumacz jeden język od razu (CTA z Dashboardu). */
+    app.translateLocaleNow = async function translateLocaleNow(code) {
+      const loc = String(code || '')
+        .trim()
+        .toLowerCase();
+      const def = this.i18nDefaultLocale();
+      if (!loc || loc === def) return;
+      if (this.i18nEnabledLocales().indexOf(loc) === -1) return;
+      if (!this.canUseAiGenerator || !this.canUseAiGenerator()) {
+        this.showToast('Tłumaczenie AI wymaga planu Starter lub Standard.', 'info');
+        if (typeof this.setTab === 'function') this.setTab('subscription');
+        return;
+      }
+      const label = this.i18nLocaleLabel(loc);
+      const ok = await this.confirmAsync({
+        title: 'Przetłumaczyć na ' + label + '?',
+        message:
+          'AI przetłumaczy teksty z języka polskiego do wersji roboczej (' +
+          label +
+          '). Strona LIVE nie zmieni się, dopóki nie klikniesz Opublikuj zmiany.',
+        yesLabel: 'Przetłumacz teraz',
+        noLabel: 'Anuluj',
+        tone: 'default',
+      });
+      if (!ok) return;
+
+      if (!this.content.meta) this.content.meta = {};
+      this.content.meta.translationMode = 'ai';
+      this._localeCopyDirty = false;
+      await this.setEditLocale(loc);
+
+      if (typeof this.adaptLocaleWithAi !== 'function') {
+        this.showToast('Funkcja tłumaczenia AI jest niedostępna. Odśwież stronę.', 'error');
+        return;
+      }
+      const adapted = await this.adaptLocaleWithAi(loc, { silent: false });
+      if (adapted && typeof this.setTab === 'function') {
+        this.setTab('hero');
+      }
+    };
+
+    /** Zaproponuj / uruchom tłumaczenie wszystkich nieprzetłumaczonych locale. */
+    app.translatePendingLocalesWithAi = async function translatePendingLocalesWithAi(opts) {
+      const options = opts && typeof opts === 'object' ? opts : {};
+      const offerIfNone = options.offerIfNone !== false;
+      const enabled = this.i18nEnabledLocales();
+      const def = this.i18nDefaultLocale();
+      const pending = enabled.filter((c) => c !== def && this.localeLooksUntranslated(c));
+      if (!pending.length) {
+        if (offerIfNone) {
+          this.showToast('Wszystkie dodane języki wyglądają na przetłumaczone.', 'success');
+        }
+        return false;
+      }
+      if (!this.canUseAiGenerator || !this.canUseAiGenerator()) {
+        this.showToast(
+          'Masz języki bez tłumaczenia. Włącz plan Starter+, żeby przetłumaczyć je przez AI — albo edytuj ręcznie.',
+          'info',
+        );
+        return false;
+      }
+      const names = pending.map((c) => this.i18nLocaleLabel(c)).join(', ');
+      const ok = await this.confirmAsync({
+        title: 'Przetłumaczyć brakujące języki?',
+        message:
+          'Te wersje wyglądają nadal po polsku: ' +
+          names +
+          '. AI może przetłumaczyć je teraz (wersja robocza — potem Opublikuj).',
+        yesLabel: 'Tak, tłumacz AI',
+        noLabel: 'Nie teraz',
+        tone: 'default',
+      });
+      if (!ok) return false;
+
+      let allOk = true;
+      for (let i = 0; i < pending.length; i++) {
+        const adapted = await this.adaptLocaleWithAi(pending[i], {
+          silent: pending.length > 1,
+        });
+        if (!adapted) allOk = false;
+      }
+      if (allOk && pending.length > 1) {
+        this.showToast('Przetłumaczono brakujące języki. Sprawdź Podgląd i opublikuj.', 'success');
+      }
+      return allOk;
     };
 
     app.markLocaleCopyDirty = function markLocaleCopyDirty() {
@@ -288,19 +423,23 @@
         return;
       }
       if (!this.content) return;
+      if (this.isGeneratingAi) {
+        this.showToast('Poczekaj, aż AI skończy obecną pracę.', 'info');
+        return;
+      }
       const def = this.i18nDefaultLocale();
+      const label = this.i18nLocaleLabel(loc);
 
-      // Wybór: AI vs ręcznie
+      // Wybór: AI vs ręcznie — jasny next-step dla laika
       const useAi = await this.confirmAsync({
-        title: 'Jak tłumaczyć treści?',
+        title: 'Dodajesz ' + label,
         message:
-          'Dodajesz język ' +
-          this.i18nLocaleLabel(loc) +
-          '. AI może od razu przetłumaczyć teksty z ' +
-          this.i18nLocaleLabel(def) +
-          ', albo skopiujemy treść i przetłumaczysz ręcznie.',
-        yesLabel: 'Przez AI',
-        noLabel: 'Ręcznie',
+          'Zalecane: przetłumacz od razu przez AI (teksty z polskiego → ' +
+          label +
+          '). Albo dodaj ręcznie i sam zamień teksty. Potem: Podgląd → Opublikuj. Adres wersji: …/' +
+          loc,
+        yesLabel: 'Przetłumacz AI',
+        noLabel: 'Dodaj ręcznie',
         tone: 'default',
       });
 
@@ -319,22 +458,38 @@
       }
       ensureTranslationMode(this.content);
       this.content.meta.translationMode = useAi ? 'ai' : 'manual';
+      this._localePack = this._localePack || {};
       this._localePack[loc] = this.content[loc];
-      this.setEditLocale(loc);
+      this._localeCopyDirty = false;
+      await this.setEditLocale(loc);
       if (typeof this.scheduleDraftAutosave === 'function') this.scheduleDraftAutosave();
 
       if (useAi && typeof this.adaptLocaleWithAi === 'function') {
-        this.showToast('Dodano język — tłumaczę przez AI…', 'info');
+        if (!this.canUseAiGenerator || !this.canUseAiGenerator()) {
+          this.showToast(
+            'Dodano ' +
+              label +
+              ' (kopia PL). Tłumaczenie AI wymaga planu Starter+ — albo kliknij „Przetłumacz” później.',
+            'info',
+          );
+          return;
+        }
         const adapted = await this.adaptLocaleWithAi(loc, { silent: false });
         if (!adapted) {
           this.showToast(
-            'Język dodany (kopia PL). AI nie przetłumaczyło — możesz spróbować „Zlokalizuj z PL”.',
+            'Język ' +
+              label +
+              ' dodany, ale AI nie dokończyło. Kliknij „Przetłumacz AI” przy języku i spróbuj ponownie.',
             'info',
           );
+        } else if (typeof this.setTab === 'function') {
+          this.setTab('hero');
         }
       } else {
         this.showToast(
-          'Dodano język: ' + this.i18nLocaleLabel(loc) + '. Edytuj teksty ręcznie.',
+          'Dodano ' +
+            label +
+            '. Edytujesz ten język — zamień teksty, sprawdź Podgląd, potem Opublikuj.',
           'success',
         );
       }
