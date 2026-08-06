@@ -147,7 +147,7 @@
                         <template x-if="content[lang].settings?.showReviews !== false && content[lang].reviews?.length">
                             <a href="#opinie" class="text-sattva-text/50 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.reviews || 'Opinie'"></a>
                         </template>
-                        <a href="#rezerwacja" @click="onConversionClick('booking_click', 'nav')" x-show="bookingModuleActive() || footerCtaEnabled()" x-cloak class="text-sattva-text/50 hover:text-sattva-brand transition-colors">Rezerwacja</a>
+                        <a href="#rezerwacja" @click="onConversionClick('booking_click', 'nav')" x-show="bookingModuleActive() || footerCtaEnabled()" x-cloak class="text-sattva-text/50 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.booking || 'Rezerwacja'"></a>
                         <template x-if="content[lang].settings?.showContact !== false">
                             <a href="#kontakt" class="text-sattva-brand hover:text-sattva-text transition-colors duration-300" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></a>
                         </template>
@@ -244,8 +244,8 @@
         <section id="faq" class="py-24 px-6 relative" x-show="content[lang].settings?.showFaq !== false && content[lang].faq && content[lang].faq.length > 0">
             <div class="max-w-3xl mx-auto">
                 <div class="text-center mb-12 reveal">
-                    <span class="text-xs uppercase tracking-[0.2em] text-sattva-brand mb-4 block">Częste pytania</span>
-                    <h2 class="text-3xl md:text-4xl font-bold tracking-tight font-serif text-sattva-text" x-text="content[lang].nav?.menu?.faq || 'Pytania i odpowiedzi (Q&amp;A)'"></h2>
+                    <span class="text-xs uppercase tracking-[0.2em] text-sattva-brand mb-4 block" x-text="content[lang].faq_heading?.label || 'Częste pytania'"></span>
+                    <h2 class="text-3xl md:text-4xl font-bold tracking-tight font-serif text-sattva-text" x-text="content[lang].faq_heading?.title || content[lang].nav?.menu?.faq || 'Pytania i odpowiedzi (Q&amp;A)'"></h2>
                 </div>
                 
                 <div class="space-y-3">
@@ -268,8 +268,8 @@
         <section id="opinie" class="py-24 px-6 bg-sattva-accent" x-show="content[lang].settings?.showReviews !== false && content[lang].reviews && content[lang].reviews.length > 0">
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-12 reveal">
-                    <span class="text-xs uppercase tracking-[0.2em] text-sattva-brand mb-4 block">Głos klientów</span>
-                    <h2 class="text-3xl md:text-4xl font-bold tracking-tight font-serif text-sattva-text">Opinie i współpraca</h2>
+                    <span class="text-xs uppercase tracking-[0.2em] text-sattva-brand mb-4 block" x-text="content[lang].reviews_heading?.label || 'Głos klientów'"></span>
+                    <h2 class="text-3xl md:text-4xl font-bold tracking-tight font-serif text-sattva-text" x-text="content[lang].reviews_heading?.title || 'Opinie i współpraca'"></h2>
                 </div>
 
                 <div x-data="{ idx: 0, timer: null, init(){ if ((content[lang].reviews || []).length > 1) { this.timer = setInterval(() => { this.idx = (this.idx + 1) % content[lang].reviews.length }, 4500); } } }"
@@ -314,7 +314,7 @@
             <section class="py-20 px-4 sm:px-6 bg-sattva-accent overflow-hidden">
                 <div class="max-w-5xl mx-auto">
                     <div class="text-center mb-8 reveal">
-                        <span class="font-sans text-[10px] font-semibold uppercase tracking-[0.25em] text-sattva-brand mb-3 block">Zaufanie</span>
+                        <span class="font-sans text-[10px] font-semibold uppercase tracking-[0.25em] text-sattva-brand mb-3 block" x-text="content[lang].google_reviews?.label || 'Zaufanie'"></span>
                         <h2 class="font-serif text-3xl font-semibold tracking-tight text-sattva-text" x-text="content[lang].google_reviews?.title || 'Opinie z Google'"></h2>
                     </div>
 
@@ -436,7 +436,7 @@
         <section id="rezerwacja" class="py-24 md:py-32 px-6 scroll-mt-24 border-t border-sattva-text/5" x-show="bookingModuleActive() || footerCtaEnabled()" x-cloak>
             <div class="max-w-3xl mx-auto">
                 <div class="text-center mb-12" x-show="bookingModuleActive()" x-cloak>
-                    <p class="text-xs uppercase tracking-[0.2em] mb-4 text-sattva-brand">Rezerwacja</p>
+                    <p class="text-xs uppercase tracking-[0.2em] mb-4 text-sattva-brand" x-text="content[lang].contact?.cta?.section_label || content[lang].nav?.menu?.booking || 'Rezerwacja'"></p>
                     <h2 class="font-serif text-4xl md:text-5xl text-sattva-text mb-6" x-text="bookingCtaTitle()"></h2>
                     <p class="text-xl text-sattva-text/55 font-light max-w-2xl mx-auto leading-relaxed" x-text="bookingCtaDescription()"></p>
                 </div>
@@ -494,7 +494,7 @@
                     </div>
 
                     <div class="min-w-0 space-y-4 text-sm">
-                        <h2 class="font-serif text-xl font-semibold tracking-tight text-color-primary">Kontakt</h2>
+                        <h2 class="font-serif text-xl font-semibold tracking-tight text-color-primary" x-text="content[lang].contact?.title || 'Kontakt'"></h2>
                         <div class="space-y-3">
                                 <template x-if="content[lang].contact?.phone">
                                     <div class="flex items-center gap-3 min-w-0">

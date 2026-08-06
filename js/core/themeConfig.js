@@ -18,6 +18,7 @@
     ],
     consultant: [
       'services',
+      'manifesto',
       'proof',
       'faq',
       'reviews',
@@ -93,6 +94,7 @@
       { key: 'pricing', label: 'Usługi' },
       { key: 'faq', label: 'Pytania i odpowiedzi' },
       { key: 'reviews', label: 'Opinie' },
+      { key: 'booking', label: 'Rezerwacja (menu)' },
       { key: 'contact', label: 'Kontakt' },
     ],
     fitness: [

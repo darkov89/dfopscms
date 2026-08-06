@@ -173,7 +173,7 @@
           logo: "Ekspert",
           cta: "",
           logoImage: "",
-          menu: { about: "O nas", pricing: "Usługi", faq: "Pytania i odpowiedzi (Q&A)", reviews: "Opinie", contact: "Kontakt" },
+          menu: { about: "O nas", pricing: "Usługi", faq: "Pytania i odpowiedzi (Q&A)", reviews: "Opinie", booking: "Rezerwacja", contact: "Kontakt" },
         },
         hero: {
           name: "Witaj na pokładzie",
@@ -189,8 +189,11 @@
         services: [{ title: "Konsultacje 1:1", desc: "Krótki opis usługi — widoczny na stronie." }],
         proof: { label: "", title: "", text: "", statNumber: "", statLabel: "", statDesc: "" },
         faq: [],
+        faq_heading: { label: 'Częste pytania', title: '' },
         reviews: [],
+        reviews_heading: { label: 'Głos klientów', title: 'Opinie i współpraca' },
         contact: {
+          title: 'Kontakt',
           email: "",
           phone: "",
           address: "",
@@ -204,6 +207,7 @@
           messenger: "",
           cta: {
             enabled: true,
+            section_label: 'Rezerwacja',
             title: "Szybki kalendarz",
             description:
               "Wybierz dogodny termin i umów się na darmową, 15-minutową konsultację wstępną.",
@@ -212,7 +216,7 @@
           },
         },
         social: { linkedin: "", facebook: "", instagram: "", tiktok: "", twitter: "", youtube: "" },
-        google_reviews: { embed_url: "", place_query: "", max_reviews: 6, title: "Opinie z Google" },
+        google_reviews: { label: 'Zaufanie', embed_url: "", place_query: "", max_reviews: 6, title: "Opinie z Google" },
         gallery: { title: "Nasze realizacje", images: [] },
         seo: {
           title: "Konsultacje i coaching — profesjonalna strona eksperta",

@@ -9,6 +9,10 @@
                                 <input type="text" id="dfcms-first-content-input" x-model="content.pl.hero.headline" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none text-lg font-bold">
                                 <p class="text-xs text-slate-500 mt-2 leading-relaxed max-w-2xl">Najważniejszy komunikat — np. „Profesjonalne układanie płytek w Poznaniu”.</p>
                             </div>
+                            <div x-show="theme === 'consultant'" x-cloak>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Podtytuł (pod nagłówkiem)</label>
+                                <input type="text" x-model="content.pl.hero.subheadline" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="np. Konsultant · coach · strateg">
+                            </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Opis pod nagłówkiem</label>
                                 <textarea x-model="content.pl.hero.description" rows="3" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none bg-white"></textarea>

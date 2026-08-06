@@ -30,9 +30,37 @@
                                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Link do rezerwacji</label>
                                             <input type="text" x-model="content.pl.contact.booking_url" @blur="syncBookingSettings()" autocomplete="off" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none text-sm" placeholder="https://booksy.com/… lub https://calendly.com/…">
                                         </div>
+                                        <div
+                                            x-show="theme === 'consultant'"
+                                            x-cloak
+                                            x-init="if (!content.pl.contact.cta || typeof content.pl.contact.cta !== 'object') content.pl.contact.cta = { enabled: true, section_label: 'Rezerwacja', title: '', description: '', button_text: '', button_url: '' }"
+                                            class="rounded-xl border border-slate-200/80 bg-slate-50/60 p-4 space-y-4"
+                                        >
+                                            <h4 class="text-xs font-bold uppercase tracking-widest text-slate-700">Teksty sekcji rezerwacji</h4>
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Mały napis nad tytułem</label>
+                                                <input type="text" x-model="content.pl.contact.cta.section_label" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent/30" placeholder="Rezerwacja">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tytuł</label>
+                                                <input type="text" x-model="content.pl.contact.cta.title" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent/30" placeholder="Umów się online">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Opis</label>
+                                                <textarea x-model="content.pl.contact.cta.description" rows="2" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent/30 resize-y" placeholder="Krótko zachęć do rezerwacji…"></textarea>
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tekst przycisku</label>
+                                                <input type="text" x-model="content.pl.contact.cta.button_text" class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent/30" placeholder="Zarezerwuj termin">
+                                            </div>
+                                        </div>
                                         <p x-show="theme === 'fitness'" x-cloak class="text-xs text-slate-500">Grafik edytujesz w sekcji <button type="button" @click="setTab('schedule')" class="font-bold text-accent hover:underline">Grafik zajęć</button>.</p>
                                     </div>
 
+                                    <div class="mb-4">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tytuł sekcji kontaktu</label>
+                                        <input type="text" x-model="content.pl.contact.title" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="Kontakt">
+                                    </div>
                                     <div class="mb-4">
                                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Telefon</label>
                                         <input type="text" x-model="content.pl.contact.phone" class="w-full rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" placeholder="np. +48 600 123 456">

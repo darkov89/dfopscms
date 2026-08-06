@@ -25,6 +25,21 @@
                                 <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 <p>✨ Sekcja pytań jest aktywna. Dodaj poniżej pierwsze pytanie i odpowiedź — wtedy pojawi się na stronie.</p>
                             </div>
+                            <div
+                                x-show="theme === 'consultant' && content.pl.settings.showFaq"
+                                x-cloak
+                                x-init="if (!content.pl.faq_heading || typeof content.pl.faq_heading !== 'object') content.pl.faq_heading = { label: 'Częste pytania', title: '' }"
+                                class="mt-6 grid gap-4 sm:grid-cols-2"
+                            >
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Mały napis nad tytułem</label>
+                                    <input type="text" x-model="content.pl.faq_heading.label" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent/30" placeholder="Częste pytania">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tytuł sekcji (opcjonalnie)</label>
+                                    <input type="text" x-model="content.pl.faq_heading.title" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent/30" placeholder="Domyślnie: etykieta z menu">
+                                </div>
+                            </div>
                         </div>
                         <div class="space-y-6">
                             <template x-for="(item, index) in content.pl.faq" :key="index">
