@@ -748,8 +748,13 @@
       ownedPages: [],
       isVerifyingDomain: false,
       domainMessage: '',
+      /** 'success' | 'pending' | 'error' — styl boxa pod przyciskiem domeny */
+      domainMessageTone: 'pending',
       domainError: '',
       showDnsInstructions: false,
+      /** Wiersze DNS z Edge (2×A + TXT ownership + CNAME www). */
+      domainDnsInstructions: [],
+      domainVerificationErrors: [],
       showTemplateSwitcher: false,
       activeTab: 'dashboard',
       mobileMenuOpen: false,
@@ -3639,6 +3644,39 @@
         return window.DFOPS_normalizeHostname(withoutProtocolAndPath);
       },
 
+      /** Wiersze instrukcji DNS — z Edge po verify, inaczej szablon 2×A + TXT + CNAME. */
+      get domainDnsInstructionRows() {
+        if (Array.isArray(this.domainDnsInstructions) && this.domainDnsInstructions.length) {
+          return this.domainDnsInstructions;
+        }
+        return [
+          {
+            type: 'A',
+            host: '@',
+            value: '172.67.154.121',
+            purpose: 'Apex — kliknij „Zapisz i sprawdź”, żeby pobrać TXT',
+          },
+          {
+            type: 'A',
+            host: '@',
+            value: '104.21.66.9',
+            purpose: 'Apex (drugi anycast)',
+          },
+          {
+            type: 'TXT',
+            host: '_cf-custom-hostname',
+            value: '— po „Zapisz i sprawdź” —',
+            purpose: 'Weryfikacja własności (unikalny token z Cloudflare)',
+          },
+          {
+            type: 'CNAME',
+            host: 'www',
+            value: 'proxy.dfcms.pl',
+            purpose: 'Ruch www → SaaS DFCMS',
+          },
+        ];
+      },
+
       async invokeAddCustomDomain(body) {
         const { data: sessionData } = await this.supabase.auth.getSession();
         const token = sessionData?.session?.access_token;
@@ -3674,6 +3712,10 @@
         this.customDomain = '';
         this.customDomainStatus = 'none';
         this.domainInput = '';
+        this.domainDnsInstructions = [];
+        this.domainVerificationErrors = [];
+        this.domainMessage = '';
+        this.domainMessageTone = 'pending';
       },
 
       async verifyAndSaveDomain() {
@@ -3716,50 +3758,68 @@
             return;
           }
 
-          const dnsVerified = result.status === 'verified';
+          const dnsLooksOk = result.status === 'verified';
           const cfData = await this.invokeAddCustomDomain({
             domain: cleanDomain,
             pageId: this.pageId,
-            dnsVerified,
+            dnsVerified: dnsLooksOk,
           });
 
           const hostname =
             (cfData && typeof cfData.hostname === 'string' && cfData.hostname.trim()) ||
             cleanDomain;
+          // SoT statusu: tylko Cloudflare (apex+www active+ssl). Sam DoH NIE daje zielonej OK.
           const dbStatus =
-            (cfData && typeof cfData.custom_domain_status === 'string' &&
-              cfData.custom_domain_status) ||
-            (dnsVerified || (cfData && cfData.cfActive) ? 'active' : 'pending');
+            cfData && cfData.cfActive === true
+              ? 'active'
+              : (cfData && typeof cfData.custom_domain_status === 'string' &&
+                  cfData.custom_domain_status) ||
+                'pending';
 
           this.domainInput = hostname;
           this.customDomain = hostname;
           this.customDomainStatus = dbStatus;
 
-          const wwwStatus = cfData && cfData.www && cfData.www.status;
-          const apexErrors =
-            cfData &&
-            cfData.apex &&
-            Array.isArray(cfData.apex.verification_errors) &&
-            cfData.apex.verification_errors.length
-              ? cfData.apex.verification_errors.join('; ')
-              : '';
+          this.domainDnsInstructions = Array.isArray(cfData?.dnsInstructions)
+            ? cfData.dnsInstructions
+            : [];
+          this.domainVerificationErrors = Array.isArray(cfData?.verificationErrors)
+            ? cfData.verificationErrors
+            : [];
+
+          const apexStatus = cfData?.apex?.status || '—';
+          const wwwStatus = cfData?.www?.status || '—';
+          const apexSsl = cfData?.apex?.ssl_status || '—';
+          const wwwSsl = cfData?.www?.ssl_status || '—';
+          const cfErrors = this.domainVerificationErrors.length
+            ? this.domainVerificationErrors.join(' · ')
+            : '';
 
           if (dbStatus === 'active') {
-            this.domainMessage = cfData && cfData.cfActive
-              ? 'Domena zweryfikowana i zapisana (Cloudflare aktywny).'
-              : 'DNS wygląda poprawnie — certyfikat SSL może jeszcze chwilę się aktywować (spróbuj też https://www.…).';
+            this.domainMessage =
+              'Domena aktywna w Cloudflare (apex + www, certyfikat OK).';
+            this.domainMessageTone = 'success';
             this.showDnsInstructions = false;
             this.showToast('Własna domena jest aktywna.', 'success');
-          } else if (result.error === 'MISSING_WWW_CNAME') {
-            this.domainMessage =
-              'Rekordy A na @ są OK, ale brakuje CNAME www → proxy.dfcms.pl. Bez www Cloudflare często zwraca Error 1001 / błąd SSL.';
-            this.showDnsInstructions = true;
           } else {
-            this.domainMessage =
-              'Domena zapisana w Cloudflare (apex + www). Ustaw rekordy DNS u operatora (A dla @ oraz CNAME dla www) — po propagacji kliknij „Zapisz i sprawdź” ponownie.' +
-              (wwwStatus ? ` Status www: ${wwwStatus}.` : '') +
-              (apexErrors ? ` Apex: ${apexErrors}` : '');
+            this.domainMessageTone = 'pending';
             this.showDnsInstructions = true;
+            let msg =
+              'Domena zapisana — ustaw rekordy DNS z tabeli poniżej (2× A + TXT weryfikacji + CNAME www), potem kliknij ponownie „Zapisz i sprawdź”.';
+            msg += ` Status CF: apex ${apexStatus}/${apexSsl}, www ${wwwStatus}/${wwwSsl}.`;
+            if (cfErrors) {
+              msg += ` Cloudflare: ${cfErrors}`;
+              if (/using Cloudflare|does not CNAME/i.test(cfErrors)) {
+                msg +=
+                  ' Jeśli DNS domeny jest już w Cloudflare: wyłącz pomarańczową chmurkę / ustaw CNAME www → proxy.dfcms.pl (DNS only) oraz TXT własności.';
+              }
+            } else if (result.error === 'MISSING_WWW_CNAME') {
+              msg =
+                'Rekordy A na @ wyglądają OK, ale brakuje CNAME www → proxy.dfcms.pl oraz ewentualnie TXT weryfikacji — zobacz tabelę poniżej.';
+            } else if (!dnsLooksOk) {
+              msg += ' DoH: rekordy A/CNAME jeszcze nie są widoczne globalnie.';
+            }
+            this.domainMessage = msg;
           }
         } catch (e) {
           console.error('Błąd weryfikacji domeny:', e);

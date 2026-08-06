@@ -232,20 +232,26 @@
                                     </div>
                                     <div x-show="customDomain && customDomainStatus === 'pending'" x-cloak class="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
                                         <span class="shrink-0" aria-hidden="true">🟡</span>
-                                        <span><strong>Oczekuje na propagację DNS</strong> (ustaw rekordy A + CNAME u operatora — zobacz instrukcję poniżej) — <span class="font-mono" x-text="customDomain"></span></span>
+                                        <span><strong>Oczekuje na weryfikację Cloudflare</strong> (ustaw 2× A + TXT + CNAME www — tabela poniżej) — <span class="font-mono" x-text="customDomain"></span></span>
                                     </div>
                                     <div class="flex flex-col sm:flex-row gap-2 sm:items-stretch">
                                         <input type="text" x-model="domainInput" :disabled="isCustomDomainLocked || isVerifyingDomain" placeholder="np. twojadomena.pl"
                                                class="min-w-0 flex-1 rounded-lg border border-slate-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-accent/30 transition-all outline-none" :class="isCustomDomainLocked ? 'opacity-50 bg-gray-100 cursor-not-allowed' : 'bg-white'">
                                         <button type="button" @click="verifyAndSaveDomain()"
-                                                title="Sprawdza DNS i zapisuje domenę"
+                                                title="Rejestruje domenę w Cloudflare i sprawdza status"
                                                 :disabled="isVerifyingDomain || !domainInput || isCustomDomainLocked"
                                                 :class="{ 'animate-pulse': isVerifyingDomain }"
                                                 class="shrink-0 px-4 py-3 rounded-sm text-sm font-semibold border border-[#D4AF37] text-[#8B7355] bg-white hover:bg-[#faf8f3] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                                             <span x-text="isVerifyingDomain ? 'Sprawdzanie...' : 'Zapisz i sprawdź'"></span>
                                         </button>
                                     </div>
-                                    <div x-show="domainMessage" x-cloak class="p-4 bg-green-50 text-green-800 border border-green-200 rounded-sm text-sm font-medium flex items-center gap-2"><span x-text="domainMessage"></span></div>
+                                    <div x-show="domainMessage" x-cloak
+                                         class="p-4 rounded-sm text-sm font-medium flex items-start gap-2 border"
+                                         :class="domainMessageTone === 'success'
+                                            ? 'bg-green-50 text-green-800 border-green-200'
+                                            : 'bg-amber-50 text-amber-950 border-amber-200'">
+                                        <span x-text="domainMessage"></span>
+                                    </div>
                                     <div x-show="!isCustomDomainLocked" x-cloak>
                                         <button type="button"
                                                 @click="showDnsInstructions = !showDnsInstructions"
@@ -257,9 +263,9 @@
                                     <div x-show="showDnsInstructions" x-cloak x-transition.opacity class="p-6 bg-blue-50 border border-blue-200 rounded-sm shadow-sm">
                                         <h4 class="text-sm font-bold text-blue-900 mb-2 uppercase tracking-widest flex items-center gap-2">
                                             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
-                                            Krok 2: Ustawienia u operatora domeny
+                                            Rekordy DNS u operatora domeny
                                         </h4>
-                                        <p class="text-xs text-blue-800 mb-4 leading-relaxed">Zaloguj się do panelu swojego operatora domeny (np. OVH, Nazwa.pl, Home.pl), przejdź do zakładki „Zarządzanie DNS” i dodaj poniższe wpisy.</p>
+                                        <p class="text-xs text-blue-800 mb-4 leading-relaxed">Zaloguj się do panelu operatora (OVH, Nazwa.pl, Home.pl, Cloudflare DNS…) → „Zarządzanie DNS” i ustaw wpisy z tabeli. Po „Zapisz i sprawdź” wartości <strong>TXT</strong> są pobierane z Cloudflare dla Twojej domeny.</p>
 
                                         <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="alert">
                                             <p class="font-bold text-amber-950 mb-1.5 flex items-start gap-2">
@@ -267,48 +273,41 @@
                                                 <span>Ważne</span>
                                             </p>
                                             <p class="text-xs leading-relaxed text-amber-950/90">
-                                                Zanim dodasz nowe rekordy, upewnij się, że usunąłeś stare rekordy typu <strong>A</strong> oraz <strong>CNAME</strong> dla głównej domeny (<span class="font-mono">@</span>) oraz dla subdomeny <span class="font-mono">www</span>.
-                                                Absolutnie <strong>NIE usuwaj</strong> rekordów <strong>MX</strong> (odpowiadają za Twoją pocztę) ani <strong>TXT</strong>!
+                                                Usuń stare <strong>A</strong>/<strong>CNAME</strong> dla <span class="font-mono">@</span> i <span class="font-mono">www</span> (zostaw <strong>MX</strong> — poczta).
+                                                Rekord <strong>TXT</strong> <span class="font-mono">_cf-custom-hostname</span> z tabeli <strong>musisz dodać</strong> — to weryfikacja własności w Cloudflare (bez niego hostname zostaje Pending mimo wydanego certyfikatu).
+                                                Jeśli domena jest już w Cloudflare DNS: ustaw rekordy jako <strong>DNS only</strong> (szara chmurka), nie Proxied.
                                             </p>
                                         </div>
 
                                         <div class="bg-white border border-blue-100 rounded-sm overflow-hidden overflow-x-auto">
-                                            <table class="w-full text-left text-sm min-w-[28rem]">
+                                            <table class="w-full text-left text-sm min-w-[32rem]">
                                                 <thead class="bg-blue-100/50 text-blue-900 text-[10px] uppercase tracking-wider">
                                                     <tr>
-                                                        <th class="px-4 py-3 font-bold">Typ rekordu</th>
+                                                        <th class="px-4 py-3 font-bold">Typ</th>
                                                         <th class="px-4 py-3 font-bold">Nazwa (Host)</th>
-                                                        <th class="px-4 py-3 font-bold">Wartość (Kieruje na)</th>
+                                                        <th class="px-4 py-3 font-bold">Wartość</th>
+                                                        <th class="px-4 py-3 font-bold">Po co</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="text-slate-700 text-xs">
-                                                    <tr>
-                                                        <td class="px-4 py-3 font-mono font-bold">A</td>
-                                                        <td class="px-4 py-3 font-mono">@ <span class="text-[9px] text-slate-400 font-sans tracking-normal">(lub zostaw puste)</span></td>
-                                                        <td class="px-4 py-3 font-mono font-bold text-[#D4AF37]">172.67.154.121</td>
-                                                    </tr>
-                                                    <tr class="border-t border-gray-100">
-                                                        <td class="px-4 py-3 font-mono font-bold">A</td>
-                                                        <td class="px-4 py-3 font-mono">@ <span class="text-[9px] text-slate-400 font-sans tracking-normal">(lub zostaw puste)</span></td>
-                                                        <td class="px-4 py-3 font-mono font-bold text-[#D4AF37]">104.21.66.9</td>
-                                                    </tr>
-                                                    <tr class="border-t border-gray-100">
-                                                        <td class="px-4 py-3 font-mono font-bold">CNAME</td>
-                                                        <td class="px-4 py-3 font-mono">www</td>
-                                                        <td class="px-4 py-3 font-mono font-bold text-[#D4AF37]">proxy.dfcms.pl</td>
-                                                    </tr>
+                                                    <template x-for="(row, idx) in domainDnsInstructionRows" :key="row.type + '-' + row.host + '-' + idx">
+                                                        <tr :class="idx ? 'border-t border-gray-100' : ''">
+                                                            <td class="px-4 py-3 font-mono font-bold" x-text="row.type"></td>
+                                                            <td class="px-4 py-3 font-mono break-all" x-text="row.host"></td>
+                                                            <td class="px-4 py-3 font-mono font-bold text-[#D4AF37] break-all select-all" x-text="row.value"></td>
+                                                            <td class="px-4 py-3 text-[11px] text-slate-500 leading-snug" x-text="row.purpose || ''"></td>
+                                                        </tr>
+                                                    </template>
                                                 </tbody>
                                             </table>
                                         </div>
                                         <p class="text-xs text-blue-800 mt-4 leading-relaxed">
-                                            <strong>CNAME dla www jest obowiązkowy</strong> — to on aktywuje Custom Hostname i SSL w Cloudflare.
-                                            Same rekordy A na <span class="font-mono">@</span> bez www kończą się zwykle błędem
-                                            <span class="font-mono">ERR_SSL_VERSION_OR_CIPHER_MISMATCH</span> / Cloudflare Error 1001.
-                                            Po ustawieniu DNS kliknij ponownie »Zapisz i sprawdź« (rejestruje apex i www).
+                                            Zielona „Aktywna” pojawia się dopiero gdy Cloudflare oznaczy <strong>apex i www</strong> jako Active (hostname + certyfikat) — nie wystarczy sam widoczny DNS.
+                                            Error <span class="font-mono">522</span> na www zwykle oznacza, że hostname nie jest Active albo DNS nie wskazuje strefy SaaS (<span class="font-mono">proxy.dfcms.pl</span> / A powyżej).
                                         </p>
                                         <p class="text-[10px] text-blue-700 mt-3 uppercase tracking-widest font-bold flex items-start gap-1.5 leading-relaxed">
                                             <svg class="w-3 h-3 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                            <span>Propagacja zmian u operatora domeny może potrwać od 1 do 24 godzin. Po tym czasie kliknij »Zapisz i sprawdź« ponownie — najpierw sprawdź https://www.twojadomena.pl</span>
+                                            <span>Po dodaniu TXT i DNS poczekaj kilka minut i kliknij »Zapisz i sprawdź« ponownie. Najpierw testuj https://www.…</span>
                                         </p>
                                     </div>
                                     <div x-show="domainError" x-cloak class="p-4 bg-red-50 text-red-800 border border-red-200 rounded-sm text-sm font-medium flex items-center gap-2"><span x-text="domainError"></span></div>

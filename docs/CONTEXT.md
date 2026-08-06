@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-08-06 — Deploy security PR + cache-bust panelu po freeze custom_domain
+**Ostatnia aktualizacja:** 2026-08-06 — Custom domain: TXT ownership + strict CF active
 
 ---
 
@@ -58,7 +58,7 @@ W konsoli: `window.DFOPS_DEPLOY_ENVIRONMENT` → `'staging'` | `'production'`.
 1. **Rejestracja / edycja** — przeglądarka → Supabase Auth + PostgREST (`pages`, `draft_content` / `content`) z kluczem **anon** (RLS).
 2. **Publikacja treści** — panel kopiuje `draft_content` → `content`; strony publiczne czytają wyłącznie `content` (preview: `dfcms_preview=1` + właściciel).
 3. **Płatność** — panel → `create-checkout` → Stripe Checkout → `stripe-webhook` / `sync-stripe-subscription` → `billing_profiles` + lustrzane `pages.billing_plan`.
-4. **Własna domena** — panel „Zapisz i sprawdź” → Edge `add-custom-domain` (Custom Hostname **apex + www** w CF, idempotentny przy duplikacie 1406, odświeża SSL gdy pending) → `GET /api/verify-domain?domain=…` (DoH: A na apex i/lub CNAME na www) → status `active`/`pending` w `pages`. Instrukcja DNS: **A** `@` → `172.67.154.121` oraz `104.21.66.9` + **CNAME** `www` → `proxy.dfcms.pl` (bez CNAME na apex — ochrona MX). Sam apex bez www zwykle daje CF Error 1001 / SSL mismatch.
+4. **Własna domena** — panel „Zapisz i sprawdź” → DoH `verify-domain` (info) → Edge `add-custom-domain` (Custom Hostname **apex + www**, SSL `txt`, idempotentny przy 1406). Status `active` **tylko** gdy CF apex+www mają `status`+`ssl` = active. Instrukcja DNS z Edge: **A** `@` → `172.67.154.121` + `104.21.66.9` + **TXT** `_cf-custom-hostname` (ownership) + **CNAME** `www` → `proxy.dfcms.pl`. DNS klienta w Cloudflare → DNS only (nie Proxied).
 5. **Routing publiczny** — `functions/_middleware.js` (slug z nagłówka `Host` / kandydatów); RPC `get_public_site_route` → soft-block HTML gdy `blocked`, live SEO rewrite gdy publicznie czytelne, preview bez content SEO; gdy edge widzi tylko `*.pages.dev` (brak wildcard `*.dfcms.pl` w Pages), **fallback w przeglądarce:** `index.html` → `router.html` → `/templates/{theme}.html` (slug z `window.location.hostname` + meta RPC przy soft-block); **`js/core/tenantPublicUrlClean.js`** (sync w `<head>` szablonu) + `publicSiteApp.cleanTenantPublicUrl()` normalizują pasek do `/` (także przy blokadzie trial); apex `dfcms.pl?site=slug` → preview z query; nieistniejący tenant → 404 HTML.
 6. **Alerty** — Sentry / Database Webhooks / cron → Telegram (**bez** triggerów SQL `http_request` w migracjach).
 
@@ -390,6 +390,13 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 
 ## 4. Dziennik transformacji
 
+### 2026-08-06 — Custom domain: TXT ownership + bez fałszywej zielonej OK
+
+- **Problem:** panel oznaczał `active` gdy DoH widział A/CNAME (`dnsVerified`), mimo że Custom Hostname CF był Pending (`does not CNAME` / brak TXT) → Error 522 na www przy zielonej OK.
+- **Fix Edge** `add-custom-domain`: SSL method `txt`; `custom_domain_status=active` tylko gdy **apex i www** mają `status+ssl=active`; payload `dnsInstructions` (2× A + TXT `_cf-custom-hostname` + CNAME www).
+- **Fix panel:** amber pending + tabela DNS z tokenem z CF; zielona OK wyłącznie po `cfActive`.
+- **dfops.eu:** dodać TXT ownership z dashboardu CF + DNS only (nie Proxied) jeśli strefa klienta jest w Cloudflare; potem ponów „Zapisz i sprawdź”.
+
 ### 2026-08-06 — Deploy security + hotfix cache panelu (zapis domeny)
 
 - **Merged/deployed** PR #2 (freeze `custom_domain` + storage SELECT) na Staging i Production (`db push` + `functions deploy add-custom-domain`; `main` → `staging`).
@@ -400,8 +407,8 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 
 - **Finding High:** authenticated JWT mógł `UPDATE pages.custom_domain` / `custom_domain_status` (GRANT + brak triggera) — claim domeny bez Edge/Cloudflare.
 - **Fix DB:** `protect_pages_custom_domain_columns` (`20260805120000_*`) — freeze jak billing; revoke UPDATE/INSERT tych kolumn dla `authenticated`.
-- **Fix Edge** `add-custom-domain`: walidacja FQDN, blocklist domen platformy, gate planu Standard+, unik uniqueness, `clear: true`, `dnsVerified` → status; zapis wyłącznie `service_role`.
-- **Fix panel:** publish nie pisze `custom_domain*`; clear przy downgrade → Edge; verify → DNS + Edge (bez PostgREST write).
+- **Fix Edge** `add-custom-domain`: walidacja FQDN, blocklist domen platformy, gate planu Standard+, unik uniqueness, `clear: true`; zapis wyłącznie `service_role`.
+- **Fix panel:** publish nie pisze `custom_domain*`; clear przy downgrade → Edge; verify → DNS + Edge (bez PostgREST write). (Status `active` od 2026-08-06: wyłącznie `cfActive`, nie DoH.)
 - **Medium:** Storage `images` SELECT authenticated zawężony do własnych obiektów (`20260805121000_*`).
 - **Deploy:** `db push` + `functions deploy add-custom-domain` na Staging, potem Production po merge.
 

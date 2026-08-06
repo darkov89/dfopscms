@@ -61,9 +61,10 @@ Public URL cleanup: `publicSiteApp.cleanTenantPublicUrl()`.
 
 ## Custom domains (client `.pl` / `.com`)
 
-1. Panel „Zapisz i sprawdź” → Edge `add-custom-domain` (Custom Hostname **apex + www**; duplicate 1406 = OK, odświeża SSL) → `pages.custom_domain`.
-2. DNS u klienta: **A** `@` → `172.67.154.121` + `104.21.66.9` (bez CNAME na apex) + **CNAME** `www` → `proxy.dfcms.pl` (www obowiązkowy — inaczej CF Error 1001 / SSL mismatch).
-3. Verify: `GET /api/verify-domain?domain=…` on Pages (DoH: A apex i/lub CNAME www).
+1. Panel „Zapisz i sprawdź” → Edge `add-custom-domain` (Custom Hostname **apex + www**, SSL `txt`; duplicate 1406 = OK) → `pages.custom_domain`.
+2. DNS u klienta (z Edge `dnsInstructions`): **A** `@` → `172.67.154.121` + `104.21.66.9` + **TXT** `_cf-custom-hostname` (ownership z CF) + **CNAME** `www` → `proxy.dfcms.pl`. Jeśli DNS klienta jest w Cloudflare — **DNS only** (szara chmurka).
+3. Status `active` w DB/panelu **tylko** gdy CF apex+www mają `status` i `ssl.status` = `active` (nie na samym DoH).
+4. DoH `GET /api/verify-domain` — informacyjnie (A/CNAME); nie ustawia zielonej OK.
 
 Secrets for CF API live in **Supabase Edge** (`CF_ZONE_ID`, `CF_API_TOKEN`), not in static front.
 

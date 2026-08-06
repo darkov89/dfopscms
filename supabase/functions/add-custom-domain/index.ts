@@ -67,17 +67,39 @@ function planAllowsCustomDomain(plan: unknown): boolean {
   return p !== "trial" && p !== "tier0";
 }
 
+/** Anycast A dla apex (strefa SaaS dfcms.pl) — te same co w verify-domain / panelu. */
+const SAAS_APEX_A_IPS = ["172.67.154.121", "104.21.66.9"] as const;
+const SAAS_WWW_CNAME_TARGET = "proxy.dfcms.pl";
+
 type CfHostname = {
   id?: string;
   hostname?: string;
   status?: string;
   verification_errors?: string[];
-  ssl?: { status?: string; method?: string };
+  ssl?: {
+    status?: string;
+    method?: string;
+    txt_name?: string;
+    txt_value?: string;
+    validation_records?: Array<{
+      txt_name?: string;
+      txt_value?: string;
+      http_url?: string;
+      http_body?: string;
+    }>;
+  };
   ownership_verification?: {
     type?: string;
     name?: string;
     value?: string;
   };
+};
+
+type DnsInstructionRow = {
+  type: string;
+  host: string;
+  value: string;
+  purpose: string;
 };
 
 type CfApiBody = {
@@ -106,16 +128,116 @@ function cfAuthHeaders(token: string): HeadersInit {
 
 function summarizeHostname(row: CfHostname | null | undefined) {
   if (!row || typeof row !== "object") return null;
+  const sslTxt =
+    row.ssl?.txt_name && row.ssl?.txt_value
+      ? { name: row.ssl.txt_name, value: row.ssl.txt_value }
+      : Array.isArray(row.ssl?.validation_records)
+      ? row.ssl.validation_records
+          .map((r) =>
+            r?.txt_name && r?.txt_value
+              ? { name: r.txt_name, value: r.txt_value }
+              : null,
+          )
+          .find(Boolean) || null
+      : null;
   return {
     id: row.id || null,
     hostname: row.hostname || null,
     status: row.status || null,
     ssl_status: row.ssl?.status || null,
+    ssl_method: row.ssl?.method || null,
     verification_errors: Array.isArray(row.verification_errors)
       ? row.verification_errors
       : [],
     ownership_verification: row.ownership_verification || null,
+    ssl_txt: sslTxt,
   };
+}
+
+type HostnameSummary = NonNullable<ReturnType<typeof summarizeHostname>>;
+
+function isHostnameFullyActive(row: HostnameSummary | null | undefined): boolean {
+  if (!row) return false;
+  return (
+    String(row.status || "").toLowerCase() === "active" &&
+    String(row.ssl_status || "").toLowerCase() === "active"
+  );
+}
+
+/** Host w panelu DNS providera — preferuj etykietę względną (_cf-custom-hostname). */
+function dnsHostLabel(fullName: string, apexHostname: string): string {
+  const n = String(fullName || "").trim().toLowerCase().replace(/\.$/, "");
+  const apex = String(apexHostname || "").trim().toLowerCase().replace(/\.$/, "");
+  if (!n) return "";
+  if (apex && (n === apex || n === `@.${apex}`)) return "@";
+  if (apex && n.endsWith("." + apex)) {
+    return n.slice(0, -(apex.length + 1));
+  }
+  return n;
+}
+
+/**
+ * Instrukcja DNS dla klienta: 2× A + TXT ownership (weryfikacja hostname).
+ * CNAME www dokładamy jako 4. wiersz (ruch na SaaS) — bez niego www pada.
+ */
+function buildDnsInstructions(
+  apexHostname: string,
+  apex: HostnameSummary | null,
+  www: HostnameSummary | null,
+): DnsInstructionRow[] {
+  const rows: DnsInstructionRow[] = SAAS_APEX_A_IPS.map((ip) => ({
+    type: "A",
+    host: "@",
+    value: ip,
+    purpose: "Ruch HTTPS na domenę główną (apex)",
+  }));
+
+  const ownership =
+    apex?.ownership_verification?.type === "txt" &&
+    apex.ownership_verification.name &&
+    apex.ownership_verification.value
+      ? apex.ownership_verification
+      : www?.ownership_verification?.type === "txt" &&
+          www.ownership_verification.name &&
+          www.ownership_verification.value
+        ? www.ownership_verification
+        : null;
+
+  if (ownership) {
+    rows.push({
+      type: "TXT",
+      host: dnsHostLabel(String(ownership.name), apexHostname) ||
+        String(ownership.name),
+      value: String(ownership.value),
+      purpose:
+        "Weryfikacja własności w Cloudflare (wymagane zanim hostname stanie się Active)",
+    });
+  }
+
+  rows.push({
+    type: "CNAME",
+    host: "www",
+    value: SAAS_WWW_CNAME_TARGET,
+    purpose: "Ruch na www → strefa SaaS DFCMS (bez tego często Error 1001 / 522)",
+  });
+
+  // Opcjonalnie osobny TXT DCV certyfikatu (gdy CF zwraca ssl txt — rzadziej przy metodzie http).
+  const sslTxt = apex?.ssl_txt || www?.ssl_txt;
+  if (
+    sslTxt?.name &&
+    sslTxt?.value &&
+    (!ownership ||
+      String(sslTxt.name).toLowerCase() !== String(ownership.name).toLowerCase())
+  ) {
+    rows.push({
+      type: "TXT",
+      host: dnsHostLabel(String(sslTxt.name), apexHostname) || String(sslTxt.name),
+      value: String(sslTxt.value),
+      purpose: "Walidacja certyfikatu SSL (TXT)",
+    });
+  }
+
+  return rows;
 }
 
 async function fetchCustomHostname(
@@ -150,7 +272,7 @@ async function refreshCustomHostnameSsl(
       headers: cfAuthHeaders(token),
       body: JSON.stringify({
         ssl: {
-          method: "http",
+          method: "txt",
           type: "dv",
         },
       }),
@@ -187,7 +309,7 @@ async function ensureCustomHostname(
       body: JSON.stringify({
         hostname,
         ssl: {
-          method: "http",
+          method: "txt",
           type: "dv",
         },
       }),
@@ -421,12 +543,19 @@ serve(async (req) => {
     const apexSummary = summarizeHostname(apexResult.record);
     const wwwSummary = summarizeHostname(wwwResult.record);
     const alreadyExists = !!(apexResult.alreadyExists || wwwResult.alreadyExists);
-    const cfActive = [apexSummary, wwwSummary].some(
-      (r) =>
-        String(r?.status || "").toLowerCase() === "active" &&
-        String(r?.ssl_status || "").toLowerCase() === "active",
+    // Active tylko gdy CF potwierdzi hostname+SSL dla apex i www — nie na samym DoH.
+    const cfActive =
+      isHostnameFullyActive(apexSummary) && isHostnameFullyActive(wwwSummary);
+    const dbStatus = cfActive ? "active" : "pending";
+    const dnsInstructions = buildDnsInstructions(
+      hostname,
+      apexSummary,
+      wwwSummary,
     );
-    const dbStatus = cfActive || dnsVerified ? "active" : "pending";
+    const verificationErrors = [
+      ...(apexSummary?.verification_errors || []),
+      ...(wwwSummary?.verification_errors || []),
+    ].filter((e, i, arr) => e && arr.indexOf(e) === i);
 
     const { error: dbError } = await supabaseAdmin
       .from("pages")
@@ -455,6 +584,8 @@ serve(async (req) => {
         cfActive,
         dnsVerified,
         custom_domain_status: dbStatus,
+        dnsInstructions,
+        verificationErrors,
         apex: apexSummary,
         www: wwwSummary,
         data: apexResult.record,
