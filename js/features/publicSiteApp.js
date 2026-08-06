@@ -1028,13 +1028,34 @@
         } catch (_) {
           logical = '/';
         }
-        const path =
+        // Preview na /templates/*.html?site=… — locale przez dfcms_lang (ten sam origin co panel).
+        try {
+          const path = String(window.location.pathname || '');
+          if (path.indexOf('/templates/') === 0) {
+            const u = new URL(window.location.href);
+            const loc = String(code || '')
+              .trim()
+              .toLowerCase();
+            if (!loc || loc === def) u.searchParams.delete('dfcms_lang');
+            else u.searchParams.set('dfcms_lang', loc);
+            return u.pathname + u.search + (u.hash || '');
+          }
+        } catch (_) {
+          /* fall through */
+        }
+        const built =
           typeof window.DFOPS_buildLocalizedPath === 'function'
             ? window.DFOPS_buildLocalizedPath(code, logical, def)
             : code === def
               ? logical
               : '/' + code + (logical === '/' ? '' : logical);
-        return path + (window.location.search || '');
+        return built + (window.location.search || '');
+      },
+      /** Przejście na wersję językową (URL). */
+      switchLocale(code) {
+        const href = this.localeHref(code);
+        if (!href) return;
+        window.location.assign(href);
       },
       /** Paleta szablonu gastro/care — `content.pl.settings.color_palette` (domyślna per motyw). */
       colorPalette() {

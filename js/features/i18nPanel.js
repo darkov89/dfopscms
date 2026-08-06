@@ -305,16 +305,22 @@
         const def = this.i18nDefaultLocale();
         this._localePack[loc] = deepClone(this._localePack[def] || this.content.pl || {});
       }
-      // Unikaj zbędnego przypisania (deep $watch → pętla autosave)
-      if (this.content.pl !== this._localePack[loc]) {
-        this.content.pl = this._localePack[loc];
-      }
       const enabled = this.i18nEnabledLocales();
+      // Najpierw klucze locale (en/de/…) — NIGDY nie nadpisuj content.pl packiem PL,
+      // gdy edytujemy inny język (content.pl = bufor edycji = pack[editLocale]).
       for (let i = 0; i < enabled.length; i++) {
         const code = enabled[i];
+        if (code === 'pl') continue;
         if (this._localePack[code] && this.content[code] !== this._localePack[code]) {
           this.content[code] = this._localePack[code];
         }
+      }
+      // Bufor edycji na końcu
+      if (this.content.pl !== this._localePack[loc]) {
+        this.content.pl = this._localePack[loc];
+      }
+      if (loc !== 'pl' && this.content[loc] !== this._localePack[loc]) {
+        this.content[loc] = this._localePack[loc];
       }
     };
 
@@ -532,20 +538,21 @@
 
     app.prepareContentForPersist = function prepareContentForPersist() {
       if (!this.content) return this.content;
-      if (this.editLocale && this.content.pl) {
-        this._localePack = this._localePack || {};
-        this._localePack[this.editLocale] = this.content.pl;
-        this.content[this.editLocale] = this.content.pl;
+      const def = this.i18nDefaultLocale();
+      const edit = this.editLocale || def;
+      this._localePack = this._localePack || {};
+      // Bufor formularza (content.pl) → pack aktywnego języka
+      if (edit && this.content.pl) {
+        this._localePack[edit] = this.content.pl;
       }
       const enabled = this.i18nEnabledLocales();
       for (let i = 0; i < enabled.length; i++) {
         const code = enabled[i];
-        if (this._localePack && this._localePack[code]) {
+        if (this._localePack[code]) {
           this.content[code] = this._localePack[code];
         }
       }
       // Domyślny locale zawsze pod swoim kluczem i jako pl dla kompatybilności loaderów
-      const def = this.i18nDefaultLocale();
       if (this.content[def]) this.content.pl = this.content[def];
       ensureTranslationMode(this.content);
       if (typeof window.DFOPS_prepareContentForSave === 'function') {

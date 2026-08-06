@@ -120,10 +120,13 @@
                     <template x-if="showLanguageSwitcher()">
                         <div class="flex items-center gap-6">
                             <div class="h-4 w-px bg-sattva-text/25"></div>
-                            <div class="flex space-x-3 text-xs uppercase tracking-widest">
+                            <div class="flex space-x-3 text-xs uppercase tracking-widest" role="navigation" aria-label="Language">
                                 <template x-for="(langKey, index) in siteLocales()" :key="langKey">
                                     <div class="flex items-center space-x-3">
-                                        <button type="button" @click="lang = langKey" :class="lang === langKey ? 'text-sattva-brand font-bold scale-110' : 'text-sattva-text/40 hover:text-sattva-text transition-all'" x-text="localeLabel(langKey)"></button>
+                                        <a :href="localeHref(langKey)"
+                                           :class="lang === langKey ? 'text-sattva-brand font-bold scale-110' : 'text-sattva-text/40 hover:text-sattva-text transition-all'"
+                                           :aria-current="lang === langKey ? 'page' : null"
+                                           x-text="localeLabel(langKey)"></a>
                                         <span class="text-sattva-text/20 font-normal" x-show="index < siteLocales().length - 1" aria-hidden="true">|</span>
                                     </div>
                                 </template>

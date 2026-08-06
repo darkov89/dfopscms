@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-08-06 — Consultant: zakładka „Efekty w liczbach”
+**Ostatnia aktualizacja:** 2026-08-06 — Fix i18n: shim PL nadpisywał EN + switcher Consultant
 
 ---
 
@@ -390,6 +390,12 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-08-06 — Fix i18n: tłumaczenie ginęło przy zapisie + switcher
+
+- **P0:** `_bindEditLocaleShim` po ustawieniu bufora EN (`content.pl = pack.en`) w pętli znów przypisywał `content.pl = pack.pl` → autosave/publish zapisywały polski klon jako `en`.
+- **Consultant:** przełącznik PL|EN tylko robił `lang = …` w Alpine (URL zostawał `/`) — przy sklonowanym EN wyglądało jak „nic się nie zmienia”. Teraz linki `localeHref` (`/en`).
+- Po deployu: **Przetłumacz AI ponownie** + **Opublikuj** (stare `content.en` mogło być już nadpisane PL).
 
 ### 2026-08-06 — Consultant: edycja sekcji proof w panelu
 
