@@ -73,6 +73,11 @@
                                         <span :class="isSidebarNavActive('trust') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Dlaczego warto nas wybrać?</span>
                                     </button>
                                 </div>
+                                <div x-show="adminTabVisible('proof')" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('proof') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
+                                    <button type="button" @click="setTab('proof')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
+                                        <span :class="isSidebarNavActive('proof') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Efekty w liczbach</span>
+                                    </button>
+                                </div>
                                 <div x-show="adminTabVisible('faq')" class="flex w-full items-stretch rounded-r-lg border-l-4 transition-colors" :class="isSidebarNavActive('faq') ? 'border-accent bg-amber-50/60' : 'border-transparent hover:bg-slate-50/90'">
                                     <button type="button" @click="setTab('faq')" class="min-w-0 flex-1 rounded-r-lg py-2.5 pl-4 pr-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/35">
                                         <span :class="isSidebarNavActive('faq') ? 'text-sm font-bold text-slate-900' : 'text-sm text-slate-600'" class="leading-snug">Pytania klientów</span>

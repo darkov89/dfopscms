@@ -219,6 +219,20 @@
       pl.settings.showTrust = true;
     }
 
+    if (!pl.proof || typeof pl.proof !== 'object' || Array.isArray(pl.proof)) {
+      pl.proof = { label: '', title: '', text: '', statNumber: '', statLabel: '', statDesc: '' };
+    } else {
+      if (pl.proof.label === undefined) pl.proof.label = '';
+      if (pl.proof.title === undefined) pl.proof.title = '';
+      if (pl.proof.text === undefined) pl.proof.text = '';
+      if (pl.proof.statNumber === undefined) pl.proof.statNumber = '';
+      if (pl.proof.statLabel === undefined) pl.proof.statLabel = '';
+      if (pl.proof.statDesc === undefined) pl.proof.statDesc = '';
+    }
+    if (theme === 'consultant' && (pl.settings.showProof === undefined || pl.settings.showProof === null)) {
+      pl.settings.showProof = true;
+    }
+
     if (!Array.isArray(pl.schedule)) pl.schedule = [];
 
     if (!pl.contact) pl.contact = {};

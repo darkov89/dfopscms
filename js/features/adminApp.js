@@ -126,6 +126,7 @@
     'menu',
     'care_profile',
     'trust',
+    'proof',
     'schedule',
     'booking',
     'gallery',
@@ -1542,6 +1543,7 @@
           this.adminManifestoTabVisible() ||
           this.adminTabVisible('care_profile') ||
           this.adminTabVisible('trust') ||
+          this.adminTabVisible('proof') ||
           this.adminTabVisible('faq') ||
           this.adminTabVisible('google_reviews') ||
           this.adminTabVisible('reviews') ||

@@ -1,0 +1,45 @@
+                    <div x-show="activeTab === 'proof' && adminTabVisible('proof')" x-transition.opacity x-cloak>
+                        <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
+                            <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Efekty w liczbach</h2>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl mb-6">Duża liczba i krótki opis (np. lata doświadczenia, zadowoleni klienci). Buduje zaufanie obok oferty. Wyłączona sekcja znika ze strony, ale treści zostają w panelu.</p>
+                            <label class="flex items-center gap-4 cursor-pointer">
+                                <div class="relative">
+                                    <input type="checkbox" x-model="content.pl.settings.showProof" class="sr-only peer">
+                                    <div class="w-11 h-6 rounded-full transition-colors peer-checked:bg-emerald-500 bg-gray-200"></div>
+                                    <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5 pointer-events-none"></div>
+                                </div>
+                                <span class="text-sm font-medium text-slate-900">Pokaż tę sekcję na stronie</span>
+                            </label>
+                        </div>
+                        <div class="space-y-6 max-w-2xl">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Mała etykieta nad tytułem</label>
+                                <input type="text" x-model="content.pl.proof.label" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-slate-900 bg-white focus:ring-2 focus:ring-accent/30 outline-none" placeholder="np. W liczbach">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tytuł</label>
+                                <input type="text" x-model="content.pl.proof.title" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-slate-900 bg-white focus:ring-2 focus:ring-accent/30 outline-none" placeholder="np. Zaufanie budowane wynikami">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Opis</label>
+                                <textarea x-model="content.pl.proof.text" rows="4" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm text-slate-900 bg-white focus:ring-2 focus:ring-accent/30 outline-none resize-y" placeholder="Krótko, dla kogo pracujesz i jaki masz efekt…"></textarea>
+                            </div>
+                            <div class="rounded-xl border border-slate-200/80 bg-slate-50/60 p-5 space-y-4">
+                                <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Wyróżniona liczba</p>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Liczba</label>
+                                        <input type="text" x-model="content.pl.proof.statNumber" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-slate-900 bg-white focus:ring-2 focus:ring-accent/30 outline-none" placeholder="np. 12+">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Podpis pod liczbą</label>
+                                        <input type="text" x-model="content.pl.proof.statLabel" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-slate-900 bg-white focus:ring-2 focus:ring-accent/30 outline-none" placeholder="np. lat doświadczenia">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Dopisek (opcjonalnie)</label>
+                                    <input type="text" x-model="content.pl.proof.statDesc" class="w-full rounded-lg border border-slate-200 px-4 py-3 text-slate-900 bg-white focus:ring-2 focus:ring-accent/30 outline-none" placeholder="np. w transformacjach operacyjnych">
+                                </div>
+                            </div>
+                        </div>
+                    </div>

@@ -67,6 +67,7 @@
     services: { section: 'services' },
     menu: { section: 'menu' },
     trust: { section: 'trust' },
+    proof: { section: 'proof' },
     schedule: { section: 'schedule' },
     booking: { section: 'booking' },
     gallery: { section: 'gallery' },

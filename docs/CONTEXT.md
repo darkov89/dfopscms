@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-08-06 — i18n: flow tłumaczeń AI (UX + bugfix)
+**Ostatnia aktualizacja:** 2026-08-06 — Consultant: zakładka „Efekty w liczbach”
 
 ---
 
@@ -390,6 +390,10 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-08-06 — Consultant: edycja sekcji proof w panelu
+
+Brakowało UI do bloku z dużą liczbą na szablonie Consultant. Zakładka **„Efekty w liczbach”** (Więcej treści) — pola `proof.*` + `settings.showProof`; widoczna tylko gdy motyw ma sekcję `proof`.
 
 ### 2026-08-06 — i18n: tłumaczenie AI działa jak w SaaS (UX + bugfix)
 
