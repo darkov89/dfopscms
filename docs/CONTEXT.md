@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-08-06 — Fix consultant accent-contrast per palette
+**Ostatnia aktualizacja:** 2026-08-06 — Consultant ≈ DFOPS private (Inter tech vibe)
 
 ---
 
@@ -390,6 +390,11 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-08-06 — Consultant ≈ prywatny DFOPS (typografia + rytm)
+
+- Odniesienie: prywatna strona (`dfops/index.html`) — Inter wszędzie (tech), hero `4xl→7xl`, CTA outline→fill z `--accent-contrast`, karty `bg-text/5` + `border-text/10`, `py-24`, duży solid CTA rezerwacji.
+- Palety nadal przez tokeny; `font_preset=elegant` → Cormorant; inaczej Inter=serif+sans.
 
 ### 2026-08-06 — Fix consultant: kontrast CTA per palette
 

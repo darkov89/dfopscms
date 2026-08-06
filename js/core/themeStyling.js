@@ -195,7 +195,12 @@
     const fonts = (cfg.fontByPreset || {})[(s.font_preset || (theme === 'beauty' ? 'poppins' : 'inter'))] || cfg.fontByPreset?.inter;
     if (fonts) {
       setCssVar('--font-sans', fonts.sans);
-      setCssVar('--font-serif', fonts.serif);
+      // Consultant / DFOPS private: Inter wszędzie (tech vibe), poza presetem elegant (Cormorant).
+      if (theme === 'consultant' && String(s.font_preset || 'inter') !== 'elegant') {
+        setCssVar('--font-serif', fonts.sans);
+      } else {
+        setCssVar('--font-serif', fonts.serif);
+      }
     }
 
     // Główne tło / tekst strony (body) — każdy preset musi je nadpisać, żeby nie „zapinać” się przy zmianie jasny ↔ ciemny

@@ -135,6 +135,9 @@ html[data-dfops-scope="setup"] body.dfops-setup-page {
 .border-sattva-brand\/10 { border-color: color-mix(in srgb, var(--accent) 10%, transparent) !important; }
 .ring-sattva-brand\/20 { --tw-ring-color: color-mix(in srgb, var(--accent) 20%, transparent) !important; }
 .border-sattva-text\/20 { border-color: color-mix(in oklab, var(--beauty-text) 20%, transparent) !important; }
+.border-sattva-text\/10 { border-color: color-mix(in oklab, var(--beauty-text) 10%, transparent) !important; }
+.border-sattva-text\/5 { border-color: color-mix(in oklab, var(--beauty-text) 5%, transparent) !important; }
+.bg-sattva-text\/5 { background-color: color-mix(in oklab, var(--beauty-text) 5%, transparent) !important; }
 
 /* Beauty backgrounds become dynamic via surfaces */
 .bg-sattva-bg { background-color: var(--surface-bg) !important; }
@@ -149,8 +152,16 @@ html[data-dfops-scope="setup"] body.dfops-setup-page {
 .text-sattva-text\/80 { color: color-mix(in oklab, var(--beauty-text) 80%, transparent) !important; }
 .text-sattva-text\/70 { color: color-mix(in oklab, var(--beauty-text) 70%, transparent) !important; }
 .text-sattva-text\/60 { color: color-mix(in oklab, var(--beauty-text) 60%, transparent) !important; }
+.text-sattva-text\/55 { color: color-mix(in oklab, var(--beauty-text) 55%, transparent) !important; }
+.text-sattva-text\/50 { color: color-mix(in oklab, var(--beauty-text) 50%, transparent) !important; }
+.text-sattva-text\/45 { color: color-mix(in oklab, var(--beauty-text) 45%, transparent) !important; }
+.text-sattva-text\/40 { color: color-mix(in oklab, var(--beauty-text) 40%, transparent) !important; }
+.text-sattva-text\/25 { color: color-mix(in oklab, var(--beauty-text) 25%, transparent) !important; }
+.text-sattva-text\/20 { color: color-mix(in oklab, var(--beauty-text) 20%, transparent) !important; }
 .hover\:bg-sattva-bg\/50:hover { background-color: color-mix(in oklab, var(--surface-bg) 50%, transparent) !important; }
 .hover\:bg-sattva-text\/5:hover { background-color: color-mix(in oklab, var(--beauty-text) 5%, transparent) !important; }
+.bg-sattva-accent\/90 { background-color: color-mix(in oklab, var(--surface-accent) 90%, transparent) !important; }
+.bg-sattva-accent\/50 { background-color: color-mix(in oklab, var(--surface-accent) 50%, transparent) !important; }
 
 /*
  * Tekst NA akcencie (CTA, ikony) — zawsze --accent-contrast (gold→ciemny, dfops-tech→jasny).
