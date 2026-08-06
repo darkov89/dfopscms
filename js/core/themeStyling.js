@@ -119,8 +119,8 @@
         setCssVar('--surface-bg', presetPalette.surfaceBg);
         setCssVar('--surface-accent', presetPalette.surfaceAccent);
         setCssVar('--surface-card', presetPalette.surfaceCard);
-        setCssVar('--beauty-text', darkBodyText);
-        setCssVar('--beauty-text-muted', presetPalette.textMuted);
+        setCssVar('--beauty-text', presetPalette.text || darkBodyText);
+        setCssVar('--beauty-text-muted', presetPalette.textMuted || '#94a3b8');
         setCssVar('--beauty-white', '#ffffff');
       } else {
         const isDark = !!s.darkMode;
@@ -207,7 +207,7 @@
       const presetPalette = (cfg.consultantPresetPalette || {})[s.color_preset];
       if (presetPalette) {
         setCssVar('--bg-main', presetPalette.bgA || '#0B132B');
-        setCssVar('--text-main', darkBodyText);
+        setCssVar('--text-main', presetPalette.text || darkBodyText);
       } else {
         const isDark = !!s.darkMode;
         setCssVar('--bg-main', isDark ? '#121212' : '#ffffff');

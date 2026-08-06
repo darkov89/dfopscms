@@ -32,7 +32,7 @@
             }
         }
     </script>
-    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/styles.css?v=20260806b">
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
@@ -46,7 +46,7 @@
     <script defer src="/js/core/i18nLocales.js?v=20260723a"></script>
     <script defer src="/js/core/i18nContent.js?v=20260723a"></script>
     <script defer src="/js/core/contentUpgrader.js?v=20260723a"></script>
-    <script defer src="/js/core/themeStyling.js"></script>
+    <script defer src="/js/core/themeStyling.js?v=20260806b"></script>
     <script defer src="/js/core/pageRepository.js?v=20260704i"></script>
     <script defer src="/js/core/planUtils.js?v=20260703a"></script>
     <script defer src="/js/core/trialBlocking.js?v=20260704h"></script>
@@ -61,7 +61,7 @@
 
 <body 
     :class="content && content[lang].settings?.darkMode ? 'dark' : ''"
-    class="font-sans antialiased text-sattva-text selection:bg-sattva-brand selection:text-sattva-white transition-colors duration-500 bg-transparent"
+    class="font-sans antialiased text-sattva-text selection:bg-sattva-brand selection:text-accent-contrast transition-colors duration-500 bg-transparent"
     x-data="createPublicSiteApp('consultant')"
 >
 
@@ -180,7 +180,7 @@
                 <a :href="resolveHeroButtonUrl()"
                    :target="ctaLinkTarget(resolveHeroButtonUrl())"
                    :rel="ctaLinkRel(resolveHeroButtonUrl())"
-                   class="group relative inline-flex px-7 py-2.5 border border-sattva-brand text-sattva-brand font-sans text-xs font-semibold uppercase tracking-[0.14em] hover:bg-sattva-brand hover:text-sattva-white transition-all duration-300 reveal delay-500"
+                   class="group relative inline-flex px-7 py-2.5 border border-sattva-brand text-sattva-brand font-sans text-xs font-semibold uppercase tracking-[0.14em] hover:bg-sattva-brand hover:text-accent-contrast transition-all duration-300 reveal delay-500"
                    x-text="content[lang].hero.button"></a>
             </template>
         </header>
@@ -340,7 +340,7 @@
                                         <span class="text-sm text-sattva-text/80" x-text="displayCount() + ' ' + ($root.lang === 'en' ? 'reviews' : 'opinii')"></span>
                                     </div>
                                     <a :href="writeReviewUrl()" target="_blank" rel="noopener noreferrer"
-                                       class="shrink-0 self-center rounded-full border border-sattva-brand/40 px-5 py-2.5 font-sans text-xs font-semibold uppercase tracking-[0.14em] text-sattva-brand hover:bg-sattva-brand hover:text-sattva-white transition-colors text-center"
+                                       class="shrink-0 self-center rounded-full border border-sattva-brand/40 px-5 py-2.5 font-sans text-xs font-semibold uppercase tracking-[0.14em] text-sattva-brand hover:bg-sattva-brand hover:text-accent-contrast transition-colors text-center"
                                        x-text="$root.lang === 'en' ? 'Write a review' : 'Napisz recenzję'"></a>
                                 </div>
 
@@ -434,36 +434,36 @@
                 <div class="text-center mb-10" x-show="bookingModuleActive()" x-cloak>
                     <p class="font-sans text-[10px] font-semibold uppercase tracking-[0.25em] mb-3 text-sattva-brand">Rezerwacja</p>
                     <h2 class="font-serif text-3xl md:text-4xl font-semibold tracking-tight text-sattva-text" x-text="bookingCtaTitle()"></h2>
-                    <p class="mt-4 font-sans text-sattva-text/65 text-sm md:text-base leading-relaxed max-w-xl mx-auto" x-text="bookingCtaDescription()"></p>
+                    <p class="mt-4 font-sans text-sattva-text/70 text-sm md:text-base leading-relaxed max-w-xl mx-auto" x-text="bookingCtaDescription()"></p>
                 </div>
                 <template x-if="showBookingEmbed()">
-                    <div class="p-4 sm:p-6 rounded-2xl border border-sattva-brand/40 shadow-lg relative overflow-hidden bg-sattva-accent text-sattva-text">
+                    <div class="p-4 sm:p-6 rounded-2xl border border-color-primary shadow-lg relative overflow-hidden bg-surface-card text-sattva-text">
                         <div class="absolute -top-10 -right-10 w-48 h-48 opacity-20 blur-3xl rounded-full pointer-events-none bg-sattva-brand"></div>
-                        <div class="w-full h-[520px] sm:h-[600px] rounded-xl overflow-hidden border border-sattva-brand/30 relative z-[1] bg-sattva-bg">
+                        <div class="w-full h-[520px] sm:h-[600px] rounded-xl overflow-hidden border border-color-primary/35 relative z-[1] bg-main">
                             <iframe :src="resolveCalendlyEmbedUrl(resolveBookingUrl())" class="w-full h-full border-0" loading="lazy" title="Rezerwacja online"></iframe>
                         </div>
                     </div>
                 </template>
                 <template x-if="showBookingButton()">
-                    <div class="p-8 md:p-10 rounded-2xl border border-sattva-brand/40 shadow-lg relative overflow-hidden text-center bg-sattva-accent text-sattva-text">
+                    <div class="p-8 md:p-10 rounded-2xl border border-color-primary shadow-lg relative overflow-hidden text-center bg-surface-card text-sattva-text">
                         <div class="absolute -top-10 -right-10 w-48 h-48 opacity-25 blur-3xl rounded-full pointer-events-none bg-sattva-brand"></div>
                         <a :href="resolveBookingUrl()" :target="ctaLinkTarget(resolveBookingUrl())" :rel="ctaLinkRel(resolveBookingUrl())"
                            @click="onConversionClick('booking_click', 'booking_section')"
-                           class="relative z-[1] inline-flex items-center justify-center w-full sm:w-auto gap-2 px-8 py-3.5 rounded-sm font-sans text-sm font-semibold uppercase tracking-[0.12em] transition-all hover:-translate-y-0.5 shadow-md hover:shadow-xl bg-sattva-brand text-sattva-white">
+                           class="relative z-[1] inline-flex items-center justify-center w-full sm:w-auto gap-2 px-8 py-3.5 rounded-sm font-sans text-sm font-semibold uppercase tracking-[0.12em] transition-all hover:-translate-y-0.5 shadow-md hover:shadow-xl bg-color-primary text-accent-contrast">
                             <span x-text="bookingCtaButtonText()"></span>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                         </a>
                     </div>
                 </template>
                 <template x-if="footerCtaEnabled() && !bookingModuleActive()">
-                    <div class="p-8 md:p-10 rounded-2xl border border-sattva-brand/40 shadow-lg relative overflow-hidden text-center bg-sattva-accent text-sattva-text">
+                    <div class="p-8 md:p-10 rounded-2xl border border-color-primary shadow-lg relative overflow-hidden text-center bg-surface-card text-sattva-text">
                         <div class="absolute -top-10 -right-10 w-48 h-48 opacity-30 blur-3xl rounded-full pointer-events-none bg-sattva-brand"></div>
-                        <h2 class="font-serif text-2xl md:text-3xl font-semibold tracking-tight mb-4 relative z-[1] text-sattva-brand" x-text="content[lang].contact.cta.title || 'Umów się wygodnie'"></h2>
-                        <p class="mb-8 font-sans text-sattva-text/65 text-sm leading-relaxed relative z-[1] max-w-xl mx-auto" x-text="content[lang].contact.cta.description || 'Umów się na spotkanie.'"></p>
+                        <h2 class="font-serif text-2xl md:text-3xl font-semibold tracking-tight mb-4 relative z-[1] text-color-primary" x-text="content[lang].contact.cta.title || 'Umów się wygodnie'"></h2>
+                        <p class="mb-8 font-sans text-sm leading-relaxed relative z-[1] max-w-xl mx-auto text-color-body opacity-80" x-text="content[lang].contact.cta.description || 'Umów się na spotkanie.'"></p>
                         <a :href="resolveFooterCtaUrl()"
                            :target="ctaLinkTarget(resolveFooterCtaUrl())"
                            :rel="ctaLinkRel(resolveFooterCtaUrl())"
-                           class="relative z-[1] inline-flex items-center justify-center w-full sm:w-auto gap-2 px-8 py-3.5 rounded-sm font-sans text-sm font-semibold uppercase tracking-[0.12em] transition-all hover:-translate-y-0.5 shadow-md hover:shadow-xl bg-sattva-brand text-sattva-white">
+                           class="relative z-[1] inline-flex items-center justify-center w-full sm:w-auto gap-2 px-8 py-3.5 rounded-sm font-sans text-sm font-semibold uppercase tracking-[0.12em] transition-all hover:-translate-y-0.5 shadow-md hover:shadow-xl bg-color-primary text-accent-contrast">
                             <span x-text="content[lang].contact.cta.button_text || 'Zarezerwuj'"></span>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                         </a>
@@ -492,40 +492,40 @@
                     </div>
 
                     <div class="min-w-0 space-y-4 text-sm">
-                        <h2 class="font-serif text-xl font-semibold tracking-tight text-sattva-brand">Kontakt</h2>
+                        <h2 class="font-serif text-xl font-semibold tracking-tight text-color-primary">Kontakt</h2>
                         <div class="space-y-3">
                                 <template x-if="content[lang].contact?.phone">
                                     <div class="flex items-center gap-3 min-w-0">
-                                        <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-sattva-brand text-sattva-white">
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-color-primary text-accent-contrast">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                                         </div>
                                         <div class="min-w-0 flex-1">
-                                            <p class="font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-sattva-text/50">Telefon</p>
-                                            <a :href="'tel:' + content[lang].contact.phone.replace(/\s/g, '')" @click="onConversionClick('phone_click', 'footer')" class="font-sans text-base font-medium text-sattva-text hover:text-sattva-brand transition-colors break-words" x-text="content[lang].contact.phone"></a>
+                                            <p class="font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-color-body opacity-60">Telefon</p>
+                                            <a :href="'tel:' + content[lang].contact.phone.replace(/\s/g, '')" @click="onConversionClick('phone_click', 'footer')" class="font-sans text-base font-medium text-color-body hover:text-sattva-brand transition-colors break-words" x-text="content[lang].contact.phone"></a>
                                         </div>
                                     </div>
                                 </template>
 
                                 <template x-if="content[lang].contact?.email">
                                     <div class="flex items-center gap-3 min-w-0">
-                                        <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-sattva-brand text-sattva-white">
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-color-primary text-accent-contrast">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                                         </div>
                                         <div class="min-w-0 flex-1">
-                                            <p class="font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-sattva-text/50">E-mail</p>
-                                            <a :href="'mailto:' + content[lang].contact.email" class="font-sans text-base font-medium text-sattva-text hover:text-sattva-brand transition-colors break-words" x-text="content[lang].contact.email"></a>
+                                            <p class="font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-color-body opacity-60">E-mail</p>
+                                            <a :href="'mailto:' + content[lang].contact.email" class="font-sans text-base font-medium text-color-body hover:text-sattva-brand transition-colors break-words" x-text="content[lang].contact.email"></a>
                                         </div>
                                     </div>
                                 </template>
 
                                 <template x-if="content[lang].contact?.address">
                                     <div class="flex items-start gap-3 min-w-0">
-                                        <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-sattva-brand text-sattva-white">
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-color-primary text-accent-contrast">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21s-6-4.35-6-10a6 6 0 1112 0c0 5.65-6 10-6 10zm0-7a3 3 0 100-6 3 3 0 000 6z"/></svg>
                                         </div>
                                         <div class="min-w-0 flex-1">
-                                            <p class="font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-sattva-text/50">Adres</p>
-                                            <p class="font-sans text-base font-medium leading-relaxed break-words text-sattva-text" x-text="content[lang].contact.address"></p>
+                                            <p class="font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-color-body opacity-60">Adres</p>
+                                            <p class="font-sans text-base font-medium leading-relaxed break-words text-color-body" x-text="content[lang].contact.address"></p>
                                         </div>
                                     </div>
                                 </template>

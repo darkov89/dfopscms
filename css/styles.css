@@ -152,6 +152,21 @@ html[data-dfops-scope="setup"] body.dfops-setup-page {
 .hover\:bg-sattva-bg\/50:hover { background-color: color-mix(in oklab, var(--surface-bg) 50%, transparent) !important; }
 .hover\:bg-sattva-text\/5:hover { background-color: color-mix(in oklab, var(--beauty-text) 5%, transparent) !important; }
 
+/*
+ * Tekst NA akcencie (CTA, ikony) — zawsze --accent-contrast (gold→ciemny, dfops-tech→jasny).
+ * NIE używaj text-sattva-white na bg-sattva-brand — beauty-white ≠ kontrast akcentu.
+ */
+.text-accent-contrast { color: var(--accent-contrast) !important; }
+.hover\:text-accent-contrast:hover { color: var(--accent-contrast) !important; }
+.bg-surface-card { background-color: var(--surface-card) !important; }
+.border-color-primary { border-color: var(--color-primary) !important; }
+.border-color-primary\/35 { border-color: color-mix(in srgb, var(--color-primary) 35%, transparent) !important; }
+.border-color-primary\/40 { border-color: color-mix(in srgb, var(--color-primary) 40%, transparent) !important; }
+.text-color-primary { color: var(--color-primary) !important; }
+.text-color-body { color: var(--color-text-body) !important; }
+.bg-color-primary { background-color: var(--color-primary) !important; }
+.bg-main { background-color: var(--bg-main) !important; }
+
 /* Consultant readability profiles (public only) */
 html[data-dfops-scope="public"][data-theme="consultant"][data-bg-style="smoky"] .bg-zinc-50,
 html[data-dfops-scope="public"][data-theme="consultant"][data-bg-style="smoky"] .bg-white,

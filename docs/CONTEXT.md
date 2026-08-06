@@ -391,6 +391,11 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 
 ## 4. Dziennik transformacji
 
+### 2026-08-06 — Fix consultant: kontrast CTA per palette
+
+- CTA/ikony na akcencie używają `--accent-contrast` (`text-accent-contrast`), nie `text-sattva-white` (zawsze #fff — psuje Gold).
+- Booking/contact: `surface-card` / `color-primary` tokeny; `themeStyling` bierze `presetPalette.text`.
+
 ### 2026-08-06 — Formularz Custom → Edge e-mail; consultant UX; fix i18n „meta”
 
 - **`send-custom-inquiry`:** `zapytanie-custom.html` → POST (Turnstile); czyste SMTP (`SMTP_HOST`/`PORT`/`USER`/`PASS`, te same co Auth → SMTP — bez Resend) + Telegram ops. Auth SMTP w Dashboard nie jest współdzielony z Edge — secrets trzeba ustawić osobno.
