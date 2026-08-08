@@ -314,6 +314,7 @@
                                                     <div class="min-w-0">
                                                         <div class="text-sm font-medium text-slate-900" x-text="p.name"></div>
                                                         <div class="text-xs text-slate-500" x-text="p.address"></div>
+                                                        <div x-show="p.category" class="text-[11px] font-semibold uppercase tracking-wide text-accent mt-0.5" x-text="p.category"></div>
                                                     </div>
                                                 </li>
                                             </template>
@@ -323,6 +324,15 @@
                                             <button type="button" x-show="content.pl.contact?.map_place_id" @click="clearMapPlaceSelection()" class="rounded-lg border border-slate-200 px-4 py-2 text-xs font-bold uppercase text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/50">Usuń mapę z wyszukiwarki</button>
                                         </div>
                                         <p x-show="content.pl.contact?.map_place_id" class="text-xs text-emerald-800 mb-3">Lokalizacja zapisana — mapa pojawi się na stronie po publikacji.</p>
+                                        <div x-show="needsManualIndustry" x-cloak class="mt-4 rounded-xl border border-amber-200/80 bg-amber-50/80 p-4">
+                                            <label for="dfcms-wizard-manual-industry" class="block text-xs font-bold text-amber-950 mb-2 leading-relaxed">Nie udało nam się automatycznie rozpoznać branży. Wpisz w 1-2 słowach, czym się zajmujesz (np. Warsztat samochodowy):</label>
+                                            <input id="dfcms-wizard-manual-industry" type="text" x-model="manualIndustryInput"
+                                                   @blur="commitManualIndustry()"
+                                                   @keydown.enter.prevent="commitManualIndustry()"
+                                                   maxlength="80"
+                                                   placeholder="np. Warsztat samochodowy"
+                                                   class="w-full rounded-lg border border-amber-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-accent/30">
+                                        </div>
                                     </div>
                                 </div>
                             </div>

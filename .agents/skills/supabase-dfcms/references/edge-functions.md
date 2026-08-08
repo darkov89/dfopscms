@@ -29,7 +29,7 @@ Configure **separate** webhook endpoints in Stripe Test vs Live dashboards.
 - `GOOGLE_MAPS_EMBED_API_KEY` (Maps Embed iframe URL; HTTP referrer; nie współdzielić z Places)
 - `GEMINI_API_KEY` (generate-ai-content; wymagany)
 - `GEMINI_MODEL` (opcjonalnie; domyślnie `gemini-3.6-flash`)
-- `DFCMS_ENV` (`staging` | `production` — pełne logi promptów AI tylko poza prod, chyba że `AI_LOG_PROMPTS=1`)
+- `DFCMS_ENV` (`staging` | `production` — pełne logi promptów AI tylko poza prod, chyba że `AI_LOG_PROMPTS=1`; też etykieta `[STAGING]`/`[PROD]` w Telegram)
 - `AI_LOG_PROMPTS` (opcjonalnie `1` — loguj prompt/response AI także na prod)
 - `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` (`send-custom-inquiry` — te same dane co Auth → SMTP; bez Resend)
 - `SMTP_FROM` / `INQUIRY_FROM_EMAIL` (opcjonalnie; domyślnie `DFCMS <notifications@dfops.eu>`)
@@ -54,6 +54,8 @@ Ręczny test Edge: `POST …/functions/v1/expire-trial-pages` + `Authorization: 
 Dashboard → Database Webhooks → POST to `…/functions/v1/telegram-webhook` z nagłówkiem:
 
 `Authorization: Bearer <TELEGRAM_WEBHOOK_SECRET>`
+
+Wiadomości Telegram mają prefix środowiska (`🟡 [STAGING]` / `🟢 [PROD]`) — `_shared/dfcmsEnv.ts` (z `DFCMS_ENV` lub project ref).
 
 To samo dla Sentry outbound. Bez headera funkcja zwraca **401**. Do not replicate with SQL `http_request` triggers in migrations.
 

@@ -63,6 +63,8 @@
   }
 
   const WIZARD_STATE_STORAGE_PREFIX = 'dfops_wizard_state_v1:';
+  /** Po zmianie szablonu + „wygeneruj AI” — otwórz modal po reloadzie. */
+  const AI_AFTER_THEME_SWITCH_KEY = 'dfops_ai_after_theme_switch_v1';
   const WIZARD_STATE_VERSION = 2;
   const WIZARD_STEP_COUNT = 6;
 
@@ -641,6 +643,11 @@
           onboarding_completed: false,
           /** Pusta po pierwszym logowaniu — włącza powitalny modal (Treść → pierwsze pola). */
           business_name: '',
+          /** Branża (Places lub ręcznie) — niezależna od nazwy szablonu. */
+          business_category: '',
+          city: '',
+          /** Jeden ciąg kontekstu dla AI (Zero-Friction Context-Driven). */
+          ai_business_context: '',
           /** Zapis w Supabase po powicie / zakończeniu touru (Driver.js) — nie pokazuj modala ponownie. */
           welcome_onboarding_completed: false,
           /** Lustrzane odbicie aktywnego motywu strony (`pages.theme`); ustawiane w normalizeContent / saveData. */
@@ -2913,8 +2920,35 @@
           if (!this._initialPanelLoadDone && this.billingProfileReady) {
             this._initialPanelLoadDone = true;
           }
+          this.maybeOpenAiAfterThemeSwitch();
         }
       },
+
+      /** Po switchTemplate + „wygeneruj AI” — modal z prefille’m kontekstu (sessionStorage). */
+      maybeOpenAiAfterThemeSwitch() {
+        try {
+          const raw = sessionStorage.getItem(AI_AFTER_THEME_SWITCH_KEY);
+          if (!raw) return;
+          sessionStorage.removeItem(AI_AFTER_THEME_SWITCH_KEY);
+          if (!this.pageId) return;
+          const data = JSON.parse(raw);
+          if (!data || data.open !== true) return;
+          const prompt = typeof data.prompt === 'string' ? data.prompt.trim() : '';
+          if (prompt) this.aiPrompt = prompt;
+          const open = () => {
+            setTimeout(() => {
+              if (typeof this.openAiGeneratorModal === 'function') {
+                this.openAiGeneratorModal('generate');
+              }
+            }, 400);
+          };
+          if (typeof this.$nextTick === 'function') this.$nextTick(open);
+          else open();
+        } catch (_) {
+          /* ignore */
+        }
+      },
+
       applyThemeStylingFromContent() {
         if (!this.content?.pl?.settings) return;
         window.DFOPS_applyThemeStyling(this.content.pl.settings, this.theme, 'admin');
@@ -2924,14 +2958,42 @@
         const id = String(newTemplateId || '').trim().toLowerCase();
         if (!getSwitchableTemplateIds().includes(id)) return;
         if (this.theme === id) return;
-        const confirmed = await this.confirmAsync({
-          title: 'Zmienić szablon?',
-          message:
-            'Uwaga: zmiana szablonu nadpisze aktualne teksty i układ sekcji (powitanie, usługi, FAQ itd.). Zachowamy dane kontaktowe, logo tekstowe i logo graficzne oraz ustawienia subskrypcji. Kontynuować?',
-          yesLabel: 'Tak, zmień szablon',
-          noLabel: 'Nie',
-        });
-        if (!confirmed) return;
+
+        const savedAiContext =
+          typeof window.DFOPS_aiBusinessContext?.buildDefaultAiContext === 'function'
+            ? window.DFOPS_aiBusinessContext.buildDefaultAiContext(this.content?.pl?.settings)
+            : String(this.content?.pl?.settings?.ai_business_context || '').trim();
+        const hasAiContext = !!savedAiContext;
+        const canAi =
+          typeof this.canUseAiGenerator === 'function' ? this.canUseAiGenerator() : false;
+
+        let regenerateAi = false;
+        if (hasAiContext && canAi && typeof this.confirmChoiceAsync === 'function') {
+          const choice = await this.confirmChoiceAsync({
+            title: 'Zmienić szablon?',
+            message:
+              'Zmiana szablonu nadpisze teksty i układ sekcji. Zachowamy kontakt, logo, subskrypcję oraz zapisany kontekst biznesowy AI („' +
+              (savedAiContext.length > 80 ? savedAiContext.slice(0, 77) + '…' : savedAiContext) +
+              '”). Możesz od razu wygenerować teksty pod nową strukturę — bez utraty tego kontekstu.',
+            choices: [
+              { value: 'template_and_ai', label: 'Zmień i wygeneruj teksty AI', primary: true },
+              { value: 'template_only', label: 'Tylko zmień szablon' },
+            ],
+            cancelLabel: 'Anuluj',
+          });
+          if (!choice) return;
+          regenerateAi = choice === 'template_and_ai';
+        } else {
+          const confirmed = await this.confirmAsync({
+            title: 'Zmienić szablon?',
+            message:
+              'Uwaga: zmiana szablonu nadpisze aktualne teksty i układ sekcji (powitanie, usługi, FAQ itd.). Zachowamy dane kontaktowe, logo tekstowe i logo graficzne, ustawienia subskrypcji oraz kontekst biznesowy AI (jeśli masz). Kontynuować?',
+            yesLabel: 'Tak, zmień szablon',
+            noLabel: 'Nie',
+          });
+          if (!confirmed) return;
+        }
+
         if (typeof window.DFOPS_mergeContentWithTemplate !== 'function' || typeof window.DFOPS_getTemplate !== 'function') {
           this.showError('Brak konfiguracji szablonów (registry).');
           return;
@@ -2950,6 +3012,11 @@
               : savedSubscription;
           const savedWelcomeDone = this.content?.pl?.settings?.welcome_onboarding_completed === true;
           const savedOnboardingDone = this.content?.pl?.settings?.onboarding_completed === true;
+          const prevSettings = this.content?.pl?.settings || {};
+          const savedBusinessName = String(prevSettings.business_name || '').trim();
+          const savedBusinessCategory = String(prevSettings.business_category || '').trim();
+          const savedCity = String(prevSettings.city || '').trim();
+          const savedAiBusinessContext = String(prevSettings.ai_business_context || savedAiContext || '').trim();
 
           const merged = window.DFOPS_mergeContentWithTemplate(id, {});
           merged.pl.contact = savedContact;
@@ -2964,6 +3031,10 @@
             };
             if (savedWelcomeDone) merged.pl.settings.welcome_onboarding_completed = true;
             if (savedOnboardingDone) merged.pl.settings.onboarding_completed = true;
+            if (savedBusinessName) merged.pl.settings.business_name = savedBusinessName;
+            if (savedBusinessCategory) merged.pl.settings.business_category = savedBusinessCategory;
+            if (savedCity) merged.pl.settings.city = savedCity;
+            if (savedAiBusinessContext) merged.pl.settings.ai_business_context = savedAiBusinessContext;
           }
 
           this.theme = id;
@@ -2989,8 +3060,21 @@
           if (!ok) return;
 
           this.showTemplateSwitcher = false;
-          this.message = 'Szablon zmieniony. Odświeżam panel…';
           clearWizardStateFromStorage(this.slug);
+
+          if (regenerateAi && savedAiBusinessContext) {
+            try {
+              sessionStorage.setItem(
+                AI_AFTER_THEME_SWITCH_KEY,
+                JSON.stringify({ open: true, prompt: savedAiBusinessContext }),
+              );
+            } catch (_) {
+              /* ignore */
+            }
+            this.message = 'Szablon zmieniony. Otworzymy generator AI z Twoim kontekstem…';
+          } else {
+            this.message = 'Szablon zmieniony. Odświeżam panel…';
+          }
           setTimeout(() => {
             window.location.reload();
           }, 900);
@@ -4353,6 +4437,9 @@
       mapPlaceLoading: false,
       mapPlaceError: '',
       mapPlaceSelectedId: null,
+      /** Fallback branży, gdy Google Places nie zwróci jasnej kategorii. */
+      needsManualIndustry: false,
+      manualIndustryInput: '',
 
       showAppearanceUpgradeModal: false,
       showPublishUpgradeModal: false,
@@ -4507,12 +4594,39 @@
           this.mapPlaceResults = await this.invokePlacesList(q, 8);
           if (!this.mapPlaceResults.length) {
             this.mapPlaceError = 'Brak wyników — spróbuj innej frazy (np. miasto + nazwa).';
+            this.needsManualIndustry = true;
           }
         } catch (e) {
           console.error(e);
           this.mapPlaceError = this.formatPlacesListError(e);
+          this.needsManualIndustry = true;
         } finally {
           this.mapPlaceLoading = false;
+        }
+      },
+
+      commitManualIndustry() {
+        if (!this.content?.pl) return;
+        if (!this.content.pl.settings || typeof this.content.pl.settings !== 'object') {
+          this.content.pl.settings = {};
+        }
+        const apply =
+          window.DFOPS_aiBusinessContext?.applyManualIndustryToSettings ||
+          null;
+        if (typeof apply !== 'function') return;
+        const result = apply(this.content.pl.settings, this.manualIndustryInput, {
+          business_name:
+            this.content.pl.settings.business_name ||
+            this.content.pl.nav?.logo ||
+            '',
+          city: this.content.pl.settings.city || '',
+        });
+        if (result?.ok) {
+          this.needsManualIndustry = false;
+          this.message = 'Zapisaliśmy branżę — AI użyje jej przy generowaniu treści.';
+          setTimeout(() => {
+            this.message = '';
+          }, SUCCESS_MESSAGE_TIMEOUT);
         }
       },
 
@@ -4521,6 +4635,9 @@
         const hit = this.mapPlaceResults.find((p) => p.id === this.mapPlaceSelectedId);
         if (!hit) return;
         if (!this.content.pl.contact) this.content.pl.contact = {};
+        if (!this.content.pl.settings || typeof this.content.pl.settings !== 'object') {
+          this.content.pl.settings = {};
+        }
         this.content.pl.contact.map_place_id = hit.id;
         this.content.pl.contact.map_embed_url = '';
         // Firma z Google → zawsze wstaw adres z Places (mapa + tekst na stronie).
@@ -4529,6 +4646,19 @@
         } else if (hit.name) {
           this.content.pl.contact.address = hit.name;
         }
+
+        const ctxApi = window.DFOPS_aiBusinessContext;
+        if (ctxApi && typeof ctxApi.applyPlaceToAiBusinessSettings === 'function') {
+          const applied = ctxApi.applyPlaceToAiBusinessSettings(this.content.pl.settings, hit, {
+            manualIndustry: this.manualIndustryInput,
+          });
+          this.needsManualIndustry = !!applied.needsManualIndustry;
+          if (!this.needsManualIndustry) this.manualIndustryInput = '';
+        } else {
+          const cat = String(hit.category || hit.primaryTypeDisplayName || '').trim();
+          this.needsManualIndustry = !cat;
+        }
+
         this.mapPlaceLoading = true;
         this.mapPlaceError = '';
         try {
@@ -4554,7 +4684,9 @@
           this.mapPlaceResults = [];
           this.mapPlaceSelectedId = null;
           this.mapPlaceQuery = hit.name || '';
-          this.message = 'Adres i mapa ustawione z Google. Opublikuj zmiany, żeby były widoczne na stronie.';
+          this.message = this.needsManualIndustry
+            ? 'Adres i mapa z Google. Uzupełnij branżę poniżej — AI będzie jej używać przy treściach.'
+            : 'Adres, mapa i kontekst branżowy ustawione z Google. Opublikuj zmiany, żeby były widoczne na stronie.';
           setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
         }
       },
@@ -4592,8 +4724,23 @@
             throw new Error('Brak modułu mapy.');
           }
           const changed = await syncAddr(this.supabase, contact, { force: true });
+          if (this.content?.pl) {
+            if (!this.content.pl.settings || typeof this.content.pl.settings !== 'object') {
+              this.content.pl.settings = {};
+            }
+            const guessCity = window.DFOPS_aiBusinessContext?.guessCityFromAddress;
+            if (typeof guessCity === 'function' && !String(this.content.pl.settings.city || '').trim()) {
+              const city = guessCity(address);
+              if (city) this.content.pl.settings.city = city;
+            }
+            const hasCtx = !!String(this.content.pl.settings.ai_business_context || '').trim();
+            const hasCat = !!String(this.content.pl.settings.business_category || '').trim();
+            if (!hasCtx && !hasCat) this.needsManualIndustry = true;
+          }
           if (changed || String(contact.map_embed_url || '').trim()) {
-            this.message = 'Mapa ustawiona z adresu. Opublikuj zmiany, żeby była widoczna na stronie.';
+            this.message = this.needsManualIndustry
+              ? 'Mapa z adresu gotowa. Uzupełnij branżę poniżej, żeby AI znało Twój biznes.'
+              : 'Mapa ustawiona z adresu. Opublikuj zmiany, żeby była widoczna na stronie.';
             setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
           } else {
             this.mapPlaceError = 'Nie udało się przygotować mapy z tego adresu.';
@@ -4601,6 +4748,7 @@
         } catch (e) {
           console.warn('DFOPS map from address:', e);
           this.mapPlaceError = 'Nie udało się przygotować mapy z adresu. Sprawdź zapis lub wyszukaj firmę poniżej.';
+          this.needsManualIndustry = true;
         } finally {
           this.mapPlaceLoading = false;
         }

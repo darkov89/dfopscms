@@ -2,6 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { verifyTurnstileToken } from "../_shared/turnstileVerification.ts";
 import { buildCorsHeadersForRequest } from "../_shared/allowedOrigins.ts";
+import { telegramEnvPrefixHtml } from "../_shared/dfcmsEnv.ts";
 import {
   defaultInquiryFromAddress,
   defaultInquiryToAddress,
@@ -165,7 +166,7 @@ serve(async (req) => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             chat_id: chatId,
-            text: tg,
+            text: `${telegramEnvPrefixHtml()}${tg}`,
             parse_mode: "HTML",
             disable_web_page_preview: true,
           }),

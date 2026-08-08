@@ -1,6 +1,7 @@
 // @ts-ignore - remote Deno std module
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@^2.39.0";
+import { telegramEnvPrefixMarkdown } from "../_shared/dfcmsEnv.ts";
 
 declare const Deno: { env: { get: (k: string) => string | undefined } };
 
@@ -84,7 +85,7 @@ async function sendTelegramMessage(text: string): Promise<boolean> {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         chat_id: chatId,
-        text,
+        text: `${telegramEnvPrefixMarkdown()}${text}`,
         parse_mode: "Markdown",
         disable_web_page_preview: true,
       }),

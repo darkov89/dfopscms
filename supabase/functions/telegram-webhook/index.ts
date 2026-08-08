@@ -1,5 +1,6 @@
 // @ts-ignore - remote Deno std module isn't resolvable by local TS linter.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { telegramEnvPrefixHtml } from "../_shared/dfcmsEnv.ts";
 
 /** Deno global - available at runtime in Supabase Edge Functions. */
 declare const Deno: { env: { get: (k: string) => string | undefined } };
@@ -247,7 +248,7 @@ async function sendTelegram(text: string) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       chat_id: chatId,
-      text,
+      text: `${telegramEnvPrefixHtml()}${text}`,
       parse_mode: "HTML",
       disable_web_page_preview: true,
     }),

@@ -424,7 +424,8 @@ serve(async (req) => {
         headers: {
           "content-type": "application/json",
           "X-Goog-Api-Key": googleApiKey,
-          "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress",
+          "X-Goog-FieldMask":
+            "places.id,places.displayName,places.formattedAddress,places.primaryType,places.primaryTypeDisplayName,places.types",
         },
         body: JSON.stringify({
           textQuery: listQuery,
@@ -440,6 +441,9 @@ serve(async (req) => {
         id?: string;
         displayName?: { text?: string } | string;
         formattedAddress?: string;
+        primaryType?: string;
+        primaryTypeDisplayName?: { text?: string } | string;
+        types?: string[];
       }>;
       error?: { message?: string };
       message?: string;
@@ -466,7 +470,15 @@ serve(async (req) => {
     }
 
     const rawPlaces = Array.isArray(listJson?.places) ? listJson.places : [];
-    const places: { id: string; name: string; address: string }[] = [];
+    const places: {
+      id: string;
+      name: string;
+      address: string;
+      primaryType: string;
+      primaryTypeDisplayName: string;
+      types: string[];
+      category: string;
+    }[] = [];
     for (const p of rawPlaces) {
       const rawId = typeof p?.id === "string" ? p.id : "";
       const id = normalizePlaceIdForList(rawId);
@@ -478,10 +490,25 @@ serve(async (req) => {
           ? p.displayName
           : "";
       const address = typeof p?.formattedAddress === "string" ? p.formattedAddress : "";
+      const primaryType = typeof p?.primaryType === "string" ? p.primaryType.trim() : "";
+      const primaryTypeDisplayName =
+        typeof p?.primaryTypeDisplayName === "object" && p.primaryTypeDisplayName?.text
+          ? String(p.primaryTypeDisplayName.text).trim()
+          : typeof p?.primaryTypeDisplayName === "string"
+          ? p.primaryTypeDisplayName.trim()
+          : "";
+      const types = Array.isArray(p?.types)
+        ? p.types.filter((t): t is string => typeof t === "string" && t.trim() !== "")
+        : [];
+      const category = primaryTypeDisplayName || primaryType.replace(/_/g, " ");
       places.push({
         id,
         name: name || address || id,
         address,
+        primaryType,
+        primaryTypeDisplayName,
+        types,
+        category,
       });
     }
 

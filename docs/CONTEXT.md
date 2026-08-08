@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-08-06 — AI: tłumaczenie etykiet UI (Telefon, Polityka)
+**Ostatnia aktualizacja:** 2026-08-08 — Zero-Friction Context-Driven AI (`ai_business_context`)
 
 ---
 
@@ -74,7 +74,7 @@ Użytkownik → Auth → pages.content + pages.billing_plan + billing_profiles
 | Warstwa | Kluczowe artefakty |
 |--------|---------------------|
 | **Front publiczny** | `index.html` (dark-mode SaaS landing spójny z admin/rejestracją: `#121212` + `#D4AF37`; hero (wynik biznesowy + AI w subcopy), `#jak`, `#ai`, `#korzysci`, `#panel`, `#demo`, `#spokoj`, `#cennik`, SEO + `favicon.svg`), demo przez `router.html?site=demo-*` (beauty/services/care/gastro/fitness/consultant). Szablony branżowe HTML są w `/templates/` (`beauty`, `consultant`, `fitness`, `services`, `gastro`, `care`); media statyczne przenoszone z root trafiają do `/assets/images/`; boilerplate nowych szablonów: `/templates/_base_template.html`; klocki UI: `/templates/_components_library.html`; partial FAB czatu: `/templates/_partials/quick_chat_fab.html`. `setup.html` zostaje w root. `landingPricing.js` — plany cennika i dane landingowe. **Szybki kontakt:** pływający przycisk WhatsApp (`contact.whatsapp` → `wa.me`) lub Messenger (`contact.messenger` → `m.me`) — `publicSiteApp` + Alpine `x-show`; dostępny na wszystkich planach w tym Starter (`tier0`, `DFOPS_planAllowsQuickChat` — od 2026-07-05). Opcjonalna lista gotowych pytań (`contact.quick_chat_questions: string[]`, panel Kontakt → Szybki czat): klik w FAB rozwija popover, wybór pytania otwiera czat z wpisaną treścią (WhatsApp `?text=`; Messenger nie wspiera pre-fillu → kopiowanie do schowka + toast). |
-| **Panel CMS** | `admin.html` (~2,5k linii HTML), `adminApp.js` (~4k linii Alpine). **IA (2026-07):** domyślny ekran `dashboard` (adres + checklista + **AI Site Generator**); sidebar w 3 grupach zwijanych (Na start / Więcej treści / Ustawienia); nagłówek z CTA „Opublikuj”, menu ⋯; rezerwacje w Kontakcie; scalone Opinie; bez Leady w menu; bez globalnej widoczności sekcji w Wyglądzie — szczegóły §1.5.2. **`js/core/themeConfig.js`** — sekcje per `pages.theme`; **`js/core/contentSchema.js`** + **`contentUpgrader.js`** — kontrakt/migracja pól JSON (`pages.content` / `draft_content`). **`js/templates/registry.js`** — domyślna treść startowa (nie mylić z `templates/*.html`). Draft vs published: `pages.draft_content` / `pages.content`. Subskrypcja, Smart Booking, szybki kontakt, God Mode — jak wcześniej. Adaptery poza monolitem: `growth/` + `aiGenerator.js`. |
+| **Panel CMS** | `admin.html` (~2,5k linii HTML), `adminApp.js` (~4k linii Alpine). **IA (2026-07):** domyślny ekran `dashboard` (adres + checklista + **AI Site Generator**); sidebar w 3 grupach zwijanych (Na start / Więcej treści / Ustawienia); nagłówek z CTA „Opublikuj”, menu ⋯; rezerwacje w Kontakcie; scalone Opinie; bez Leady w menu; bez globalnej widoczności sekcji w Wyglądzie — szczegóły §1.5.2. **`js/core/themeConfig.js`** — sekcje per `pages.theme`; **`js/core/contentSchema.js`** + **`contentUpgrader.js`** — kontrakt/migracja pól JSON (`pages.content` / `draft_content`). **`js/templates/registry.js`** — domyślna treść startowa (nie mylić z `templates/*.html`). Draft vs published: `pages.draft_content` / `pages.content`. **Zero-Friction AI (2026-08-08):** `draft_content.pl.settings.ai_business_context` (+ `business_category` / `city`) — kontekst branżowy niezależny od nazwy szablonu; `js/core/aiBusinessContext.js`; fallback ręczny w kreatorze/Kontakcie gdy Places bez kategorii. Subskrypcja, Smart Booking, szybki kontakt, God Mode — jak wcześniej. Adaptery poza monolitem: `growth/` + `aiGenerator.js`. |
 | **Backend** | `pages`, `billing_profiles`, `superadmins`, RLS. Schemat baseline: `20260603072317_remote_schema.sql`; God Mode: `20260623100512_add_god_mode.sql`. |
 | **Płatności** | Starter `tier0`, Standard `tier1`, Custom poza Stripe. Secrets: `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_STARTER_YEARLY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_PRO_YEARLY`. wFirma: `WFIRMA_*`, ledger `wfirma_invoice_ledger`. |
 
@@ -232,7 +232,7 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 | `retry-wfirma-invoice` | Ręczny retry FV wFirma (`POST` + `Bearer CRON_SECRET`, `checkoutSessionId` lub `stripeInvoiceId`) |
 | `sync-stripe-subscription` | Ręczna synchronizacja statusu subskrypcji |
 | `add-custom-domain` | Cloudflare Custom Hostname + zapis w DB |
-| `get-google-reviews` | Places / opinie (`GOOGLE_MAPS_API_KEY`); embed iframe (`GOOGLE_MAPS_EMBED_API_KEY`); wymaga sesji |
+| `get-google-reviews` | Places / opinie (`GOOGLE_MAPS_API_KEY`); embed iframe (`GOOGLE_MAPS_EMBED_API_KEY`); `listPlaces` zwraca też `category` / `primaryType*` / `types`; wymaga sesji |
 | `generate-ai-content` | AI Site Generator (Gemini): JWT + ownership + quota → merge copy do `pages.draft_content`; secrets `GEMINI_API_KEY`, opcjonalnie `GEMINI_MODEL` / `DFCMS_ENV` / `AI_LOG_PROMPTS` |
 | **`expire-trial-pages`** | **Cron** (`POST` + `Bearer CRON_SECRET`): `expire_manual_grants()` → `expire_trial_pages()` → `notify_purge_upcoming_pages()` → `list_pages_pending_purge()` → opcjonalnie `purge_trial_blocked_pages_after_grace()` gdy `AUTO_PURGE_ENABLED=true`. **Powiadomienia operacyjne przez Telegram** (Markdown): alert −7 dni per slug; raport ręcznej kasacji (30+ dni) z gotowym SQL. Brak alertów → `200` bez wiadomości. |
 | `telegram-webhook` | Router alertów (Sentry, Database Webhooks `users`/`pages`/`billing_profiles`, logi) → Telegram; **`Bearer TELEGRAM_WEBHOOK_SECRET`**; prefix `[STAGING]` / `[PROD]` z `DFCMS_ENV` lub project ref |
@@ -376,7 +376,7 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 | Panel subskrypcja | `admin.html`, `adminApp.js` |
 | God Mode / superadmin | `godmode.html`, `god-provision-site`, `god-grant-subscription`, `admin.html?impersonate={slug}`, `20260623100512_add_god_mode.sql`, `20260804180000_manual_grant_source.sql` |
 | Plany / watermark | `js/core/planUtils.js` (m.in. `DFOPS_planAllowsAiGenerator`, limity AI) |
-| AI Site Generator | `js/features/aiGenerator.js` (generate / adapt / **field**), Edge `generate-ai-content`, `_shared/aiCopySchemas.ts` |
+| AI Site Generator | `js/features/aiGenerator.js` (generate / adapt / **field**), Edge `generate-ai-content`, `_shared/aiCopySchemas.ts`, kontekst: `js/core/aiBusinessContext.js` → `settings.ai_business_context` |
 | i18n treści witryn | `js/features/i18nPanel.js`, `js/core/i18nContent.js`, `meta.translationMode` |
 | Profil Stripe | `billingProfileView.js`, `loadBillingProfile()`, `grant_source` |
 | Multi-site panel | `pageRepository.listCurrentUserPages`, selektor w `08-header.html` |
@@ -390,6 +390,15 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-08-08 — Zero-Friction Context-Driven AI
+- **Cel:** treści AI zależą od faktycznej branży użytkownika, nie od nazwy szablonu (`beauty` / `fitness`…).
+- **SoT:** `draft_content.pl.settings.ai_business_context` (string); pomocniczo `business_category`, `city`.
+- **Źródła:** Google Places (`listPlaces` + kategoria) albo ręczne pole fallback (`needsManualIndustry`) w kreatorze / zakładce Kontakt.
+- **Modal AI:** prefill z `ai_business_context` (stare strony: sklejka name + category + city).
+- **Zmiana szablonu:** zachowanie kontekstu; `confirmChoiceAsync` → opcjonalnie regeneracja tekstów AI po reloadzie (`sessionStorage`).
+- **Kod:** `js/core/aiBusinessContext.js`, `aiGenerator.js`, `adminApp.js`, partials wizard/AI/contact; Edge `get-google-reviews` (field mask kategorii). Testy: `npm run test:ai-context`.
+- **Deploy:** `supabase functions deploy get-google-reviews` (staging → prod) — bez tego kategoria z Places nie wróci do panelu.
 
 ### 2026-08-06 — AI: tłumaczenie etykiet UI (Telefon, Polityka, cookies)
 - `content.<locale>.ui` + `js/core/uiLabels.js` / `uiLabel()` — bez edycji w panelu.

@@ -9,9 +9,9 @@
                 <h2 id="dfcms-ai-gen-title" class="text-lg font-bold text-slate-900 mb-2" x-text="aiMode === 'adapt' ? ('Przetłumacz na ' + (typeof i18nLocaleLabel === 'function' ? i18nLocaleLabel(editLocale || 'en') : 'EN')) : 'Wygeneruj treść przez AI'"></h2>
                 <p class="text-sm text-slate-600 leading-relaxed mb-4" x-text="aiMode === 'adapt' ? 'AI przetłumaczy teksty z języka podstawowego do wersji roboczej. Możesz od razu kliknąć przycisk — kontekst poniżej jest opcjonalny.' : ('Opisz swój biznes. AI przygotuje teksty dla języka: ' + (typeof i18nLocaleLabel === 'function' ? i18nLocaleLabel(editLocale || 'pl') : 'PL') + '.')"></p>
                 <label for="dfcms-ai-prompt" class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2" x-text="aiMode === 'adapt' ? 'Opcjonalny kontekst (nieobowiązkowy)' : 'Opis biznesu'"></label>
-                <textarea id="dfcms-ai-prompt" x-model="aiPrompt" rows="5" maxlength="1500"
+                <textarea id="dfcms-ai-prompt" x-model="aiPrompt" rows="4" maxlength="1500"
                           :disabled="isGeneratingAi"
-                          :placeholder="aiMode === 'adapt' ? 'np. formalny ton, skup się na turystach… (możesz zostawić puste)' : 'np. Salon fryzjerski Męski Zacięcie w Katowicach…'"
+                          :placeholder="aiMode === 'adapt' ? 'np. formalny ton, skup się na turystach… (możesz zostawić puste)' : 'Opisz w 1-2 zdaniach czym się zajmujesz lub po prostu zostaw widoczny poniżej kontekst biznesowy'"
                           class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 focus:border-transparent focus:ring-2 focus:ring-accent/30 outline-none resize-y disabled:bg-slate-50 disabled:text-slate-500"></textarea>
                 <div class="mt-2 flex items-center justify-between gap-3 text-xs text-slate-500">
                     <span x-show="aiRemaining != null && aiLimit != null" x-cloak

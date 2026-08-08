@@ -122,7 +122,29 @@
           return;
         }
       }
-      this.aiPrompt = '';
+
+      const settings = this.content?.pl?.settings || {};
+      let defaultContext = '';
+      if (typeof window.DFOPS_aiBusinessContext?.buildDefaultAiContext === 'function') {
+        defaultContext = window.DFOPS_aiBusinessContext.buildDefaultAiContext(settings);
+      } else {
+        const saved = String(settings.ai_business_context || '').trim();
+        if (saved) {
+          defaultContext = saved;
+        } else {
+          defaultContext = [settings.business_name, settings.business_category, settings.city]
+            .map((x) => String(x || '').trim())
+            .filter(Boolean)
+            .join(' — ');
+        }
+      }
+
+      // Prefill tylko gdy pole puste — nie nadpisuj edycji użytkownika w trakcie sesji.
+      if (!String(this.aiPrompt || '').trim() && defaultContext) {
+        this.aiPrompt = defaultContext;
+      } else if (!String(this.aiPrompt || '').trim()) {
+        this.aiPrompt = '';
+      }
       this.aiModalOpen = true;
     };
 
@@ -591,6 +613,26 @@
         const limit = typeof data.limit === 'number' ? data.limit : this.aiGeneratorLimit();
         this.aiRemaining = remaining;
         this.aiLimit = limit;
+
+        // Zero-friction: zapamiętaj użyty kontekst (niezależnie od nazwy szablonu).
+        if (mode === 'generate' && prompt && this.content?.pl) {
+          if (!this.content.pl.settings || typeof this.content.pl.settings !== 'object') {
+            this.content.pl.settings = {};
+          }
+          const clamp =
+            typeof window.DFOPS_aiBusinessContext?.clampText === 'function'
+              ? window.DFOPS_aiBusinessContext.clampText
+              : (s, max) => String(s || '').trim().slice(0, max || 500);
+          this.content.pl.settings.ai_business_context = clamp(prompt, 500);
+          if (typeof this._persistDraft === 'function') {
+            try {
+              await this._persistDraft({ silent: true });
+              this._suppressContentWatch = true;
+            } catch (persistErr) {
+              safeDebug('persist ai_business_context', persistErr);
+            }
+          }
+        }
 
         this.aiModalOpen = false;
         this.aiPrompt = '';
