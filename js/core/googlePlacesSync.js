@@ -81,6 +81,24 @@
   }
 
   /**
+   * Opinie z Google żyją w `google_reviews.cached_reviews`.
+   * `pl.reviews` zostaje na ręczne wpisy użytkownika — sync ich nie nadpisuje.
+   */
+  function applyGoogleReviewRowsToPl(pl, rows) {
+    if (!pl || typeof pl !== 'object') return;
+    if (!pl.google_reviews || typeof pl.google_reviews !== 'object') {
+      pl.google_reviews = {};
+    }
+    pl.google_reviews.cached_reviews = Array.isArray(rows) ? rows : [];
+  }
+
+  function googleCachedReviewRows(pl) {
+    const cached = pl?.google_reviews?.cached_reviews;
+    if (Array.isArray(cached) && cached.length) return cached;
+    return [];
+  }
+
+  /**
    * Uzupełnia contact.map_embed_url, gdy jest place_id bez gotowego URL.
    * @returns {boolean} czy zapisano nowy URL
    */
@@ -115,7 +133,7 @@
   }
 
   /**
-   * Pobiera opinie z Google i zapisuje w content.pl (reviews + metadane w google_reviews).
+   * Pobiera opinie z Google i zapisuje w `google_reviews.cached_reviews` (nie w `pl.reviews`).
    * @returns {boolean} czy wykonano sync
    */
   async function syncGoogleReviewsIntoPl(supabase, pl) {
@@ -130,7 +148,7 @@
       ? await fetchGoogleReviewsByPlaceId(supabase, placeId, gr.max_reviews)
       : await fetchGoogleReviewsBundle(supabase, query, gr.max_reviews);
     const rows = apiReviewsToContentRows(bundle.reviews);
-    if (rows.length) pl.reviews = rows;
+    applyGoogleReviewRowsToPl(pl, rows);
 
     if (bundle.placeId) {
       gr.place_id = bundle.placeId;
@@ -199,6 +217,8 @@
     fetchGoogleReviewsBundle,
     fetchGoogleReviewsByPlaceId,
     apiReviewsToContentRows,
+    applyGoogleReviewRowsToPl,
+    googleCachedReviewRows,
     syncMapEmbedIntoContact,
     syncMapEmbedFromAddress,
     syncGoogleReviewsIntoPl,

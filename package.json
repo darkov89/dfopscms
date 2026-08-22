@@ -7,6 +7,7 @@
     "build:admin": "node scripts/build-admin.mjs",
     "split:admin": "node scripts/split-admin-html.mjs",
     "test:ai-context": "node scripts/test-ai-business-context.mjs",
+    "test:reviews": "node scripts/test-reviews-appearance.mjs",
     "supabase:link:staging": "supabase link --project-ref asxrsdsprrbvjvgcsckh",
     "supabase:link:production": "supabase link --project-ref tawywecinkubmouyprab",
     "supabase:linked": "node -e \"const fs=require('fs');const p='supabase/.temp/project-ref';try{const r=fs.readFileSync(p,'utf8').trim();const m={asxrsdsprrbvjvgcsckh:'STAGING',tawywecinkubmouyprab:'PRODUCTION'};console.log('CLI →',m[r]||'?','('+r+')');}catch{console.log('Brak linku — uruchom npm run supabase:link:staging|production');}\"",

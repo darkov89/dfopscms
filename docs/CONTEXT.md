@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-08-08 — Zero-Friction Context-Driven AI (`ai_business_context`)
+**Ostatnia aktualizacja:** 2026-08-22 — Styl strony (ikony kolorów), ręczne opinie, galeria multi-upload
 
 ---
 
@@ -132,7 +132,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 | Grupa | Domyślnie | Zakładki (`activeTab`) |
 |-------|-----------|-------------------------|
 | **Na start** | rozwinięta | `hero` (Baner), `services`/`menu` (Oferta), `contact` (Telefon/adres/rezerwacje), `gallery` |
-| **Więcej treści** | zwinięta | `manifesto`/`care_profile` (O nas), `trust`, `faq`, `reviews` (Google + ręczne) |
+| **Więcej treści** | zwinięta | `manifesto`/`care_profile` (O nas), `trust`, `faq`, `reviews` (Google **i/lub** ręczne — beauty/fitness/services/consultant) |
 | **Ustawienia** | zwinięta | `settings` (Wygląd), `seo`, `legal`, `account` |
 
 Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcms-onboarding-wizard-btn`). Link **Twoja strona** → `dashboard`.
@@ -390,6 +390,12 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-08-22 — Kolory/styl, ręczne opinie, wiele zdjęć
+- **Kolory i styl:** chrome panelu **zostaje** szary/złoty DFCMS (`applyThemeStyling(..., 'admin')` — bez podglądu kolorów klienta w panelu). Ikony w Wyglądzie to pełny zestaw: `color_preset` + matching `background_style`/`font_preset` z `bundlesByTheme`, sync na wszystkie locale, handoff draftu do Podglądu. Publiczna strona: `DFOPS_resolvePublicAppearance` — gdy w JSON został tylko preset przy defaultowym tle/foncie motywu (typowe po starym kliknięciu ikony), aplikuje tło/font zestawu; już opublikowane strony klienta zmieniają się po deploju JS, bez ponownego Publikuj. Palety consultant `gold`/`charcoal`. Cache-bust `config.js` / `themeStyling.js` / `styles.css` / `publicSiteApp.js` (`?v=20260822b`).
+- **Opinie:** sekcja `reviews` w `themeConfig` dla beauty / fitness / services / consultant. Google sync zapisuje do `google_reviews.cached_reviews` i **nie** nadpisuje ręcznych `pl.reviews`. Szablony: Google i ręczne niezależnie (oba naraz).
+- **Galeria:** input `multiple` + sekwencyjny upload w `uploadImage`.
+- **Kod:** `config.js` (`matchingStyleBundle`, `resolvePublicAppearance`), `themeStyling.js`, `adminApp.js` (`selectColorPreset`), `tab-settings.html` (bez miniatury panelu), `googlePlacesSync.js`, `googleReviewsApp.js`, `contentUpgrader.js`, szablony publiczne. Test: `npm run test:reviews`.
 
 ### 2026-08-08 — Zero-Friction Context-Driven AI
 - **Cel:** treści AI zależą od faktycznej branży użytkownika, nie od nazwy szablonu (`beauty` / `fitness`…).

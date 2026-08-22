@@ -33,28 +33,28 @@
             }
         }
     </script>
-    <link rel="stylesheet" href="/css/styles.css?v=20260806c">
+    <link rel="stylesheet" href="/css/styles.css?v=20260822b">
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script src="/js/core/utils.js?v=20260617a"></script>
     <script src="/js/core/platformRouting.js?v=20260704c"></script>
     <script src="/js/core/tenantPublicUrlClean.js?v=20260704i"></script>
-    <script defer src="/js/core/config.js?v=20260602b"></script>
+    <script defer src="/js/core/config.js?v=20260822b"></script>
     <script defer src="/js/core/supabaseClient.js?v=20260704i"></script>
-    <script defer src="/js/templates/registry.js?v=20260622a"></script>
+    <script defer src="/js/templates/registry.js?v=20260822a"></script>
     <script defer src="/js/core/contentSchema.js"></script>
     <script defer src="/js/core/i18nLocales.js?v=20260723a"></script>
     <script defer src="/js/core/i18nContent.js?v=20260723a"></script>
     <script defer src="/js/core/uiLabels.js?v=20260806a"></script>
-    <script defer src="/js/core/contentUpgrader.js?v=20260806a"></script>
-    <script defer src="/js/core/themeStyling.js?v=20260806c"></script>
+    <script defer src="/js/core/contentUpgrader.js?v=20260822a"></script>
+    <script defer src="/js/core/themeStyling.js?v=20260822b"></script>
     <script defer src="/js/core/pageRepository.js?v=20260704i"></script>
     <script defer src="/js/core/planUtils.js?v=20260703a"></script>
     <script defer src="/js/core/trialBlocking.js?v=20260704h"></script>
     <script defer src="/js/core/siteAnalytics.js?v=20260705a"></script>
-    <script defer src="/js/features/publicSiteApp.js?v=20260806a"></script>
-    <script defer src="/js/features/googleReviewsApp.js"></script>
+    <script defer src="/js/features/publicSiteApp.js?v=20260822b"></script>
+    <script defer src="/js/features/googleReviewsApp.js?v=20260822a"></script>
     <script defer src="/js/features/cookieConsentApp.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     
@@ -143,7 +143,7 @@
                         <template x-if="content[lang].settings?.showFaq !== false && content[lang].faq?.length">
                             <a href="#faq" class="text-sattva-text/50 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.faq || 'Pytania i odpowiedzi (Q&amp;A)'"></a>
                         </template>
-                        <template x-if="content[lang].settings?.showReviews !== false && content[lang].reviews?.length">
+                        <template x-if="reviewsNavVisible()">
                             <a href="#opinie" class="text-sattva-text/50 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.reviews || 'Opinie'"></a>
                         </template>
                         <a href="#rezerwacja" @click="onConversionClick('booking_click', 'nav')" x-show="bookingModuleActive() || footerCtaEnabled()" x-cloak class="text-sattva-text/50 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.booking || 'Rezerwacja'"></a>
@@ -179,7 +179,7 @@
                     <template x-if="content[lang].settings?.showFaq !== false && content[lang].faq?.length">
                         <a href="#faq" @click="mobileNavOpen = false" class="rounded-lg px-3 py-3 text-sattva-text/70 hover:bg-sattva-text/5 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.faq || 'Pytania i odpowiedzi (Q&amp;A)'"></a>
                     </template>
-                    <template x-if="content[lang].settings?.showReviews !== false && content[lang].reviews?.length">
+                    <template x-if="reviewsNavVisible()">
                         <a href="#opinie" @click="mobileNavOpen = false" class="rounded-lg px-3 py-3 text-sattva-text/70 hover:bg-sattva-text/5 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.reviews || 'Opinie'"></a>
                     </template>
                     <a href="#rezerwacja" @click="mobileNavOpen = false; onConversionClick('booking_click', 'nav')" x-show="bookingModuleActive() || footerCtaEnabled()" x-cloak class="rounded-lg px-3 py-3 text-sattva-text/70 hover:bg-sattva-text/5 hover:text-sattva-brand transition-colors" x-text="content[lang].nav?.menu?.booking || 'Rezerwacja'"></a>
@@ -299,7 +299,8 @@
         </section>
 
         <!-- Reviews Section -->
-        <section id="opinie" class="py-24 px-6 bg-sattva-accent" x-show="content[lang].settings?.showReviews !== false && content[lang].reviews && content[lang].reviews.length > 0">
+        <div id="opinie" x-show="reviewsNavVisible()" x-cloak>
+        <section class="py-24 px-6 bg-sattva-accent" x-show="manualReviewsVisible()">
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-12 reveal">
                     <span class="text-xs uppercase tracking-[0.2em] text-sattva-brand mb-4 block" x-text="content[lang].reviews_heading?.label || 'Głos klientów'"></span>
@@ -344,7 +345,7 @@
         </section>
 
         <!-- Google Reviews (Zaufanie) — nad kontaktem, karuzela -->
-        <template x-if="content[lang].settings?.showGoogleReviews !== false && (content[lang].google_reviews?.place_query || content[lang].google_reviews?.place_id)">
+        <template x-if="googleReviewsVisible()">
             <section class="py-20 px-4 sm:px-6 bg-sattva-accent overflow-hidden">
                 <div class="max-w-5xl mx-auto">
                     <div class="text-center mb-8 reveal">
@@ -465,6 +466,7 @@
                 </div>
             </section>
         </template>
+        </div>
 
         <!-- DFCMS Smart Booking Module (consultant) — osobna sekcja konwersji, nie w kontakcie -->
         <section id="rezerwacja" class="py-24 md:py-32 px-6 scroll-mt-24 border-t border-sattva-text/5" x-show="bookingModuleActive() || footerCtaEnabled()" x-cloak>

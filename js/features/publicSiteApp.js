@@ -1129,7 +1129,10 @@
       /** Paleta szablonu gastro/care — `content.pl.settings.color_palette` (domyślna per motyw). */
       colorPalette() {
         const s = this.getContentBlock().settings || {};
-        const raw = String(s.color_palette || '').trim();
+        const pl = this.content?.pl?.settings || {};
+        const raw = String(
+          s.color_palette || pl.color_palette || s.color_preset || pl.color_preset || '',
+        ).trim();
         if (raw) return raw;
         if (this.theme === 'gastro') return 'dark_gold';
         if (this.theme === 'care') return 'medical_blue';
@@ -1147,6 +1150,26 @@
         if (!map) return '';
         const palette = map[p] || map[Object.keys(map)[0]];
         return palette?.[slot] || '';
+      },
+      /** Ręczne opinie wpisane w panelu (osobno od Google). */
+      manualReviewsVisible() {
+        const c = this.getContentBlock();
+        const s = c.settings || {};
+        return s.showReviews !== false && Array.isArray(c.reviews) && c.reviews.length > 0;
+      },
+      /** Karuzela opinii z Google albo demo katalogu. */
+      googleReviewsVisible() {
+        const c = this.getContentBlock();
+        const s = c.settings || {};
+        if (s.showGoogleReviews === false) return false;
+        const gr = c.google_reviews || {};
+        if (String(gr.place_query || '').trim() || String(gr.place_id || '').trim()) return true;
+        const cached = Array.isArray(gr.cached_reviews) ? gr.cached_reviews : [];
+        if (cached.length) return true;
+        return !!(s.is_demo_catalog && Array.isArray(c.reviews) && c.reviews.length);
+      },
+      reviewsNavVisible() {
+        return this.manualReviewsVisible() || this.googleReviewsVisible();
       },
       heroCtaEnabled() {
         return this.getContentBlock().hero?.button_enabled !== false;

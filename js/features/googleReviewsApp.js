@@ -17,12 +17,12 @@
         return d.toISOString();
       },
 
-      hydrateFromContent() {
+      hydrateFromContent(rows) {
         const c = this.content;
         const l = this.lang || 'pl';
-        const rows = Array.isArray(c[l]?.reviews) ? c[l].reviews : [];
+        const source = Array.isArray(rows) ? rows : [];
         const gr = c[l]?.settings?.google_reviews || c[l]?.google_reviews;
-        const key = `${l}:${rows.map((x) => (x?.author || '') + '|' + String(x?.content || '').slice(0, 48)).join(';')}:${gr?.google_synced_at || ''}`;
+        const key = `${l}:${source.map((x) => (x?.author || '') + '|' + String(x?.content || '').slice(0, 48)).join(';')}:${gr?.google_synced_at || ''}`;
         if (this._demoReviewsKey === key) return;
         this._demoReviewsKey = key;
         this._lastFetchedQuery = gr?.place_query?.trim() || null;
@@ -36,7 +36,7 @@
           pr != null && Number.isFinite(Number(pr)) ? Number(pr) : null;
         this.userRatingCount =
           uc != null && Number.isFinite(Number(uc)) ? Number(uc) : null;
-        this.reviews = rows.map((row, i) => ({
+        this.reviews = source.map((row, i) => ({
           author_name: typeof row.author === 'string' && row.author.trim() ? row.author.trim() : 'Klient',
           text: typeof row.content === 'string' ? row.content : '',
           rating: Number(row.stars) > 0 ? Number(row.stars) : 5,
@@ -64,27 +64,36 @@
 
           if (!c) return;
 
-          const gr = c[l]?.settings?.google_reviews || c[l]?.google_reviews;
+          const block = c[l] || {};
+          const gr = block.settings?.google_reviews || block.google_reviews;
           const query = gr?.place_query?.trim();
           const placeId = gr?.place_id?.trim();
           const hasGoogleSource = !!(query || placeId);
-          const isDemoCatalog = !!c[l]?.settings?.is_demo_catalog;
-          const ownReviews = Array.isArray(c[l]?.reviews) ? c[l].reviews : [];
+          const isDemoCatalog = !!block.settings?.is_demo_catalog;
+          const cached =
+            typeof window.DFOPS_googlePlacesSync?.googleCachedReviewRows === 'function'
+              ? window.DFOPS_googlePlacesSync.googleCachedReviewRows(block)
+              : Array.isArray(gr?.cached_reviews)
+                ? gr.cached_reviews
+                : [];
+          const ownReviews = Array.isArray(block.reviews) ? block.reviews : [];
+          const showManual = block.settings?.showReviews === true;
 
           if (hasGoogleSource) {
-            if (ownReviews.length) {
-              this.hydrateFromContent();
+            const googleRows = cached.length ? cached : showManual ? [] : ownReviews;
+            if (googleRows.length) {
+              this.hydrateFromContent(googleRows);
             } else {
               this.loading = false;
               this.reviews = [];
               this.error =
-                'Opinie z Google pojawią się po publikacji strony w panelu (zakładka Opinie z Google → Publikuj zmiany).';
+                'Opinie z Google pojawią się po publikacji strony w panelu (zakładka Opinie → Publikuj zmiany).';
             }
             return;
           }
 
           if (!hasGoogleSource && isDemoCatalog && ownReviews.length) {
-            this.hydrateFromContent();
+            this.hydrateFromContent(ownReviews);
           } else if (gr && !hasGoogleSource) {
             this.loading = false;
             this._demoReviewsKey = null;

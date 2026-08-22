@@ -248,6 +248,32 @@
         text: '#E2E8F0',
         textMuted: '#94a3b8',
       },
+      gold: {
+        accent: '#D4AF37',
+        accentContrast: '#121212',
+        bgA: '#0b0b0f',
+        bgB: '#121212',
+        bgC: 'rgba(212, 175, 55, 0.12)',
+        bgTextureOpacity: 0.06,
+        surfaceBg: 'transparent',
+        surfaceAccent: 'rgba(18, 18, 18, 0.9)',
+        surfaceCard: 'rgba(18, 18, 18, 0.55)',
+        text: '#E2E8F0',
+        textMuted: '#94a3b8',
+      },
+      charcoal: {
+        accent: '#A3A3A3',
+        accentContrast: '#121212',
+        bgA: '#171717',
+        bgB: '#0a0a0a',
+        bgC: 'rgba(163, 163, 163, 0.1)',
+        bgTextureOpacity: 0.04,
+        surfaceBg: 'transparent',
+        surfaceAccent: 'rgba(23, 23, 23, 0.92)',
+        surfaceCard: 'rgba(23, 23, 23, 0.78)',
+        text: '#E2E8F0',
+        textMuted: '#a3a3a3',
+      },
       emerald: {
         accent: '#10b981',
         accentContrast: '#f0fdf4',
@@ -340,11 +366,13 @@
         { id: 'consultant-premium', label: 'Premium Gold', color_preset: 'gold', background_style: 'glow', font_preset: 'inter' },
         { id: 'consultant-navy', label: 'Navy Modern', color_preset: 'navy', background_style: 'clean', font_preset: 'inter' },
         { id: 'consultant-emerald', label: 'Emerald Trust', color_preset: 'emerald', background_style: 'soft', font_preset: 'elegant' },
+        { id: 'consultant-charcoal', label: 'Charcoal Minimal', color_preset: 'charcoal', background_style: 'glow', font_preset: 'inter' },
       ],
       beauty: [
         { id: 'beauty-soft', label: 'Beauty Soft', color_preset: 'beige', background_style: 'soft', font_preset: 'poppins' },
         { id: 'beauty-rosewood', label: 'Rosewood Elegant', color_preset: 'rosewood', background_style: 'clean', font_preset: 'elegant' },
         { id: 'barber-luxe', label: 'Barber Luxe', color_preset: 'black-gold', background_style: 'smoky', font_preset: 'barber' },
+        { id: 'beauty-mint', label: 'Forest Mint', color_preset: 'forest-mint', background_style: 'clean', font_preset: 'poppins' },
       ],
       fitness: [
         { id: 'fit-lime', label: 'Neon Lime Power', color_preset: 'neon-lime', background_style: 'glow', font_preset: 'inter' },
@@ -353,6 +381,9 @@
       ],
       services: [
         { id: 'svc-trades', label: 'Rzemiosło (navy + pomarańcz)', color_preset: 'trades-navy', background_style: 'clean', font_preset: 'inter' },
+        { id: 'svc-forest', label: 'Forest', color_preset: 'forest', background_style: 'clean', font_preset: 'inter' },
+        { id: 'svc-ocean', label: 'Ocean', color_preset: 'ocean', background_style: 'clean', font_preset: 'inter' },
+        { id: 'svc-wine', label: 'Wine', color_preset: 'wine', background_style: 'clean', font_preset: 'inter' },
       ],
       gastro: [
         { id: 'gastro-dark-gold', label: 'Fine dining (ciemny + złoto)', color_preset: 'dark_gold', color_palette: 'dark_gold', background_style: 'smoky', font_preset: 'elegant' },
@@ -386,6 +417,45 @@
     return patterns.some((re) => re.test(h));
   }
 
+  function themeDefaultAppearance(theme) {
+    const t = String(theme || '').trim().toLowerCase();
+    if (t === 'beauty') return { background_style: 'soft', font_preset: 'poppins' };
+    if (t === 'services' || t === 'care') return { background_style: 'clean', font_preset: 'inter' };
+    if (t === 'gastro') return { background_style: 'smoky', font_preset: 'elegant' };
+    return { background_style: 'glow', font_preset: 'inter' };
+  }
+
+  /** Zestaw (tło + font) przypięty do ikony koloru — ten sam kontrakt co `bundlesByTheme`. */
+  function matchingStyleBundle(theme, settings) {
+    const bundles = (APP_CONFIG.bundlesByTheme || {})[theme] || [];
+    const id = settings?.color_preset || settings?.color_palette;
+    if (!id) return null;
+    return bundles.find((b) => b.color_preset === id || b.color_palette === id) || null;
+  }
+
+  /**
+   * Publiczna strona: gdy klient kliknął tylko ikonę koloru, w JSON zostawał
+   * domyślny background/font motywu — wtedy bierzemy tło/font z zestawu ikony.
+   * Własne tło/font z „Ustawień zaawansowanych” (inne niż default motywu) zostają.
+   */
+  function resolvePublicAppearance(theme, settings) {
+    const s = settings || {};
+    const defaults = themeDefaultAppearance(theme);
+    const match = matchingStyleBundle(theme, s);
+    const bgStored = s.background_style || defaults.background_style;
+    const fontStored = s.font_preset || defaults.font_preset;
+    const stillDefault =
+      !!match &&
+      bgStored === defaults.background_style &&
+      fontStored === defaults.font_preset;
+    return {
+      color_preset: s.color_preset || s.color_palette || '',
+      color_palette: s.color_palette || '',
+      background_style: stillDefault && match.background_style ? match.background_style : bgStored,
+      font_preset: stillDefault && match.font_preset ? match.font_preset : fontStored,
+    };
+  }
+
   window.DFOPS_CONFIG = APP_CONFIG;
   window.DFOPS_IS_LOCALHOST = isLocalhost;
   window.DFOPS_DEPLOY_ENVIRONMENT = environment;
@@ -393,4 +463,6 @@
   window.DFOPS_SUPABASE_ANON_KEY = supabaseAnonKey;
   window.DFOPS_resolveDeployEnvironment = resolveDeployEnvironment;
   window.DFOPS_panelPreviewUsesSameOrigin = panelPreviewUsesSameOrigin;
+  window.DFOPS_matchingStyleBundle = matchingStyleBundle;
+  window.DFOPS_resolvePublicAppearance = resolvePublicAppearance;
 })();

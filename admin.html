@@ -33,24 +33,24 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
     <script defer src="js/core/utils.js?v=20260617a"></script>
-    <script defer src="js/core/config.js?v=20260617t"></script>
+    <script defer src="js/core/config.js?v=20260822b"></script>
     <script defer src="js/core/uiI18n.js?v=20260724a"></script>
     <script defer src="js/i18n/uiPlatformCopy.js?v=20260724a"></script>
     <script defer src="js/core/supabaseClient.js?v=20260704i"></script>
-    <script defer src="js/templates/registry.js?v=20260701a"></script>
-    <script defer src="js/core/themeConfig.js?v=20260702a"></script>
+    <script defer src="js/templates/registry.js?v=20260822a"></script>
+    <script defer src="js/core/themeConfig.js?v=20260822a"></script>
     <script defer src="js/core/contentSchema.js?v=20260404c"></script>
     <script defer src="js/core/i18nLocales.js?v=20260723a"></script>
     <script defer src="js/core/i18nContent.js?v=20260806b"></script>
     <script defer src="js/core/uiLabels.js?v=20260806a"></script>
-    <script defer src="js/core/contentUpgrader.js?v=20260806a"></script>
+    <script defer src="js/core/contentUpgrader.js?v=20260822a"></script>
     <script defer src="js/core/themeStyling.js?v=20260404c"></script>
     <script defer src="js/core/pageRepository.js?v=20260806a"></script>
     <script defer src="js/core/planUtils.js?v=20260723b"></script>
     <script defer src="js/core/trialBlocking.js?v=20260704h"></script>
     <script defer src="js/core/billingProfileView.js?v=20260804a"></script>
     <script defer src="js/core/imageCompress.js?v=20260803a"></script>
-    <script defer src="js/core/googlePlacesSync.js?v=20260803a"></script>
+    <script defer src="js/core/googlePlacesSync.js?v=20260822a"></script>
     <script defer src="js/core/aiBusinessContext.js?v=20260808a"></script>
     <script defer src="js/core/analytics.js?v=20260403t"></script>
     <!-- Silnik Wzrostu (Growth Autopilot) — lite hexagonal, ładowane przed adminApp.js (§14 spec). -->
@@ -61,7 +61,7 @@
     <script defer src="js/features/i18nPanel.js?v=20260806b"></script>
     <script defer src="js/features/aiGenerator.js?v=20260808a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <script defer src="js/features/adminApp.js?v=20260808a"></script>
+    <script defer src="js/features/adminApp.js?v=20260822b"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -1457,7 +1457,7 @@
                                 <div class="border-b border-slate-200/60 bg-slate-50/80 px-5 py-3.5 flex flex-wrap items-baseline justify-between gap-2">
                                     <div>
                                         <h3 class="text-sm font-bold text-slate-900 uppercase tracking-widest">Kolory i styl</h3>
-                                        <p class="text-xs text-slate-500 mt-1">Gotowe zestawy kolorów, tło i czcionki — podgląd w panelu od razu po zmianie.</p>
+                                        <p class="text-xs text-slate-500 mt-1">Kliknij zestaw — zmiana jest na stronie klienta (Podgląd albo po Publikuj). Panel zostaje w kolorach DFCMS.</p>
                                     </div>
                                     
                                 </div>
@@ -2228,7 +2228,7 @@
                             </label>
                             <div x-show="!content.pl.gallery?.images?.length" class="text-sm text-blue-700 bg-blue-50 border border-blue-100 p-4 rounded-xl mt-3 flex items-start gap-3">
                                 <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                <p>✨ Galeria jest pusta. Dodaj pierwsze zdjęcie poniżej — wtedy goście zobaczą realizacje na stronie.</p>
+                                <p>✨ Galeria jest pusta. Dodaj pierwsze zdjęcia poniżej — możesz zaznaczyć kilka plików naraz.</p>
                             </div>
                         </div>
                         <div class="space-y-6">
@@ -2240,11 +2240,11 @@
                             <div class="pt-6 border-t border-gray-100">
                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Zdjęcia w galerii</label>
                                 <label class="inline-block border-2 border-dashed border-gray-300 text-slate-600 font-semibold text-sm py-3 px-6 rounded-sm hover:bg-[#D4AF37] hover:text-white hover:border-[#D4AF37] transition-all cursor-pointer mb-6">
-                                    Dodaj zdjęcie
-                                    <input type="file" accept="image/*" @change="uploadImage($event, 'gallery', 'images')" class="hidden">
+                                    Dodaj zdjęcia
+                                    <input type="file" accept="image/*" multiple @change="uploadImage($event, 'gallery', 'images')" class="hidden">
                                 </label>
                                 <p x-show="uploadingImage" x-text="uploadingMessage" class="text-xs text-[#D4AF37] font-bold animate-pulse mb-4"></p>
-                                <p class="text-xs text-slate-500 mb-4">Po wgraniu zdjęcie pojawi się poniżej. Kliknij <strong>Publikuj zmiany</strong>, aby zapisać.</p>
+                                <p class="text-xs text-slate-500 mb-4">Możesz zaznaczyć kilka plików naraz. Po wgraniu kliknij <strong>Publikuj zmiany</strong>, żeby pokazać je na stronie.</p>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4" x-show="content.pl.gallery?.images?.length">
                                     <template x-for="(imgUrl, index) in content.pl.gallery.images" :key="index">
                                         <div class="relative group rounded-sm overflow-hidden border border-gray-200 bg-gray-50 aspect-square">
@@ -2253,7 +2253,7 @@
                                         </div>
                                     </template>
                                 </div>
-                                <p x-show="!content.pl.gallery?.images?.length" class="text-sm text-slate-400 italic">Brak zdjęć. Kliknij „Dodaj zdjęcie” powyżej.</p>
+                                <p x-show="!content.pl.gallery?.images?.length" class="text-sm text-slate-400 italic">Brak zdjęć. Kliknij „Dodaj zdjęcia” powyżej.</p>
                             </div>
                         </div>
                     </div>
@@ -2588,7 +2588,7 @@
                     <div x-show="activeTab === 'reviews' || activeTab === 'google_reviews'" x-transition.opacity x-cloak>
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
                             <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Opinie</h2>
-                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl">Opinie z Google (zalecane) lub wpisane ręcznie — budują zaufanie nowych klientów.</p>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl">Możesz podpiąć opinie z Google, wpisać własne albo pokazać oba źródła naraz.</p>
                         </div>
 
                         <div x-show="adminTabVisible('google_reviews')" class="mb-10 space-y-6">
@@ -2647,9 +2647,9 @@
                                     <span class="text-sm font-medium text-slate-900">Pokaż własne opinie na stronie</span>
                                 </label>
                                 <div
-                                    x-show="theme === 'consultant' && content.pl.settings.showReviews"
+                                    x-show="content.pl.settings.showReviews"
                                     x-cloak
-                                    x-init="if (!content.pl.reviews_heading || typeof content.pl.reviews_heading !== 'object') content.pl.reviews_heading = { label: 'Głos klientów', title: 'Opinie i współpraca' }"
+                                    x-init="if (!content.pl.reviews_heading || typeof content.pl.reviews_heading !== 'object') content.pl.reviews_heading = { label: 'Głos klientów', title: 'Opinie klientów' }; if (!Array.isArray(content.pl.reviews)) content.pl.reviews = []"
                                     class="grid gap-4 sm:grid-cols-2 pt-2"
                                 >
                                     <div>

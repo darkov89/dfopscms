@@ -1,7 +1,7 @@
                     <div x-show="activeTab === 'reviews' || activeTab === 'google_reviews'" x-transition.opacity x-cloak>
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
                             <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Opinie</h2>
-                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl">Opinie z Google (zalecane) lub wpisane ręcznie — budują zaufanie nowych klientów.</p>
+                            <p class="text-sm text-slate-600 leading-relaxed max-w-2xl">Możesz podpiąć opinie z Google, wpisać własne albo pokazać oba źródła naraz.</p>
                         </div>
 
                         <div x-show="adminTabVisible('google_reviews')" class="mb-10 space-y-6">
@@ -60,9 +60,9 @@
                                     <span class="text-sm font-medium text-slate-900">Pokaż własne opinie na stronie</span>
                                 </label>
                                 <div
-                                    x-show="theme === 'consultant' && content.pl.settings.showReviews"
+                                    x-show="content.pl.settings.showReviews"
                                     x-cloak
-                                    x-init="if (!content.pl.reviews_heading || typeof content.pl.reviews_heading !== 'object') content.pl.reviews_heading = { label: 'Głos klientów', title: 'Opinie i współpraca' }"
+                                    x-init="if (!content.pl.reviews_heading || typeof content.pl.reviews_heading !== 'object') content.pl.reviews_heading = { label: 'Głos klientów', title: 'Opinie klientów' }; if (!Array.isArray(content.pl.reviews)) content.pl.reviews = []"
                                     class="grid gap-4 sm:grid-cols-2 pt-2"
                                 >
                                     <div>

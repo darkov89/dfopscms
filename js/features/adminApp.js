@@ -662,7 +662,7 @@
     if (section === 'nav' && field === 'logoImage') return 'Chwileczkę, dodaję logo Twojej marki…';
     if (section === 'hero' && field === 'image') return 'Chwileczkę, dodaję Twoje zdjęcie…';
     if (section === 'hero' && field === 'qrImage') return 'Zapisuję ten detal — kod QR…';
-    if (section === 'gallery' && field === 'images') return 'Chwileczkę, dodaję zdjęcie do galerii…';
+    if (section === 'gallery' && field === 'images') return 'Chwileczkę, dodaję zdjęcia do galerii…';
     if (section === 'menu' && field === 'menu_image') return 'Zapisuję zdjęcie Twojego menu…';
     if (section === 'reviews' && field === 'logoImage') return 'Przetwarzam ikonkę przy tej opinii…';
     if (section === 'seo' && field === 'ogImage') return 'Zapisuję obrazek do podglądu w mediach…';
@@ -1381,6 +1381,9 @@
         }
         try {
           if (!this.slug || !this.content?.pl) return;
+          if (typeof this._syncAppearanceSettingsAcrossLocales === 'function') {
+            this._syncAppearanceSettingsAcrossLocales();
+          }
           if (typeof this.prepareContentForPersist === 'function') {
             this.prepareContentForPersist();
           }
@@ -1398,6 +1401,44 @@
         }
         // Najświeższy draft także w bazie (gdyby auto-save jeszcze nie zdążył).
         void this.autosaveDraftNow();
+      },
+      /** Wygląd (kolor/tło/font) jest wspólny dla wszystkich języków strony. */
+      _syncAppearanceSettingsAcrossLocales() {
+        const s = this.content?.pl?.settings;
+        if (!s || typeof s !== 'object') return;
+        const patch = {};
+        ['color_preset', 'color_palette', 'background_style', 'font_preset'].forEach((key) => {
+          if (s[key] !== undefined) patch[key] = s[key];
+        });
+        const apply = (block) => {
+          if (!block || typeof block !== 'object') return;
+          if (!block.settings || typeof block.settings !== 'object') block.settings = {};
+          Object.assign(block.settings, patch);
+        };
+        apply(this.content.pl);
+        Object.keys(this.content).forEach((k) => {
+          if (k === 'meta' || k === 'shared' || k === 'pl') return;
+          apply(this.content[k]);
+        });
+        if (this._localePack && typeof this._localePack === 'object') {
+          Object.keys(this._localePack).forEach((k) => apply(this._localePack[k]));
+        }
+      },
+      /** Zapis draftu do localStorage bez remapowania locale — żeby Podgląd wziął świeży kolor. */
+      _writePreviewDraftHandoff() {
+        try {
+          if (!this.slug || !this.content?.pl) return;
+          const payload = {
+            slug: this.slug,
+            theme: this.theme,
+            content: JSON.parse(JSON.stringify(this.content)),
+            previewLocale: this.editLocale || 'pl',
+            ts: Date.now(),
+          };
+          window.localStorage.setItem('dfops_preview_draft:' + this.slug, JSON.stringify(payload));
+        } catch (_) {
+          /* ignore */
+        }
       },
       getPublicSiteUrl() {
         const preview = 'dfcms_preview=1';
@@ -2107,12 +2148,24 @@
 
       selectColorPreset(preset) {
         if (!preset?.id || !this.content?.pl?.settings) return;
+        const theme = this.showWizard ? this.wizardTheme || this.theme : this.theme;
         this.content.pl.settings.color_preset = preset.id;
-        if (themeUsesColorPalette(this.theme)) {
+        if (themeUsesColorPalette(theme)) {
           this.content.pl.settings.color_palette = preset.id;
         }
+        const match =
+          typeof window.DFOPS_matchingStyleBundle === 'function'
+            ? window.DFOPS_matchingStyleBundle(theme, this.content.pl.settings)
+            : (cfg.bundlesByTheme[theme] || []).find(
+                (b) => b.color_preset === preset.id || b.color_palette === preset.id,
+              );
+        if (match) {
+          if (match.background_style) this.content.pl.settings.background_style = match.background_style;
+          if (match.font_preset) this.content.pl.settings.font_preset = match.font_preset;
+        }
         this.appearancePickerHex = '';
-        this.applyThemeStylingFromContent();
+        this._syncAppearanceSettingsAcrossLocales();
+        this._writePreviewDraftHandoff();
       },
 
       _hexColorDistance(hexA, hexB) {
@@ -3098,7 +3151,8 @@
         this.content.pl.settings.background_style = bundle.background_style;
         this.content.pl.settings.font_preset = bundle.font_preset;
         this.appearancePickerHex = '';
-        this.applyThemeStylingFromContent();
+        this._syncAppearanceSettingsAcrossLocales();
+        this._writePreviewDraftHandoff();
       },
       clearCheckoutTurnstile() {
         this.turnstileToken = '';
@@ -4318,12 +4372,15 @@
         }
       },
       async uploadImage(event, section, field, index = null) {
-        const file = event.target.files?.[0];
-        if (!file || !this.slug) return;
+        const allFiles = Array.from(event.target.files || []).filter(Boolean);
+        if (!allFiles.length || !this.slug) return;
         const pl = this.content?.pl;
         if (!pl) return;
+        const allowMultiple = section === 'gallery' && field === 'images';
+        const files = allowMultiple ? allFiles : allFiles.slice(0, 1);
         this.uploadingMessage = uploadingMessageFor(section, field);
         this.uploadingImage = true;
+        let uploaded = 0;
         try {
           // Odśwież sesję — Storage RLS wymaga ważnego JWT + auth.uid().
           let ownerId = this.user?.id || '';
@@ -4343,72 +4400,36 @@
             throw new Error('Brak sesji użytkownika. Odśwież stronę i zaloguj się ponownie.');
           }
 
-          const nameLower = String(file.name || '').toLowerCase();
-          let mime = String(file.type || '').toLowerCase();
-          if (!mime || mime === 'application/octet-stream') {
-            if (/\.jpe?g$/i.test(nameLower)) mime = 'image/jpeg';
-            else if (/\.png$/i.test(nameLower)) mime = 'image/png';
-            else if (/\.webp$/i.test(nameLower)) mime = 'image/webp';
-          }
-          if (mime === 'image/jpg') mime = 'image/jpeg';
-
-          if (/\.(heic|heif)$/i.test(nameLower) || mime === 'image/heic' || mime === 'image/heif') {
-            throw new Error(
-              'Format HEIC (iPhone) nie jest obsługiwany. Wybierz JPG, PNG lub WEBP — w iPhone: Ustawienia → Aparat → Formaty → „Najbardziej kompatybilne”.',
-            );
-          }
-
-          const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
-          if (!allowedTypes.has(mime)) {
-            throw new Error('Nieprawidłowy typ pliku. Dozwolone: JPG, PNG, WEBP.');
-          }
-
-          if (/\.(svg|html?|xml)$/i.test(nameLower) || mime === 'image/svg+xml') {
-            throw new Error('Ten typ pliku jest zablokowany ze względów bezpieczeństwa.');
-          }
-
-          let uploadFile = file;
-          if (typeof window.DFOPS_compressImageFile === 'function') {
-            try {
-              uploadFile = await window.DFOPS_compressImageFile(file, section, field);
-            } catch (compErr) {
-              console.warn('DFOPS image compress — używam oryginału:', compErr);
-              uploadFile = file;
+          for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if (files.length > 1) {
+              this.uploadingMessage = `Dodaję zdjęcie ${i + 1} z ${files.length}…`;
             }
-          }
-
-          const fileExt =
-            (uploadFile.name && uploadFile.name.split('.').pop()) ||
-            (String(uploadFile.type || '').includes('webp')
-              ? 'webp'
-              : String(uploadFile.type || '').includes('png')
-                ? 'png'
-                : 'jpg');
-          const fileName = `${ownerId}/${this.slug}-${section}-${field}-${Date.now()}.${fileExt}`;
-          const { error } = await this.supabase.storage.from('images').upload(fileName, uploadFile, {
-            contentType: uploadFile.type || mime,
-            upsert: false,
-          });
-          if (error) throw error;
-          const { data: publicUrlData } = this.supabase.storage.from('images').getPublicUrl(fileName);
-          if (section === 'gallery' && field === 'images') {
-            if (!pl.gallery) pl.gallery = { title: 'Nasze realizacje', images: [] };
-            if (!Array.isArray(pl.gallery.images)) pl.gallery.images = [];
-            pl.gallery.images.push(publicUrlData.publicUrl);
-          } else if (section === 'menu' && field === 'menu_image') {
-            pl.menu_image = publicUrlData.publicUrl;
-          } else if (index !== null) {
-            const sec = pl[section];
-            const el = Array.isArray(sec) ? sec[index] : sec?.[index];
-            if (el == null) return;
-            el[field] = publicUrlData.publicUrl;
-          } else {
-            if (!pl[section]) pl[section] = {};
-            pl[section][field] = publicUrlData.publicUrl;
+            const publicUrl = await this._uploadImageFileToStorage(file, ownerId, section, field);
+            if (section === 'gallery' && field === 'images') {
+              if (!pl.gallery) pl.gallery = { title: 'Nasze realizacje', images: [] };
+              if (!Array.isArray(pl.gallery.images)) pl.gallery.images = [];
+              pl.gallery.images.push(publicUrl);
+            } else if (section === 'menu' && field === 'menu_image') {
+              pl.menu_image = publicUrl;
+            } else if (index !== null) {
+              const sec = pl[section];
+              const el = Array.isArray(sec) ? sec[index] : sec?.[index];
+              if (el == null) return;
+              el[field] = publicUrl;
+            } else {
+              if (!pl[section]) pl[section] = {};
+              pl[section][field] = publicUrl;
+            }
+            uploaded += 1;
           }
           this.message = this.showWizard
-            ? 'Zdjęcie jest zapisane w treści strony. Przy „Dalej” i na końcu kreatora wszystko trafia do bazy — możesz też użyć „Publikuj zmiany” w nagłówku.'
-            : 'Gotowe! Kliknij „Publikuj zmiany”, żeby pokazać je na stronie.';
+            ? (uploaded > 1
+              ? 'Zdjęcia są zapisane w treści strony. Przy „Dalej” i na końcu kreatora wszystko trafia do bazy — możesz też użyć „Publikuj zmiany” w nagłówku.'
+              : 'Zdjęcie jest zapisane w treści strony. Przy „Dalej” i na końcu kreatora wszystko trafia do bazy — możesz też użyć „Publikuj zmiany” w nagłówku.')
+            : (uploaded > 1
+              ? 'Gotowe! Kliknij „Publikuj zmiany”, żeby pokazać zdjęcia na stronie.'
+              : 'Gotowe! Kliknij „Publikuj zmiany”, żeby pokazać je na stronie.');
           setTimeout(() => { this.message = ''; }, SUCCESS_MESSAGE_TIMEOUT);
         } catch (e) {
           console.error(e);
@@ -4416,16 +4437,70 @@
             (e && typeof e.message === 'string' && e.message.trim()) ||
             (e && typeof e.error === 'string' && e.error.trim()) ||
             '';
+          const prefix = uploaded
+            ? `Zapisano ${uploaded} z ${files.length}. `
+            : '';
           this.showError(
-            detail && detail.length < 220
+            prefix + (detail && detail.length < 220
               ? detail
-              : 'Nie udało się dodać zdjęcia. Spróbuj jeszcze raz (JPG, PNG lub WEBP).',
+              : 'Nie udało się dodać zdjęcia. Spróbuj jeszcze raz (JPG, PNG lub WEBP).'),
           );
         } finally {
           this.uploadingImage = false;
           this.uploadingMessage = '';
           event.target.value = '';
         }
+      },
+      async _uploadImageFileToStorage(file, ownerId, section, field) {
+        const nameLower = String(file.name || '').toLowerCase();
+        let mime = String(file.type || '').toLowerCase();
+        if (!mime || mime === 'application/octet-stream') {
+          if (/\.jpe?g$/i.test(nameLower)) mime = 'image/jpeg';
+          else if (/\.png$/i.test(nameLower)) mime = 'image/png';
+          else if (/\.webp$/i.test(nameLower)) mime = 'image/webp';
+        }
+        if (mime === 'image/jpg') mime = 'image/jpeg';
+
+        if (/\.(heic|heif)$/i.test(nameLower) || mime === 'image/heic' || mime === 'image/heif') {
+          throw new Error(
+            'Format HEIC (iPhone) nie jest obsługiwany. Wybierz JPG, PNG lub WEBP — w iPhone: Ustawienia → Aparat → Formaty → „Najbardziej kompatybilne”.',
+          );
+        }
+
+        const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+        if (!allowedTypes.has(mime)) {
+          throw new Error('Nieprawidłowy typ pliku. Dozwolone: JPG, PNG, WEBP.');
+        }
+
+        if (/\.(svg|html?|xml)$/i.test(nameLower) || mime === 'image/svg+xml') {
+          throw new Error('Ten typ pliku jest zablokowany ze względów bezpieczeństwa.');
+        }
+
+        let uploadFile = file;
+        if (typeof window.DFOPS_compressImageFile === 'function') {
+          try {
+            uploadFile = await window.DFOPS_compressImageFile(file, section, field);
+          } catch (compErr) {
+            console.warn('DFOPS image compress — używam oryginału:', compErr);
+            uploadFile = file;
+          }
+        }
+
+        const fileExt =
+          (uploadFile.name && uploadFile.name.split('.').pop()) ||
+          (String(uploadFile.type || '').includes('webp')
+            ? 'webp'
+            : String(uploadFile.type || '').includes('png')
+              ? 'png'
+              : 'jpg');
+        const fileName = `${ownerId}/${this.slug}-${section}-${field}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${fileExt}`;
+        const { error } = await this.supabase.storage.from('images').upload(fileName, uploadFile, {
+          contentType: uploadFile.type || mime,
+          upsert: false,
+        });
+        if (error) throw error;
+        const { data: publicUrlData } = this.supabase.storage.from('images').getPublicUrl(fileName);
+        return publicUrlData.publicUrl;
       },
       removeGalleryImage(index) {
         if (!this.content?.pl?.gallery?.images || !Array.isArray(this.content.pl.gallery.images)) return;

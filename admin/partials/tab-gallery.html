@@ -12,7 +12,7 @@
                             </label>
                             <div x-show="!content.pl.gallery?.images?.length" class="text-sm text-blue-700 bg-blue-50 border border-blue-100 p-4 rounded-xl mt-3 flex items-start gap-3">
                                 <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                <p>✨ Galeria jest pusta. Dodaj pierwsze zdjęcie poniżej — wtedy goście zobaczą realizacje na stronie.</p>
+                                <p>✨ Galeria jest pusta. Dodaj pierwsze zdjęcia poniżej — możesz zaznaczyć kilka plików naraz.</p>
                             </div>
                         </div>
                         <div class="space-y-6">
@@ -24,11 +24,11 @@
                             <div class="pt-6 border-t border-gray-100">
                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Zdjęcia w galerii</label>
                                 <label class="inline-block border-2 border-dashed border-gray-300 text-slate-600 font-semibold text-sm py-3 px-6 rounded-sm hover:bg-[#D4AF37] hover:text-white hover:border-[#D4AF37] transition-all cursor-pointer mb-6">
-                                    Dodaj zdjęcie
-                                    <input type="file" accept="image/*" @change="uploadImage($event, 'gallery', 'images')" class="hidden">
+                                    Dodaj zdjęcia
+                                    <input type="file" accept="image/*" multiple @change="uploadImage($event, 'gallery', 'images')" class="hidden">
                                 </label>
                                 <p x-show="uploadingImage" x-text="uploadingMessage" class="text-xs text-[#D4AF37] font-bold animate-pulse mb-4"></p>
-                                <p class="text-xs text-slate-500 mb-4">Po wgraniu zdjęcie pojawi się poniżej. Kliknij <strong>Publikuj zmiany</strong>, aby zapisać.</p>
+                                <p class="text-xs text-slate-500 mb-4">Możesz zaznaczyć kilka plików naraz. Po wgraniu kliknij <strong>Publikuj zmiany</strong>, żeby pokazać je na stronie.</p>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4" x-show="content.pl.gallery?.images?.length">
                                     <template x-for="(imgUrl, index) in content.pl.gallery.images" :key="index">
                                         <div class="relative group rounded-sm overflow-hidden border border-gray-200 bg-gray-50 aspect-square">
@@ -37,7 +37,7 @@
                                         </div>
                                     </template>
                                 </div>
-                                <p x-show="!content.pl.gallery?.images?.length" class="text-sm text-slate-400 italic">Brak zdjęć. Kliknij „Dodaj zdjęcie” powyżej.</p>
+                                <p x-show="!content.pl.gallery?.images?.length" class="text-sm text-slate-400 italic">Brak zdjęć. Kliknij „Dodaj zdjęcia” powyżej.</p>
                             </div>
                         </div>
                     </div>

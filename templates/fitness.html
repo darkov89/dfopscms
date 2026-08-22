@@ -36,7 +36,7 @@
             },
         };
     </script>
-    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/styles.css?v=20260822b">
     <style>
         :root {
             --color-primary: #a3e635;
@@ -52,21 +52,21 @@
     <script src="/js/core/utils.js?v=20260617a"></script>
     <script src="/js/core/platformRouting.js?v=20260704c"></script>
     <script src="/js/core/tenantPublicUrlClean.js?v=20260704i"></script>
-    <script defer src="/js/core/config.js?v=20260602b"></script>
+    <script defer src="/js/core/config.js?v=20260822b"></script>
     <script defer src="/js/core/supabaseClient.js?v=20260704i"></script>
-    <script defer src="/js/templates/registry.js?v=20260622a"></script>
+    <script defer src="/js/templates/registry.js?v=20260822a"></script>
     <script defer src="/js/core/contentSchema.js"></script>
     <script defer src="/js/core/i18nLocales.js?v=20260723a"></script>
     <script defer src="/js/core/i18nContent.js?v=20260723a"></script>
     <script defer src="/js/core/uiLabels.js?v=20260806a"></script>
-    <script defer src="/js/core/contentUpgrader.js?v=20260806a"></script>
-    <script defer src="/js/core/themeStyling.js"></script>
+    <script defer src="/js/core/contentUpgrader.js?v=20260822a"></script>
+    <script defer src="/js/core/themeStyling.js?v=20260822b"></script>
     <script defer src="/js/core/pageRepository.js?v=20260704i"></script>
     <script defer src="/js/core/planUtils.js?v=20260703a"></script>
     <script defer src="/js/core/trialBlocking.js?v=20260704h"></script>
     <script defer src="/js/core/siteAnalytics.js?v=20260705a"></script>
-    <script defer src="/js/features/publicSiteApp.js?v=20260806a"></script>
-    <script defer src="/js/features/googleReviewsApp.js"></script>
+    <script defer src="/js/features/publicSiteApp.js?v=20260822b"></script>
+    <script defer src="/js/features/googleReviewsApp.js?v=20260822a"></script>
     <script defer src="/js/features/cookieConsentApp.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <script src="/js/ui/reveal.js" defer></script>
@@ -120,7 +120,7 @@
                     <template x-if="content[lang].settings?.showGallery !== false && content[lang].gallery?.images?.length > 0">
                         <a href="#galeria" class="hover:text-primary transition-colors" x-text="content[lang].nav?.menu?.gallery || 'Galeria'"></a>
                     </template>
-                    <template x-if="content[lang].settings?.showGoogleReviews !== false && ((content[lang].google_reviews?.place_query || content[lang].google_reviews?.place_id) || (content[lang].settings?.is_demo_catalog && (content[lang].reviews || []).length))">
+                    <template x-if="reviewsNavVisible()">
                         <a href="#opinie" class="hover:text-primary transition-colors" x-text="content[lang].nav?.menu?.reviews || 'Opinie'"></a>
                     </template>
                     <template x-if="content[lang].settings?.showFaq !== false && content[lang].faq?.length">
@@ -313,8 +313,25 @@
             </div>
         </section>
 
-        <template x-if="content[lang].settings?.showGoogleReviews !== false && ((content[lang].google_reviews?.place_query || content[lang].google_reviews?.place_id) || (content[lang].settings?.is_demo_catalog && (content[lang].reviews || []).length))">
-            <section id="opinie" class="py-24 px-4 sm:px-6 bg-zinc-950 overflow-hidden">
+        <div id="opinie" x-show="reviewsNavVisible()" x-cloak>
+        <section class="py-24 px-6 bg-zinc-900" x-show="manualReviewsVisible()">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-12 reveal">
+                    <span class="text-xs uppercase tracking-[0.25em] text-primary mb-4 block" x-text="content[lang].reviews_heading?.label || 'Głos klientów'"></span>
+                    <h2 class="font-display text-3xl md:text-5xl uppercase tracking-tight text-white" x-text="content[lang].reviews_heading?.title || 'Opinie klientów'"></h2>
+                </div>
+                <div class="grid gap-6 md:grid-cols-2">
+                    <template x-for="(review, index) in content[lang].reviews" :key="'mrev-' + index">
+                        <blockquote class="reveal bg-zinc-950 p-6 rounded-2xl border border-primary/20">
+                            <p class="text-zinc-100/80 leading-relaxed mb-4" x-text="'„' + review.content + '”'"></p>
+                            <footer class="text-sm font-semibold text-white" x-text="review.author"></footer>
+                        </blockquote>
+                    </template>
+                </div>
+            </div>
+        </section>
+        <template x-if="googleReviewsVisible()">
+            <section class="py-24 px-4 sm:px-6 bg-zinc-950 overflow-hidden">
                 <div class="max-w-6xl mx-auto">
                     <div class="text-center mb-10 reveal">
                         <h2 class="font-display text-3xl md:text-5xl uppercase tracking-tight text-white" x-text="content[lang].google_reviews?.title || 'Opinie'"></h2>
@@ -438,6 +455,7 @@
                 </div>
             </section>
         </template>
+        </div>
 
         <footer id="kontakt" class="bg-zinc-950 border-t border-primary/20 text-zinc-100 pt-10 pb-6 px-6" x-show="content[lang].settings?.showContact !== false">
             <div class="max-w-5xl mx-auto">

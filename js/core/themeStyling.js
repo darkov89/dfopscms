@@ -38,6 +38,11 @@
     }
 
     const s = settings || {};
+    const resolved =
+      typeof window.DFOPS_resolvePublicAppearance === 'function'
+        ? window.DFOPS_resolvePublicAppearance(theme, s)
+        : null;
+    const colorPreset = resolved?.color_preset || s.color_preset || s.color_palette;
 
     /** Placeholder „strona w budowie” — stały dark SaaS, bez presetów klienta. */
     if (theme === 'setup') {
@@ -69,13 +74,16 @@
       return;
     }
 
-    const bgStyle = s.background_style || (theme === 'beauty' ? 'soft' : 'glow');
+    const bgStyle =
+      resolved?.background_style || s.background_style || (theme === 'beauty' ? 'soft' : 'glow');
+    const fontPreset =
+      resolved?.font_preset || s.font_preset || (theme === 'beauty' ? 'poppins' : 'inter');
 
     document.documentElement.setAttribute('data-dfops-scope', resolvedScope);
     document.documentElement.setAttribute('data-theme', theme || '');
     document.documentElement.setAttribute('data-bg-style', bgStyle);
 
-    const accent = (cfg.accentByPreset || {})[s.color_preset] || '#D4AF37';
+    const accent = (cfg.accentByPreset || {})[colorPreset] || '#D4AF37';
     setCssVar('--accent', accent);
     setCssVar('--accent-contrast', '#121212');
 
@@ -106,7 +114,7 @@
 
     // Consultant: opcjonalna pełna paleta per color_preset (np. dfops-tech), inaczej darkMode vs jasny
     if (theme === 'consultant') {
-      const presetPalette = (cfg.consultantPresetPalette || {})[s.color_preset];
+      const presetPalette = (cfg.consultantPresetPalette || {})[colorPreset];
       if (presetPalette) {
         setCssVar('--accent', presetPalette.accent);
         setCssVar('--accent-contrast', presetPalette.accentContrast || '#121212');
@@ -149,13 +157,13 @@
     }
 
     if (theme === 'fitness') {
-      const presetPalette = (cfg.fitnessPresetPalette || {})[s.color_preset];
+      const presetPalette = (cfg.fitnessPresetPalette || {})[colorPreset];
       if (presetPalette) {
         setCssVar('--accent', presetPalette.accent);
         setCssVar('--color-primary', presetPalette.primary || presetPalette.accent);
         setCssVar('--color-secondary', presetPalette.secondary || '#22d3ee');
       } else {
-        const primary = (cfg.accentByPreset || {})[s.color_preset] || '#a3e635';
+        const primary = (cfg.accentByPreset || {})[colorPreset] || '#a3e635';
         setCssVar('--accent', primary);
         setCssVar('--color-primary', primary);
         setCssVar('--color-secondary', '#22d3ee');
@@ -167,7 +175,7 @@
     }
 
     if (theme === 'services') {
-      const presetPalette = (cfg.servicesPresetPalette || {})[s.color_preset];
+      const presetPalette = (cfg.servicesPresetPalette || {})[colorPreset];
       if (presetPalette) {
         setCssVar('--accent', presetPalette.accent);
         setCssVar('--accent-contrast', presetPalette.accentContrast || '#ffffff');
@@ -192,11 +200,11 @@
       }
     }
 
-    const fonts = (cfg.fontByPreset || {})[(s.font_preset || (theme === 'beauty' ? 'poppins' : 'inter'))] || cfg.fontByPreset?.inter;
+    const fonts = (cfg.fontByPreset || {})[fontPreset] || cfg.fontByPreset?.inter;
     if (fonts) {
       setCssVar('--font-sans', fonts.sans);
       // Consultant / DFOPS private: Inter wszędzie (tech vibe), poza presetem elegant (Cormorant).
-      if (theme === 'consultant' && String(s.font_preset || 'inter') !== 'elegant') {
+      if (theme === 'consultant' && String(fontPreset || 'inter') !== 'elegant') {
         setCssVar('--font-serif', fonts.sans);
       } else {
         setCssVar('--font-serif', fonts.serif);
@@ -209,7 +217,7 @@
       setCssVar('--bg-main', isDark ? '#0b0b0f' : '#Fdfbf7');
       setCssVar('--text-main', isDark ? darkBodyText : '#2b2b2b');
     } else if (theme === 'consultant') {
-      const presetPalette = (cfg.consultantPresetPalette || {})[s.color_preset];
+      const presetPalette = (cfg.consultantPresetPalette || {})[colorPreset];
       if (presetPalette) {
         setCssVar('--bg-main', presetPalette.bgA || '#0B132B');
         setCssVar('--text-main', presetPalette.text || darkBodyText);
@@ -222,7 +230,7 @@
       setCssVar('--bg-main', '#09090b');
       setCssVar('--text-main', '#fafafa');
     } else if (theme === 'services') {
-      const presetPalette = (cfg.servicesPresetPalette || {})[s.color_preset];
+      const presetPalette = (cfg.servicesPresetPalette || {})[colorPreset];
       setCssVar('--bg-main', '#ffffff');
       setCssVar('--text-main', presetPalette?.text || '#0f172a');
     } else {

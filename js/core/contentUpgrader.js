@@ -252,6 +252,32 @@
     if (pl.google_reviews.cached_user_rating_count === undefined) pl.google_reviews.cached_user_rating_count = null;
     if (pl.google_reviews.google_synced_at === undefined) pl.google_reviews.google_synced_at = '';
     if (pl.google_reviews.google_sync_query === undefined) pl.google_reviews.google_sync_query = '';
+    if (!Array.isArray(pl.google_reviews.cached_reviews)) pl.google_reviews.cached_reviews = [];
+
+    if (!Array.isArray(pl.reviews)) pl.reviews = [];
+    if (!pl.reviews_heading || typeof pl.reviews_heading !== 'object' || Array.isArray(pl.reviews_heading)) {
+      pl.reviews_heading = { label: 'Głos klientów', title: 'Opinie klientów' };
+    } else {
+      if (pl.reviews_heading.label === undefined) pl.reviews_heading.label = 'Głos klientów';
+      if (pl.reviews_heading.title === undefined) pl.reviews_heading.title = 'Opinie klientów';
+    }
+    const themeId = typeof theme === 'string' ? theme.trim().toLowerCase() : '';
+    if (pl.settings.showReviews === undefined || pl.settings.showReviews === null) {
+      pl.settings.showReviews = themeId === 'consultant';
+    }
+    const hasGoogleSource =
+      String(pl.google_reviews.place_id || '').trim() || String(pl.google_reviews.place_query || '').trim();
+    if (
+      hasGoogleSource &&
+      !pl.google_reviews.cached_reviews.length &&
+      pl.reviews.length &&
+      pl.settings.showReviews !== true
+    ) {
+      pl.google_reviews.cached_reviews = JSON.parse(JSON.stringify(pl.reviews));
+      pl.reviews = [];
+    } else if (hasGoogleSource && !pl.google_reviews.cached_reviews.length && pl.reviews.length) {
+      pl.google_reviews.cached_reviews = JSON.parse(JSON.stringify(pl.reviews));
+    }
 
     if (!pl.gallery) pl.gallery = { title: 'Nasze realizacje', images: [] };
     if (!Array.isArray(pl.gallery.images)) pl.gallery.images = [];
