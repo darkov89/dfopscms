@@ -110,6 +110,13 @@ if (!process.exitCode) {
     assert.equal(resolved.background_style, 'glow');
     assert.equal(resolved.font_preset, 'poppins');
   });
+
+  test('services forest i ocean mają różne akcenty i tła', () => {
+    const pal = cfgSandbox.window.DFOPS_CONFIG.servicesPresetPalette;
+    assert.ok(pal.forest && pal.ocean);
+    assert.notEqual(pal.forest.accent, pal.ocean.accent);
+    assert.notEqual(pal.forest.bgA, pal.ocean.bgA);
+  });
 }
 
 if (!process.exitCode) {

@@ -3,6 +3,42 @@
     document.documentElement.style.setProperty(name, value);
   }
 
+  function hexToRgbChannels(hex, fallback) {
+    const raw = String(hex || '')
+      .trim()
+      .replace(/^#/, '');
+    let r;
+    let g;
+    let b;
+    if (raw.length === 3) {
+      r = parseInt(raw[0] + raw[0], 16);
+      g = parseInt(raw[1] + raw[1], 16);
+      b = parseInt(raw[2] + raw[2], 16);
+    } else if (raw.length === 6) {
+      r = parseInt(raw.slice(0, 2), 16);
+      g = parseInt(raw.slice(2, 4), 16);
+      b = parseInt(raw.slice(4, 6), 16);
+    } else {
+      return fallback;
+    }
+    if ([r, g, b].some((n) => Number.isNaN(n))) return fallback;
+    return r + ' ' + g + ' ' + b;
+  }
+
+  function applyServicesTokenVars(palette) {
+    const navy = palette.bgA || '#0f172a';
+    const navyLight = palette.bgB || '#1e293b';
+    const accent = palette.accent || '#f97316';
+    const accentContrast = palette.accentContrast || '#ffffff';
+    setCssVar('--svc-navy', navy);
+    setCssVar('--svc-navy-light', navyLight);
+    setCssVar('--svc-accent', accent);
+    setCssVar('--svc-navy-rgb', hexToRgbChannels(navy, '15 23 42'));
+    setCssVar('--svc-navy-light-rgb', hexToRgbChannels(navyLight, '30 41 59'));
+    setCssVar('--svc-accent-rgb', hexToRgbChannels(accent, '249 115 22'));
+    setCssVar('--svc-accent-contrast-rgb', hexToRgbChannels(accentContrast, '255 255 255'));
+  }
+
   function applyThemeStyling(settings, theme, scope) {
     const cfg = window.DFOPS_CONFIG || {};
     const resolvedScope = scope || 'public';
@@ -191,12 +227,14 @@
         setCssVar('--beauty-text', presetPalette.text);
         setCssVar('--beauty-text-muted', presetPalette.textMuted);
         setCssVar('--beauty-white', '#ffffff');
+        applyServicesTokenVars(presetPalette);
       } else {
         setCssVar('--accent', '#f97316');
         setCssVar('--accent-contrast', '#ffffff');
         setCssVar('--beauty-text', '#0f172a');
         setCssVar('--beauty-text-muted', '#64748b');
         setCssVar('--beauty-white', '#ffffff');
+        applyServicesTokenVars({});
       }
     }
 

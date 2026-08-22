@@ -19,18 +19,24 @@
                     },
                     colors: {
                         svc: {
-                            navy: '#0f172a',
-                            navyLight: '#1e293b',
-                            accent: '#f97316',
-                            accentAlt: '#facc15',
+                            navy: 'rgb(var(--svc-navy-rgb) / <alpha-value>)',
+                            navyLight: 'rgb(var(--svc-navy-light-rgb) / <alpha-value>)',
+                            accent: 'rgb(var(--svc-accent-rgb) / <alpha-value>)',
+                            accentFg: 'rgb(var(--svc-accent-contrast-rgb) / <alpha-value>)',
                         },
                     },
                 },
             },
         };
     </script>
-    <link rel="stylesheet" href="/css/styles.css?v=20260822b">
+    <link rel="stylesheet" href="/css/styles.css?v=20260822c">
     <style>
+        :root {
+            --svc-navy-rgb: 15 23 42;
+            --svc-navy-light-rgb: 30 41 59;
+            --svc-accent-rgb: 249 115 22;
+            --svc-accent-contrast-rgb: 255 255 255;
+        }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -48,7 +54,7 @@
     <script defer src="/js/core/i18nContent.js?v=20260723a"></script>
     <script defer src="/js/core/uiLabels.js?v=20260806a"></script>
     <script defer src="/js/core/contentUpgrader.js?v=20260822a"></script>
-    <script defer src="/js/core/themeStyling.js?v=20260822b"></script>
+    <script defer src="/js/core/themeStyling.js?v=20260822c"></script>
     <script defer src="/js/core/pageRepository.js?v=20260704i"></script>
     <script defer src="/js/core/planUtils.js?v=20260703a"></script>
     <script defer src="/js/core/trialBlocking.js?v=20260704h"></script>
@@ -61,7 +67,7 @@
 </head>
 
 <body
-    class="font-sans antialiased selection:bg-amber-500 selection:text-slate-900"
+    class="font-sans antialiased selection:bg-svc-accent selection:text-slate-900"
     style="background-color: var(--bg-main, #ffffff); color: var(--text-main, #0f172a);"
     x-data="createPublicSiteApp('services')"
 >
@@ -76,7 +82,7 @@
             <p class="text-xs font-bold uppercase tracking-[0.2em] text-svc-accent mb-3">DFCMS</p>
             <h1 class="text-2xl font-bold text-svc-navy mb-4" x-text="trialBlockedTitle"></h1>
             <p class="text-sm text-slate-600 leading-relaxed mb-4" x-text="trialBlockedBody"></p>
-            <p x-show="trialBlockedAdminHint" x-cloak class="text-sm text-svc-navy font-medium leading-relaxed mb-8 border-l-4 border-amber-500 pl-4 text-left" x-text="trialBlockedAdminHint"></p>
+            <p x-show="trialBlockedAdminHint" x-cloak class="text-sm text-svc-navy font-medium leading-relaxed mb-8 border-l-4 border-svc-accent pl-4 text-left" x-text="trialBlockedAdminHint"></p>
             <div class="flex flex-col gap-3">
                 <a :href="subscriptionPanelUrl" class="inline-flex justify-center rounded-md bg-svc-navy px-6 py-3 text-sm font-bold text-white hover:bg-slate-800 transition-colors">Zaloguj do panelu administratora</a>
                 <a :href="landingPricingUrl" class="inline-flex justify-center rounded-md border-2 border-svc-navy px-6 py-3 text-sm font-bold text-svc-navy hover:bg-slate-100 transition-colors">Zobacz cennik</a>
@@ -103,37 +109,37 @@
                         <a
                             :href="'tel:' + content[lang].contact.phone.replace(/\s/g, '')"
                             @click="onConversionClick('phone_click', 'nav')"
-                            class="text-xl sm:text-2xl md:text-3xl font-black text-amber-400 tabular-nums tracking-tight hover:text-amber-300 transition-colors shrink-0"
+                            class="text-xl sm:text-2xl md:text-3xl font-black text-svc-accent tabular-nums tracking-tight hover:text-svc-accent transition-colors shrink-0"
                             x-text="content[lang].contact.phone"
                         ></a>
                     </template>
                     <template x-if="!content[lang].contact?.phone">
-                        <a href="#kontakt" class="text-sm font-bold uppercase tracking-widest text-amber-400 hover:text-amber-300">Kontakt</a>
+                        <a href="#kontakt" class="text-sm font-bold uppercase tracking-widest text-svc-accent hover:text-svc-accent">Kontakt</a>
                     </template>
                 </div>
 
                 <div class="hidden lg:flex flex-wrap items-center justify-end gap-x-6 gap-y-1 text-sm font-semibold text-slate-200">
                     <template x-if="content[lang].settings?.showManifesto !== false">
-                        <a href="#o-nas" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.about || 'O nas'"></a>
+                        <a href="#o-nas" class="hover:text-svc-accent transition-colors" x-text="content[lang].nav?.menu?.about || 'O nas'"></a>
                     </template>
                     <template x-if="content[lang].settings?.showServices !== false">
-                        <a href="#zakres" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.pricing || 'Zakres usług'"></a>
+                        <a href="#zakres" class="hover:text-svc-accent transition-colors" x-text="content[lang].nav?.menu?.pricing || 'Zakres usług'"></a>
                     </template>
                     <template x-if="content[lang].settings?.showGallery !== false && content[lang].gallery?.images?.length > 0">
-                        <a href="#galeria" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.gallery || 'Realizacje'"></a>
+                        <a href="#galeria" class="hover:text-svc-accent transition-colors" x-text="content[lang].nav?.menu?.gallery || 'Realizacje'"></a>
                     </template>
                     <template x-if="content[lang].settings?.showTrust !== false && content[lang].trust?.quote">
-                        <a href="#zaufanie" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.trust || 'Zaufanie'"></a>
+                        <a href="#zaufanie" class="hover:text-svc-accent transition-colors" x-text="content[lang].nav?.menu?.trust || 'Zaufanie'"></a>
                     </template>
                     <template x-if="reviewsNavVisible()">
-                        <a href="#opinie" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.reviews || 'Opinie'"></a>
+                        <a href="#opinie" class="hover:text-svc-accent transition-colors" x-text="content[lang].nav?.menu?.reviews || 'Opinie'"></a>
                     </template>
-                    <a href="#rezerwacja" @click="onConversionClick('booking_click', 'nav')" x-show="bookingModuleActive() || footerCtaEnabled()" x-cloak class="hover:text-amber-400 transition-colors">Rezerwacja</a>
+                    <a href="#rezerwacja" @click="onConversionClick('booking_click', 'nav')" x-show="bookingModuleActive() || footerCtaEnabled()" x-cloak class="hover:text-svc-accent transition-colors">Rezerwacja</a>
                     <template x-if="content[lang].settings?.showFaq !== false && content[lang].faq?.length">
-                        <a href="#faq" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.faq || 'FAQ'"></a>
+                        <a href="#faq" class="hover:text-svc-accent transition-colors" x-text="content[lang].nav?.menu?.faq || 'FAQ'"></a>
                     </template>
                     <template x-if="content[lang].settings?.showContact !== false">
-                        <a href="#kontakt" class="hover:text-amber-400 transition-colors" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></a>
+                        <a href="#kontakt" class="hover:text-svc-accent transition-colors" x-text="content[lang].nav?.menu?.contact || 'Kontakt'"></a>
                     </template>
                 </div>
             </div>
@@ -154,7 +160,7 @@
                 <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.03\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-40"></div>
             </div>
             <div class="relative z-10 max-w-5xl mx-auto w-full reveal">
-                <p class="text-amber-400 font-bold uppercase tracking-[0.25em] text-xs mb-4" x-text="content[lang].manifesto?.label || 'Usługi'"></p>
+                <p class="text-svc-accent font-bold uppercase tracking-[0.25em] text-xs mb-4" x-text="content[lang].manifesto?.label || 'Usługi'"></p>
                 <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white leading-tight mb-4" x-html="DFOPS_pageRepository.sanitizeHtml(content[lang].hero.headline)"></h1>
                 <h2 class="text-xl md:text-2xl font-semibold text-slate-200 mb-6 max-w-2xl" x-text="content[lang].hero.name"></h2>
                 <p class="text-base md:text-lg text-slate-300 mb-10 leading-relaxed max-w-2xl" x-text="content[lang].hero.description"></p>
@@ -164,7 +170,7 @@
                         <a
                             :href="'tel:' + content[lang].contact.phone.replace(/\s/g, '')"
                             @click="onConversionClick('phone_click', 'hero')"
-                            class="inline-flex justify-center items-center bg-amber-500 text-svc-navy px-10 py-4 rounded-md font-black text-lg uppercase tracking-wide shadow-lg shadow-amber-500/25 hover:bg-amber-400 hover:-translate-y-0.5 transition-all duration-300"
+                            class="inline-flex justify-center items-center bg-svc-accent text-svc-accentFg px-10 py-4 rounded-md font-black text-lg uppercase tracking-wide shadow-lg shadow-svc-accent/25 hover:brightness-110 hover:-translate-y-0.5 transition-all duration-300"
                         >
                             <span x-text="content[lang].hero.button || 'Zadzwoń teraz'"></span>
                         </a>
@@ -172,7 +178,7 @@
                     <template x-if="!content[lang].contact?.phone">
                         <a
                             href="#kontakt"
-                            class="inline-flex justify-center items-center bg-amber-500 text-svc-navy px-10 py-4 rounded-md font-black text-lg uppercase tracking-wide shadow-lg hover:bg-amber-400 transition-all"
+                            class="inline-flex justify-center items-center bg-svc-accent text-svc-accentFg px-10 py-4 rounded-md font-black text-lg uppercase tracking-wide shadow-lg hover:brightness-110 transition-all"
                         >
                             <span x-text="content[lang].hero.button || 'Kontakt'"></span>
                         </a>
@@ -224,19 +230,19 @@
         >
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-14 reveal">
-                    <p class="text-amber-600 text-xs font-bold uppercase tracking-[0.3em] mb-3">Oferta</p>
+                    <p class="text-svc-accent text-xs font-bold uppercase tracking-[0.3em] mb-3">Oferta</p>
                     <h2 class="text-3xl md:text-4xl font-bold text-svc-navy" x-text="content[lang].nav?.menu?.pricing || 'Zakres usług'"></h2>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <template x-for="(service, index) in content[lang].services" :key="index">
                         <div
-                            class="reveal group relative rounded-xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm hover:shadow-md hover:border-amber-400/50 transition-all duration-300 cursor-pointer"
+                            class="reveal group relative rounded-xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm hover:shadow-md hover:border-svc-accent/50 transition-all duration-300 cursor-pointer"
                             x-data="{ expanded: false }"
                             @click="expanded = !expanded"
                         >
                             <div class="flex gap-4">
-                                <div class="shrink-0 w-14 h-14 rounded-lg bg-svc-navy flex items-center justify-center text-amber-400 shadow-inner">
+                                <div class="shrink-0 w-14 h-14 rounded-lg bg-svc-navy flex items-center justify-center text-svc-accent shadow-inner">
                                     <template x-if="pickIcon(service, index) === 'wrench'">
                                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655-5.653a2.548 2.548 0 010-3.586a2.548 2.548 0 013.586 0l5.653 4.655m0 0l2.503 2.504a2.548 2.548 0 010 3.586l-2.503 2.503"/></svg>
                                     </template>
@@ -256,7 +262,7 @@
                                 <div class="min-w-0 flex-1">
                                     <div class="flex flex-wrap items-start justify-between gap-2">
                                         <h3 class="font-bold text-lg md:text-xl text-svc-navy pr-2" x-text="service.title"></h3>
-                                        <span class="shrink-0 text-xs font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-2 py-1 rounded" x-text="service.duration"></span>
+                                        <span class="shrink-0 text-xs font-bold uppercase tracking-wider text-svc-accent bg-svc-accent/10 px-2 py-1 rounded" x-text="service.duration"></span>
                                     </div>
                                     <p class="text-2xl font-black text-svc-navy mt-2 tabular-nums" x-text="service.price"></p>
                                     <p class="text-slate-600 text-sm mt-2 leading-relaxed" x-text="service.desc"></p>
@@ -276,16 +282,16 @@
             class="py-20 md:py-24 px-6 bg-svc-navy text-white relative overflow-hidden"
             x-show="content[lang].settings?.showTrust !== false && content[lang].trust?.quote"
         >
-            <div class="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute top-0 right-0 w-64 h-64 bg-svc-accent/10 rounded-full blur-3xl pointer-events-none"></div>
             <div class="max-w-3xl mx-auto text-center reveal relative z-10">
-                <p class="text-amber-400 text-xs font-bold uppercase tracking-[0.3em] mb-4" x-text="content[lang].trust?.title || 'Zaufanie'"></p>
-                <div class="flex justify-center gap-1 text-amber-400 text-2xl mb-6" aria-hidden="true">
+                <p class="text-svc-accent text-xs font-bold uppercase tracking-[0.3em] mb-4" x-text="content[lang].trust?.title || 'Zaufanie'"></p>
+                <div class="flex justify-center gap-1 text-svc-accent text-2xl mb-6" aria-hidden="true">
                     <template x-for="si in [1,2,3,4,5]" :key="'star'+si">
                         <span x-text="si <= (Number(content[lang].trust?.stars) || 5) ? '★' : '☆'"></span>
                     </template>
                 </div>
                 <blockquote class="text-xl md:text-2xl font-medium leading-relaxed text-slate-100 mb-6" x-text="content[lang].trust.quote"></blockquote>
-                <p class="text-amber-400 font-bold" x-text="content[lang].trust.author"></p>
+                <p class="text-svc-accent font-bold" x-text="content[lang].trust.author"></p>
                 <p class="text-slate-400 text-sm mt-2" x-text="content[lang].trust.subtitle"></p>
             </div>
         </section>
@@ -320,7 +326,7 @@
         <section id="rezerwacja" class="py-20 md:py-24 px-6 bg-slate-50 border-t border-slate-100" x-show="bookingModuleActive() || footerCtaEnabled()" x-cloak>
             <div class="max-w-4xl mx-auto">
                 <div class="text-center mb-10" x-show="bookingModuleActive()" x-cloak>
-                    <p class="text-amber-600 text-xs font-bold uppercase tracking-[0.3em] mb-3">Rezerwacja</p>
+                    <p class="text-svc-accent text-xs font-bold uppercase tracking-[0.3em] mb-3">Rezerwacja</p>
                     <h2 class="text-3xl md:text-4xl font-bold text-svc-navy" x-text="bookingCtaTitle()"></h2>
                     <p class="mt-3 text-slate-600 text-sm max-w-xl mx-auto" x-text="bookingCtaDescription()"></p>
                 </div>
@@ -334,7 +340,7 @@
                         <a :href="resolveBookingUrl()" :target="ctaLinkTarget(resolveBookingUrl())" :rel="ctaLinkRel(resolveBookingUrl())"
                            @click="onConversionClick('booking_click', 'booking_section')"
                            class="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-md font-black uppercase tracking-widest text-sm transition-all hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
-                           style="background-color: var(--color-primary, #f59e0b); color: var(--color-accent-text, #0f172a);">
+                           style="background-color: var(--svc-accent, var(--color-primary, #f97316)); color: rgb(var(--svc-accent-contrast-rgb) / 1);">
                             <span x-text="bookingCtaButtonText()"></span>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                         </a>
@@ -348,7 +354,7 @@
                            :target="ctaLinkTarget(resolveFooterCtaUrl())"
                            :rel="ctaLinkRel(resolveFooterCtaUrl())"
                            class="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-md font-black uppercase tracking-widest text-sm transition-all hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
-                           style="background-color: var(--color-primary, #f59e0b); color: var(--color-accent-text, #0f172a);">
+                           style="background-color: var(--svc-accent, var(--color-primary, #f97316)); color: rgb(var(--svc-accent-contrast-rgb) / 1);">
                             <span x-text="content[lang].contact.cta.button_text || 'Rezerwacja online'"></span>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                         </a>
@@ -367,7 +373,7 @@
                         <div class="reveal bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden" x-data="{ expanded: false }">
                             <button type="button" @click="expanded = !expanded" class="w-full px-5 py-4 flex justify-between items-center text-left font-semibold text-svc-navy hover:bg-slate-50 transition-colors">
                                 <span x-text="item.question"></span>
-                                <span class="text-amber-500 text-xl" x-text="expanded ? '−' : '+'"></span>
+                                <span class="text-svc-accent text-xl" x-text="expanded ? '−' : '+'"></span>
                             </button>
                             <div x-show="expanded" x-collapse x-cloak class="px-5 pb-4 text-slate-600 text-sm leading-relaxed border-t border-slate-100 pt-3" x-text="item.answer"></div>
                         </div>
@@ -380,7 +386,7 @@
         <section class="py-20 md:py-24 px-6 bg-slate-50" x-show="manualReviewsVisible()">
             <div class="max-w-4xl mx-auto">
                 <div class="text-center mb-12 reveal">
-                    <span class="text-xs uppercase tracking-[0.2em] text-amber-500 mb-4 block" x-text="content[lang].reviews_heading?.label || 'Głos klientów'"></span>
+                    <span class="text-xs uppercase tracking-[0.2em] text-svc-accent mb-4 block" x-text="content[lang].reviews_heading?.label || 'Głos klientów'"></span>
                     <h2 class="text-3xl md:text-4xl font-bold text-svc-navy" x-text="content[lang].reviews_heading?.title || 'Opinie klientów'"></h2>
                 </div>
                 <div class="grid gap-6 md:grid-cols-2">
@@ -413,7 +419,7 @@
                                     <div class="flex flex-wrap items-center gap-3 sm:gap-4 justify-center sm:justify-start">
                                         <svg class="h-7 w-7 shrink-0" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.666 32.657 29.234 36 24 36c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.222 0-9.673-3.453-11.284-8.091l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>
                                         <span class="text-sm font-semibold text-svc-navy tracking-wide" x-text="labelExcellent($root.lang)"></span>
-                                        <div class="flex items-center gap-1 text-amber-500 text-base leading-none" aria-hidden="true">
+                                        <div class="flex items-center gap-1 text-svc-accent text-base leading-none" aria-hidden="true">
                                             <template x-for="si in [1,2,3,4,5]" :key="si">
                                                 <span x-text="si <= Math.round(headerRating() || 0) ? '★' : '☆'"></span>
                                             </template>
@@ -445,10 +451,10 @@
                                                         <div class="flex items-start justify-between gap-3 mb-4">
                                                             <div class="flex items-center gap-3 min-w-0">
                                                                 <template x-if="r.profile_photo_url">
-                                                                    <img :src="r.profile_photo_url" :alt="(r.author_name || 'Klient') + ' — zdjęcie'" class="w-12 h-12 rounded-full object-cover shrink-0 ring-2 ring-amber-400/30" loading="lazy">
+                                                                    <img :src="r.profile_photo_url" :alt="(r.author_name || 'Klient') + ' — zdjęcie'" class="w-12 h-12 rounded-full object-cover shrink-0 ring-2 ring-svc-accent/30" loading="lazy">
                                                                 </template>
                                                                 <template x-if="!r.profile_photo_url">
-                                                                    <div class="w-12 h-12 rounded-full bg-svc-navy flex items-center justify-center text-amber-400 font-bold text-lg shrink-0"
+                                                                    <div class="w-12 h-12 rounded-full bg-svc-navy flex items-center justify-center text-svc-accent font-bold text-lg shrink-0"
                                                                          x-text="(r.author_name || '?').charAt(0).toUpperCase()"></div>
                                                                 </template>
                                                                 <div class="min-w-0">
@@ -459,7 +465,7 @@
                                                             <svg class="w-7 h-7 shrink-0 opacity-90" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M24 22h-4v-4h4v4zm0 8h-4v-4h4v4z"/><path fill="#EA4335" d="M24 12v4h8c0-2.21-1.79-4-4-4h-4z"/><path fill="#FBBC05" d="M12 24c0-2.21.55-4.28 1.52-6.08L8.11 15.5A15.97 15.97 0 004 24h8z"/><path fill="#34A853" d="M24 36c4.97 0 9.19-3.25 10.69-7.73l-3.9-2.97C29.72 27.52 27.05 29 24 29c-3.51 0-6.49-2.24-7.58-5.38l-3.96 3.05C14.45 32.81 18.77 36 24 36z"/></svg>
                                                         </div>
                                                         <div class="flex items-center gap-2 mb-4">
-                                                            <div class="flex text-amber-500 text-sm leading-none gap-0.5">
+                                                            <div class="flex text-svc-accent text-sm leading-none gap-0.5">
                                                                 <template x-for="si in [1,2,3,4,5]" :key="'s'+si">
                                                                     <span x-text="si <= Math.round(Number(r.rating) || 0) ? '★' : '☆'"></span>
                                                                 </template>
@@ -469,11 +475,11 @@
                                                            :class="expanded ? '' : 'line-clamp-4'"
                                                            x-text="r.text"></p>
                                                         <div class="flex items-end justify-between mt-4 pt-2">
-                                                            <button type="button" class="text-xs font-semibold uppercase tracking-widest text-slate-500 hover:text-amber-600 transition-colors"
+                                                            <button type="button" class="text-xs font-semibold uppercase tracking-widest text-slate-500 hover:text-svc-accent transition-colors"
                                                                     @click="expanded = !expanded"
                                                                     x-show="r.text && r.text.length > 160"
                                                                     x-text="expanded ? t('readLess', $root.lang) : t('readMore', $root.lang)"></button>
-                                                            <span class="text-5xl font-serif text-amber-500/30 leading-none select-none pointer-events-none" aria-hidden="true">“</span>
+                                                            <span class="text-5xl font-serif text-svc-accent/30 leading-none select-none pointer-events-none" aria-hidden="true">“</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -497,7 +503,7 @@
                                 <div class="flex justify-center gap-2 mt-4" x-show="reviews.length > 1">
                                     <template x-for="(dot, di) in reviews" :key="'d'+di">
                                         <button type="button" class="h-2 rounded-full transition-all"
-                                                :class="slide === di ? 'w-8 bg-amber-500' : 'w-2 bg-slate-300'"
+                                                :class="slide === di ? 'w-8 bg-svc-accent' : 'w-2 bg-slate-300'"
                                                 @click="slide = di" :aria-label="'Opinia ' + (di+1)"></button>
                                     </template>
                                 </div>
@@ -531,16 +537,16 @@
                         </template>
                         <div class="flex-1 min-w-0 space-y-1.5 text-sm text-slate-300">
                             <p class="break-words" x-text="content[lang].contact.address"></p>
-                            <p class="break-words" x-show="content[lang].contact.phone">Tel: <a :href="'tel:' + (content[lang].contact.phone || '').replace(/\s/g, '')" @click="onConversionClick('phone_click', 'footer')" class="text-amber-400 font-bold hover:underline break-words" x-text="content[lang].contact.phone"></a></p>
-                            <p class="break-words">Email: <a :href="'mailto:' + content[lang].contact.email" class="text-amber-400 hover:underline break-words" x-text="content[lang].contact.email"></a></p>
+                            <p class="break-words" x-show="content[lang].contact.phone">Tel: <a :href="'tel:' + (content[lang].contact.phone || '').replace(/\s/g, '')" @click="onConversionClick('phone_click', 'footer')" class="text-svc-accent font-bold hover:underline break-words" x-text="content[lang].contact.phone"></a></p>
+                            <p class="break-words">Email: <a :href="'mailto:' + content[lang].contact.email" class="text-svc-accent hover:underline break-words" x-text="content[lang].contact.email"></a></p>
                             <div class="flex flex-wrap gap-3 pt-2" x-show="content[lang].social?.facebook || content[lang].social?.instagram || content[lang].social?.tiktok">
-                                        <a x-show="content[lang].social?.facebook" :href="content[lang].social.facebook" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-amber-400 transition-colors" aria-label="Facebook">
+                                        <a x-show="content[lang].social?.facebook" :href="content[lang].social.facebook" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-svc-accent transition-colors" aria-label="Facebook">
                                             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                                         </a>
-                                        <a x-show="content[lang].social?.instagram" :href="content[lang].social.instagram" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-amber-400 transition-colors" aria-label="Instagram">
+                                        <a x-show="content[lang].social?.instagram" :href="content[lang].social.instagram" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-svc-accent transition-colors" aria-label="Instagram">
                                             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
                                         </a>
-                                        <a x-show="content[lang].social?.tiktok" :href="content[lang].social.tiktok" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-amber-400 transition-colors" aria-label="TikTok">
+                                        <a x-show="content[lang].social?.tiktok" :href="content[lang].social.tiktok" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-svc-accent transition-colors" aria-label="TikTok">
                                             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>
                                         </a>
                             </div>
@@ -550,10 +556,10 @@
 
             <div class="max-w-5xl mx-auto border-t border-white/10 pt-4 text-center text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
                 <template x-if="true">
-                    <a :href="privacyPolicyUrl()" class="underline hover:text-amber-400 transition-colors" x-text="uiLabel('privacy_policy')"></a>
+                    <a :href="privacyPolicyUrl()" class="underline hover:text-svc-accent transition-colors" x-text="uiLabel('privacy_policy')"></a>
                 </template>
                 <template x-if="content[lang]?.legal?.enabled !== false && content[lang]?.legal?.terms">
-                    <a href="#" @click.prevent="openModal('terms')" class="underline hover:text-amber-400 transition-colors" x-text="uiLabel('terms')"></a>
+                    <a href="#" @click.prevent="openModal('terms')" class="underline hover:text-svc-accent transition-colors" x-text="uiLabel('terms')"></a>
                 </template>
                 <p>&copy; <span x-text="new Date().getFullYear()"></span> <span x-text="content[lang].hero.name"></span>. Wszelkie prawa zastrzeżone.</p>
             </div>
@@ -572,7 +578,7 @@
             <div class="max-w-5xl mx-auto px-4 py-4 md:px-6 md:py-5">
                 <div class="text-sm text-slate-200 mb-4" x-text="uiLabel('cookies_banner')"></div>
                 <div class="flex flex-wrap items-center gap-3 mb-4" x-show="!showDetails">
-                    <button @click.prevent="acceptAll()" class="px-4 py-2 bg-amber-500 text-svc-navy text-sm font-bold rounded-md hover:opacity-90 transition-colors" x-text="uiLabel('cookies_accept_all')"></button>
+                    <button @click.prevent="acceptAll()" class="px-4 py-2 bg-svc-accent text-svc-accentFg text-sm font-bold rounded-md hover:opacity-90 transition-colors" x-text="uiLabel('cookies_accept_all')"></button>
                     <button @click.prevent="rejectAll()" class="px-4 py-2 bg-slate-700 text-slate-100 text-sm font-medium rounded-md hover:bg-slate-600 transition-colors" x-text="uiLabel('cookies_essential_only')"></button>
                     <button @click.prevent="showDetails = true" class="px-4 py-2 border border-white/30 text-slate-100 text-sm font-medium rounded-md hover:bg-white/5 transition-colors" x-text="uiLabel('cookies_customize')"></button>
                 </div>
@@ -581,7 +587,7 @@
                         <span class="text-sm font-medium text-slate-100" x-text="uiLabel('cookies_necessary')"></span>
                         <label class="relative inline-flex cursor-not-allowed opacity-75">
                             <input type="checkbox" checked disabled class="sr-only peer">
-                            <span class="w-11 h-6 bg-amber-500 rounded-full"></span>
+                            <span class="w-11 h-6 bg-svc-accent rounded-full"></span>
                             <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></span>
                         </label>
                     </div>
@@ -589,7 +595,7 @@
                         <span class="text-sm font-medium text-slate-100" x-text="uiLabel('cookies_analytics')"></span>
                         <label class="relative inline-flex cursor-pointer select-none">
                             <input type="checkbox" x-model="consents.analytics" class="sr-only peer">
-                            <span class="w-11 h-6 bg-slate-700 rounded-full peer-checked:bg-amber-500 transition-colors"></span>
+                            <span class="w-11 h-6 bg-slate-700 rounded-full peer-checked:bg-svc-accent transition-colors"></span>
                             <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform pointer-events-none peer-checked:translate-x-5"></span>
                         </label>
                     </div>
@@ -597,11 +603,11 @@
                         <span class="text-sm font-medium text-slate-100" x-text="uiLabel('cookies_marketing')"></span>
                         <label class="relative inline-flex cursor-pointer select-none">
                             <input type="checkbox" x-model="consents.marketing" class="sr-only peer">
-                            <span class="w-11 h-6 bg-slate-700 rounded-full peer-checked:bg-amber-500 transition-colors"></span>
+                            <span class="w-11 h-6 bg-slate-700 rounded-full peer-checked:bg-svc-accent transition-colors"></span>
                             <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform pointer-events-none peer-checked:translate-x-5"></span>
                         </label>
                     </div>
-                    <button type="button" @click.prevent="acceptSelected()" class="px-4 py-2 bg-amber-500 text-svc-navy text-sm font-bold rounded-md hover:opacity-90 transition-colors" x-text="uiLabel('cookies_save')"></button>
+                    <button type="button" @click.prevent="acceptSelected()" class="px-4 py-2 bg-svc-accent text-svc-accentFg text-sm font-bold rounded-md hover:opacity-90 transition-colors" x-text="uiLabel('cookies_save')"></button>
                 </div>
             </div>
         </div>
@@ -621,7 +627,7 @@
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
-            <div class="overflow-y-auto p-6 text-gray-700 leading-relaxed space-y-4 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-amber-600 [&_h2]:mt-6 [&_a]:text-amber-600 [&_a]:underline"
+            <div class="overflow-y-auto p-6 text-gray-700 leading-relaxed space-y-4 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-svc-accent [&_h2]:mt-6 [&_a]:text-svc-accent [&_a]:underline"
                  x-html="DFOPS_pageRepository.sanitizeHtml(activeModal === 'privacy' ? (content[lang]?.legal?.privacy_policy || '') : (content[lang]?.legal?.terms || ''))"></div>
         </div>
     </div>
