@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-08-28 — PR-0 rejestr `onAfterLoadData` / `onAfterPublish`
+**Ostatnia aktualizacja:** 2026-08-28 — PR-1 `wizardRules.js` (kreator, zero Alpine)
 
 ---
 
@@ -78,7 +78,7 @@ Użytkownik → Auth → pages.content + pages.billing_plan + billing_profiles
 | **Backend** | `pages`, `billing_profiles`, `superadmins`, RLS. Schemat baseline: `20260603072317_remote_schema.sql`; God Mode: `20260623100512_add_god_mode.sql`. |
 | **Płatności** | Starter `tier0`, Standard `tier1`, Custom poza Stripe. Secrets: `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_STARTER_YEARLY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_PRO_YEARLY`. wFirma: `WFIRMA_*`, ledger `wfirma_invoice_ledger`. |
 
-**Split panelu JS:** kernel Alpine + pionowe attach-e (onboarding, billing) — spec [`docs/specs/admin-split.md`](specs/admin-split.md). **PR-0:** rejestr `onAfterLoadData` / `onAfterPublish`; growth/stats bez wrapu `loadData` (stats nadal owija `setTab`).
+**Split panelu JS:** kernel Alpine + pionowe attach-e (onboarding, billing) — spec [`docs/specs/admin-split.md`](specs/admin-split.md). **PR-0:** rejestr `onAfterLoadData` / `onAfterPublish`. **PR-1:** `js/core/wizardRules.js` (storage v1→v2, finalize, validate per `stepId`); kernel zostawia cienkie wrappery — zero zmiany UX kreatora. Attach onboardingu = PR-2.
 
 **Model pakietów:**
 
@@ -392,6 +392,10 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-08-28 — PR-1: wizardRules.js (pure, testy Node)
+
+Czyste funkcje kreatora z IIFE `adminApp.js` → [`js/core/wizardRules.js`](../js/core/wizardRules.js) (`window.DFOPS_*`): storage v1→v2, placeholdery, match template, `finalizeWizardContent`, `validateWizardStep(pl, theme, stepId)`. Kernel: cienkie wrappery o starych nazwach lokalnych. Testy: `npm run test:wizard-rules`. Script w `01-head.html` przed `adminApp.js`. **Bez** `DFOPS_attachOnboardingPanel`. Spec: [`docs/specs/admin-split.md`](specs/admin-split.md) §4 / §12 Czat 2.
 
 ### 2026-08-28 — PR-0: rejestr onAfterLoadData / onAfterPublish
 
