@@ -793,6 +793,41 @@
       _stopContentWatch: null,
       /** Cichy auto-save stanu roboczego (draft_content). */
       _draftAutosaveTimer: null,
+      /** Rejestr lifecycle (PR-0) — attach woła onAfterLoadData/onAfterPublish; zakaz owijania loadData. */
+      _afterLoadCallbacks: [],
+      _afterPublishCallbacks: [],
+      onAfterLoadData(fn) {
+        if (typeof fn === 'function') this._afterLoadCallbacks.push(fn);
+      },
+      onAfterPublish(fn) {
+        if (typeof fn === 'function') this._afterPublishCallbacks.push(fn);
+      },
+      async _runAfterLoadCallbacks() {
+        const fns = this._afterLoadCallbacks.slice();
+        await Promise.all(fns.map(function (fn) {
+          try {
+            return Promise.resolve(fn.call(this)).catch(function (err) {
+              if (typeof console !== 'undefined' && console.debug) console.debug('[DFOPS onAfterLoadData]', err);
+            });
+          } catch (err) {
+            if (typeof console !== 'undefined' && console.debug) console.debug('[DFOPS onAfterLoadData]', err);
+            return undefined;
+          }
+        }, this));
+      },
+      async _runAfterPublishCallbacks() {
+        const fns = this._afterPublishCallbacks.slice();
+        await Promise.all(fns.map(function (fn) {
+          try {
+            return Promise.resolve(fn.call(this)).catch(function (err) {
+              if (typeof console !== 'undefined' && console.debug) console.debug('[DFOPS onAfterPublish]', err);
+            });
+          } catch (err) {
+            if (typeof console !== 'undefined' && console.debug) console.debug('[DFOPS onAfterPublish]', err);
+            return undefined;
+          }
+        }, this));
+      },
       draftSaving: false,
       draftSavedOnce: false,
       upgrading: false,
@@ -2974,6 +3009,7 @@
             this._initialPanelLoadDone = true;
           }
           this.maybeOpenAiAfterThemeSwitch();
+          await this._runAfterLoadCallbacks();
         }
       },
 
@@ -4308,6 +4344,7 @@
           } else if (typeof this._bindEditLocaleShim === 'function') {
             this._bindEditLocaleShim();
           }
+          await this._runAfterPublishCallbacks();
           return true;
         } catch (e) {
           console.error(e);
@@ -4886,7 +4923,7 @@
     if (typeof window.DFOPS_attachGrowthPanel === 'function') {
       window.DFOPS_attachGrowthPanel(fromApp);
     }
-    // Zakładka „Statystyki” (Faza B) — osobny moduł, owija setTab do leniwego ładowania.
+    // Zakładka „Statystyki” (Faza B) — owija setTab (leniwe wejście); deep-link #stats przez onAfterLoadData.
     if (typeof window.DFOPS_attachStatsPanel === 'function') {
       window.DFOPS_attachStatsPanel(fromApp);
     }

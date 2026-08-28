@@ -39,8 +39,21 @@ Growth **czyta** z hosta (nie duplikuje stanu): `this.theme`, `this.slug`, `this
 
 Growth dodaje na `app`: `growthLoading`, `growthBenchmarks`, `growthWeekStats`, `growthPriority`,
 `growthHasEnoughData`, `growthDataError`, oraz metody `loadGrowthData()`, `refreshGrowthPriority()`,
-`dismissGrowthPriority()`, `goToGrowthAction()`. Owija `app.afterLoadData` (jeśli istnieje) lub
-`app.loadData` — po każdym wczytaniu strony odświeża priorytet tygodnia.
+`dismissGrowthPriority()`, `goToGrowthAction()`. Lifecycle: **rejestr** kernela — nie owijanie
+`loadData` / `afterLoadData`:
+
+```javascript
+if (typeof app.onAfterLoadData === 'function') {
+  app.onAfterLoadData(async function growthAfterLoad() {
+    await this.loadGrowthData();
+    this.refreshGrowthPriority();
+  });
+}
+```
+
+Po każdym `loadData` kernel woła `Promise.all` + `fn.call(this)` (płaski stack; jeden padający
+callback nie zabija reszty). Stats: to samo z `maybeLazyLoadStats`; wrap `setTab` zostaje
+(jedna warstwa nawigacji).
 
 ## Kolejne moduły panelu (po Growth)
 

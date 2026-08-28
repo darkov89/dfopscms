@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-08-28 — Start fali split panelu JS (spec + rules, bez zmian runtime)
+**Ostatnia aktualizacja:** 2026-08-28 — PR-0 rejestr `onAfterLoadData` / `onAfterPublish`
 
 ---
 
@@ -78,7 +78,7 @@ Użytkownik → Auth → pages.content + pages.billing_plan + billing_profiles
 | **Backend** | `pages`, `billing_profiles`, `superadmins`, RLS. Schemat baseline: `20260603072317_remote_schema.sql`; God Mode: `20260623100512_add_god_mode.sql`. |
 | **Płatności** | Starter `tier0`, Standard `tier1`, Custom poza Stripe. Secrets: `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_STARTER_YEARLY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_PRO_YEARLY`. wFirma: `WFIRMA_*`, ledger `wfirma_invoice_ledger`. |
 
-**Split panelu JS:** kernel Alpine + pionowe attach-e (onboarding, billing) — spec [`docs/specs/admin-split.md`](specs/admin-split.md) (Czat 0: spec + rules; runtime od PR-0).
+**Split panelu JS:** kernel Alpine + pionowe attach-e (onboarding, billing) — spec [`docs/specs/admin-split.md`](specs/admin-split.md). **PR-0:** rejestr `onAfterLoadData` / `onAfterPublish`; growth/stats bez wrapu `loadData` (stats nadal owija `setTab`).
 
 **Model pakietów:**
 
@@ -392,6 +392,10 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-08-28 — PR-0: rejestr onAfterLoadData / onAfterPublish
+
+Kernel `createAdminApp`: `_afterLoadCallbacks` / `_afterPublishCallbacks` + `onAfterLoadData` / `onAfterPublish` (Pub/Sub, `Promise.all` + `fn.call(this)`, try/catch per callback). `loadData` `finally` (po `isLoading = false`) i udany `publishChanges` dispatchują rejestr. Growth i stats **rejestrują** callback zamiast owijania `loadData`. Wrap `setTab` w stats zostaje (leniwe `#stats` / pierwsze wejście w Statystyki). Cache-bust `adminApp.js` / `growthPanel.js` / `statsPanel.js`. Spec: [`docs/specs/admin-split.md`](specs/admin-split.md) §6.
 
 ### 2026-08-28 — Start fali split panelu JS (spec + rules, bez zmian runtime)
 

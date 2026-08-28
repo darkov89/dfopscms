@@ -214,19 +214,11 @@
       };
     }
 
-    // 4) Deep-link (#stats na starcie ustawia activeTab bez setTab) — dociągnij po loadData.
-    const hookName = typeof app.afterLoadData === 'function' ? 'afterLoadData' : 'loadData';
-    const prevHook = typeof app[hookName] === 'function' ? app[hookName] : null;
-    if (prevHook) {
-      app[hookName] = async function (...args) {
-        const result = await prevHook.apply(this, args);
-        try {
-          this.maybeLazyLoadStats();
-        } catch (e) {
-          safeDebug(`${hookName} hook`, e);
-        }
-        return result;
-      };
+    // 4) Deep-link (#stats na starcie ustawia activeTab bez setTab) — rejestr, nie wrap loadData.
+    if (typeof app.onAfterLoadData === 'function') {
+      app.onAfterLoadData(async function statsAfterLoad() {
+        this.maybeLazyLoadStats();
+      });
     }
   };
 })();
