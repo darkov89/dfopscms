@@ -1,6 +1,9 @@
 ## OS / editor
 .DS_Store
-.cursor/
+# Cursor: rules w repo (jak .agents/skills); reszta lokalna
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
 .vscode/*
 !.vscode/settings.json
 .idea/
