@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-08-22 — Styl strony (ikony kolorów), ręczne opinie, galeria multi-upload
+**Ostatnia aktualizacja:** 2026-08-28 — Start fali split panelu JS (spec + rules, bez zmian runtime)
 
 ---
 
@@ -77,6 +77,8 @@ Użytkownik → Auth → pages.content + pages.billing_plan + billing_profiles
 | **Panel CMS** | `admin.html` (~2,5k linii HTML), `adminApp.js` (~4k linii Alpine). **IA (2026-07):** domyślny ekran `dashboard` (adres + checklista + **AI Site Generator**); sidebar w 3 grupach zwijanych (Na start / Więcej treści / Ustawienia); nagłówek z CTA „Opublikuj”, menu ⋯; rezerwacje w Kontakcie; scalone Opinie; bez Leady w menu; bez globalnej widoczności sekcji w Wyglądzie — szczegóły §1.5.2. **`js/core/themeConfig.js`** — sekcje per `pages.theme`; **`js/core/contentSchema.js`** + **`contentUpgrader.js`** — kontrakt/migracja pól JSON (`pages.content` / `draft_content`). **`js/templates/registry.js`** — domyślna treść startowa (nie mylić z `templates/*.html`). Draft vs published: `pages.draft_content` / `pages.content`. **Zero-Friction AI (2026-08-08):** `draft_content.pl.settings.ai_business_context` (+ `business_category` / `city`) — kontekst branżowy niezależny od nazwy szablonu; `js/core/aiBusinessContext.js`; fallback ręczny w kreatorze/Kontakcie gdy Places bez kategorii. Subskrypcja, Smart Booking, szybki kontakt, God Mode — jak wcześniej. Adaptery poza monolitem: `growth/` + `aiGenerator.js`. |
 | **Backend** | `pages`, `billing_profiles`, `superadmins`, RLS. Schemat baseline: `20260603072317_remote_schema.sql`; God Mode: `20260623100512_add_god_mode.sql`. |
 | **Płatności** | Starter `tier0`, Standard `tier1`, Custom poza Stripe. Secrets: `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_STARTER_YEARLY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_PRO_YEARLY`. wFirma: `WFIRMA_*`, ledger `wfirma_invoice_ledger`. |
+
+**Split panelu JS:** kernel Alpine + pionowe attach-e (onboarding, billing) — spec [`docs/specs/admin-split.md`](specs/admin-split.md) (Czat 0: spec + rules; runtime od PR-0).
 
 **Model pakietów:**
 
@@ -390,6 +392,10 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-08-28 — Start fali split panelu JS (spec + rules, bez zmian runtime)
+
+Spec [`docs/specs/admin-split.md`](specs/admin-split.md) + rule `.cursor/rules/admin-split.mdc`. Extract onboarding/billing wg specu **jest** autoryzowany (nie „na zapas”); mixiny / spread / Vite nadal zakazane. **Zero zmian runtime** (`adminApp.js` / growth / stats / `admin.html` nietknięte).
 
 ### 2026-08-22 — Kolory/styl, ręczne opinie, wiele zdjęć
 - **Kolory i styl:** chrome panelu **zostaje** szary/złoty DFCMS (`applyThemeStyling(..., 'admin')` — bez podglądu kolorów klienta w panelu). Ikony w Wyglądzie to pełny zestaw: `color_preset` + matching `background_style`/`font_preset` z `bundlesByTheme`, sync na wszystkie locale, handoff draftu do Podglądu. Publiczna strona: `DFOPS_resolvePublicAppearance` — gdy w JSON został tylko preset przy defaultowym tle/foncie motywu (typowe po starym kliknięciu ikony), aplikuje tło/font zestawu; już opublikowane strony klienta zmieniają się po deploju JS, bez ponownego Publikuj. Palety consultant `gold`/`charcoal`. Szablon **services**: tokeny `--svc-navy` / `--svc-accent` (Tailwind `svc.*`) — wcześniej nav/hero były na sztywno granat+bursztyn, więc forest/ocean nic nie zmieniały. Cache-bust `config.js` / `themeStyling.js` / `publicSiteApp.js` (`?v=20260822c` na services).

@@ -1,0 +1,24 @@
+---
+description: Split panelu Alpine — pionowy attach, rejestr hooków, zakaz mixinów/spreadu/Vite
+globs: js/features/adminApp.js,js/features/growth/**,js/features/onboarding/**,js/features/billing-panel/**,js/features/i18nPanel.js,js/features/aiGenerator.js,admin/partials/**
+alwaysApply: false
+---
+
+# Split panelu Alpine (adminApp)
+
+SoT: docs/specs/admin-split.md. Wzorzec: js/features/growth/README.md.
+
+## Nakaz
+- Pionowy attach: window.DFOPS_attach*(app) mutuje app metodami (named function, nie arrow).
+- Stan reaktywny TYLKO w createAdminApp() object literal (null/false/''/[]). Attach nie dopisuje pól.
+- Gettery HTML zostają na kernelu: get foo() { ... } — this = Proxy Alpine. Zakaz arrow getters.
+- Lifecycle: app.onAfterLoadData(fn) / onAfterPublish(fn). Kernel Promise.all + fn.call(this).
+- Nowe skrypty: <script defer> w admin/partials/01-head.html PRZED adminApp.js, PRZED Alpine. Bump ?v=. Potem npm run build:admin.
+
+## Zakaz
+- { ...createAdminApp(), ...mixin } i Object.assign z getterami
+- js/features/admin/ mixiny, build:admin-js, Vite/ESM w tej fali
+- Owijanie loadData / afterLoadData (cebula). Wyjątek: stats może owijać setTab.
+- Edycja wygenerowanego admin.html
+- Zmiana nazw symboli z HTML (258 publicznych) bez zmiany partiali
+- Rozdzielanie Driver.js touru od wizarda
