@@ -79,43 +79,45 @@
       .god-card {
         transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
       }
-      .god-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 28px -12px rgb(15 23 42 / 0.18);
+      @media (hover: hover) and (pointer: fine) {
+        .god-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 28px -12px rgb(15 23 42 / 0.18);
+        }
       }
     </style>
 </head>
 <body class="god-shell min-h-screen font-sans text-slate-900 antialiased" x-data="godModeApp()" x-init="init()">
     <header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur">
-        <div class="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-4 md:px-8">
+        <div class="mx-auto flex w-full max-w-6xl flex-col gap-3 px-3 py-3 sm:gap-4 sm:px-4 sm:py-4 md:px-8">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
+                <div class="min-w-0">
                     <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-accent-ink">DFCMS God Mode</p>
-                    <h1 class="font-display mt-1 text-2xl font-bold tracking-tight text-slate-950">Master Dashboard</h1>
+                    <h1 class="font-display mt-1 text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">Master Dashboard</h1>
                 </div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <a href="admin.html" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50">Panel CMS</a>
-                    <button type="button" @click="logout()" class="inline-flex items-center justify-center rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-800">Wyloguj</button>
+                <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+                    <a href="admin.html" class="inline-flex min-h-10 flex-1 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 sm:flex-none">Panel CMS</a>
+                    <button type="button" @click="logout()" class="inline-flex min-h-10 flex-1 items-center justify-center rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-800 sm:flex-none">Wyloguj</button>
                 </div>
             </div>
-            <nav x-show="!loading" x-cloak class="flex flex-wrap gap-2" aria-label="Sekcje God Mode">
+            <nav x-show="!loading" x-cloak class="-mx-3 flex gap-2 overflow-x-auto px-3 pb-0.5 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0" aria-label="Sekcje God Mode">
                 <button type="button" @click="setView('home')"
-                        class="rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors"
+                        class="shrink-0 rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors"
                         :class="view === 'home' ? 'bg-slate-950 text-white' : 'bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50'">
                     Start
                 </button>
                 <button type="button" @click="setView('demo')"
-                        class="rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors"
+                        class="shrink-0 rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors"
                         :class="view === 'demo' ? 'bg-slate-950 text-white' : 'bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50'">
                     Strona demo
                 </button>
                 <button type="button" @click="setView('client')"
-                        class="rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors"
+                        class="shrink-0 rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors"
                         :class="view === 'client' ? 'bg-slate-950 text-white' : 'bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50'">
                     Strona klienta
                 </button>
                 <button type="button" @click="setView('manage')"
-                        class="rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors"
+                        class="shrink-0 rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors"
                         :class="view === 'manage' ? 'bg-slate-950 text-white' : 'bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50'">
                     Zarządzaj stronami
                     <span class="ml-1 tabular-nums opacity-70" x-text="'(' + pages.length + ')'"></span>
@@ -124,7 +126,7 @@
         </div>
     </header>
 
-    <main class="mx-auto w-full max-w-6xl px-4 py-8 md:px-8 md:py-10">
+    <main class="mx-auto w-full max-w-6xl px-3 py-6 sm:px-4 sm:py-8 md:px-8 md:py-10">
         <div x-show="loading" class="flex min-h-64 items-center justify-center rounded-2xl border border-slate-200/70 bg-white shadow-panel">
             <p class="animate-pulse text-sm font-semibold uppercase tracking-widest text-slate-600">Weryfikuję uprawnienia...</p>
         </div>
@@ -138,26 +140,26 @@
 
             <!-- HOME -->
             <section x-show="view === 'home'" x-cloak>
-                <div class="mb-8 max-w-2xl">
-                    <h2 class="font-display text-3xl font-bold tracking-tight text-slate-950">Co chcesz zrobić?</h2>
+                <div class="mb-6 max-w-2xl sm:mb-8">
+                    <h2 class="font-display text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">Co chcesz zrobić?</h2>
                     <p class="mt-2 text-sm leading-relaxed text-slate-600">Wybierz zadanie. Formularze i lista stron są w osobnych widokach — bez przewijania wszystkiego naraz.</p>
                 </div>
-                <div class="grid gap-4 md:grid-cols-3">
-                    <button type="button" @click="setView('demo')" class="god-card group rounded-2xl border border-slate-200/80 bg-white p-6 text-left shadow-panel ring-1 ring-slate-900/5">
+                <div class="grid gap-3 sm:gap-4 md:grid-cols-3">
+                    <button type="button" @click="setView('demo')" class="god-card group rounded-2xl border border-slate-200/80 bg-white p-5 text-left shadow-panel ring-1 ring-slate-900/5 sm:p-6">
                         <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-sm font-bold text-slate-800 group-hover:bg-accent/25 group-hover:text-accent-ink">01</span>
-                        <h3 class="font-display mt-5 text-xl font-bold text-slate-950">Załóż stronę demo</h3>
+                        <h3 class="font-display mt-4 text-lg font-bold text-slate-950 sm:mt-5 sm:text-xl">Załóż stronę demo</h3>
                         <p class="mt-2 text-sm leading-relaxed text-slate-600">Publiczny podgląd szablonu dla klienta. Bez konta Auth i bez subskrypcji.</p>
-                        <p class="mt-5 text-xs font-bold uppercase tracking-widest text-accent-ink">Otwórz →</p>
+                        <p class="mt-4 text-xs font-bold uppercase tracking-widest text-accent-ink sm:mt-5">Otwórz →</p>
                     </button>
-                    <button type="button" @click="setView('client')" class="god-card group rounded-2xl border border-slate-200/80 bg-white p-6 text-left shadow-panel ring-1 ring-slate-900/5">
+                    <button type="button" @click="setView('client')" class="god-card group rounded-2xl border border-slate-200/80 bg-white p-5 text-left shadow-panel ring-1 ring-slate-900/5 sm:p-6">
                         <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-sm font-bold text-slate-800 group-hover:bg-accent/25 group-hover:text-accent-ink">02</span>
-                        <h3 class="font-display mt-5 text-xl font-bold text-slate-950">Załóż stronę klienta</h3>
+                        <h3 class="font-display mt-4 text-lg font-bold text-slate-950 sm:mt-5 sm:text-xl">Załóż stronę klienta</h3>
                         <p class="mt-2 text-sm leading-relaxed text-slate-600">Invite na email, konto do panelu oraz trial / grant ręczny / Checkout.</p>
-                        <p class="mt-5 text-xs font-bold uppercase tracking-widest text-accent-ink">Otwórz →</p>
+                        <p class="mt-4 text-xs font-bold uppercase tracking-widest text-accent-ink sm:mt-5">Otwórz →</p>
                     </button>
-                    <button type="button" @click="setView('manage')" class="god-card group rounded-2xl border border-accent/40 bg-gradient-to-br from-white to-amber-50/40 p-6 text-left shadow-panel ring-1 ring-accent/20">
+                    <button type="button" @click="setView('manage')" class="god-card group rounded-2xl border border-accent/40 bg-gradient-to-br from-white to-amber-50/40 p-5 text-left shadow-panel ring-1 ring-accent/20 sm:p-6">
                         <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-accent/20 text-sm font-bold text-accent-ink">03</span>
-                        <h3 class="font-display mt-5 text-xl font-bold text-slate-950">Zarządzaj stronami</h3>
+                        <h3 class="font-display mt-4 text-lg font-bold text-slate-950 sm:mt-5 sm:text-xl">Zarządzaj stronami</h3>
                         <p class="mt-2 text-sm leading-relaxed text-slate-600">Lista klientów i dem: edycja, grant planu, podgląd i usuwanie dem.</p>
                         <p class="mt-4 text-sm font-semibold tabular-nums text-slate-900">
                             <span x-text="clientPagesCount"></span> klientów ·
@@ -169,19 +171,19 @@
             </section>
 
             <!-- DEMO -->
-            <section x-show="view === 'demo'" x-cloak class="rounded-2xl border border-slate-200/70 bg-white p-6 shadow-panel ring-1 ring-slate-900/5 md:p-8">
+            <section x-show="view === 'demo'" x-cloak class="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-panel ring-1 ring-slate-900/5 sm:p-6 md:p-8">
                 <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
+                    <div class="min-w-0">
                         <p class="text-xs font-bold uppercase tracking-widest text-slate-600">Nowe demo</p>
-                        <h2 class="font-display mt-1 text-2xl font-bold tracking-tight text-slate-950">Załóż stronę demo</h2>
+                        <h2 class="font-display mt-1 text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">Załóż stronę demo</h2>
                         <p class="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
                             Bez konta i bez subskrypcji. Slug dostaje prefix <code class="rounded bg-slate-100 px-1 text-xs text-slate-800">demo-</code>.
                             Treść startowa z katalogu. Sześć dem landingowych jest chronionych przed usunięciem.
                         </p>
                     </div>
-                    <button type="button" @click="setView('home')" class="shrink-0 text-sm font-semibold text-slate-600 hover:text-slate-950">← Start</button>
+                    <button type="button" @click="setView('home')" class="shrink-0 self-start text-sm font-semibold text-slate-600 hover:text-slate-950">← Start</button>
                 </div>
-                <form class="grid max-w-3xl gap-4 md:grid-cols-2" @submit.prevent="createDemo()">
+                <form class="grid max-w-3xl gap-4 sm:grid-cols-2" @submit.prevent="createDemo()">
                     <label class="block text-sm text-slate-900">
                         <span class="mb-1 block font-semibold text-slate-800">Motyw</span>
                         <select x-model="demoForm.theme" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30">
@@ -194,30 +196,30 @@
                         <span class="mb-1 block font-semibold text-slate-800">Slug (z lub bez demo-)</span>
                         <input type="text" required x-model="demoForm.slug" pattern="(?:demo-)?[a-z0-9]+(?:-[a-z0-9]+)*" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 font-mono text-sm text-slate-900 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder="klient-janek">
                     </label>
-                    <div class="md:col-span-2 flex flex-wrap items-center gap-3">
-                        <button type="submit" :disabled="busy" class="inline-flex items-center justify-center rounded-lg bg-slate-950 px-5 py-2.5 text-sm font-bold uppercase tracking-widest text-white shadow-sm transition-colors hover:bg-slate-800 disabled:opacity-50">
+                    <div class="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:flex-wrap sm:items-center">
+                        <button type="submit" :disabled="busy" class="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-slate-950 px-5 py-2.5 text-sm font-bold uppercase tracking-widest text-white shadow-sm transition-colors hover:bg-slate-800 disabled:opacity-50 sm:w-auto">
                             <span x-show="!busy">Utwórz demo</span>
                             <span x-show="busy" x-cloak>Przetwarzam…</span>
                         </button>
-                        <button type="button" @click="setView('manage'); listFilter = 'demo'" class="text-sm font-semibold text-slate-600 hover:text-slate-950">Lista dem →</button>
+                        <button type="button" @click="setView('manage'); listFilter = 'demo'" class="text-center text-sm font-semibold text-slate-600 hover:text-slate-950 sm:text-left">Lista dem →</button>
                     </div>
                 </form>
             </section>
 
             <!-- CLIENT -->
-            <section x-show="view === 'client'" x-cloak class="rounded-2xl border border-slate-200/70 bg-white p-6 shadow-panel ring-1 ring-slate-900/5 md:p-8">
+            <section x-show="view === 'client'" x-cloak class="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-panel ring-1 ring-slate-900/5 sm:p-6 md:p-8">
                 <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
+                    <div class="min-w-0">
                         <p class="text-xs font-bold uppercase tracking-widest text-slate-600">Nowy klient</p>
-                        <h2 class="font-display mt-1 text-2xl font-bold tracking-tight text-slate-950">Załóż stronę klienta</h2>
+                        <h2 class="font-display mt-1 text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">Załóż stronę klienta</h2>
                         <p class="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
                             Wysyła zaproszenie Auth na email. Klient ustawia hasło i loguje się do panelu.
                             Plan: trial, grant ręczny z datą albo Checkout (karta w Subskrypcji).
                         </p>
                     </div>
-                    <button type="button" @click="setView('home')" class="shrink-0 text-sm font-semibold text-slate-600 hover:text-slate-950">← Start</button>
+                    <button type="button" @click="setView('home')" class="shrink-0 self-start text-sm font-semibold text-slate-600 hover:text-slate-950">← Start</button>
                 </div>
-                <form class="grid max-w-3xl gap-4 md:grid-cols-2" @submit.prevent="provisionClient()">
+                <form class="grid max-w-3xl gap-4 sm:grid-cols-2" @submit.prevent="provisionClient()">
                     <label class="block text-sm text-slate-900">
                         <span class="mb-1 block font-semibold text-slate-800">Email klienta</span>
                         <input type="email" required x-model="form.email" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder="klient@firma.pl">
@@ -257,8 +259,8 @@
                             <input type="date" x-model="form.expiresAt" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm" required>
                         </label>
                     </template>
-                    <div class="md:col-span-2 flex flex-wrap items-center gap-3">
-                        <button type="submit" :disabled="busy" class="inline-flex items-center justify-center rounded-lg bg-accent px-5 py-2.5 text-sm font-bold uppercase tracking-widest text-accent-fg shadow-sm transition-colors hover:bg-accent/90 disabled:opacity-50">
+                    <div class="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:flex-wrap sm:items-center">
+                        <button type="submit" :disabled="busy" class="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-accent px-5 py-2.5 text-sm font-bold uppercase tracking-widest text-accent-fg shadow-sm transition-colors hover:bg-accent/90 disabled:opacity-50 sm:w-auto">
                             <span x-show="!busy">Utwórz konto + stronę</span>
                             <span x-show="busy" x-cloak>Przetwarzam…</span>
                         </button>
@@ -271,25 +273,66 @@
 
             <!-- MANAGE -->
             <section x-show="view === 'manage'" x-cloak>
-                <div class="mb-5 flex flex-col gap-4 rounded-2xl border border-slate-200/70 bg-white p-5 shadow-panel ring-1 ring-slate-900/5 sm:flex-row sm:items-end sm:justify-between md:p-6">
-                    <div>
+                <div class="mb-4 flex flex-col gap-4 rounded-2xl border border-slate-200/70 bg-white p-4 shadow-panel ring-1 ring-slate-900/5 sm:mb-5 sm:p-5 md:p-6">
+                    <div class="min-w-0">
                         <p class="text-xs font-bold uppercase tracking-widest text-slate-600">Lista</p>
-                        <h2 class="font-display mt-1 text-2xl font-bold tracking-tight text-slate-950">Zarządzaj stronami</h2>
+                        <h2 class="font-display mt-1 text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">Zarządzaj stronami</h2>
                         <p class="mt-2 max-w-xl text-sm text-slate-600">Klienci i dema: edycja (Zarządzaj). Grant tylko dla klientów. Dema: podgląd i usuwanie (potwierdzenie slugiem).</p>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <button type="button" @click="listFilter = 'all'" class="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider transition-colors"
-                                :class="listFilter === 'all' ? 'bg-slate-950 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'">Wszystkie</button>
-                        <button type="button" @click="listFilter = 'client'" class="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider transition-colors"
-                                :class="listFilter === 'client' ? 'bg-slate-950 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'">Klienci</button>
-                        <button type="button" @click="listFilter = 'demo'" class="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider transition-colors"
-                                :class="listFilter === 'demo' ? 'bg-slate-950 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'">Demo</button>
-                        <button type="button" @click="setView('home')" class="ml-1 text-sm font-semibold text-slate-600 hover:text-slate-950">← Start</button>
+                    <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button type="button" @click="listFilter = 'all'" class="rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors"
+                                    :class="listFilter === 'all' ? 'bg-slate-950 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'">Wszystkie</button>
+                            <button type="button" @click="listFilter = 'client'" class="rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors"
+                                    :class="listFilter === 'client' ? 'bg-slate-950 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'">Klienci</button>
+                            <button type="button" @click="listFilter = 'demo'" class="rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors"
+                                    :class="listFilter === 'demo' ? 'bg-slate-950 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'">Demo</button>
+                        </div>
+                        <button type="button" @click="setView('home')" class="self-start text-sm font-semibold text-slate-600 hover:text-slate-950">← Start</button>
                     </div>
                 </div>
 
-                <div class="rounded-2xl border border-slate-200/70 bg-white shadow-panel ring-1 ring-slate-900/5">
-                    <table class="w-full table-fixed divide-y divide-slate-200 text-slate-900">
+                <!-- Mobile cards -->
+                <div class="space-y-3 md:hidden">
+                    <template x-for="page in filteredPages" :key="'m-' + (page.id || page.slug)">
+                        <article class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-panel ring-1 ring-slate-900/5">
+                            <div class="flex min-w-0 items-start justify-between gap-3">
+                                <div class="min-w-0">
+                                    <p class="truncate font-mono text-sm font-semibold text-slate-950" x-text="page.slug" :title="page.slug"></p>
+                                    <div class="mt-2 flex flex-wrap items-center gap-1.5">
+                                        <span class="inline-flex max-w-full truncate rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-800" x-text="page.theme || 'brak'"></span>
+                                        <span class="inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-900" x-text="displayPlan(page)"></span>
+                                        <span class="inline-flex rounded-full bg-slate-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-600" x-text="grantSourceLabel(page)"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <dl class="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-xs text-slate-600">
+                                <div>
+                                    <dt class="font-semibold uppercase tracking-wider text-slate-500">Ważność</dt>
+                                    <dd class="mt-0.5 text-sm text-slate-800" x-text="formatDate(page.current_period_end)"></dd>
+                                </div>
+                                <div>
+                                    <dt class="font-semibold uppercase tracking-wider text-slate-500">Utworzono</dt>
+                                    <dd class="mt-0.5 text-sm text-slate-800" x-text="formatDate(page.created_at)"></dd>
+                                </div>
+                            </dl>
+                            <div class="mt-4 flex flex-wrap gap-2">
+                                <a x-show="isDemoPage(page)" :href="demoPreviewUrl(page.slug)" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-9 flex-1 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] font-bold uppercase tracking-widest text-slate-700 hover:bg-slate-50 sm:flex-none" x-cloak>Podgląd</a>
+                                <a :href="manageUrl(page.slug)" class="inline-flex min-h-9 flex-1 items-center justify-center rounded-lg bg-accent px-3 py-2 text-[11px] font-bold uppercase tracking-widest text-accent-fg shadow-sm hover:bg-accent/90 sm:flex-none">Zarządzaj</a>
+                                <button type="button" x-show="!isDemoPage(page)" @click="openGrant(page)" class="inline-flex min-h-9 flex-1 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] font-bold uppercase tracking-widest text-slate-700 hover:bg-slate-50 sm:flex-none">Aktywuj</button>
+                                <button type="button" x-show="canRevoke(page)" x-cloak @click="revokeGrant(page)" :disabled="busy" class="inline-flex min-h-9 flex-1 items-center justify-center rounded-lg border border-red-200 bg-white px-3 py-2 text-[11px] font-bold uppercase tracking-widest text-red-700 hover:bg-red-50 disabled:opacity-50 sm:flex-none">Cofnij</button>
+                                <button type="button" x-show="canDeleteDemo(page)" x-cloak @click="openDeleteDemo(page)" :disabled="busy" class="inline-flex min-h-9 flex-1 items-center justify-center rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-[11px] font-bold uppercase tracking-widest text-red-800 hover:bg-red-100 disabled:opacity-50 sm:flex-none">Usuń</button>
+                            </div>
+                        </article>
+                    </template>
+                    <div x-show="!filteredPages.length && !errorMessage" x-cloak class="rounded-2xl border border-slate-200/70 bg-white px-4 py-12 text-center text-sm text-slate-600 shadow-panel">
+                        Brak stron w tym filtrze.
+                    </div>
+                </div>
+
+                <!-- Desktop table -->
+                <div class="hidden overflow-x-auto rounded-2xl border border-slate-200/70 bg-white shadow-panel ring-1 ring-slate-900/5 md:block">
+                    <table class="w-full min-w-[56rem] table-fixed divide-y divide-slate-200 text-slate-900">
                         <thead class="bg-slate-50/90">
                             <tr>
                                 <th class="w-[16%] px-3 py-3 text-left text-xs font-bold uppercase tracking-widest text-slate-600">Slug</th>
@@ -335,10 +378,10 @@
         </div>
     </main>
 
-    <div x-show="grantModal.open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4" @keydown.escape.window="grantModal.open = false">
-        <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-panel-md" @click.outside="grantModal.open = false">
+    <div x-show="grantModal.open" x-cloak class="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 p-0 sm:items-center sm:p-4" @keydown.escape.window="grantModal.open = false">
+        <div class="w-full max-w-md rounded-t-2xl border border-slate-200 bg-white p-5 shadow-panel-md sm:rounded-2xl sm:p-6" @click.outside="grantModal.open = false">
             <h3 class="font-display text-lg font-bold text-slate-950">Aktywuj plan ręcznie</h3>
-            <p class="mt-1 text-sm text-slate-600">Slug: <span class="font-mono font-semibold text-slate-900" x-text="grantModal.slug"></span></p>
+            <p class="mt-1 break-all text-sm text-slate-600">Slug: <span class="font-mono font-semibold text-slate-900" x-text="grantModal.slug"></span></p>
             <div class="mt-4 space-y-3">
                 <label class="block text-sm text-slate-900">
                     <span class="mb-1 block font-semibold text-slate-800">Plan</span>
@@ -352,29 +395,29 @@
                     <input type="date" x-model="grantModal.expiresAt" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900">
                 </label>
             </div>
-            <div class="mt-6 flex justify-end gap-2">
-                <button type="button" @click="grantModal.open = false" class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Anuluj</button>
-                <button type="button" @click="submitGrant()" :disabled="busy" class="rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Zapisz</button>
+            <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <button type="button" @click="grantModal.open = false" class="min-h-11 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Anuluj</button>
+                <button type="button" @click="submitGrant()" :disabled="busy" class="min-h-11 rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Zapisz</button>
             </div>
         </div>
     </div>
 
-    <div x-show="deleteModal.open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4" role="alertdialog" aria-modal="true" @keydown.escape.window="deleteModal.open = false">
-        <div class="w-full max-w-md rounded-2xl border border-red-200 bg-white p-6 shadow-panel-md" @click.outside="deleteModal.open = false">
+    <div x-show="deleteModal.open" x-cloak class="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 p-0 sm:items-center sm:p-4" role="alertdialog" aria-modal="true" @keydown.escape.window="deleteModal.open = false">
+        <div class="w-full max-w-md rounded-t-2xl border border-red-200 bg-white p-5 shadow-panel-md sm:rounded-2xl sm:p-6" @click.outside="deleteModal.open = false">
             <p class="text-xs font-bold uppercase tracking-widest text-red-700">Usuwanie nieodwracalne</p>
             <h3 class="font-display mt-1 text-lg font-bold text-slate-950">Usunąć stronę demo?</h3>
             <p class="mt-2 text-sm leading-relaxed text-slate-600">
                 Usuniesz publiczne demo
-                <span class="font-mono font-semibold text-slate-900" x-text="deleteModal.slug"></span>.
+                <span class="break-all font-mono font-semibold text-slate-900" x-text="deleteModal.slug"></span>.
                 Tej operacji nie da się cofnąć. Wpisz slug poniżej, żeby potwierdzić.
             </p>
             <label class="mt-4 block text-sm">
                 <span class="mb-1 block font-semibold text-slate-700">Wpisz slug do potwierdzenia</span>
                 <input type="text" x-model="deleteModal.confirmSlug" class="w-full rounded-lg border border-red-200 px-3 py-2 font-mono text-sm shadow-sm focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-200" :placeholder="deleteModal.slug" autocomplete="off">
             </label>
-            <div class="mt-6 flex justify-end gap-2">
-                <button type="button" @click="deleteModal.open = false" class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Anuluj</button>
-                <button type="button" @click="confirmDeleteDemo()" :disabled="busy || !canConfirmDelete()" class="rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-40">Usuń na zawsze</button>
+            <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <button type="button" @click="deleteModal.open = false" class="min-h-11 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Anuluj</button>
+                <button type="button" @click="confirmDeleteDemo()" :disabled="busy || !canConfirmDelete()" class="min-h-11 rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-40">Usuń na zawsze</button>
             </div>
         </div>
     </div>
