@@ -53,7 +53,7 @@
                                         <p class="font-bold text-amber-900 mb-2">Najpierw zrezygnuj z subskrypcji w Stripe</p>
                                         <p class="text-amber-900/90 leading-relaxed mb-3">Masz aktywną subskrypcję rozliczaną przez Stripe. Anuluj ją w portalu płatności (faktury, anulowanie). Gdy status subskrypcji w Stripe będzie <strong>anulowany</strong>, możesz poprosić o usunięcie konta.</p>
                                         <button type="button" @click="setTab('subscription')" class="mr-3 text-sm font-semibold text-slate-800 underline decoration-slate-300 underline-offset-2 hover:text-slate-900">Przejdź do subskrypcji</button>
-                                        <button type="button" @click="openCustomerPortal()" :disabled="isPortalLoading" class="text-sm font-semibold text-slate-800 underline decoration-slate-300 underline-offset-2 hover:text-slate-900 disabled:opacity-50">Otwórz portal Stripe</button>
+                                        <button type="button" x-show="!isImpersonating" x-cloak @click="openCustomerPortal()" :disabled="isPortalLoading" class="text-sm font-semibold text-slate-800 underline decoration-slate-300 underline-offset-2 hover:text-slate-900 disabled:opacity-50">Otwórz portal Stripe</button>
                                     </div>
                                     <p class="text-sm text-red-600 mb-4">Usunięcie konta jest nieodwracalne. Utracisz dostęp do swojej strony i wszystkich danych. Otworzymy szkic wiadomości e-mail do obsługi.</p>
                                     <button type="button"

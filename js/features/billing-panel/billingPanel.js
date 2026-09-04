@@ -9,6 +9,13 @@
 // shouldUseStripePortalForPlanChange — brak wiązań; canOpenPortalPlanChangeFlow() z ().
 // Te cztery zostają na kernelu (metody-aliasy / cienkie helpery nad getterami).
 ;(function () {
+  const IMPERSONATE_BILLING_BLOCKED =
+    'W trybie God Mode rozliczenia klienta są tylko do odczytu. Portal Stripe (karta, faktury) i Checkout są zablokowane — to sesja superadmina, nie klienta.';
+
+  function impersonationBlocksBilling(app) {
+    return !!(app && app.isImpersonating);
+  }
+
   window.DFOPS_attachBillingPanel = function attachBillingPanel(app) {
     if (!app || typeof app !== 'object') return;
 
@@ -45,6 +52,10 @@
     app.syncStripeSubscription = async function syncStripeSubscription(opts) {
       const options = opts && typeof opts === 'object' ? opts : {};
       const silent = options.silent === true;
+      if (impersonationBlocksBilling(this)) {
+        if (!silent) this.showToast(IMPERSONATE_BILLING_BLOCKED, 'error');
+        return false;
+      }
       if (!this.user?.id || !this.supabase) {
         if (!silent) this.showToast('Zaloguj się, aby zsynchronizować płatności.', 'error');
         return false;
@@ -98,8 +109,8 @@
     };
 
     app.subscribe = async function subscribe(planType) {
-      if (this.isImpersonating) {
-        this.showToast('W trybie God Mode płatności klienta nie są obsługiwane z sesji superadmina.', 'error');
+      if (impersonationBlocksBilling(this)) {
+        this.showToast(IMPERSONATE_BILLING_BLOCKED, 'error');
         return;
       }
       if (planType === 'premium') {
@@ -137,10 +148,6 @@
           await this.loadData();
           return;
         }
-        this.showToast(
-          'Zmianę pakietu wykonasz w portalu Stripe — zobaczysz podsumowanie kosztów i potwierdzisz płatność przed obciążeniem karty.',
-          'info',
-        );
         await this.openCustomerPortal({ subscriptionUpdate: true });
         return;
       }
@@ -157,6 +164,11 @@
     };
 
     app.executeStripeCheckout = async function executeStripeCheckout(turnstileToken) {
+      if (impersonationBlocksBilling(this)) {
+        this.showToast(IMPERSONATE_BILLING_BLOCKED, 'error');
+        this.closeCheckoutModal(true);
+        return;
+      }
       const plan = String(this.pendingCheckoutPlan || '').trim();
       const planType = String(this.pendingCheckoutPlanType || plan).trim();
       const tier = String(this.pendingCheckoutTier || '').trim();
@@ -335,9 +347,39 @@
      *   subscriptionCancel — deep link: anulowanie subskrypcji w Stripe.
      */
     app.openCustomerPortal = async function openCustomerPortal(opts = {}) {
+      if (impersonationBlocksBilling(this)) {
+        this.showToast(IMPERSONATE_BILLING_BLOCKED, 'error');
+        return;
+      }
       if (!this.supabase) {
         this.showToast('Brak połączenia z serwisem. Odśwież stronę.', 'error');
         return;
+      }
+      if (opts.subscriptionUpdate && typeof this.confirmAsync === 'function') {
+        const t = this.activePaidTierForUi;
+        const when = this.subscriptionRenewalDateFormatted;
+        const whenLabel = when && when !== '—' ? when : 'końca opłaconego okresu';
+        let confirmed = true;
+        if (t === 'tier1' || t === 'tier2') {
+          confirmed = await this.confirmAsync({
+            title: 'Obniżyć plan do Starter?',
+            message:
+              'Starter zacznie obowiązywać od ' +
+              whenLabel +
+              ' (następny okres rozliczeniowy). Do tej daty zostajesz na Standard — własna domena i pełna paleta bez zmian. W portalu Stripe potwierdzisz zmianę.',
+            yesLabel: 'Przejdź do Stripe',
+            noLabel: 'Anuluj',
+          });
+        } else if (t === 'tier0') {
+          confirmed = await this.confirmAsync({
+            title: 'Podnieść plan do Standard?',
+            message:
+              'Po potwierdzeniu w Stripe Standard zwykle włączamy od razu (dopłata proporcjonalna za pozostałe dni okresu). Szczegóły i kwotę zobaczysz w portalu przed obciążeniem karty.',
+            yesLabel: 'Przejdź do Stripe',
+            noLabel: 'Anuluj',
+          });
+        }
+        if (!confirmed) return;
       }
       this.isPortalLoading = true;
       try {
@@ -452,7 +494,10 @@
             await this.syncStripeSubscription({ silent: true });
             await this.loadData();
             this.setTab('subscription');
-            this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
+            this.showToast(
+              'Status subskrypcji odświeżony. Jeśli obniżyłeś pakiet, nowy plan zaczyna obowiązywać od końca opłaconego okresu.',
+              'success',
+            );
           } catch (e) {
             console.error(e);
             this.showToast(

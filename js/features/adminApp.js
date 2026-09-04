@@ -878,6 +878,7 @@
        * Portal Stripe — tylko przy żywej / anulowanej sub Stripe (nie przy samym grancie ręcznym).
        */
       get showStripeBillingPortal() {
+        if (this.isImpersonating) return false;
         if (this.hasStripeLiveSubscription) return true;
         const sub = this.billingSubscriptionView;
         const cid = typeof sub?.stripe_customer_id === 'string' ? sub.stripe_customer_id.trim() : '';
@@ -1572,6 +1573,7 @@
       /** Czy deep link do zmiany planu w portalu Stripe ma sens (active/trialing, nie wygasająca). */
       canOpenPortalPlanChangeFlow() {
         return (
+          !this.isImpersonating &&
           this.shouldUseStripePortalForPlanChange() &&
           this.hasActivePaidSubscription &&
           !this.isSubscriptionCanceledButValid

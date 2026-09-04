@@ -65,8 +65,8 @@
     <!-- Onboarding: window.DFOPS_attachOnboardingPanel (wizard + Driver.js tour) — przed adminApp.js. -->
     <script defer src="js/features/onboarding/onboardingPanel.js?v=20260904a"></script>
     <!-- Billing: window.DFOPS_attachBillingPanel (checkout / portal / sync) — przed adminApp.js. -->
-    <script defer src="js/features/billing-panel/billingPanel.js?v=20260904b"></script>
-    <script defer src="js/features/adminApp.js?v=20260904b"></script>
+    <script defer src="js/features/billing-panel/billingPanel.js?v=20260904c"></script>
+    <script defer src="js/features/adminApp.js?v=20260904c"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
     <link rel="stylesheet" href="css/styles.css?v=20260523a">
@@ -2812,7 +2812,7 @@
                                         <p class="font-bold text-amber-900 mb-2">Najpierw zrezygnuj z subskrypcji w Stripe</p>
                                         <p class="text-amber-900/90 leading-relaxed mb-3">Masz aktywną subskrypcję rozliczaną przez Stripe. Anuluj ją w portalu płatności (faktury, anulowanie). Gdy status subskrypcji w Stripe będzie <strong>anulowany</strong>, możesz poprosić o usunięcie konta.</p>
                                         <button type="button" @click="setTab('subscription')" class="mr-3 text-sm font-semibold text-slate-800 underline decoration-slate-300 underline-offset-2 hover:text-slate-900">Przejdź do subskrypcji</button>
-                                        <button type="button" @click="openCustomerPortal()" :disabled="isPortalLoading" class="text-sm font-semibold text-slate-800 underline decoration-slate-300 underline-offset-2 hover:text-slate-900 disabled:opacity-50">Otwórz portal Stripe</button>
+                                        <button type="button" x-show="!isImpersonating" x-cloak @click="openCustomerPortal()" :disabled="isPortalLoading" class="text-sm font-semibold text-slate-800 underline decoration-slate-300 underline-offset-2 hover:text-slate-900 disabled:opacity-50">Otwórz portal Stripe</button>
                                     </div>
                                     <p class="text-sm text-red-600 mb-4">Usunięcie konta jest nieodwracalne. Utracisz dostęp do swojej strony i wszystkich danych. Otworzymy szkic wiadomości e-mail do obsługi.</p>
                                     <button type="button"
@@ -2830,6 +2830,10 @@
                     <div x-show="activeTab === 'subscription'" x-transition.opacity x-cloak>
                         <div class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5">
                             <h2 class="font-serif text-2xl tracking-tight text-slate-900 mb-2">Subskrypcja</h2>
+                            <div x-show="isImpersonating" x-cloak class="mb-6 rounded-lg border border-amber-200 bg-amber-50/90 px-4 py-3 text-sm leading-relaxed text-amber-950">
+                                <p class="font-bold text-amber-900 mb-1">God Mode — tylko podgląd</p>
+                                <p>Rozliczenia klienta są odczytem. Portal Stripe (karta, faktury) i Checkout są zablokowane — to Twoja sesja superadmina, nie klienta.</p>
+                            </div>
                             <p x-show="!hasActivePaidSubscription" class="text-sm text-slate-600 leading-relaxed max-w-2xl">Masz 14 dni na wybranie pakietu i pierwszą opłatę. Dopóki płatność nie zostanie zaksięgowana, konto pozostaje w okresie próbnym — z ograniczeniami i komunikatem w panelu.</p>
                             <p x-show="hasManualGrantAccess && !hasStripeLiveSubscription" x-cloak class="text-sm text-slate-600 leading-relaxed max-w-2xl">Pakiet został <strong class="text-slate-900">aktywowany ręcznie</strong> (bez karty). Dostęp do <span class="tabular-nums font-semibold" x-text="subscriptionRenewalDateFormatted"></span>. Możesz w każdej chwili przejść na płatność kartą poniżej — wtedy rozliczenia przejmie Stripe.</p>
                             <p x-show="hasStripeLiveSubscription && !isSubscriptionCanceledButValid" x-cloak class="text-sm text-slate-600 leading-relaxed max-w-2xl">Status pakietu i rozliczenia w jednym miejscu. Zmiany karty, faktur i planu realizujesz w bezpiecznym portalu Stripe — poniżej skróty do najczęstszych akcji.</p>
@@ -2884,7 +2888,7 @@
                                 </div>
 
                                 <!-- Zarządzanie przez Stripe -->
-                                <div x-show="showStripeBillingPortal" x-cloak id="dfops-portal-stripe" class="mt-8 border-t border-slate-200/80 pt-8">
+                                <div x-show="showStripeBillingPortal && !isImpersonating" x-cloak id="dfops-portal-stripe" class="mt-8 border-t border-slate-200/80 pt-8">
                                     <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between mb-5">
                                         <div>
                                             <h3 class="text-sm font-bold text-slate-900">Zarządzanie rozliczeniami</h3>
@@ -2916,6 +2920,9 @@
                                             <span x-show="isPortalLoading" x-cloak>Łączenie…</span>
                                         </button>
                                     </div>
+                                    <p x-show="canOpenPortalPlanChangeFlow() && activePaidTierForUi === 'tier1'" x-cloak class="mt-3 text-xs leading-relaxed text-slate-500 max-w-xl">
+                                        Obniżenie do Starter zaczyna obowiązywać od <strong class="tabular-nums text-slate-700" x-text="subscriptionRenewalDateFormatted"></strong> (następny okres). Do tej daty zostajesz na Standard — własna domena i pełna paleta bez zmian.
+                                    </p>
                                     <div x-show="hasActivePaidSubscription && !isSubscriptionCanceledButValid" x-cloak class="mt-6 flex flex-col gap-2 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
                                         <p class="text-xs text-slate-500 leading-relaxed max-w-md">Rezygnacja z odnowień — w portalu Stripe (możliwa oferta retencyjna).</p>
                                         <button type="button" @click="openCustomerPortal({ subscriptionCancel: true })" :disabled="isPortalLoading || saving"
@@ -2925,14 +2932,14 @@
                                         </button>
                                     </div>
                                 </div>
-                                <p x-show="!showStripeBillingPortal" class="mt-6 text-xs text-slate-500 leading-relaxed border-t border-slate-100 pt-6">
+                                <p x-show="!showStripeBillingPortal && !isImpersonating" class="mt-6 text-xs text-slate-500 leading-relaxed border-t border-slate-100 pt-6">
                                     Portal Stripe (karta, faktury, zmiana planu) pojawi się po pierwszej zaksięgowanej płatności.
                                 </p>
                             </div>
                         </div>
 
                         <!-- Wybór pakietu — trial lub grant ręczny (można przejść na kartę Stripe) -->
-                        <div x-show="!hasStripeLiveSubscription" x-cloak>
+                        <div x-show="!hasStripeLiveSubscription && !isImpersonating" x-cloak>
                         <div class="mb-6 rounded-xl border border-slate-200/70 bg-white p-5 shadow-panel ring-1 ring-slate-900/5">
                             <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Twój aktualny plan</p>
                             <p class="text-lg font-bold text-slate-900" x-text="planDisplayLabel"></p>
@@ -3060,7 +3067,7 @@
                             <p class="mt-4 text-xs text-slate-400">Pełne zasady są w <a href="/regulamin.html" target="_blank" rel="noopener noreferrer" class="text-slate-500 underline decoration-slate-300 underline-offset-2 hover:text-accent">Regulaminie</a> i <a href="/polityka.html" target="_blank" rel="noopener noreferrer" class="text-slate-500 underline decoration-slate-300 underline-offset-2 hover:text-accent">Polityce Prywatności</a>. Pytania: <a href="mailto:kontakt@dfops.eu" class="text-slate-500 underline decoration-slate-300 underline-offset-2 hover:text-accent">kontakt@dfops.eu</a>.</p>
                         </div>
 
-                        <div class="mt-10 max-w-2xl border-t border-slate-200/80 pt-8">
+                        <div x-show="!isImpersonating" x-cloak class="mt-10 max-w-2xl border-t border-slate-200/80 pt-8">
                             <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Synchronizacja ze Stripe</p>
                             <p class="mb-4 text-sm leading-relaxed text-slate-600">Jeśli opłata lub zmiana planu w Stripe nie pojawiła się od razu w panelu, możesz wymusić odczyt subskrypcji i zapis do bazy — bez ponownego wpisywania karty.</p>
                             <button type="button"

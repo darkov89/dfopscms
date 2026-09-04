@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-09-04 — PR-3 billing attach (checkout / portal / sync)
+**Ostatnia aktualizacja:** 2026-09-04 — God Mode: blokada portalu Stripe; info o obniżce planu od następnego okresu
 
 ---
 
@@ -120,7 +120,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 - **i18n treści:** `meta.locales` + `meta.translationMode` (`ai`|`manual`); przełącznik języka w headerze tylko gdy >1 locale; sync AI po zmianie PL.
 - **Draft vs published:** auto-save debounce 1000ms → `draft_content`; `publishChanges()` → `content`; **Podgląd prywatny** (`dfcms_preview=1` + sesja właściciela) działa przy wygasłym trial / `billing_failed_at` — baner czerwony, LIVE zablokowany dla gości; link w panelu: „Podgląd prywatny”.
 - **Subskrypcja panel:** `hasActivePaidSubscription` = żywa sub Stripe **lub** aktywny grant ręczny (`grant_source=manual` + `current_period_end` w przyszłości). Portal / upgrade Stripe tylko przy `hasStripeLiveSubscription`. Przy samym grancie: karta statusu + karuzela Checkout (klient może podpiąć kartę — webhook ustawia `grant_source=stripe`).
-- **God Mode:** `godmode.html` — nawigacja Start + karty: **Strona demo** / **Strona klienta** / **Zarządzaj stronami** (filtry wszyscy/klienci/demo). Edge: `god-provision-site`, `god-manage-demo`, `god-grant-subscription`. Impersonacja (`admin.html?impersonate={slug}`): działa też dla dem (`user_id=null`); billing właściciela read-only; checkout zablokowany.
+- **God Mode:** `godmode.html` — nawigacja Start + karty: **Strona demo** / **Strona klienta** / **Zarządzaj stronami** (filtry wszyscy/klienci/demo). Edge: `god-provision-site`, `god-manage-demo`, `god-grant-subscription`. Impersonacja (`admin.html?impersonate={slug}`): działa też dla dem (`user_id=null`); billing właściciela **read-only**; Checkout **i Customer Portal** zablokowane (panel + Edge `returnUrl` z `?impersonate=`).
 - **Multi-site:** jeden `user_id` może mieć wiele `pages`; panel: `listCurrentUserPages` + selektor w nagłówku gdy >1; zapis po `pages.id`. Billing nadal 1:1 `billing_profiles` ↔ user (lustro na wszystkie strony usera).
 
 ### 1.5.2 Panel admin — IA (2026-07)
@@ -392,6 +392,10 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-09-04 — God Mode: portal Stripe zablokowany; obniżka planu od następnego okresu
+
+Impersonacja nie może otworzyć Customer Portal / Checkout (karta klienta). Guard w `DFOPS_attachBillingPanel` (`openCustomerPortal`, `subscribe`, `executeStripeCheckout`, `syncStripeSubscription`) + ukrycie przycisków w `tab-subscription` / `tab-account`. Edge: `assertNotImpersonateReturnUrl` w `create-portal-session` i `create-checkout`. Obniżka Standard → Starter: confirm przed portalem + stały opis przy przycisku (Starter od `current_period_end`; do tej daty Standard).
 
 ### 2026-09-04 — PR-3: billing attach (checkout / portal / sync)
 

@@ -5,6 +5,7 @@ import { createClient } from "npm:@supabase/supabase-js@^2.39.0";
 import { findBillingProfileByUserId } from "../_shared/stripeBilling.ts";
 import {
   assertAllowedReturnUrl,
+  assertNotImpersonateReturnUrl,
   buildCorsHeadersForRequest,
 } from "../_shared/allowedOrigins.ts";
 
@@ -70,6 +71,7 @@ serve(async (req) => {
     const returnUrl = assertAllowedReturnUrl(
       typeof body?.returnUrl === "string" ? body.returnUrl : "",
     );
+    assertNotImpersonateReturnUrl(returnUrl);
 
     const supabase = createClient(supabaseUrl, serviceRole, {
       auth: { persistSession: false, autoRefreshToken: false },
