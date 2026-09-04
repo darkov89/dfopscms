@@ -62,7 +62,7 @@ Ten sam wzorzec — **nie** powrót do mixins per warstwa techniczna (rollback 2
 
 | Moduł | Katalog | Hook |
 |---------------------|---------|------|
-| Kreator + Driver.js tour + welcome | `js/features/onboarding/` | `DFOPS_attachOnboardingPanel` |
-| Subskrypcja / billing UI (PR-3) | `js/features/billing-panel/` | `DFOPS_attachBillingPanel` |
+| Kreator + Driver.js tour + welcome | `js/features/onboarding/` | `DFOPS_attachOnboardingPanel` (**zrobiony**, PR-2) |
+| Subskrypcja / billing UI | `js/features/billing-panel/` | `DFOPS_attachBillingPanel` (**zrobiony**, PR-3) |
 
 Zapowiadany tu wcześniej `wizard-panel` / `DFOPS_attachWizardPanel` **jest** onboardingu: wizard i tour zostają w **jednym** module (`docs/specs/admin-split.md` §4 — rollback 2026-07-04).

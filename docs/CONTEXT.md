@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-09-04 — PR-2 onboarding attach (wizard + Driver.js)
+**Ostatnia aktualizacja:** 2026-09-04 — PR-3 billing attach (checkout / portal / sync)
 
 ---
 
@@ -78,7 +78,7 @@ Użytkownik → Auth → pages.content + pages.billing_plan + billing_profiles
 | **Backend** | `pages`, `billing_profiles`, `superadmins`, RLS. Schemat baseline: `20260603072317_remote_schema.sql`; God Mode: `20260623100512_add_god_mode.sql`. |
 | **Płatności** | Starter `tier0`, Standard `tier1`, Custom poza Stripe. Secrets: `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_STARTER_YEARLY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_PRO_YEARLY`. wFirma: `WFIRMA_*`, ledger `wfirma_invoice_ledger`. |
 
-**Split panelu JS:** kernel Alpine + pionowe attach-e (onboarding, billing) — spec [`docs/specs/admin-split.md`](specs/admin-split.md). **PR-0:** rejestr `onAfterLoadData` / `onAfterPublish`. **PR-1:** `js/core/wizardRules.js`. **PR-2:** `js/features/onboarding/onboardingPanel.js` (`DFOPS_attachOnboardingPanel`) — metody wizard + Driver.js tour + welcome w jednym module; pola i gettery na kernelu; `maybeResumeOnboardingAfterLoad` przez `onAfterLoadData`. Billing UI = PR-3.
+**Split panelu JS:** kernel Alpine + pionowe attach-e (onboarding, billing) — spec [`docs/specs/admin-split.md`](specs/admin-split.md). **PR-0:** rejestr `onAfterLoadData` / `onAfterPublish`. **PR-1:** `js/core/wizardRules.js`. **PR-2:** `js/features/onboarding/onboardingPanel.js` (`DFOPS_attachOnboardingPanel`). **PR-3:** `js/features/billing-panel/billingPanel.js` (`DFOPS_attachBillingPanel`) — checkout, portal, sync, trial modal; pola i gettery planu/trial/locków na kernelu; `loadBillingProfile` nadal wołane z `loadData` (kolejność); toasty powrotu przez `onAfterLoadData`.
 
 **Model pakietów:**
 
@@ -147,7 +147,7 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 
 **Progressive disclosure:** Kontakt (rezerwacje na górze; adres/mapa, WhatsApp, social w `<details>`); Baner (CTA w `<details>`; manifesto → osobna zakładka); Wygląd (logo + presety kolorów; reszta w „Ustawienia zaawansowane…”).
 
-**Panel JS:** kernel `adminApp.js` + attach-e: growth, stats, AI, i18n, **onboarding** (`DFOPS_attachOnboardingPanel` — wizard + Driver.js). HTML partials + `build:admin`.
+**Panel JS:** kernel `adminApp.js` + attach-e: growth, stats, AI, i18n, **onboarding** (`DFOPS_attachOnboardingPanel` — wizard + Driver.js), **billing** (`DFOPS_attachBillingPanel` — checkout / portal / sync). HTML partials + `build:admin`.
 
 ### 1.5.1 Theme-aware panel (`themeConfig`) — wzorzec
 
@@ -392,6 +392,10 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-09-04 — PR-3: billing attach (checkout / portal / sync)
+
+Metody subskrypcji (Checkout + Turnstile, Customer Portal, sync Stripe, trial modal, toasty powrotu) → [`js/features/billing-panel/billingPanel.js`](../js/features/billing-panel/billingPanel.js) (`window.DFOPS_attachBillingPanel`). Pola (`checkoutLoading`, `billingProfile`, …) i gettery planu/trial/locków (`isTrialPublicBlocked`, `isCustomDomainLocked`, …) zostają w `createAdminApp`. `loadBillingProfile` nadal await w `loadData` (kolejność przed enforce* i onboardingiem). Toasty: `onAfterLoadData` → `billingAfterLoad` (bez wrapu `loadData`). `deleteAccount` zostaje w kernelu. Script w `01-head.html` przed `adminApp.js`. Spec: [`docs/specs/admin-split.md`](specs/admin-split.md) §5 / §12 Czat 4.
 
 ### 2026-09-04 — PR-2: onboarding attach (wizard + Driver.js)
 
