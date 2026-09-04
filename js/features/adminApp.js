@@ -1,5 +1,4 @@
 ;(function () {
-  /** Pusty szkielet `content` — Alpine nie wywołuje wtedy błędów typu `null.pl` przed `loadData`. */
   function formatResendSignupError(err) {
     if (!err) return 'Nie udało się wysłać maila.';
     if (typeof err !== 'object') return String(err) || 'Nie udało się wysłać maila.';
@@ -37,28 +36,9 @@
     return typeof v === 'string' && String(v).trim().length > 0;
   }
 
-  const BOOKING_MODES = new Set(['schedule', 'embed', 'button', 'both']);
-
-  /**
-   * Smart Booking: normalizuje `contact.booking_url` (kanoniczne; legacy `bookingUrl`/`booksyUrl`
-   * zsynchronizowane) oraz `settings.booking_mode` ('schedule' | 'embed' | 'button' | 'both').
-   * Brak trybu (stare treści) → inferencja: Calendly = embed, inny URL = button, pusty = schedule.
-   */
   function normalizeBookingSettings(plBlock) {
-    if (!plBlock || typeof plBlock !== 'object') return;
-    if (!plBlock.contact || typeof plBlock.contact !== 'object') plBlock.contact = {};
-    const contact = plBlock.contact;
-    const raw = String(contact.booking_url || contact.bookingUrl || contact.booksyUrl || '').trim();
-    contact.booking_url = raw;
-    contact.bookingUrl = raw;
-    contact.booksyUrl = raw;
-    contact.booksyIframeUrl = '';
-    if (!plBlock.settings || typeof plBlock.settings !== 'object') plBlock.settings = {};
-    const mode = String(plBlock.settings.booking_mode || '').trim();
-    if (!BOOKING_MODES.has(mode)) {
-      plBlock.settings.booking_mode = !raw
-        ? 'schedule'
-        : (raw.toLowerCase().includes('calendly') ? 'embed' : 'button');
+    if (typeof window.DFOPS_normalizeBookingSettings === 'function') {
+      window.DFOPS_normalizeBookingSettings(plBlock);
     }
   }
 
@@ -99,13 +79,6 @@
     }
     const legacy = ['', 'template', 'brand', 'hero', 'offer', 'about', 'contact'];
     return legacy[index] || 'template';
-  }
-
-  function wizardOfferSection(theme) {
-    if (typeof window.DFOPS_wizardOfferSection === 'function') {
-      return window.DFOPS_wizardOfferSection(theme);
-    }
-    return themeHasSection(theme, 'services') ? 'services' : null;
   }
 
   /** Zakładki Studia — zgodnie z przyciskami w `admin.html` (hash w URL przy `setTab`). */
@@ -191,19 +164,6 @@
     return slug;
   }
 
-  function readWizardStateFromStorage(slug) {
-    if (typeof window.DFOPS_readWizardStateFromStorage === 'function') {
-      return window.DFOPS_readWizardStateFromStorage(slug);
-    }
-    return null;
-  }
-
-  function writeWizardStateToStorage(slug, step, theme) {
-    if (typeof window.DFOPS_writeWizardStateToStorage === 'function') {
-      window.DFOPS_writeWizardStateToStorage(slug, step, theme);
-    }
-  }
-
   function clearWizardStateFromStorage(slug) {
     if (typeof window.DFOPS_clearWizardStateFromStorage === 'function') {
       window.DFOPS_clearWizardStateFromStorage(slug);
@@ -251,77 +211,7 @@
     return getWizardTemplateIds().includes(id) ? id : 'beauty';
   }
 
-  function normalizeWizardRestore(step, wizardTheme, pageTheme) {
-    if (typeof window.DFOPS_normalizeWizardRestore === 'function') {
-      return window.DFOPS_normalizeWizardRestore(step, wizardTheme, pageTheme);
-    }
-    return { step, theme: normalizeWizardTheme(wizardTheme || pageTheme) };
-  }
-
-  function emptyWizardService(theme) {
-    if (typeof window.DFOPS_emptyWizardService === 'function') {
-      return window.DFOPS_emptyWizardService(theme);
-    }
-    return {
-      title: '',
-      desc: '',
-      price: '',
-      duration: '',
-      details: '',
-      icon: theme === 'services' ? 'wrench' : '',
-    };
-  }
-
-  function emptyWizardMenuItem() {
-    if (typeof window.DFOPS_emptyWizardMenuItem === 'function') {
-      return window.DFOPS_emptyWizardMenuItem();
-    }
-    return { category: '', name: '', ingredients: '', price: '' };
-  }
-
-  function prepareWizardMenuStep(pl, theme) {
-    if (typeof window.DFOPS_prepareWizardMenuStep === 'function') {
-      window.DFOPS_prepareWizardMenuStep(pl, theme);
-    }
-  }
-
-  function syncWizardDerivedFields(pl, theme) {
-    if (typeof window.DFOPS_syncWizardDerivedFields === 'function') {
-      window.DFOPS_syncWizardDerivedFields(pl, theme);
-    }
-  }
-
-  function prepareWizardServicesStep(pl, theme) {
-    if (typeof window.DFOPS_prepareWizardServicesStep === 'function') {
-      window.DFOPS_prepareWizardServicesStep(pl, theme);
-    }
-  }
-
-  function prepareWizardManifestoStep(pl, theme) {
-    if (typeof window.DFOPS_prepareWizardManifestoStep === 'function') {
-      window.DFOPS_prepareWizardManifestoStep(pl, theme);
-    }
-  }
-
-  function prepareWizardHeroStep(pl, theme) {
-    if (typeof window.DFOPS_prepareWizardHeroStep === 'function') {
-      window.DFOPS_prepareWizardHeroStep(pl, theme);
-    }
-  }
-
-  function wizardStepSkippable(stepId) {
-    if (typeof window.DFOPS_wizardStepSkippable === 'function') {
-      return window.DFOPS_wizardStepSkippable(stepId);
-    }
-    return stepId === 'offer' || stepId === 'about';
-  }
-
-  function finalizeWizardContent(pl, theme) {
-    if (typeof window.DFOPS_finalizeWizardContent === 'function') {
-      window.DFOPS_finalizeWizardContent(pl, theme);
-    }
-  }
-
+  /** Pusty szkielet `content` — Alpine nie wywołuje wtedy błędów typu `null.pl` przed `loadData`. */
   function createAdminContentShell() {
     return {
       pl: {
@@ -823,7 +713,6 @@
         }
         return Math.min(100, Math.round(sum));
       },
-      // persistWizardUiState / restoreWizardUiFromStorage — attach: DFOPS_attachOnboardingPanel
       /**
        * Żywa subskrypcja Stripe (SID + active/trialing).
        */
@@ -964,7 +853,6 @@
       get shouldSkipFirstRunOnboarding() {
         return this.isTrialPublicBlocked;
       },
-      // dismissTrialSuspendedModal / syncTrialSuspendedModalVisibility — attach: DFOPS_attachBillingPanel
       get isCustomDomainLocked() {
         if (typeof window.DFOPS_planAllowsCustomDomain === 'function') {
           return !window.DFOPS_planAllowsCustomDomain(this.subscriptionPlan);
@@ -1343,8 +1231,6 @@
         if (r) r(result === true ? true : result === false || result == null ? false : result);
       },
 
-      // maybeSyncSubscriptionTabFromStripe — attach: DFOPS_attachBillingPanel (no-op; setTab / loadData nadal wołają)
-
       setTab(tab) {
         const norm = normalizeAdminTabId(tab);
         this.activeTab = norm;
@@ -1412,9 +1298,6 @@
         }
       },
 
-      // maybeShowPaymentReturnToast / maybeShowBillingStatusToastOnce — attach: DFOPS_attachBillingPanel (onAfterLoadData)
-
-      /** Polska data z ISO w subscription.current_period_end (webhook Stripe). */
       /** Zmiana hasła: dopiero po 6+ znakach i zgodności obu pól (po trim). */
       get accountPasswordFieldsTrimmed() {
         return {
@@ -1468,6 +1351,7 @@
       get forcedResetPasswordHintClass() {
         return this.canSubmitForcedPasswordReset ? 'text-emerald-700' : 'text-amber-800';
       },
+      /** Polska data z ISO w subscription.current_period_end (webhook Stripe). */
       get subscriptionRenewalDateFormatted() {
         const raw = this.billingSubscriptionView?.current_period_end;
         if (typeof window.DFOPS_formatSubscriptionPeriodEndPl === 'function') {
@@ -1505,8 +1389,6 @@
       closeSuccessModal() {
         this.showSuccessModal = false;
       },
-
-      // openStripeCustomerPortal / openCustomerPortal — attach: DFOPS_attachBillingPanel
 
       async updatePassword() {
         if (!this.supabase) {
@@ -1580,8 +1462,6 @@
         );
       },
 
-      // dismissSubscriptionActivationBanner — attach: DFOPS_attachBillingPanel
-
       async deleteAccount() {
         if (this.subscriptionBlocksAccountDeletion) {
           this.showToast(
@@ -1608,9 +1488,6 @@
         window.location.href = `mailto:${support}?subject=${encodeURIComponent(subj)}`;
         this.showToast('Otwarto okno wiadomości. Wyślij prośbę o usunięcie konta.', 'info');
       },
-
-      // schedulePostPaymentDataRefresh / schedulePostPortalBillingRefresh /
-      // syncStripeSubscription / syncUserPlanFromBilling — attach: DFOPS_attachBillingPanel
 
       /** Gotowe palety kolorów — zawsze dostępne (freemium). */
       isLocked() {
@@ -2209,8 +2086,6 @@
         return true;
       },
 
-      // loadBillingProfile — attach: DFOPS_attachBillingPanel (kernel zostawia await w loadData)
-
       async loadData() {
         this.isLoading = true;
         this.billingProfileReady = false;
@@ -2595,8 +2470,6 @@
         this._syncAppearanceSettingsAcrossLocales();
         this._writePreviewDraftHandoff();
       },
-      // Checkout Turnstile / subscribe / executeStripeCheckout — attach: DFOPS_attachBillingPanel
-      // Wizard + Driver.js tour + welcome — metody: DFOPS_attachOnboardingPanel
       async upgradeTemplate() {
         if (!this.content || !this.theme) return;
         this.upgrading = true;

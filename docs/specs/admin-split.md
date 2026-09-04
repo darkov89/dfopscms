@@ -6,6 +6,8 @@ Dokument implementacyjny. **Zaakceptowany 2026-08-18** z trzema wetami CTO (reje
 
 **Cel tej fali:** nie „posiekać plik na mixiny”, tylko **wyjąć dwa pionowe wycinki produktowe** (onboarding/kreator oraz billing UI) i zostawić **kernel** jako composition root Alpine 3.
 
+**Stan (2026-09-04):** fala zamknięta — PR-0…PR-4 na `staging`. Następne wycinki (domains / media / places) **nie** są tą falą.
+
 **Poza zakresem tej fali:** auth, domeny, upload, Google Places, CRUD zakładek treści, appearance, multi-site, Vite/ESM. Zostają w kernelu.
 
 **Twarde zakazy (z rollbacku i z działającego kodu):**
@@ -326,7 +328,7 @@ Kolejność wynika z ryzyka regresji, nie z liczby linii.
    - grant ręczny bez Stripe: karta + karuzela Checkout
    - God Mode impersonate: checkout zablokowany
    - `isTrialPublicBlocked` nadal steruje banerem (getter na kernelu)
-5. **PR-4** — porządki: usunąć martwe helpery z IIFE adminApp, bump `?v=` w head, wpis w CONTEXT §4, zaktualizować growth README (tabela kolejnych modułów: onboarding zrobiony, billing zrobiony; dalej: domains, media, places).
+5. **PR-4** — porządki (**zrobiony** 2026-09-04): usunąć martwe helpery z IIFE adminApp, bump `?v=` w head, wpis w CONTEXT §4, zaktualizować growth README (tabela kolejnych modułów: onboarding zrobiony, billing zrobiony; dalej: domains, media, places).
 
 **Nie łączyć PR-2 i PR-3.** Jeśli staging znów rozjedzie onboarding, rollback dotyczy jednego wycinka.
 

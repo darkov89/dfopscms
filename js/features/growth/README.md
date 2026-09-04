@@ -64,5 +64,8 @@ Ten sam wzorzec — **nie** powrót do mixins per warstwa techniczna (rollback 2
 |---------------------|---------|------|
 | Kreator + Driver.js tour + welcome | `js/features/onboarding/` | `DFOPS_attachOnboardingPanel` (**zrobiony**, PR-2) |
 | Subskrypcja / billing UI | `js/features/billing-panel/` | `DFOPS_attachBillingPanel` (**zrobiony**, PR-3) |
+| Domeny (Custom Hostnames) | — nie teraz | następny kandydat (kernel) |
+| Media / upload | — nie teraz | kernel |
+| Google Places / mapa | — nie teraz | kernel |
 
-Zapowiadany tu wcześniej `wizard-panel` / `DFOPS_attachWizardPanel` **jest** onboardingu: wizard i tour zostają w **jednym** module (`docs/specs/admin-split.md` §4 — rollback 2026-07-04).
+Fala split (`docs/specs/admin-split.md`, PR-0–PR-4) **zamknięta**. Zapowiadany wcześniej `wizard-panel` / `DFOPS_attachWizardPanel` **jest** onboardingu: wizard i tour zostają w **jednym** module (§4 — rollback 2026-07-04). Vite / mixiny / `js/features/admin/` nadal poza zakresem.

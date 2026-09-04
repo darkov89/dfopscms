@@ -5,8 +5,6 @@
 // SoT: docs/specs/admin-split.md §4. Wzorzec attach: js/features/growth/growthPanel.js
 // (metody + onAfterLoadData; bez nowych pól, bez wrapu loadData).
 ;(function () {
-  const BOOKING_MODES = new Set(['schedule', 'embed', 'button', 'both']);
-
   function wizardStepIdAtIndex(theme, index) {
     if (typeof window.DFOPS_wizardStepIdAtIndex === 'function') {
       return window.DFOPS_wizardStepIdAtIndex(theme, index);
@@ -112,25 +110,6 @@
   function finalizeWizardContent(pl, theme) {
     if (typeof window.DFOPS_finalizeWizardContent === 'function') {
       window.DFOPS_finalizeWizardContent(pl, theme);
-    }
-  }
-
-  /** To samo co kernel IIFE — finishWizard normalizuje booking przed publishChanges. */
-  function normalizeBookingSettings(plBlock) {
-    if (!plBlock || typeof plBlock !== 'object') return;
-    if (!plBlock.contact || typeof plBlock.contact !== 'object') plBlock.contact = {};
-    const contact = plBlock.contact;
-    const raw = String(contact.booking_url || contact.bookingUrl || contact.booksyUrl || '').trim();
-    contact.booking_url = raw;
-    contact.bookingUrl = raw;
-    contact.booksyUrl = raw;
-    contact.booksyIframeUrl = '';
-    if (!plBlock.settings || typeof plBlock.settings !== 'object') plBlock.settings = {};
-    const mode = String(plBlock.settings.booking_mode || '').trim();
-    if (!BOOKING_MODES.has(mode)) {
-      plBlock.settings.booking_mode = !raw
-        ? 'schedule'
-        : (raw.toLowerCase().includes('calendly') ? 'embed' : 'button');
     }
   }
 
@@ -385,7 +364,9 @@
       const activeTheme = this.wizardTheme || this.theme;
       if (pl) {
         finalizeWizardContent(pl, activeTheme);
-        normalizeBookingSettings(pl);
+        if (typeof window.DFOPS_normalizeBookingSettings === 'function') {
+          window.DFOPS_normalizeBookingSettings(pl);
+        }
       }
       this.content[this.lang].settings.onboarding_completed = true;
       /** Koniec kreatora = pierwsza publikacja na żywo (przycisk „Opublikuj moją stronę”). */

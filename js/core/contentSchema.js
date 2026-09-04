@@ -8,9 +8,34 @@
    * - 'button'   → duża karta CTA z linkiem zewnętrznym (Booksy, Google Booking, ZnanyLekarz, …),
    * - 'both'     → natywny widok + karta CTA pod nim.
    * Migracja: legacy `contact.booksyUrl` / `bookingUrl` → `booking_url`; brak trybu → inferencja
-   * (Calendly = embed, inny URL = button, pusty = schedule) w `contentUpgrader.js` i `adminApp.js`.
+   * (Calendly = embed, inny URL = button, pusty = schedule) w `contentUpgrader.js`
+   * i `DFOPS_normalizeBookingSettings` (panel persist + finishWizard).
    */
   const CONTACT_BOOKING_DEFAULTS = { booking_url: '', booking_mode: 'schedule' };
+  const BOOKING_MODES = new Set(['schedule', 'embed', 'button', 'both']);
+
+  /**
+   * Smart Booking: normalizuje `contact.booking_url` (kanoniczne; legacy `bookingUrl`/`booksyUrl`
+   * zsynchronizowane) oraz `settings.booking_mode`.
+   * Brak trybu (stare treści) → inferencja: Calendly = embed, inny URL = button, pusty = schedule.
+   */
+  function normalizeBookingSettings(plBlock) {
+    if (!plBlock || typeof plBlock !== 'object') return;
+    if (!plBlock.contact || typeof plBlock.contact !== 'object') plBlock.contact = {};
+    const contact = plBlock.contact;
+    const raw = String(contact.booking_url || contact.bookingUrl || contact.booksyUrl || '').trim();
+    contact.booking_url = raw;
+    contact.bookingUrl = raw;
+    contact.booksyUrl = raw;
+    contact.booksyIframeUrl = '';
+    if (!plBlock.settings || typeof plBlock.settings !== 'object') plBlock.settings = {};
+    const mode = String(plBlock.settings.booking_mode || '').trim();
+    if (!BOOKING_MODES.has(mode)) {
+      plBlock.settings.booking_mode = !raw
+        ? 'schedule'
+        : (raw.toLowerCase().includes('calendly') ? 'embed' : 'button');
+    }
+  }
 
   /**
    * Silnik Wzrostu (G3) — kontrakt `pages.content.pl.settings.growth`.
@@ -81,6 +106,7 @@
 
   window.DFOPS_CONTACT_BOOKING_DEFAULTS = CONTACT_BOOKING_DEFAULTS;
   window.DFOPS_GROWTH_SETTINGS_DEFAULTS = GROWTH_SETTINGS_DEFAULTS;
+  window.DFOPS_normalizeBookingSettings = normalizeBookingSettings;
   window.DFOPS_deepClone = deepClone;
   window.DFOPS_fillDefaults = fillDefaults;
   window.DFOPS_mergeContentWithTemplate = mergeContentWithTemplate;
