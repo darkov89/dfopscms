@@ -60,7 +60,9 @@ callback nie zabija reszty). Stats: to samo z `maybeLazyLoadStats`; wrap `setTab
 Ten sam wzorzec — **nie** powrót do mixins per warstwa techniczna (rollback 2026-07-04,
 `docs/CONTEXT.md` §4):
 
-| Moduł (przyszłość) | Katalog | Hook |
+| Moduł | Katalog | Hook |
 |---------------------|---------|------|
-| Subskrypcja / billing UI | `js/features/billing-panel/` | `DFOPS_attachBillingPanel` |
-| Kreator | `js/features/wizard-panel/` | `DFOPS_attachWizardPanel` |
+| Kreator + Driver.js tour + welcome | `js/features/onboarding/` | `DFOPS_attachOnboardingPanel` |
+| Subskrypcja / billing UI (PR-3) | `js/features/billing-panel/` | `DFOPS_attachBillingPanel` |
+
+Zapowiadany tu wcześniej `wizard-panel` / `DFOPS_attachWizardPanel` **jest** onboardingu: wizard i tour zostają w **jednym** module (`docs/specs/admin-split.md` §4 — rollback 2026-07-04).
