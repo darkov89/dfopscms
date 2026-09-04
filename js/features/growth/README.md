@@ -39,15 +39,33 @@ Growth **czyta** z hosta (nie duplikuje stanu): `this.theme`, `this.slug`, `this
 
 Growth dodaje na `app`: `growthLoading`, `growthBenchmarks`, `growthWeekStats`, `growthPriority`,
 `growthHasEnoughData`, `growthDataError`, oraz metody `loadGrowthData()`, `refreshGrowthPriority()`,
-`dismissGrowthPriority()`, `goToGrowthAction()`. Owija `app.afterLoadData` (jeśli istnieje) lub
-`app.loadData` — po każdym wczytaniu strony odświeża priorytet tygodnia.
+`dismissGrowthPriority()`, `goToGrowthAction()`. Lifecycle: **rejestr** kernela — nie owijanie
+`loadData` / `afterLoadData`:
+
+```javascript
+if (typeof app.onAfterLoadData === 'function') {
+  app.onAfterLoadData(async function growthAfterLoad() {
+    await this.loadGrowthData();
+    this.refreshGrowthPriority();
+  });
+}
+```
+
+Po każdym `loadData` kernel woła `Promise.all` + `fn.call(this)` (płaski stack; jeden padający
+callback nie zabija reszty). Stats: to samo z `maybeLazyLoadStats`; wrap `setTab` zostaje
+(jedna warstwa nawigacji).
 
 ## Kolejne moduły panelu (po Growth)
 
 Ten sam wzorzec — **nie** powrót do mixins per warstwa techniczna (rollback 2026-07-04,
 `docs/CONTEXT.md` §4):
 
-| Moduł (przyszłość) | Katalog | Hook |
+| Moduł | Katalog | Hook |
 |---------------------|---------|------|
-| Subskrypcja / billing UI | `js/features/billing-panel/` | `DFOPS_attachBillingPanel` |
-| Kreator | `js/features/wizard-panel/` | `DFOPS_attachWizardPanel` |
+| Kreator + Driver.js tour + welcome | `js/features/onboarding/` | `DFOPS_attachOnboardingPanel` (**zrobiony**, PR-2) |
+| Subskrypcja / billing UI | `js/features/billing-panel/` | `DFOPS_attachBillingPanel` (**zrobiony**, PR-3) |
+| Domeny (Custom Hostnames) | — nie teraz | następny kandydat (kernel) |
+| Media / upload | — nie teraz | kernel |
+| Google Places / mapa | — nie teraz | kernel |
+
+Fala split (`docs/specs/admin-split.md`, PR-0–PR-4) **zamknięta**. Zapowiadany wcześniej `wizard-panel` / `DFOPS_attachWizardPanel` **jest** onboardingu: wizard i tour zostają w **jednym** module (§4 — rollback 2026-07-04). Vite / mixiny / `js/features/admin/` nadal poza zakresem.

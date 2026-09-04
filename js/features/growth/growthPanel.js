@@ -157,21 +157,12 @@
       }
     };
 
-    // 3) Podpięcie pod lifecycle hosta — owija `afterLoadData` jeśli istnieje, inaczej `loadData`.
-    //    Host bez żadnej z tych metod → growth po prostu nie odświeży się automatycznie (bez crasha).
-    const hookName = typeof app.afterLoadData === 'function' ? 'afterLoadData' : 'loadData';
-    const prevHook = typeof app[hookName] === 'function' ? app[hookName] : null;
-    if (prevHook) {
-      app[hookName] = async function (...args) {
-        const result = await prevHook.apply(this, args);
-        try {
-          await this.loadGrowthData();
-          this.refreshGrowthPriority();
-        } catch (e) {
-          safeDebug(`${hookName} hook`, e);
-        }
-        return result;
-      };
+    // 3) Lifecycle — rejestr kernela (onAfterLoadData). Zakaz owijania loadData.
+    if (typeof app.onAfterLoadData === 'function') {
+      app.onAfterLoadData(async function growthAfterLoad() {
+        await this.loadGrowthData();
+        this.refreshGrowthPriority();
+      });
     }
   };
 })();

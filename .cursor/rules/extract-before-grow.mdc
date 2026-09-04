@@ -1,0 +1,35 @@
+---
+description: Przed implementacją sprawdź, czy nową logikę warto wynieść poza monolit
+alwaysApply: true
+---
+
+# Wynoszenie logiki (przed rozrostem monolitu)
+
+## Checkpoint przy każdym zadaniu
+
+Zanim dopiszesz kod do dużego pliku (zwłaszcza `js/features/adminApp.js`, `admin.html`, `publicSiteApp.js`), **zatrzymaj się i oceń**:
+
+1. Czy to **nowa odpowiedzialność produktowa** (billing UI, wizard, i18n, growth, stats…), a nie jednoliniowy hook?
+2. Czy logika da się wyciągnąć jako **pure functions** w `js/core/` (bez Alpine / Supabase UI)?
+3. Czy panel da się podpiąć wzorcem **attach** (`window.DFOPS_attach*(app)` — mutacja, bez spreadu), jak Growth / stats / i18n?
+
+Jeśli **tak** na 1–2 punkty → **wynieś do osobnego pliku/katalogu**, zamiast puchnąć monolit. W monolicie zostaw cienki hook (kilka linii).
+
+## Tak
+
+- Pionowy wycinek feature → `js/features/<feature>/` + opcjonalnie `js/core/*Rules.js`
+- Reguły domenowe (trial, plan, content upgrade, growth) → `js/core/`, testowalne bez UI
+- HTML panelu → `admin/partials/` + `npm run build:admin` (już jest)
+- Autoryzowany extract istniejącego kodu wg `docs/specs/admin-split.md` (onboarding, billing) — to nie jest „na zapas”
+
+## Nie
+
+- Big-bang split całego `adminApp.js` na mixiny (`auth`/`ui`/`wizard`) — rollback 2026-07-04
+- `{ ...createAdminApp(), ...mixin }` — niszczy gettery Alpine 3
+- Wyciąganie „na zapas” bez konkretnego feature’a / zmiany
+
+## Referencja
+
+- Wzorzec: `js/features/growth/README.md`, `docs/specs/growth.md` §14
+- Historia: `docs/CONTEXT.md` §4 (2026-07-04 — Rollback eksperymentu panelu JS)
+- Split panelu: `docs/specs/admin-split.md`, `.cursor/rules/admin-split.mdc`

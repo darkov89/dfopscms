@@ -63,6 +63,21 @@ export function assertAllowedReturnUrl(url: string): string {
   return normalized;
 }
 
+/**
+ * God Mode impersonation must never open Stripe Checkout / Customer Portal
+ * (JWT is the superadmin — portal would show the operator's customer, or a confused mix).
+ */
+export function assertNotImpersonateReturnUrl(url: string): void {
+  const raw = (url || "").trim();
+  if (!raw) return;
+  const u = new URL(raw);
+  if (u.searchParams.has("impersonate")) {
+    throw new Error(
+      "Portal płatności jest niedostępny w trybie God Mode (impersonacja).",
+    );
+  }
+}
+
 export function buildCorsHeadersForRequest(
   req: Request,
   base: Record<string, string>,

@@ -1,5 +1,4 @@
 ;(function () {
-  /** Pusty szkielet `content` — Alpine nie wywołuje wtedy błędów typu `null.pl` przed `loadData`. */
   function formatResendSignupError(err) {
     if (!err) return 'Nie udało się wysłać maila.';
     if (typeof err !== 'object') return String(err) || 'Nie udało się wysłać maila.';
@@ -37,36 +36,14 @@
     return typeof v === 'string' && String(v).trim().length > 0;
   }
 
-  const BOOKING_MODES = new Set(['schedule', 'embed', 'button', 'both']);
-
-  /**
-   * Smart Booking: normalizuje `contact.booking_url` (kanoniczne; legacy `bookingUrl`/`booksyUrl`
-   * zsynchronizowane) oraz `settings.booking_mode` ('schedule' | 'embed' | 'button' | 'both').
-   * Brak trybu (stare treści) → inferencja: Calendly = embed, inny URL = button, pusty = schedule.
-   */
   function normalizeBookingSettings(plBlock) {
-    if (!plBlock || typeof plBlock !== 'object') return;
-    if (!plBlock.contact || typeof plBlock.contact !== 'object') plBlock.contact = {};
-    const contact = plBlock.contact;
-    const raw = String(contact.booking_url || contact.bookingUrl || contact.booksyUrl || '').trim();
-    contact.booking_url = raw;
-    contact.bookingUrl = raw;
-    contact.booksyUrl = raw;
-    contact.booksyIframeUrl = '';
-    if (!plBlock.settings || typeof plBlock.settings !== 'object') plBlock.settings = {};
-    const mode = String(plBlock.settings.booking_mode || '').trim();
-    if (!BOOKING_MODES.has(mode)) {
-      plBlock.settings.booking_mode = !raw
-        ? 'schedule'
-        : (raw.toLowerCase().includes('calendly') ? 'embed' : 'button');
+    if (typeof window.DFOPS_normalizeBookingSettings === 'function') {
+      window.DFOPS_normalizeBookingSettings(plBlock);
     }
   }
 
-  const WIZARD_STATE_STORAGE_PREFIX = 'dfops_wizard_state_v1:';
   /** Po zmianie szablonu + „wygeneruj AI” — otwórz modal po reloadzie. */
   const AI_AFTER_THEME_SWITCH_KEY = 'dfops_ai_after_theme_switch_v1';
-  const WIZARD_STATE_VERSION = 2;
-  const WIZARD_STEP_COUNT = 6;
 
   function getThemeSections(theme) {
     if (typeof window.DFOPS_getThemeSections === 'function') {
@@ -102,20 +79,6 @@
     }
     const legacy = ['', 'template', 'brand', 'hero', 'offer', 'about', 'contact'];
     return legacy[index] || 'template';
-  }
-
-  function wizardOfferSection(theme) {
-    if (typeof window.DFOPS_wizardOfferSection === 'function') {
-      return window.DFOPS_wizardOfferSection(theme);
-    }
-    return themeHasSection(theme, 'services') ? 'services' : null;
-  }
-
-  function resolveWizardStepIndex(theme, savedStep) {
-    if (typeof window.DFOPS_resolveWizardStepIndex === 'function') {
-      return window.DFOPS_resolveWizardStepIndex(theme, savedStep);
-    }
-    return savedStep;
   }
 
   /** Zakładki Studia — zgodnie z przyciskami w `admin.html` (hash w URL przy `setTab`). */
@@ -201,62 +164,17 @@
     return slug;
   }
 
-  function readWizardStateFromStorage(slug) {
-    try {
-      if (!slug || typeof localStorage === 'undefined') return null;
-      const raw = localStorage.getItem(WIZARD_STATE_STORAGE_PREFIX + slug);
-      if (!raw) return null;
-      const data = JSON.parse(raw);
-      if (!data || typeof data !== 'object') return null;
-      let step = Number(data.step);
-      const theme = typeof data.theme === 'string' ? data.theme : '';
-      if (!Number.isFinite(step) || step < 0 || step > WIZARD_STEP_COUNT) return null;
-      if (data.v !== WIZARD_STATE_VERSION && step >= 4) {
-        step = WIZARD_STEP_COUNT;
-      }
-      const normTheme = normalizeWizardTheme(theme);
-      if (theme && !getWizardTemplateIds().includes(theme)) return null;
-      step = resolveWizardStepIndex(normTheme, step);
-      const maxStep = getActiveWizardStepIds(normTheme).length;
-      if (step < 0) step = 0;
-      if (step > maxStep) step = maxStep;
-      return {
-        step,
-        theme: normTheme,
-      };
-    } catch {
-      return null;
-    }
-  }
-
-  function writeWizardStateToStorage(slug, step, theme) {
-    try {
-      if (!slug || typeof localStorage === 'undefined') return;
-      localStorage.setItem(
-        WIZARD_STATE_STORAGE_PREFIX + slug,
-        JSON.stringify({
-          v: WIZARD_STATE_VERSION,
-          step,
-          theme: normalizeWizardTheme(theme),
-          ts: Date.now(),
-        }),
-      );
-    } catch {
-      /* quota / tryb prywatny */
-    }
-  }
-
   function clearWizardStateFromStorage(slug) {
-    try {
-      if (!slug || typeof localStorage === 'undefined') return;
-      localStorage.removeItem(WIZARD_STATE_STORAGE_PREFIX + slug);
-    } catch {
-      /* ignore */
+    if (typeof window.DFOPS_clearWizardStateFromStorage === 'function') {
+      window.DFOPS_clearWizardStateFromStorage(slug);
     }
   }
 
   /** Przywrócony krok musi być spójny z `pages.theme` (np. nie krok 3–4, gdy szablon w DB wciąż `setup`). */
   function getWizardTemplateIds() {
+    if (typeof window.DFOPS_getWizardTemplateIds === 'function') {
+      return window.DFOPS_getWizardTemplateIds();
+    }
     if (typeof window.DFOPS_getWizardThemeIds === 'function') {
       return window.DFOPS_getWizardThemeIds();
     }
@@ -286,283 +204,14 @@
   }
 
   function normalizeWizardTheme(theme) {
+    if (typeof window.DFOPS_normalizeWizardTheme === 'function') {
+      return window.DFOPS_normalizeWizardTheme(theme);
+    }
     const id = String(theme || '').trim().toLowerCase();
     return getWizardTemplateIds().includes(id) ? id : 'beauty';
   }
 
-  function normalizeWizardRestore(step, wizardTheme, pageTheme) {
-    let s = step;
-    if (pageTheme === 'setup' && s >= 2) {
-      s = 1;
-    }
-    if (s < 0) s = 0;
-    const allowed = new Set(getWizardTemplateIds());
-    let wt = 'beauty';
-    if (pageTheme && allowed.has(pageTheme)) {
-      wt = pageTheme;
-    } else if (wizardTheme && allowed.has(wizardTheme)) {
-      wt = wizardTheme;
-    }
-    if (s > 0) {
-      s = resolveWizardStepIndex(wt, s);
-      const maxStep = getActiveWizardStepIds(wt).length;
-      if (s > maxStep) s = maxStep;
-    }
-    return { step: s, theme: wt };
-  }
-
-  const WIZARD_SEO_SUFFIX = {
-    beauty: 'salon beauty i zabiegi',
-    consultant: 'konsultacje i coaching',
-    fitness: 'trening personalny i fitness',
-    services: 'usługi lokalne',
-    gastro: 'restauracja i menu online',
-    care: 'gabinet i opieka zdrowotna',
-  };
-
-  function getWizardTemplatePl(theme) {
-    const getT = window.DFOPS_getTemplate;
-    if (typeof getT !== 'function') return null;
-    const resolve =
-      typeof window.DFOPS_resolveTemplateKeyForMerge === 'function'
-        ? window.DFOPS_resolveTemplateKeyForMerge
-        : function (t) {
-            return t;
-          };
-    const base = getT(resolve(theme));
-    return base?.pl || null;
-  }
-
-  function normWizardText(v) {
-    return String(v || '')
-      .replace(/<[^>]*>/g, '')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .toLowerCase();
-  }
-
-  function isWizardPlaceholder(current, templateVal) {
-    const c = normWizardText(current);
-    if (!c) return true;
-    const t = normWizardText(templateVal);
-    if (t && c === t) return true;
-    return false;
-  }
-
-  function servicesMatchTemplate(services, tmplServices) {
-    if (!Array.isArray(tmplServices) || tmplServices.length === 0) {
-      return !Array.isArray(services) || services.length === 0;
-    }
-    if (!Array.isArray(services) || services.length !== tmplServices.length) return false;
-    return services.every((s, i) => {
-      const t = tmplServices[i] || {};
-      return (
-        normWizardText(s?.title) === normWizardText(t.title) &&
-        normWizardText(s?.desc) === normWizardText(t.desc) &&
-        normWizardText(s?.price) === normWizardText(t.price)
-      );
-    });
-  }
-
-  function schedulesMatchTemplate(schedule, tmplSchedule) {
-    if (!Array.isArray(tmplSchedule) || tmplSchedule.length === 0) {
-      return !Array.isArray(schedule) || schedule.length === 0;
-    }
-    if (!Array.isArray(schedule) || schedule.length !== tmplSchedule.length) return false;
-    return schedule.every((row, i) => {
-      const t = tmplSchedule[i] || {};
-      return (
-        normWizardText(row?.day) === normWizardText(t.day) &&
-        normWizardText(row?.time) === normWizardText(t.time) &&
-        normWizardText(row?.note) === normWizardText(t.note)
-      );
-    });
-  }
-
-  function emptyWizardService(theme) {
-    return {
-      title: '',
-      desc: '',
-      price: '',
-      duration: '',
-      details: '',
-      icon: theme === 'services' ? 'wrench' : '',
-    };
-  }
-
-  function emptyWizardMenuItem() {
-    return { category: '', name: '', ingredients: '', price: '' };
-  }
-
-  function menuItemsMatchTemplate(items, tmplItems) {
-    if (!Array.isArray(tmplItems) || tmplItems.length === 0) {
-      return !Array.isArray(items) || items.length === 0;
-    }
-    if (!Array.isArray(items) || items.length !== tmplItems.length) return false;
-    return items.every((row, i) => {
-      const t = tmplItems[i] || {};
-      return (
-        normWizardText(row?.name) === normWizardText(t.name) &&
-        normWizardText(row?.price) === normWizardText(t.price)
-      );
-    });
-  }
-
-  function prepareWizardMenuStep(pl, theme) {
-    const tmpl = getWizardTemplatePl(theme);
-    const tmplItems = tmpl?.menu_items;
-    if (menuItemsMatchTemplate(pl.menu_items, tmplItems)) {
-      pl.menu_items = [emptyWizardMenuItem(), emptyWizardMenuItem()];
-    } else if (!Array.isArray(pl.menu_items) || pl.menu_items.length === 0) {
-      pl.menu_items = [emptyWizardMenuItem()];
-    }
-  }
-
-  function syncWizardDerivedFields(pl, theme) {
-    if (!pl) return;
-    const tmpl = getWizardTemplatePl(theme);
-    const name = String(pl.nav?.logo || '').trim();
-    if (!pl.settings) pl.settings = {};
-    if (!pl.hero) pl.hero = {};
-    if (!pl.seo) pl.seo = { title: '', description: '', ogImage: '' };
-
-    if (name) {
-      if (isWizardPlaceholder(pl.settings.business_name, tmpl?.settings?.business_name)) {
-        pl.settings.business_name = name;
-      }
-      if (isWizardPlaceholder(pl.hero.name, tmpl?.hero?.name)) {
-        pl.hero.name = name;
-      }
-    }
-
-    const heroDesc = String(pl.hero?.description || '').trim();
-    if (heroDesc && isWizardPlaceholder(pl.seo.description, tmpl?.seo?.description)) {
-      pl.seo.description = heroDesc;
-    }
-
-    const suffix = WIZARD_SEO_SUFFIX[theme] || 'strona firmowa';
-    if (name && isWizardPlaceholder(pl.seo.title, tmpl?.seo?.title)) {
-      pl.seo.title = `${name} — ${suffix}`;
-    }
-  }
-
-  function prepareWizardServicesStep(pl, theme) {
-    const tmpl = getWizardTemplatePl(theme);
-    const tmplServices = tmpl?.services;
-    if (servicesMatchTemplate(pl.services, tmplServices)) {
-      pl.services = [emptyWizardService(theme), emptyWizardService(theme)];
-    } else if (!Array.isArray(pl.services) || pl.services.length === 0) {
-      pl.services = [emptyWizardService(theme)];
-    }
-  }
-
-  function prepareWizardManifestoStep(pl, theme) {
-    const tmpl = getWizardTemplatePl(theme);
-    if (!pl.manifesto) pl.manifesto = { label: '', title: '', text: '' };
-    if (isWizardPlaceholder(pl.manifesto.text, tmpl?.manifesto?.text)) {
-      pl.manifesto.text = '';
-    }
-    if (isWizardPlaceholder(pl.manifesto.title, tmpl?.manifesto?.title)) {
-      pl.manifesto.title = '';
-    }
-    if (isWizardPlaceholder(pl.manifesto.label, tmpl?.manifesto?.label)) {
-      pl.manifesto.label = '';
-    }
-  }
-
-  /** Wejście w krok banera — wyczyść przykładowe teksty (bez HTML z szablonu w polach). */
-  function prepareWizardHeroStep(pl, theme) {
-    const tmpl = getWizardTemplatePl(theme);
-    if (!pl.hero) pl.hero = {};
-    if (isWizardPlaceholder(pl.hero.headline, tmpl?.hero?.headline)) {
-      pl.hero.headline = '';
-    } else if (pl.hero.headline) {
-      pl.hero.headline = String(pl.hero.headline).replace(/<[^>]*>/g, '').trim();
-    }
-    if (isWizardPlaceholder(pl.hero.description, tmpl?.hero?.description)) {
-      pl.hero.description = '';
-    }
-  }
-
-  /** Czy krok kreatora da się pominąć (ukryje sekcję przy publikacji). */
-  function wizardStepSkippable(stepId) {
-    return stepId === 'offer' || stepId === 'about';
-  }
-
-  function finalizeWizardContent(pl, theme) {
-    if (!pl?.settings) return;
-    const tmpl = getWizardTemplatePl(theme);
-    syncWizardDerivedFields(pl, theme);
-
-    if (Array.isArray(pl.services)) {
-      pl.services = pl.services.filter((s) => normWizardText(s?.title));
-    }
-
-    if (themeHasSection(theme, 'menu') && Array.isArray(pl.menu_items)) {
-      pl.menu_items = pl.menu_items.filter((row) => normWizardText(row?.name));
-    }
-
-    const hasServices =
-      Array.isArray(pl.services) && pl.services.some((s) => normWizardText(s?.title));
-    if (themeHasSection(theme, 'services')) {
-      pl.settings.showServices = hasServices;
-    }
-
-    const hasManifesto = !!normWizardText(pl.manifesto?.text);
-    pl.settings.showManifesto = hasManifesto;
-
-    const galleryImages = pl.gallery?.images;
-    pl.settings.showGallery = Array.isArray(galleryImages) && galleryImages.length > 0;
-
-    const gr = pl.google_reviews || {};
-    const hasGoogleReviews =
-      String(gr.place_query || gr.embed_url || '').trim().length > 0 ||
-      String(pl.contact?.map_place_id || '').trim().length > 0;
-    pl.settings.showGoogleReviews = hasGoogleReviews;
-
-    pl.settings.showFaq =
-      Array.isArray(pl.faq) && pl.faq.some((f) => normWizardText(f?.q || f?.question));
-
-    if (theme === 'services') {
-      const trustQuote = normWizardText(pl.trust?.quote);
-      const tmplQuote = normWizardText(tmpl?.trust?.quote);
-      if (!trustQuote || trustQuote === tmplQuote) {
-        pl.settings.showTrust = false;
-      }
-    }
-
-    if (theme === 'fitness' && schedulesMatchTemplate(pl.schedule, tmpl?.schedule)) {
-      pl.schedule = [];
-    }
-
-    const cta = pl.contact?.cta;
-    if (cta && typeof cta === 'object') {
-      const url = String(cta.button_url || '').trim().toLowerCase();
-      if (
-        !url ||
-        url === 'https://calendly.com/' ||
-        url === 'https://calendly.com' ||
-        isWizardPlaceholder(cta.button_url, tmpl?.contact?.cta?.button_url)
-      ) {
-        cta.enabled = false;
-        if (!String(pl.contact?.booking_url || '').trim()) {
-          cta.button_url = '';
-        }
-      }
-    }
-
-    if (pl.contact) {
-      const booking = String(pl.contact.booking_url || pl.contact.bookingUrl || '').trim();
-      if (booking) {
-        pl.contact.booking_url = booking;
-        pl.contact.bookingUrl = booking;
-        pl.contact.booksyUrl = booking;
-      }
-    }
-
-    pl.settings.showReviews = Array.isArray(pl.reviews) && pl.reviews.length > 0;
-  }
-
+  /** Pusty szkielet `content` — Alpine nie wywołuje wtedy błędów typu `null.pl` przed `loadData`. */
   function createAdminContentShell() {
     return {
       pl: {
@@ -793,6 +442,41 @@
       _stopContentWatch: null,
       /** Cichy auto-save stanu roboczego (draft_content). */
       _draftAutosaveTimer: null,
+      /** Rejestr lifecycle (PR-0) — attach woła onAfterLoadData/onAfterPublish; zakaz owijania loadData. */
+      _afterLoadCallbacks: [],
+      _afterPublishCallbacks: [],
+      onAfterLoadData(fn) {
+        if (typeof fn === 'function') this._afterLoadCallbacks.push(fn);
+      },
+      onAfterPublish(fn) {
+        if (typeof fn === 'function') this._afterPublishCallbacks.push(fn);
+      },
+      async _runAfterLoadCallbacks() {
+        const fns = this._afterLoadCallbacks.slice();
+        await Promise.all(fns.map(function (fn) {
+          try {
+            return Promise.resolve(fn.call(this)).catch(function (err) {
+              if (typeof console !== 'undefined' && console.debug) console.debug('[DFOPS onAfterLoadData]', err);
+            });
+          } catch (err) {
+            if (typeof console !== 'undefined' && console.debug) console.debug('[DFOPS onAfterLoadData]', err);
+            return undefined;
+          }
+        }, this));
+      },
+      async _runAfterPublishCallbacks() {
+        const fns = this._afterPublishCallbacks.slice();
+        await Promise.all(fns.map(function (fn) {
+          try {
+            return Promise.resolve(fn.call(this)).catch(function (err) {
+              if (typeof console !== 'undefined' && console.debug) console.debug('[DFOPS onAfterPublish]', err);
+            });
+          } catch (err) {
+            if (typeof console !== 'undefined' && console.debug) console.debug('[DFOPS onAfterPublish]', err);
+            return undefined;
+          }
+        }, this));
+      },
       draftSaving: false,
       draftSavedOnce: false,
       upgrading: false,
@@ -1029,36 +713,6 @@
         }
         return Math.min(100, Math.round(sum));
       },
-      /** Zapisuje krok i motyw kreatora lokalnie (per slug), żeby po ponownym otwarciu nie zaczynać od zera. */
-      persistWizardUiState() {
-        if (!this.slug || !this.showWizard) return;
-        writeWizardStateToStorage(this.slug, this.wizardStep, this.wizardTheme);
-      },
-      /**
-       * @param {0|1} defaultStepWhenNoSave — gdy brak zapisanego stanu: 0 = ekran wyboru ścieżki, 1 = od razu krok 1 (np. „Uruchom kreator” z checklisty).
-       */
-      restoreWizardUiFromStorage(defaultStepWhenNoSave) {
-        const pageTheme = this.theme || '';
-        const saved = readWizardStateFromStorage(this.slug);
-        if (!saved) {
-          this.wizardStep = defaultStepWhenNoSave === 1 ? 1 : 0;
-          this.wizardTheme = pageTheme === 'setup' ? 'beauty' : pageTheme || 'beauty';
-          return;
-        }
-        const norm = normalizeWizardRestore(saved.step, saved.theme, pageTheme);
-        this.wizardStep = norm.step;
-        this.wizardTheme = norm.theme;
-        const pl = this.content?.pl;
-        const theme = this.wizardTheme || pageTheme;
-        const stepId = wizardStepIdAtIndex(theme, this.wizardStep);
-        if (pl && stepId === 'offer') {
-          if (wizardOfferSection(theme) === 'menu') prepareWizardMenuStep(pl, theme);
-          else prepareWizardServicesStep(pl, theme);
-        }
-        if (pl && stepId === 'about') {
-          prepareWizardManifestoStep(pl, theme);
-        }
-      },
       /**
        * Żywa subskrypcja Stripe (SID + active/trialing).
        */
@@ -1113,6 +767,7 @@
        * Portal Stripe — tylko przy żywej / anulowanej sub Stripe (nie przy samym grancie ręcznym).
        */
       get showStripeBillingPortal() {
+        if (this.isImpersonating) return false;
         if (this.hasStripeLiveSubscription) return true;
         const sub = this.billingSubscriptionView;
         const cid = typeof sub?.stripe_customer_id === 'string' ? sub.stripe_customer_id.trim() : '';
@@ -1197,37 +852,6 @@
       /** Zablokowany trial / brak płatności — bez pierwszego onboardingu (Driver + kreator). */
       get shouldSkipFirstRunOnboarding() {
         return this.isTrialPublicBlocked;
-      },
-      dismissTrialSuspendedModal() {
-        this.showTrialSuspendedModal = false;
-        if (!this.slug) return;
-        try {
-          sessionStorage.setItem('dfops_trial_suspended_dismissed:' + this.slug, '1');
-        } catch (_) {
-          /* ignore */
-        }
-      },
-      syncTrialSuspendedModalVisibility() {
-        if (!this.isTrialPublicBlocked) {
-          this.showTrialSuspendedModal = false;
-          if (this.slug) {
-            try {
-              sessionStorage.removeItem('dfops_trial_suspended_dismissed:' + this.slug);
-            } catch (_) {
-              /* ignore */
-            }
-          }
-          return;
-        }
-        let dismissed = false;
-        if (this.slug) {
-          try {
-            dismissed = sessionStorage.getItem('dfops_trial_suspended_dismissed:' + this.slug) === '1';
-          } catch (_) {
-            dismissed = false;
-          }
-        }
-        this.showTrialSuspendedModal = !dismissed;
       },
       get isCustomDomainLocked() {
         if (typeof window.DFOPS_planAllowsCustomDomain === 'function') {
@@ -1607,16 +1231,6 @@
         if (r) r(result === true ? true : result === false || result == null ? false : result);
       },
 
-      /**
-       * Wejście w zakładkę Subskrypcja NIE odpala już automatycznego synca ze Stripe.
-       * Wcześniej powodowało to drugie `loadData()` (podwójne ładowanie panelu). Status pokazujemy
-       * z `billing_profiles` (loadData), a aktualizację ze Stripe użytkownik uruchamia ręcznie
-       * przyciskiem „Synchronizuj ze Stripe”. Metoda zostaje (call-site’y bez zmian) jako no-op.
-       */
-      maybeSyncSubscriptionTabFromStripe() {
-        /* celowo pusto — patrz docstring (manualny sync zamiast auto). */
-      },
-
       setTab(tab) {
         const norm = normalizeAdminTabId(tab);
         this.activeTab = norm;
@@ -1684,48 +1298,6 @@
         }
       },
 
-      maybeShowPaymentReturnToast() {
-        if (!this.billingProfileReady) return;
-        try {
-          const url = new URL(window.location.href);
-          const p = url.searchParams.get('payment');
-          if (!p) return;
-          url.searchParams.delete('payment');
-          const qs = url.searchParams.toString();
-          window.history.replaceState({}, '', url.pathname + (qs ? `?${qs}` : '') + url.hash);
-          if (p === 'cancelled') {
-            this.showToast('Płatność nie została dokończona — możesz spróbować ponownie w sekcji Subskrypcja.', 'error');
-          }
-        } catch (e) {
-          /* ignore */
-        }
-      },
-
-      /** Jednorazowy toast po pełnym wczytaniu billing_profiles (bez duplikatu przy drugim loadData). */
-      maybeShowBillingStatusToastOnce() {
-        if (this._billingStatusToastShown || !this.billingProfileReady || !this.user) return;
-        if (this.isImpersonating) return;
-        if (this.isSubscriptionCanceledButValid) {
-          this._billingStatusToastShown = true;
-          const when = this.subscriptionRenewalDateFormatted;
-          this.showToast(
-            when && when !== '—'
-              ? `Twoja subskrypcja wygasa ${when}. W portalu Stripe możesz cofnąć zamknięcie lub pobrać faktury.`
-              : 'Twoja subskrypcja wygasa po zakończeniu bieżącego okresu. Zarządzaj nią w portalu Stripe.',
-            'info',
-          );
-          return;
-        }
-        if (this.isBillingCanceled) {
-          this._billingStatusToastShown = true;
-          this.showToast(
-            'Subskrypcja została zakończona — widok publiczny jest wyłączony. Wykup pakiet ponownie w sekcji Subskrypcja.',
-            'error',
-          );
-        }
-      },
-
-      /** Polska data z ISO w subscription.current_period_end (webhook Stripe). */
       /** Zmiana hasła: dopiero po 6+ znakach i zgodności obu pól (po trim). */
       get accountPasswordFieldsTrimmed() {
         return {
@@ -1779,6 +1351,7 @@
       get forcedResetPasswordHintClass() {
         return this.canSubmitForcedPasswordReset ? 'text-emerald-700' : 'text-amber-800';
       },
+      /** Polska data z ISO w subscription.current_period_end (webhook Stripe). */
       get subscriptionRenewalDateFormatted() {
         const raw = this.billingSubscriptionView?.current_period_end;
         if (typeof window.DFOPS_formatSubscriptionPeriodEndPl === 'function') {
@@ -1815,11 +1388,6 @@
 
       closeSuccessModal() {
         this.showSuccessModal = false;
-      },
-
-      /** Stripe Customer Portal (anulacja / metoda płatności) — Edge Function `create-portal-session`. */
-      openStripeCustomerPortal() {
-        return this.openCustomerPortal();
       },
 
       async updatePassword() {
@@ -1887,63 +1455,11 @@
       /** Czy deep link do zmiany planu w portalu Stripe ma sens (active/trialing, nie wygasająca). */
       canOpenPortalPlanChangeFlow() {
         return (
+          !this.isImpersonating &&
           this.shouldUseStripePortalForPlanChange() &&
           this.hasActivePaidSubscription &&
           !this.isSubscriptionCanceledButValid
         );
-      },
-
-      dismissSubscriptionActivationBanner() {
-        this.subscriptionActivationBanner = false;
-      },
-
-      /**
-       * @param {{ subscriptionUpdate?: boolean, subscriptionCancel?: boolean }} [opts]
-       *   subscriptionUpdate — deep link: zmiana planu (upgrade/downgrade).
-       *   subscriptionCancel — deep link: anulowanie subskrypcji w Stripe.
-       */
-      async openCustomerPortal(opts = {}) {
-        if (!this.supabase) {
-          this.showToast('Brak połączenia z serwisem. Odśwież stronę.', 'error');
-          return;
-        }
-        this.isPortalLoading = true;
-        try {
-          const { data: sessionData } = await this.supabase.auth.getSession();
-          const token = sessionData?.session?.access_token;
-          if (!token) throw new Error('Brak autoryzacji');
-          const returnUrlObj = new URL(window.location.href);
-          returnUrlObj.searchParams.set('billing', 'return');
-          returnUrlObj.hash = 'subscription';
-          const returnUrl = returnUrlObj.toString();
-          const sub = this.billingSubscriptionView;
-          const subscriptionId =
-            typeof sub?.stripe_subscription_id === 'string'
-              ? sub.stripe_subscription_id.trim()
-              : '';
-          const portalBody = { returnUrl };
-          if (subscriptionId) portalBody.subscription_id = subscriptionId;
-          if (opts.subscriptionCancel) portalBody.flow = 'subscription_cancel';
-          else if (opts.subscriptionUpdate) portalBody.flow = 'subscription_update';
-          const { data, error } = await this.supabase.functions.invoke('create-portal-session', {
-            body: portalBody,
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (error) throw error;
-          const url = data && typeof data.url === 'string' ? data.url : '';
-          if (url) {
-            window.location.href = url;
-            return;
-          }
-          const errMsg =
-            data && typeof data.error === 'string' ? data.error : 'Brak adresu portalu płatności.';
-          throw new Error(errMsg);
-        } catch (err) {
-          console.error(err);
-          this.showToast('Nie udało się otworzyć portalu płatności. Skontaktuj się z pomocą.', 'error');
-        } finally {
-          this.isPortalLoading = false;
-        }
       },
 
       async deleteAccount() {
@@ -1971,159 +1487,6 @@
           : 'Usunięcie konta';
         window.location.href = `mailto:${support}?subject=${encodeURIComponent(subj)}`;
         this.showToast('Otwarto okno wiadomości. Wyślij prośbę o usunięcie konta.', 'info');
-      },
-
-      /**
-       * Po ?payment=success czekamy na webhook Stripe, potem ponownie loadData (świeży content + trial_blocked_at).
-       * Zwraca true, jeśli zaplanowano opóźnione odświeżenie (pierwsze loadData nie wołamy od razu).
-       */
-      schedulePostPaymentDataRefresh() {
-        try {
-          const u = new URL(window.location.href);
-          if (u.searchParams.get('payment') !== 'success' || !this.user) return false;
-          if (this._postPaymentRefreshTimer != null) {
-            clearTimeout(this._postPaymentRefreshTimer);
-            this._postPaymentRefreshTimer = null;
-          }
-          this.showToast('Przetwarzanie płatności... Odświeżam Twoje konto! ✨', 'success');
-          this.billingProfileReady = false;
-          this.isLoading = true;
-          this._postPaymentRefreshTimer = setTimeout(async () => {
-            this._postPaymentRefreshTimer = null;
-            try {
-              await this.loadData();
-              if (!this.subscriptionPaymentActive()) {
-                await this.syncStripeSubscription({ silent: true });
-                await this.loadData();
-              }
-              if (!this.subscriptionPaymentActive()) {
-                this.showToast(
-                  'Nie widzimy jeszcze potwierdzenia w bazie. Otwórz Subskrypcja → „Synchronizuj ze Stripe” lub poczekaj minutę (webhook Stripe).',
-                  'error',
-                );
-              } else {
-                this.subscriptionActivationBanner = true;
-                this.setTab('subscription');
-                this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
-              }
-            } catch (e) {
-              console.error(e);
-            } finally {
-              this.showTrialSuspendedModal = false;
-              const clean = new URL(window.location.href);
-              clean.searchParams.delete('payment');
-              const qs = clean.searchParams.toString();
-              window.history.replaceState(
-                {},
-                document.title,
-                clean.pathname + (qs ? `?${qs}` : '') + clean.hash,
-              );
-              this.showSuccessModal = false;
-            }
-          }, 4000);
-          return true;
-        } catch {
-          return false;
-        }
-      },
-
-      /**
-       * Po powrocie z portalu Stripe (`?billing=return`) — sync + loadData + toast o zaktualizowanym planie.
-       */
-      schedulePostPortalBillingRefresh() {
-        try {
-          const u = new URL(window.location.href);
-          if (u.searchParams.get('billing') !== 'return' || !this.user) return false;
-          this.billingProfileReady = false;
-          this.isLoading = true;
-          this.showToast('Odświeżam status subskrypcji…', 'info');
-          void (async () => {
-            try {
-              await this.syncStripeSubscription({ silent: true });
-              await this.loadData();
-              this.setTab('subscription');
-              this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
-            } catch (e) {
-              console.error(e);
-              this.showToast(
-                'Nie udało się odświeżyć planu. Użyj Subskrypcja → „Synchronizuj ze Stripe”.',
-                'error',
-              );
-            } finally {
-              const clean = new URL(window.location.href);
-              clean.searchParams.delete('billing');
-              const qs = clean.searchParams.toString();
-              window.history.replaceState(
-                {},
-                document.title,
-                clean.pathname + (qs ? `?${qs}` : '') + clean.hash,
-              );
-              this.isLoading = false;
-            }
-          })();
-          return true;
-        } catch {
-          return false;
-        }
-      },
-
-      /**
-       * Edge Function sync-stripe-subscription — naprawia opóźniony webhook.
-       * @param {{ silent?: boolean }} opts — `silent: true` bez toastów (retry po checkout).
-       */
-      async syncStripeSubscription(opts) {
-        const options = opts && typeof opts === 'object' ? opts : {};
-        const silent = options.silent === true;
-        if (!this.user?.id || !this.supabase) {
-          if (!silent) this.showToast('Zaloguj się, aby zsynchronizować płatności.', 'error');
-          return false;
-        }
-        const { data: sessionData } = await this.supabase.auth.getSession();
-        const token = sessionData?.session?.access_token;
-        if (!token) {
-          if (!silent) this.showToast('Błąd sesji. Wyloguj się i zaloguj ponownie.', 'error');
-          return false;
-        }
-        this.stripeSyncLoading = true;
-        try {
-          const { data, error } = await this.supabase.functions.invoke('sync-stripe-subscription', {
-            body: {},
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          if (error) throw error;
-          if (data && data.ok === false && typeof data.error === 'string') {
-            if (!silent) this.showToast(data.error, 'error');
-            return false;
-          }
-          this._loadDataSubscriptionStripeSync = true;
-          try {
-            await this.loadData();
-          } finally {
-            this._loadDataSubscriptionStripeSync = false;
-          }
-          this.syncUserPlanFromBilling();
-          if (!silent) {
-            this.showToast('Plan został pomyślnie zaktualizowany.', 'success');
-          }
-          return true;
-        } catch (e) {
-          console.error(e);
-          const msg = e instanceof Error ? e.message : String(e);
-          if (!silent) {
-            this.showToast(msg || 'Nie udało się zsynchronizować. Sprawdź połączenie i czy funkcja jest wdrożona.', 'error');
-          }
-          return false;
-        } finally {
-          this.stripeSyncLoading = false;
-        }
-      },
-
-      syncUserPlanFromBilling() {
-        const p = this.subscriptionPlan;
-        if (p === 'tier1' || p === 'tier2') this.userPlan = 'standard';
-        else this.userPlan = 'starter';
       },
 
       /** Gotowe palety kolorów — zawsze dostępne (freemium). */
@@ -2723,32 +2086,6 @@
         return true;
       },
 
-      async loadBillingProfile() {
-        if (!this.supabase) {
-          this.billingProfile = null;
-          return;
-        }
-        // Impersonacja: profil właściciela strony (read-only). Checkout i tak zablokowany.
-        const ownerId = this.isImpersonating
-          ? this.impersonatedPageOwnerId
-          : this.user?.id;
-        if (!ownerId) {
-          this.billingProfile = null;
-          return;
-        }
-        const { data, error } = await this.supabase
-          .from('billing_profiles')
-          .select('*')
-          .eq('user_id', ownerId)
-          .maybeSingle();
-        if (error) {
-          console.warn('[DFCMS] loadBillingProfile:', error.message || error);
-          this.billingProfile = null;
-          return;
-        }
-        this.billingProfile = data || null;
-      },
-
       async loadData() {
         this.isLoading = true;
         this.billingProfileReady = false;
@@ -2888,6 +2225,8 @@
               this.content.pl.settings.subscription,
             );
           }
+          // Billing fetch + plan/trial modal — metody: DFOPS_attachBillingPanel.
+          // Wywołanie zostaje tu (nie w onAfterLoadData): kolejność przed getterami, enforce* i onboardingiem.
           await this.loadBillingProfile();
           this.billingProfileReady = true;
           this.syncUserPlanFromBilling();
@@ -2910,28 +2249,7 @@
           replaceAdminUrlHashForTab(this.activeTab);
           this.maybeSyncSubscriptionTabFromStripe();
 
-          if (!this.isEmailVerified) {
-            this.showWizard = false;
-          } else if (
-            this.content?.pl?.settings?.onboarding_completed === false &&
-            this.incompleteOnboardingChecks.length === 0
-          ) {
-            this.content.pl.settings.onboarding_completed = true;
-            this.content.pl.settings.welcome_onboarding_completed = true;
-            await this.saveData({ silentSuccess: true });
-          }
-
-          this.showWelcomeModal =
-            !!this.user &&
-            this.isEmailVerified &&
-            !this.isForcedPasswordReset &&
-            !this.shouldSkipFirstRunOnboarding &&
-            !this.content?.pl?.settings?.welcome_onboarding_completed;
-
-          if (this.content?.pl?.settings?.welcome_onboarding_completed === true) {
-            this.showWizard = false;
-            if (this.slug) clearWizardStateFromStorage(this.slug);
-          }
+          // Welcome / wizard / tour — DFOPS_attachOnboardingPanel → maybeResumeOnboardingAfterLoad (onAfterLoadData).
 
           this.$nextTick(() => {
             setTimeout(() => {
@@ -2966,14 +2284,12 @@
             this.billingProfileReady = true;
           }
           this.isLoading = false;
-          if (this.user && this.billingProfileReady) {
-            this.maybeShowPaymentReturnToast();
-            this.maybeShowBillingStatusToastOnce();
-          }
+          // Toasty billing — DFOPS_attachBillingPanel → onAfterLoadData (billingAfterLoad).
           if (!this._initialPanelLoadDone && this.billingProfileReady) {
             this._initialPanelLoadDone = true;
           }
           this.maybeOpenAiAfterThemeSwitch();
+          await this._runAfterLoadCallbacks();
         }
       },
 
@@ -3153,697 +2469,6 @@
         this.appearancePickerHex = '';
         this._syncAppearanceSettingsAcrossLocales();
         this._writePreviewDraftHandoff();
-      },
-      clearCheckoutTurnstile() {
-        this.turnstileToken = '';
-        const turnstile = window.turnstile;
-        if (turnstile && typeof turnstile.remove === 'function') {
-          try {
-            if (this.turnstileWidgetId !== null) turnstile.remove(this.turnstileWidgetId);
-            else turnstile.remove('#turnstile-checkout-container');
-          } catch (e) {
-            /* ignore */
-          }
-        }
-        this.turnstileWidgetId = null;
-        const container = document.getElementById('turnstile-checkout-container');
-        if (container) container.innerHTML = '';
-      },
-      closeCheckoutModal(force = false) {
-        if (this.checkoutLoading && !force) return;
-        this.showCheckoutModal = false;
-        this.pendingCheckoutPlan = '';
-        this.pendingCheckoutPlanType = '';
-        this.pendingCheckoutTier = '';
-        this.pendingCheckoutInterval = '';
-        this.clearCheckoutTurnstile();
-      },
-      renderCheckoutTurnstile(attempt = 0) {
-        if (!this.showCheckoutModal) return;
-        const sitekey = cfg?.turnstileSiteKey;
-        const container = document.getElementById('turnstile-checkout-container');
-        const turnstile = window.turnstile;
-        const ready = sitekey && container && turnstile && typeof turnstile.render === 'function';
-
-        if (!ready) {
-          if (attempt < 30) {
-            window.setTimeout(() => this.renderCheckoutTurnstile(attempt + 1), 150);
-          } else {
-            this.showToast('Nie udało się załadować weryfikacji płatności. Odśwież stronę i spróbuj ponownie.', 'error');
-            this.closeCheckoutModal();
-          }
-          return;
-        }
-
-        this.clearCheckoutTurnstile();
-        try {
-          this.turnstileWidgetId = turnstile.render('#turnstile-checkout-container', {
-            sitekey,
-            callback: (token) => {
-              const value = typeof token === 'string' ? token.trim() : '';
-              if (!value || this.checkoutLoading) return;
-              this.turnstileToken = value;
-              void this.executeStripeCheckout(value);
-            },
-            'expired-callback': () => {
-              this.turnstileToken = '';
-            },
-            'error-callback': () => {
-              this.turnstileToken = '';
-              this.showToast('Weryfikacja nie powiodła się. Spróbuj ponownie.', 'error');
-            },
-          });
-        } catch (e) {
-          console.warn('Turnstile render failed', e);
-          this.showToast('Nie udało się uruchomić weryfikacji płatności.', 'error');
-          this.closeCheckoutModal();
-        }
-      },
-      validateWizardStep(step) {
-        const pl = this.content?.pl;
-        if (!pl) return '';
-        const theme = this.wizardActiveTheme;
-        const stepId = wizardStepIdAtIndex(theme, step);
-        if (stepId === 'template') {
-          if (!getWizardTemplateIds().includes(this.wizardTheme)) {
-            return 'Wybierz szablon branżowy.';
-          }
-        }
-        if (stepId === 'brand') {
-          if (!String(pl.nav?.logo || '').trim()) {
-            return 'Podaj nazwę firmy — wyświetli się w menu i buduje rozpoznawalność marki.';
-          }
-        }
-        if (stepId === 'hero') {
-          const tmpl = getWizardTemplatePl(this.wizardTheme || this.theme);
-          if (isWizardPlaceholder(pl.hero?.headline, tmpl?.hero?.headline)) {
-            return 'Podaj główne hasło na stronie — zastąp przykładowy tekst z szablonu.';
-          }
-          if (isWizardPlaceholder(pl.hero?.description, tmpl?.hero?.description)) {
-            return 'Napisz krótki opis pod nagłówkiem — goście muszą wiedzieć, czym się zajmujesz.';
-          }
-        }
-        if (stepId === 'offer') {
-          const offerKind = wizardOfferSection(theme);
-          if (offerKind === 'menu') {
-            const hasMenu =
-              Array.isArray(pl.menu_items) && pl.menu_items.some((row) => normWizardText(row?.name));
-            if (!hasMenu) {
-              return 'Dodaj co najmniej jedno danie z nazwą — goście muszą wiedzieć, co serwujesz.';
-            }
-          } else {
-            const hasService =
-              Array.isArray(pl.services) && pl.services.some((s) => normWizardText(s?.title));
-            if (!hasService) {
-              return 'Dodaj co najmniej jedną usługę z nazwą — klienci muszą wiedzieć, co oferujesz.';
-            }
-          }
-        }
-        if (stepId === 'about') {
-          if (!normWizardText(pl.manifesto?.text)) {
-            return 'Napisz kilka zdań o sobie lub swojej firmie — sekcja „O nas” nie może zostać pusta.';
-          }
-        }
-        if (stepId === 'contact') {
-          const phone = String(pl.contact?.phone || '').trim();
-          const email = String(pl.contact?.email || '').trim();
-          if (!phone && !email) {
-            return 'Podaj numer telefonu lub e-mail — klienci muszą mieć sposób kontaktu.';
-          }
-        }
-        return '';
-      },
-      startWizard() {
-        this.wizardStep = 1;
-        this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
-        this.wizardFieldWarning = '';
-        this.persistWizardUiState();
-      },
-      /** Zamknięcie kreatora bez kończenia — zapis treści + stan kroku w localStorage (wznowienie w „Uruchom Kreator”). */
-      async skipWizard() {
-        if (!this.content?.[this.lang]?.settings) return;
-        const ok = await this.saveData({ silentSuccess: true });
-        if (!ok) return;
-        this.persistWizardUiState();
-        this.showWizard = false;
-        this.wizardStep = 0;
-        this.wizardFieldWarning = '';
-        this.showWizardDismissModal = true;
-      },
-      /** Pomiń bieżącą sekcję kreatora (oferta / o nas) — ukryje ją przy publikacji. */
-      async skipWizardSection() {
-        const activeTheme = this.wizardTheme || this.theme;
-        const stepId = wizardStepIdAtIndex(activeTheme, this.wizardStep);
-        if (!wizardStepSkippable(stepId)) return;
-        const pl = this.content?.pl;
-        if (!pl) return;
-        this.wizardFieldWarning = '';
-        if (!pl.settings) pl.settings = {};
-        if (stepId === 'offer') {
-          if (wizardOfferSection(activeTheme) === 'menu') {
-            pl.menu_items = [];
-          } else {
-            pl.services = [];
-            pl.settings.showServices = false;
-          }
-          prepareWizardManifestoStep(pl, activeTheme);
-        } else if (stepId === 'about') {
-          pl.manifesto = { label: '', title: '', text: '' };
-          pl.settings.showManifesto = false;
-        }
-        const savedOk = await this.saveData({ silentSuccess: true });
-        if (!savedOk) {
-          this.wizardFieldWarning =
-            'Nie udało się zapisać na serwerze. Sprawdź połączenie i spróbuj ponownie.';
-          return;
-        }
-        if (this.wizardStep < this.wizardStepCount) {
-          this.wizardStep++;
-        }
-        this.persistWizardUiState();
-      },
-      wizardCanSkipSection() {
-        const activeTheme = this.wizardTheme || this.theme;
-        return wizardStepSkippable(wizardStepIdAtIndex(activeTheme, this.wizardStep));
-      },
-      async nextWizardStep() {
-        const err = this.validateWizardStep(this.wizardStep);
-        if (err) {
-          this.wizardFieldWarning = err;
-          return;
-        }
-        this.wizardFieldWarning = '';
-
-        const pl = this.content?.pl;
-        const activeTheme = this.wizardTheme || this.theme;
-        const stepId = wizardStepIdAtIndex(activeTheme, this.wizardStep);
-        if (pl && (stepId === 'brand' || stepId === 'hero')) {
-          syncWizardDerivedFields(pl, activeTheme);
-        }
-        if (pl && stepId === 'brand') {
-          prepareWizardHeroStep(pl, activeTheme);
-        }
-        if (pl && stepId === 'hero') {
-          const offerKind = wizardOfferSection(activeTheme);
-          if (offerKind === 'menu') prepareWizardMenuStep(pl, activeTheme);
-          else if (offerKind === 'services') prepareWizardServicesStep(pl, activeTheme);
-        }
-        if (pl && stepId === 'offer') {
-          prepareWizardManifestoStep(pl, activeTheme);
-        }
-
-        if (this.wizardStep === 1 && this.wizardTheme !== this.theme) {
-          if (typeof window.DFOPS_mergeContentWithTemplate !== 'function') {
-            this.showError('Brak konfiguracji szablonów (registry).');
-            return;
-          }
-          const savedContact = JSON.parse(JSON.stringify(this.content?.pl?.contact || {}));
-          const savedLogo = this.content?.pl?.nav?.logo ?? '';
-          const savedLogoImage = this.content?.pl?.nav?.logoImage ?? '';
-          const savedPrivacy = JSON.parse(JSON.stringify(this.content?.pl?.privacy || { mode: 'default', customText: '' }));
-          const savedSubscription = JSON.parse(
-            JSON.stringify(this.content?.pl?.settings?.subscription || {}),
-          );
-          const trialOnlySub =
-            typeof window.DFOPS_stripBillingFromContentSubscription === 'function'
-              ? window.DFOPS_stripBillingFromContentSubscription(savedSubscription)
-              : savedSubscription;
-
-          const merged = window.DFOPS_mergeContentWithTemplate(this.wizardTheme, {});
-          merged.pl.contact = savedContact;
-          merged.pl.privacy = savedPrivacy;
-          if (!merged.pl.nav) merged.pl.nav = {};
-          merged.pl.nav.logo = savedLogo;
-          merged.pl.nav.logoImage = savedLogoImage;
-          if (merged.pl.settings) {
-            merged.pl.settings.subscription = {
-              ...(merged.pl.settings.subscription || {}),
-              ...trialOnlySub,
-            };
-          }
-
-          this.theme = this.wizardTheme;
-          this.content = window.DFOPS_normalizeContent(merged, this.wizardTheme);
-
-          const presets = cfg.presetsByTheme[this.wizardTheme] || [];
-          const cp = this.content.pl.settings.color_preset;
-          if (presets.length && !presets.some((p) => p.id === cp)) {
-            this.content.pl.settings.color_preset = presets[0].id;
-          }
-          this.selectedStyleBundle = '';
-          this.syncUserPlanFromBilling();
-          this.enforceColorPresetForStarter();
-          this.enforceQuickChatForStarter();
-          this.applyThemeStylingFromContent();
-        }
-
-        /** Zapis do bazy przed przejściem dalej — w tym wartości domyślne z szablonu po merge (krok 1). */
-        const savedOk = await this.saveData({ silentSuccess: true });
-        if (!savedOk) {
-          this.wizardFieldWarning =
-            'Nie udało się zapisać na serwerze. Sprawdź połączenie i spróbuj ponownie — albo użyj „Publikuj zmiany” w nagłówku panelu.';
-          return;
-        }
-
-        if (this.wizardStep < this.wizardStepCount) {
-          this.wizardStep++;
-        }
-        this.persistWizardUiState();
-      },
-      wizardAddServiceRow() {
-        const pl = this.content?.pl;
-        if (!pl) return;
-        if (!Array.isArray(pl.services)) pl.services = [];
-        if (pl.services.length >= 3) return;
-        const theme = this.wizardTheme || this.theme || 'beauty';
-        pl.services.push(emptyWizardService(theme));
-      },
-      wizardAddMenuRow() {
-        const pl = this.content?.pl;
-        if (!pl) return;
-        if (!Array.isArray(pl.menu_items)) pl.menu_items = [];
-        if (pl.menu_items.length >= 6) return;
-        pl.menu_items.push(emptyWizardMenuItem());
-      },
-      ensureMenuContentShape() {
-        const pl = this.content?.pl;
-        if (!pl) return;
-        if (!pl.hours || typeof pl.hours !== 'object') {
-          pl.hours = { title: 'Godziny otwarcia', lines: [] };
-        }
-        if (!Array.isArray(pl.hours.lines)) pl.hours.lines = [];
-        if (!Array.isArray(pl.menu_items)) pl.menu_items = [];
-        if (!pl.orders || typeof pl.orders !== 'object') {
-          pl.orders = { label: '', title: '', description: '', call_button: '' };
-        }
-        if (!pl.menu_mode) pl.menu_mode = 'manual';
-      },
-      addMenuHourLine() {
-        this.ensureMenuContentShape();
-        this.content.pl.hours.lines.push('');
-      },
-      addMenuItemRow() {
-        this.ensureMenuContentShape();
-        this.content.pl.menu_items.push(emptyWizardMenuItem());
-      },
-      prevWizardStep() {
-        this.wizardFieldWarning = '';
-        if (this.wizardStep > 1) this.wizardStep--;
-        this.persistWizardUiState();
-      },
-      async finishWizard() {
-        if (!this.content?.[this.lang]?.settings) return;
-        const err = this.validateWizardStep(this.wizardStepCount);
-        if (err) {
-          this.wizardFieldWarning = err;
-          return;
-        }
-        this.wizardFieldWarning = '';
-        const pl = this.content.pl;
-        const activeTheme = this.wizardTheme || this.theme;
-        if (pl) {
-          finalizeWizardContent(pl, activeTheme);
-          normalizeBookingSettings(pl);
-        }
-        this.content[this.lang].settings.onboarding_completed = true;
-        /** Koniec kreatora = pierwsza publikacja na żywo (przycisk „Opublikuj moją stronę”). */
-        const ok = await this.publishChanges({ silentSuccess: true });
-        if (!ok) return;
-        this.showWizard = false;
-        this.wizardStep = 0;
-        this.wizardFieldWarning = '';
-        clearWizardStateFromStorage(this.slug);
-        this.showStudioWelcomeModal = true;
-      },
-      closeStudioWelcomeModal() {
-        this.showStudioWelcomeModal = false;
-        this.setTab('dashboard');
-      },
-
-      resolveDriverFactory() {
-        const pkg = typeof window !== 'undefined' && window.driver && window.driver.js;
-        if (pkg && typeof pkg.driver === 'function') return pkg.driver;
-        return null;
-      },
-
-      /** Zapis w `content` (Supabase): ukończono powitanie / tour — modal nie wraca przy kolejnych logowaniach. */
-      async markWelcomeOnboardingSeen() {
-        if (!this.content?.pl?.settings) return;
-        if (this.content.pl.settings.welcome_onboarding_completed === true) return;
-        this.content.pl.settings.welcome_onboarding_completed = true;
-        await this.saveData({ silentSuccess: true });
-      },
-
-      /**
-       * Oprowadzenie (driver.js): najpierw ekran startowy kreatora (wybór ścieżki), potem podgląd i menu.
-       * Pola treści (nazwa, logo w Studiu) pomijamy — sens mają dopiero po wyborze szablonu w kreatorze.
-       */
-      async startOnboardingTour() {
-        if (this.content?.pl?.settings?.welcome_onboarding_completed === true) return;
-        const driverFactory = this.resolveDriverFactory();
-        if (!driverFactory) {
-          await this.markWelcomeOnboardingSeen();
-          this.openWizardForBuilding();
-          return;
-        }
-
-        const self = this;
-        const ensureSidebarForTour = (driver) => {
-          self.sidebarOpen = true;
-          self.mobileMenuOpen = true;
-          self.$nextTick(() => {
-            requestAnimationFrame(() => {
-              if (driver && typeof driver.refresh === 'function') driver.refresh();
-            });
-          });
-        };
-        // Tour NIE otwiera/zamyka kreatora — pokazuje tylko stałe elementy panelu,
-        // żeby nie „migać” ekranem. Na końcu (przycisk „Przejdź do kreatora”) oddajemy
-        // sterowanie do kreatora na kroku 1 (patrz onDestroyed → openWizardForBuilding).
-        const goToDashboardForTour = (driver) => {
-          self.showWizard = false;
-          self.setTab('dashboard');
-          self.$nextTick(() => {
-            requestAnimationFrame(() => {
-              if (driver && typeof driver.refresh === 'function') driver.refresh();
-            });
-          });
-        };
-        const d = driverFactory({
-          showProgress: true,
-          progressText: 'Krok {{current}} z {{total}}',
-          nextBtnText: 'Dalej',
-          prevBtnText: 'Wstecz',
-          doneBtnText: 'Przejdź do kreatora →',
-          smoothScroll: true,
-          allowClose: true,
-          disableActiveInteraction: true,
-          overlayOpacity: 0.55,
-          overlayColor: '#0f172a',
-          onDestroyed: () => {
-            void self.markWelcomeOnboardingSeen();
-            // Po samouczku od razu ląduj w kreatorze — user zaczyna budować stronę.
-            self.openWizardForBuilding();
-          },
-          steps: [
-            {
-              element: '#dfcms-onboarding-site-preview',
-              popover: {
-                title: 'Najpierw krótka orientacja',
-                description:
-                  'W kilku krokach pokażę Ci panel, a na końcu otworzę kreator, w którym zbudujesz stronę. Ten link „Podgląd strony” zawsze pokaże witrynę tak, jak zobaczą ją goście.',
-                side: 'bottom',
-                align: 'center',
-              },
-              onHighlightStarted: (element, step, { driver }) => {
-                goToDashboardForTour(driver);
-              },
-            },
-            {
-              element: '#dfops-admin-sidebar',
-              popover: {
-                title: 'Menu po lewej',
-                description:
-                  '„Na start” to najważniejsze sekcje strony. Reszta jest w „Więcej treści” i „Ustawieniach”. Na końcu kliknij Opublikuj zmiany w górnym pasku.',
-                side: 'right',
-                align: 'start',
-              },
-              onHighlightStarted: (element, step, { driver }) => {
-                ensureSidebarForTour(driver);
-              },
-            },
-            {
-              element: '#dfcms-onboarding-wizard-btn',
-              popover: {
-                title: 'Kreator krok po kroku',
-                description:
-                  'To Twój przewodnik: wybór szablonu i podstawowe treści (nazwa, kolory, logo, oferta, kontakt). Zawsze możesz go tu uruchomić ponownie, gdy utkniesz.',
-                side: 'right',
-                align: 'center',
-              },
-              onHighlightStarted: (element, step, { driver }) => {
-                ensureSidebarForTour(driver);
-              },
-            },
-            {
-              element: '#dfcms-onboarding-nav-subscription',
-              popover: {
-                title: 'Subskrypcja',
-                description:
-                  'Pakiet, płatność i dostęp do funkcji (np. własna domena). Tu też wrócisz do płatności w Stripe, gdy będzie potrzeba.',
-                side: 'right',
-                align: 'center',
-              },
-              onHighlightStarted: (element, step, { driver }) => {
-                ensureSidebarForTour(driver);
-              },
-            },
-          ],
-        });
-
-        await new Promise((resolve) => this.$nextTick(resolve));
-        requestAnimationFrame(() => {
-          d.drive();
-        });
-      },
-
-      /** Zamknięcie modala powitalnego; przy otwartym kreatorze tylko zapis „widziane”, bez touru pod spodem. */
-      async dismissWelcomeModalAndStartOnboarding() {
-        this.showWelcomeModal = false;
-        if (this.shouldSkipFirstRunOnboarding) return;
-        if (this.content?.pl?.settings?.welcome_onboarding_completed === true) {
-          return;
-        }
-        if (this.showWizard) {
-          await this.markWelcomeOnboardingSeen();
-          return;
-        }
-        // Samouczek startuje na dashboardzie, bez otwierania kreatora — kreator
-        // otworzy się dopiero na końcu touru (onDestroyed → openWizardForBuilding).
-        this.showWizard = false;
-        this.setTab('dashboard');
-        this.sidebarOpen = false;
-        this.mobileMenuOpen = false;
-        await new Promise((resolve) => this.$nextTick(resolve));
-        await this.startOnboardingTour();
-      },
-      /** Otwiera kreator gotowy do budowania (krok 1, wybrany szablon) — używane po samouczku. */
-      openWizardForBuilding() {
-        this.wizardStep = 1;
-        this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
-        this.wizardFieldWarning = '';
-        this.showWizard = true;
-        this.sidebarOpen = false;
-        this.mobileMenuOpen = false;
-        this.persistWizardUiState();
-      },
-      /** Pełny ekran startowy kreatora (wybór ścieżki). */
-      openWizardFromStudio() {
-        if (!this.isEmailVerified) {
-          this.showToast('Potwierdź najpierw adres e-mail — link masz w wiadomości od DFCMS.', 'error');
-          return;
-        }
-        this.restoreWizardUiFromStorage(0);
-        this.wizardFieldWarning = '';
-        this.showWizard = true;
-        this.sidebarOpen = false;
-        this.mobileMenuOpen = false;
-        this.persistWizardUiState();
-      },
-      reopenWizard() {
-        if (!this.isEmailVerified) {
-          this.showToast('Potwierdź najpierw adres e-mail — link masz w wiadomości od DFCMS.', 'error');
-          return;
-        }
-        this.restoreWizardUiFromStorage(1);
-        this.showWizard = true;
-        this.wizardFieldWarning = '';
-        this.persistWizardUiState();
-      },
-      sidebarTabNeedsAttention(tab) {
-        if (!this.content?.pl?.settings || this.content.pl.settings.onboarding_completed === true) return false;
-        const pl = this.content.pl;
-        if (!pl) return false;
-        if (tab === 'settings') {
-          return this.theme === 'setup' || !String(pl.nav?.logo || '').trim();
-        }
-        if (tab === 'contact') {
-          const phone = String(pl.contact?.phone || '').trim();
-          const email = String(pl.contact?.email || '').trim();
-          return !phone && !email;
-        }
-        return false;
-      },
-      goToOnboardingItem(item) {
-        if (!item) return;
-        if (item.openWizard) this.openWizardFromStudio();
-        else if (item.tab) this.setTab(item.tab);
-        this.sidebarOpen = false;
-        this.mobileMenuOpen = false;
-      },
-      closeWizardDismissModal() {
-        this.showWizardDismissModal = false;
-      },
-      async subscribe(planType) {
-        if (this.isImpersonating) {
-          this.showToast('W trybie God Mode płatności klienta nie są obsługiwane z sesji superadmina.', 'error');
-          return;
-        }
-        if (planType === 'premium') {
-          this.showError('Pakiet Premium nie jest już dostępny. Wybierz Starter lub Standard.');
-          return;
-        }
-        const plan = planType === 'pro' ? 'standard' : String(planType || '').trim();
-        if (!plan || plan === 'custom') {
-          this.showError('Pakiet Custom — skorzystaj z formularza zapytania.');
-          return;
-        }
-        const interval = this.billingInterval === 'yearly' ? 'yearly' : 'monthly';
-        if (plan !== 'starter' && plan !== 'standard') {
-          this.showError('Nieprawidłowy plan. Wybierz Starter lub Standard.');
-          return;
-        }
-        if (!this.user?.id) {
-          this.showError('Zaloguj się, aby wykupić subskrypcję.');
-          return;
-        }
-        if (!this.content?.pl?.settings) return;
-        const tier = plan === 'starter' ? 'tier0' : 'tier1';
-        const currentTier =
-          this.subscriptionPlan === 'tier2' ? 'tier1' : this.subscriptionPlan;
-        const isCurrentPaidTier = currentTier === 'tier0' || currentTier === 'tier1';
-
-        if (!this.billingProfileReady) {
-          await this.loadBillingProfile();
-          this.billingProfileReady = true;
-        }
-
-        if (this.shouldUseStripePortalForPlanChange()) {
-          if (isCurrentPaidTier && currentTier === tier) {
-            this.showToast('Masz już wybrany ten plan rozliczeniowy.', 'success');
-            await this.loadData();
-            return;
-          }
-          this.showToast(
-            'Zmianę pakietu wykonasz w portalu Stripe — zobaczysz podsumowanie kosztów i potwierdzisz płatność przed obciążeniem karty.',
-            'info',
-          );
-          await this.openCustomerPortal({ subscriptionUpdate: true });
-          return;
-        }
-
-        this.pendingCheckoutPlan = plan;
-        this.pendingCheckoutPlanType = planType;
-        this.pendingCheckoutTier = tier;
-        this.pendingCheckoutInterval = interval;
-        this.turnstileToken = '';
-        this.showCheckoutModal = true;
-        this.$nextTick(() => {
-          this.renderCheckoutTurnstile();
-        });
-      },
-      async executeStripeCheckout(turnstileToken) {
-        const plan = String(this.pendingCheckoutPlan || '').trim();
-        const planType = String(this.pendingCheckoutPlanType || plan).trim();
-        const tier = String(this.pendingCheckoutTier || '').trim();
-        const interval = this.pendingCheckoutInterval === 'yearly' ? 'yearly' : 'monthly';
-
-        if (!plan || !tier || (plan !== 'starter' && plan !== 'standard')) {
-          this.showToast('Nieprawidłowy plan płatności. Wybierz pakiet jeszcze raz.', 'error');
-          this.closeCheckoutModal();
-          return;
-        }
-        if (!turnstileToken) {
-          this.showToast('Potwierdź, że nie jesteś botem, a potem ponów płatność.', 'error');
-          return;
-        }
-        if (!this.user?.id) {
-          this.showToast('Zaloguj się, aby wykupić subskrypcję.', 'error');
-          this.closeCheckoutModal();
-          return;
-        }
-        if (!this.content?.pl?.settings) {
-          this.showToast('Nie udało się odczytać ustawień strony. Odśwież panel i spróbuj ponownie.', 'error');
-          this.closeCheckoutModal(true);
-          return;
-        }
-
-        this.checkoutLoading = true;
-        if (!this.content.pl.settings.subscription) {
-          this.content.pl.settings.subscription = { plan: 'trial', trial_started_at: new Date().toISOString() };
-        }
-        this.content.pl.settings.subscription.selected_plan = tier;
-        const saved = await this.saveData({ silentSuccess: true });
-        if (!saved) {
-          this.checkoutLoading = false;
-          this.closeCheckoutModal(true);
-          return;
-        }
-
-        const { data: sessionData } = await this.supabase.auth.getSession();
-        const token = sessionData?.session?.access_token;
-        if (!token) {
-          this.showToast('Błąd sesji. Wyloguj się i zaloguj ponownie.', 'error');
-          this.checkoutLoading = false;
-          this.closeCheckoutModal(true);
-          return;
-        }
-        try {
-          const returnUrlObj = new URL(window.location.href);
-          returnUrlObj.searchParams.set('payment', 'success');
-          returnUrlObj.hash = 'subscription';
-          const returnUrl = returnUrlObj.toString();
-
-          const { data, error } = await this.supabase.functions.invoke(
-            'create-checkout',
-            {
-              body: {
-                plan,
-                interval,
-                returnUrl,
-                userEmail: this.user?.email || '',
-                turnstileToken,
-              },
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          );
-          if (error) {
-            const detail =
-              (data && typeof data.error === 'string' && data.error) ||
-              (typeof error.message === 'string' && error.message) ||
-              'Błąd podczas łączenia z systemem płatności.';
-            throw new Error(detail);
-          }
-          const url = data && typeof data.url === 'string' ? data.url : '';
-          if (url) {
-            this.showCheckoutModal = false;
-            this.clearCheckoutTurnstile();
-            window.location.href = url;
-          } else {
-            const errMsg =
-              data && typeof data.error === 'string'
-                ? data.error
-                : 'Brak adresu płatności.';
-            throw new Error(errMsg);
-          }
-        } catch (e) {
-          console.error(e);
-          this.clearCheckoutTurnstile();
-          const msg = e && typeof e === 'object' && 'message' in e ? String(e.message) : '';
-          if (msg.includes('HAS_STRIPE_SUBSCRIPTION') || /subskrypcję Stripe/i.test(msg)) {
-            this.showToast(
-              'Masz już subskrypcję — użyj zmiany planu w panelu albo portalu płatności.',
-              'error',
-            );
-          } else {
-            this.showToast(msg || 'Błąd podczas łączenia z systemem płatności.', 'error');
-          }
-          this.closeCheckoutModal(true);
-        } finally {
-          this.checkoutLoading = false;
-        }
       },
       async upgradeTemplate() {
         if (!this.content || !this.theme) return;
@@ -4308,6 +2933,7 @@
           } else if (typeof this._bindEditLocaleShim === 'function') {
             this._bindEditLocaleShim();
           }
+          await this._runAfterPublishCallbacks();
           return true;
         } catch (e) {
           console.error(e);
@@ -4886,7 +3512,7 @@
     if (typeof window.DFOPS_attachGrowthPanel === 'function') {
       window.DFOPS_attachGrowthPanel(fromApp);
     }
-    // Zakładka „Statystyki” (Faza B) — osobny moduł, owija setTab do leniwego ładowania.
+    // Zakładka „Statystyki” (Faza B) — owija setTab (leniwe wejście); deep-link #stats przez onAfterLoadData.
     if (typeof window.DFOPS_attachStatsPanel === 'function') {
       window.DFOPS_attachStatsPanel(fromApp);
     }
@@ -4897,6 +3523,14 @@
     // i18n — przełącznik języka edycji (js/features/i18nPanel.js).
     if (typeof window.DFOPS_attachI18nPanel === 'function') {
       window.DFOPS_attachI18nPanel(fromApp);
+    }
+    // Onboarding = wizard + Driver.js tour + welcome (jeden moduł — rollback 2026-07-04).
+    if (typeof window.DFOPS_attachOnboardingPanel === 'function') {
+      window.DFOPS_attachOnboardingPanel(fromApp);
+    }
+    // Billing UI — checkout / portal / sync / trial modal (docs/specs/admin-split.md §5).
+    if (typeof window.DFOPS_attachBillingPanel === 'function') {
+      window.DFOPS_attachBillingPanel(fromApp);
     }
 
     return fromApp;

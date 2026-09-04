@@ -1,0 +1,23 @@
+---
+description: Aktualizuj docs/CONTEXT.md na koniec sesji przy istotnych zmianach produktu
+alwaysApply: true
+---
+
+# Kontekst trwały (DFCMS)
+
+## Źródło prawdy
+
+**[`docs/CONTEXT.md`](../docs/CONTEXT.md)** — architektura, środowiska, Edge Functions, migracje, płatności, security, changelog. Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.
+
+Plany post-MVP: **`docs/ROADMAP.md`**.
+
+## Przed większą zmianą
+
+Gdy dotykasz auth, Stripe, panelu (`admin.html` / `adminApp.js`), Edge Functions w `supabase/functions/`, lub kontraktu treści `pages.content` — **przejrzyj** `docs/CONTEXT.md`, żeby nie nadpisać ustalonych decyzji.
+
+## Po zakończonym zadaniu
+
+1. **Zaktualizuj** `docs/CONTEXT.md`: odpowiednie sekcje, data w nagłówku, wpis w §4 Dziennik transformacji.
+2. Nie duplikuj pełnych diffów — w kodzie komentarze, w CONTEXT **mapa i decyzje**.
+
+Nie twórz osobnych dokumentów architektury na każdy task, chyba że użytkownik wyraźnie poprosi. Wyjątek: [`docs/specs/admin-split.md`](../docs/specs/admin-split.md) — spec fali split panelu JS (kernel + attach); nie zastępuj go nowym specem na każdy PR tej fali.

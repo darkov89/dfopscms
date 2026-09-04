@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-08-22 — Styl strony (ikony kolorów), ręczne opinie, galeria multi-upload
+**Ostatnia aktualizacja:** 2026-09-04 — PR-4: sprzątanie fali split panelu JS (kernel + onboarding + billing)
 
 ---
 
@@ -74,9 +74,11 @@ Użytkownik → Auth → pages.content + pages.billing_plan + billing_profiles
 | Warstwa | Kluczowe artefakty |
 |--------|---------------------|
 | **Front publiczny** | `index.html` (dark-mode SaaS landing spójny z admin/rejestracją: `#121212` + `#D4AF37`; hero (wynik biznesowy + AI w subcopy), `#jak`, `#ai`, `#korzysci`, `#panel`, `#demo`, `#spokoj`, `#cennik`, SEO + `favicon.svg`), demo przez `router.html?site=demo-*` (beauty/services/care/gastro/fitness/consultant). Szablony branżowe HTML są w `/templates/` (`beauty`, `consultant`, `fitness`, `services`, `gastro`, `care`); media statyczne przenoszone z root trafiają do `/assets/images/`; boilerplate nowych szablonów: `/templates/_base_template.html`; klocki UI: `/templates/_components_library.html`; partial FAB czatu: `/templates/_partials/quick_chat_fab.html`. `setup.html` zostaje w root. `landingPricing.js` — plany cennika i dane landingowe. **Szybki kontakt:** pływający przycisk WhatsApp (`contact.whatsapp` → `wa.me`) lub Messenger (`contact.messenger` → `m.me`) — `publicSiteApp` + Alpine `x-show`; dostępny na wszystkich planach w tym Starter (`tier0`, `DFOPS_planAllowsQuickChat` — od 2026-07-05). Opcjonalna lista gotowych pytań (`contact.quick_chat_questions: string[]`, panel Kontakt → Szybki czat): klik w FAB rozwija popover, wybór pytania otwiera czat z wpisaną treścią (WhatsApp `?text=`; Messenger nie wspiera pre-fillu → kopiowanie do schowka + toast). |
-| **Panel CMS** | `admin.html` (~2,5k linii HTML), `adminApp.js` (~4k linii Alpine). **IA (2026-07):** domyślny ekran `dashboard` (adres + checklista + **AI Site Generator**); sidebar w 3 grupach zwijanych (Na start / Więcej treści / Ustawienia); nagłówek z CTA „Opublikuj”, menu ⋯; rezerwacje w Kontakcie; scalone Opinie; bez Leady w menu; bez globalnej widoczności sekcji w Wyglądzie — szczegóły §1.5.2. **`js/core/themeConfig.js`** — sekcje per `pages.theme`; **`js/core/contentSchema.js`** + **`contentUpgrader.js`** — kontrakt/migracja pól JSON (`pages.content` / `draft_content`). **`js/templates/registry.js`** — domyślna treść startowa (nie mylić z `templates/*.html`). Draft vs published: `pages.draft_content` / `pages.content`. **Zero-Friction AI (2026-08-08):** `draft_content.pl.settings.ai_business_context` (+ `business_category` / `city`) — kontekst branżowy niezależny od nazwy szablonu; `js/core/aiBusinessContext.js`; fallback ręczny w kreatorze/Kontakcie gdy Places bez kategorii. Subskrypcja, Smart Booking, szybki kontakt, God Mode — jak wcześniej. Adaptery poza monolitem: `growth/` + `aiGenerator.js`. |
+| **Panel CMS** | `admin.html` (~2,5k linii HTML), kernel `adminApp.js` (~3,5k linii Alpine) + pionowe attach-e. **IA (2026-07):** domyślny ekran `dashboard` (adres + checklista + **AI Site Generator**); sidebar w 3 grupach zwijanych (Na start / Więcej treści / Ustawienia); nagłówek z CTA „Opublikuj”, menu ⋯; rezerwacje w Kontakcie; scalone Opinie; bez Leady w menu; bez globalnej widoczności sekcji w Wyglądzie — szczegóły §1.5.2. **`js/core/themeConfig.js`** — sekcje per `pages.theme`; **`js/core/contentSchema.js`** + **`contentUpgrader.js`** — kontrakt/migracja pól JSON (`pages.content` / `draft_content`). **`js/templates/registry.js`** — domyślna treść startowa (nie mylić z `templates/*.html`). Draft vs published: `pages.draft_content` / `pages.content`. **Zero-Friction AI (2026-08-08):** `draft_content.pl.settings.ai_business_context` (+ `business_category` / `city`) — kontekst branżowy niezależny od nazwy szablonu; `js/core/aiBusinessContext.js`; fallback ręczny w kreatorze/Kontakcie gdy Places bez kategorii. Subskrypcja, Smart Booking, szybki kontakt, God Mode — jak wcześniej. Adaptery poza kernel: `growth/`, `onboarding/`, `billing-panel/`, `aiGenerator.js`, `i18nPanel.js`. |
 | **Backend** | `pages`, `billing_profiles`, `superadmins`, RLS. Schemat baseline: `20260603072317_remote_schema.sql`; God Mode: `20260623100512_add_god_mode.sql`. |
 | **Płatności** | Starter `tier0`, Standard `tier1`, Custom poza Stripe. Secrets: `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_STARTER_YEARLY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_PRO_YEARLY`. wFirma: `WFIRMA_*`, ledger `wfirma_invoice_ledger`. |
+
+**Split panelu JS:** fala **zamknięta** (PR-0–PR-4, 2026-09-04). Kernel Alpine + pionowe attach-e (onboarding, billing) — spec [`docs/specs/admin-split.md`](specs/admin-split.md). **PR-0:** rejestr `onAfterLoadData` / `onAfterPublish`. **PR-1:** `js/core/wizardRules.js`. **PR-2:** `js/features/onboarding/onboardingPanel.js`. **PR-3:** `js/features/billing-panel/billingPanel.js`. **PR-4:** martwe wrappery kreatora usunięte z IIFE kernela; `DFOPS_normalizeBookingSettings` w `contentSchema.js` (wspólne dla persist + `finishWizard`). Gettery planu/trial i `loadBillingProfile` (kolejność w `loadData`) zostają na kernelu. Następne wycinki (domeny, media, Places) **nie** są tą falą. Vite / mixiny nadal zakazane.
 
 **Model pakietów:**
 
@@ -106,7 +108,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 
 **Silnik Wzrostu (G0–G3 wdrożone na Staging i Produkcję):** CMS podpowiada co tydzień jedną zmianę związaną z konwersją (telefon, rezerwacja, opinie), liczniki kliknięć CTA, odwiedzin (`page_view`) i benchmarki branżowe per `theme`. **Spec:** [`docs/specs/growth.md`](specs/growth.md). **Repurpose** `analytics_events` (`event_scope`: `conversion` | `visit` | `legacy`) + `growth_benchmarks` + `pages.draft_updated_at` (trigger `publish_reminder`); Edge `record-site-event` i `aggregate-growth-benchmarks`; RPC `get_page_growth_stats` / `aggregate_growth_benchmarks`. Tracking: `siteAnalytics.js` + `publicSiteApp.onConversionClick` / `recordPageView()`. Panel: `js/features/growth/` + hook `DFOPS_attachGrowthPanel` (3 linie w `adminApp.js`). Dashboard: karta priorytetu + 4 liczniki (odwiedziny + 3× CTA) z przyciskiem „Odśwież”. Zakładka „Statystyki” (`statsPanel.js` + `tab-stats.html`): zakres dat (presety + własny), total vs unikalni dziennie, eksport CSV/Excel — RPC `get_page_stats_range`. RODO: klauzula w `infrastructurePrivacyHtml()`. **Pozostało operacyjnie:** harmonogram cron Dashboardu (`aggregate-growth-benchmarks`, `0 3 * * 1`, `Bearer CRON_SECRET`) na Staging **i** Prod; test manualny G1/G3 na żywym ruchu. G4 (one-click draft) — poza zakresem.
 
-**Luki:** brak obowiązkowego E2E/CI dla Edge; wildcard `*.dfcms.pl` w Cloudflare Pages; RLS anon read wymaga GRANT + polityki; brak historii wersji treści; monolityczny panel (`admin.html` + `adminApp.js`) utrudnia kolejne zmiany IA — Silnik Wzrostu jest pierwszym wycinkiem poza monolitem (wzorzec do powielenia).
+**Luki:** brak obowiązkowego E2E/CI dla Edge; wildcard `*.dfcms.pl` w Cloudflare Pages; RLS anon read wymaga GRANT + polityki; brak historii wersji treści. Kernel panelu nadal trzyma auth, domeny, upload, Places i CRUD zakładek — onboarding i billing UI są poza `adminApp.js` (wzorzec Growth; fala [`admin-split.md`](specs/admin-split.md) PR-0–PR-4).
 
 **TO-DO operacyjne:** tour Driver.js mobile; smoke webhook Stripe; CI deploy Edge; włączyć **pg_cron** na Staging/Prod jeśli migracja `20260704223000` zalogowała WARNING; opcjonalnie Vault + `scripts/cron-expire-trial-edge.sql` dla Telegram; **Silnik Wzrostu:** harmonogram cron `aggregate-growth-benchmarks` (`0 3 * * 1`, Staging + Prod), test manualny G1/G3 na żywym ruchu.
 
@@ -118,7 +120,7 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 - **i18n treści:** `meta.locales` + `meta.translationMode` (`ai`|`manual`); przełącznik języka w headerze tylko gdy >1 locale; sync AI po zmianie PL.
 - **Draft vs published:** auto-save debounce 1000ms → `draft_content`; `publishChanges()` → `content`; **Podgląd prywatny** (`dfcms_preview=1` + sesja właściciela) działa przy wygasłym trial / `billing_failed_at` — baner czerwony, LIVE zablokowany dla gości; link w panelu: „Podgląd prywatny”.
 - **Subskrypcja panel:** `hasActivePaidSubscription` = żywa sub Stripe **lub** aktywny grant ręczny (`grant_source=manual` + `current_period_end` w przyszłości). Portal / upgrade Stripe tylko przy `hasStripeLiveSubscription`. Przy samym grancie: karta statusu + karuzela Checkout (klient może podpiąć kartę — webhook ustawia `grant_source=stripe`).
-- **God Mode:** `godmode.html` — nawigacja Start + karty: **Strona demo** / **Strona klienta** / **Zarządzaj stronami** (filtry wszyscy/klienci/demo). Edge: `god-provision-site`, `god-manage-demo`, `god-grant-subscription`. Impersonacja (`admin.html?impersonate={slug}`): działa też dla dem (`user_id=null`); billing właściciela read-only; checkout zablokowany.
+- **God Mode:** `godmode.html` — nawigacja Start + karty: **Strona demo** / **Strona klienta** / **Zarządzaj stronami** (filtry wszyscy/klienci/demo). Edge: `god-provision-site`, `god-manage-demo`, `god-grant-subscription`. Impersonacja (`admin.html?impersonate={slug}`): działa też dla dem (`user_id=null`); billing właściciela **read-only**; Checkout **i Customer Portal** zablokowane (panel + Edge `returnUrl` z `?impersonate=`).
 - **Multi-site:** jeden `user_id` może mieć wiele `pages`; panel: `listCurrentUserPages` + selektor w nagłówku gdy >1; zapis po `pages.id`. Billing nadal 1:1 `billing_profiles` ↔ user (lustro na wszystkie strony usera).
 
 ### 1.5.2 Panel admin — IA (2026-07)
@@ -145,7 +147,7 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 
 **Progressive disclosure:** Kontakt (rezerwacje na górze; adres/mapa, WhatsApp, social w `<details>`); Baner (CTA w `<details>`; manifesto → osobna zakładka); Wygląd (logo + presety kolorów; reszta w „Ustawienia zaawansowane…”).
 
-**Panel JS:** monolit `adminApp.js` + **pierwszy moduł feature** `js/features/growth/` (attach hook — §14 w [`specs/growth.md`](specs/growth.md)). HTML partials + `build:admin` bez zmian.
+**Panel JS:** kernel `adminApp.js` + attach-e: growth, stats, AI, i18n, **onboarding** (`DFOPS_attachOnboardingPanel` — wizard + Driver.js), **billing** (`DFOPS_attachBillingPanel` — checkout / portal / sync). HTML partials + `build:admin`.
 
 ### 1.5.1 Theme-aware panel (`themeConfig`) — wzorzec
 
@@ -390,6 +392,34 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-09-04 — PR-4: sprzątanie fali split panelu JS
+
+Martwe cienkie wrappery kreatora (storage / prepare* / finalize / emptyWizard*) usunięte z IIFE `adminApp.js` — onboarding woła `window.DFOPS_*` z `wizardRules.js`. `normalizeBookingSettings` (duplikat kernel + onboarding) → [`js/core/contentSchema.js`](../js/core/contentSchema.js) (`DFOPS_normalizeBookingSettings`); kernel i `finishWizard` delegują. Test: `npm run test:content-schema`. Growth README: fala zamknięta; dalej domains / media / places (nie teraz). Cache-bust `contentSchema.js` / `onboardingPanel.js` / `adminApp.js` (`?v=20260904d`). Spec: [`docs/specs/admin-split.md`](specs/admin-split.md) §7 / §12 Czat 5.
+
+### 2026-09-04 — God Mode: portal Stripe zablokowany; obniżka planu od następnego okresu
+
+Impersonacja nie może otworzyć Customer Portal / Checkout (karta klienta). Guard w `DFOPS_attachBillingPanel` (`openCustomerPortal`, `subscribe`, `executeStripeCheckout`, `syncStripeSubscription`) + ukrycie przycisków w `tab-subscription` / `tab-account`. Edge: `assertNotImpersonateReturnUrl` w `create-portal-session` i `create-checkout`. Obniżka Standard → Starter: confirm przed portalem + stały opis przy przycisku (Starter od `current_period_end`; do tej daty Standard).
+
+### 2026-09-04 — PR-3: billing attach (checkout / portal / sync)
+
+Metody subskrypcji (Checkout + Turnstile, Customer Portal, sync Stripe, trial modal, toasty powrotu) → [`js/features/billing-panel/billingPanel.js`](../js/features/billing-panel/billingPanel.js) (`window.DFOPS_attachBillingPanel`). Pola (`checkoutLoading`, `billingProfile`, …) i gettery planu/trial/locków (`isTrialPublicBlocked`, `isCustomDomainLocked`, …) zostają w `createAdminApp`. `loadBillingProfile` nadal await w `loadData` (kolejność przed enforce* i onboardingiem). Toasty: `onAfterLoadData` → `billingAfterLoad` (bez wrapu `loadData`). `deleteAccount` zostaje w kernelu. Script w `01-head.html` przed `adminApp.js`. Spec: [`docs/specs/admin-split.md`](specs/admin-split.md) §5 / §12 Czat 4.
+
+### 2026-09-04 — PR-2: onboarding attach (wizard + Driver.js)
+
+Metody kreatora, touru Driver.js i welcome → [`js/features/onboarding/onboardingPanel.js`](../js/features/onboarding/onboardingPanel.js) (`window.DFOPS_attachOnboardingPanel`). Pola i gettery (`showWizard`, `wizardStepId`, …) zostają w `createAdminApp`. Resume po `loadData`: `onAfterLoadData` → `maybeResumeOnboardingAfterLoad` (bez wrapu `loadData`). Script w `01-head.html` przed `adminApp.js`. Wizard i tour **w jednym module** (lekcja rollbacku 2026-07-04). Spec: [`docs/specs/admin-split.md`](specs/admin-split.md) §4 / §12 Czat 3.
+
+### 2026-08-28 — PR-1: wizardRules.js (pure, testy Node)
+
+Czyste funkcje kreatora z IIFE `adminApp.js` → [`js/core/wizardRules.js`](../js/core/wizardRules.js) (`window.DFOPS_*`): storage v1→v2, placeholdery, match template, `finalizeWizardContent`, `validateWizardStep(pl, theme, stepId)`. Kernel: cienkie wrappery o starych nazwach lokalnych. Testy: `npm run test:wizard-rules`. Script w `01-head.html` przed `adminApp.js`. **Bez** `DFOPS_attachOnboardingPanel`. Spec: [`docs/specs/admin-split.md`](specs/admin-split.md) §4 / §12 Czat 2.
+
+### 2026-08-28 — PR-0: rejestr onAfterLoadData / onAfterPublish
+
+Kernel `createAdminApp`: `_afterLoadCallbacks` / `_afterPublishCallbacks` + `onAfterLoadData` / `onAfterPublish` (Pub/Sub, `Promise.all` + `fn.call(this)`, try/catch per callback). `loadData` `finally` (po `isLoading = false`) i udany `publishChanges` dispatchują rejestr. Growth i stats **rejestrują** callback zamiast owijania `loadData`. Wrap `setTab` w stats zostaje (leniwe `#stats` / pierwsze wejście w Statystyki). Cache-bust `adminApp.js` / `growthPanel.js` / `statsPanel.js`. Spec: [`docs/specs/admin-split.md`](specs/admin-split.md) §6.
+
+### 2026-08-28 — Start fali split panelu JS (spec + rules, bez zmian runtime)
+
+Spec [`docs/specs/admin-split.md`](specs/admin-split.md) + rule `.cursor/rules/admin-split.mdc`. Extract onboarding/billing wg specu **jest** autoryzowany (nie „na zapas”); mixiny / spread / Vite nadal zakazane. **Zero zmian runtime** (`adminApp.js` / growth / stats / `admin.html` nietknięte).
 
 ### 2026-08-22 — Kolory/styl, ręczne opinie, wiele zdjęć
 - **Kolory i styl:** chrome panelu **zostaje** szary/złoty DFCMS (`applyThemeStyling(..., 'admin')` — bez podglądu kolorów klienta w panelu). Ikony w Wyglądzie to pełny zestaw: `color_preset` + matching `background_style`/`font_preset` z `bundlesByTheme`, sync na wszystkie locale, handoff draftu do Podglądu. Publiczna strona: `DFOPS_resolvePublicAppearance` — gdy w JSON został tylko preset przy defaultowym tle/foncie motywu (typowe po starym kliknięciu ikony), aplikuje tło/font zestawu; już opublikowane strony klienta zmieniają się po deploju JS, bez ponownego Publikuj. Palety consultant `gold`/`charcoal`. Szablon **services**: tokeny `--svc-navy` / `--svc-accent` (Tailwind `svc.*`) — wcześniej nav/hero były na sztywno granat+bursztyn, więc forest/ocean nic nie zmieniały. Cache-bust `config.js` / `themeStyling.js` / `publicSiteApp.js` (`?v=20260822c` na services).

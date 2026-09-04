@@ -652,13 +652,13 @@ window.DFOPS_attachGrowthPanel = function attachGrowthPanel(app) {
   app.dismissGrowthPriority = async function () { /* settings.growth + save draft */ };
   app.goToGrowthAction = function () { this.setTab(this.growthPriority.action.tab); };
 
-  // 3. Opcjonalnie: podpięcie pod istniejący lifecycle
-  const prevAfterLoad = app.afterLoadData;
-  app.afterLoadData = async function (...args) {
-    if (typeof prevAfterLoad === 'function') await prevAfterLoad.apply(this, args);
-    await this.loadGrowthData();
-    this.refreshGrowthPriority();
-  };
+  // 3. Lifecycle — rejestr kernela (zakaz owijania loadData / afterLoadData)
+  if (typeof app.onAfterLoadData === 'function') {
+    app.onAfterLoadData(async function growthAfterLoad() {
+      await this.loadGrowthData();
+      this.refreshGrowthPriority();
+    });
+  }
 };
 ```
 

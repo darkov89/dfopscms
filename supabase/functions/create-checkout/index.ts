@@ -5,6 +5,7 @@ import { createClient } from "npm:@supabase/supabase-js@^2.39.0";
 import { verifyTurnstileToken } from "../_shared/turnstileVerification.ts";
 import {
   assertAllowedReturnUrl,
+  assertNotImpersonateReturnUrl,
   buildCorsHeadersForRequest,
 } from "../_shared/allowedOrigins.ts";
 
@@ -191,6 +192,7 @@ serve(async (req) => {
     const returnUrl = assertAllowedReturnUrl(
       typeof body?.returnUrl === "string" ? body.returnUrl : "",
     );
+    assertNotImpersonateReturnUrl(returnUrl);
 
     const stripe = new Stripe(stripeSecret, {
       apiVersion: "2022-11-15",
