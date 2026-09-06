@@ -193,24 +193,26 @@
                             <p class="text-base sm:text-xl font-light text-zinc-300 max-w-2xl mx-auto tracking-wide"
                                 x-text="block.data.subtitle"></p>
 
-                            <div class="pt-6 flex flex-wrap items-center justify-center gap-4">
+                            <div class="pt-6 flex flex-col items-center justify-center gap-3">
+                                <div class="flex flex-wrap items-center justify-center gap-4">
+                                    <button type="button"
+                                            @click="openVideoModal(block.data.showreel_url || block.data.video_url, (block.data.title || siteTitle) + ' — Showreel')"
+                                            class="inline-flex items-center gap-3 rounded-full bg-brand-gold px-8 py-3.5 text-xs sm:text-sm font-bold uppercase tracking-widest text-black shadow-lg shadow-brand-gold/20 hover:bg-brand-goldHover transition transform hover:scale-105 active:scale-95">
+                                        <svg class="h-4 w-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                        <span x-text="block.data.cta_text || 'Odtwórz Showreel'"></span>
+                                    </button>
+                                    <template x-if="block.data.cta_secondary_text">
+                                        <a :href="block.data.cta_secondary_target || '#projekty'"
+                                           class="inline-flex items-center rounded-full border border-white/20 bg-white/5 px-6 py-3.5 text-xs sm:text-sm font-medium text-white backdrop-blur hover:bg-white/10 transition"
+                                           x-text="block.data.cta_secondary_text"></a>
+                                    </template>
+                                </div>
                                 <button type="button"
-                                        @click="openVideoModal(block.data.showreel_url || block.data.video_url, block.data.title + ' — Showreel')"
-                                        class="inline-flex items-center gap-3 rounded-full bg-brand-gold px-7 py-3.5 text-xs sm:text-sm font-bold uppercase tracking-widest text-black shadow-lg shadow-brand-gold/20 hover:bg-brand-goldHover transition transform hover:scale-105 active:scale-95">
-                                    <svg class="h-4 w-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                    <span x-text="block.data.cta_text || 'Odtwórz Showreel'"></span>
+                                        @click="openVideoModal(block.data.showreel_url || block.data.video_url, (block.data.title || siteTitle) + ' — Showreel (Dźwięk & Pełny Ekran)')"
+                                        class="text-[11px] text-zinc-400 hover:text-brand-gold transition inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full hover:bg-white/5">
+                                    <span class="text-brand-gold text-xs">🔊</span>
+                                    <span class="underline decoration-zinc-600 underline-offset-4 hover:decoration-brand-gold">Odtwórz z dźwiękiem i pełnym ekranem</span>
                                 </button>
-                                <button type="button"
-                                        @click="openVideoModal(block.data.showreel_url || block.data.video_url, (block.data.title || siteTitle) + ' — Pełny Odtwarzacz & Dźwięk')"
-                                        class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/50 px-5 py-3.5 text-xs sm:text-sm font-medium text-zinc-300 backdrop-blur-md hover:bg-black/80 hover:text-white hover:border-brand-gold transition shadow-md">
-                                    <span class="text-brand-gold">🔊</span>
-                                    <span>Odtwórz z dźwiękiem</span>
-                                </button>
-                                <template x-if="block.data.cta_secondary_text">
-                                    <a :href="block.data.cta_secondary_target || '#projekty'"
-                                       class="inline-flex items-center rounded-full border border-white/20 bg-white/5 px-6 py-3.5 text-xs sm:text-sm font-medium text-white backdrop-blur hover:bg-white/10 transition"
-                                       x-text="block.data.cta_secondary_text"></a>
-                                </template>
                             </div>
                         </div>
 
@@ -537,6 +539,7 @@
                 modalOpen: false,
                 modalEmbedUrl: '',
                 modalTitle: '',
+                cinematicCleanup: null,
 
                 get isCinematic() {
                     return this.themeType !== 'quick_card';
@@ -679,15 +682,20 @@
 
                 initCinematicParticles(accentColor) {
                     if (!this.isCinematic) return;
-                    this.$nextTick(() => {
+                    this.$nextTick(async () => {
                         const container = document.getElementById('cinematic-particles-container');
                         if (container && window.DFOPS_cinematicFx && typeof window.DFOPS_cinematicFx.init === 'function') {
                             const hexStr = accentColor ? String(accentColor).replace('#', '') : 'd4af37';
                             const colorNum = parseInt(hexStr, 16);
-                            this.cinematicCleanup = window.DFOPS_cinematicFx.init(container, {
-                                color: isNaN(colorNum) ? 0xd4af37 : colorNum,
-                                particleCount: 450,
-                            });
+                            try {
+                                const destroy = await window.DFOPS_cinematicFx.init(container, {
+                                    color: isNaN(colorNum) ? 0xd4af37 : colorNum,
+                                    particleCount: 450,
+                                });
+                                this.cinematicCleanup = typeof destroy === 'function' ? destroy : null;
+                            } catch (e) {
+                                console.debug('[CustomSiteApp] CinematicFx init failed:', e);
+                            }
                         }
                     });
                 },

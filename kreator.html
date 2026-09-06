@@ -305,6 +305,7 @@
                 chosenType: 'cinematic',
                 currentUser: null,
                 userPages: [],
+                fromWizard: false,
                 loading: false,
                 errorMessage: '',
                 pendingEmailConfirmation: false,
@@ -339,6 +340,9 @@
 
                 async init() {
                     try {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        this.fromWizard = urlParams.get('from') === 'wizard';
+
                         const client = window.DFOPS_getSupabaseClient ? window.DFOPS_getSupabaseClient() : null;
                         if (client) {
                             const { data: { user } } = await client.auth.getUser();
@@ -350,7 +354,7 @@
                                     .eq('user_id', user.id);
                                 this.userPages = Array.isArray(pages) ? pages : [];
                                 const adoptable = this.userPages.find(p => p.theme === 'setup' || (p.theme === 'custom' && !p.content));
-                                if (adoptable && !this.slug) {
+                                if (adoptable && !this.slug && (this.fromWizard || this.userPages.length === 1)) {
                                     this.slug = adoptable.slug;
                                 }
                             }
@@ -556,10 +560,16 @@
                             throw new Error(`Adres "${safeSlug}" należy do Twojej aktywnej strony (${activeConflict.theme}). Wybierz inny adres subdomeny dla nowej strony filmowej.`);
                         }
 
-                        // Sprawdzenie, czy możemy zaadoptować istniejący rekord (np. trigger handle_new_user z 'setup' lub pusty custom)
+                        // Sprawdzenie, czy możemy zaadoptować istniejący rekord:
+                        // 1. Jeśli użytkownik ma już wiersz o dokładnie takim samym slugu (i nie jest to inna aktywna strona)
                         const pageWithSameSlug = allPages.find(p => p.slug === safeSlug);
+
+                        // 2. Jeśli użytkownik ma nieukończony rekord setup/pusty custom:
+                        // Adoptujemy go TYLKO gdy przyszedł z kreatora panelu (from=wizard) lub gdy nowy slug jest identyczny ze starym
                         const unconfiguredSetup = allPages.find(p => p.theme === 'setup' || (p.theme === 'custom' && !p.content));
-                        const targetPageToUpdate = pageWithSameSlug || unconfiguredSetup;
+                        const canAdoptSetup = unconfiguredSetup && (this.fromWizard || unconfiguredSetup.slug === safeSlug);
+
+                        const targetPageToUpdate = pageWithSameSlug || (canAdoptSetup ? unconfiguredSetup : null);
 
                         if (targetPageToUpdate) {
                             // Zaktualizuj istniejący rekord (jeśli np. zmienił się slug lub konfiguracja z 'setup' na 'custom')

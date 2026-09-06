@@ -63,7 +63,7 @@
                     <a x-show="theme === 'custom'" x-cloak
                        :href="'/studio.html?site=' + encodeURIComponent(slug || '')"
                        title="Otwórz Studio AI dla tej strony"
-                       class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50 px-2.5 text-xs font-semibold text-purple-900 shadow-sm transition-colors hover:bg-purple-100 sm:px-3 sm:text-sm">
+                       class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-2.5 text-xs font-semibold text-amber-950 shadow-sm transition-colors hover:bg-amber-100 sm:px-3 sm:text-sm">
                         <span aria-hidden="true">✨</span>
                         <span class="hidden sm:inline">Studio AI</span>
                     </a>
@@ -117,7 +117,7 @@
                             </div>
                             <a x-show="theme === 'custom'" x-cloak
                                :href="'/studio.html?site=' + encodeURIComponent(slug || '')"
-                               class="block w-full px-3 py-2.5 text-left text-sm font-semibold text-purple-700 transition-colors hover:bg-purple-50">
+                               class="block w-full px-3 py-2.5 text-left text-sm font-semibold text-amber-950 transition-colors hover:bg-amber-50">
                                 ✨ Otwórz Studio AI
                             </a>
                             <a href="/kreator.html"
@@ -140,9 +140,9 @@
                     </div>
                 </div>
             </div>
-            <div x-show="theme === 'custom'" x-cloak class="border-t border-purple-100 bg-purple-50/90 px-4 py-1.5 text-center text-[11px] sm:text-xs text-purple-900">
+            <div x-show="theme === 'custom'" x-cloak class="border-t border-amber-200 bg-amber-50/90 px-4 py-1.5 text-center text-[11px] sm:text-xs text-amber-950">
                 <span>Ta strona jest połączona ze Studio AI.</span>
-                <a :href="'/studio.html?site=' + encodeURIComponent(slug || '')" class="ml-1.5 font-semibold text-purple-700 underline hover:text-purple-900">Przejdź do edycji z Agentem AI →</a>
+                <a :href="'/studio.html?site=' + encodeURIComponent(slug || '')" class="ml-1.5 font-semibold text-accent underline hover:text-amber-900">Przejdź do edycji z Agentem AI →</a>
             </div>
             <p x-show="content && panelContentReady && theme !== 'custom'" x-cloak class="hidden border-t border-slate-100 bg-slate-50/80 px-4 py-1.5 text-center text-[11px] leading-snug text-slate-500 md:block">
                 Zmiany zapisane — kliknij <strong class="font-semibold text-slate-600">Opublikuj</strong>, żeby były widoczne dla klientów.
