@@ -30,7 +30,7 @@ const PLATFORM_BASE_DOMAINS =
 const ALLOWED_THEMES = new Set(
   typeof globalThis.DFOPS_getPublishedThemeIds === 'function'
     ? globalThis.DFOPS_getPublishedThemeIds()
-    : ['beauty', 'consultant', 'fitness', 'services', 'gastro', 'care'],
+    : ['beauty', 'consultant', 'fitness', 'services', 'gastro', 'care', 'custom'],
 );
 const normalizeHostname = globalThis.DFOPS_normalizeHostname;
 const EDGE_ROUTE_PATHS = new Set([
@@ -297,8 +297,9 @@ function applySecurityHeaders(request, response) {
 
     headers.set('X-Content-Type-Options', 'nosniff');
     headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+    const isPreviewMode = url.searchParams.get('dfcms_preview') === '1';
     headers.set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
-    headers.set('X-Frame-Options', 'DENY');
+    headers.set('X-Frame-Options', isPreviewMode ? 'SAMEORIGIN' : 'DENY');
 
     if (url.protocol === 'https:') {
       headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
@@ -308,7 +309,7 @@ function applySecurityHeaders(request, response) {
       "default-src 'self'",
       "base-uri 'self'",
       "object-src 'none'",
-      "frame-ancestors 'none'",
+      isPreviewMode ? "frame-ancestors 'self'" : "frame-ancestors 'none'",
       "form-action 'self'",
       "upgrade-insecure-requests",
       "block-all-mixed-content",
@@ -317,7 +318,7 @@ function applySecurityHeaders(request, response) {
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: https: blob: https://maps.gstatic.com https://maps.googleapis.com",
-      "frame-src 'self' https://www.google.com https://www.google.com/maps/ https://js.stripe.com https://calendly.com https://challenges.cloudflare.com https://www.googletagmanager.com",
+      "frame-src 'self' https://www.google.com https://www.google.com/maps/ https://js.stripe.com https://calendly.com https://challenges.cloudflare.com https://www.googletagmanager.com https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com https://*.cloudflarestream.com https://iframe.videodelivery.net",
       "connect-src 'self' https://*.supabase.co https://api.stripe.com https://maps.googleapis.com https://*.sentry.io https://js-de.sentry-cdn.com https://browser.sentry-cdn.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://challenges.cloudflare.com https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://*.g.doubleclick.net https://www.google.com https://www.facebook.com https://connect.facebook.net",
       "worker-src 'self' blob:",
     ].join('; ');
@@ -478,9 +479,18 @@ function applySeoRewriter(htmlResponse, row, env, slugTrimmed, hostnameNorm, loc
   const block = (content && content[loc]) || content?.pl || {};
   const seo = block.seo;
 
-  const titleRaw = seo && seo.title != null ? String(seo.title) : '';
-  const descRaw = seo && seo.description != null ? String(seo.description) : '';
-  const ogImageRaw = seo && seo.ogImage != null ? String(seo.ogImage).trim() : '';
+  const customMeta = (content && typeof content === 'object' && content.meta) || {};
+  const heroBlock = Array.isArray(content?.blocks)
+    ? content.blocks.find((b) => b.type === 'cinematic_hero' || b.type === 'quick_hero')
+    : null;
+  const inferredTitle = heroBlock?.data?.title
+    ? `${heroBlock.data.title}${heroBlock.data.subtitle ? ' — ' + heroBlock.data.subtitle : ''}`
+    : '';
+  const inferredDesc = heroBlock?.data?.tagline || heroBlock?.data?.subtitle || '';
+
+  const titleRaw = (seo && seo.title != null ? String(seo.title) : '') || customMeta.title || inferredTitle || '';
+  const descRaw = (seo && seo.description != null ? String(seo.description) : '') || customMeta.description || inferredDesc || '';
+  const ogImageRaw = (seo && seo.ogImage != null ? String(seo.ogImage).trim() : '') || customMeta.ogImage || '';
 
   const title = stripHtmlMarkup(titleRaw);
   const description = stripHtmlMarkup(descRaw);

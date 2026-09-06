@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="pl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DFCMS — Custom Website</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        cinematic: ['Cinzel', 'serif'],
+                        display: ['"Space Grotesk"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            gold: '#D4AF37',
+                            goldHover: '#e6c35c',
+                            dark: '#0a0a0a',
+                            darker: '#050505',
+                            card: '#141414',
+                            border: '#262626',
+                        },
+                    },
+                },
+            },
+        };
+    </script>
+    <link rel="stylesheet" href="/css/styles.css?v=20260906b">
+
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
+    <script src="/js/core/utils.js?v=20260906b"></script>
+    <script src="/js/core/platformRouting.js?v=20260906b"></script>
+    <script src="/js/core/tenantPublicUrlClean.js?v=20260906b"></script>
+    <script defer src="/js/core/config.js?v=20260906b"></script>
+    <script defer src="/js/core/supabaseClient.js?v=20260906b"></script>
+    <script defer src="/js/core/pageRepository.js?v=20260906b"></script>
+    <script defer src="/js/core/planUtils.js?v=20260906b"></script>
+    <script defer src="/js/core/trialBlocking.js?v=20260906b"></script>
+    <script defer src="/js/core/siteAnalytics.js?v=20260906b"></script>
+    <script defer src="/js/core/customBlocksRegistry.js?v=20260906b"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+        :root { --brand-gold: #D4AF37; }
+        .text-brand-gold { color: var(--brand-gold) !important; }
+        .bg-brand-gold { background-color: var(--brand-gold) !important; }
+        .border-brand-gold { border-color: var(--brand-gold) !important; }
+        .aspect-video-bg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100vw;
+            height: 56.25vw;
+            min-height: 100vh;
+            min-width: 177.77vh;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body x-data="createCustomSiteApp()"
+      :class="isCinematic ? 'bg-[#0a0a0a] text-zinc-100 selection:bg-brand-gold selection:text-black' : 'bg-white text-slate-900 selection:bg-amber-400 selection:text-black'"
+      class="min-h-screen font-sans antialiased overflow-x-hidden">
+
+    <!-- Loading Screen -->
+    <div x-show="!dataLoaded && !loadError" class="fixed inset-0 z-50 grid place-items-center" :class="isCinematic ? 'bg-[#0a0a0a]' : 'bg-white'">
+        <div class="flex flex-col items-center gap-4">
+            <div class="h-8 w-8 animate-spin rounded-full border-2 border-brand-gold border-t-transparent"></div>
+            <p class="text-xs font-semibold tracking-widest uppercase text-zinc-400">Ładowanie...</p>
+        </div>
+    </div>
+
+    <!-- Error Screen -->
+    <div x-show="loadError && !trialBlocked" x-cloak class="fixed inset-0 z-50 grid place-items-center bg-[#0a0a0a] p-6 text-center text-white">
+        <div class="max-w-md">
+            <h1 class="text-2xl font-bold text-red-400 mb-2">Strona niedostępna</h1>
+            <p class="text-zinc-400 text-sm mb-6" x-text="loadError"></p>
+            <a href="/" class="inline-flex rounded-full bg-white/10 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/20 transition">Wróć na stronę główną</a>
+        </div>
+    </div>
+
+    <!-- Trial Blocked Screen (Soft-block) -->
+    <div x-show="trialBlocked" x-cloak class="fixed inset-0 z-50 grid place-items-center bg-[#0a0a0a] p-6 text-center text-white">
+        <div class="max-w-md space-y-4">
+            <div class="h-12 w-12 rounded-full bg-amber-500/10 text-amber-400 mx-auto flex items-center justify-center font-bold text-xl">⏳</div>
+            <h1 class="text-2xl font-bold text-white">Strona chwilowo niedostępna</h1>
+            <p class="text-zinc-400 text-sm leading-relaxed">
+                Okres próbny tej witryny dobiegł końca. Jeśli jesteś właścicielem tej strony, zaloguj się do panelu, aby aktywować subskrypcję i przywrócić widoczność dla gości.
+            </p>
+            <div class="pt-2">
+                <a href="/admin.html#subscription" class="inline-flex rounded-full bg-brand-gold px-6 py-3 text-xs font-bold uppercase tracking-wider text-black hover:bg-brand-goldHover transition">Zaloguj się do subskrypcji →</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation Bar -->
+    <header x-show="dataLoaded && !loadError"
+            :class="isCinematic ? 'bg-black/60 border-white/10' : 'bg-white/90 border-slate-200'"
+            class="sticky top-0 z-40 backdrop-blur-xl border-b transition-colors duration-300">
+        <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+            <a href="#top" class="font-bold tracking-tight text-lg sm:text-xl flex items-center gap-2">
+                <span :class="isCinematic ? 'font-cinematic text-white' : 'font-display text-slate-900'" x-text="siteTitle"></span>
+            </a>
+            <nav class="flex items-center gap-5 sm:gap-8 text-xs sm:text-sm font-medium">
+                <template x-if="hasBlock('projects_grid')">
+                    <a href="#projekty" :class="isCinematic ? 'text-zinc-400 hover:text-brand-gold' : 'text-slate-600 hover:text-black'" class="transition">Realizacje</a>
+                </template>
+                <template x-if="hasBlock('awards_strip')">
+                    <a href="#nagrody" :class="isCinematic ? 'text-zinc-400 hover:text-brand-gold' : 'text-slate-600 hover:text-black'" class="transition">Wyróżnienia</a>
+                </template>
+                <template x-if="hasBlock('key_features')">
+                    <a href="#atuty" :class="isCinematic ? 'text-zinc-400 hover:text-brand-gold' : 'text-slate-600 hover:text-black'" class="transition">O ofercie</a>
+                </template>
+                <a href="#kontakt"
+                   :class="isCinematic ? 'bg-brand-gold text-black hover:bg-brand-goldHover font-bold' : 'bg-slate-900 text-white hover:bg-slate-800 font-semibold'"
+                   class="rounded-full px-4 py-2 text-xs uppercase tracking-wider transition shadow-sm">
+                    Kontakt
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Content Blocks Rendered Dynamically -->
+    <main id="top" x-show="dataLoaded && !loadError">
+        <template x-for="block in blocks" :key="block.id">
+            <div :id="block.id">
+
+                <!-- 1. CINEMATIC HERO BLOCK -->
+                <template x-if="block.type === 'cinematic_hero'">
+                    <section class="relative min-h-[90vh] flex items-center justify-center overflow-hidden px-6 py-24 text-center bg-black">
+                        <!-- Video Background Loop -->
+                        <div class="pointer-events-none absolute inset-0 z-0 overflow-hidden opacity-35">
+                            <template x-if="block.data.video_provider === 'vimeo' && block.data.video_id">
+                                <iframe :src="'https://player.vimeo.com/video/' + block.data.video_id + '?background=1&autoplay=1&loop=1&byline=0&title=0&muted=1&dnt=1'"
+                                        class="aspect-video-bg" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                            </template>
+                            <template x-if="block.data.video_provider === 'youtube' && block.data.video_id">
+                                <iframe :src="'https://www.youtube-nocookie.com/embed/' + block.data.video_id + '?autoplay=1&mute=1&loop=1&playlist=' + block.data.video_id + '&controls=0&showinfo=0&rel=0'"
+                                        class="aspect-video-bg" frameborder="0" allow="autoplay; encrypted-media"></iframe>
+                            </template>
+                            <template x-if="block.data.video_provider === 'direct'">
+                                <video autoplay loop muted playsinline class="aspect-video-bg object-cover">
+                                    <source :src="block.data.video_url" type="video/mp4">
+                                </video>
+                            </template>
+                        </div>
+
+                        <!-- Gradient Overlay -->
+                        <div class="absolute inset-0 z-10 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/50 to-black/80"></div>
+
+                        <!-- Hero Content -->
+                        <div class="relative z-20 mx-auto max-w-4xl space-y-6">
+                            <p x-show="block.data.tagline"
+                               class="text-xs sm:text-sm font-semibold uppercase tracking-[0.3em] text-brand-gold"
+                               x-text="block.data.tagline"></p>
+                            <h1 class="font-cinematic text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white leading-tight"
+                                x-text="block.data.title"></h1>
+                            <p class="text-base sm:text-xl font-light text-zinc-300 max-w-2xl mx-auto tracking-wide"
+                               x-text="block.data.subtitle"></p>
+
+                            <div class="pt-6 flex flex-wrap items-center justify-center gap-4">
+                                <button type="button"
+                                        @click="openVideoModal(block.data.showreel_url || block.data.video_url, block.data.title + ' — Showreel')"
+                                        class="inline-flex items-center gap-3 rounded-full bg-brand-gold px-7 py-3.5 text-xs sm:text-sm font-bold uppercase tracking-widest text-black shadow-lg shadow-brand-gold/20 hover:bg-brand-goldHover transition transform hover:scale-105 active:scale-95">
+                                    <svg class="h-4 w-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                    <span x-text="block.data.cta_text || 'Odtwórz Showreel'"></span>
+                                </button>
+                                <template x-if="block.data.cta_secondary_text">
+                                    <a :href="block.data.cta_secondary_target || '#projekty'"
+                                       class="inline-flex items-center rounded-full border border-white/20 bg-white/5 px-6 py-3.5 text-xs sm:text-sm font-medium text-white backdrop-blur hover:bg-white/10 transition"
+                                       x-text="block.data.cta_secondary_text"></a>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Bottom fade -->
+                        <div class="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-[#0a0a0a] to-transparent pointer-events-none z-20"></div>
+                    </section>
+                </template>
+
+                <!-- 2. PROJECTS GRID BLOCK -->
+                <template x-if="block.type === 'projects_grid'">
+                    <section id="projekty" class="mx-auto max-w-6xl px-6 py-20">
+                        <div class="mb-12 text-center">
+                            <p class="text-xs font-bold uppercase tracking-[0.25em] text-brand-gold mb-2" x-text="block.data.subheading || 'Realizacje'"></p>
+                            <h2 class="font-cinematic text-3xl sm:text-4xl font-bold tracking-tight text-white" x-text="block.data.heading || 'Wybrane Projekty'"></h2>
+                        </div>
+                        <div class="grid gap-8 sm:grid-cols-2">
+                            <template x-for="(item, idx) in (block.data.items || [])" :key="item.id || idx">
+                                <div class="group relative cursor-pointer overflow-hidden rounded-2xl bg-brand-card border border-brand-border transition duration-300 hover:border-brand-gold/50"
+                                     @click="openVideoModal(item.video_url, item.title)">
+                                    <div class="aspect-video w-full overflow-hidden bg-zinc-900 relative">
+                                        <img :src="item.thumbnail" :alt="item.title"
+                                             class="h-full w-full object-cover transition duration-500 group-hover:scale-105 opacity-80 group-hover:opacity-100"
+                                             loading="lazy">
+                                        <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition flex items-center justify-center">
+                                            <div class="h-12 w-12 rounded-full bg-brand-gold/90 text-black flex items-center justify-center transform transition duration-300 group-hover:scale-110 shadow-lg">
+                                                <svg class="h-5 w-5 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="p-5 flex items-center justify-between">
+                                        <div>
+                                            <span class="text-[10px] font-bold uppercase tracking-widest text-brand-gold" x-text="item.category"></span>
+                                            <h3 class="text-lg font-bold text-white group-hover:text-brand-gold transition mt-0.5" x-text="item.title"></h3>
+                                            <p class="text-xs text-zinc-400 mt-0.5" x-text="item.role"></p>
+                                        </div>
+                                        <div class="text-xs font-semibold text-zinc-400 group-hover:text-white transition">Odtwórz →</div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </section>
+                </template>
+
+                <!-- 3. AWARDS STRIP BLOCK -->
+                <template x-if="block.type === 'awards_strip'">
+                    <section id="nagrody" class="border-y border-white/10 bg-black/40 py-16 px-6">
+                        <div class="mx-auto max-w-5xl text-center">
+                            <h2 class="text-xs font-bold uppercase tracking-[0.25em] text-brand-gold mb-10" x-text="block.data.heading || 'Wyróżnienia & Festiwale'"></h2>
+                            <div class="grid gap-6 sm:grid-cols-3">
+                                <template x-for="(item, idx) in (block.data.items || [])" :key="idx">
+                                    <div class="rounded-xl border border-white/5 bg-white/[0.02] p-6 hover:bg-white/[0.04] transition">
+                                        <div class="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-brand-gold/10 text-brand-gold">
+                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                                        </div>
+                                        <h3 class="font-cinematic text-base font-bold text-white" x-text="item.name"></h3>
+                                        <p class="mt-1 text-xs text-zinc-400 leading-relaxed" x-text="item.desc"></p>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </section>
+                </template>
+
+                <!-- 4. DIRECTOR STATEMENT BLOCK -->
+                <template x-if="block.type === 'director_statement'">
+                    <section class="mx-auto max-w-4xl px-6 py-20 text-center">
+                        <p class="text-xs font-bold uppercase tracking-[0.25em] text-brand-gold mb-4" x-text="block.data.heading || 'O Mnie'"></p>
+                        <blockquote class="font-cinematic text-2xl sm:text-3xl font-medium leading-relaxed text-zinc-200">
+                            „<span x-text="block.data.quote"></span>”
+                        </blockquote>
+                        <p class="mt-6 text-sm sm:text-base text-zinc-400 leading-relaxed max-w-2xl mx-auto" x-text="block.data.text"></p>
+                        <p class="mt-6 font-cinematic text-lg font-bold text-brand-gold tracking-wider" x-text="block.data.signature"></p>
+                    </section>
+                </template>
+
+                <!-- 5. MINIMAL CONTACT (CINEMATIC) -->
+                <template x-if="block.type === 'minimal_contact'">
+                    <footer id="kontakt" class="border-t border-white/10 bg-brand-darker px-6 py-16">
+                        <div class="mx-auto max-w-4xl text-center">
+                            <h2 class="font-cinematic text-3xl font-bold text-white mb-3" x-text="block.data.heading || 'Kontakt'"></h2>
+                            <p class="text-sm text-zinc-400 max-w-xl mx-auto mb-8" x-text="block.data.subheading"></p>
+                            <div class="flex flex-wrap items-center justify-center gap-6 text-sm font-semibold">
+                                <template x-if="block.data.phone">
+                                    <a :href="'tel:' + block.data.phone.replace(/\s+/g, '')"
+                                       class="rounded-full border border-white/10 bg-white/5 px-6 py-3 text-white hover:border-brand-gold hover:text-brand-gold transition flex items-center gap-2">
+                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                        <span x-text="block.data.phone"></span>
+                                    </a>
+                                </template>
+                                <template x-if="block.data.email">
+                                    <a :href="'mailto:' + block.data.email"
+                                       class="rounded-full border border-white/10 bg-white/5 px-6 py-3 text-white hover:border-brand-gold hover:text-brand-gold transition flex items-center gap-2">
+                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                        <span x-text="block.data.email"></span>
+                                    </a>
+                                </template>
+                                <template x-if="block.data.instagram">
+                                    <a :href="block.data.instagram" target="_blank" rel="noopener noreferrer"
+                                       class="rounded-full border border-white/10 bg-white/5 px-5 py-3 text-white hover:border-brand-gold hover:text-brand-gold transition flex items-center gap-2">
+                                        <svg class="h-4 w-4 fill-current" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                                        <span>Instagram</span>
+                                    </a>
+                                </template>
+                                <template x-if="block.data.vimeo">
+                                    <a :href="block.data.vimeo" target="_blank" rel="noopener noreferrer"
+                                       class="rounded-full border border-white/10 bg-white/5 px-5 py-3 text-white hover:border-brand-gold hover:text-brand-gold transition flex items-center gap-2">
+                                        <svg class="h-4 w-4 fill-current" viewBox="0 0 24 24"><path d="M22.396 7.164c-.093 2.026-1.507 4.799-4.245 8.32-2.841 3.684-5.247 5.525-7.218 5.525-1.22 0-2.253-1.127-3.101-3.38l-1.688-6.183c-.626-2.253-1.303-3.38-2.032-3.38-.155 0-.696.326-1.625.976l-.975-1.254c1.021-.9 2.032-1.802 3.033-2.705 1.385-1.192 2.417-1.815 3.094-1.87 1.604-.155 2.593.93 2.966 3.255.403 2.502.682 4.077.837 4.728.465 2.161.977 3.24 1.536 3.24.433 0 1.084-.682 1.951-2.046.868-1.363 1.333-2.387 1.395-3.07.125-1.116-.325-1.674-1.349-1.674-.48 0-1.007.108-1.58.326 1.008-3.303 2.93-4.915 5.766-4.838 2.093.062 3.085 1.411 2.977 4.045z"/></svg>
+                                        <span>Vimeo</span>
+                                    </a>
+                                </template>
+                            </div>
+                            <p x-show="block.data.location" class="mt-8 text-xs text-zinc-500 uppercase tracking-widest" x-text="block.data.location"></p>
+                        </div>
+                    </footer>
+                </template>
+
+                <!-- 6. QUICK HERO (WIZYTÓWKA) -->
+                <template x-if="block.type === 'quick_hero'">
+                    <section class="px-6 py-20 text-center bg-gradient-to-b from-amber-50/60 to-white">
+                        <div class="mx-auto max-w-3xl space-y-6">
+                            <span x-show="block.data.badge"
+                                  class="inline-flex rounded-full bg-emerald-100 px-3.5 py-1 text-xs font-bold text-emerald-800 tracking-wide"
+                                  x-text="block.data.badge"></span>
+                            <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight"
+                                x-text="block.data.title"></h1>
+                            <p class="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto"
+                               x-text="block.data.subtitle"></p>
+                            <p x-show="block.data.city"
+                               class="text-sm font-semibold uppercase tracking-wider text-slate-400"
+                               x-text="'Obszar działania: ' + block.data.city"></p>
+                            <div class="pt-4 flex flex-wrap items-center justify-center gap-4">
+                                <a :href="'tel:' + (block.data.phone || '').replace(/\s+/g, '')"
+                                   class="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-7 py-4 text-base font-bold text-white shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition transform hover:-translate-y-0.5">
+                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                    <span x-text="block.data.cta_primary_text || 'Zadzwoń teraz'"></span>
+                                </a>
+                                <template x-if="block.data.whatsapp">
+                                    <a :href="'https://wa.me/' + (block.data.whatsapp || '').replace(/[^0-9]/g, '')"
+                                       target="_blank" rel="noopener noreferrer"
+                                       class="inline-flex items-center gap-2 rounded-2xl bg-[#25D366] px-6 py-4 text-base font-bold text-white shadow-lg shadow-emerald-500/10 hover:bg-[#20bd5a] transition transform hover:-translate-y-0.5">
+                                        <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.969.541 1.83.824 2.802.825l.006.001c3.179 0 5.767-2.586 5.768-5.766 0-3.18-2.587-5.767-5.78-5.767v-.046zm3.376 8.21c-.143.404-.712.744-1.026.791-.31.047-.714.074-2.255-.548-1.841-.741-3.029-2.607-3.12-2.729-.092-.122-.734-.979-.734-1.868 0-.889.467-1.326.634-1.505.166-.179.364-.224.485-.224.122 0 .243.002.349.007.112.005.263-.042.411.315.153.37.521 1.272.567 1.364.046.092.077.199.015.321-.061.122-.092.199-.184.305-.092.107-.194.239-.277.322-.092.091-.188.19-.081.373.107.183.476.786 1.022 1.272.703.626 1.296.82 1.48.911.183.092.29.076.398-.046.107-.122.459-.534.581-.718.122-.183.244-.153.411-.092.167.061 1.059.499 1.242.59.183.092.305.138.351.214.045.077.045.443-.098.847z"/></svg>
+                                        <span x-text="block.data.cta_secondary_text || 'Napisz na WhatsApp'"></span>
+                                    </a>
+                                </template>
+                            </div>
+                        </div>
+                    </section>
+                </template>
+
+                <!-- 7. KEY FEATURES (WIZYTÓWKA) -->
+                <template x-if="block.type === 'key_features'">
+                    <section id="atuty" class="mx-auto max-w-5xl px-6 py-16">
+                        <h2 class="text-2xl font-bold text-center text-slate-900 mb-10" x-text="block.data.heading || 'Dlaczego my?'"></h2>
+                        <div class="grid gap-6 sm:grid-cols-3">
+                            <template x-for="(item, idx) in (block.data.items || [])" :key="idx">
+                                <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition">
+                                    <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-800 font-bold">
+                                        ✓
+                                    </div>
+                                    <h3 class="text-base font-bold text-slate-900" x-text="item.title"></h3>
+                                    <p class="mt-2 text-sm text-slate-600 leading-relaxed" x-text="item.desc"></p>
+                                </div>
+                            </template>
+                        </div>
+                    </section>
+                </template>
+
+                <!-- 8. QUICK CONTACT CARD (WIZYTÓWKA) -->
+                <template x-if="block.type === 'quick_contact_card'">
+                    <footer id="kontakt" class="bg-slate-50 border-t border-slate-200 px-6 py-16">
+                        <div class="mx-auto max-w-4xl">
+                            <h2 class="text-2xl font-bold text-slate-900 text-center mb-8" x-text="block.data.heading || 'Kontakt'"></h2>
+                            <div class="rounded-2xl bg-white p-8 border border-slate-200 shadow-sm grid gap-6 sm:grid-cols-2">
+                                <div>
+                                    <h3 class="font-bold text-slate-900 text-lg" x-text="block.data.company_name"></h3>
+                                    <p class="text-sm text-slate-600 mt-1" x-text="block.data.address"></p>
+                                    <p class="text-sm text-slate-600 font-medium" x-text="block.data.city"></p>
+                                    <div class="mt-4 pt-4 border-t border-slate-100 space-y-2 text-sm">
+                                        <p><strong class="text-slate-900">Tel:</strong> <a :href="'tel:' + (block.data.phone || '').replace(/\s+/g, '')" class="text-emerald-700 font-semibold" x-text="block.data.phone"></a></p>
+                                        <p x-show="block.data.email"><strong class="text-slate-900">E-mail:</strong> <a :href="'mailto:' + block.data.email" class="text-slate-700" x-text="block.data.email"></a></p>
+                                    </div>
+                                </div>
+                                <div class="border-t sm:border-t-0 sm:border-l sm:pl-8 border-slate-100 flex flex-col justify-between">
+                                    <div>
+                                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Godziny pracy</h4>
+                                        <pre class="font-sans text-sm text-slate-600 whitespace-pre-line leading-relaxed" x-text="block.data.hours"></pre>
+                                    </div>
+                                    <template x-if="block.data.booking_url">
+                                        <div class="mt-6">
+                                            <a :href="block.data.booking_url" target="_blank" rel="noopener noreferrer"
+                                               class="inline-flex w-full justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800 transition">
+                                                Umów wizytę online
+                                            </a>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </footer>
+                </template>
+
+                <!-- 9. SIMPLE FAQ BLOCK -->
+                <template x-if="block.type === 'faq_simple'">
+                    <section class="mx-auto max-w-3xl px-6 py-16">
+                        <h2 class="text-2xl font-bold text-center mb-8" :class="isCinematic ? 'text-white' : 'text-slate-900'" x-text="block.data.heading || 'Częste pytania'"></h2>
+                        <div class="space-y-4">
+                            <template x-for="(faq, idx) in (block.data.items || [])" :key="idx">
+                                <details class="rounded-xl p-5 border transition"
+                                         :class="isCinematic ? 'bg-white/[0.02] border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'">
+                                    <summary class="font-semibold cursor-pointer select-none" x-text="faq.question"></summary>
+                                    <p class="mt-3 text-sm leading-relaxed" :class="isCinematic ? 'text-zinc-400' : 'text-slate-600'" x-text="faq.answer"></p>
+                                </details>
+                            </template>
+                        </div>
+                    </section>
+                </template>
+
+            </div>
+        </template>
+    </main>
+
+    <!-- UNIVERSAL VIDEO MODAL PLAYER -->
+    <div x-show="modalOpen" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+         @click.self="closeVideoModal()"
+         @keydown.escape.window="modalOpen && closeVideoModal()"
+         role="dialog" aria-modal="true">
+        <div class="relative w-full max-w-5xl rounded-2xl bg-black border border-white/15 overflow-hidden shadow-2xl">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-zinc-950">
+                <h3 class="text-sm font-bold text-white font-cinematic" x-text="modalTitle"></h3>
+                <button type="button" @click="closeVideoModal()" class="text-zinc-400 hover:text-white text-2xl leading-none p-1 transition" aria-label="Zamknij">✕</button>
+            </div>
+            <!-- Video Player -->
+            <div class="aspect-video w-full bg-black">
+                <template x-if="modalEmbedUrl">
+                    <iframe :src="modalEmbedUrl" class="h-full w-full" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                </template>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // Transparentność i Znak Wodny AI (EU AI Act & Platform Attribution)
+        if (!customElements.get('dfcms-watermark')) {
+            class DFCMSCustomWatermark extends HTMLElement {
+                constructor() {
+                    super();
+                    const shadow = this.attachShadow({ mode: 'closed' });
+                    const wrapper = document.createElement('div');
+                    wrapper.innerHTML = `
+                        <style>
+                            .dfcms-badge {
+                                position: fixed !important;
+                                bottom: 16px !important;
+                                right: 16px !important;
+                                background: rgba(18, 18, 18, 0.92) !important;
+                                backdrop-filter: blur(8px) !important;
+                                -webkit-backdrop-filter: blur(8px) !important;
+                                color: #D4AF37 !important;
+                                padding: 7px 12px !important;
+                                font-family: system-ui, -apple-system, sans-serif !important;
+                                font-size: 11px !important;
+                                font-weight: 700 !important;
+                                letter-spacing: 0.08em !important;
+                                text-transform: uppercase !important;
+                                border: 1px solid rgba(255, 255, 255, 0.12) !important;
+                                border-radius: 9999px !important;
+                                text-decoration: none !important;
+                                z-index: 2147483647 !important;
+                                box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important;
+                                transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease !important;
+                                display: inline-flex !important;
+                                align-items: center !important;
+                                gap: 6px !important;
+                                pointer-events: auto !important;
+                            }
+                            .dfcms-badge:hover {
+                                background: #000 !important;
+                                border-color: rgba(212, 175, 55, 0.5) !important;
+                                transform: translateY(-2px) !important;
+                            }
+                        </style>
+                        <a href="https://dfcms.pl?ref=custom-ai" target="_blank" rel="noopener noreferrer" class="dfcms-badge" aria-label="Strona stworzona w technologii DFCMS AI">
+                            <span>⚡</span>
+                            <span>Stworzono w DFCMS AI</span>
+                        </a>
+                    `;
+                    shadow.appendChild(wrapper);
+                }
+            }
+            customElements.define('dfcms-watermark', DFCMSCustomWatermark);
+        }
+
+        if (typeof window.DFOPS_initWatermark !== 'function') {
+            window.DFOPS_initWatermark = function(plan) {
+                const show = typeof window.DFOPS_planShowsWatermark === 'function'
+                    ? window.DFOPS_planShowsWatermark(plan)
+                    : ((plan || 'trial') === 'trial' || (plan || 'trial') === 'tier0');
+                if (show) {
+                    if (!document.querySelector('dfcms-watermark')) {
+                        document.body.appendChild(document.createElement('dfcms-watermark'));
+                    }
+                } else {
+                    const badge = document.querySelector('dfcms-watermark');
+                    if (badge) badge.remove();
+                }
+            };
+        }
+
+        function createCustomSiteApp() {
+            return {
+                dataLoaded: false,
+                loadError: null,
+                trialBlocked: false,
+                page: null,
+                content: {},
+                blocks: [],
+                themeType: 'cinematic',
+                siteTitle: 'DFCMS',
+
+                // Modal state
+                modalOpen: false,
+                modalEmbedUrl: '',
+                modalTitle: '',
+
+                get isCinematic() {
+                    return this.themeType !== 'quick_card';
+                },
+
+                hasBlock(type) {
+                    return Array.isArray(this.blocks) && this.blocks.some(b => b.type === type);
+                },
+
+                async init() {
+                    try {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const isPreview = urlParams.get('dfcms_preview') === '1';
+                        const siteParam = urlParams.get('site');
+                        const normalizeHostname = window.DFOPS_normalizeHostname || ((h) => (h || '').toLowerCase().replace(/^www\./, ''));
+                        const hostname = normalizeHostname(window.location.hostname);
+                        const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
+                        const repo = window.DFOPS_pageRepository;
+
+                        let currentSlug = '';
+                        let currentCustomDomain = '';
+
+                        if (siteParam && String(siteParam).trim()) {
+                            const raw = String(siteParam).trim().toLowerCase();
+                            if (!raw.includes('://') && !raw.includes('/') && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(raw)) {
+                                currentSlug = raw;
+                            }
+                        }
+
+                        if (!currentSlug && typeof window.DFOPS_extractTenantSlugFromHostname === 'function') {
+                            const fromHost = window.DFOPS_extractTenantSlugFromHostname(hostname, normalizeHostname);
+                            if (fromHost) currentSlug = fromHost;
+                        }
+
+                        if (!currentSlug && typeof window.DFOPS_isHostUnderPlatform === 'function' && !window.DFOPS_isHostUnderPlatform(hostname, normalizeHostname)) {
+                            currentCustomDomain = hostname;
+                        }
+
+                        let pageRow = null;
+                        let isAuthenticatedPreview = false;
+
+                        if (currentSlug && repo) {
+                            if (isPreview && typeof repo.getPageForAuthenticatedPreview === 'function') {
+                                const ownerRes = await repo.getPageForAuthenticatedPreview(currentSlug);
+                                if (ownerRes?.data) {
+                                    pageRow = ownerRes.data;
+                                    isAuthenticatedPreview = true;
+                                }
+                            }
+                            if (!pageRow) {
+                                const res = await repo.getPageBySlug(currentSlug);
+                                pageRow = res?.data;
+                            }
+                        } else if (currentCustomDomain && repo) {
+                            const res = await repo.getPageByCustomDomain(currentCustomDomain);
+                            pageRow = res?.data;
+                        }
+
+                        if (!pageRow && window.DFOPS_CUSTOM_DEMO_PAGE) {
+                            pageRow = window.DFOPS_CUSTOM_DEMO_PAGE;
+                        }
+
+                        if (!pageRow) {
+                            // Demo fallback ONLY on localhost when explicitly requested or empty local host
+                            if (isLocal && (!currentSlug || currentSlug === 'demo')) {
+                                const registry = window.DFOPS_customBlocksRegistry;
+                                if (registry) {
+                                    this.content = registry.createInitialCinematicState({
+                                        name: 'Kamil Wiśniewski',
+                                        role: 'Director of Photography',
+                                        tagline: 'Światło · Kadr · Emocja',
+                                        video_url: 'https://vimeo.com/76979871',
+                                    });
+                                    this.blocks = this.content.blocks || [];
+                                    this.themeType = this.content.theme_type || 'cinematic';
+                                    this.siteTitle = this.content.meta?.title || 'Portfolio Filmowe';
+                                    this.dataLoaded = true;
+                                    return;
+                                }
+                            }
+                            this.loadError = 'Nie znaleziono witryny (404).';
+                            this.dataLoaded = true;
+                            return;
+                        }
+
+                        // Trial blocking check
+                        const shouldBlock = typeof window.DFOPS_shouldBlockPublicPageView === 'function'
+                            ? window.DFOPS_shouldBlockPublicPageView(pageRow)
+                            : false;
+
+                        if (shouldBlock) {
+                            if (!(isPreview && isAuthenticatedPreview)) {
+                                this.trialBlocked = true;
+                                this.dataLoaded = true;
+                                document.title = 'Strona chwilowo niedostępna';
+                                return;
+                            }
+                            if (!document.getElementById('dfcms-preview-banner')) {
+                                const b = document.createElement('div');
+                                b.id = 'dfcms-preview-banner';
+                                b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#b91c1c;color:#fff;text-align:center;padding:8px 12px;font-size:12px;font-weight:600;letter-spacing:0.02em;box-shadow:0 2px 8px rgba(0,0,0,0.3);';
+                                b.textContent = 'Tryb podglądu: okres testowy witryny wygasł. Dla odwiedzających strona jest zablokowana.';
+                                document.body.appendChild(b);
+                            }
+                        }
+
+                        this.page = pageRow;
+                        const rawContent = (isPreview && isAuthenticatedPreview && pageRow.draft_content)
+                            ? pageRow.draft_content
+                            : (pageRow.content || pageRow.draft_content || {});
+
+                        this.content = rawContent;
+                        this.themeType = rawContent.theme_type || 'cinematic';
+                        this.blocks = Array.isArray(rawContent.blocks) ? rawContent.blocks : [];
+
+                        // Dynamic Accent Color
+                        const accent = rawContent.design?.accent_color;
+                        if (accent) {
+                            document.documentElement.style.setProperty('--brand-gold', accent);
+                        }
+
+                        // Tytuł z bloków
+                        const hero = this.blocks.find(b => b.type === 'cinematic_hero' || b.type === 'quick_hero');
+                        this.siteTitle = hero?.data?.title || rawContent.meta?.title || pageRow.slug || 'DFCMS';
+
+                        // Inicjalizacja znaku wodnego
+                        if (typeof window.DFOPS_initWatermark === 'function') {
+                            window.DFOPS_initWatermark(pageRow.billing_plan);
+                        }
+
+                        this.dataLoaded = true;
+                    } catch (err) {
+                        console.error('[CustomSiteApp] Init error:', err);
+                        this.loadError = 'Wystąpił błąd podczas ładowania strony.';
+                        this.dataLoaded = true;
+                    }
+                },
+
+                openVideoModal(videoUrl, title) {
+                    if (!videoUrl) return;
+                    const registry = window.DFOPS_customBlocksRegistry;
+                    const meta = registry ? registry.extractVideoMeta(videoUrl) : { embedUrl: videoUrl };
+                    this.modalEmbedUrl = meta.embedUrl;
+                    this.modalTitle = title || 'Odtwarzacz Wideo';
+                    this.modalOpen = true;
+                },
+
+                closeVideoModal() {
+                    this.modalOpen = false;
+                    this.modalEmbedUrl = '';
+                },
+            };
+        }
+    </script>
+</body>
+</html>

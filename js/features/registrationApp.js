@@ -185,6 +185,11 @@
             this.success = true;
             if (hasSession) {
               localStorage.setItem('dfops_login_time', String(Date.now()));
+              const returnTo = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('returnTo') : null;
+              if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//') && !returnTo.includes('\\')) {
+                window.location.href = returnTo;
+                return;
+              }
             }
             return;
           }

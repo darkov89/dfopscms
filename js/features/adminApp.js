@@ -1913,6 +1913,11 @@
           !portalRefreshScheduled &&
           !this.isForcedPasswordReset
         ) {
+          const returnTo = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('returnTo') : null;
+          if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//') && !returnTo.includes('\\')) {
+            window.location.href = returnTo;
+            return;
+          }
           await this.loadData();
         } else if (this.user && this.isForcedPasswordReset) {
           this.isLoading = false;
@@ -1985,6 +1990,11 @@
           this.assignAuthUser(data.user);
           await this.syncAuthUserFromServer();
           await this.refreshSuperadminStatus();
+          const returnTo = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('returnTo') : null;
+          if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//') && !returnTo.includes('\\')) {
+            window.location.href = returnTo;
+            return;
+          }
           if (!this.schedulePostPaymentDataRefresh()) {
             await this.loadData();
           }

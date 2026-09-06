@@ -11,6 +11,7 @@
     'services',
     'gastro',
     'care',
+    'custom',
   ];
 
   function getPublishedThemeIds() {

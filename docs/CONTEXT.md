@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-09-04 — PR-4: sprzątanie fali split panelu JS (kernel + onboarding + billing)
+**Ostatnia aktualizacja:** 2026-09-06 — Custom AI Sites (`theme=custom`) + returnTo Studio
 
 ---
 
@@ -73,7 +73,7 @@ Użytkownik → Auth → pages.content + pages.billing_plan + billing_profiles
 
 | Warstwa | Kluczowe artefakty |
 |--------|---------------------|
-| **Front publiczny** | `index.html` (dark-mode SaaS landing spójny z admin/rejestracją: `#121212` + `#D4AF37`; hero (wynik biznesowy + AI w subcopy), `#jak`, `#ai`, `#korzysci`, `#panel`, `#demo`, `#spokoj`, `#cennik`, SEO + `favicon.svg`), demo przez `router.html?site=demo-*` (beauty/services/care/gastro/fitness/consultant). Szablony branżowe HTML są w `/templates/` (`beauty`, `consultant`, `fitness`, `services`, `gastro`, `care`); media statyczne przenoszone z root trafiają do `/assets/images/`; boilerplate nowych szablonów: `/templates/_base_template.html`; klocki UI: `/templates/_components_library.html`; partial FAB czatu: `/templates/_partials/quick_chat_fab.html`. `setup.html` zostaje w root. `landingPricing.js` — plany cennika i dane landingowe. **Szybki kontakt:** pływający przycisk WhatsApp (`contact.whatsapp` → `wa.me`) lub Messenger (`contact.messenger` → `m.me`) — `publicSiteApp` + Alpine `x-show`; dostępny na wszystkich planach w tym Starter (`tier0`, `DFOPS_planAllowsQuickChat` — od 2026-07-05). Opcjonalna lista gotowych pytań (`contact.quick_chat_questions: string[]`, panel Kontakt → Szybki czat): klik w FAB rozwija popover, wybór pytania otwiera czat z wpisaną treścią (WhatsApp `?text=`; Messenger nie wspiera pre-fillu → kopiowanie do schowka + toast). |
+| **Front publiczny** | `index.html` (dark-mode SaaS landing spójny z admin/rejestracją: `#121212` + `#D4AF37`; hero (wynik biznesowy + AI w subcopy), `#jak`, `#ai`, `#korzysci`, `#panel`, `#demo`, `#spokoj`, `#cennik`, SEO + `favicon.svg`), demo przez `router.html?site=demo-*` (beauty/services/care/gastro/fitness/consultant). Szablony HTML są w `/templates/` (`beauty`, `consultant`, `fitness`, `services`, `gastro`, `care`, **`custom`**); media statyczne przenoszone z root trafiają do `/assets/images/`; boilerplate nowych szablonów: `/templates/_base_template.html`; klocki UI: `/templates/_components_library.html`; partial FAB czatu: `/templates/_partials/quick_chat_fab.html`. `setup.html` zostaje w root. `landingPricing.js` — plany cennika i dane landingowe. **Szybki kontakt:** pływający przycisk WhatsApp (`contact.whatsapp` → `wa.me`) lub Messenger (`contact.messenger` → `m.me`) — `publicSiteApp` + Alpine `x-show`; dostępny na wszystkich planach w tym Starter (`tier0`, `DFOPS_planAllowsQuickChat` — od 2026-07-05). Opcjonalna lista gotowych pytań (`contact.quick_chat_questions: string[]`, panel Kontakt → Szybki czat): klik w FAB rozwija popover, wybór pytania otwiera czat z wpisaną treścią (WhatsApp `?text=`; Messenger nie wspiera pre-fillu → kopiowanie do schowka + toast). |
 | **Panel CMS** | `admin.html` (~2,5k linii HTML), kernel `adminApp.js` (~3,5k linii Alpine) + pionowe attach-e. **IA (2026-07):** domyślny ekran `dashboard` (adres + checklista + **AI Site Generator**); sidebar w 3 grupach zwijanych (Na start / Więcej treści / Ustawienia); nagłówek z CTA „Opublikuj”, menu ⋯; rezerwacje w Kontakcie; scalone Opinie; bez Leady w menu; bez globalnej widoczności sekcji w Wyglądzie — szczegóły §1.5.2. **`js/core/themeConfig.js`** — sekcje per `pages.theme`; **`js/core/contentSchema.js`** + **`contentUpgrader.js`** — kontrakt/migracja pól JSON (`pages.content` / `draft_content`). **`js/templates/registry.js`** — domyślna treść startowa (nie mylić z `templates/*.html`). Draft vs published: `pages.draft_content` / `pages.content`. **Zero-Friction AI (2026-08-08):** `draft_content.pl.settings.ai_business_context` (+ `business_category` / `city`) — kontekst branżowy niezależny od nazwy szablonu; `js/core/aiBusinessContext.js`; fallback ręczny w kreatorze/Kontakcie gdy Places bez kategorii. Subskrypcja, Smart Booking, szybki kontakt, God Mode — jak wcześniej. Adaptery poza kernel: `growth/`, `onboarding/`, `billing-panel/`, `aiGenerator.js`, `i18nPanel.js`. |
 | **Backend** | `pages`, `billing_profiles`, `superadmins`, RLS. Schemat baseline: `20260603072317_remote_schema.sql`; God Mode: `20260623100512_add_god_mode.sql`. |
 | **Płatności** | Starter `tier0`, Standard `tier1`, Custom poza Stripe. Secrets: `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_STARTER_YEARLY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_PRO_YEARLY`. wFirma: `WFIRMA_*`, ledger `wfirma_invoice_ledger`. |
@@ -235,7 +235,8 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 | `sync-stripe-subscription` | Ręczna synchronizacja statusu subskrypcji |
 | `add-custom-domain` | Cloudflare Custom Hostname + zapis w DB |
 | `get-google-reviews` | Places / opinie (`GOOGLE_MAPS_API_KEY`); embed iframe (`GOOGLE_MAPS_EMBED_API_KEY`); `listPlaces` zwraca też `category` / `primaryType*` / `types`; wymaga sesji |
-| `generate-ai-content` | AI Site Generator (Gemini): JWT + ownership + quota → merge copy do `pages.draft_content`; secrets `GEMINI_API_KEY`, opcjonalnie `GEMINI_MODEL` / `DFCMS_ENV` / `AI_LOG_PROMPTS` |
+| `generate-ai-content` | AI Site Generator (Gemini): JWT + ownership + quota (`ai_gen_month` / `ai_gen_count`) → merge copy do `pages.draft_content`; secrets `GEMINI_API_KEY`, opcjonalnie `GEMINI_MODEL` / `DFCMS_ENV` / `AI_LOG_PROMPTS` |
+| `chat-site-agent` | Studio Custom AI: Gemini function calling → atomowe patche `pages.draft_content.blocks`; JWT + ownership/God; cooldown 30s/isolate; quota `agent_chat_month` / `agent_chat_count` (osobno od generatora) |
 | **`expire-trial-pages`** | **Cron** (`POST` + `Bearer CRON_SECRET`): `expire_manual_grants()` → `expire_trial_pages()` → `notify_purge_upcoming_pages()` → `list_pages_pending_purge()` → opcjonalnie `purge_trial_blocked_pages_after_grace()` gdy `AUTO_PURGE_ENABLED=true`. **Powiadomienia operacyjne przez Telegram** (Markdown): alert −7 dni per slug; raport ręcznej kasacji (30+ dni) z gotowym SQL. Brak alertów → `200` bez wiadomości. |
 | `telegram-webhook` | Router alertów (Sentry, Database Webhooks `users`/`pages`/`billing_profiles`, logi) → Telegram; **`Bearer TELEGRAM_WEBHOOK_SECRET`**; prefix `[STAGING]` / `[PROD]` z `DFCMS_ENV` lub project ref |
 | `send-custom-inquiry` | Publiczny formularz Custom (`zapytanie-custom.html`): Turnstile → SMTP (`SMTP_*`, jak Auth) + Telegram ops (`verify_jwt=false`) |
@@ -384,7 +385,8 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 | Multi-site panel | `pageRepository.listCurrentUserPages`, selektor w `08-header.html` |
 | Demo seeds (localhost fallback) | `data/seeds/demo_pages.json`, `scripts/extract-demo-seeds-from-migration.mjs` |
 | Demo seeds (DB / prod) | `supabase/migrations/20260616150000_seed_demo_catalog_pages.sql` |
-| Szablony publiczne | `templates/{beauty,fitness,services,consultant,gastro,care}.html`, boilerplate `templates/_base_template.html` |
+| Szablony publiczne | `templates/{beauty,fitness,services,consultant,gastro,care,custom}.html`, boilerplate `templates/_base_template.html` |
+| Custom AI Sites | `kreator.html` → `studio.html` + Edge `chat-site-agent`; silnik `js/core/customBlocksRegistry.js`; spec [`docs/specs/custom-ai-sites.md`](specs/custom-ai-sites.md) |
 | Rejestracja | `rejestracja.html`, `registrationApp.js`, trigger `handle_new_user` |
 | Edge Stripe | `create-checkout`, `stripe-webhook`, `sync-stripe-subscription`, `_shared/stripeBilling.ts` |
 | Silnik Wzrostu (spec) | [`docs/specs/growth.md`](specs/growth.md) |
@@ -392,6 +394,10 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-09-06 — Custom AI Sites + returnTo Studio
+
+Nowy motyw `custom` (cinematic / quick_card): Zero-CMS — Agent AI mutuje drzewo bloków, nie HTML. Front: `kreator.html` (Turnstile, polityka hasła, `content=null` do publikacji) → `studio.html` (owner-query `getPageBySlugForOwner`, iframe `dfcms_preview=1`) → `templates/custom.html`. Middleware: `custom` w allowliście; `frame-ancestors 'self'` tylko przy preview; CSP frame-src Vimeo/YouTube-nocookie/Stream. JSON: `blocks` + `pl.settings.subscription.{plan:'trial', trial_started_at}` pod cron `expire_trial_pages()`. Quota czatu: migracja `20260906190000_chat_agent_quota.sql` (`billing_profiles.agent_chat_*`). Login z Studio: `admin.html?returnTo=` (anty-open-redirect); cache-bust `adminApp.js` / `registrationApp.js` `?v=20260906b`. Deploy Staging: `db push` + `functions deploy chat-site-agent` (osobno od git push Pages).
 
 ### 2026-09-04 — PR-4: sprzątanie fali split panelu JS
 

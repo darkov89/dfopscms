@@ -222,6 +222,7 @@
     'profile_photo_url',
     'qrImage',
     'menu_image',
+    'thumbnail',
   ]);
 
   const HREF_URL_KEYS = new Set([
@@ -238,6 +239,10 @@
     'twitter',
     'url',
     'youtube',
+    'video_url',
+    'showreel_url',
+    'cta_secondary_target',
+    'vimeo',
   ]);
 
   function sanitizeUrlField(raw, attrName) {
@@ -470,8 +475,33 @@
     if (!user?.id) return { data: null, error: null };
     const { data, error } = await sb
       .from('pages')
-      .select('slug, theme, content, color_preset, custom_domain, trial_blocked_at, billing_failed_at, billing_plan')
+      .select('id, slug, theme, content, draft_content, color_preset, custom_domain, trial_blocked_at, billing_failed_at, billing_plan')
       .eq('slug', slugTrimmed)
+      .limit(1)
+      .maybeSingle();
+    return { data: sanitizePageRow(data), error };
+  }
+
+  /**
+   * Pobiera pełny rekord strony dla zalogowanego właściciela po slugu (z id i draft_content).
+   * Używane przez Studio i panel autorski.
+   */
+  async function getPageBySlugForOwner(slug) {
+    const slugTrimmed = typeof slug === 'string' ? slug.trim().toLowerCase() : '';
+    if (!slugTrimmed) return { data: null, error: null };
+    const sb = supabase();
+    try {
+      await sb.auth.getSession();
+    } catch (_) {}
+    const {
+      data: { user } = { user: null },
+    } = await sb.auth.getUser();
+    if (!user?.id) return { data: null, error: new Error('UNAUTHORIZED') };
+    const { data, error } = await sb
+      .from('pages')
+      .select('id, created_at, slug, user_id, theme, content, draft_content, color_preset, custom_domain, custom_domain_status, trial_blocked_at, billing_failed_at, billing_plan')
+      .eq('slug', slugTrimmed)
+      .eq('user_id', user.id)
       .limit(1)
       .maybeSingle();
     return { data: sanitizePageRow(data), error };
@@ -657,6 +687,7 @@
     getCurrentUserPage,
     listCurrentUserPages,
     getPageByIdForOwner,
+    getPageBySlugForOwner,
     isCurrentUserSuperadmin,
     getPageBySlugForSuperadmin,
     saveCurrentUserPage,

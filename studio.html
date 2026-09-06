@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="pl" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DFCMS — AI Studio</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        cinematic: ['Cinzel', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            gold: '#D4AF37',
+                            goldHover: '#e6c35c',
+                            dark: '#0f0f0f',
+                            card: '#161616',
+                            border: '#242424',
+                        },
+                    },
+                },
+            },
+        };
+    </script>
+    <link rel="stylesheet" href="/css/styles.css?v=20260906b">
+
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/js/core/utils.js?v=20260906b"></script>
+    <script src="/js/core/platformRouting.js?v=20260906b"></script>
+    <script defer src="/js/core/config.js?v=20260906b"></script>
+    <script defer src="/js/core/supabaseClient.js?v=20260906b"></script>
+    <script defer src="/js/core/pageRepository.js?v=20260906b"></script>
+    <script defer src="/js/core/customBlocksRegistry.js?v=20260906b"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body x-data="createStudioApp()" class="h-full bg-[#0d0d0d] text-zinc-100 font-sans antialiased flex flex-col overflow-hidden">
+
+    <!-- Top Studio Toolbar -->
+    <header class="h-16 border-b border-brand-border bg-black/80 px-6 flex items-center justify-between z-30 flex-shrink-0">
+        <div class="flex items-center gap-4">
+            <a href="/" class="text-xs font-bold text-zinc-400 hover:text-white transition flex items-center gap-1.5">
+                <span>← DFCMS</span>
+            </a>
+            <div class="h-4 w-px bg-white/10"></div>
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold uppercase tracking-widest text-brand-gold">Studio AI:</span>
+                <span class="text-sm font-semibold text-white" x-text="pageSlug"></span>
+                <span class="text-[10px] bg-white/10 text-zinc-300 font-bold px-2 py-0.5 rounded-full uppercase" x-text="themeType"></span>
+            </div>
+        </div>
+
+        <!-- Center: Device Switcher -->
+        <div class="hidden sm:flex items-center rounded-xl bg-white/5 p-1 border border-white/10">
+            <button type="button" @click="deviceMode = 'desktop'"
+                    :class="deviceMode === 'desktop' ? 'bg-white/15 text-white shadow-sm' : 'text-zinc-400 hover:text-white'"
+                    class="rounded-lg px-3 py-1 text-xs font-semibold transition flex items-center gap-1.5">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                <span>Komputer</span>
+            </button>
+            <button type="button" @click="deviceMode = 'mobile'"
+                    :class="deviceMode === 'mobile' ? 'bg-white/15 text-white shadow-sm' : 'text-zinc-400 hover:text-white'"
+                    class="rounded-lg px-3 py-1 text-xs font-semibold transition flex items-center gap-1.5">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                <span>Telefon</span>
+            </button>
+        </div>
+
+        <!-- Right: Actions -->
+        <div class="flex items-center gap-3">
+            <a href="/admin.html#subscription" class="hidden lg:inline-flex rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/10 hover:text-white transition">
+                Domeny & Płatności ⚙️
+            </a>
+            <button type="button" @click="toggleChat()"
+                    :class="chatOpen ? 'bg-brand-gold/15 text-brand-gold border-brand-gold/30' : 'bg-white/5 text-zinc-300 border-white/10'"
+                    class="sm:hidden rounded-xl border px-3 py-1.5 text-xs font-semibold transition flex items-center gap-1.5">
+                <span>Agent AI</span>
+            </button>
+            <a :href="'/templates/custom.html?site=' + pageSlug" target="_blank"
+               class="hidden md:inline-flex rounded-xl border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/10 hover:text-white transition">
+                Otwórz LIVE ↗
+            </a>
+            <button type="button" @click="publishChanges()" :disabled="publishing || loading"
+                    class="inline-flex items-center gap-2 rounded-full bg-brand-gold px-5 py-2 text-xs font-bold uppercase tracking-wider text-black shadow-lg shadow-brand-gold/20 hover:bg-brand-goldHover transition disabled:opacity-50">
+                <span x-show="publishing" class="h-3 w-3 animate-spin rounded-full border-2 border-black border-t-transparent"></span>
+                <span x-text="publishing ? 'Publikowanie...' : 'Opublikuj na żywo ⚡'"></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace Area -->
+    <div class="flex-1 flex overflow-hidden relative">
+
+        <!-- Left / Center: Live Preview Iframe Container -->
+        <div class="flex-1 bg-black/90 p-3 sm:p-6 flex items-center justify-center overflow-hidden transition-all duration-300">
+            <div :class="deviceMode === 'mobile' ? 'w-[390px] h-[844px] rounded-[48px] border-[10px] border-zinc-800 shadow-2xl overflow-hidden' : 'w-full h-full rounded-2xl border border-white/10 overflow-hidden shadow-2xl'"
+                 class="transition-all duration-300 bg-black flex flex-col relative">
+                <!-- Preview Iframe -->
+                <iframe id="dfcms-studio-iframe"
+                        :src="'/templates/custom.html?site=' + pageSlug + '&dfcms_preview=1&t=' + refreshTimestamp"
+                        class="w-full h-full border-0 bg-black"></iframe>
+            </div>
+        </div>
+
+        <!-- Right Side: AI Agent Chat Sidebar -->
+        <aside :class="chatOpen ? 'translate-x-0' : 'translate-x-full sm:translate-x-0'"
+               class="fixed inset-y-16 right-0 sm:static sm:inset-auto w-full sm:w-96 border-l border-brand-border bg-brand-card flex flex-col z-20 shadow-2xl transition-transform duration-300">
+
+            <!-- Chat Header -->
+            <div class="p-4 border-b border-white/10 flex items-center justify-between bg-black/40">
+                <div class="flex items-center gap-2.5">
+                    <div class="h-7 w-7 rounded-full bg-brand-gold/15 text-brand-gold flex items-center justify-center font-bold text-xs">
+                        AI
+                    </div>
+                    <div>
+                        <h2 class="text-xs font-bold text-white uppercase tracking-wider">Agent Zero-CMS</h2>
+                        <p class="text-[10px] text-zinc-400">Edytuje stronę bez ruszania kodu</p>
+                    </div>
+                </div>
+                <button type="button" @click="chatOpen = false" class="sm:hidden text-zinc-400 hover:text-white text-lg leading-none p-1">✕</button>
+            </div>
+
+            <!-- Messages Stream -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs" id="dfcms-chat-messages">
+                <template x-for="(msg, idx) in messages" :key="idx">
+                    <div :class="msg.role === 'user' ? 'ml-auto bg-brand-gold text-black rounded-2xl rounded-br-sm' : 'mr-auto bg-white/5 border border-white/10 text-zinc-200 rounded-2xl rounded-bl-sm'"
+                         class="max-w-[85%] p-3.5 leading-relaxed shadow-sm">
+                        <p x-text="msg.text" class="whitespace-pre-wrap"></p>
+                    </div>
+                </template>
+
+                <!-- Typing indicator -->
+                <div x-show="agentThinking" x-cloak class="mr-auto bg-white/5 border border-white/10 text-zinc-400 rounded-2xl rounded-bl-sm p-3.5 flex items-center gap-2">
+                    <div class="h-2 w-2 rounded-full bg-brand-gold animate-bounce"></div>
+                    <div class="h-2 w-2 rounded-full bg-brand-gold animate-bounce [animation-delay:0.2s]"></div>
+                    <div class="h-2 w-2 rounded-full bg-brand-gold animate-bounce [animation-delay:0.4s]"></div>
+                    <span class="text-[11px] text-zinc-400 ml-1">Agent wprowadza zmiany...</span>
+                </div>
+            </div>
+
+            <!-- Quick Suggestions (Chips) -->
+            <div class="p-3 border-t border-white/5 bg-black/20 flex flex-wrap gap-1.5">
+                <button type="button" @click="sendQuickPrompt('Zmień numer telefonu kontaktowego')"
+                        class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-400 hover:text-white transition">
+                    📞 Zmień telefon
+                </button>
+                <button type="button" @click="sendQuickPrompt('Dodaj sekcję z nagrodami festiwalowymi')"
+                        class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-400 hover:text-white transition">
+                    🏆 Dodaj nagrody
+                </button>
+                <button type="button" @click="sendQuickPrompt('Wstaw link do mojego showreela')"
+                        class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-400 hover:text-white transition">
+                    🎬 Zmień showreel
+                </button>
+                <button type="button" @click="sendQuickPrompt('Zmień kolor akcentu na złoty')"
+                        class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-400 hover:text-white transition">
+                    🎨 Zmień styl
+                </button>
+            </div>
+
+            <!-- Input Box -->
+            <form @submit.prevent="sendMessage()" class="p-3 border-t border-white/10 bg-black/60">
+                <div class="flex items-center gap-2 rounded-xl border border-white/15 bg-brand-dark px-3 py-2 focus-within:border-brand-gold transition">
+                    <input type="text" x-model="userInput" :disabled="agentThinking"
+                           placeholder="Napisz, co chcesz zmienić na stronie..."
+                           class="w-full bg-transparent text-xs text-white placeholder:text-zinc-500 focus:outline-none disabled:opacity-50">
+                    <button type="submit" :disabled="agentThinking || !userInput.trim()"
+                            class="h-7 w-7 rounded-lg bg-brand-gold text-black flex items-center justify-center font-bold transition hover:bg-brand-goldHover disabled:opacity-30 flex-shrink-0">
+                        ↑
+                    </button>
+                </div>
+            </form>
+        </aside>
+
+    </div>
+
+    <!-- Notification Toast -->
+    <div x-show="toastMessage" x-cloak
+         class="fixed bottom-6 left-6 z-50 rounded-2xl bg-zinc-900 border border-white/10 px-5 py-3 text-xs font-semibold text-white shadow-2xl flex items-center gap-3">
+        <span class="text-brand-gold">⚡</span>
+        <span x-text="toastMessage"></span>
+    </div>
+
+    <!-- Auth / Page Load Error Modal Overlay -->
+    <div x-show="authError" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-6 text-center">
+        <div class="max-w-md w-full rounded-2xl border border-red-500/30 bg-zinc-900 p-8 shadow-2xl">
+            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-500/10 text-red-400 text-2xl">
+                ⚠️
+            </div>
+            <h2 class="font-cinematic text-xl font-bold text-white mb-2">Brak dostępu do edycji</h2>
+            <p class="text-zinc-400 text-xs sm:text-sm mb-6 leading-relaxed" x-text="authError"></p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <a href="/admin.html" class="w-full sm:w-auto inline-flex justify-center rounded-xl bg-brand-gold px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-black hover:bg-brand-goldHover transition">
+                    Zaloguj się w Panelu
+                </a>
+                <a href="/kreator.html" class="w-full sm:w-auto inline-flex justify-center rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-xs font-semibold text-zinc-300 hover:bg-white/10 transition">
+                    Otwórz Kreator
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function createStudioApp() {
+            return {
+                pageSlug: '',
+                pageId: null,
+                pageRow: null,
+                themeType: 'custom',
+                deviceMode: 'desktop',
+                chatOpen: true,
+                loading: true,
+                publishing: false,
+                agentThinking: false,
+                refreshTimestamp: Date.now(),
+                toastMessage: '',
+
+                userInput: '',
+                messages: [
+                    {
+                        role: 'model',
+                        text: 'Cześć! Jestem Twoim asystentem DFCMS. Napisz mi po ludzku, co chcesz zmienić na stronie — np. wklej link do nowego filmu, poproś o zmianę numeru telefonu lub dodanie nowej sekcji.',
+                    },
+                ],
+
+                currentUser: null,
+                authError: '',
+
+                get liveSiteUrl() {
+                    if (!this.pageSlug) return '#';
+                    return `https://${this.pageSlug}.dfcms.pl/`;
+                },
+
+                async init() {
+                    const params = new URLSearchParams(window.location.search);
+                    this.pageSlug = params.get('site') || '';
+
+                    if (!this.pageSlug) {
+                        alert('Brak parametru ?site= w adresie.');
+                        window.location.href = '/kreator.html';
+                        return;
+                    }
+
+                    try {
+                        const client = window.DFOPS_getSupabaseClient ? window.DFOPS_getSupabaseClient() : null;
+                        if (!client) throw new Error('Brak klienta bazy danych.');
+
+                        const { data: { user } } = await client.auth.getUser();
+                        if (!user) {
+                            // Wymóg zalogowania do Studia — przekierowanie do formularza logowania w panelu
+                            window.location.href = `/admin.html?returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+                            return;
+                        }
+                        this.currentUser = user;
+
+                        const repo = window.DFOPS_pageRepository;
+                        if (repo) {
+                            const res = await repo.getPageBySlugForOwner(this.pageSlug);
+                            if (res.error) throw res.error;
+                            if (res.data) {
+                                this.pageRow = res.data;
+                                this.pageId = res.data.id;
+
+                                // Jeśli strona powstała przez trigger (theme: setup) lub brak draftu, a w localStorage jest szkic z kreatora:
+                                const pendingDraftKey = `dfops_pending_draft_${this.pageSlug}`;
+                                const pendingDraftStr = localStorage.getItem(pendingDraftKey);
+                                if (pendingDraftStr && (!this.pageRow.draft_content || this.pageRow.theme === 'setup')) {
+                                    try {
+                                        const parsedDraft = JSON.parse(pendingDraftStr);
+                                        await repo.savePageByIdForOwner(this.currentUser.id, this.pageId, {
+                                            theme: 'custom',
+                                            draft_content: parsedDraft,
+                                        });
+                                        this.pageRow.draft_content = parsedDraft;
+                                        this.pageRow.theme = 'custom';
+                                        localStorage.removeItem(pendingDraftKey);
+                                    } catch (draftErr) {
+                                        console.warn('[Studio] Failed to apply pending draft from localStorage:', draftErr);
+                                    }
+                                }
+
+                                this.themeType = this.pageRow.draft_content?.theme_type || this.pageRow.content?.theme_type || 'cinematic';
+                            } else {
+                                this.authError = 'Nie znaleziono strony lub nie jesteś jej właścicielem.';
+                            }
+                        }
+                    } catch (e) {
+                        console.error('[Studio] Init error:', e);
+                        this.authError = e.message || 'Błąd inicjalizacji Studio.';
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                toggleChat() {
+                    this.chatOpen = !this.chatOpen;
+                },
+
+                sendQuickPrompt(promptText) {
+                    this.userInput = promptText;
+                    this.sendMessage();
+                },
+
+                async sendMessage() {
+                    const text = this.userInput.trim();
+                    if (!text || this.agentThinking || !this.pageId) return;
+
+                    this.messages.push({ role: 'user', text });
+                    this.userInput = '';
+                    this.agentThinking = true;
+                    this.scrollToBottom();
+
+                    try {
+                        const client = window.DFOPS_getSupabaseClient ? window.DFOPS_getSupabaseClient() : null;
+                        if (!client) throw new Error('Brak połączenia z API.');
+
+                        // Wywołanie Edge Function chat-site-agent
+                        const { data, error } = await client.functions.invoke('chat-site-agent', {
+                            body: {
+                                pageId: this.pageId,
+                                message: text,
+                                history: this.messages.slice(-6),
+                            },
+                        });
+
+                        if (error || !data || data.error) {
+                            throw new Error(data?.error || error?.message || 'Nie udało się wykonać polecenia.');
+                        }
+
+                        this.messages.push({
+                            role: 'model',
+                            text: data.reply || 'Wprowadziłem zmiany na stronie.',
+                        });
+
+                        if (data.draft_content && this.pageRow) {
+                            this.pageRow.draft_content = data.draft_content;
+                        }
+
+                        // Odśwież podgląd iframe
+                        this.refreshTimestamp = Date.now();
+                        this.showToast('Zaktualizowano podgląd witryny');
+
+                    } catch (err) {
+                        console.error('[Studio] Agent error:', err);
+                        this.messages.push({
+                            role: 'model',
+                            text: 'Przepraszam, wystąpił problem: ' + (err.message || 'Spróbuj ponownie.'),
+                        });
+                    } finally {
+                        this.agentThinking = false;
+                        this.scrollToBottom();
+                    }
+                },
+
+                async publishChanges() {
+                    if (this.publishing) return;
+                    this.publishing = true;
+
+                    try {
+                        const repo = window.DFOPS_pageRepository;
+                        if (!repo || !this.currentUser || !this.pageId) throw new Error('Brak uprawnień lub ID strony.');
+
+                        // Pobierz najświeższy draft
+                        const res = await repo.getPageBySlugForOwner(this.pageSlug);
+                        if (!res.data || !res.data.draft_content) throw new Error('Brak wersji roboczej do publikacji.');
+
+                        // Zapis przez savePageByIdForOwner — z pełną sanityzacją treści!
+                        const saveRes = await repo.savePageByIdForOwner(this.currentUser.id, this.pageId, {
+                            content: res.data.draft_content,
+                        });
+
+                        if (saveRes.error) throw saveRes.error;
+
+                        this.showToast('Strona została pomyślnie opublikowana na żywo! 🚀');
+                    } catch (err) {
+                        console.error('[Studio] Publish error:', err);
+                        alert('Błąd podczas publikacji: ' + (err.message || err));
+                    } finally {
+                        this.publishing = false;
+                    }
+                },
+
+                showToast(msg) {
+                    this.toastMessage = msg;
+                    setTimeout(() => {
+                        this.toastMessage = '';
+                    }, 4000);
+                },
+
+                scrollToBottom() {
+                    setTimeout(() => {
+                        const el = document.getElementById('dfcms-chat-messages');
+                        if (el) el.scrollTop = el.scrollHeight;
+                    }, 50);
+                },
+            };
+        }
+    </script>
+</body>
+</html>

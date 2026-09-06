@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="pl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DFCMS — Kreator Strony AI</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        cinematic: ['Cinzel', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            gold: '#D4AF37',
+                            goldHover: '#e6c35c',
+                            dark: '#0f0f0f',
+                            card: '#181818',
+                            border: '#2a2a2a',
+                        },
+                    },
+                },
+            },
+        };
+    </script>
+    <link rel="stylesheet" href="/css/styles.css?v=20260906b">
+
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/js/core/utils.js?v=20260906b"></script>
+    <script src="/js/core/platformRouting.js?v=20260906b"></script>
+    <script defer src="/js/core/config.js?v=20260906b"></script>
+    <script defer src="/js/core/supabaseClient.js?v=20260906b"></script>
+    <script defer src="/js/core/pageRepository.js?v=20260906b"></script>
+    <script defer src="/js/core/customBlocksRegistry.js?v=20260906b"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body x-data="createWizardApp()" class="min-h-screen bg-[#0a0a0a] text-zinc-100 font-sans antialiased flex flex-col justify-between">
+
+    <!-- Header -->
+    <header class="border-b border-white/10 px-6 py-4 bg-black/40 backdrop-blur-md">
+        <div class="mx-auto flex max-w-4xl items-center justify-between">
+            <a href="/" class="flex items-center gap-2 text-white font-cinematic font-bold tracking-wider text-lg">
+                <span class="text-brand-gold">⚡</span> DFCMS AI STUDIO
+            </a>
+            <div class="text-xs font-semibold uppercase tracking-widest text-zinc-400">
+                Krok <span class="text-brand-gold" x-text="step"></span> z 3
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Wizard Content -->
+    <main class="mx-auto w-full max-w-3xl px-6 py-12 flex-1 flex flex-col justify-center">
+
+        <!-- KROK 1: Wybór Archetypu -->
+        <div x-show="step === 1" x-cloak class="space-y-8 text-center">
+            <div class="space-y-3">
+                <p class="text-xs font-bold uppercase tracking-[0.25em] text-brand-gold">Nowoczesne Strony Dedykowane</p>
+                <h1 class="font-cinematic text-3xl sm:text-5xl font-bold text-white tracking-tight">Jaki typ strony tworzymy?</h1>
+                <p class="text-zinc-400 text-sm sm:text-base max-w-lg mx-auto">Wybierz kierunek, a sztuczna inteligencja przygotuje strukturę dopasowaną do Twoich potrzeb.</p>
+            </div>
+
+            <div class="grid gap-6 sm:grid-cols-2 text-left pt-4">
+                <!-- Opcja Filmowa -->
+                <div @click="selectType('cinematic')"
+                     :class="chosenType === 'cinematic' ? 'border-brand-gold ring-2 ring-brand-gold/20 bg-brand-card' : 'border-brand-border bg-white/[0.02] hover:border-white/20'"
+                     class="cursor-pointer rounded-2xl border p-8 transition duration-300 transform hover:-translate-y-1">
+                    <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-gold/10 text-brand-gold text-2xl">
+                        🎬
+                    </div>
+                    <h2 class="font-cinematic text-xl font-bold text-white">Strona Filmowa / Portfolio</h2>
+                    <p class="mt-2 text-xs sm:text-sm text-zinc-400 leading-relaxed">Dla reżyserów, operatorów kamer, montażystów i domów produkcyjnych. Autoplay wideo w tle, showreel popup, siatka realizacji i nagrody.</p>
+                    <div class="mt-6 flex items-center text-xs font-bold text-brand-gold">
+                        <span>Wybierz kierunek filmowy →</span>
+                    </div>
+                </div>
+
+                <!-- Opcja Szybka Wizytówka -->
+                <div @click="selectType('quick_card')"
+                     :class="chosenType === 'quick_card' ? 'border-brand-gold ring-2 ring-brand-gold/20 bg-brand-card' : 'border-brand-border bg-white/[0.02] hover:border-white/20'"
+                     class="cursor-pointer rounded-2xl border p-8 transition duration-300 transform hover:-translate-y-1">
+                    <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-400 text-2xl">
+                        ⚡
+                    </div>
+                    <h2 class="font-cinematic text-xl font-bold text-white">Szybka Wizytówka Usługowa</h2>
+                    <p class="mt-2 text-xs sm:text-sm text-zinc-400 leading-relaxed">Dla rzemieślników, fachowców, gabinetów i specjalistów. Ultra-szybka witryna z natychmiastowym telefonem, WhatsAppem i mapą.</p>
+                    <div class="mt-6 flex items-center text-xs font-bold text-emerald-400">
+                        <span>Wybierz szybką wizytówkę →</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KROK 2: Dynamiczne Pytania AI -->
+        <div x-show="step === 2" x-cloak class="space-y-6">
+            <div class="text-center space-y-2">
+                <p class="text-xs font-bold uppercase tracking-[0.25em] text-brand-gold" x-text="chosenType === 'cinematic' ? 'Konfiguracja Portfolio' : 'Konfiguracja Wizytówki'"></p>
+                <h2 class="font-cinematic text-2xl sm:text-3xl font-bold text-white">Opowiedz nam o sobie</h2>
+                <p class="text-zinc-400 text-xs sm:text-sm">Odpowiedz na kilka pytań, a Agent AI złoży stronę gotową do publikacji.</p>
+            </div>
+
+            <!-- Formularz Filmowy -->
+            <template x-if="chosenType === 'cinematic'">
+                <div class="space-y-4 rounded-2xl border border-white/10 bg-brand-card p-6 sm:p-8">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Twoje Imię i Nazwisko / Pseudonim</label>
+                        <input type="text" x-model="form.name" placeholder="np. Tomasz Kot"
+                               class="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-3 text-sm text-white focus:border-brand-gold focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Główna specjalizacja</label>
+                        <input type="text" x-model="form.role" placeholder="np. Director of Photography / Reżyser reklamowy"
+                               class="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-3 text-sm text-white focus:border-brand-gold focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Link do Showreela lub wideo (Vimeo lub YouTube)</label>
+                        <input type="text" x-model="form.video_url" placeholder="https://vimeo.com/76979871"
+                               class="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-3 text-sm text-white focus:border-brand-gold focus:outline-none">
+                        <p class="mt-1 text-[11px] text-zinc-500">To wideo posłuży jako główne tło oraz odtwarzacz showreela.</p>
+                    </div>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Telefon kontaktowy</label>
+                            <input type="text" x-model="form.phone" placeholder="+48 600 700 800"
+                                   class="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-3 text-sm text-white focus:border-brand-gold focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">E-mail</label>
+                            <input type="email" x-model="form.email" placeholder="kontakt@twojadomena.pl"
+                                   class="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-3 text-sm text-white focus:border-brand-gold focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Formularz Wizytówki -->
+            <template x-if="chosenType === 'quick_card'">
+                <div class="space-y-4 rounded-2xl border border-white/10 bg-brand-card p-6 sm:p-8">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Nazwa Twojej firmy / działalności</label>
+                        <input type="text" x-model="form.business_name" placeholder="np. Pogotowie Hydrauliczne 24h"
+                               class="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-3 text-sm text-white focus:border-brand-gold focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Czym się zajmujesz (jedno zdanie)</label>
+                        <input type="text" x-model="form.specialty" placeholder="np. Szybkie naprawy instalacji, usuwanie awarii i biały montaż."
+                               class="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-3 text-sm text-white focus:border-brand-gold focus:outline-none">
+                    </div>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Miasto i obszar dojazdu</label>
+                            <input type="text" x-model="form.city" placeholder="np. Poznań i okolice do 30km"
+                                   class="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-3 text-sm text-white focus:border-brand-gold focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Telefon dla klientów</label>
+                            <input type="text" x-model="form.phone" placeholder="+48 600 700 800"
+                                   class="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-3 text-sm text-white focus:border-brand-gold focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <div class="flex items-center justify-between pt-2">
+                <button type="button" @click="step = 1" class="text-xs font-semibold text-zinc-400 hover:text-white transition">
+                    ← Wróć do wyboru typu
+                </button>
+                <button type="button" @click="validateStep2AndProceed()"
+                        class="rounded-full bg-brand-gold px-8 py-3.5 text-xs font-bold uppercase tracking-widest text-black shadow-lg shadow-brand-gold/20 hover:bg-brand-goldHover transition">
+                    Dalej: Utwórz stronę →
+                </button>
+            </div>
+        </div>
+
+        <!-- KROK 3: Finalizacja i utworzenie konta / przypisanie -->
+        <div x-show="step === 3 && !pendingEmailConfirmation" x-cloak class="space-y-6">
+            <div class="text-center space-y-2">
+                <p class="text-xs font-bold uppercase tracking-[0.25em] text-brand-gold">Ostatni krok</p>
+                <h2 class="font-cinematic text-2xl sm:text-3xl font-bold text-white">Twój adres i dostęp</h2>
+                <p class="text-zinc-400 text-xs sm:text-sm">Twoja strona zostanie utworzona jako wersja robocza i otwarta w Studio Edycji AI.</p>
+            </div>
+
+            <div class="space-y-4 rounded-2xl border border-white/10 bg-brand-card p-6 sm:p-8">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Adres Twojej strony (subdomena)</label>
+                    <div class="flex items-center rounded-xl border border-white/10 bg-black/60 px-4 py-3 focus-within:border-brand-gold transition">
+                        <input type="text" x-model="slug" @input="formatSlug(); scheduleSlugCheck()"
+                               placeholder="moj-projekt"
+                               class="w-full bg-transparent text-sm text-white focus:outline-none">
+                        <span class="text-xs font-bold text-zinc-500">.dfcms.pl</span>
+                    </div>
+                    <div class="mt-2 text-xs" x-show="slug">
+                        <span class="text-zinc-500" x-show="slugStatus === 'checking'">Sprawdzam dostępność adresu…</span>
+                        <span class="text-emerald-400 font-semibold" x-show="slugStatus === 'available'">✓ Ten adres jest wolny</span>
+                        <span class="text-red-400 font-semibold" x-show="slugStatus === 'taken'">✗ Ten adres jest już zajęty — wybierz inny</span>
+                        <span class="text-red-400 font-semibold" x-show="slugStatus === 'invalid'">✗ Użyj małych liter, cyfr i myślników (np. studio-filmowe)</span>
+                        <span class="text-red-400 font-semibold" x-show="slugStatus === 'error'">Nie udało się sprawdzić adresu</span>
+                    </div>
+                    <p class="mt-1 text-[11px] text-zinc-500">Własną domenę (np. twojanazwa.pl) podłączysz w panelu w zakładce Subskrypcja.</p>
+                </div>
+
+                <!-- Jeśli użytkownik nie jest zalogowany -->
+                <template x-if="!currentUser">
+                    <div class="space-y-4 pt-4 border-t border-white/10">
+                        <p class="text-xs font-bold text-white uppercase tracking-wider">Konto właściciela</p>
+                        <div>
+                            <label class="block text-xs text-zinc-400 mb-1">Adres E-mail</label>
+                            <input type="email" x-model="authEmail" placeholder="twoj@email.com"
+                                   class="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-3 text-sm text-white focus:border-brand-gold focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-zinc-400 mb-1">Hasło</label>
+                            <input type="password" x-model="authPassword" placeholder="••••••••" autocomplete="new-password"
+                                   class="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-3 text-sm text-white focus:border-brand-gold focus:outline-none">
+                            <ul class="mt-2 space-y-1 text-xs" x-show="authPassword" x-cloak>
+                                <li :class="passwordChecks.length ? 'text-emerald-400' : 'text-zinc-500'">
+                                    <span x-text="passwordChecks.length ? '✓' : '•'"></span> co najmniej 8 znaków
+                                </li>
+                                <li :class="passwordChecks.letter ? 'text-emerald-400' : 'text-zinc-500'">
+                                    <span x-text="passwordChecks.letter ? '✓' : '•'"></span> co najmniej jedna litera
+                                </li>
+                                <li :class="passwordChecks.digit ? 'text-emerald-400' : 'text-zinc-500'">
+                                    <span x-text="passwordChecks.digit ? '✓' : '•'"></span> co najmniej jedna cyfra
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Zgody prawne (RODO) -->
+                        <label class="flex items-start gap-3 cursor-pointer pt-2">
+                            <input type="checkbox" x-model="accepted" class="mt-0.5 h-4 w-4 rounded border-white/20 bg-black/60 text-brand-gold focus:ring-brand-gold">
+                            <span class="text-xs text-zinc-300 leading-relaxed">
+                                Akceptuję <a href="/regulamin.html" target="_blank" class="text-white underline hover:text-brand-gold">Regulamin</a> oraz <a href="/polityka.html" target="_blank" class="text-white underline hover:text-brand-gold">Politykę Prywatności</a> platformy DFCMS.
+                            </span>
+                        </label>
+
+                        <!-- Cloudflare Turnstile -->
+                        <div class="cf-turnstile pt-2" data-sitekey="0x4AAAAAADmt_cmVRzWtvglX"></div>
+                    </div>
+                </template>
+
+                <p x-show="errorMessage" class="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-400" x-text="errorMessage"></p>
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+                <button type="button" @click="step = 2" class="text-xs font-semibold text-zinc-400 hover:text-white transition" :disabled="loading">
+                    ← Wstecz
+                </button>
+                <button type="button" @click="submitAndCreateSite()" :disabled="loading || (slugStatus === 'taken' || slugStatus === 'invalid') || (!currentUser && (!accepted || !passwordChecks.length || !passwordChecks.letter || !passwordChecks.digit))"
+                        class="inline-flex items-center gap-2 rounded-full bg-brand-gold px-8 py-3.5 text-xs font-bold uppercase tracking-widest text-black shadow-lg shadow-brand-gold/20 hover:bg-brand-goldHover transition disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span x-show="loading" class="h-3.5 w-3.5 animate-spin rounded-full border-2 border-black border-t-transparent"></span>
+                    <span x-text="loading ? 'Tworzenie witryny...' : 'Uruchom Studio AI ⚡'"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Ekran potwierdzenia e-maila gdy włączona jest weryfikacja w Supabase -->
+        <div x-show="pendingEmailConfirmation" x-cloak class="space-y-6 text-center py-8">
+            <div class="w-16 h-16 bg-brand-gold/20 rounded-full flex items-center justify-center mx-auto border border-brand-gold/40 text-brand-gold text-2xl">
+                ✉️
+            </div>
+            <div class="space-y-2">
+                <h2 class="font-cinematic text-2xl sm:text-3xl font-bold text-white">Sprawdź swoją skrzynkę e-mail</h2>
+                <p class="text-zinc-400 text-sm max-w-md mx-auto leading-relaxed">
+                    Wysłaliśmy link aktywacyjny na adres <span class="text-white font-semibold" x-text="authEmail"></span>. Kliknij w link, aby aktywować konto i od razu wejść do Studio Edycji AI Twojej strony.
+                </p>
+            </div>
+            <div class="pt-4">
+                <a :href="'/studio.html?site=' + encodeURIComponent(slug)"
+                   class="inline-block rounded-full bg-white/10 hover:bg-white/20 border border-white/20 px-8 py-3 text-xs font-bold uppercase tracking-widest text-white transition">
+                    Potwierdziłem e-mail — przejdź do Studio →
+                </a>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/10 px-6 py-4 text-center text-xs text-zinc-500">
+        DFCMS — Lekki CMS nowej generacji wspierany przez sztuczną inteligencję.
+    </footer>
+
+    <script>
+        function createWizardApp() {
+            return {
+                step: 1,
+                chosenType: 'cinematic',
+                currentUser: null,
+                loading: false,
+                errorMessage: '',
+                pendingEmailConfirmation: false,
+
+                slug: '',
+                slugStatus: 'idle',
+                slugCheckTimer: null,
+                accepted: false,
+
+                authEmail: '',
+                authPassword: '',
+
+                form: {
+                    name: '',
+                    role: '',
+                    video_url: '',
+                    phone: '',
+                    email: '',
+                    business_name: '',
+                    specialty: '',
+                    city: '',
+                },
+
+                get passwordChecks() {
+                    const s = String(this.authPassword || '');
+                    return {
+                        length: s.length >= 8,
+                        letter: /[\p{L}]/u.test(s),
+                        digit: /\d/u.test(s),
+                    };
+                },
+
+                async init() {
+                    try {
+                        const client = window.DFOPS_getSupabaseClient ? window.DFOPS_getSupabaseClient() : null;
+                        if (client) {
+                            const { data: { user } } = await client.auth.getUser();
+                            this.currentUser = user;
+                        }
+                    } catch (e) {
+                        console.debug('[Wizard] Auth check failed:', e);
+                    }
+                },
+
+                selectType(type) {
+                    this.chosenType = type;
+                    this.step = 2;
+                },
+
+                validateStep2AndProceed() {
+                    if (this.chosenType === 'cinematic') {
+                        if (!this.form.name.trim()) {
+                            alert('Podaj swoje imię i nazwisko / pseudonim.');
+                            return;
+                        }
+                        if (!this.slug) {
+                            this.slug = this.form.name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 20);
+                        }
+                    } else {
+                        if (!this.form.business_name.trim()) {
+                            alert('Podaj nazwę firmy / działalności.');
+                            return;
+                        }
+                        if (!this.slug) {
+                            this.slug = this.form.business_name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 20);
+                        }
+                    }
+                    this.formatSlug();
+                    this.scheduleSlugCheck();
+                    this.step = 3;
+                },
+
+                formatSlug() {
+                    this.slug = (this.slug || '').toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+                },
+
+                scheduleSlugCheck() {
+                    if (this.slugCheckTimer) clearTimeout(this.slugCheckTimer);
+                    this.slugCheckTimer = setTimeout(() => this.checkSlugUnique(), 400);
+                },
+
+                async checkSlugUnique() {
+                    const s = (this.slug || '').trim();
+                    if (!s) { this.slugStatus = 'idle'; return false; }
+                    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(s)) { this.slugStatus = 'invalid'; return false; }
+                    this.slugStatus = 'checking';
+                    const repo = window.DFOPS_pageRepository;
+                    if (!repo || typeof repo.isSlugAvailable !== 'function') {
+                        this.slugStatus = 'idle';
+                        return true;
+                    }
+                    const { available, error } = await repo.isSlugAvailable(s);
+                    if (error) { this.slugStatus = 'error'; return false; }
+                    this.slugStatus = available ? 'available' : 'taken';
+                    return available;
+                },
+
+                getTurnstileToken() {
+                    const input = document.querySelector('input[name="cf-turnstile-response"]');
+                    return input && typeof input.value === 'string' ? input.value.trim() : '';
+                },
+
+                resetTurnstile() {
+                    if (window.turnstile && typeof window.turnstile.reset === 'function') {
+                        window.turnstile.reset();
+                    }
+                },
+
+                async submitAndCreateSite() {
+                    this.errorMessage = '';
+                    this.loading = true;
+
+                    try {
+                        const client = window.DFOPS_getSupabaseClient ? window.DFOPS_getSupabaseClient() : null;
+                        const registry = window.DFOPS_customBlocksRegistry;
+                        if (!client || !registry) throw new Error('Błąd ładowania silnika DFCMS.');
+
+                        this.formatSlug();
+                        const safeSlug = this.slug.trim();
+                        if (!safeSlug) throw new Error('Wprowadź adres subdomeny dla strony.');
+                        if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(safeSlug)) {
+                            throw new Error('Adres może zawierać tylko małe litery, cyfry i pojedyncze myślniki (np. jan-studio).');
+                        }
+
+                        let user = this.currentUser;
+
+                        // 1. Rejestracja lub logowanie jeśli brak aktywnej sesji
+                        if (!user) {
+                            if (!this.accepted) {
+                                throw new Error('Musisz zaakceptować Regulamin oraz Politykę Prywatności.');
+                            }
+                            if (!this.authEmail || !this.authPassword) {
+                                throw new Error('Wprowadź e-mail i hasło.');
+                            }
+                            if (!this.passwordChecks.length || !this.passwordChecks.letter || !this.passwordChecks.digit) {
+                                throw new Error('Hasło musi mieć co najmniej 8 znaków oraz zawierać co najmniej jedną literę i cyfrę.');
+                            }
+
+                            const isUnique = await this.checkSlugUnique();
+                            if (!isUnique) {
+                                throw new Error('Ten adres strony (.dfcms.pl) jest już zajęty lub nieprawidłowy.');
+                            }
+
+                            const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+                            const turnstileToken = this.getTurnstileToken();
+                            if (!isLocal && !turnstileToken) {
+                                throw new Error('Potwierdź weryfikację anty-botową (Turnstile).');
+                            }
+                            const origin = typeof window !== 'undefined' ? window.location.origin : '';
+
+                            // Próba rejestracji z metadanymi slug i tokenem Turnstile
+                            const { data: signUpData, error: signUpErr } = await client.auth.signUp({
+                                email: this.authEmail.trim(),
+                                password: this.authPassword,
+                                options: {
+                                    data: { slug: safeSlug },
+                                    captchaToken: turnstileToken || undefined,
+                                    emailRedirectTo: origin ? `${origin}/studio.html?site=${encodeURIComponent(safeSlug)}` : undefined,
+                                },
+                            });
+
+                            if (signUpErr) {
+                                const msg = String(signUpErr.message || '').toLowerCase();
+                                if (msg.includes('already registered') || msg.includes('user_already_registered')) {
+                                    // Użytkownik istnieje - spróbuj zalogować hasłem
+                                    const { data: signInData, error: signInErr } = await client.auth.signInWithPassword({
+                                        email: this.authEmail.trim(),
+                                        password: this.authPassword,
+                                    });
+                                    if (signInErr) {
+                                        throw new Error('Ten adres e-mail jest już zajęty. Zaloguj się poprawnym hasłem lub użyj innego e-maila.');
+                                    }
+                                    user = signInData.user;
+                                } else {
+                                    throw signUpErr;
+                                }
+                            } else {
+                                // Obsługa Supabase anti-enumeration (pusty array identities = konto istnieje)
+                                const identities = Array.isArray(signUpData?.user?.identities) ? signUpData.user.identities : null;
+                                if (signUpData?.user?.id && !signUpData?.session && identities && identities.length === 0) {
+                                    throw new Error('Ten adres e-mail jest już zajęty. Zaloguj się lub użyj innego e-maila.');
+                                }
+
+                                if (signUpData?.user && !signUpData?.session) {
+                                    // Włączone potwierdzanie e-maila w Supabase (brak sesji natychmiastowej)
+                                    let initialDraft = this.chosenType === 'cinematic'
+                                        ? registry.createInitialCinematicState(this.form)
+                                        : registry.createInitialQuickCardState(this.form);
+
+                                    localStorage.setItem(`dfops_pending_draft_${safeSlug}`, JSON.stringify(initialDraft));
+                                    this.pendingEmailConfirmation = true;
+                                    this.loading = false;
+                                    return;
+                                }
+                                user = signUpData?.user;
+                            }
+                        }
+
+                        if (!user) throw new Error('Nie udało się utworzyć sesji użytkownika.');
+
+                        // 2. Generowanie stanu początkowego strony (z trial_started_at)
+                        let initialDraft = null;
+                        if (this.chosenType === 'cinematic') {
+                            initialDraft = registry.createInitialCinematicState(this.form);
+                        } else {
+                            initialDraft = registry.createInitialQuickCardState(this.form);
+                        }
+
+                        // 3. Sprawdzenie, czy strona została już wstawiona przez trigger handle_new_user
+                        const { data: existingPage } = await client
+                            .from('pages')
+                            .select('id, theme, draft_content')
+                            .eq('slug', safeSlug)
+                            .eq('user_id', user.id)
+                            .maybeSingle();
+
+                        if (existingPage) {
+                            // Rekord istnieje (np. po triggerze handle_new_user z theme: 'setup') — zaktualizuj go
+                            const { error: updErr } = await client
+                                .from('pages')
+                                .update({
+                                    theme: 'custom',
+                                    color_preset: 'gold',
+                                    draft_content: initialDraft,
+                                    content: null, // Tylko draft! Publikacja dopiero ręcznie w Studio
+                                })
+                                .eq('id', existingPage.id);
+
+                            if (updErr) throw updErr;
+                        } else {
+                            // Utwórz nowy rekord
+                            const { error: insertErr } = await client
+                                .from('pages')
+                                .insert({
+                                    user_id: user.id,
+                                    slug: safeSlug,
+                                    theme: 'custom',
+                                    color_preset: 'gold',
+                                    draft_content: initialDraft,
+                                    content: null, // Nie publikujemy demo z góry
+                                    billing_plan: 'trial',
+                                });
+
+                            if (insertErr) {
+                                if (insertErr.code === '23505') {
+                                    throw new Error('Ten adres strony (.dfcms.pl) jest już zajęty. Wybierz inną nazwę.');
+                                }
+                                throw insertErr;
+                            }
+                        }
+
+                        // 4. Przejście do Studio Edycji AI
+                        window.location.href = `/studio.html?site=${encodeURIComponent(safeSlug)}`;
+
+                    } catch (err) {
+                        console.error('[Wizard] Submit error:', err);
+                        this.errorMessage = err.message || 'Wystąpił błąd podczas tworzenia strony.';
+                        this.resetTurnstile();
+                        this.loading = false;
+                    }
+                },
+            };
+        }
+    </script>
+</body>
+</html>
