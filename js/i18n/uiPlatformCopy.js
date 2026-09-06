@@ -36,9 +36,11 @@
       mainNav: 'Nawigacja główna',
       mobileNav: 'Menu mobilne',
       footer: 'Stopka',
+      cinematic: 'Strony filmowe',
     },
     hero: {
       eyebrow: 'Strona WWW, która zdobywa klientów',
+      cinematicBadge: 'Nowość: Strony filmowe & wizualne',
       title: 'Profesjonalna strona dla Twojego biznesu. Gotowa w kilka minut.',
       sub:
         'Wybierasz szablon branżowy, opisujesz firmę w kilku zdaniach — AI przygotuje teksty. Ty dodajesz zdjęcia, publikujesz i w panelu widzisz, ile osób dzwoni albo rezerwuje. Bez wtyczek i martwienia się o hosting.',
@@ -137,6 +139,10 @@
       fitnessD: 'Mocny wizual, oferta treningów i jasna ścieżka zapisu.',
       consultantT: 'Doradca, ekspert, B2B',
       consultantD: 'Profesjonalny układ pod usługi eksperckie, proces i dowody zaufania.',
+      cinematicBadge: 'Nowość · Custom AI',
+      cinematicT: 'Strony filmowe i wizytówki nieszablonowe',
+      cinematicD: 'Duże tła wideo, kinowy klimat, płynne animacje i pełna edycja za pomocą Agenta AI bez tradycyjnego CMS-a.',
+      cinematicCta: 'Stwórz stronę filmową →',
       likeCta: 'Podoba się? Zrób taką u siebie →',
     },
     calm: {
@@ -322,9 +328,11 @@
       mainNav: 'Main navigation',
       mobileNav: 'Mobile menu',
       footer: 'Footer',
+      cinematic: 'Cinematic sites',
     },
     hero: {
       eyebrow: 'A website that wins customers',
+      cinematicBadge: 'New: Cinematic & visual sites',
       title: 'A professional site for your business. Ready in minutes.',
       sub:
         'Pick an industry template, describe your business in a few sentences — AI drafts the copy. You add photos, publish, and see in the dashboard how many people call or book. No plugins, no hosting worries.',
@@ -423,6 +431,10 @@
       fitnessD: 'Strong visuals, training offer and a clear signup path.',
       consultantT: 'Advisor, expert, B2B',
       consultantD: 'Professional layout for expert services, process and proof.',
+      cinematicBadge: 'New · Custom AI',
+      cinematicT: 'Cinematic websites & custom cards',
+      cinematicD: 'Full-bleed video backgrounds, cinematic atmosphere, fluid animations and zero-CMS editing via AI Agent.',
+      cinematicCta: 'Build cinematic site →',
       likeCta: 'Like it? Build yours →',
     },
     calm: {

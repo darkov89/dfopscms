@@ -211,6 +211,13 @@
                     <p class="mt-1 text-[11px] text-zinc-500">Własną domenę (np. twojanazwa.pl) podłączysz w panelu w zakładce Subskrypcja.</p>
                 </div>
 
+                <!-- Jeśli użytkownik jest zalogowany -->
+                <template x-if="currentUser">
+                    <div class="rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-zinc-300">
+                        Zalogowano jako: <strong class="text-white" x-text="currentUser.email"></strong>. Witryna zostanie przypisana do Twojego konta.
+                    </div>
+                </template>
+
                 <!-- Jeśli użytkownik nie jest zalogowany -->
                 <template x-if="!currentUser">
                     <div class="space-y-4 pt-4 border-t border-white/10">
@@ -297,6 +304,7 @@
                 step: 1,
                 chosenType: 'cinematic',
                 currentUser: null,
+                userPages: [],
                 loading: false,
                 errorMessage: '',
                 pendingEmailConfirmation: false,
@@ -335,6 +343,17 @@
                         if (client) {
                             const { data: { user } } = await client.auth.getUser();
                             this.currentUser = user;
+                            if (user) {
+                                const { data: pages } = await client
+                                    .from('pages')
+                                    .select('id, slug, theme, content, draft_content')
+                                    .eq('user_id', user.id);
+                                this.userPages = Array.isArray(pages) ? pages : [];
+                                const adoptable = this.userPages.find(p => p.theme === 'setup' || (p.theme === 'custom' && !p.content));
+                                if (adoptable && !this.slug) {
+                                    this.slug = adoptable.slug;
+                                }
+                            }
                         }
                     } catch (e) {
                         console.debug('[Wizard] Auth check failed:', e);
@@ -382,6 +401,24 @@
                     const s = (this.slug || '').trim();
                     if (!s) { this.slugStatus = 'idle'; return false; }
                     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(s)) { this.slugStatus = 'invalid'; return false; }
+
+                    // Ochrona istniejących stron zalogowanego użytkownika
+                    if (this.currentUser && Array.isArray(this.userPages)) {
+                        const activeExisting = this.userPages.find(p => p.slug === s && p.theme !== 'setup' && (p.theme !== 'custom' || p.content));
+                        if (activeExisting) {
+                            this.slugStatus = 'taken';
+                            this.errorMessage = `Adres "${s}" należy do Twojej aktywnej strony (${activeExisting.theme}). Wybierz inny adres dla nowej strony filmowej.`;
+                            return false;
+                        }
+
+                        const adoptable = this.userPages.find(p => p.slug === s && (p.theme === 'setup' || (p.theme === 'custom' && !p.content)));
+                        if (adoptable) {
+                            this.slugStatus = 'available';
+                            this.errorMessage = '';
+                            return true;
+                        }
+                    }
+
                     this.slugStatus = 'checking';
                     const repo = window.DFOPS_pageRepository;
                     if (!repo || typeof repo.isSlugAvailable !== 'function') {
@@ -505,27 +542,44 @@
                             initialDraft = registry.createInitialQuickCardState(this.form);
                         }
 
-                        // 3. Sprawdzenie, czy strona została już wstawiona przez trigger handle_new_user
-                        const { data: existingPage } = await client
+                        // 3. Sprawdzenie istniejących stron i obsługa multi-site
+                        const { data: userPages } = await client
                             .from('pages')
-                            .select('id, theme, draft_content')
-                            .eq('slug', safeSlug)
-                            .eq('user_id', user.id)
-                            .maybeSingle();
+                            .select('id, slug, theme, content, draft_content')
+                            .eq('user_id', user.id);
 
-                        if (existingPage) {
-                            // Rekord istnieje (np. po triggerze handle_new_user z theme: 'setup') — zaktualizuj go
+                        const allPages = Array.isArray(userPages) ? userPages : [];
+
+                        // Ochrona aktywnej strony branżowej (nie nadpisujemy aktywnej strony innym motywem)
+                        const activeConflict = allPages.find(p => p.slug === safeSlug && p.theme !== 'setup' && (p.theme !== 'custom' || p.content));
+                        if (activeConflict) {
+                            throw new Error(`Adres "${safeSlug}" należy do Twojej aktywnej strony (${activeConflict.theme}). Wybierz inny adres subdomeny dla nowej strony filmowej.`);
+                        }
+
+                        // Sprawdzenie, czy możemy zaadoptować istniejący rekord (np. trigger handle_new_user z 'setup' lub pusty custom)
+                        const pageWithSameSlug = allPages.find(p => p.slug === safeSlug);
+                        const unconfiguredSetup = allPages.find(p => p.theme === 'setup' || (p.theme === 'custom' && !p.content));
+                        const targetPageToUpdate = pageWithSameSlug || unconfiguredSetup;
+
+                        if (targetPageToUpdate) {
+                            // Zaktualizuj istniejący rekord (jeśli np. zmienił się slug lub konfiguracja z 'setup' na 'custom')
                             const { error: updErr } = await client
                                 .from('pages')
                                 .update({
+                                    slug: safeSlug,
                                     theme: 'custom',
                                     color_preset: 'gold',
                                     draft_content: initialDraft,
                                     content: null, // Tylko draft! Publikacja dopiero ręcznie w Studio
                                 })
-                                .eq('id', existingPage.id);
+                                .eq('id', targetPageToUpdate.id);
 
-                            if (updErr) throw updErr;
+                            if (updErr) {
+                                if (updErr.code === '23505') {
+                                    throw new Error('Ten adres strony (.dfcms.pl) jest już zajęty. Wybierz inną nazwę.');
+                                }
+                                throw updErr;
+                            }
                         } else {
                             // Utwórz nowy rekord
                             const { error: insertErr } = await client

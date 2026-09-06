@@ -5,26 +5,43 @@
                 <p class="mx-auto max-w-xl text-lg leading-relaxed text-slate-500">Jak chcesz stworzyć swoją nową stronę? Wybierz ścieżkę, która najbardziej Ci odpowiada.</p>
             </div>
 
-            <div id="dfcms-onboarding-wizard-paths" class="grid w-full grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
-                <button type="button" @click="startWizard()" class="group relative transform rounded-2xl border-2 border-transparent bg-white p-8 text-left shadow-panel-md ring-1 ring-slate-900/5 transition-all duration-300 hover:-translate-y-0.5 hover:border-accent hover:shadow-panel-md md:p-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2">
-                    <div class="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 text-accent">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+            <div id="dfcms-onboarding-wizard-paths" class="grid w-full grid-cols-1 gap-6 md:grid-cols-3 md:gap-6">
+                <button type="button" @click="startWizard()" class="group relative transform rounded-2xl border-2 border-transparent bg-white p-6 md:p-8 text-left shadow-panel-md ring-1 ring-slate-900/5 transition-all duration-300 hover:-translate-y-0.5 hover:border-accent hover:shadow-panel-md focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 flex flex-col justify-between">
+                    <div>
+                        <div class="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 text-accent">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                        </div>
+                        <h2 class="text-xl font-bold text-slate-900 mb-2 uppercase tracking-widest">Stwórzmy to razem (Krok po kroku)</h2>
+                        <p class="text-xs text-slate-500 mb-6 leading-relaxed">Odpowiedz na kilka prostych pytań, a my ułożymy z nich piękną stronę szablonową.</p>
                     </div>
-                    <h2 class="text-2xl font-bold text-slate-900 mb-3 uppercase tracking-widest">Stwórzmy to razem (Krok po kroku)</h2>
-                    <p class="text-slate-500 mb-6 leading-relaxed">Odpowiedz na kilka prostych pytań, a my ułożymy z nich piękną stronę. Zrób sobie ulubioną herbatę i zaczynamy!</p>
-                    <span class="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-accent transition-transform group-hover:translate-x-2">
+                    <span class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent transition-transform group-hover:translate-x-2">
                         Rozpocznij krok po kroku <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </span>
                 </button>
 
-                <button type="button" @click="skipWizard()" class="group rounded-2xl border border-slate-200/80 bg-white p-8 text-left shadow-panel ring-1 ring-slate-900/5 transition-all duration-300 hover:border-slate-300 hover:shadow-panel-md md:p-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/30 focus-visible:ring-offset-2">
-                    <div class="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-600">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <button type="button" @click="skipWizard()" class="group rounded-2xl border border-slate-200/80 bg-white p-6 md:p-8 text-left shadow-panel ring-1 ring-slate-900/5 transition-all duration-300 hover:border-slate-300 hover:shadow-panel-md focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/30 focus-visible:ring-offset-2 flex flex-col justify-between">
+                    <div>
+                        <div class="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-600">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </div>
+                        <h2 class="text-xl font-bold text-slate-900 mb-2 uppercase tracking-widest">Przejdź do Studia (Dla odkrywców)</h2>
+                        <p class="text-xs text-slate-500 mb-6 leading-relaxed">Wolisz pełną swobodę? Przejdź od razu do swojego panelu i dopracuj każdy detal samodzielnie.</p>
                     </div>
-                    <h2 class="text-2xl font-bold text-slate-900 mb-3 uppercase tracking-widest">Przejdź do Studia (Dla odkrywców)</h2>
-                    <p class="text-slate-500 mb-6 leading-relaxed">Wolisz pełną swobodę? Przejdź od razu do swojego Studia i dopracuj każdy detal samodzielnie.</p>
-                    <span class="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-slate-900 transition-transform group-hover:translate-x-2">
+                    <span class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-900 transition-transform group-hover:translate-x-2">
                         Przejdź do Studia <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </span>
+                </button>
+
+                <button type="button" @click="window.location.href = '/kreator.html?from=wizard'" class="group relative transform rounded-2xl border-2 border-brand-gold/30 bg-white p-6 md:p-8 text-left shadow-panel ring-1 ring-slate-900/5 transition-all duration-300 hover:-translate-y-0.5 hover:border-accent hover:shadow-panel-md focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 flex flex-col justify-between">
+                    <div>
+                        <div class="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-slate-950 text-accent">
+                            <span class="text-xl">🎬</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-slate-900 mb-2 uppercase tracking-widest">Strona filmowa / wizytówka AI</h2>
+                        <p class="text-xs text-slate-500 mb-6 leading-relaxed">Dedykowany design dla twórców i rzemieślników: pełnoekranowe wideo, kinowy klimat, Three.js i edycja przez Agenta AI.</p>
+                    </div>
+                    <span class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent transition-transform group-hover:translate-x-2">
+                        Uruchom Kreator AI <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </span>
                 </button>
             </div>
