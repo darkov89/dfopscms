@@ -36,11 +36,11 @@
       mainNav: 'Nawigacja główna',
       mobileNav: 'Menu mobilne',
       footer: 'Stopka',
-      cinematic: 'Strony filmowe',
+      cinematic: 'Strony wizualne 3D',
     },
     hero: {
       eyebrow: 'Strona WWW, która zdobywa klientów',
-      cinematicBadge: 'Nowość: Strony filmowe & wizualne',
+      cinematicBadge: 'Nowość: Efektowne strony 3D & wideo',
       title: 'Profesjonalna strona dla Twojego biznesu. Gotowa w kilka minut.',
       sub:
         'Wybierasz szablon branżowy, opisujesz firmę w kilku zdaniach — AI przygotuje teksty. Ty dodajesz zdjęcia, publikujesz i w panelu widzisz, ile osób dzwoni albo rezerwuje. Bez wtyczek i martwienia się o hosting.',
@@ -140,9 +140,9 @@
       consultantT: 'Doradca, ekspert, B2B',
       consultantD: 'Profesjonalny układ pod usługi eksperckie, proces i dowody zaufania.',
       cinematicBadge: 'Nowość · Custom AI',
-      cinematicT: 'Strony filmowe i wizytówki nieszablonowe',
-      cinematicD: 'Duże tła wideo, kinowy klimat, płynne animacje i pełna edycja za pomocą Agenta AI bez tradycyjnego CMS-a.',
-      cinematicCta: 'Stwórz stronę filmową →',
+      cinematicT: 'Strony wizualne 3D i szybkie wizytówki',
+      cinematicD: 'Wybierz widowiskową stronę z tłem wideo i 3D WebGL lub ultra-lekką wizytówkę. Edytuj dowolne elementy z Agentem AI.',
+      cinematicCta: 'Stwórz stronę wizualną →',
       likeCta: 'Podoba się? Zrób taką u siebie →',
     },
     calm: {
@@ -328,11 +328,11 @@
       mainNav: 'Main navigation',
       mobileNav: 'Mobile menu',
       footer: 'Footer',
-      cinematic: 'Cinematic sites',
+      cinematic: 'Visual 3D sites',
     },
     hero: {
       eyebrow: 'A website that wins customers',
-      cinematicBadge: 'New: Cinematic & visual sites',
+      cinematicBadge: 'New: Visual 3D & video sites',
       title: 'A professional site for your business. Ready in minutes.',
       sub:
         'Pick an industry template, describe your business in a few sentences — AI drafts the copy. You add photos, publish, and see in the dashboard how many people call or book. No plugins, no hosting worries.',
@@ -432,9 +432,9 @@
       consultantT: 'Advisor, expert, B2B',
       consultantD: 'Professional layout for expert services, process and proof.',
       cinematicBadge: 'New · Custom AI',
-      cinematicT: 'Cinematic websites & custom cards',
-      cinematicD: 'Full-bleed video backgrounds, cinematic atmosphere, fluid animations and zero-CMS editing via AI Agent.',
-      cinematicCta: 'Build cinematic site →',
+      cinematicT: 'Visual 3D sites & fast business cards',
+      cinematicD: 'Choose a high-end site with video and 3D WebGL background or an ultra-light contact card. Edit everything directly with your AI Agent.',
+      cinematicCta: 'Create visual 3D site →',
       likeCta: 'Like it? Build yours →',
     },
     calm: {

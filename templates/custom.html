@@ -207,12 +207,14 @@
                                            x-text="block.data.cta_secondary_text"></a>
                                     </template>
                                 </div>
-                                <button type="button"
-                                        @click="openVideoModal(block.data.showreel_url || block.data.video_url, (block.data.title || siteTitle) + ' — Showreel (Dźwięk & Pełny Ekran)')"
-                                        class="text-[11px] text-zinc-400 hover:text-brand-gold transition inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full hover:bg-white/5">
-                                    <span class="text-brand-gold text-xs">🔊</span>
-                                    <span class="underline decoration-zinc-600 underline-offset-4 hover:decoration-brand-gold">Odtwórz z dźwiękiem i pełnym ekranem</span>
-                                </button>
+                                <template x-if="block.data.showreel_url || block.data.video_url">
+                                    <button type="button"
+                                            @click="openVideoModal(block.data.showreel_url || block.data.video_url, (block.data.title || siteTitle) + ' — Showreel (Dźwięk & Pełny Ekran)')"
+                                            class="text-[11px] text-zinc-400 hover:text-brand-gold transition inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full hover:bg-white/5">
+                                        <span class="text-brand-gold text-xs">🔊</span>
+                                        <span class="underline decoration-zinc-600 underline-offset-4 hover:decoration-brand-gold">Odtwórz z dźwiękiem i pełnym ekranem</span>
+                                    </button>
+                                </template>
                             </div>
                         </div>
 
@@ -615,7 +617,7 @@
                                     });
                                     this.blocks = this.content.blocks || [];
                                     this.themeType = this.content.theme_type || 'cinematic';
-                                    this.siteTitle = this.content.meta?.title || 'Portfolio Filmowe';
+                                    this.siteTitle = this.content.meta?.title || 'Strona Wizualna 3D';
                                     this.dataLoaded = true;
                                     this.initCinematicParticles(this.content.design?.accent_color);
                                     return;

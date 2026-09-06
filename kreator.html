@@ -64,26 +64,26 @@
     <!-- Main Wizard Content -->
     <main class="mx-auto w-full max-w-3xl px-6 py-12 flex-1 flex flex-col justify-center">
 
-        <!-- KROK 1: Wybór Archetypu -->
+        <!-- KROK 1: Wybór Formatu Strony -->
         <div x-show="step === 1" x-cloak class="space-y-8 text-center">
             <div class="space-y-3">
                 <p class="text-xs font-bold uppercase tracking-[0.25em] text-brand-gold">Nowoczesne Strony Dedykowane</p>
-                <h1 class="font-cinematic text-3xl sm:text-5xl font-bold text-white tracking-tight">Jaki typ strony tworzymy?</h1>
-                <p class="text-zinc-400 text-sm sm:text-base max-w-lg mx-auto">Wybierz kierunek, a sztuczna inteligencja przygotuje strukturę dopasowaną do Twoich potrzeb.</p>
+                <h1 class="font-cinematic text-3xl sm:text-5xl font-bold text-white tracking-tight">Jaki format strony tworzymy?</h1>
+                <p class="text-zinc-400 text-sm sm:text-base max-w-lg mx-auto">Wybierz pomiędzy efektowną stroną wizualną z 3D i wideo a prostą, błyskawiczną wizytówką kontaktową.</p>
             </div>
 
             <div class="grid gap-6 sm:grid-cols-2 text-left pt-4">
-                <!-- Opcja Filmowa -->
+                <!-- Opcja Wizualna 3D & Wideo -->
                 <div @click="selectType('cinematic')"
                      :class="chosenType === 'cinematic' ? 'border-brand-gold ring-2 ring-brand-gold/20 bg-brand-card' : 'border-brand-border bg-white/[0.02] hover:border-white/20'"
                      class="cursor-pointer rounded-2xl border p-8 transition duration-300 transform hover:-translate-y-1">
                     <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-gold/10 text-brand-gold text-2xl">
-                        🎬
+                        ✨
                     </div>
-                    <h2 class="font-cinematic text-xl font-bold text-white">Strona Filmowa / Portfolio</h2>
-                    <p class="mt-2 text-xs sm:text-sm text-zinc-400 leading-relaxed">Dla reżyserów, operatorów kamer, montażystów i domów produkcyjnych. Autoplay wideo w tle, showreel popup, siatka realizacji i nagrody.</p>
+                    <h2 class="font-cinematic text-xl font-bold text-white">Strona Wizualna 3D & Wideo</h2>
+                    <p class="mt-2 text-xs sm:text-sm text-zinc-400 leading-relaxed">Widowiskowy design światowej klasy: tło wideo lub 3D WebGL, kinowy klimat, płynne animacje, showreel i prezentacja realizacji. Dla firm, marek, twórców i agencji.</p>
                     <div class="mt-6 flex items-center text-xs font-bold text-brand-gold">
-                        <span>Wybierz kierunek filmowy →</span>
+                        <span>Wybierz stronę wizualną 3D / Wideo →</span>
                     </div>
                 </div>
 
@@ -94,10 +94,10 @@
                     <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-400 text-2xl">
                         ⚡
                     </div>
-                    <h2 class="font-cinematic text-xl font-bold text-white">Szybka Wizytówka Usługowa</h2>
-                    <p class="mt-2 text-xs sm:text-sm text-zinc-400 leading-relaxed">Dla rzemieślników, fachowców, gabinetów i specjalistów. Ultra-szybka witryna z natychmiastowym telefonem, WhatsAppem i mapą.</p>
+                    <h2 class="font-cinematic text-xl font-bold text-white">Prosta Wizytówka WWW</h2>
+                    <p class="mt-2 text-xs sm:text-sm text-zinc-400 leading-relaxed">Ultra-szybka, czysta i czytelna strona informacyjna. Natychmiastowy telefon, WhatsApp, dojazd, godziny pracy i opis usług. Dla fachowców, gabinetów i małych firm.</p>
                     <div class="mt-6 flex items-center text-xs font-bold text-emerald-400">
-                        <span>Wybierz szybką wizytówkę →</span>
+                        <span>Wybierz prostą wizytówkę →</span>
                     </div>
                 </div>
             </div>
@@ -106,29 +106,29 @@
         <!-- KROK 2: Dynamiczne Pytania AI -->
         <div x-show="step === 2" x-cloak class="space-y-6">
             <div class="text-center space-y-2">
-                <p class="text-xs font-bold uppercase tracking-[0.25em] text-brand-gold" x-text="chosenType === 'cinematic' ? 'Konfiguracja Portfolio' : 'Konfiguracja Wizytówki'"></p>
+                <p class="text-xs font-bold uppercase tracking-[0.25em] text-brand-gold" x-text="chosenType === 'cinematic' ? 'Konfiguracja Strony Wizualnej 3D' : 'Konfiguracja Wizytówki'"></p>
                 <h2 class="font-cinematic text-2xl sm:text-3xl font-bold text-white">Opowiedz nam o sobie</h2>
                 <p class="text-zinc-400 text-xs sm:text-sm">Odpowiedz na kilka pytań, a Agent AI złoży stronę gotową do publikacji.</p>
             </div>
 
-            <!-- Formularz Filmowy -->
+            <!-- Formularz Wizualny 3D & Wideo -->
             <template x-if="chosenType === 'cinematic'">
                 <div class="space-y-4 rounded-2xl border border-white/10 bg-brand-card p-6 sm:p-8">
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Twoje Imię i Nazwisko / Pseudonim</label>
-                        <input type="text" x-model="form.name" placeholder="np. Tomasz Kot"
+                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Nazwa firmy, studia lub imię i nazwisko</label>
+                        <input type="text" x-model="form.name" placeholder="np. Lumina Studio lub Tomasz Kot"
                                class="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-3 text-sm text-white focus:border-brand-gold focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Główna specjalizacja</label>
-                        <input type="text" x-model="form.role" placeholder="np. Director of Photography / Reżyser reklamowy"
+                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Czym się zajmujesz / Branża</label>
+                        <input type="text" x-model="form.role" placeholder="np. Studio architektury wnętrz / Agencja kreatywna / Nowoczesny design"
                                class="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-3 text-sm text-white focus:border-brand-gold focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Link do Showreela lub wideo (Vimeo lub YouTube)</label>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Link do wideo lub tła wideo (opcjonalnie Vimeo lub YouTube)</label>
                         <input type="text" x-model="form.video_url" placeholder="https://vimeo.com/76979871"
                                class="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-3 text-sm text-white focus:border-brand-gold focus:outline-none">
-                        <p class="mt-1 text-[11px] text-zinc-500">To wideo posłuży jako główne tło oraz odtwarzacz showreela.</p>
+                        <p class="mt-1 text-[11px] text-zinc-500">Pozostaw puste, aby uruchomić stronę z kinowym tłem 3D cząsteczek. Wideo dodasz w każdej chwili z Agentem AI.</p>
                     </div>
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div>
@@ -205,7 +205,7 @@
                         <span class="text-zinc-500" x-show="slugStatus === 'checking'">Sprawdzam dostępność adresu…</span>
                         <span class="text-emerald-400 font-semibold" x-show="slugStatus === 'available'">✓ Ten adres jest wolny</span>
                         <span class="text-red-400 font-semibold" x-show="slugStatus === 'taken'">✗ Ten adres jest już zajęty — wybierz inny</span>
-                        <span class="text-red-400 font-semibold" x-show="slugStatus === 'invalid'">✗ Użyj małych liter, cyfr i myślników (np. studio-filmowe)</span>
+                        <span class="text-red-400 font-semibold" x-show="slugStatus === 'invalid'">✗ Użyj małych liter, cyfr i myślników (np. twoja-marka lub jan-kowalski)</span>
                         <span class="text-red-400 font-semibold" x-show="slugStatus === 'error'">Nie udało się sprawdzić adresu</span>
                     </div>
                     <p class="mt-1 text-[11px] text-zinc-500">Własną domenę (np. twojanazwa.pl) podłączysz w panelu w zakładce Subskrypcja.</p>
@@ -372,7 +372,7 @@
                 validateStep2AndProceed() {
                     if (this.chosenType === 'cinematic') {
                         if (!this.form.name.trim()) {
-                            alert('Podaj swoje imię i nazwisko / pseudonim.');
+                            alert('Podaj nazwę firmy / studia lub imię i nazwisko.');
                             return;
                         }
                         if (!this.slug) {
@@ -411,7 +411,7 @@
                         const activeExisting = this.userPages.find(p => p.slug === s && p.theme !== 'setup' && (p.theme !== 'custom' || p.content));
                         if (activeExisting) {
                             this.slugStatus = 'taken';
-                            this.errorMessage = `Adres "${s}" należy do Twojej aktywnej strony (${activeExisting.theme}). Wybierz inny adres dla nowej strony filmowej.`;
+                            this.errorMessage = `Adres "${s}" należy do Twojej aktywnej strony (${activeExisting.theme}). Wybierz inny adres dla nowej strony.`;
                             return false;
                         }
 
@@ -557,7 +557,7 @@
                         // Ochrona aktywnej strony branżowej (nie nadpisujemy aktywnej strony innym motywem)
                         const activeConflict = allPages.find(p => p.slug === safeSlug && p.theme !== 'setup' && (p.theme !== 'custom' || p.content));
                         if (activeConflict) {
-                            throw new Error(`Adres "${safeSlug}" należy do Twojej aktywnej strony (${activeConflict.theme}). Wybierz inny adres subdomeny dla nowej strony filmowej.`);
+                            throw new Error(`Adres "${safeSlug}" należy do Twojej aktywnej strony (${activeConflict.theme}). Wybierz inny adres subdomeny dla nowej strony.`);
                         }
 
                         // Sprawdzenie, czy możemy zaadoptować istniejący rekord:
