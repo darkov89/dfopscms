@@ -33,20 +33,21 @@
             },
         };
     </script>
-    <link rel="stylesheet" href="/css/styles.css?v=20260906b">
+    <link rel="stylesheet" href="/css/styles.css?v=20260906c">
 
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
-    <script src="/js/core/utils.js?v=20260906b"></script>
-    <script src="/js/core/platformRouting.js?v=20260906b"></script>
-    <script src="/js/core/tenantPublicUrlClean.js?v=20260906b"></script>
-    <script defer src="/js/core/config.js?v=20260906b"></script>
-    <script defer src="/js/core/supabaseClient.js?v=20260906b"></script>
-    <script defer src="/js/core/pageRepository.js?v=20260906b"></script>
-    <script defer src="/js/core/planUtils.js?v=20260906b"></script>
-    <script defer src="/js/core/trialBlocking.js?v=20260906b"></script>
-    <script defer src="/js/core/siteAnalytics.js?v=20260906b"></script>
-    <script defer src="/js/core/customBlocksRegistry.js?v=20260906b"></script>
+    <script src="/js/core/utils.js?v=20260906c"></script>
+    <script src="/js/core/platformRouting.js?v=20260906c"></script>
+    <script src="/js/core/tenantPublicUrlClean.js?v=20260906c"></script>
+    <script defer src="/js/core/config.js?v=20260906c"></script>
+    <script defer src="/js/core/supabaseClient.js?v=20260906c"></script>
+    <script defer src="/js/core/pageRepository.js?v=20260906c"></script>
+    <script defer src="/js/core/planUtils.js?v=20260906c"></script>
+    <script defer src="/js/core/trialBlocking.js?v=20260906c"></script>
+    <script defer src="/js/core/siteAnalytics.js?v=20260906c"></script>
+    <script defer src="/js/core/customBlocksRegistry.js?v=20260906c"></script>
+    <script defer src="/js/features/custom-site/cinematicFx.js?v=20260906c"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 
     <style>
@@ -65,11 +66,32 @@
             min-width: 177.77vh;
             transform: translate(-50%, -50%);
         }
+        .cinematic-grain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 35;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+        .cinematic-card-glow {
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease;
+        }
+        .cinematic-card-glow:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 36px -8px rgba(212, 175, 55, 0.18), 0 0 0 1px rgba(212, 175, 55, 0.4);
+        }
     </style>
 </head>
 <body x-data="createCustomSiteApp()"
       :class="isCinematic ? 'bg-[#0a0a0a] text-zinc-100 selection:bg-brand-gold selection:text-black' : 'bg-white text-slate-900 selection:bg-amber-400 selection:text-black'"
       class="min-h-screen font-sans antialiased overflow-x-hidden">
+
+    <!-- Subtle Film Grain for Cinematic Look (Zero CPU canvas) -->
+    <div class="cinematic-grain" x-show="isCinematic && dataLoaded" x-cloak aria-hidden="true"></div>
 
     <!-- Loading Screen -->
     <div x-show="!dataLoaded && !loadError" class="fixed inset-0 z-50 grid place-items-center" :class="isCinematic ? 'bg-[#0a0a0a]' : 'bg-white'">
@@ -136,7 +158,7 @@
 
                 <!-- 1. CINEMATIC HERO BLOCK -->
                 <template x-if="block.type === 'cinematic_hero'">
-                    <section class="relative min-h-[90vh] flex items-center justify-center overflow-hidden px-6 py-24 text-center bg-black">
+                    <section class="relative min-h-screen flex items-center justify-center overflow-hidden px-6 py-28 sm:py-36 text-center bg-[#050505]">
                         <!-- Video Background Loop -->
                         <div class="pointer-events-none absolute inset-0 z-0 overflow-hidden opacity-35">
                             <template x-if="block.data.video_provider === 'vimeo' && block.data.video_id">
@@ -154,8 +176,12 @@
                             </template>
                         </div>
 
-                        <!-- Gradient Overlay -->
-                        <div class="absolute inset-0 z-10 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/50 to-black/80"></div>
+                        <!-- Optical Vignette Overlay -->
+                        <div class="pointer-events-none absolute inset-0 z-10"
+                             style="background: radial-gradient(circle at 50% 50%, transparent 25%, rgba(5,5,5,0.45) 60%, #050505 100%);"></div>
+
+                        <!-- Three.js Canvas Container -->
+                        <div id="cinematic-particles-container" class="pointer-events-none absolute inset-0 z-10 overflow-hidden"></div>
 
                         <!-- Hero Content -->
                         <div class="relative z-20 mx-auto max-w-4xl space-y-6">
@@ -165,7 +191,7 @@
                             <h1 class="font-cinematic text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white leading-tight"
                                 x-text="block.data.title"></h1>
                             <p class="text-base sm:text-xl font-light text-zinc-300 max-w-2xl mx-auto tracking-wide"
-                               x-text="block.data.subtitle"></p>
+                                x-text="block.data.subtitle"></p>
 
                             <div class="pt-6 flex flex-wrap items-center justify-center gap-4">
                                 <button type="button"
@@ -173,6 +199,12 @@
                                         class="inline-flex items-center gap-3 rounded-full bg-brand-gold px-7 py-3.5 text-xs sm:text-sm font-bold uppercase tracking-widest text-black shadow-lg shadow-brand-gold/20 hover:bg-brand-goldHover transition transform hover:scale-105 active:scale-95">
                                     <svg class="h-4 w-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                                     <span x-text="block.data.cta_text || 'Odtwórz Showreel'"></span>
+                                </button>
+                                <button type="button"
+                                        @click="openVideoModal(block.data.showreel_url || block.data.video_url, (block.data.title || siteTitle) + ' — Pełny Odtwarzacz & Dźwięk')"
+                                        class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/50 px-5 py-3.5 text-xs sm:text-sm font-medium text-zinc-300 backdrop-blur-md hover:bg-black/80 hover:text-white hover:border-brand-gold transition shadow-md">
+                                    <span class="text-brand-gold">🔊</span>
+                                    <span>Odtwórz z dźwiękiem</span>
                                 </button>
                                 <template x-if="block.data.cta_secondary_text">
                                     <a :href="block.data.cta_secondary_target || '#projekty'"
@@ -182,8 +214,8 @@
                             </div>
                         </div>
 
-                        <!-- Bottom fade -->
-                        <div class="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-[#0a0a0a] to-transparent pointer-events-none z-20"></div>
+                        <!-- Seamless bottom fade -->
+                        <div class="absolute bottom-0 inset-x-0 h-36 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent pointer-events-none z-20"></div>
                     </section>
                 </template>
 
@@ -196,7 +228,7 @@
                         </div>
                         <div class="grid gap-8 sm:grid-cols-2">
                             <template x-for="(item, idx) in (block.data.items || [])" :key="item.id || idx">
-                                <div class="group relative cursor-pointer overflow-hidden rounded-2xl bg-brand-card border border-brand-border transition duration-300 hover:border-brand-gold/50"
+                                <div class="group cinematic-card-glow relative cursor-pointer overflow-hidden rounded-2xl bg-brand-card border border-brand-border"
                                      @click="openVideoModal(item.video_url, item.title)">
                                     <div class="aspect-video w-full overflow-hidden bg-zinc-900 relative">
                                         <img :src="item.thumbnail" :alt="item.title"
@@ -582,6 +614,7 @@
                                     this.themeType = this.content.theme_type || 'cinematic';
                                     this.siteTitle = this.content.meta?.title || 'Portfolio Filmowe';
                                     this.dataLoaded = true;
+                                    this.initCinematicParticles(this.content.design?.accent_color);
                                     return;
                                 }
                             }
@@ -636,11 +669,27 @@
                         }
 
                         this.dataLoaded = true;
+                        this.initCinematicParticles(accent);
                     } catch (err) {
                         console.error('[CustomSiteApp] Init error:', err);
                         this.loadError = 'Wystąpił błąd podczas ładowania strony.';
                         this.dataLoaded = true;
                     }
+                },
+
+                initCinematicParticles(accentColor) {
+                    if (!this.isCinematic) return;
+                    this.$nextTick(() => {
+                        const container = document.getElementById('cinematic-particles-container');
+                        if (container && window.DFOPS_cinematicFx && typeof window.DFOPS_cinematicFx.init === 'function') {
+                            const hexStr = accentColor ? String(accentColor).replace('#', '') : 'd4af37';
+                            const colorNum = parseInt(hexStr, 16);
+                            this.cinematicCleanup = window.DFOPS_cinematicFx.init(container, {
+                                color: isNaN(colorNum) ? 0xd4af37 : colorNum,
+                                particleCount: 450,
+                            });
+                        }
+                    });
                 },
 
                 openVideoModal(videoUrl, title) {
