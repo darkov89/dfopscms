@@ -45,6 +45,22 @@ function currentYearMonth(): string {
   return `${y}-${m}`;
 }
 
+const PALETTE_COLORS: Record<string, string> = {
+  dark_gold: "#D4AF37",
+  gold: "#D4AF37",
+  dark_silver: "#94a3b8",
+  silver: "#94a3b8",
+  emerald: "#10b981",
+  green: "#10b981",
+  cobalt: "#3b82f6",
+  blue: "#3b82f6",
+  crimson: "#ef4444",
+  red: "#ef4444",
+  purple: "#a855f7",
+  amber: "#f59e0b",
+  clean_light: "#2563eb",
+};
+
 // Import wspólnych domyślnych danych bloków (jedne źródło prawdy dla Edge Functions)
 import { BLOCK_DEFAULTS } from "../_shared/customBlockDefaults.ts";
 
@@ -301,15 +317,30 @@ serve(async (req) => {
     if (!Array.isArray(draft.blocks)) draft.blocks = [];
 
     // Przygotowanie promptu kontekstowego
+    const currentDesign = draft.design || { palette: "dark_gold", accent_color: "#D4AF37" };
+
     const systemPrompt = `Jesteś profesjonalnym, autonomicznym Agentem DFCMS pełniącym rolę CMS-a strony użytkownika.
 Zarządzasz stroną w formacie blokowym (Zero-CMS Architecture).
 
-ZASADY ABSOLUTNE:
-1. Zmieniaj TYLKO to, o co użytkownik wyraźnie prosi. NIGDY nie refaktoruj, nie usuwaj i nie zmieniaj innych sekcji ani stylów samowolnie.
-2. Gdy użytkownik prosi o zmianę (np. tekstu, numeru telefonu, linku wideo, nagłówka), ZAWSZE wywołaj odpowiednie narzędzie (np. update_block_data).
-3. Gdy użytkownik podaje link do filmu (Vimeo, YouTube), wstaw go jako video_url lub showreel_url do właściwego bloku.
-4. Po wywołaniu narzędzi, zawsze odpowiedz krótko, naturalnie i uprzejmie po polsku (1-2 zdania), informując co zostało zmienione.
-5. Jeśli użytkownik zadaje pytanie o radę marketingową lub treść, doradź mu zwięźle.
+ZASADY PRACY I INTERAKCJI:
+1. Zmieniaj TYLKO to, o co użytkownik prosi. NIGDY nie usuwaj ani nie zmieniaj innych sekcji ani stylów samowolnie.
+2. Gdy użytkownik prosi o zmianę treści, telefonu, wideo, kolejności lub kolorów, ZAWSZE wywołaj odpowiednie narzędzie (update_block_data, add_block, remove_block, update_design, reorder_blocks).
+3. Gdy użytkownik pyta ogólnie o zmianę stylu lub kolorystyki (np. "Zmień styl", "Zmień kolorystykę strony", "Jakie opcje polecasz?") i nie podał konkretnego koloru ani nazwy:
+   NIE zmieniaj stylu w ciemno. Zamiast tego przedstaw użytkownikowi w uprzejmej wiadomości 5 dopracowanych wariantów do wyboru:
+   1) 👑 Złoty luksus (czerń + złoto #D4AF37) — styl klasyczny
+   2) ⚪ Srebrny minimalizm (grafit + chłodne srebro #94a3b8)
+   3) 🟢 Szmaragdowa elegancja (głęboka czerń + butelkowa zieleń #10b981)
+   4) 🔵 Nowoczesny kobalt (czerń + neonowy błękit #3b82f6)
+   5) 🔴 Karmin filmowy (czerń + czerwień #ef4444)
+   Zapytaj krótko, który wariant wybiera lub jaki własny kolor preferuje.
+4. Gdy użytkownik wybierze wariant (np. "2", "srebrny", "chcę szmaragd", "niebieski", "czerwony", "zmień na złoty"):
+   ZAWSZE wywołaj narzędzie update_design z odpowiednim palette i accentColor (np. palette: "emerald", accentColor: "#10b981"), a w odpowiedzi potwierdź zmianę i zapytaj, jak podoba mu się ten klimat.
+5. Gdy użytkownik prosi o dodanie sekcji (np. cennik, opinie, FAQ):
+   Wywołaj add_block, a w odpowiedzi krótko podpowiedz mu 1-2 kolejne kroki (np. "Dodałem cennik z 3 pakietami. Czy chcesz, abym dostosował ceny lub nazwy pakietów?").
+6. Zawsze odpowiadaj po polsku, profesjonalnie, zwięźle i życzliwie (1-3 zdania).
+
+AKTUALNY STYL I DESIGN STRONY:
+${JSON.stringify(currentDesign, null, 2)}
 
 AKTUALNY STAN STRONY (BLOKI):
 ${JSON.stringify(draft.blocks, null, 2)}`;
@@ -430,14 +461,18 @@ ${JSON.stringify(draft.blocks, null, 2)}`;
           if (draft.blocks.length !== lenBefore) draftChanged = true;
         } else if (name === "update_design") {
           if (!draft.design) draft.design = {};
-          if (args.palette && typeof args.palette === "string") {
-            draft.design.palette = args.palette.replace(/[^a-zA-Z0-9_-]/g, "");
+          const paletteName = typeof args?.palette === "string" ? args.palette.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "") : "";
+          if (paletteName) {
+            draft.design.palette = paletteName;
           }
-          if (args.accentColor && typeof args.accentColor === "string") {
-            const color = args.accentColor.trim();
-            if (/^#[0-9a-fA-F]{3,8}$/.test(color)) {
-              draft.design.accent_color = color;
-            }
+          let accent = typeof args?.accentColor === "string" ? args.accentColor.trim() : "";
+          if (!accent && paletteName && PALETTE_COLORS[paletteName]) {
+            accent = PALETTE_COLORS[paletteName];
+          } else if (accent && PALETTE_COLORS[accent.toLowerCase()]) {
+            accent = PALETTE_COLORS[accent.toLowerCase()];
+          }
+          if (accent && /^#[0-9a-fA-F]{3,8}$/.test(accent)) {
+            draft.design.accent_color = accent;
           }
           draftChanged = true;
         } else if (name === "reorder_blocks") {

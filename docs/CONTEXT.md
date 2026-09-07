@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-09-06 — Custom AI Sites (`theme=custom`) + returnTo Studio
+**Ostatnia aktualizacja:** 2026-09-07 — AI Studio MVP: Auth PKCE, Auto-provisioning, Edge Function, Block Engine, Undo/Redo, Media Upload, Click-to-Prompt, EU AI Act, Interactive Chat
 
 ---
 
@@ -394,6 +394,33 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-09-07 — AI Studio MVP: Auth PKCE, Auto-provisioning, Edge Function, Block Engine, Undo/Redo, Media Upload, Click-to-Prompt, EU AI Act, Interactive Chat
+
+1. **Auth PKCE & Auto-provisioning (`studio.html`, `authPKCE.js`, `kreator.html`):**
+   - Obsługa `code` / `#access_token` po kliknięciu linku potwierdzającego z maila rejestracyjnego w `studio.html` (wymiana PKCE przed ładowaniem wiersza witryny).
+   - Trigger bazy danych `on_auth_user_created` na `auth.users` (`handle_new_user()`): natychmiastowe tworzenie rekordu `pages` i `billing_profiles` z metadanych rejestracji (`slug`, `format`, `industry`, `city`).
+   - Telegram alert dla nowej witryny wysyłany natychmiast po rejestracji.
+   - Fallback auto-provisioningu po stronie klienta w `studio.html` i `adminApp.js`, gdy webhook lub trigger napotkają opóźnienie replikacji.
+   - Poprawka 14-dniowego trialu (`trialBlocking.js`): nowe witryny `content=null` z dzisiejszym `trial_started_at` nie są blokowane.
+
+2. **Zgodność z prawem i EU AI Act:**
+   - `regulamin.html`: Dodano §7 „Funkcje Sztucznej Inteligencji (AI)” — informacja o Gemini 2.5 Flash, weryfikacji przez człowieka, zakazie treści nielegalnych/deepfake, prawach autorskich i braku trenowania modeli na danych klientów.
+   - `polityka.html`: Jawna klauzula podwykonawcy Google Cloud Ireland / Google LLC (Gemini API) oraz praw RODO w kontekście AI.
+   - `publicSiteApp.js`: Klauzula infrastrukturalna w stopce polityki prywatności zaktualizowana o Gemini AI.
+
+3. **6 Pełnych Funkcjonalności AI Studio:**
+   - **Narzędzie `reorder_blocks`:** Zadeklarowane w `AGENT_TOOLS` i zaimplementowane w pętli wywołań w `chat-site-agent/index.ts`.
+   - **Undo / Redo:** Stos migawek (`draftHistory`, `draftRedoStack`, limit 20) w `studio.html` z blokadą wielobieżności `historySaving` i zapisem do `pages.draft_content`.
+   - **Dynamic Quick Action Chips:** Reaktywny getter `suggestedChips` analizujący istniejące bloki oraz `themeType`, z gotowymi promptami prowadzącymi do interakcji.
+   - **Upload multimediów przez czat:** Przycisk `[📷]`, walidacja MIME/rozmiaru (10MB), upload do Supabase Storage (`images/{user_id}/studio_{ts}.{ext}`), generowanie publicznego URL i przekazanie promptu Agentowi.
+   - **3 Nowe Typy Bloków:** `testimonials_grid` (z gwiazdkami `★`/`☆`), `faq_accordion` (z Alpine `x-collapse`), `pricing_tiers` (3 pakiety z podświetlonym planem). Dodane w 4 warstwach: `customBlocksRegistry.js`, `customBlockDefaults.ts`, `custom.html`, `chat-site-agent`.
+   - **Click-to-Prompt:** Podgląd witryny w trybie preview podświetla klikalne elementy; kliknięcie wysyła przez `postMessage` (z `targetOrigin: window.location.origin` i atrybutem `:data-block-id`) precyzyjny prompt do edycji konkretnego tekstu.
+   - **Interaktywne prowadzenie stylu (Guided Design):** Narzędzie `update_design` zintegrowane ze słownikiem `PALETTE_COLORS`. Gdy użytkownik pyta o zmianę stylu, Agent przedstawia 5 wariantów (Złoty, Srebrny, Szmaragd, Kobalt, Karmin) i po wyborze natychmiast aplikuje dynamiczne zmienne CSS `--brand-gold`.
+
+4. **Wdrożenie & Testy:**
+   - Edge Function `chat-site-agent` zdeployowana na projekt Staging `asxrsdsprrbvjvgcsckh`.
+   - Komplet testów automatycznych `npm test`: 60/60 PASS.
 
 ### 2026-09-06 — Custom AI Sites + returnTo Studio
 

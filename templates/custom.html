@@ -60,6 +60,10 @@
         .text-brand-gold { color: var(--brand-gold) !important; }
         .bg-brand-gold { background-color: var(--brand-gold) !important; }
         .border-brand-gold { border-color: var(--brand-gold) !important; }
+        .hover\:text-brand-gold:hover { color: var(--brand-gold) !important; }
+        .hover\:border-brand-gold:hover { border-color: var(--brand-gold) !important; }
+        .hover\:bg-brand-goldHover:hover { filter: brightness(1.15); }
+        .group:hover .group-hover\:text-brand-gold { color: var(--brand-gold) !important; }
         .aspect-video-bg {
             position: absolute;
             top: 50%;
@@ -881,8 +885,27 @@
                             }
                         }
 
-                        // Dynamic Accent Color
-                        const accent = rawContent.design?.accent_color;
+                        // Dynamic Accent Color & Palette
+                        const PALETTE_FALLBACKS = {
+                            dark_gold: '#D4AF37',
+                            gold: '#D4AF37',
+                            dark_silver: '#94a3b8',
+                            silver: '#94a3b8',
+                            emerald: '#10b981',
+                            green: '#10b981',
+                            cobalt: '#3b82f6',
+                            blue: '#3b82f6',
+                            crimson: '#ef4444',
+                            red: '#ef4444',
+                            purple: '#a855f7',
+                            amber: '#f59e0b',
+                            clean_light: '#2563eb',
+                        };
+                        const designObj = rawContent.design || {};
+                        let accent = designObj.accent_color;
+                        if (!accent && designObj.palette && PALETTE_FALLBACKS[designObj.palette]) {
+                            accent = PALETTE_FALLBACKS[designObj.palette];
+                        }
                         if (accent) {
                             document.documentElement.style.setProperty('--brand-gold', accent);
                         }
