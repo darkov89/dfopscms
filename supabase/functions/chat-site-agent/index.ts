@@ -106,6 +106,21 @@ const AGENT_TOOLS = [
           },
         },
       },
+      {
+        name: "reorder_blocks",
+        description: "Zmienia kolejność sekcji (bloków) na stronie.",
+        parameters: {
+          type: "OBJECT",
+          properties: {
+            orderedIds: {
+              type: "ARRAY",
+              items: { type: "STRING" },
+              description: "Tablica ID bloków w nowej kolejności",
+            },
+          },
+          required: ["orderedIds"],
+        },
+      },
     ],
   },
 ];
@@ -425,6 +440,23 @@ ${JSON.stringify(draft.blocks, null, 2)}`;
             }
           }
           draftChanged = true;
+        } else if (name === "reorder_blocks") {
+          const { orderedIds } = args;
+          if (Array.isArray(orderedIds)) {
+            const map = new Map(draft.blocks.map((b: any) => [b.id, b]));
+            const reordered: any[] = [];
+            for (const id of orderedIds) {
+              if (map.has(id)) {
+                reordered.push(map.get(id));
+                map.delete(id);
+              }
+            }
+            for (const remaining of map.values()) {
+              reordered.push(remaining);
+            }
+            draft.blocks = reordered;
+            draftChanged = true;
+          }
         }
       }
     }
