@@ -26,16 +26,27 @@
         return true;
       }
     }
-    const sub = page.content?.pl?.settings?.subscription;
-    if (!sub || typeof sub !== 'object') return true;
-    const ts = sub.trial_started_at;
-    if (ts == null || String(ts).trim() === '') return true;
+    const sub = page.content?.pl?.settings?.subscription || page.draft_content?.pl?.settings?.subscription;
+    const ts = sub?.trial_started_at || page.created_at;
+    if (!ts || String(ts).trim() === '') {
+      return false;
+    }
     const start = new Date(ts).getTime();
-    if (!Number.isFinite(start)) return true;
+    if (!Number.isFinite(start)) return false;
     if (Date.now() - start < TRIAL_PUBLIC_BLOCK_AFTER_DAYS * MS_PER_DAY) return false;
     return true;
   }
 
-  window.DFOPS_shouldBlockPublicPageView = shouldBlockPublicPageView;
-  window.DFOPS_TRIAL_PUBLIC_BLOCK_AFTER_DAYS = TRIAL_PUBLIC_BLOCK_AFTER_DAYS;
+  if (typeof window !== 'undefined') {
+    window.DFOPS_shouldBlockPublicPageView = shouldBlockPublicPageView;
+    window.DFOPS_TRIAL_PUBLIC_BLOCK_AFTER_DAYS = TRIAL_PUBLIC_BLOCK_AFTER_DAYS;
+  }
+  if (typeof globalThis !== 'undefined') {
+    globalThis.DFOPS_shouldBlockPublicPageView = shouldBlockPublicPageView;
+    globalThis.DFOPS_TRIAL_PUBLIC_BLOCK_AFTER_DAYS = TRIAL_PUBLIC_BLOCK_AFTER_DAYS;
+  }
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { shouldBlockPublicPageView, TRIAL_PUBLIC_BLOCK_AFTER_DAYS };
+  }
 })();
+

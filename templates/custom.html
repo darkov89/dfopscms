@@ -715,9 +715,24 @@
                             return;
                         }
 
-                        // Trial blocking check
+                        this.page = pageRow;
+                        const hasPublishedBlocks = Array.isArray(pageRow.content?.blocks) && pageRow.content.blocks.length > 0;
+                        const rawContent = (isPreview && pageRow.draft_content)
+                            ? pageRow.draft_content
+                            : (hasPublishedBlocks ? pageRow.content : (pageRow.draft_content || pageRow.content || {}));
+
+                        this.content = rawContent;
+                        this.themeType = rawContent.theme_type || 'cinematic';
+                        this.blocks = Array.isArray(rawContent.blocks) ? rawContent.blocks : [];
+                        this.pageSlug = pageRow?.slug || currentSlug || '';
+
+                        // Trial blocking check (14 dni okresu próbnego)
                         const shouldBlock = typeof window.DFOPS_shouldBlockPublicPageView === 'function'
-                            ? window.DFOPS_shouldBlockPublicPageView(pageRow)
+                            ? window.DFOPS_shouldBlockPublicPageView({
+                                ...pageRow,
+                                content: pageRow.content || rawContent,
+                                draft_content: pageRow.draft_content || rawContent,
+                            })
                             : false;
 
                         if (shouldBlock) {
@@ -735,17 +750,6 @@
                                 document.body.appendChild(b);
                             }
                         }
-
-                        this.page = pageRow;
-                        const hasPublishedBlocks = Array.isArray(pageRow.content?.blocks) && pageRow.content.blocks.length > 0;
-                        const rawContent = (isPreview && pageRow.draft_content)
-                            ? pageRow.draft_content
-                            : (hasPublishedBlocks ? pageRow.content : (pageRow.draft_content || pageRow.content || {}));
-
-                        this.content = rawContent;
-                        this.themeType = rawContent.theme_type || 'cinematic';
-                        this.blocks = Array.isArray(rawContent.blocks) ? rawContent.blocks : [];
-                        this.pageSlug = pageRow?.slug || currentSlug || '';
 
                         // Dynamic Accent Color
                         const accent = rawContent.design?.accent_color;

@@ -475,7 +475,7 @@
     if (!user?.id) return { data: null, error: null };
     const { data, error } = await sb
       .from('pages')
-      .select('id, slug, theme, content, draft_content, color_preset, custom_domain, trial_blocked_at, billing_failed_at, billing_plan')
+      .select('id, slug, theme, content, draft_content, color_preset, custom_domain, trial_blocked_at, billing_failed_at, billing_plan, created_at')
       .eq('slug', slugTrimmed)
       .limit(1)
       .maybeSingle();
