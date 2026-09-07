@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-09-07 — AI Studio MVP: Auth PKCE, Auto-provisioning, Edge Function, Block Engine, Undo/Redo, Media Upload, Click-to-Prompt, EU AI Act, Interactive Chat
+**Ostatnia aktualizacja:** 2026-09-07 — AI Studio Fale 0–4 (katalog, 18 klocków, Places przez JWT usera, mapa z address)
 
 ---
 
@@ -394,6 +394,38 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-09-07 — Always-On Lenses (Anti-Monolith, Security, EU AI Act, RODO), AGENTS.md, Subagents & Test Guards
+
+1. **Standard inżynieryjny Anti-Monolith (Extract-First):**
+   - Zdefiniowano `AGENTS.md` w roocie jako stały system prompt dla agentów AI pracujących nad repozytorium.
+   - Utworzono `.cursor/rules/lenses.mdc` oraz zaktualizowano `.cursor/rules/admin-split.mdc` z flagą `alwaysApply: true`.
+   - Utworzono `.cursorrules` w głównym katalogu projektu.
+   - Zdefiniowano wyspecjalizowane subagenty: `anti-monolith-architect`, `security-auditor`, `ai-act-compliance`, `rodo-gdpr-guardian`.
+
+2. **Automatyzacja strażników jakości w `npm test`:**
+   - `scripts/test-monolith-guard.mjs`: kontrola synchronizacji `admin.html` z `admin/partials/`, limit linii `adminApp.js` (<3800), zakaz mixinów/spreadu w Alpine.
+   - `scripts/test-security-compliance.mjs`: audyt CSP (`object-src 'none'`, `frame-ancestors`, `connect-src` Supabase/Stripe), ochrona przed Prototype Pollution (`customBlocksRegistry`), izolacja zablokowanych tenantów (`trialBlocking`).
+   - `scripts/test-ai-act-rodo-compliance.mjs`: wymogi EU AI Act Art. 50 (informacja o AI w `studio.html`, klauzula w `regulamin.html`, badge `⚡ Stworzono w DFCMS AI` w `custom.html`, Undo/Redo human-in-the-loop), wymogi RODO (minimalizacja danych w schematach, retencja/purge w cronie i edge `expire-trial-pages`, prawa w `polityka.html`).
+   - Pełny pakiet `npm test`: 77 testów (9 zestawów) ze statusem PASS.
+
+### 2026-09-07 — AI Studio Fala 0: Katalog Komponentów (Klocków), Deterministyczny Lokalny insertBlock, Obsługa Błędów Edge
+
+1. **Obsługa błędów Edge (`studio.html`):**
+   - `sendMessage()` parsuje `error.context.json()` (kod `429` rate limiter 30s, quota, timeouty) — użytkownik otrzymuje czytelny komunikat zamiast surowego *"Edge Function returned a non-2xx status code"*.
+2. **Architektura Anti-Monolith Studio (`js/features/studio/studioCatalog.js`):**
+   - Utworzono moduł katalogu dołączany pionowo (`DFOPS_attachStudioCatalog(app)`). Brak rozrostu monolitu `studio.html`.
+3. **Metadane katalogu (`customBlocksRegistry.js`):**
+   - Dodano pola katalogowe do wszystkich 12 klocków: `catalog_group` (*hero, offer, trust, contact, info*), `icon`, `summary`, `allow_multiple`, `required_fields`.
+   - Nienaruszone pole `category` (*cinematic, quick_card, universal*).
+   - Nowe helpers: `getCatalogGroups()` oraz `getCatalogBlocks(currentBlocks)` z dynamicznym statusem `isOnPage`.
+4. **Deterministyczny lokalny `insertBlock` (Zero-LLM Latency & 0 Quota):**
+   - Kliknięcie w katalogu natychmiast wstawia blok na podglądzie w 0 ms (`pushDraftSnapshot` -> `insertBlock` -> `savePageByIdForOwner` -> `refreshPreview`).
+   - Brak zużycia quoty AI i brak 30-sekundowego cooldownu przy dodawaniu sekcji.
+   - Lokalne wstrzyknięcie pytania asystenta z `required_fields` do czatu.
+5. **UI Slide-over Drawer w Studio (`studio.html`):**
+   - Przycisk `🧩 Biblioteka sekcji` w toolbarze (z licznikiem klocków) oraz `+ Biblioteka` w dynamicznych chipsach.
+   - Płynny drawer boczny z filtrami grup, kartami sekcji i inteligentnymi przyciskami dodawania / dostosowania.
 
 ### 2026-09-07 — AI Studio MVP: Auth PKCE, Auto-provisioning, Edge Function, Block Engine, Undo/Redo, Media Upload, Click-to-Prompt, EU AI Act, Interactive Chat
 
@@ -816,6 +848,40 @@ Na gałęzi `staging` przetestowano podział logiki panelu — **cofnięto**; st
 
 **Następny krok (opcjonalnie):** refaktor JS panelu dopiero z CI (`build:panel` na deploy) lub po testach E2E onboardingu; ewentualnie pozostajemy przy monolicie + partials HTML.
 
+### 2026-09-07 — AI Studio Catalog, Komponenty Branżowe & Anti-Monolith (Fale 0–4 Hardened)
+
+1. **Fala 0 — AI Studio Catalog (`studioCatalog.js`, `studio.html`):**
+   * Dodano Slide-over Drawer z katalogiem bloków i filtrowaniem kategorii (Oferta, Zaufanie, Kontakt, Informacje, Hero) w `studio.html`.
+   * Stan reaktywny (`catalogOpen`, `catalogFilter`, `catalogSaving`) zadeklarowany z góry w literałowym obiekcie jądra `createStudioApp()`.
+   * Wdrożono czysty wzorzec `window.DFOPS_attachStudioCatalog(app)` bez spreadu i niszczenia Proxy w Alpine.js 3.
+   * Obsłużono błędy zapisu draftu w katalogu: rollback migawki (`pageRow.draft_content`), odświeżenie podglądu i komunikat toast.
+   * Sugestie w czacie (`+ Opinie`, `+ Cennik`, `+ FAQ`, `+ Nagrody`) wywołują lokalny `insertBlockFromCatalog` (0 ms latency, 0 quota LLM, brak 30-sekundowego cooldownu).
+   * Naprawiono maskowanie błędów w `sendMessage()` (`error.context.json()`), dzięki czemu użytkownik widzi realne kody HTTP 429/500 zamiast surowego komunikatu Supabase.
+
+2. **Fala 1 — Narzędzia Agenta AI (`chat-site-agent/index.ts`, `customBlocksRegistry.js`):**
+   * Dodano narzędzie `replace_block_items` z pełną ochroną przed Prototype Pollution (`__proto__`, `constructor`, `prototype`) oraz sanityzacją linków URL (`https://` / `mailto:` / `tel:`).
+   * Parsowanie JSON string w `update_block_data` zawężono wyłącznie do `path === "items"`.
+   * Walidator `isGoogleMapsEmbedHttpsUrl` chroni `map_embed_url` w `setDeepValue` przed podaniem złośliwych adresów spoza dozwolonych domen Google Maps.
+
+3. **Fala 2 — Unifikacja schematu i rendererów (`templates/custom.html`):**
+   * `services_list`: renderer wspiera zarówno `srv.desc`, jak i `srv.description`.
+   * `booking_cta`: renderer czyta `button_text || cta_text || 'Zarezerwuj wizytę teraz'`.
+   * `trust_stats`: spójny kontrakt pól (`value`, `label`, `desc`).
+
+4. **Fala 3 — Dynamiczna mapa i dedykowany Lightbox (`templates/custom.html`, `_middleware.js`):**
+   * `location_map`: `getSafeMapEmbedUrl` w `customBlocksRegistry.js` — `address`/`city` wygrywają ze starym `map_embed_url` (brak sztywnego embedu Poznania w defaults). `whitespace-pre-line` dla godzin.
+   * CSP w `functions/_middleware.js`: dodano `https://maps.google.com` do `frame-src`.
+   * `gallery_grid`: kliknięcie w zdjęcie otwiera dedykowany Lightbox fotografii (`imageLightboxOpen`, modal z tagiem `<img>`), nie zanieczyszczając uniwersalnego odtwarzacza wideo (`modalOpen`).
+
+5. **Fala 4 — Soczewka EU AI Act i brak fałszywego social proof (`customBlocksRegistry.js`, `customBlockDefaults.ts`, `custom.html`):**
+   * Usunięto spreparowane recenzje i sztuczną ocenę 5.0 / 4.9 z domyślnych schematów `google_reviews`.
+   * Szablon `custom.html` dla niepodłączonych opinii renderuje kartę konfiguracyjną (wezwanie do podania profilu w czacie).
+   * Places tylko przez istniejącą Edge `get-google-reviews` z **JWT użytkownika** (`supabaseAuth.functions.invoke` + `Authorization`) — `service_role` nie przechodzi `auth.getUser()` w `get-google-reviews`.
+
+6. **Automatyczny pakiet testów (`npm test`):**
+   * `test-custom-blocks.mjs`: 22 testy (sync 18 kluczy, brak fake reviews, kontrakty renderera, mapa vs stale embed).
+   * 9 pakietów — pełny `npm test` (85 testów po kontrakcie mapy).
+
 ---
 
 ## Utrzymanie tego pliku
@@ -823,3 +889,4 @@ Na gałęzi `staging` przetestowano podział logiki panelu — **cofnięto**; st
 1. Na koniec sesji zmieniającej produkcję: zaktualizuj sekcje **1–3** i wpis w **§4**.
 2. Szczegóły implementacyjne zostaw w kodzie; tutaj **decyzje, stany, luki**.
 3. Plany post-MVP → [`ROADMAP.md`](ROADMAP.md).
+

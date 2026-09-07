@@ -1,0 +1,31 @@
+---
+description: 4 Obowiązkowe Soczewki (Anti-Monolith, Security, EU AI Act, RODO) dla każdego czatu i zadania
+alwaysApply: true
+---
+
+# Obowiązkowe Soczewki Audytowe DFCMS (Always-On)
+
+Przed zaproponowaniem lub wdrożeniem jakiejkolwiek zmiany w kodzie, zweryfikuj swoje rozwiązanie przez 4 kluczowe soczewki:
+
+## 1. 🏛️ Soczewka Architektoniczna (Anti-Monolith & Extract-First)
+* **Zasada #1:** ZAKAZ rozrostu monolitów (`adminApp.js`, `publicSiteApp.js`, `admin.html`).
+* Nowa logika domenowa/biznesowa/walidacje → czyste funkcje w `js/core/*Rules.js` (testowalne bez DOM).
+* Nowe panele/funkcjonalności → `js/features/<modul>/` i pionowy wzorzec attach `window.DFOPS_attach*(app)`.
+* **ZAKAZ mixinów i spreadu:** `{ ...createAdminApp(), ...mixin }` niszczy Proxy w Alpine 3. Zakaz arrow functions w metodach/getterach.
+* **ZAKAZ bezpośredniej edycji `admin.html`:** Edytuj wyłącznie `admin/partials/*.html`, a następnie wykonaj `npm run build:admin`.
+
+## 2. 🛡️ Soczewka Bezpieczeństwa (Security & Isolation)
+* **RLS & Baza:** `pages` i `billing_profiles` zabezpieczone RLS. Anonimowy klient ma dostęp tylko do opublikowanego `content`.
+* **Soft-block:** RPC `get_public_site_route` dla zablokowanych stron trialowych nie zwraca `content`.
+* **CSP w Cloudflare:** W `functions/_middleware.js` nie obniżaj bezpieczeństwa dyrektyw `script-src`, `connect-src`, `frame-ancestors`.
+* **Prototype Pollution:** Parsery i mutatory stanu (`applyBlockUpdate`, `aiBusinessContext`, `contentSchema`) muszą blokować klucze prototypowe (`__proto__`, `constructor`, `prototype`).
+
+## 3. 🇪🇺 Soczewka EU AI Act (Rozporządzenie UE 2024/1689)
+* **Art. 50 (Transparentność):** Użytkownik korzystający z generatora AI / AI Studio musi być jednoznacznie informowany o kontakcie ze sztuczną inteligencją.
+* **Badge transparentności:** Szablony trial/tier0 generowane przez AI posiadają oznaczenie `⚡ Stworzono w DFCMS AI`.
+* **Nadzór człowieka:** Wszelkie zmiany sugerowane przez AI muszą być odwracalne (Undo/Redo) i podlegać akceptacji użytkownika przed publikacją.
+
+## 4. 🔒 Soczewka RODO / GDPR (Rozporządzenie UE 2016/679)
+* **Minimalizacja danych:** Schematy JSON stron wizytówkowych nie mogą gromadzić nadmiarowych danych osobowych.
+* **Retencja i czyszczenie:** Przestrzeganie automatycznego cyklu retencji porzuconych stron trialowych (ostrzeżenie po 23 dniach, purging po 30 dniach).
+* **Zgody:** Formularze i narzędzia analityczne muszą być transparentne i linkować do polityki prywatności.

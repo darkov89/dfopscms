@@ -39,7 +39,8 @@
     <script defer src="/js/core/config.js?v=20260906b"></script>
     <script defer src="/js/core/supabaseClient.js?v=20260906b"></script>
     <script defer src="/js/core/pageRepository.js?v=20260906b"></script>
-    <script defer src="/js/core/customBlocksRegistry.js?v=20260906b"></script>
+    <script defer src="/js/core/customBlocksRegistry.js?v=20260907a"></script>
+    <script defer src="/js/features/studio/studioCatalog.js?v=20260907a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 
     <style>
@@ -103,6 +104,15 @@
                     <span class="hidden xl:inline text-[11px]">Ponów</span>
                 </button>
             </div>
+
+            <!-- Component Library Button -->
+            <button type="button" @click="openCatalog()"
+                    class="rounded-xl border border-brand-gold/30 bg-brand-gold/10 px-3 py-1.5 text-xs font-semibold text-brand-gold hover:bg-brand-gold/20 hover:text-white transition flex items-center gap-1.5 shadow-sm"
+                    title="Przeglądaj bibliotekę komponentów i dodaj sekcję">
+                <span aria-hidden="true">🧩</span>
+                <span class="hidden md:inline">Biblioteka sekcji</span>
+                <span class="text-[10px] bg-brand-gold/20 text-brand-gold px-1.5 py-0.5 rounded-full font-bold" x-text="typeof getCatalogTotalCount === 'function' ? getCatalogTotalCount() : 12"></span>
+            </button>
 
             <a href="/admin.html#subscription" class="hidden lg:inline-flex rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/10 hover:text-white transition">
                 Domeny & Płatności ⚙️
@@ -191,8 +201,14 @@
 
             <!-- Quick Suggestions (Dynamic Chips) -->
             <div class="p-3 border-t border-white/5 bg-black/20 flex flex-wrap gap-1.5" x-show="suggestedChips.length > 0" x-cloak>
+                <button type="button" @click="openCatalog()"
+                        class="rounded-lg bg-brand-gold/10 hover:bg-brand-gold/20 border border-brand-gold/30 px-2.5 py-1 text-[11px] font-semibold text-brand-gold transition flex items-center gap-1.5"
+                        title="Otwórz katalog sekcji i dodaj nowy blok">
+                    <span aria-hidden="true">🧩</span>
+                    <span>+ Biblioteka</span>
+                </button>
                 <template x-for="chip in suggestedChips" :key="chip.label">
-                    <button type="button" @click="sendQuickPrompt(chip.prompt)" :disabled="agentThinking || imageUploading"
+                    <button type="button" @click="chip.blockType ? insertBlockFromCatalog(chip.blockType) : sendQuickPrompt(chip.prompt)" :disabled="agentThinking || imageUploading"
                             class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-300 hover:text-white transition flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
                         <span x-text="chip.emoji" aria-hidden="true"></span>
                         <span x-text="chip.label"></span>
@@ -224,6 +240,105 @@
 
     </div>
 
+    <!-- Slide-over Drawer: Biblioteka Komponentów (Katalog Klocków) -->
+    <div x-show="catalogOpen" x-cloak
+         class="fixed inset-0 z-50 overflow-hidden"
+         @keydown.escape.window="closeCatalog()"
+         role="dialog" aria-modal="true" aria-labelledby="dfcms-catalog-title">
+        <!-- Backdrop -->
+        <div x-show="catalogOpen"
+             x-transition:enter="ease-in-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in-out duration-300"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="absolute inset-0 bg-black/75 backdrop-blur-sm transition-opacity"
+             @click="closeCatalog()"></div>
+
+        <div class="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
+            <div x-show="catalogOpen"
+                 x-transition:enter="transform transition ease-in-out duration-300 sm:duration-400"
+                 x-transition:enter-start="translate-x-full"
+                 x-transition:enter-end="translate-x-0"
+                 x-transition:leave="transform transition ease-in-out duration-300 sm:duration-400"
+                 x-transition:leave-start="translate-x-0"
+                 x-transition:leave-end="translate-x-full"
+                 class="w-screen max-w-md bg-[#141414] border-l border-white/10 text-zinc-100 shadow-2xl flex flex-col">
+
+                <!-- Drawer Header -->
+                <div class="p-4 sm:p-5 border-b border-white/10 bg-black/40 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="h-9 w-9 rounded-xl bg-brand-gold/15 text-brand-gold flex items-center justify-center text-lg font-bold border border-brand-gold/30">
+                            🧩
+                        </div>
+                        <div>
+                            <h2 id="dfcms-catalog-title" class="text-sm font-bold text-white uppercase tracking-wider">Biblioteka sekcji</h2>
+                            <p class="text-xs text-zinc-400">Dodaj klocki na stronę bez pisania kodu</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="closeCatalog()"
+                            class="h-8 w-8 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center text-lg transition"
+                            aria-label="Zamknij katalog">
+                        ✕
+                    </button>
+                </div>
+
+                <!-- Category Filter Pills -->
+                <div class="px-4 sm:px-5 py-3 border-b border-white/5 bg-black/20 overflow-x-auto flex gap-1.5">
+                    <template x-for="grp in (typeof getCatalogGroups === 'function' ? getCatalogGroups() : [])" :key="grp.id">
+                        <button type="button" @click="setCatalogFilter(grp.id)"
+                                :class="catalogFilter === grp.id ? 'bg-brand-gold text-black font-bold shadow-sm' : 'bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white'"
+                                class="px-3 py-1 rounded-lg text-xs font-semibold transition whitespace-nowrap">
+                            <span x-text="grp.label"></span>
+                        </button>
+                    </template>
+                </div>
+
+                <!-- Block Cards List -->
+                <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3">
+                    <template x-for="item in (typeof getCatalogBlocksList === 'function' ? getCatalogBlocksList() : [])" :key="item.type">
+                        <div class="p-4 rounded-xl border border-white/10 bg-white/[0.03] hover:border-brand-gold/40 hover:bg-white/[0.06] transition flex flex-col justify-between gap-3 group">
+                            <div class="flex items-start gap-3">
+                                <span class="text-2xl flex-shrink-0" x-text="item.icon" aria-hidden="true"></span>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h3 class="text-xs font-bold text-white group-hover:text-brand-gold transition" x-text="item.label"></h3>
+                                        <span x-show="item.isOnPage" x-cloak
+                                              class="text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                                            ✓ Na stronie
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-zinc-400 mt-1 leading-relaxed" x-text="item.summary"></p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-2 border-t border-white/5">
+                                <span class="text-[10px] text-zinc-500 uppercase font-semibold tracking-wider"
+                                      x-text="item.allow_multiple ? 'Wielokrotny' : 'Pojedyncza sekcja'"></span>
+                                <button type="button" @click="insertBlockFromCatalog(item.type)" :disabled="catalogSaving"
+                                        class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 disabled:opacity-50"
+                                        :class="item.isOnPage && !item.allow_multiple
+                                            ? 'bg-white/10 text-zinc-300 hover:bg-white/20 hover:text-white'
+                                            : 'bg-brand-gold text-black hover:bg-brand-goldHover shadow-sm'">
+                                    <span x-text="item.isOnPage && !item.allow_multiple ? 'Dostosuj sekcję →' : '+ Dodaj na stronę'"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Footer / Prompt Hint -->
+                <div class="p-3 sm:p-4 border-t border-white/10 bg-black/40 text-center">
+                    <p class="text-[11px] text-zinc-400">
+                        ⚡ Wstawienie sekcji działa natychmiast na podglądzie i nie zużywa limitu AI.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div x-show="toastMessage" x-cloak
          class="fixed bottom-6 left-6 z-50 rounded-2xl bg-zinc-900 border border-white/10 px-5 py-3 text-xs font-semibold text-white shadow-2xl flex items-center gap-3">
@@ -252,7 +367,7 @@
 
     <script>
         function createStudioApp() {
-            return {
+            const app = {
                 pageSlug: '',
                 pageId: null,
                 pageRow: null,
@@ -273,6 +388,11 @@
                 maxHistorySize: 20,
                 historySaving: false,
                 imageUploading: false,
+
+                // Stan biblioteki sekcji (katalog klocków w kernelu)
+                catalogOpen: false,
+                catalogFilter: 'all',
+                catalogSaving: false,
 
                 userInput: '',
                 messages: [
@@ -300,19 +420,19 @@
                     chips.push({ emoji: '📞', label: 'Zmień telefon', prompt: 'Zmień numer telefonu kontaktowego' });
 
                     if (!blockTypes.includes('faq_simple') && !blockTypes.includes('faq_accordion')) {
-                        chips.push({ emoji: '❓', label: 'Dodaj FAQ', prompt: 'Dodaj sekcję z najczęściej zadawanymi pytaniami' });
+                        chips.push({ emoji: '❓', label: 'Dodaj FAQ', blockType: 'faq_accordion', prompt: 'Dodaj sekcję z najczęściej zadawanymi pytaniami' });
                     }
-                    if (!blockTypes.includes('testimonials_grid')) {
-                        chips.push({ emoji: '⭐', label: 'Dodaj opinie', prompt: 'Dodaj sekcję z opiniami klientów' });
+                    if (!blockTypes.includes('google_reviews') && !blockTypes.includes('testimonials_grid')) {
+                        chips.push({ emoji: '⭐', label: 'Dodaj opinie', blockType: 'google_reviews', prompt: 'Dodaj sekcję z opiniami z Google' });
                     }
                     if (!blockTypes.includes('pricing_tiers')) {
-                        chips.push({ emoji: '💰', label: 'Dodaj cennik', prompt: 'Dodaj sekcję z cennikiem usług' });
+                        chips.push({ emoji: '💰', label: 'Dodaj cennik', blockType: 'pricing_tiers', prompt: 'Dodaj sekcję z cennikiem usług' });
                     }
 
                     if (this.themeType === 'cinematic') {
                         chips.push({ emoji: '🎬', label: 'Zmień showreel', prompt: 'Wstaw link do mojego showreela' });
                         if (!blockTypes.includes('awards_strip')) {
-                            chips.push({ emoji: '🏆', label: 'Dodaj nagrody', prompt: 'Dodaj sekcję z nagrodami festiwalowymi' });
+                            chips.push({ emoji: '🏆', label: 'Dodaj nagrody', blockType: 'awards_strip', prompt: 'Dodaj sekcję z nagrodami festiwalowymi' });
                         }
                     }
                     if (this.themeType === 'quick_card') {
@@ -658,7 +778,14 @@
                         });
 
                         if (error || !data || data.error) {
-                            throw new Error(data?.error || error?.message || 'Nie udało się wykonać polecenia.');
+                            let detailedError = data?.error;
+                            if (!detailedError && error?.context && typeof error.context.json === 'function') {
+                                try {
+                                    const body = await error.context.json();
+                                    detailedError = body?.error || body?.message;
+                                } catch (_) {}
+                            }
+                            throw new Error(detailedError || error?.message || 'Nie udało się wykonać polecenia.');
                         }
 
                         this.messages.push({
@@ -793,6 +920,12 @@
                     }, 50);
                 },
             };
+
+            if (typeof window.DFOPS_attachStudioCatalog === 'function') {
+                window.DFOPS_attachStudioCatalog(app);
+            }
+
+            return app;
         }
     </script>
 </body>

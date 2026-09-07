@@ -75,27 +75,47 @@ const AGENT_TOOLS = [
           type: "OBJECT",
           properties: {
             blockId: { type: "STRING", description: "Identyfikator bloku (np. hero_cinematic, projects_grid, contact_1)" },
-            path: { type: "STRING", description: "Ścieżka do pola w danych bloku (np. phone, title, subtitle, video_url, showreel_url, tagline, email, city)" },
-            value: { type: "STRING", description: "Nowa wartość tekstowa lub URL" },
+            path: { type: "STRING", description: "Ścieżka do pola w danych bloku (np. phone, title, subtitle, video_url, showreel_url, tagline, email, city, place_query)" },
+            value: { description: "Nowa wartość tekstowa, URL lub tablica/obiekt" },
           },
           required: ["blockId", "path", "value"],
         },
       },
       {
+        name: "replace_block_items",
+        description: "Aktualizuje całą listę pozycji w bloku (np. listę pakietów w cenniku, pozycje w liście usług, pytania w FAQ, wskaźniki w statystykach, realizacje w projektach). Zastępuje tablicę items nową listą obiektów dopasowanych do danego bloku.",
+        parameters: {
+          type: "OBJECT",
+          properties: {
+            blockId: { type: "STRING", description: "ID bloku, którego listę pozycji aktualizujesz" },
+            items: {
+              type: "ARRAY",
+              description: "Nowa tablica elementów zgodna ze schematem pozycji danego bloku",
+              items: { type: "OBJECT" },
+            },
+          },
+          required: ["blockId", "items"],
+        },
+      },
+      {
         name: "add_block",
-        description: "Wstawia nowy blok na stronę. Dostępne typy bloków: cinematic_hero, projects_grid, awards_strip, director_statement, minimal_contact, quick_hero, key_features, quick_contact_card, faq_simple, testimonials_grid, faq_accordion, pricing_tiers.",
+        description: "Wstawia nowy blok na stronę. Dostępne typy bloków: cinematic_hero, projects_grid, awards_strip, director_statement, minimal_contact, quick_hero, key_features, quick_contact_card, faq_simple, testimonials_grid, faq_accordion, pricing_tiers, trust_stats, services_list, booking_cta, location_map, gallery_grid, google_reviews.",
         parameters: {
           type: "OBJECT",
           properties: {
             blockType: {
               type: "STRING",
-              description: "Typ bloku do wstawienia (np. testimonials_grid, faq_accordion, pricing_tiers, awards_strip, projects_grid, faq_simple)",
+              description: "Typ bloku do wstawienia (np. google_reviews, trust_stats, services_list, booking_cta, location_map, gallery_grid, pricing_tiers, testimonials_grid, faq_accordion)",
             },
             afterBlockId: {
               type: "STRING",
               description: "Opcjonalne ID bloku, po którym nowy blok ma zostać wstawiony. Jeśli puste, blok trafi na koniec.",
             },
             heading: { type: "STRING", description: "Tytuł/nagłówek nowo dodawanej sekcji" },
+            initialData: {
+              type: "OBJECT",
+              description: "Opcjonalne początkowe dane bloku nadpisujące wartości domyślne (np. items, phone, address itp.)",
+            },
           },
           required: ["blockType"],
         },
@@ -155,6 +175,20 @@ function sanitizeUrl(val: string): string {
   return val.trim();
 }
 
+function isGoogleMapsEmbedHttpsUrl(val: string): boolean {
+  if (typeof val !== "string") return false;
+  const clean = val.trim();
+  if (!clean.startsWith("https://")) return false;
+  try {
+    const u = new URL(clean);
+    const host = u.hostname.toLowerCase();
+    if (host !== "www.google.com" && host !== "google.com" && host !== "maps.google.com") return false;
+    return u.pathname.startsWith("/maps/embed") || u.pathname === "/maps" || u.pathname.startsWith("/maps/");
+  } catch {
+    return false;
+  }
+}
+
 function setDeepValue(obj: Record<string, unknown>, path: string, value: unknown): boolean {
   if (!obj || typeof obj !== "object") return false;
   const cleanPath = String(path || "").trim();
@@ -175,7 +209,9 @@ function setDeepValue(obj: Record<string, unknown>, path: string, value: unknown
   if (last === "__proto__" || last === "constructor" || last === "prototype") return false;
 
   // Sanityzacja pól URL
-  if (
+  if (last === "map_embed_url") {
+    cur[last] = (typeof value === "string" && isGoogleMapsEmbedHttpsUrl(value)) ? value.trim() : "";
+  } else if (
     typeof value === "string" &&
     (last.endsWith("_url") || last === "instagram" || last === "vimeo" || last === "thumbnail" || last === "booking_url")
   ) {
@@ -335,9 +371,14 @@ ZASADY PRACY I INTERAKCJI:
    Zapytaj krótko, który wariant wybiera lub jaki własny kolor preferuje.
 4. Gdy użytkownik wybierze wariant (np. "2", "srebrny", "chcę szmaragd", "niebieski", "czerwony", "zmień na złoty"):
    ZAWSZE wywołaj narzędzie update_design z odpowiednim palette i accentColor (np. palette: "emerald", accentColor: "#10b981"), a w odpowiedzi potwierdź zmianę i zapytaj, jak podoba mu się ten klimat.
-5. Gdy użytkownik prosi o dodanie sekcji (np. cennik, opinie, FAQ):
-   Wywołaj add_block, a w odpowiedzi krótko podpowiedz mu 1-2 kolejne kroki (np. "Dodałem cennik z 3 pakietami. Czy chcesz, abym dostosował ceny lub nazwy pakietów?").
-6. Zawsze odpowiadaj po polsku, profesjonalnie, zwięźle i życzliwie (1-3 zdania).
+5. Gdy użytkownik prosi o dodanie sekcji (np. opinie google, cennik, usługi, formularz, mapa, statystyki, galeria):
+   - Wybierz odpowiedni typ bloku z listy (google_reviews, trust_stats, services_list, booking_cta, location_map, gallery_grid, pricing_tiers, faq_accordion, testimonials_grid itp.).
+   - Jeśli użytkownik podał już szczegóły (np. nazwę firmy, adres, telefon, pozycje), przekaż je w initialData lub zaktualizuj po dodaniu.
+   - W odpowiedzi zachowaj się jak sprawny, życzliwy frontend developer: potwierdź dodanie sekcji i od razu zapytaj o brakujące kluczowe dane potrzebne do jej pełnego spersonalizowania (np. dla google_reviews: zapytaj o dokładną nazwę wizytówki Google lub link do recenzji; dla location_map: zapytaj o adres lub godziny otwarcia; dla booking_cta: zapytaj o telefon lub link do rezerwacji Booksy/Calendly; dla services_list: zapytaj o listę głównych zabiegów/usług z cenami; dla trust_stats: zapytaj o kluczowe liczby, np. lata na rynku czy liczbę klientów).
+6. Gdy użytkownik podaje listę elementów (np. 3 pakiety cennika, listę usług z cenami, nowe pytania FAQ, liczby do statystyk):
+   Użyj narzędzia replace_block_items, przekazując kompletną tablicę obiektów z polami wymaganymi dla danej sekcji.
+7. Zawsze odpowiadaj po polsku, profesjonalnie, po ludzku jak frontendowiec (1-3 zdania), bez żargonu i bez korpomowy.
+8. NIGDY nie wymyślaj nieistniejących bloków — korzystaj ściśle ze zdefiniowanych narzędzi i katalogu bloków.
 
 AKTUALNY STYL I DESIGN STRONY:
 ${JSON.stringify(currentDesign, null, 2)}
@@ -425,21 +466,108 @@ ${JSON.stringify(draft.blocks, null, 2)}`;
           const targetBlock = draft.blocks.find((b: any) => b.id === blockId);
           if (targetBlock) {
             if (!targetBlock.data) targetBlock.data = {};
-            const ok = setDeepValue(targetBlock.data, path, value);
+            let parsedVal = value;
+            if (path === "items" && typeof value === "string") {
+              try {
+                parsedVal = JSON.parse(value);
+              } catch (_) {}
+            }
+            const ok = setDeepValue(targetBlock.data, path, parsedVal);
             if (ok) {
               if (path === "video_url" || path === "showreel_url") {
-                const meta = extractVideoMeta(value);
+                const meta = extractVideoMeta(typeof parsedVal === "string" ? parsedVal : "");
                 targetBlock.data.video_provider = meta.provider;
                 targetBlock.data.video_id = meta.id;
+              }
+
+              // Synchronizacja z oficjalną Edge Function get-google-reviews (jedyne źródło prawdy dla Places)
+              if (targetBlock.type === "google_reviews" && (path === "place_query" || path === "query")) {
+                if (typeof parsedVal === "string" && parsedVal.trim()) {
+                  try {
+                    const { data: gData, error: gErr } = await supabaseAuth.functions.invoke("get-google-reviews", {
+                      headers: { Authorization: authHeader, Origin: "https://dfcms.pl" },
+                      body: { query: parsedVal.trim(), maxReviews: 6 },
+                    });
+                    if (!gErr && gData && gData.ok) {
+                      if (gData.placeId) targetBlock.data.place_id = gData.placeId;
+                      if (typeof gData.placeRating === "number") targetBlock.data.rating = gData.placeRating;
+                      if (typeof gData.userRatingCount === "number") {
+                        targetBlock.data.reviews_count = gData.userRatingCount;
+                        targetBlock.data.user_ratings_total = gData.userRatingCount;
+                      }
+                      if (gData.placeId) {
+                        targetBlock.data.write_review_url = `https://search.google.com/local/writereview?placeid=${encodeURIComponent(gData.placeId)}`;
+                      }
+                      if (Array.isArray(gData.reviews) && gData.reviews.length > 0) {
+                        targetBlock.data.items = gData.reviews.map((r: any) => ({
+                          author_name: r.author_name || "Klient",
+                          rating: r.rating ?? 5,
+                          time_description: r.time_description || r.publishTime || "w Google",
+                          text: r.text || "",
+                          author_url: r.author_url ? sanitizeUrl(r.author_url) : "",
+                        }));
+                      }
+                    }
+                  } catch (err) {
+                    console.warn("[chat-site-agent] get-google-reviews invoke error:", err);
+                  }
+                }
+              }
+
+              if (targetBlock.type === "location_map" && (path === "address" || path === "city")) {
+                const addr = `${targetBlock.data.address || ""} ${targetBlock.data.city || ""}`.trim();
+                if (addr) {
+                  targetBlock.data.directions_url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`;
+                }
               }
               draftChanged = true;
             }
           }
+        } else if (name === "replace_block_items") {
+          const { blockId, items } = args || {};
+          const targetBlock = draft.blocks.find((b: any) => b.id === blockId);
+          let parsedItems = items;
+          if (typeof items === "string") {
+            try {
+              parsedItems = JSON.parse(items);
+            } catch (_) {}
+          }
+          if (targetBlock && Array.isArray(parsedItems)) {
+            if (!targetBlock.data) targetBlock.data = {};
+            // Sanityzacja każdego elementu: ochrona przed Prototype Pollution i niebezpiecznymi URL-ami
+            const sanitizedItems: any[] = [];
+            for (const item of parsedItems) {
+              if (item && typeof item === "object" && !Array.isArray(item)) {
+                const cleanItem: Record<string, any> = {};
+                for (const [k, v] of Object.entries(item)) {
+                  if (k === "__proto__" || k === "constructor" || k === "prototype") continue;
+                  if (
+                    typeof v === "string" &&
+                    (k.endsWith("_url") || k === "url" || k === "booking_url" || k === "thumbnail" || k === "author_url")
+                  ) {
+                    cleanItem[k] = sanitizeUrl(v);
+                  } else {
+                    cleanItem[k] = v;
+                  }
+                }
+                sanitizedItems.push(cleanItem);
+              }
+            }
+            targetBlock.data.items = sanitizedItems;
+            draftChanged = true;
+          }
         } else if (name === "add_block") {
-          const { blockType, afterBlockId, heading } = args;
+          const { blockType, afterBlockId, heading, initialData } = args || {};
           if (blockType && BLOCK_DEFAULTS[blockType]) {
             const defaults = JSON.parse(JSON.stringify(BLOCK_DEFAULTS[blockType]));
             if (heading) defaults.heading = heading;
+            if (initialData && typeof initialData === "object" && !Array.isArray(initialData)) {
+              for (const [k, v] of Object.entries(initialData)) {
+                if (k !== "__proto__" && k !== "constructor" && k !== "prototype") {
+                  defaults[k] = v;
+                }
+              }
+            }
             const newBlock = {
               id: `${blockType}_${Date.now().toString(36)}`,
               type: blockType,

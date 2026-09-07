@@ -1,0 +1,18 @@
+# DFCMS — Engineering Standards & Always-On Lenses
+
+## 🏛️ Zasada Nadrzędna: ANTI-MONOLITH (Extract-First)
+1. Nigdy nie powiększaj monolitów: `adminApp.js`, `publicSiteApp.js`, `admin.html`.
+2. Nowa logika domenowa i reguły biznesowe trafiają do `js/core/*Rules.js` jako pure functions.
+3. Nowe panele i widoki trafiają do `js/features/<modul>/` i łączą się przez pionowy attach: `window.DFOPS_attach*(app)`.
+4. ZAKAZ spreadu `{ ...createAdminApp(), ...mixin }` i mixinów — niszczy gettery w Alpine 3.
+5. ZAKAZ edycji wygenerowanego `admin.html` — edytuj w `admin/partials/` i uruchom `npm run build:admin`.
+
+## 🔎 4 Obowiązkowe Soczewki (Pre-flight Check)
+Przed zatwierdzeniem zmian zweryfikuj:
+- **Anti-Monolith Lens**: Czy kod został odseparowany od jądra? Czy funkcje są czyste i testowalne?
+- **Security Lens**: Czy RLS w Supabase chroni dane? Czy CSP w `_middleware.js` nie ma dziur? Czy blokowane jest Prototype Pollution?
+- **EU AI Act Lens**: Czy użytkownik wie, że rozmawia z AI (Art. 50)? Czy wygenerowana strona ma badge `⚡ Stworzono w DFCMS AI`? Czy człowiek ma pełną kontrolę (Undo/Redo)?
+- **RODO / GDPR Lens**: Czy zachowano minimalizację danych w JSON? Czy działa retencja (purge 30 dni)? Czy polityka prywatności jest podlinkowana?
+
+## 🧪 Weryfikacja w testach
+Zawsze uruchamiaj i utrzymuj zielony stan testów: `npm test`.

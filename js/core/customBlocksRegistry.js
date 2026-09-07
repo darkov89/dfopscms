@@ -65,12 +65,28 @@
     return { provider: 'custom', id: cleanUrl, embedUrl: cleanUrl, loopUrl: cleanUrl };
   }
 
+  const CATALOG_GROUPS = [
+    { id: 'all', label: 'Wszystkie' },
+    { id: 'offer', label: 'Oferta i cennik' },
+    { id: 'trust', label: 'Opinie i zaufanie' },
+    { id: 'contact', label: 'Kontakt' },
+    { id: 'info', label: 'Informacje i FAQ' },
+    { id: 'hero', label: 'Ekrany główne' },
+  ];
+
   const BLOCK_DEFINITIONS = {
     // === BLOKI FILMOWE / CINEMATIC ===
     cinematic_hero: {
       type: 'cinematic_hero',
       label: 'Główny ekran filmowy (Hero Video)',
       category: 'cinematic',
+      catalog_group: 'hero',
+      icon: '🎬',
+      summary: 'Ekran powitalny z wideo w tle lub odtwarzaczem showreela',
+      allow_multiple: false,
+      required_fields: [
+        { key: 'video_url', label: 'Link do wideo', ask: 'Podaj link do filmu (Vimeo lub YouTube), który ma pojawić się na głównym ekranie.' },
+      ],
       defaults: {
         title: 'Twórca Filmowy',
         subtitle: 'Director & Cinematographer',
@@ -88,6 +104,13 @@
       type: 'projects_grid',
       label: 'Siatka projektów wideo',
       category: 'cinematic',
+      catalog_group: 'offer',
+      icon: '🎞️',
+      summary: 'Siatka wybranych realizacji wideo i portfolio',
+      allow_multiple: true,
+      required_fields: [
+        { key: 'heading', label: 'Tytuł sekcji', ask: 'Dodałem siatkę realizacji wideo. Jakie projekty chcesz tutaj zaprezentować?' },
+      ],
       defaults: {
         heading: 'Wybrane Realizacje',
         subheading: 'Reklama · Teledyski · Formy Fabularne',
@@ -115,6 +138,13 @@
       type: 'awards_strip',
       label: 'Pasek nagród i festiwali',
       category: 'cinematic',
+      catalog_group: 'trust',
+      icon: '🏆',
+      summary: 'Pasek nagród, festiwali i wyróżnień branżowych',
+      allow_multiple: false,
+      required_fields: [
+        { key: 'items', label: 'Wyróżnienia', ask: 'Wstawiłem pasek nagród. Jakie wyróżnienia lub certyfikaty chcesz w nim umieścić?' },
+      ],
       defaults: {
         heading: 'Wyróżnienia & Festiwale',
         items: [
@@ -128,6 +158,13 @@
       type: 'director_statement',
       label: 'O mnie / Statement artystyczny',
       category: 'cinematic',
+      catalog_group: 'info',
+      icon: '✍️',
+      summary: 'Osobisty manifest artystyczny, misja i bio',
+      allow_multiple: false,
+      required_fields: [
+        { key: 'quote', label: 'Cytat / Myśl przewodnia', ask: 'Wstawiłem sekcję o Twojej wizji. Jaki cytat lub motto najlepiej oddaje Twoje podejście?' },
+      ],
       defaults: {
         heading: 'Podejście i Wizja',
         quote: 'Kino to dla mnie przede wszystkim rytm, kontrast i autentyczność.',
@@ -139,6 +176,13 @@
       type: 'minimal_contact',
       label: 'Kontakt minimalistyczny',
       category: 'cinematic',
+      catalog_group: 'contact',
+      icon: '✉️',
+      summary: 'Minimalistyczny blok kontaktu: telefon, email, social media',
+      allow_multiple: false,
+      required_fields: [
+        { key: 'phone', label: 'Telefon', ask: 'Podaj numer telefonu, a od razu uzupełnię go w nowej sekcji kontaktowej.' },
+      ],
       defaults: {
         heading: 'Porozmawiajmy o projekcie',
         subheading: 'Dostępność: realizacje komercyjne, teledyski, etiudy i filmy dokumentalne.',
@@ -155,6 +199,13 @@
       type: 'quick_hero',
       label: 'Szybki nagłówek z bezpośrednim kontaktem',
       category: 'quick_card',
+      catalog_group: 'hero',
+      icon: '⚡',
+      summary: 'Nagłówek usługowy z bezpośrednim CTA telefonicznym i WhatsApp',
+      allow_multiple: false,
+      required_fields: [
+        { key: 'phone', label: 'Telefon kontaktowy', ask: 'Jaki numer telefonu ma być głównym numerem do szybkiego kontaktu?' },
+      ],
       defaults: {
         badge: 'Dostępny od zaraz',
         title: 'Usługi Elektryczne — Szybko i Solidnie',
@@ -170,6 +221,13 @@
       type: 'key_features',
       label: '3 kluczowe atuty / usługi',
       category: 'quick_card',
+      catalog_group: 'offer',
+      icon: '✨',
+      summary: '3 kluczowe atuty i przewagi Twojej oferty',
+      allow_multiple: true,
+      required_fields: [
+        { key: 'items', label: 'Atuty', ask: 'Dodałem 3 kluczowe atuty. Jakie główne przewagi Twojej firmy chcesz tu wyeksponować?' },
+      ],
       defaults: {
         heading: 'Dlaczego warto?',
         items: [
@@ -195,6 +253,13 @@
       type: 'quick_contact_card',
       label: 'Karta adresowa i kontaktowa',
       category: 'quick_card',
+      catalog_group: 'contact',
+      icon: '📞',
+      summary: 'Karta adresowa z godzinami otwarcia i bezpośrednim kontaktem',
+      allow_multiple: false,
+      required_fields: [
+        { key: 'phone', label: 'Telefon', ask: 'Podaj numer telefonu oraz godziny otwarcia, a natychmiast je uzupełnię.' },
+      ],
       defaults: {
         heading: 'Skontaktuj się bezpośrednio',
         company_name: 'Usługi Elektryczne Jan Kowalski',
@@ -210,6 +275,13 @@
       type: 'faq_simple',
       label: 'Częste pytania (FAQ)',
       category: 'quick_card',
+      catalog_group: 'info',
+      icon: '💬',
+      summary: 'Prosta lista najczęściej zadawanych pytań z odpowiedziami',
+      allow_multiple: true,
+      required_fields: [
+        { key: 'heading', label: 'Pytania i odpowiedzi', ask: 'Wstawiłem sekcję FAQ. Jakie pytania najczęściej słyszysz od swoich klientów?' },
+      ],
       defaults: {
         heading: 'Często zadawane pytania',
         items: [
@@ -224,6 +296,13 @@
       type: 'testimonials_grid',
       label: 'Opinie klientów (siatka)',
       category: 'universal',
+      catalog_group: 'trust',
+      icon: '⭐',
+      summary: 'Kafelki z opiniami klientów i oceną gwiazdkową',
+      allow_multiple: true,
+      required_fields: [
+        { key: 'items', label: 'Opinie', ask: 'Dodałem sekcję z opiniami. Czy chcesz podmienić te przykłady na realne cytaty Twoich klientów?' },
+      ],
       defaults: {
         heading: 'Co mówią nasi klienci',
         items: [
@@ -237,6 +316,13 @@
       type: 'faq_accordion',
       label: 'FAQ z akordeonem (rozwijane pytania)',
       category: 'universal',
+      catalog_group: 'info',
+      icon: '❓',
+      summary: 'Rozwijany akordeon pytań i odpowiedzi (oszczędność miejsca)',
+      allow_multiple: true,
+      required_fields: [
+        { key: 'items', label: 'Pytania', ask: 'Dodałem rozwijane FAQ. O co najczęściej pytają Cię klienci przed zakupem lub współpracą?' },
+      ],
       defaults: {
         heading: 'Najczęściej zadawane pytania',
         items: [
@@ -250,6 +336,13 @@
       type: 'pricing_tiers',
       label: 'Cennik i pakiety usług',
       category: 'universal',
+      catalog_group: 'offer',
+      icon: '💰',
+      summary: 'Cennik pakietowy z listą korzyści i przyciskami wyboru',
+      allow_multiple: false,
+      required_fields: [
+        { key: 'items', label: 'Ceny i pakiety', ask: 'Dodałem cennik z 3 pakietami. Czy chcesz, abym dostosował ceny lub nazwy pakietów?' },
+      ],
       defaults: {
         heading: 'Przejrzysty cennik',
         subheading: 'Wybierz pakiet dopasowany do Twoich potrzeb. Bez ukrytych opłat.',
@@ -279,6 +372,136 @@
             cta_text: 'Skontaktuj się',
           },
         ],
+      },
+    },
+    trust_stats: {
+      type: 'trust_stats',
+      label: 'Liczby i zaufanie (Statystyki)',
+      category: 'universal',
+      catalog_group: 'trust',
+      icon: '📈',
+      summary: 'Kafelki z kluczowymi liczbami, sukcesami i wskaźnikami zaufania',
+      allow_multiple: false,
+      required_fields: [
+        { key: 'items', label: 'Wskaźniki', ask: 'Jakie kluczowe liczby chcesz wyróżnić (np. lata na rynku, zrealizowane projekty, zadowoleni klienci)?' },
+      ],
+      defaults: {
+        heading: 'Liczby, które mówią same za siebie',
+        subheading: 'Konkretne rezultaty i wieloletnie doświadczenie',
+        items: [
+          { value: '10+', label: 'Lat doświadczenia', desc: 'Na rynku usług' },
+          { value: '500+', label: 'Zrealizowanych zleceń', desc: 'Dla klientów indywidualnych i firm' },
+          { value: '100%', label: 'Zadowolonych klientów', desc: 'Gwarancja jakości i terminowości' },
+          { value: '24h', label: 'Czas reakcji', desc: 'Szybki kontakt i wycena' },
+        ],
+      },
+    },
+    services_list: {
+      type: 'services_list',
+      label: 'Lista usług i cennik',
+      category: 'universal',
+      catalog_group: 'offer',
+      icon: '🏷️',
+      summary: 'Przejrzysta lista pozycji z cenami, czasem trwania i opisem',
+      allow_multiple: true,
+      required_fields: [
+        { key: 'items', label: 'Lista usług', ask: 'Jakie usługi i w jakich cenach świadczysz? Wymień je, a od razu wpiszę je na listę.' },
+      ],
+      defaults: {
+        heading: 'Nasze Usługi',
+        subheading: 'Wybierz usługę dopasowaną do Twoich potrzeb',
+        items: [
+          { title: 'Usługa Podstawowa', desc: 'Szybka realizacja i standardowy zakres prac', price: 'od 150 zł', duration: '60 min' },
+          { title: 'Usługa Kompleksowa', desc: 'Pełne wykonanie, materiały i gwarancja', price: 'od 350 zł', duration: '120 min' },
+          { title: 'Konsultacja i Diagnoza', desc: 'Dojazd, sprawdzenie i kosztorys na miejscu', price: 'Bezpłatnie', duration: '30 min' },
+        ],
+      },
+    },
+    booking_cta: {
+      type: 'booking_cta',
+      label: 'Szybka rezerwacja terminu',
+      category: 'universal',
+      catalog_group: 'contact',
+      icon: '📅',
+      summary: 'Dedykowana sekcja z wezwaniem do rezerwacji terminu online lub telefonu',
+      allow_multiple: false,
+      required_fields: [
+        { key: 'booking_url', label: 'Link do rezerwacji lub telefon', ask: 'Podaj link do systemu rezerwacji (np. Booksy, Calendly) lub numer telefonu do umawiania wizyt.' },
+      ],
+      defaults: {
+        badge: 'Dostępne terminy w tym tygodniu',
+        heading: 'Zarezerwuj dogodny termin już teraz',
+        subheading: 'Umów wizytę w kilka sekund bez czekania na telefon.',
+        button_text: 'Zarezerwuj wizytę',
+        booking_url: '#kontakt',
+        phone: '+48 600 700 800',
+        note: 'Bezpłatne odwołanie do 24h przed wizytą',
+      },
+    },
+    location_map: {
+      type: 'location_map',
+      label: 'Lokalizacja i mapa Google',
+      category: 'universal',
+      catalog_group: 'contact',
+      icon: '📍',
+      summary: 'Adres stacjonarny, godziny otwarcia i interaktywna mapa',
+      allow_multiple: false,
+      required_fields: [
+        { key: 'address', label: 'Adres', ask: 'Podaj dokładny adres swojej firmy, abyśmy mogli wycentrować mapę Google.' },
+      ],
+      defaults: {
+        heading: 'Nasza Lokalizacja',
+        subheading: 'Odwiedź nas stacjonarnie lub sprawdź dojazd',
+        address: 'ul. Przykładowa 12, 60-100 Poznań',
+        city: 'Poznań',
+        phone: '+48 600 700 800',
+        hours: 'Poniedziałek – Piątek: 8:00 – 18:00\nSobota: 9:00 – 14:00',
+        map_embed_url: '',
+      },
+    },
+    gallery_grid: {
+      type: 'gallery_grid',
+      label: 'Galeria zdjęć i realizacji',
+      category: 'universal',
+      catalog_group: 'info',
+      icon: '🖼️',
+      summary: 'Estetyczna siatka fotografii z podpisami i kategoriami',
+      allow_multiple: true,
+      required_fields: [
+        { key: 'heading', label: 'Tytuł galerii', ask: 'Dodałem galerię zdjęć. Możesz wgrać własne zdjęcia przyciskiem 📷 w czacie!' },
+      ],
+      defaults: {
+        heading: 'Galeria Realizacji',
+        subheading: 'Zobacz efekty naszej pracy na fotografiach',
+        items: [
+          { url: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80', title: 'Precyzja i jakość', category: 'Montaż' },
+          { url: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80', title: 'Nowoczesne rozwiązania', category: 'Projekt' },
+          { url: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80', title: 'Dbałość o detale', category: 'Realizacja' },
+          { url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80', title: 'Komfortowa przestrzeń', category: 'Wnętrza' },
+        ],
+      },
+    },
+    google_reviews: {
+      type: 'google_reviews',
+      label: 'Opinie z Google (Google Places)',
+      category: 'universal',
+      catalog_group: 'trust',
+      icon: '⭐',
+      summary: 'Wizytówka Google, gwiazdki i opinie pobierane z Google Maps',
+      allow_multiple: false,
+      required_fields: [
+        { key: 'place_query', label: 'Nazwa w Google', ask: 'Podaj dokładną nazwę swojej firmy w Google Maps (oraz miasto), aby pobrać opinie z wizytówki.' },
+      ],
+      defaults: {
+        heading: 'Opinie z Profilu Google',
+        place_name: '',
+        place_id: '',
+        place_query: '',
+        rating: null,
+        reviews_count: 0,
+        user_ratings_total: 0,
+        write_review_url: '',
+        items: [],
       },
     },
   };
@@ -556,6 +779,38 @@
     return { success: true, blocks: list, updatedBlock: block };
   }
 
+  function replaceBlockItems(blocks, blockId, items) {
+    const list = Array.isArray(blocks) ? deepClone(blocks) : [];
+    const block = list.find((b) => b.id === blockId);
+    if (!block) return { success: false, blocks: list, error: `Blok o ID '${blockId}' nie istnieje.` };
+
+    let resolvedItems = items;
+    if (typeof items === 'string') {
+      try {
+        const parsed = JSON.parse(items);
+        if (Array.isArray(parsed)) resolvedItems = parsed;
+      } catch (_) {}
+    }
+
+    if (!Array.isArray(resolvedItems)) {
+      return { success: false, blocks: list, error: 'items musi być tablicą (Array)' };
+    }
+
+    const sanitizedItems = resolvedItems.map((item) => {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) return {};
+      const clean = {};
+      Object.keys(item).forEach((k) => {
+        if (k === '__proto__' || k === 'constructor' || k === 'prototype') return;
+        clean[k] = item[k];
+      });
+      return clean;
+    });
+
+    if (!block.data) block.data = {};
+    block.data.items = deepClone(sanitizedItems);
+    return { success: true, blocks: list, updatedBlock: block };
+  }
+
   function insertBlock(blocks, afterBlockId, blockType, initialData) {
     const list = Array.isArray(blocks) ? deepClone(blocks) : [];
     const def = BLOCK_DEFINITIONS[blockType];
@@ -622,12 +877,80 @@
     return { success: true, state: next, updatedDesign: next.design };
   }
 
+  function isGoogleMapsEmbedHttpsUrl(url) {
+    if (!url || typeof url !== 'string') return false;
+    const clean = url.trim();
+    if (!clean.startsWith('https://')) return false;
+    try {
+      const u = new URL(clean);
+      const host = u.hostname.toLowerCase();
+      if (host !== 'www.google.com' && host !== 'google.com' && host !== 'maps.google.com') return false;
+      const path = u.pathname || '';
+      if (path.includes('/maps/embed')) return true;
+      const mapsPath = path === '/maps' || path.startsWith('/maps/');
+      return mapsPath && u.searchParams.get('output') === 'embed';
+    } catch {
+      return false;
+    }
+  }
+
+  function getSafeMapEmbedUrl(data) {
+    if (!data || typeof data !== 'object') return '';
+    const parts = [data.address, data.city]
+      .filter((x) => typeof x === 'string' && x.trim())
+      .map((x) => x.trim());
+    const q = parts.join(', ');
+    if (q) {
+      return 'https://maps.google.com/maps?q=' + encodeURIComponent(q) + '&t=&z=15&ie=UTF8&iwloc=&output=embed';
+    }
+    if (isGoogleMapsEmbedHttpsUrl(data.map_embed_url)) {
+      return String(data.map_embed_url).trim();
+    }
+    return '';
+  }
+
+  function getCatalogGroups() {
+    return deepClone(CATALOG_GROUPS);
+  }
+
+  function getCatalogBlocks(currentBlocks) {
+    const list = Array.isArray(currentBlocks) ? currentBlocks : [];
+    const countMap = {};
+    for (const b of list) {
+      if (b && b.type) {
+        countMap[b.type] = (countMap[b.type] || 0) + 1;
+      }
+    }
+
+    return Object.values(BLOCK_DEFINITIONS).map((def) => {
+      const count = countMap[def.type] || 0;
+      return {
+        type: def.type,
+        label: def.label,
+        category: def.category,
+        catalog_group: def.catalog_group || 'info',
+        icon: def.icon || '🧩',
+        summary: def.summary || '',
+        allow_multiple: def.allow_multiple !== false,
+        required_fields: Array.isArray(def.required_fields) ? deepClone(def.required_fields) : [],
+        isOnPage: count > 0,
+        countOnPage: count,
+      };
+    });
+  }
+
   return {
     BLOCK_DEFINITIONS,
+    CATALOG_GROUPS,
+    getCatalogGroups,
+    getCatalogBlocks,
+    isGoogleMapsEmbedHttpsUrl,
+    getSafeMapEmbedUrl,
     extractVideoMeta,
     createInitialCinematicState,
     createInitialQuickCardState,
     applyBlockUpdate,
+    replaceBlockItems,
     insertBlock,
     removeBlock,
     reorderBlocks,

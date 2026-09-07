@@ -318,7 +318,7 @@ function applySecurityHeaders(request, response) {
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: https: blob: https://maps.gstatic.com https://maps.googleapis.com",
-      "frame-src 'self' https://www.google.com https://www.google.com/maps/ https://js.stripe.com https://calendly.com https://challenges.cloudflare.com https://www.googletagmanager.com https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com https://*.cloudflarestream.com https://iframe.videodelivery.net",
+      "frame-src 'self' https://maps.google.com https://www.google.com https://www.google.com/maps/ https://js.stripe.com https://calendly.com https://challenges.cloudflare.com https://www.googletagmanager.com https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com https://*.cloudflarestream.com https://iframe.videodelivery.net",
       "connect-src 'self' https://*.supabase.co https://api.stripe.com https://maps.googleapis.com https://*.sentry.io https://js-de.sentry-cdn.com https://browser.sentry-cdn.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://challenges.cloudflare.com https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://*.g.doubleclick.net https://www.google.com https://www.facebook.com https://connect.facebook.net",
       "worker-src 'self' blob:",
     ].join('; ');

@@ -572,9 +572,394 @@
                     </section>
                 </template>
 
+                <!-- 13. TRUST STATS BLOCK -->
+                <template x-if="block.type === 'trust_stats'">
+                    <section class="py-20 sm:py-28 px-6 transition-colors" :class="isCinematic ? 'bg-[#0a0a0a]' : 'bg-white'">
+                        <div class="max-w-5xl mx-auto text-center">
+                            <h2 class="text-2xl sm:text-3xl font-bold mb-3"
+                                :class="isCinematic ? 'font-cinematic text-white' : 'text-slate-900'"
+                                x-text="block.data.heading || 'Liczby, które mówią same za siebie'"></h2>
+                            <p class="text-sm mb-12 max-w-2xl mx-auto"
+                               :class="isCinematic ? 'text-zinc-400' : 'text-slate-500'"
+                               x-show="block.data.subheading"
+                               x-text="block.data.subheading"></p>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-center">
+                                <template x-for="(item, idx) in (block.data.items || [])" :key="idx">
+                                    <div class="p-6 rounded-2xl border transition-all"
+                                         :class="isCinematic ? 'border-white/10 bg-white/[0.02]' : 'border-gray-100 bg-gray-50/80'">
+                                        <div class="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-2"
+                                             :class="isCinematic ? 'text-brand-gold' : 'text-amber-600'"
+                                             x-text="item.value"></div>
+                                        <div class="text-sm sm:text-base font-bold mb-1"
+                                             :class="isCinematic ? 'text-zinc-100' : 'text-slate-900'"
+                                             x-text="item.label"></div>
+                                        <div class="text-xs leading-relaxed"
+                                             :class="isCinematic ? 'text-zinc-400' : 'text-slate-500'"
+                                             x-show="item.desc"
+                                             x-text="item.desc"></div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </section>
+                </template>
+
+                <!-- 14. SERVICES LIST BLOCK -->
+                <template x-if="block.type === 'services_list'">
+                    <section class="py-20 sm:py-28 px-6 transition-colors" :class="isCinematic ? 'bg-[#0e0e0e]' : 'bg-gray-50'">
+                        <div class="max-w-4xl mx-auto">
+                            <div class="text-center mb-12">
+                                <h2 class="text-2xl sm:text-3xl font-bold mb-3"
+                                    :class="isCinematic ? 'font-cinematic text-white' : 'text-slate-900'"
+                                    x-text="block.data.heading || 'Oferta i usługi'"></h2>
+                                <p class="text-sm max-w-xl mx-auto"
+                                   :class="isCinematic ? 'text-zinc-400' : 'text-slate-500'"
+                                   x-show="block.data.subheading"
+                                   x-text="block.data.subheading"></p>
+                            </div>
+                            <div class="space-y-4">
+                                <template x-for="(srv, idx) in (block.data.items || [])" :key="idx">
+                                    <div class="p-6 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                                         :class="isCinematic ? 'border-white/10 bg-white/[0.03] hover:border-brand-gold/30' : 'border-gray-200 bg-white shadow-sm hover:border-amber-400'">
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-3 mb-1.5 flex-wrap">
+                                                <h3 class="text-base sm:text-lg font-bold"
+                                                    :class="isCinematic ? 'text-white' : 'text-slate-900'"
+                                                    x-text="srv.title"></h3>
+                                                <span x-show="srv.duration"
+                                                      class="text-[11px] font-medium px-2 py-0.5 rounded-full"
+                                                      :class="isCinematic ? 'bg-white/10 text-zinc-300' : 'bg-gray-100 text-slate-600'"
+                                                      x-text="srv.duration"></span>
+                                            </div>
+                                            <p class="text-xs sm:text-sm leading-relaxed"
+                                               :class="isCinematic ? 'text-zinc-400' : 'text-slate-600'"
+                                               x-text="srv.desc || srv.description"></p>
+                                        </div>
+                                        <div class="flex items-center justify-between sm:justify-end gap-4 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0"
+                                             :class="isCinematic ? 'border-white/5' : 'border-gray-100'">
+                                            <div class="text-xl sm:text-2xl font-extrabold"
+                                                 :class="isCinematic ? 'text-brand-gold' : 'text-amber-600'"
+                                                 x-text="srv.price"></div>
+                                            <a href="#kontakt"
+                                               class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition"
+                                               :class="isCinematic ? 'bg-white/10 hover:bg-white/15 text-white' : 'bg-slate-900 hover:bg-slate-800 text-white'">
+                                                Wybierz
+                                            </a>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </section>
+                </template>
+
+                <!-- 15. BOOKING CTA BLOCK -->
+                <template x-if="block.type === 'booking_cta'">
+                    <section class="py-20 sm:py-28 px-6 transition-colors" :class="isCinematic ? 'bg-[#0a0a0a]' : 'bg-white'">
+                        <div class="max-w-3xl mx-auto rounded-3xl p-8 sm:p-12 border text-center relative overflow-hidden"
+                             :class="isCinematic
+                                 ? 'border-brand-gold/40 bg-gradient-to-b from-brand-gold/10 via-white/[0.02] to-transparent ring-1 ring-brand-gold/20'
+                                 : 'border-amber-200 bg-gradient-to-b from-amber-50 to-white shadow-lg'">
+                            <span x-show="block.data.badge"
+                                  class="inline-block text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-4"
+                                  :class="isCinematic ? 'bg-brand-gold/20 text-brand-gold border border-brand-gold/30' : 'bg-amber-100 text-amber-800 border border-amber-200'"
+                                  x-text="block.data.badge || 'Szybka rezerwacja online'"></span>
+                            <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-4"
+                                :class="isCinematic ? 'font-cinematic text-white' : 'text-slate-900'"
+                                x-text="block.data.heading || 'Umów wizytę lub zarezerwuj termin'"></h2>
+                            <p class="text-sm sm:text-base max-w-xl mx-auto mb-8 leading-relaxed"
+                               :class="isCinematic ? 'text-zinc-300' : 'text-slate-600'"
+                               x-show="block.data.subheading"
+                               x-text="block.data.subheading"></p>
+                            <div class="flex flex-wrap items-center justify-center gap-4 mb-4">
+                                <a :href="block.data.booking_url || '#kontakt'"
+                                   :target="block.data.booking_url && block.data.booking_url.startsWith('http') ? '_blank' : '_self'"
+                                   rel="noopener noreferrer"
+                                   class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm sm:text-base transition-all shadow-md"
+                                   :class="isCinematic
+                                       ? 'bg-brand-gold text-black hover:bg-brand-goldHover shadow-brand-gold/20'
+                                       : 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/25'">
+                                    <span x-text="block.data.button_text || block.data.cta_text || 'Zarezerwuj wizytę teraz'"></span>
+                                    <span>→</span>
+                                </a>
+                                <a x-show="block.data.phone"
+                                   :href="'tel:' + (block.data.phone || '').replace(/\s+/g, '')"
+                                   class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm sm:text-base border transition"
+                                   :class="isCinematic ? 'border-white/20 hover:bg-white/10 text-white' : 'border-gray-300 hover:bg-gray-100 text-slate-800'">
+                                    <span>📞</span>
+                                    <span x-text="block.data.phone"></span>
+                                </a>
+                            </div>
+                            <p class="text-xs"
+                               :class="isCinematic ? 'text-zinc-400' : 'text-slate-500'"
+                               x-show="block.data.note"
+                               x-text="block.data.note"></p>
+                        </div>
+                    </section>
+                </template>
+
+                <!-- 16. LOCATION MAP BLOCK -->
+                <template x-if="block.type === 'location_map'">
+                    <section class="py-20 sm:py-28 px-6 transition-colors" :class="isCinematic ? 'bg-[#0e0e0e]' : 'bg-gray-50'">
+                        <div class="max-w-5xl mx-auto">
+                            <div class="text-center mb-12">
+                                <h2 class="text-2xl sm:text-3xl font-bold mb-3"
+                                    :class="isCinematic ? 'font-cinematic text-white' : 'text-slate-900'"
+                                    x-text="block.data.heading || 'Gdzie nas znajdziesz'"></h2>
+                                <p class="text-sm max-w-xl mx-auto"
+                                   :class="isCinematic ? 'text-zinc-400' : 'text-slate-500'"
+                                   x-show="block.data.subheading"
+                                   x-text="block.data.subheading"></p>
+                            </div>
+                            <div class="grid lg:grid-cols-5 gap-8 items-stretch">
+                                <!-- Info Card -->
+                                <div class="lg:col-span-2 rounded-2xl p-6 sm:p-8 border flex flex-col justify-between"
+                                     :class="isCinematic ? 'border-white/10 bg-white/[0.03]' : 'border-gray-200 bg-white shadow-sm'">
+                                    <div class="space-y-6">
+                                        <div>
+                                            <div class="text-xs uppercase font-bold tracking-wider mb-1"
+                                                 :class="isCinematic ? 'text-brand-gold' : 'text-amber-600'">Adres</div>
+                                            <div class="text-base font-semibold"
+                                                 :class="isCinematic ? 'text-white' : 'text-slate-900'"
+                                                 x-text="block.data.address || 'ul. Przykładowa 12/4'"></div>
+                                            <div class="text-sm"
+                                                 :class="isCinematic ? 'text-zinc-400' : 'text-slate-600'"
+                                                 x-text="block.data.city || '00-001 Warszawa'"></div>
+                                        </div>
+                                        <div x-show="block.data.hours">
+                                            <div class="text-xs uppercase font-bold tracking-wider mb-1"
+                                                 :class="isCinematic ? 'text-brand-gold' : 'text-amber-600'">Godziny otwarcia</div>
+                                            <div class="text-sm leading-relaxed whitespace-pre-line"
+                                                 :class="isCinematic ? 'text-zinc-300' : 'text-slate-700'"
+                                                 x-text="block.data.hours"></div>
+                                        </div>
+                                        <div x-show="block.data.phone || block.data.email" class="space-y-2 pt-2 border-t"
+                                             :class="isCinematic ? 'border-white/5' : 'border-gray-100'">
+                                            <div x-show="block.data.phone">
+                                                <a :href="'tel:' + (block.data.phone || '').replace(/\s+/g, '')"
+                                                    class="text-sm font-semibold flex items-center gap-2 hover:underline"
+                                                    :class="isCinematic ? 'text-zinc-200 hover:text-brand-gold' : 'text-slate-800 hover:text-amber-600'">
+                                                    <span>📞</span>
+                                                    <span x-text="block.data.phone"></span>
+                                                </a>
+                                            </div>
+                                            <div x-show="block.data.email">
+                                                <a :href="'mailto:' + block.data.email"
+                                                    class="text-sm flex items-center gap-2 hover:underline"
+                                                    :class="isCinematic ? 'text-zinc-400 hover:text-brand-gold' : 'text-slate-600 hover:text-amber-600'">
+                                                    <span>✉️</span>
+                                                    <span x-text="block.data.email"></span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="pt-6 mt-6 border-t" :class="isCinematic ? 'border-white/5' : 'border-gray-100'">
+                                        <a :href="block.data.directions_url || ('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent((block.data.address || '') + ' ' + (block.data.city || '')))"
+                                            target="_blank" rel="noopener noreferrer"
+                                            class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition"
+                                            :class="isCinematic ? 'bg-brand-gold text-black hover:bg-brand-goldHover' : 'bg-slate-900 text-white hover:bg-slate-800'">
+                                            <span>📍 Wyznacz trasę w Google Maps</span>
+                                        </a>
+                                    </div>
+                                </div>
+                                <!-- Map Frame / Embed -->
+                                <div class="lg:col-span-3 rounded-2xl overflow-hidden border min-h-[320px] sm:min-h-[380px] relative"
+                                     :class="isCinematic ? 'border-white/10 bg-white/[0.02]' : 'border-gray-200 bg-gray-100'">
+                                    <template x-if="getSafeMapEmbedUrl(block.data)">
+                                        <iframe :src="getSafeMapEmbedUrl(block.data)"
+                                                class="w-full h-full min-h-[320px] sm:min-h-[380px]"
+                                                style="border:0;"
+                                                allowfullscreen=""
+                                                loading="lazy"
+                                                referrerpolicy="no-referrer-when-downgrade"
+                                                title="Mapa dojazdu"></iframe>
+                                    </template>
+                                    <template x-if="!getSafeMapEmbedUrl(block.data)">
+                                        <div class="w-full h-full min-h-[320px] flex flex-col items-center justify-center p-8 text-center">
+                                            <span class="text-4xl mb-3">📍</span>
+                                            <p class="text-sm font-semibold mb-1" :class="isCinematic ? 'text-zinc-200' : 'text-slate-800'" x-text="(block.data.address || '') + (block.data.city ? ', ' + block.data.city : '') || 'Brak skonfigurowanego adresu'"></p>
+                                            <p class="text-xs text-zinc-500 mb-4">Podaj adres w AI Studio lub wklej link osadzenia mapy Google.</p>
+                                            <a x-show="block.data.address || block.data.city"
+                                               :href="'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent((block.data.address || '') + ' ' + (block.data.city || ''))"
+                                               target="_blank" rel="noopener noreferrer"
+                                               class="px-4 py-2 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/15 text-zinc-200">
+                                                Otwórz w Google Maps
+                                            </a>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </template>
+
+                <!-- 17. GALLERY GRID BLOCK -->
+                <template x-if="block.type === 'gallery_grid'">
+                    <section class="py-20 sm:py-28 px-6 transition-colors" :class="isCinematic ? 'bg-[#0a0a0a]' : 'bg-white'">
+                        <div class="max-w-5xl mx-auto">
+                            <div class="text-center mb-12">
+                                <h2 class="text-2xl sm:text-3xl font-bold mb-3"
+                                    :class="isCinematic ? 'font-cinematic text-white' : 'text-slate-900'"
+                                    x-text="block.data.heading || 'Galeria realizacji'"></h2>
+                                <p class="text-sm max-w-xl mx-auto"
+                                   :class="isCinematic ? 'text-zinc-400' : 'text-slate-500'"
+                                   x-show="block.data.subheading"
+                                   x-text="block.data.subheading"></p>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+                                <template x-for="(img, idx) in (block.data.items || [])" :key="idx">
+                                    <div class="rounded-2xl overflow-hidden relative group border aspect-[4/3] bg-zinc-900 cursor-pointer transition-all"
+                                         :class="isCinematic ? 'border-white/10' : 'border-gray-200 shadow-sm'"
+                                         @click="if (img.url) { openImageLightbox(img.url, img.title); }">
+                                        <img :src="img.url" :alt="img.title || 'Zdjęcie w galerii'"
+                                             loading="lazy"
+                                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-95 transition-opacity"></div>
+                                        <div class="absolute bottom-0 left-0 right-0 p-3 sm:p-4 text-left">
+                                            <span x-show="img.category"
+                                                  class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full mb-1 inline-block"
+                                                  :class="isCinematic ? 'bg-brand-gold/20 text-brand-gold border border-brand-gold/30' : 'bg-amber-100 text-amber-800'"
+                                                  x-text="img.category"></span>
+                                            <h3 class="text-xs sm:text-sm font-semibold text-white drop-shadow-sm line-clamp-1"
+                                                x-text="img.title"></h3>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </section>
+                </template>
+
+                <!-- 18. GOOGLE REVIEWS BLOCK -->
+                <template x-if="block.type === 'google_reviews'">
+                    <section class="py-20 sm:py-28 px-6 transition-colors" :class="isCinematic ? 'bg-[#0e0e0e]' : 'bg-gray-50'">
+                        <div class="max-w-5xl mx-auto">
+                            <!-- Non-empty reviews state -->
+                            <template x-if="block.data.items && block.data.items.length > 0">
+                                <div>
+                                    <!-- Google Reviews Badge Header -->
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-12 p-6 sm:p-8 rounded-2xl border"
+                                         :class="isCinematic ? 'border-white/10 bg-white/[0.03]' : 'border-gray-200 bg-white shadow-sm'">
+                                        <div>
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                                                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                                                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"/>
+                                                    <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                                                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                                                </svg>
+                                                <span class="text-xs font-bold uppercase tracking-wider text-zinc-400">Recenzje Google</span>
+                                            </div>
+                                            <h2 class="text-2xl sm:text-3xl font-bold mb-2"
+                                                :class="isCinematic ? 'font-cinematic text-white' : 'text-slate-900'"
+                                                x-text="block.data.heading || 'Opinie w Google'"></h2>
+                                            <p class="text-xs sm:text-sm"
+                                               :class="isCinematic ? 'text-zinc-400' : 'text-slate-500'"
+                                               x-show="block.data.subheading"
+                                               x-text="block.data.subheading"></p>
+                                        </div>
+                                        <div class="flex flex-col sm:items-end gap-3 shrink-0">
+                                            <div class="flex items-center gap-3" x-show="block.data.rating">
+                                                <span class="text-3xl sm:text-4xl font-extrabold"
+                                                      :class="isCinematic ? 'text-brand-gold' : 'text-amber-600'"
+                                                      x-text="typeof block.data.rating === 'number' ? block.data.rating.toFixed(1) : block.data.rating"></span>
+                                                <div>
+                                                    <div class="flex items-center gap-0.5 text-amber-400 text-sm">
+                                                        <template x-for="s in 5" :key="s">
+                                                            <span :class="s <= Math.round(block.data.rating || 5) ? 'text-amber-400' : 'text-zinc-600'"
+                                                                  x-text="s <= Math.round(block.data.rating || 5) ? '★' : '☆'"></span>
+                                                        </template>
+                                                    </div>
+                                                    <div class="text-[11px] text-zinc-400 font-medium"
+                                                         x-text="(block.data.reviews_count || block.data.user_ratings_total || block.data.items.length) + ' opinii w Google'"></div>
+                                                </div>
+                                            </div>
+                                            <a :href="block.data.write_review_url || ('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(block.data.place_query || 'Twoja Firma'))"
+                                               target="_blank" rel="noopener noreferrer"
+                                               class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm"
+                                               :class="isCinematic ? 'bg-white/10 hover:bg-white/15 text-white border border-white/10' : 'bg-slate-900 hover:bg-slate-800 text-white'">
+                                                <span>✍️ Napisz opinię w Google</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <!-- Reviews Grid -->
+                                    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        <template x-for="(rev, idx) in block.data.items" :key="idx">
+                                            <div class="rounded-2xl p-6 border transition-all flex flex-col justify-between"
+                                                 :class="isCinematic ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200 shadow-sm'">
+                                                <div>
+                                                    <div class="flex items-center justify-between gap-2 mb-3">
+                                                        <div class="flex items-center gap-2">
+                                                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold uppercase"
+                                                                 :class="isCinematic ? 'bg-brand-gold/20 text-brand-gold' : 'bg-amber-100 text-amber-800'"
+                                                                 x-text="(rev.author_name || 'K').charAt(0)"></div>
+                                                            <div>
+                                                                <div class="text-xs font-bold"
+                                                                     :class="isCinematic ? 'text-white' : 'text-slate-900'"
+                                                                     x-text="rev.author_name || 'Klient'"></div>
+                                                                <div class="text-[10px] text-zinc-500"
+                                                                     x-text="rev.time_description || 'w Google'"></div>
+                                                            </div>
+                                                        </div>
+                                                        <svg class="w-4 h-4 text-zinc-400" viewBox="0 0 24 24">
+                                                            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                                                            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"/>
+                                                            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                                                            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                                                        </svg>
+                                                    </div>
+                                                    <div class="flex items-center gap-0.5 mb-3 text-xs text-amber-400" aria-label="Ocena">
+                                                        <template x-for="s in 5" :key="s">
+                                                            <span :class="s <= (rev.rating ?? 5) ? 'text-amber-400' : 'text-zinc-600'" x-text="s <= (rev.rating ?? 5) ? '★' : '☆'"></span>
+                                                        </template>
+                                                    </div>
+                                                    <p class="text-xs sm:text-sm leading-relaxed"
+                                                       :class="isCinematic ? 'text-zinc-300' : 'text-slate-600'"
+                                                       x-text="rev.text"></p>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- Empty / Setup state (EU AI Act & Transparency: No fake social proof) -->
+                            <template x-if="!(block.data.items && block.data.items.length > 0)">
+                                <div class="rounded-2xl p-8 sm:p-12 border text-center"
+                                     :class="isCinematic ? 'border-white/10 bg-white/[0.02]' : 'border-gray-200 bg-white shadow-sm'">
+                                    <div class="max-w-md mx-auto">
+                                        <div class="w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center"
+                                             :class="isCinematic ? 'bg-white/10' : 'bg-gray-100'">
+                                            <svg class="w-6 h-6" viewBox="0 0 24 24">
+                                                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                                                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"/>
+                                                <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                                                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                                            </svg>
+                                        </div>
+                                        <h3 class="text-base sm:text-lg font-bold mb-2"
+                                            :class="isCinematic ? 'text-white' : 'text-slate-900'"
+                                            x-text="block.data.heading || 'Opinie z Profilu Google'"></h3>
+                                        <p class="text-xs sm:text-sm mb-6"
+                                           :class="isCinematic ? 'text-zinc-400' : 'text-slate-500'">
+                                            Sekcja jest gotowa na Twoje opinie. Wpisz w czacie AI Studio nazwę i miasto swojej firmy w Google, aby pobrać oficjalne recenzje i ocenę.
+                                        </p>
+                                        <a x-show="block.data.place_query"
+                                           :href="'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(block.data.place_query)"
+                                           target="_blank" rel="noopener noreferrer"
+                                           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold"
+                                           :class="isCinematic ? 'bg-white/10 hover:bg-white/15 text-zinc-200' : 'bg-slate-100 hover:bg-slate-200 text-slate-800'">
+                                            <span>🔍 Sprawdź profil w Google Maps</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </section>
+                </template>
+
             </div>
         </template>
-
         <!-- Global Site Footer (Legal & Privacy) -->
         <footer class="py-8 px-6 text-center text-xs transition-colors"
                 :class="isCinematic ? 'text-zinc-500 border-t border-white/5' : 'text-slate-400 border-t border-slate-100'">
@@ -666,6 +1051,24 @@
         </div>
     </div>
 
+    <!-- DEDICATED IMAGE LIGHTBOX MODAL -->
+    <div x-show="imageLightboxOpen" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-md"
+         @click.self="closeImageLightbox()"
+         @keydown.escape.window="imageLightboxOpen && closeImageLightbox()"
+         role="dialog" aria-modal="true">
+        <div class="relative max-w-4xl max-h-[90vh] flex flex-col items-center">
+            <button type="button" @click="closeImageLightbox()"
+                    class="absolute -top-10 right-0 text-zinc-400 hover:text-white text-3xl leading-none p-1 transition"
+                    aria-label="Zamknij podgląd zdjęcia">✕</button>
+            <img :src="imageLightboxUrl" :alt="imageLightboxTitle || 'Zdjęcie'"
+                 class="max-h-[82vh] max-w-full rounded-xl object-contain shadow-2xl border border-white/10">
+            <p x-show="imageLightboxTitle"
+               class="mt-3 text-sm text-zinc-300 font-medium text-center"
+               x-text="imageLightboxTitle"></p>
+        </div>
+    </div>
+
     <!-- Application Script -->
     <script>
         // Transparentność i Znak Wodny AI (EU AI Act & Platform Attribution)
@@ -747,10 +1150,16 @@
                 siteTitle: 'DFCMS',
                 pageSlug: '',
 
-                // Modal state
+                // Modal state (Video)
                 modalOpen: false,
                 modalEmbedUrl: '',
                 modalTitle: '',
+
+                // Modal state (Image Lightbox)
+                imageLightboxOpen: false,
+                imageLightboxUrl: '',
+                imageLightboxTitle: '',
+
                 cinematicCleanup: null,
 
                 get isCinematic() {
@@ -1017,6 +1426,37 @@
                 closeVideoModal() {
                     this.modalOpen = false;
                     this.modalEmbedUrl = '';
+                },
+
+                openImageLightbox(imageUrl, title) {
+                    if (!imageUrl) return;
+                    this.imageLightboxUrl = imageUrl;
+                    this.imageLightboxTitle = title || '';
+                    this.imageLightboxOpen = true;
+                },
+
+                closeImageLightbox() {
+                    this.imageLightboxOpen = false;
+                    this.imageLightboxUrl = '';
+                    this.imageLightboxTitle = '';
+                },
+
+                isGoogleMapsEmbed(url) {
+                    if (!url || typeof url !== 'string') return false;
+                    return /^https:\/\/(www\.)?google\.[a-z.]+\/maps\/embed/i.test(url) ||
+                           /^https:\/\/maps\.google\.[a-z.]+\/maps\?/i.test(url) ||
+                           /^https:\/\/www\.google\.[a-z.]+\/maps\?/i.test(url);
+                },
+
+                getSafeMapEmbedUrl(data) {
+                    const registry = window.DFOPS_customBlocksRegistry;
+                    if (registry && typeof registry.getSafeMapEmbedUrl === 'function') {
+                        return registry.getSafeMapEmbedUrl(data);
+                    }
+                    if (!data) return '';
+                    const q = [data.address, data.city].filter(Boolean).join(', ').trim();
+                    if (!q) return '';
+                    return 'https://maps.google.com/maps?q=' + encodeURIComponent(q) + '&t=&z=15&ie=UTF8&iwloc=&output=embed';
                 },
             };
         }
