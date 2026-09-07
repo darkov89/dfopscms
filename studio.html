@@ -517,6 +517,31 @@
                         } catch (quotaErr) {
                             console.debug('[Studio] Quota load skipped:', quotaErr);
                         }
+
+                        // 4. Obsługa Click-to-Prompt z iframe podglądu
+                        window.addEventListener('message', (e) => {
+                            if (!e.data || e.data.type !== 'dfcms:click-to-prompt') return;
+                            const { text, blockId } = e.data;
+                            if (!text) return;
+
+                            const snippet = text.length > 60 ? text.substring(0, 60) + '…' : text;
+                            this.userInput = blockId
+                                ? `Zmień treść "${snippet}" w sekcji ${blockId}: `
+                                : `Zmień treść "${snippet}": `;
+
+                            if (!this.chatOpen) {
+                                this.chatOpen = true;
+                            }
+                            this.showToast('Wybrano tekst do edycji ✍️');
+
+                            setTimeout(() => {
+                                const input = document.querySelector('input[x-model="userInput"]');
+                                if (input) {
+                                    input.focus();
+                                    input.selectionStart = input.selectionEnd = input.value.length;
+                                }
+                            }, 100);
+                        });
                     } catch (e) {
                         console.error('[Studio] Init error:', e);
                         this.authError = e.message || 'Błąd inicjalizacji Studio.';
