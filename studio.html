@@ -187,42 +187,15 @@
                 </div>
             </div>
 
-            <!-- Quick Suggestions (Chips) -->
-            <div class="p-3 border-t border-white/5 bg-black/20 flex flex-wrap gap-1.5">
-                <button type="button" @click="sendQuickPrompt('Zmień numer telefonu kontaktowego')"
-                        class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-400 hover:text-white transition">
-                    📞 Zmień telefon
-                </button>
-                <!-- Cinematic chips -->
-                <template x-if="themeType === 'cinematic'">
-                    <div class="contents">
-                        <button type="button" @click="sendQuickPrompt('Dodaj sekcję z nagrodami festiwalowymi')"
-                                class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-400 hover:text-white transition">
-                            🏆 Dodaj nagrody
-                        </button>
-                        <button type="button" @click="sendQuickPrompt('Wstaw link do mojego showreela')"
-                                class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-400 hover:text-white transition">
-                            🎬 Zmień showreel
-                        </button>
-                    </div>
+            <!-- Quick Suggestions (Dynamic Chips) -->
+            <div class="p-3 border-t border-white/5 bg-black/20 flex flex-wrap gap-1.5" x-show="suggestedChips.length > 0">
+                <template x-for="(chip, idx) in suggestedChips" :key="idx">
+                    <button type="button" @click="sendQuickPrompt(chip.prompt)"
+                            class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-300 hover:text-white transition flex items-center gap-1.5">
+                        <span x-text="chip.emoji" aria-hidden="true"></span>
+                        <span x-text="chip.label"></span>
+                    </button>
                 </template>
-                <!-- Quick Card chips -->
-                <template x-if="themeType === 'quick_card'">
-                    <div class="contents">
-                        <button type="button" @click="sendQuickPrompt('Dodaj godziny otwarcia')"
-                                class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-400 hover:text-white transition">
-                            🕐 Godziny otwarcia
-                        </button>
-                        <button type="button" @click="sendQuickPrompt('Zmień opis moich usług')"
-                                class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-400 hover:text-white transition">
-                            🔧 Zmień usługi
-                        </button>
-                    </div>
-                </template>
-                <button type="button" @click="sendQuickPrompt('Zmień kolor akcentu na złoty')"
-                        class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-400 hover:text-white transition">
-                    🎨 Zmień styl
-                </button>
             </div>
 
             <!-- Input Box -->
@@ -303,6 +276,38 @@
                 get liveSiteUrl() {
                     if (!this.pageSlug) return '#';
                     return `https://${this.pageSlug}.dfcms.pl/`;
+                },
+
+                get suggestedChips() {
+                    const blocks = this.pageRow?.draft_content?.blocks || [];
+                    const blockTypes = blocks.map((b) => b.type);
+                    const chips = [];
+
+                    chips.push({ emoji: '🎨', label: 'Zmień styl', prompt: 'Zmień kolorystykę strony' });
+                    chips.push({ emoji: '📞', label: 'Zmień telefon', prompt: 'Zmień numer telefonu kontaktowego' });
+
+                    if (!blockTypes.includes('faq_simple') && !blockTypes.includes('faq_accordion')) {
+                        chips.push({ emoji: '❓', label: 'Dodaj FAQ', prompt: 'Dodaj sekcję z najczęściej zadawanymi pytaniami' });
+                    }
+                    if (!blockTypes.includes('testimonials_grid')) {
+                        chips.push({ emoji: '⭐', label: 'Dodaj opinie', prompt: 'Dodaj sekcję z opiniami klientów' });
+                    }
+                    if (!blockTypes.includes('pricing_tiers')) {
+                        chips.push({ emoji: '💰', label: 'Dodaj cennik', prompt: 'Dodaj sekcję z cennikiem usług' });
+                    }
+
+                    if (this.themeType === 'cinematic') {
+                        chips.push({ emoji: '🎬', label: 'Zmień showreel', prompt: 'Wstaw link do mojego showreela' });
+                        if (!blockTypes.includes('awards_strip')) {
+                            chips.push({ emoji: '🏆', label: 'Dodaj nagrody', prompt: 'Dodaj sekcję z nagrodami festiwalowymi' });
+                        }
+                    }
+                    if (this.themeType === 'quick_card') {
+                        chips.push({ emoji: '🕐', label: 'Godziny otwarcia', prompt: 'Zaktualizuj godziny otwarcia' });
+                        chips.push({ emoji: '🔧', label: 'Zmień usługi', prompt: 'Zmień opis moich usług' });
+                    }
+
+                    return chips.slice(0, 6);
                 },
 
                 async consumeAuthParamsFromUrl(client) {
