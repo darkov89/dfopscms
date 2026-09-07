@@ -218,6 +218,69 @@
         ],
       },
     },
+
+    // === BLOKI UNIWERSALNE ===
+    testimonials_grid: {
+      type: 'testimonials_grid',
+      label: 'Opinie klientów (siatka)',
+      category: 'universal',
+      defaults: {
+        heading: 'Co mówią nasi klienci',
+        items: [
+          { name: 'Anna K.', text: 'Profesjonalna obsługa i szybki termin. Zdecydowanie polecam!', rating: 5 },
+          { name: 'Marek W.', text: 'Solidna robota, wysoka jakość i przejrzyste zasady współpracy.', rating: 5 },
+          { name: 'Katarzyna M.', text: 'Bardzo dobry kontakt i terminowa realizacja projektu.', rating: 5 },
+        ],
+      },
+    },
+    faq_accordion: {
+      type: 'faq_accordion',
+      label: 'FAQ z akordeonem (rozwijane pytania)',
+      category: 'universal',
+      defaults: {
+        heading: 'Najczęściej zadawane pytania',
+        items: [
+          { question: 'Jak wygląda proces współpracy?', answer: 'Na początku ustalamy zakres prac i termin, a następnie przedstawiamy bezpłatną wycenę.' },
+          { question: 'Jaki jest standardowy czas realizacji?', answer: 'Standardowy termin wynosi od 3 do 7 dni roboczych, w zależności od skali projektu.' },
+          { question: 'Czy wystawiacie fakturę VAT?', answer: 'Tak, do każdego zlecenia wystawiamy pełną fakturę VAT 23%.' },
+        ],
+      },
+    },
+    pricing_tiers: {
+      type: 'pricing_tiers',
+      label: 'Cennik i pakiety usług',
+      category: 'universal',
+      defaults: {
+        heading: 'Przejrzysty cennik',
+        subheading: 'Wybierz pakiet dopasowany do Twoich potrzeb. Bez ukrytych opłat.',
+        items: [
+          {
+            name: 'Pakiet Podstawowy',
+            price: '199 zł',
+            period: '',
+            features: ['Wstępna konsultacja', 'Szybka wycena w 24h', 'Gwarancja jakości'],
+            highlighted: false,
+            cta_text: 'Wybierz pakiet',
+          },
+          {
+            name: 'Pakiet Profesjonalny',
+            price: '499 zł',
+            period: '',
+            features: ['Wszystko z Podstawowego', 'Priorytetowy termin', 'Protokół i raport', 'Gwarancja 24 miesiące'],
+            highlighted: true,
+            cta_text: 'Najpopularniejszy',
+          },
+          {
+            name: 'Pakiet Indywidualny',
+            price: 'Wycena',
+            period: 'indywidualna',
+            features: ['Kompleksowa obsługa', 'Dedykowany opiekun', 'Wsparcie posprzedażowe', 'Elastyczne warunki'],
+            highlighted: false,
+            cta_text: 'Skontaktuj się',
+          },
+        ],
+      },
+    },
   };
 
   /**

@@ -226,4 +226,37 @@ test('applyBlockUpdate waliduje typ tablicy w polu items', () => {
   assert.equal(resValidJson.updatedBlock.data.items[0].title, 'Test');
 });
 
+// 13. Nowe bloki: testimonials_grid, faq_accordion, pricing_tiers
+test('nowe bloki: wstawianie i domyślne dane dla testimonials_grid, faq_accordion, pricing_tiers', () => {
+  const state = registry.createInitialCinematicState({ name: 'Test' });
+
+  // Testimonials
+  const test1 = registry.insertBlock(state.blocks, null, 'testimonials_grid');
+  assert.equal(test1.success, true);
+  assert.equal(test1.insertedBlock.type, 'testimonials_grid');
+  assert.equal(test1.insertedBlock.data.heading, 'Co mówią nasi klienci');
+  assert.equal(Array.isArray(test1.insertedBlock.data.items), true);
+  assert.equal(test1.insertedBlock.data.items.length, 3);
+
+  // FAQ Accordion
+  const test2 = registry.insertBlock(test1.blocks, test1.insertedBlock.id, 'faq_accordion');
+  assert.equal(test2.success, true);
+  assert.equal(test2.insertedBlock.type, 'faq_accordion');
+  assert.equal(test2.insertedBlock.data.heading, 'Najczęściej zadawane pytania');
+  assert.equal(test2.insertedBlock.data.items.length, 3);
+
+  // Pricing Tiers
+  const test3 = registry.insertBlock(test2.blocks, test2.insertedBlock.id, 'pricing_tiers');
+  assert.equal(test3.success, true);
+  assert.equal(test3.insertedBlock.type, 'pricing_tiers');
+  assert.equal(test3.insertedBlock.data.heading, 'Przejrzysty cennik');
+  assert.equal(test3.insertedBlock.data.items.length, 3);
+  assert.equal(test3.insertedBlock.data.items[1].highlighted, true);
+
+  // Mutacja pola w nowym bloku przez applyBlockUpdate
+  const upd = registry.applyBlockUpdate(test3.blocks, test3.insertedBlock.id, 'heading', 'Nasz Cennik 2026');
+  assert.equal(upd.success, true);
+  assert.equal(upd.updatedBlock.data.heading, 'Nasz Cennik 2026');
+});
+
 console.log(`\n${passed} tests passed successfully!`);

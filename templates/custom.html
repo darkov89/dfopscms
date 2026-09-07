@@ -51,6 +51,7 @@
     <script defer src="/js/core/customBlocksRegistry.js?v=20260906c"></script>
     <script defer src="/js/features/custom-site/cinematicFx.js?v=20260906c"></script>
     <script defer src="/js/features/cookieConsentApp.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.13.3/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 
     <style>
@@ -434,6 +435,124 @@
                                     <p class="mt-3 text-sm leading-relaxed" :class="isCinematic ? 'text-zinc-400' : 'text-slate-600'" x-text="faq.answer"></p>
                                 </details>
                             </template>
+                        </div>
+                    </section>
+                </template>
+
+                <!-- 10. TESTIMONIALS GRID BLOCK -->
+                <template x-if="block.type === 'testimonials_grid'">
+                    <section class="py-20 sm:py-28 px-6" :class="isCinematic ? 'bg-[#0e0e0e]' : 'bg-gray-50'">
+                        <div class="max-w-5xl mx-auto">
+                            <h2 class="text-2xl sm:text-3xl font-bold text-center mb-12"
+                                :class="isCinematic ? 'font-cinematic text-white' : 'text-slate-900'"
+                                x-text="block.data.heading || 'Opinie klientów'"></h2>
+                            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <template x-for="(item, idx) in (block.data.items || [])" :key="idx">
+                                    <div class="rounded-2xl p-6 border transition-all"
+                                         :class="isCinematic ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200 shadow-sm'">
+                                        <div class="flex items-center gap-1 mb-3" aria-label="Ocena">
+                                            <template x-for="s in 5" :key="s">
+                                                <span class="text-sm" :class="s <= (item.rating || 5) ? 'text-amber-400' : 'text-zinc-600'" x-text="s <= (item.rating || 5) ? '★' : '☆'"></span>
+                                            </template>
+                                        </div>
+                                        <p class="text-sm leading-relaxed mb-4"
+                                           :class="isCinematic ? 'text-zinc-300' : 'text-slate-600'"
+                                           x-text="item.text"></p>
+                                        <p class="text-xs font-semibold"
+                                           :class="isCinematic ? 'text-brand-gold' : 'text-slate-900'"
+                                           x-text="'— ' + (item.name || 'Klient')"></p>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </section>
+                </template>
+
+                <!-- 11. FAQ ACCORDION BLOCK -->
+                <template x-if="block.type === 'faq_accordion'">
+                    <section class="py-20 sm:py-28 px-6" :class="isCinematic ? 'bg-[#0a0a0a]' : 'bg-white'">
+                        <div class="max-w-3xl mx-auto">
+                            <h2 class="text-2xl sm:text-3xl font-bold text-center mb-12"
+                                :class="isCinematic ? 'font-cinematic text-white' : 'text-slate-900'"
+                                x-text="block.data.heading || 'Najczęściej zadawane pytania'"></h2>
+                            <div class="space-y-3">
+                                <template x-for="(faq, idx) in (block.data.items || [])" :key="idx">
+                                    <div class="rounded-xl border overflow-hidden transition"
+                                         :class="isCinematic ? 'border-white/10 bg-white/[0.03]' : 'border-gray-200 bg-gray-50'"
+                                         x-data="{ open: false }">
+                                        <button @click="open = !open" type="button"
+                                                class="w-full flex items-center justify-between px-5 py-4 text-left text-sm font-semibold transition"
+                                                :class="isCinematic ? 'text-zinc-100 hover:text-brand-gold' : 'text-slate-800 hover:text-amber-600'">
+                                            <span x-text="faq.question"></span>
+                                            <span class="ml-2 transition-transform duration-200 text-xs text-zinc-400" :class="open ? 'rotate-180 text-brand-gold' : ''">▾</span>
+                                        </button>
+                                        <div x-show="open" x-collapse>
+                                            <div class="px-5 pb-4 text-sm leading-relaxed"
+                                                 :class="isCinematic ? 'text-zinc-400' : 'text-slate-600'"
+                                                 x-text="faq.answer"></div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </section>
+                </template>
+
+                <!-- 12. PRICING TIERS BLOCK -->
+                <template x-if="block.type === 'pricing_tiers'">
+                    <section class="py-20 sm:py-28 px-6" :class="isCinematic ? 'bg-[#0e0e0e]' : 'bg-gray-50'">
+                        <div class="max-w-5xl mx-auto text-center">
+                            <h2 class="text-2xl sm:text-3xl font-bold mb-3"
+                                :class="isCinematic ? 'font-cinematic text-white' : 'text-slate-900'"
+                                x-text="block.data.heading || 'Cennik'"></h2>
+                            <p class="text-sm mb-12 max-w-xl mx-auto"
+                               :class="isCinematic ? 'text-zinc-400' : 'text-slate-500'"
+                               x-show="block.data.subheading"
+                               x-text="block.data.subheading"></p>
+                            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
+                                <template x-for="(tier, idx) in (block.data.items || [])" :key="idx">
+                                    <div class="rounded-2xl p-6 border flex flex-col relative transition-all"
+                                         :class="[
+                                             tier.highlighted
+                                                 ? (isCinematic ? 'border-brand-gold/50 bg-brand-gold/5 ring-1 ring-brand-gold/20' : 'border-amber-400 bg-amber-50/50 ring-1 ring-amber-200')
+                                                 : (isCinematic ? 'border-white/10 bg-white/[0.03]' : 'border-gray-200 bg-white shadow-sm'),
+                                         ]">
+                                        <div class="flex items-center justify-between gap-2 mb-2">
+                                            <h3 class="text-base sm:text-lg font-bold"
+                                                :class="isCinematic ? 'text-white' : 'text-slate-900'"
+                                                x-text="tier.name"></h3>
+                                            <span x-show="tier.highlighted"
+                                                  class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                                                  :class="isCinematic ? 'bg-brand-gold/20 text-brand-gold border border-brand-gold/30' : 'bg-amber-100 text-amber-800'">
+                                                Polecany
+                                            </span>
+                                        </div>
+                                        <div class="mb-5 flex items-baseline gap-1">
+                                            <span class="text-2xl sm:text-3xl font-extrabold"
+                                                  :class="isCinematic ? 'text-brand-gold' : 'text-amber-600'"
+                                                  x-text="tier.price"></span>
+                                            <span class="text-xs"
+                                                  :class="isCinematic ? 'text-zinc-500' : 'text-slate-400'"
+                                                  x-text="tier.period" x-show="tier.period"></span>
+                                        </div>
+                                        <ul class="space-y-2.5 mb-6 flex-1">
+                                            <template x-for="(feat, fi) in (tier.features || [])" :key="fi">
+                                                <li class="flex items-start gap-2 text-xs sm:text-sm"
+                                                    :class="isCinematic ? 'text-zinc-300' : 'text-slate-600'">
+                                                    <span class="text-emerald-500 font-bold mt-0.5">✓</span>
+                                                    <span x-text="feat"></span>
+                                                </li>
+                                            </template>
+                                        </ul>
+                                        <a href="#kontakt"
+                                           class="w-full text-center rounded-xl py-2.5 px-4 text-xs sm:text-sm font-bold transition"
+                                           :class="tier.highlighted
+                                               ? 'bg-brand-gold text-black hover:bg-brand-goldHover shadow-md shadow-brand-gold/10'
+                                               : (isCinematic ? 'bg-white/10 text-white hover:bg-white/15 border border-white/10' : 'bg-slate-900 text-white hover:bg-slate-800')"
+                                           x-text="tier.cta_text || 'Wybierz'"></a>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
                     </section>
                 </template>

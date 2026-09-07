@@ -67,13 +67,13 @@ const AGENT_TOOLS = [
       },
       {
         name: "add_block",
-        description: "Wstawia nowy blok na stronę. Dostępne typy bloków: cinematic_hero, projects_grid, awards_strip, director_statement, minimal_contact, quick_hero, key_features, quick_contact_card, faq_simple.",
+        description: "Wstawia nowy blok na stronę. Dostępne typy bloków: cinematic_hero, projects_grid, awards_strip, director_statement, minimal_contact, quick_hero, key_features, quick_contact_card, faq_simple, testimonials_grid, faq_accordion, pricing_tiers.",
         parameters: {
           type: "OBJECT",
           properties: {
             blockType: {
               type: "STRING",
-              description: "Typ bloku do wstawienia (np. awards_strip, projects_grid, faq_simple)",
+              description: "Typ bloku do wstawienia (np. testimonials_grid, faq_accordion, pricing_tiers, awards_strip, projects_grid, faq_simple)",
             },
             afterBlockId: {
               type: "STRING",
