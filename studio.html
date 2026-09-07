@@ -87,15 +87,17 @@
         <div class="flex items-center gap-2.5 sm:gap-3">
             <!-- Undo / Redo buttons -->
             <div class="flex items-center rounded-xl bg-white/5 p-0.5 border border-white/10">
-                <button type="button" @click="undoDraft()" :disabled="!draftHistory.length"
+                <button type="button" @click="undoDraft()" :disabled="!draftHistory.length || agentThinking || publishing || loading || historySaving || imageUploading"
                         class="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/10 hover:text-white transition disabled:opacity-25 disabled:cursor-not-allowed flex items-center gap-1"
+                        aria-label="Cofnij zmianę (Undo)"
                         title="Cofnij zmianę (Undo)">
                     <span aria-hidden="true">↩️</span>
                     <span class="hidden xl:inline text-[11px]">Cofnij</span>
                 </button>
                 <div class="h-3.5 w-px bg-white/10"></div>
-                <button type="button" @click="redoDraft()" :disabled="!draftRedoStack.length"
+                <button type="button" @click="redoDraft()" :disabled="!draftRedoStack.length || agentThinking || publishing || loading || historySaving || imageUploading"
                         class="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/10 hover:text-white transition disabled:opacity-25 disabled:cursor-not-allowed flex items-center gap-1"
+                        aria-label="Ponów zmianę (Redo)"
                         title="Ponów zmianę (Redo)">
                     <span aria-hidden="true">↪️</span>
                     <span class="hidden xl:inline text-[11px]">Ponów</span>
@@ -188,10 +190,10 @@
             </div>
 
             <!-- Quick Suggestions (Dynamic Chips) -->
-            <div class="p-3 border-t border-white/5 bg-black/20 flex flex-wrap gap-1.5" x-show="suggestedChips.length > 0">
-                <template x-for="(chip, idx) in suggestedChips" :key="idx">
-                    <button type="button" @click="sendQuickPrompt(chip.prompt)"
-                            class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-300 hover:text-white transition flex items-center gap-1.5">
+            <div class="p-3 border-t border-white/5 bg-black/20 flex flex-wrap gap-1.5" x-show="suggestedChips.length > 0" x-cloak>
+                <template x-for="chip in suggestedChips" :key="chip.label">
+                    <button type="button" @click="sendQuickPrompt(chip.prompt)" :disabled="agentThinking || imageUploading"
+                            class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-300 hover:text-white transition flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
                         <span x-text="chip.emoji" aria-hidden="true"></span>
                         <span x-text="chip.label"></span>
                     </button>
@@ -202,16 +204,17 @@
             <form @submit.prevent="sendMessage()" class="p-3 border-t border-white/10 bg-black/60">
                 <div class="flex items-center gap-2 rounded-xl border border-white/15 bg-brand-dark px-3 py-2 focus-within:border-brand-gold transition">
                     <label class="cursor-pointer h-7 w-7 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center flex-shrink-0 transition"
-                           :class="agentThinking ? 'opacity-30 cursor-not-allowed pointer-events-none' : ''"
+                           :class="(agentThinking || imageUploading) ? 'opacity-30 cursor-not-allowed pointer-events-none' : ''"
                            title="Wgraj zdjęcie ze swojego urządzenia">
                         <span aria-hidden="true" class="text-sm">📷</span>
                         <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden"
-                               @change="handleImageUpload($event)" :disabled="agentThinking">
+                               aria-label="Wgraj zdjęcie ze swojego urządzenia"
+                               @change="handleImageUpload($event)" :disabled="agentThinking || imageUploading">
                     </label>
-                    <input type="text" x-model="userInput" :disabled="agentThinking"
+                    <input type="text" x-model="userInput" :disabled="agentThinking || imageUploading"
                            placeholder="Napisz, co chcesz zmienić na stronie..."
                            class="w-full bg-transparent text-xs text-white placeholder:text-zinc-500 focus:outline-none disabled:opacity-50">
-                    <button type="submit" :disabled="agentThinking || !userInput.trim()"
+                    <button type="submit" :disabled="agentThinking || imageUploading || !userInput.trim()"
                             class="h-7 w-7 rounded-lg bg-brand-gold text-black flex items-center justify-center font-bold transition hover:bg-brand-goldHover disabled:opacity-30 flex-shrink-0">
                         ↑
                     </button>
@@ -268,6 +271,8 @@
                 draftHistory: [],
                 draftRedoStack: [],
                 maxHistorySize: 20,
+                historySaving: false,
+                imageUploading: false,
 
                 userInput: '',
                 messages: [
@@ -286,7 +291,8 @@
                 },
 
                 get suggestedChips() {
-                    const blocks = this.pageRow?.draft_content?.blocks || [];
+                    if (!this.pageRow) return [];
+                    const blocks = this.pageRow?.draft_content?.blocks || this.pageRow?.content?.blocks || [];
                     const blockTypes = blocks.map((b) => b.type);
                     const chips = [];
 
@@ -520,7 +526,9 @@
 
                         // 4. Obsługa Click-to-Prompt z iframe podglądu
                         window.addEventListener('message', (e) => {
+                            if (e.origin !== window.location.origin) return;
                             if (!e.data || e.data.type !== 'dfcms:click-to-prompt') return;
+                            if (this.agentThinking || this.imageUploading) return;
                             const { text, blockId } = e.data;
                             if (!text) return;
 
@@ -534,13 +542,13 @@
                             }
                             this.showToast('Wybrano tekst do edycji ✍️');
 
-                            setTimeout(() => {
+                            this.$nextTick(() => {
                                 const input = document.querySelector('input[x-model="userInput"]');
                                 if (input) {
                                     input.focus();
                                     input.selectionStart = input.selectionEnd = input.value.length;
                                 }
-                            }, 100);
+                            });
                         });
                     } catch (e) {
                         console.error('[Studio] Init error:', e);
@@ -565,37 +573,53 @@
                 },
 
                 async undoDraft() {
-                    if (!this.draftHistory.length || !this.pageRow) return;
-                    this.draftRedoStack.push(JSON.parse(JSON.stringify(this.pageRow.draft_content)));
-                    const previous = this.draftHistory.pop();
-                    this.pageRow.draft_content = previous;
-                    const repo = window.DFOPS_pageRepository;
-                    if (repo && this.currentUser && this.pageId) {
-                        try {
-                            await repo.savePageByIdForOwner(this.currentUser.id, this.pageId, { draft_content: previous });
-                        } catch (e) {
-                            console.warn('[Studio] undo save failed:', e);
+                    if (!this.draftHistory.length || !this.pageRow || this.historySaving || this.agentThinking || this.publishing) return;
+                    this.historySaving = true;
+                    try {
+                        const previous = this.draftHistory.pop();
+                        this.draftRedoStack.push(JSON.parse(JSON.stringify(this.pageRow.draft_content)));
+                        this.pageRow.draft_content = previous;
+                        if (previous?.theme_type) this.themeType = previous.theme_type;
+
+                        const repo = window.DFOPS_pageRepository;
+                        if (repo && this.currentUser && this.pageId) {
+                            const res = await repo.savePageByIdForOwner(this.currentUser.id, this.pageId, { draft_content: previous });
+                            if (res?.error) {
+                                console.warn('[Studio] undo save error:', res.error);
+                            }
                         }
+                        this.refreshPreview();
+                        this.showToast('Cofnięto ostatnią zmianę');
+                    } catch (e) {
+                        console.warn('[Studio] undo error:', e);
+                    } finally {
+                        this.historySaving = false;
                     }
-                    this.refreshPreview();
-                    this.showToast('Cofnięto ostatnią zmianę');
                 },
 
                 async redoDraft() {
-                    if (!this.draftRedoStack.length || !this.pageRow) return;
-                    this.draftHistory.push(JSON.parse(JSON.stringify(this.pageRow.draft_content)));
-                    const next = this.draftRedoStack.pop();
-                    this.pageRow.draft_content = next;
-                    const repo = window.DFOPS_pageRepository;
-                    if (repo && this.currentUser && this.pageId) {
-                        try {
-                            await repo.savePageByIdForOwner(this.currentUser.id, this.pageId, { draft_content: next });
-                        } catch (e) {
-                            console.warn('[Studio] redo save failed:', e);
+                    if (!this.draftRedoStack.length || !this.pageRow || this.historySaving || this.agentThinking || this.publishing) return;
+                    this.historySaving = true;
+                    try {
+                        const next = this.draftRedoStack.pop();
+                        this.draftHistory.push(JSON.parse(JSON.stringify(this.pageRow.draft_content)));
+                        this.pageRow.draft_content = next;
+                        if (next?.theme_type) this.themeType = next.theme_type;
+
+                        const repo = window.DFOPS_pageRepository;
+                        if (repo && this.currentUser && this.pageId) {
+                            const res = await repo.savePageByIdForOwner(this.currentUser.id, this.pageId, { draft_content: next });
+                            if (res?.error) {
+                                console.warn('[Studio] redo save error:', res.error);
+                            }
                         }
+                        this.refreshPreview();
+                        this.showToast('Przywrócono zmianę');
+                    } catch (e) {
+                        console.warn('[Studio] redo error:', e);
+                    } finally {
+                        this.historySaving = false;
                     }
-                    this.refreshPreview();
-                    this.showToast('Przywrócono zmianę');
                 },
 
                 refreshPreview() {
@@ -688,7 +712,7 @@
                         return;
                     }
 
-                    this.agentThinking = true;
+                    this.imageUploading = true;
                     this.messages.push({ role: 'user', text: '📷 Wysyłam zdjęcie...' });
                     this.scrollToBottom();
 
@@ -711,16 +735,18 @@
                             .getPublicUrl(uploadData.path);
 
                         this.messages[this.messages.length - 1].text = `📷 Wgrałem zdjęcie: ${file.name}`;
+                        this.imageUploading = false;
                         this.userInput = `Wstaw to zdjęcie na stronę jako miniaturę lub zdjęcie główne: ${publicUrl}`;
                         await this.sendMessage();
                     } catch (err) {
+                        this.imageUploading = false;
                         console.error('[Studio] Image upload error:', err);
                         this.messages.push({
                             role: 'model',
                             text: 'Nie udało się wgrać zdjęcia: ' + (err.message || 'Spróbuj ponownie.'),
                         });
-                        this.agentThinking = false;
                     } finally {
+                        this.imageUploading = false;
                         this.scrollToBottom();
                     }
                 },

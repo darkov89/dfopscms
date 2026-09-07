@@ -441,8 +441,8 @@ ${JSON.stringify(draft.blocks, null, 2)}`;
           }
           draftChanged = true;
         } else if (name === "reorder_blocks") {
-          const { orderedIds } = args;
-          if (Array.isArray(orderedIds)) {
+          const { orderedIds } = args || {};
+          if (Array.isArray(orderedIds) && orderedIds.length > 0) {
             const map = new Map(draft.blocks.map((b: any) => [b.id, b]));
             const reordered: any[] = [];
             for (const id of orderedIds) {
@@ -454,8 +454,11 @@ ${JSON.stringify(draft.blocks, null, 2)}`;
             for (const remaining of map.values()) {
               reordered.push(remaining);
             }
-            draft.blocks = reordered;
-            draftChanged = true;
+            const orderChanged = reordered.some((b, i) => b.id !== draft.blocks[i]?.id) || reordered.length !== draft.blocks.length;
+            if (orderChanged) {
+              draft.blocks = reordered;
+              draftChanged = true;
+            }
           }
         }
       }

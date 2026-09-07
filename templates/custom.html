@@ -168,7 +168,7 @@
     <!-- Content Blocks Rendered Dynamically -->
     <main id="top" x-show="dataLoaded && !loadError">
         <template x-for="block in blocks" :key="block.id">
-            <div :id="block.id">
+            <div :id="block.id" :data-block-id="block.id">
 
                 <!-- 1. CINEMATIC HERO BLOCK -->
                 <template x-if="block.type === 'cinematic_hero'">
@@ -463,7 +463,7 @@
                                          :class="isCinematic ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200 shadow-sm'">
                                         <div class="flex items-center gap-1 mb-3" aria-label="Ocena">
                                             <template x-for="s in 5" :key="s">
-                                                <span class="text-sm" :class="s <= (item.rating || 5) ? 'text-amber-400' : 'text-zinc-600'" x-text="s <= (item.rating || 5) ? '★' : '☆'"></span>
+                                                <span class="text-sm" :class="s <= (item.rating ?? 5) ? 'text-amber-400' : 'text-zinc-600'" x-text="s <= (item.rating ?? 5) ? '★' : '☆'"></span>
                                             </template>
                                         </div>
                                         <p class="text-sm leading-relaxed mb-4"
@@ -497,7 +497,7 @@
                                             <span x-text="faq.question"></span>
                                             <span class="ml-2 transition-transform duration-200 text-xs text-zinc-400" :class="open ? 'rotate-180 text-brand-gold' : ''">▾</span>
                                         </button>
-                                        <div x-show="open" x-collapse>
+                                        <div x-show="open" x-collapse x-cloak>
                                             <div class="px-5 pb-4 text-sm leading-relaxed"
                                                  :class="isCinematic ? 'text-zinc-400' : 'text-slate-600'"
                                                  x-text="faq.answer"></div>
@@ -913,14 +913,20 @@
 
                 initClickToPrompt() {
                     document.addEventListener('click', (e) => {
-                        if (e.target.closest('#dfcms-preview-banner') || e.target.closest('dfcms-watermark')) return;
+                        if (e.target.closest('#dfcms-preview-banner') || e.target.closest('dfcms-watermark') || e.target.closest('[x-data*="cookieConsent"]')) return;
 
                         const el = e.target;
                         if (!el) return;
 
+                        // Nie przechwytuj kliknięć w przyciski zwijania akordeonu
+                        if (el.closest('button') && el.closest('[x-data*="open"]')) return;
+
                         const tag = el.tagName ? el.tagName.toLowerCase() : '';
-                        const editableTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'li', 'button', 'a'];
+                        const editableTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'li', 'a', 'blockquote'];
                         if (!editableTags.includes(tag)) return;
+
+                        // Wyklucz pojedyncze symbole dekoracyjne
+                        if (tag === 'span' && (el.textContent === '★' || el.textContent === '☆' || el.textContent === '▾' || el.textContent === '✓')) return;
 
                         const text = (el.innerText || el.textContent || '').trim();
                         if (!text || text.length < 2) return;
@@ -929,8 +935,9 @@
                             e.preventDefault();
                         }
 
-                        const blockEl = el.closest('[id]');
-                        const blockId = blockEl ? blockEl.id : '';
+                        // Pobierz dokładnie data-block-id kontenera bloku
+                        const blockEl = el.closest('[data-block-id]');
+                        const blockId = blockEl ? blockEl.getAttribute('data-block-id') : '';
 
                         if (window.parent && window.parent !== window) {
                             window.parent.postMessage({
@@ -938,9 +945,9 @@
                                 text: text.substring(0, 100),
                                 blockId: blockId,
                                 tagName: tag,
-                            }, '*');
+                            }, window.location.origin);
                         }
-                    }, true);
+                    });
                 },
 
                 recordPageView() {
