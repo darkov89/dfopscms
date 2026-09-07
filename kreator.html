@@ -7,7 +7,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,7 +17,7 @@
                 extend: {
                     fontFamily: {
                         sans: ['Inter', 'system-ui', 'sans-serif'],
-                        cinematic: ['Cinzel', 'serif'],
+                        display: ['Inter', 'system-ui', 'sans-serif'],
                     },
                     colors: {
                         brand: {
@@ -52,8 +52,10 @@
     <!-- Header -->
     <header class="border-b border-white/10 px-6 py-4 bg-black/40 backdrop-blur-md">
         <div class="mx-auto flex max-w-4xl items-center justify-between">
-            <a href="/" class="flex items-center gap-2 text-white font-cinematic font-bold tracking-wider text-lg">
-                <span class="text-brand-gold">⚡</span> DFCMS AI STUDIO
+            <a href="/" class="flex items-center gap-2.5 font-sans text-base sm:text-lg font-bold tracking-tight text-white">
+                <img src="/favicon.svg" alt="" width="26" height="26" class="rounded-md" aria-hidden="true">
+                <span><span class="text-brand-gold">DF</span>CMS</span>
+                <span class="inline-flex items-center rounded-md bg-brand-gold/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-brand-gold border border-brand-gold/30">AI Studio</span>
             </a>
             <div class="text-xs font-semibold uppercase tracking-widest text-zinc-400">
                 Krok <span class="text-brand-gold" x-text="step"></span> z 3
@@ -67,9 +69,9 @@
         <!-- KROK 1: Wybór Formatu Strony -->
         <div x-show="step === 1" x-cloak class="space-y-8 text-center">
             <div class="space-y-3">
-                <p class="text-xs font-bold uppercase tracking-[0.25em] text-brand-gold">Nowoczesne Strony Dedykowane</p>
-                <h1 class="font-cinematic text-3xl sm:text-5xl font-bold text-white tracking-tight">Jaki format strony tworzymy?</h1>
-                <p class="text-zinc-400 text-sm sm:text-base max-w-lg mx-auto">Wybierz pomiędzy efektowną stroną wizualną z 3D i wideo a prostą, błyskawiczną wizytówką kontaktową.</p>
+                <p class="text-xs font-bold uppercase tracking-[0.25em] text-brand-gold">AI Studio — Kreator Strony</p>
+                <h1 class="font-sans text-3xl sm:text-5xl font-extrabold text-white tracking-tight">Jaki format strony tworzymy?</h1>
+                <p class="text-zinc-400 text-sm sm:text-base max-w-lg mx-auto">Wybierz format strony. Agent AI wygeneruje strukturę i treści, a w Studio dopracujesz całość w rozmowie na żywo.</p>
             </div>
 
             <div class="grid gap-6 sm:grid-cols-2 text-left pt-4">
@@ -80,7 +82,7 @@
                     <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-gold/10 text-brand-gold text-2xl">
                         ✨
                     </div>
-                    <h2 class="font-cinematic text-xl font-bold text-white">Strona Wizualna 3D & Wideo</h2>
+                    <h2 class="font-sans text-xl font-bold text-white">Strona Wizualna 3D & Wideo</h2>
                     <p class="mt-2 text-xs sm:text-sm text-zinc-400 leading-relaxed">Widowiskowy design światowej klasy: tło wideo lub 3D WebGL, kinowy klimat, płynne animacje, showreel i prezentacja realizacji. Dla firm, marek, twórców i agencji.</p>
                     <div class="mt-6 flex items-center text-xs font-bold text-brand-gold">
                         <span>Wybierz stronę wizualną 3D / Wideo →</span>
@@ -94,7 +96,7 @@
                     <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-400 text-2xl">
                         ⚡
                     </div>
-                    <h2 class="font-cinematic text-xl font-bold text-white">Prosta Wizytówka WWW</h2>
+                    <h2 class="font-sans text-xl font-bold text-white">Prosta Wizytówka WWW</h2>
                     <p class="mt-2 text-xs sm:text-sm text-zinc-400 leading-relaxed">Ultra-szybka, czysta i czytelna strona informacyjna. Natychmiastowy telefon, WhatsApp, dojazd, godziny pracy i opis usług. Dla fachowców, gabinetów i małych firm.</p>
                     <div class="mt-6 flex items-center text-xs font-bold text-emerald-400">
                         <span>Wybierz prostą wizytówkę →</span>
@@ -107,7 +109,7 @@
         <div x-show="step === 2" x-cloak class="space-y-6">
             <div class="text-center space-y-2">
                 <p class="text-xs font-bold uppercase tracking-[0.25em] text-brand-gold" x-text="chosenType === 'cinematic' ? 'Konfiguracja Strony Wizualnej 3D' : 'Konfiguracja Wizytówki'"></p>
-                <h2 class="font-cinematic text-2xl sm:text-3xl font-bold text-white">Opowiedz nam o sobie</h2>
+                <h2 class="font-sans text-2xl sm:text-3xl font-bold text-white tracking-tight">Opowiedz nam o sobie</h2>
                 <p class="text-zinc-400 text-xs sm:text-sm">Odpowiedz na kilka pytań, a Agent AI złoży stronę gotową do publikacji.</p>
             </div>
 
@@ -188,7 +190,7 @@
         <div x-show="step === 3 && !pendingEmailConfirmation" x-cloak class="space-y-6">
             <div class="text-center space-y-2">
                 <p class="text-xs font-bold uppercase tracking-[0.25em] text-brand-gold">Ostatni krok</p>
-                <h2 class="font-cinematic text-2xl sm:text-3xl font-bold text-white">Twój adres i dostęp</h2>
+                <h2 class="font-sans text-2xl sm:text-3xl font-bold tracking-tight text-white">Twój adres i dostęp</h2>
                 <p class="text-zinc-400 text-xs sm:text-sm">Twoja strona zostanie utworzona jako wersja robocza i otwarta w Studio Edycji AI.</p>
             </div>
 
@@ -197,8 +199,8 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Adres Twojej strony (subdomena)</label>
                     <div class="flex items-center rounded-xl border border-white/10 bg-black/60 px-4 py-3 focus-within:border-brand-gold transition">
                         <input type="text" x-model="slug" @input="formatSlug(); scheduleSlugCheck()"
-                               placeholder="moj-projekt"
-                               class="w-full bg-transparent text-sm text-white focus:outline-none">
+                                placeholder="moj-projekt"
+                                class="w-full bg-transparent text-sm text-white focus:outline-none">
                         <span class="text-xs font-bold text-zinc-500">.dfcms.pl</span>
                     </div>
                     <div class="mt-2 text-xs" x-show="slug">
@@ -278,7 +280,7 @@
                 ✉️
             </div>
             <div class="space-y-2">
-                <h2 class="font-cinematic text-2xl sm:text-3xl font-bold text-white">Sprawdź swoją skrzynkę e-mail</h2>
+                <h2 class="font-sans text-2xl sm:text-3xl font-bold tracking-tight text-white">Sprawdź swoją skrzynkę e-mail</h2>
                 <p class="text-zinc-400 text-sm max-w-md mx-auto leading-relaxed">
                     Wysłaliśmy link aktywacyjny na adres <span class="text-white font-semibold" x-text="authEmail"></span>. Kliknij w link, aby aktywować konto i od razu wejść do Studio Edycji AI Twojej strony.
                 </p>
@@ -295,7 +297,7 @@
 
     <!-- Footer -->
     <footer class="border-t border-white/10 px-6 py-4 text-center text-xs text-zinc-500">
-        DFCMS — Lekki CMS nowej generacji wspierany przez sztuczną inteligencję.
+        DFCMS AI Studio — Nowoczesne strony internetowe wspierane przez Agenta AI.
     </footer>
 
     <script>
@@ -383,12 +385,21 @@
                             alert('Podaj nazwę firmy / działalności.');
                             return;
                         }
+                        // P3.3: wizytówka bez kontaktu jest bezwartościowa
+                        if (!this.form.phone.trim() && !this.form.email.trim()) {
+                            alert('Podaj numer telefonu lub adres e-mail — to główny cel wizytówki.');
+                            return;
+                        }
                         if (!this.slug) {
                             this.slug = this.form.business_name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 20);
                         }
                     }
                     this.formatSlug();
                     this.scheduleSlugCheck();
+                    // P3.2: auto-fill e-mail rejestracyjny z kontaktowego
+                    if (this.form.email && !this.authEmail) {
+                        this.authEmail = this.form.email;
+                    }
                     this.step = 3;
                 },
 

@@ -169,4 +169,61 @@ test('insertBlock wypełnia pełne domyślne pola ze schematu', () => {
   assert.equal(inserted.data.items.length, 3, 'data.items posiada 3 domyślne pozycje');
 });
 
+// 9. Ekstrakcja metadanych wideo: Cloudflare Stream i MP4
+test('extractVideoMeta: Cloudflare Stream oraz plik bezpośredni MP4', () => {
+  const cf = registry.extractVideoMeta('https://iframe.videodelivery.net/d0a0b0c0d0e0f0a0b0c0d0e0f0a0b0c0');
+  assert.equal(cf.provider, 'cloudflare_stream');
+  assert.equal(cf.id, 'd0a0b0c0d0e0f0a0b0c0d0e0f0a0b0c0');
+  assert.ok(cf.embedUrl.includes('iframe.videodelivery.net'));
+
+  const mp4 = registry.extractVideoMeta('https://assets.example.com/videos/showreel.mp4?v=1');
+  assert.equal(mp4.provider, 'direct');
+  assert.equal(mp4.embedUrl, 'https://assets.example.com/videos/showreel.mp4?v=1');
+});
+
+// 10. Zmiana kolejności bloków (reorderBlocks)
+test('reorderBlocks poprawnie zmienia kolejność i zachowuje pozostałe bloki', () => {
+  const state = registry.createInitialCinematicState({ name: 'Twórca' });
+  const initialIds = state.blocks.map(b => b.id);
+  assert.ok(initialIds.length >= 3);
+
+  // Odwróć kolejność pierwszych dwóch
+  const newOrder = [initialIds[1], initialIds[0]];
+  const res = registry.reorderBlocks(state.blocks, newOrder);
+
+  assert.equal(res.success, true);
+  assert.equal(res.blocks[0].id, initialIds[1]);
+  assert.equal(res.blocks[1].id, initialIds[0]);
+  assert.equal(res.blocks.length, initialIds.length, 'Długość tablicy bloków nie ulega zmianie');
+});
+
+// 11. Aktualizacja stylistyki globalnej (updateDesign)
+test('updateDesign aktualizuje dozwolone właściwości designu', () => {
+  const state = registry.createInitialCinematicState({ name: 'Twórca' });
+  const res = registry.updateDesign(state, {
+    accent_color: '#FF5733',
+    palette: 'cinema_red',
+    disallowed_key: 'hacked',
+  });
+
+  assert.equal(res.success, true);
+  assert.equal(res.updatedDesign.accent_color, '#FF5733');
+  assert.equal(res.updatedDesign.palette, 'cinema_red');
+  assert.equal(res.updatedDesign.disallowed_key, undefined, 'Niedozwolone klucze są ignorowane');
+});
+
+// 12. Walidacja typów w applyBlockUpdate chroni przed uszkodzeniem tablic
+test('applyBlockUpdate waliduje typ tablicy w polu items', () => {
+  const state = registry.createInitialCinematicState({ name: 'Twórca' });
+
+  // Próba nadpisania items stringiem, który nie jest JSON-em tablicy
+  const resInvalid = registry.applyBlockUpdate(state.blocks, 'projects_grid', 'items', 'to-nie-tablica');
+  assert.equal(resInvalid.success, false, 'Powinno odrzucić string zamiast tablicy');
+
+  // Poprawny string JSON z tablicą powinien zostać sparsowany
+  const resValidJson = registry.applyBlockUpdate(state.blocks, 'projects_grid', 'items', JSON.stringify([{ id: 'p1', title: 'Test' }]));
+  assert.equal(resValidJson.success, true, 'Poprawny JSON z tablicą powinien przejść');
+  assert.equal(resValidJson.updatedBlock.data.items[0].title, 'Test');
+});
+
 console.log(`\n${passed} tests passed successfully!`);

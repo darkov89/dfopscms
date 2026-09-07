@@ -10,6 +10,7 @@
     services: { name: 'Usługi lokalne', desc: 'Złota rączka, hydraulika, mechanika, elektryka' },
     gastro: { name: 'Gastro', desc: 'Restauracja, kawiarnia, bar' },
     care: { name: 'Care', desc: 'Gabinet medyczny, psychologia, fizjoterapia' },
+    custom: { name: 'Strona AI', desc: 'Edytujesz w Studio AI — czat z asystentem' },
   };
 
   /** Kafelki kreatora (krok 1) — wizualne akcenty; nowy motyw dostaje domyślny styl. */
@@ -725,6 +726,14 @@
           showContact: true,
           onboarding_completed: false,
         },
+      },
+    },
+    custom: {
+      pl: {
+        settings: {
+          template_version: LATEST_TEMPLATE_VERSION,
+        },
+        meta: { title: '', description: '' },
       },
     },
   };

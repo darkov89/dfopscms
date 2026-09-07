@@ -180,7 +180,7 @@
                                 <template x-for="(task, idx) in dashboardStartTasks" :key="task.id">
                                     <li class="flex items-start gap-3">
                                         <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold" :class="task.done ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'" x-text="task.done ? '✓' : (idx + 1)"></span>
-                                        <button type="button" @click="setTab(task.tab)" class="text-left text-sm transition-colors" :class="task.done ? 'text-slate-500 line-through decoration-slate-300' : 'font-medium text-accent underline decoration-accent/35 underline-offset-2 hover:decoration-accent'" x-text="task.label"></button>
+                                        <button type="button" @click="task.href ? (window.location.href = task.href) : setTab(task.tab)" class="text-left text-sm transition-colors" :class="task.done ? 'text-slate-500 line-through decoration-slate-300' : 'font-medium text-accent underline decoration-accent/35 underline-offset-2 hover:decoration-accent'" x-text="task.label"></button>
                                     </li>
                                 </template>
                             </ul>

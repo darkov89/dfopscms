@@ -41,6 +41,17 @@
       };
     }
 
+    // Cloudflare Stream
+    const cfStreamMatch = cleanUrl.match(/(?:videodelivery\.net\/|cloudflarestream\.com\/|iframe\.videodelivery\.net\/)([a-zA-Z0-9_-]{32})/);
+    if (cfStreamMatch) {
+      return {
+        provider: 'cloudflare_stream',
+        id: cfStreamMatch[1],
+        embedUrl: `https://iframe.videodelivery.net/${cfStreamMatch[1]}`,
+        loopUrl: `https://iframe.videodelivery.net/${cfStreamMatch[1]}?autoplay=true&loop=true&muted=true&controls=false`,
+      };
+    }
+
     // MP4 / Direct link
     if (/\.(mp4|webm|mov)(\?.*)?$/i.test(cleanUrl)) {
       return {
@@ -443,12 +454,38 @@
     if (!block) return { success: false, blocks: list, error: `Blok o ID '${blockId}' nie istnieje.` };
 
     if (!block.data) block.data = {};
-    const ok = setDeepValue(block.data, path, value);
+
+    // P4.3: Walidacja typów pól tablicowych (zapobiega crashom w x-for)
+    let resolvedValue = value;
+    const def = BLOCK_DEFINITIONS[block.type];
+    if (def && def.defaults && Object.prototype.hasOwnProperty.call(def.defaults, path)) {
+      const defaultVal = def.defaults[path];
+      if (Array.isArray(defaultVal)) {
+        if (!Array.isArray(resolvedValue)) {
+          if (typeof resolvedValue === 'string') {
+            try {
+              const parsed = JSON.parse(resolvedValue);
+              if (Array.isArray(parsed)) {
+                resolvedValue = parsed;
+              } else {
+                return { success: false, blocks: list, error: `Pole '${path}' w bloku '${block.type}' wymaga tablicy (Array).` };
+              }
+            } catch {
+              return { success: false, blocks: list, error: `Pole '${path}' w bloku '${block.type}' wymaga tablicy (Array).` };
+            }
+          } else {
+            return { success: false, blocks: list, error: `Pole '${path}' w bloku '${block.type}' wymaga tablicy (Array).` };
+          }
+        }
+      }
+    }
+
+    const ok = setDeepValue(block.data, path, resolvedValue);
     if (!ok) return { success: false, blocks: list, error: `Nieprawidłowa lub niedozwolona ścieżka '${path}'.` };
 
     // Jeśli zmieniono video_url, zaktualizuj też video_provider i video_id
     if (path === 'video_url' || path === 'showreel_url') {
-      const meta = extractVideoMeta(value);
+      const meta = extractVideoMeta(resolvedValue);
       block.data.video_provider = meta.provider;
       block.data.video_id = meta.id;
     }
@@ -509,6 +546,19 @@
     return { success: true, blocks: reordered };
   }
 
+  function updateDesign(state, designUpdates) {
+    if (!state || typeof state !== 'object') return { success: false, state, error: 'Nieprawidłowy stan strony' };
+    const next = deepClone(state);
+    if (!next.design) next.design = {};
+    const allowed = ['palette', 'font_theme', 'accent_color', 'bg_color'];
+    for (const key of Object.keys(designUpdates || {})) {
+      if (allowed.includes(key) && typeof designUpdates[key] === 'string') {
+        next.design[key] = designUpdates[key].trim();
+      }
+    }
+    return { success: true, state: next, updatedDesign: next.design };
+  }
+
   return {
     BLOCK_DEFINITIONS,
     extractVideoMeta,
@@ -518,5 +568,6 @@
     insertBlock,
     removeBlock,
     reorderBlocks,
+    updateDesign,
   };
 });

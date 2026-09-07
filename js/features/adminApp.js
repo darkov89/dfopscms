@@ -601,6 +601,18 @@
       },
       /** Checklista na ekranie startowym — proste kroki dla właściciela firmy. */
       get dashboardStartTasks() {
+        if (this.theme === 'custom') {
+          const raw = this.content;
+          const blocks = Array.isArray(raw?.blocks) ? raw.blocks : (Array.isArray(raw?.pl?.blocks) ? raw.pl.blocks : []);
+          const hasBlocks = blocks.length > 0;
+          const isPublished = Boolean(this._publishedContentRaw);
+          const hasCustomDomain = Boolean(this.customDomain);
+          return [
+            { id: 'studio_edit', label: 'Edytuj stronę w Studio AI', href: `/studio.html?site=${encodeURIComponent(this.slug || '')}`, done: hasBlocks },
+            { id: 'publish', label: 'Opublikuj stronę na żywo', tab: 'dashboard', done: isPublished },
+            { id: 'domain', label: 'Podłącz własną domenę', tab: 'subscription', done: hasCustomDomain },
+          ];
+        }
         const pl = this.content?.pl;
         if (!pl) return [];
         const tasks = [];
@@ -647,6 +659,7 @@
         return tasks;
       },
       get incompleteOnboardingChecks() {
+        if (this.theme === 'custom') return [];
         if (!this.content?.pl?.settings || this.content.pl.settings.onboarding_completed === true) return [];
         const pl = this.content.pl;
         if (!pl) return [];

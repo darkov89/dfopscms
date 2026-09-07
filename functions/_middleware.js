@@ -601,6 +601,22 @@ export async function onRequest(context) {
     return applySecurityHeaders(request, await next());
   }
 
+  if (
+    url.pathname === '/kreator.html' ||
+    url.pathname === '/kreator' ||
+    url.pathname === '/studio.html' ||
+    url.pathname === '/studio'
+  ) {
+    return applySecurityHeaders(request, await next());
+  }
+
+  if (url.searchParams.get('dfcms_preview') === '1') {
+    const barePath = url.pathname.replace(/^\/templates\//i, '').replace(/^\//, '').replace(/\.html$/i, '');
+    if (url.pathname.startsWith('/templates/') || ALLOWED_THEMES.has(barePath)) {
+      return applySecurityHeaders(request, await next());
+    }
+  }
+
   let debugTrace = 'START';
 
   try {

@@ -17,11 +17,25 @@
     <script defer src="js/i18n/uiPlatformCopy.js?v=20260724a"></script>
     <script defer src="js/features/registrationApp.js?v=20260906b"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            },
+        };
+    </script>
     <style>[x-cloak]{display:none!important}</style>
 </head>
 <body class="bg-[#121212] text-gray-200 font-sans min-h-screen flex items-center justify-center p-6" x-data="createRegistrationApp()" x-init="init()">
 
-    <div class="bg-white/5 p-10 rounded-sm shadow-2xl border border-white/10 w-full max-w-xl relative overflow-hidden my-8">
+    <div class="bg-white/5 p-10 rounded-2xl shadow-2xl border border-white/10 w-full max-w-xl relative overflow-hidden my-8">
         
         <div class="absolute -top-20 -right-20 w-64 h-64 bg-[#D4AF37] opacity-20 blur-[80px] rounded-full pointer-events-none"></div>
 
@@ -32,9 +46,18 @@
             </div>
         </div>
 
-        <div class="text-center mb-10 relative z-10">
-            <h1 class="text-3xl font-black tracking-widest text-white mb-2">DF<span class="text-[#D4AF37]">CMS</span></h1>
+        <div class="text-center mb-8 relative z-10">
+            <a href="/" class="inline-flex items-center justify-center gap-2.5 mb-2 hover:opacity-90 transition">
+                <img src="/favicon.svg" alt="" width="30" height="30" class="rounded-md" aria-hidden="true">
+                <span class="text-3xl font-extrabold tracking-tight text-white"><span class="text-[#D4AF37]">DF</span>CMS</span>
+            </a>
             <p class="text-sm text-gray-400 uppercase tracking-widest" x-text="t('register.subtitle')">Twoje konto i adres w sieci</p>
+        </div>
+
+        <!-- Banner AI Studio -->
+        <div class="mb-6 rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/10 p-3.5 text-center text-xs text-zinc-300 relative z-10">
+            <span>Chcesz, aby strona powstała w rozmowie z AI?</span>
+            <a href="/kreator.html" class="ml-1 font-bold text-[#D4AF37] underline hover:text-white transition">Uruchom AI Studio →</a>
         </div>
 
         <form @submit.prevent="createPage" x-show="!success" class="space-y-8 relative z-10">

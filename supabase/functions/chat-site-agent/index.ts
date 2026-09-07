@@ -6,11 +6,8 @@ import { buildCorsHeadersForRequest } from "../_shared/allowedOrigins.ts";
 declare const Deno: { env: { get: (k: string) => string | undefined } };
 
 const DEFAULT_MODEL = "gemini-2.5-flash";
-const GEMINI_TIMEOUT_MS = 40_000;
+const GEMINI_TIMEOUT_MS = 25_000;
 const RATE_LIMIT_MS = 30_000;
-
-/** Soft rate limit per isolate (userId -> last call timestamp ms) */
-const lastCallByUser = new Map<string, number>();
 
 const corsHeadersBase: Record<string, string> = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -48,113 +45,8 @@ function currentYearMonth(): string {
   return `${y}-${m}`;
 }
 
-// Domyślne dane dla wszystkich obsługiwanych typów bloków (zgodne z customBlocksRegistry.js)
-const BLOCK_DEFAULTS: Record<string, Record<string, any>> = {
-  cinematic_hero: {
-    title: "Twórca Filmowy",
-    subtitle: "Director & Cinematographer",
-    tagline: "Historie opowiadane światłem i ruchem.",
-    video_url: "https://vimeo.com/76979871",
-    video_provider: "vimeo",
-    video_id: "76979871",
-    showreel_url: "https://vimeo.com/76979871",
-    cta_text: "Odtwórz Showreel",
-    cta_secondary_text: "Zobacz Projekty",
-    cta_secondary_target: "#projekty",
-  },
-  projects_grid: {
-    heading: "Wybrane Realizacje",
-    subheading: "Reklama · Teledyski · Formy Fabularne",
-    items: [
-      {
-        id: "p1",
-        title: "Spot Komercyjny — Nowa Fala",
-        category: "Commercial",
-        role: "Reżyseria / Zdjęcia",
-        video_url: "https://vimeo.com/76979871",
-        thumbnail: "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=800&q=80",
-      },
-      {
-        id: "p2",
-        title: "Teledysk — Nocny Kurs",
-        category: "Music Video",
-        role: "Director of Photography",
-        video_url: "https://vimeo.com/76979871",
-        thumbnail: "https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?auto=format&fit=crop&w=800&q=80",
-      },
-    ],
-  },
-  awards_strip: {
-    heading: "Wyróżnienia & Festiwale",
-    items: [
-      { name: "Camerimage 2025", desc: "Oficjalna selekcja" },
-      { name: "Fryderyk 2024", desc: "Nominacja — Teledysk Roku" },
-      { name: "Grand Video Awards", desc: "Nagroda Główna w kategorii Branded Content" },
-    ],
-  },
-  director_statement: {
-    heading: "Podejście i Wizja",
-    quote: "Kino to dla mnie przede wszystkim rytm, kontrast i autentyczność.",
-    text: "Od ponad 8 lat realizuję projekty wideo dla czołowych marek i artystów w Polsce i za granicą. Łączę rzemiosło operatorskie z narracją fabularną.",
-    signature: "Jan Kowalski",
-  },
-  minimal_contact: {
-    heading: "Porozmawiajmy o projekcie",
-    subheading: "Dostępność: realizacje komercyjne, teledyski, etiudy i filmy dokumentalne.",
-    phone: "+48 600 700 800",
-    email: "kontakt@tworcafilmowy.pl",
-    instagram: "https://instagram.com/",
-    vimeo: "https://vimeo.com/",
-    location: "Warszawa · Dostępny na całym świecie",
-  },
-  quick_hero: {
-    badge: "Dostępny od zaraz",
-    title: "Usługi Elektryczne — Szybko i Solidnie",
-    subtitle: "Kompleksowe instalacje, pomiary i usuwanie awarii.",
-    city: "Poznań i okolice",
-    phone: "+48 600 700 800",
-    whatsapp: "+48600700800",
-    cta_primary_text: "Zadzwoń teraz",
-    cta_secondary_text: "Napisz na WhatsApp",
-  },
-  key_features: {
-    heading: "Dlaczego warto?",
-    items: [
-      {
-        title: "Ekspresowy dojazd",
-        desc: "W nagłych awariach jesteśmy na miejscu w 60 minut.",
-        icon: "bolt",
-      },
-      {
-        title: "Uprawnienia SEP",
-        desc: "Pełne uprawnienia dozoru i eksploatacji, protokoły do ubezpieczenia.",
-        icon: "check",
-      },
-      {
-        title: "Gwarancja i faktura",
-        desc: "Darmowa wycena przed rozpoczęciem prac, faktury VAT 23%.",
-        icon: "shield",
-      },
-    ],
-  },
-  quick_contact_card: {
-    heading: "Skontaktuj się bezpośrednio",
-    company_name: "Elektro-Fach Poznań",
-    address: "ul. Dąbrowskiego 45",
-    city: "60-842 Poznań",
-    phone: "+48 600 700 800",
-    email: "kontakt@elektrofach.pl",
-    hours: "Poniedziałek – Sobota: 7:00 – 21:00\nPogotowie awaryjne: 24/7",
-    booking_url: "",
-  },
-  faq_simple: {
-    heading: "Często zadawane pytania",
-    items: [
-      { question: "Jak szybko możecie przyjechać?", answer: "W przypadku awarii zazwyczaj dojeżdżamy w ciągu 45-60 minut." },
-      { question: "Czy wycena jest płatna?", answer: "Wstępna wycena telefoniczna jest całkowicie bezpłatna." },
-    ],
-  },
-};
+// Import wspólnych domyślnych danych bloków (jedne źródło prawdy dla Edge Functions)
+import { BLOCK_DEFAULTS } from "../_shared/customBlockDefaults.ts";
 
 // Definicje narzędzi Gemini (Function Calling)
 const AGENT_TOOLS = [
@@ -312,14 +204,23 @@ serve(async (req) => {
     const { data: { user }, error: userErr } = await supabaseAuth.auth.getUser();
     if (userErr || !user?.id) return jsonResponse(cors, { error: "Sesja wygasła" }, 401);
 
-    // 1. Soft Rate Limiting na poziomie instancji (30s cooldown)
-    const now = Date.now();
-    const lastCall = lastCallByUser.get(user.id) || 0;
-    if (now - lastCall < RATE_LIMIT_MS) {
-      return jsonResponse(cors, { error: "Odczekaj chwilę przed kolejną wiadomością (ok. 30 sekund)." }, 429);
+    const supabaseAdmin = createClient(supabaseUrl, serviceRole, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+
+    // 1. Soft Rate Limiting na poziomie bazy danych (30s cooldown)
+    const { data: rlProfile } = await supabaseAdmin
+      .from("billing_profiles")
+      .select("last_agent_call_at")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (rlProfile?.last_agent_call_at) {
+      const lastCallMs = new Date(rlProfile.last_agent_call_at).getTime();
+      if (Date.now() - lastCallMs < RATE_LIMIT_MS) {
+        return jsonResponse(cors, { error: "Odczekaj chwilę przed kolejną wiadomością (ok. 30 sekund)." }, 429);
+      }
     }
-    // Rezerwacja slotu cooldown z góry zapobiega race condition przy równoległych żądaniach
-    lastCallByUser.set(user.id, now);
 
     const body = await req.json().catch(() => ({}));
     const pageId = Number(body.pageId);
@@ -329,10 +230,6 @@ serve(async (req) => {
     if (!pageId || !userMessage) {
       return jsonResponse(cors, { error: "Wymagane pageId oraz wiadomość" }, 400);
     }
-
-    const supabaseAdmin = createClient(supabaseUrl, serviceRole, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
 
     const { data: superRow } = await supabaseAdmin
       .from("superadmins")
@@ -544,29 +441,36 @@ ${JSON.stringify(draft.blocks, null, 2)}`;
       }
     }
 
-    // 4. Zapisanie zużycia limitu Agenta AI (billing_profiles)
+    // 4. Zapisanie zużycia limitu Agenta AI (billing_profiles) za pomocą atomowej operacji
     if (!isGod) {
-      const nextCount = count + 1;
-      const updateData: Record<string, any> = {
-        agent_chat_month: ym,
-        agent_chat_count: nextCount,
-      };
-      if (!hasAgentCount) {
-        // Fallback zgodności wstecznej jeśli kolumny agent_chat nie zostały jeszcze utworzone
-        updateData.ai_gen_month = ym;
-        updateData.ai_gen_count = nextCount;
-      }
-
       if (profile?.user_id) {
-        await supabaseAdmin
-          .from("billing_profiles")
-          .update(updateData)
-          .eq("user_id", page.user_id);
+        if (month === ym && hasAgentCount) {
+          // Zwykła inkrementacja i aktualizacja last_agent_call_at (atomowo)
+          await supabaseAdmin.rpc("increment_agent_chat", { uid: page.user_id });
+        } else {
+          // Zmiana miesiąca lub brak kolumny agent_chat (reset)
+          const updateData: Record<string, any> = {
+            agent_chat_month: ym,
+            agent_chat_count: 1,
+            last_agent_call_at: new Date().toISOString(),
+          };
+          if (!hasAgentCount) {
+            // Fallback zgodności wstecznej jeśli kolumny agent_chat nie zostały jeszcze utworzone
+            updateData.ai_gen_month = ym;
+            updateData.ai_gen_count = 1;
+          }
+          await supabaseAdmin
+            .from("billing_profiles")
+            .update(updateData)
+            .eq("user_id", page.user_id);
+        }
       } else {
         await supabaseAdmin.from("billing_profiles").upsert({
           user_id: page.user_id,
           plan: effectivePlan === "trial" ? null : effectivePlan,
-          ...updateData,
+          agent_chat_month: ym,
+          agent_chat_count: 1,
+          last_agent_call_at: new Date().toISOString(),
         }, { onConflict: "user_id" });
       }
     }

@@ -31,27 +31,27 @@
     return true;
   }
 
-  /** AI Site Generator — płatne plany (Starter / Standard / Custom); trial bez dostępu. */
+  /** AI Site Generator — Starter / AI Studio / Custom oraz trial (pełny dostęp przez 14 dni). */
   function planAllowsAiGenerator(plan) {
     const p = normalizePlan(plan);
-    return p === 'tier0' || p === 'tier1' || p === 'tier_custom' || p === 'custom';
+    return p === 'tier0' || p === 'tier1' || p === 'tier_custom' || p === 'custom' || p === 'trial';
   }
 
-  /** Limit generacji AI / miesiąc kalendarzowy: Starter 10, Standard/Custom 20. */
+  /** Limit generacji AI / miesiąc kalendarzowy: Starter 10, AI Studio/Custom/Trial 20. */
   function aiGeneratorMonthlyLimit(plan) {
     const p = normalizePlan(plan);
     if (p === 'tier0') return 10;
-    if (p === 'tier1' || p === 'tier_custom' || p === 'custom') return 20;
+    if (p === 'tier1' || p === 'tier_custom' || p === 'custom' || p === 'trial') return 20;
     return 0;
   }
 
   /**
    * Dodatkowe locale witryny (EN/DE…) poza domyślnym PL.
-   * Starter / trial: tylko PL. Standard / Custom: do 3 łącznie (pl+en+de).
+   * Starter: tylko PL. AI Studio / Custom / Trial: do 3 łącznie (pl+en+de).
    */
   function planAllowsExtraLocales(plan) {
     const p = normalizePlan(plan);
-    return p === 'tier1' || p === 'tier_custom' || p === 'custom';
+    return p === 'tier1' || p === 'tier_custom' || p === 'custom' || p === 'trial';
   }
 
   function planMaxLocales(plan) {
@@ -62,8 +62,8 @@
   function planDisplayName(plan) {
     const p = normalizePlan(plan);
     if (p === 'trial') return 'Okres próbny (14 dni)';
-    if (p === 'tier0') return 'Starter — 29 zł netto / msc';
-    if (p === 'tier1') return 'Standard — 49 zł netto / msc';
+    if (p === 'tier0') return 'Starter — 39 zł netto / msc';
+    if (p === 'tier1') return 'AI Studio — 59 zł netto / msc';
     if (p === 'tier_custom' || p === 'custom') return 'Custom / Concierge';
     return p;
   }
@@ -79,7 +79,7 @@
     const sel = sub.selected_plan ? normalizePlan(sub.selected_plan) : '';
     if (p === 'trial') {
       if (sel === 'tier0') return 'Okres próbny — wybrany Starter (dokończ opłatę)';
-      if (sel === 'tier1') return 'Okres próbny — wybrany Standard (dokończ płatność)';
+      if (sel === 'tier1') return 'Okres próbny — wybrane AI Studio (dokończ płatność)';
       return 'Okres próbny (14 dni)';
     }
     return planDisplayName(p);

@@ -7,7 +7,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -16,7 +16,7 @@
                 extend: {
                     fontFamily: {
                         sans: ['Inter', 'system-ui', 'sans-serif'],
-                        cinematic: ['Cinzel', 'serif'],
+                        display: ['Inter', 'system-ui', 'sans-serif'],
                     },
                     colors: {
                         brand: {
@@ -50,13 +50,18 @@
 
     <!-- Top Studio Toolbar -->
     <header class="h-16 border-b border-brand-border bg-black/80 px-6 flex items-center justify-between z-30 flex-shrink-0">
-        <div class="flex items-center gap-4">
-            <a href="/" class="text-xs font-bold text-zinc-400 hover:text-white transition flex items-center gap-1.5">
-                <span>← DFCMS</span>
+        <div class="flex items-center gap-3 sm:gap-4">
+            <a href="/" class="hidden sm:flex items-center gap-2 font-sans text-sm font-bold tracking-tight text-white hover:opacity-90 transition">
+                <img src="/favicon.svg" alt="" width="22" height="22" class="rounded" aria-hidden="true">
+                <span><span class="text-brand-gold">DF</span>CMS</span>
+            </a>
+            <div class="hidden sm:block h-4 w-px bg-white/10"></div>
+            <a href="/admin.html" class="text-xs font-bold text-zinc-400 hover:text-white transition flex items-center gap-1.5">
+                <span>← Panel</span>
             </a>
             <div class="h-4 w-px bg-white/10"></div>
             <div class="flex items-center gap-2">
-                <span class="text-xs font-bold uppercase tracking-widest text-brand-gold">Studio AI:</span>
+                <span class="text-xs font-bold uppercase tracking-widest text-brand-gold">AI Studio:</span>
                 <span class="text-sm font-semibold text-white" x-text="pageSlug"></span>
                 <span class="text-[10px] bg-white/10 text-zinc-300 font-bold px-2 py-0.5 rounded-full uppercase" x-text="themeType"></span>
             </div>
@@ -107,8 +112,15 @@
         <div class="flex-1 bg-black/90 p-3 sm:p-6 flex items-center justify-center overflow-hidden transition-all duration-300">
             <div :class="deviceMode === 'mobile' ? 'w-[390px] h-[844px] rounded-[48px] border-[10px] border-zinc-800 shadow-2xl overflow-hidden' : 'w-full h-full rounded-2xl border border-white/10 overflow-hidden shadow-2xl'"
                  class="transition-all duration-300 bg-black flex flex-col relative">
+                <!-- Preview Iframe Loading Overlay -->
+                <div x-show="iframeLoading" x-cloak
+                     class="absolute inset-0 z-10 bg-black/70 backdrop-blur-xs flex flex-col items-center justify-center gap-2">
+                    <span class="h-6 w-6 animate-spin rounded-full border-2 border-brand-gold border-t-transparent"></span>
+                    <span class="text-[11px] text-zinc-300 font-medium">Odświeżanie podglądu...</span>
+                </div>
                 <!-- Preview Iframe -->
                 <iframe id="dfcms-studio-iframe"
+                        @load="iframeLoading = false"
                         :src="'/templates/custom.html?site=' + pageSlug + '&dfcms_preview=1&t=' + refreshTimestamp"
                         class="w-full h-full border-0 bg-black"></iframe>
             </div>
@@ -129,7 +141,15 @@
                         <p class="text-[10px] text-zinc-400">Edytuje stronę bez ruszania kodu</p>
                     </div>
                 </div>
-                <button type="button" @click="chatOpen = false" class="sm:hidden text-zinc-400 hover:text-white text-lg leading-none p-1">✕</button>
+                <div class="flex items-center gap-2">
+                    <div x-show="chatCount !== null" x-cloak
+                         class="rounded-full bg-white/5 border border-white/10 px-2.5 py-0.5 text-[10px] font-medium text-zinc-400"
+                         :title="'Wykorzystano ' + chatCount + ' z ' + chatLimit + ' zapytań w tym miesiącu'">
+                        <span class="text-zinc-200 font-semibold" x-text="chatCount"></span>/<span x-text="chatLimit"></span>
+                        <span class="text-[9px] text-zinc-500 ml-0.5">AI</span>
+                    </div>
+                    <button type="button" @click="chatOpen = false" class="sm:hidden text-zinc-400 hover:text-white text-lg leading-none p-1">✕</button>
+                </div>
             </div>
 
             <!-- Messages Stream -->
@@ -156,14 +176,32 @@
                         class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-400 hover:text-white transition">
                     📞 Zmień telefon
                 </button>
-                <button type="button" @click="sendQuickPrompt('Dodaj sekcję z nagrodami festiwalowymi')"
-                        class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-400 hover:text-white transition">
-                    🏆 Dodaj nagrody
-                </button>
-                <button type="button" @click="sendQuickPrompt('Wstaw link do mojego showreela')"
-                        class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-400 hover:text-white transition">
-                    🎬 Zmień showreel
-                </button>
+                <!-- Cinematic chips -->
+                <template x-if="themeType === 'cinematic'">
+                    <div class="contents">
+                        <button type="button" @click="sendQuickPrompt('Dodaj sekcję z nagrodami festiwalowymi')"
+                                class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-400 hover:text-white transition">
+                            🏆 Dodaj nagrody
+                        </button>
+                        <button type="button" @click="sendQuickPrompt('Wstaw link do mojego showreela')"
+                                class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-400 hover:text-white transition">
+                            🎬 Zmień showreel
+                        </button>
+                    </div>
+                </template>
+                <!-- Quick Card chips -->
+                <template x-if="themeType === 'quick_card'">
+                    <div class="contents">
+                        <button type="button" @click="sendQuickPrompt('Dodaj godziny otwarcia')"
+                                class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-400 hover:text-white transition">
+                            🕐 Godziny otwarcia
+                        </button>
+                        <button type="button" @click="sendQuickPrompt('Zmień opis moich usług')"
+                                class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-400 hover:text-white transition">
+                            🔧 Zmień usługi
+                        </button>
+                    </div>
+                </template>
                 <button type="button" @click="sendQuickPrompt('Zmień kolor akcentu na złoty')"
                         class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-400 hover:text-white transition">
                     🎨 Zmień styl
@@ -199,7 +237,7 @@
             <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-500/10 text-red-400 text-2xl">
                 ⚠️
             </div>
-            <h2 class="font-cinematic text-xl font-bold text-white mb-2">Brak dostępu do edycji</h2>
+            <h2 class="font-sans text-xl font-bold tracking-tight text-white mb-2">Brak dostępu do edycji</h2>
             <p class="text-zinc-400 text-xs sm:text-sm mb-6 leading-relaxed" x-text="authError"></p>
             <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <a href="/admin.html" class="w-full sm:w-auto inline-flex justify-center rounded-xl bg-brand-gold px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-black hover:bg-brand-goldHover transition">
@@ -225,6 +263,9 @@
                 publishing: false,
                 agentThinking: false,
                 refreshTimestamp: Date.now(),
+                iframeLoading: true,
+                chatCount: null,
+                chatLimit: 15,
                 toastMessage: '',
 
                 userInput: '',
@@ -248,7 +289,7 @@
                     this.pageSlug = params.get('site') || '';
 
                     if (!this.pageSlug) {
-                        alert('Brak parametru ?site= w adresie.');
+                        this.showToast('Brak parametru ?site= w adresie.');
                         window.location.href = '/kreator.html';
                         return;
                     }
@@ -295,6 +336,22 @@
                             } else {
                                 this.authError = 'Nie znaleziono strony lub nie jesteś jej właścicielem.';
                             }
+                        }
+
+                        // Pobierz limit i licznik czatu z profilu
+                        try {
+                            const { data: profile } = await client
+                                .from('billing_profiles')
+                                .select('agent_chat_count, agent_chat_month, plan')
+                                .eq('user_id', user.id)
+                                .maybeSingle();
+                            if (profile) {
+                                this.chatCount = profile.agent_chat_count || 0;
+                                const plan = profile.plan || 'trial';
+                                this.chatLimit = (plan === 'tier1' || plan === 'custom') ? 100 : (plan === 'tier0' ? 30 : 15);
+                            }
+                        } catch (quotaErr) {
+                            console.debug('[Studio] Quota load skipped:', quotaErr);
                         }
                     } catch (e) {
                         console.error('[Studio] Init error:', e);
@@ -349,7 +406,11 @@
                         }
 
                         // Odśwież podgląd iframe
+                        this.iframeLoading = true;
                         this.refreshTimestamp = Date.now();
+                        if (this.chatCount !== null) {
+                            this.chatCount += 1;
+                        }
                         this.showToast('Zaktualizowano podgląd witryny');
 
                     } catch (err) {
@@ -386,7 +447,7 @@
                         this.showToast('Strona została pomyślnie opublikowana na żywo! 🚀');
                     } catch (err) {
                         console.error('[Studio] Publish error:', err);
-                        alert('Błąd podczas publikacji: ' + (err.message || err));
+                        this.showToast('Błąd podczas publikacji: ' + (err.message || err));
                     } finally {
                         this.publishing = false;
                     }

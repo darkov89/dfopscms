@@ -237,7 +237,7 @@
         },
         { threshold: 0.05 }
       );
-      observer.observe(containerEl);
+      observer.observe(containerEl.parentElement || containerEl);
     }
 
     // Resize handler
