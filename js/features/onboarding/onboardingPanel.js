@@ -534,6 +534,7 @@
 
     /** Otwiera kreator gotowy do budowania (krok 1, wybrany szablon) — używane po samouczku. */
     app.openWizardForBuilding = function openWizardForBuilding() {
+      if (this.theme === 'custom') return;
       this.wizardStep = 1;
       this.wizardTheme = this.theme === 'setup' ? 'beauty' : (this.theme || 'beauty');
       this.wizardFieldWarning = '';
@@ -600,6 +601,11 @@
      * Nie auto-startuje touru — to robi dismissWelcomeModalAndStartOnboarding.
      */
     app.maybeResumeOnboardingAfterLoad = async function maybeResumeOnboardingAfterLoad() {
+      if (this.theme === 'custom') {
+        this.showWizard = false;
+        this.showWelcomeModal = false;
+        return;
+      }
       if (!this.pageId || !this.content?.pl?.settings) return;
 
       if (!this.isEmailVerified) {

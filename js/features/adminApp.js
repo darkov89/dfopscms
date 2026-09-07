@@ -2225,6 +2225,53 @@
             (workingRaw?.pl?.settings?.theme && String(workingRaw.pl.settings.theme).trim()) ||
             data.theme;
 
+          // Auto-adopcja strony AI Studio, jeśli powstała jako 'setup' przez trigger bazy danych
+          if (this.theme === 'setup') {
+            const pendingAiSlug = window.localStorage.getItem('dfops_pending_ai_slug');
+            const pendingDraftKey = 'dfops_pending_draft_' + data.slug;
+            const pendingDraftStr = window.localStorage.getItem(pendingDraftKey);
+            const isAiRegistered = this.user?.user_metadata?.theme === 'custom' || pendingAiSlug === data.slug || Boolean(pendingDraftStr);
+
+            if (isAiRegistered) {
+              const registry = window.DFOPS_customBlocksRegistry;
+              let draftToApply = null;
+              if (pendingDraftStr) {
+                try {
+                  draftToApply = JSON.parse(pendingDraftStr);
+                } catch (_) {}
+              }
+              if (!draftToApply && registry) {
+                const meta = this.user?.user_metadata || {};
+                const formData = meta.form_data || { name: data.slug };
+                const chosenType = meta.theme_type || 'cinematic';
+                draftToApply = chosenType === 'quick_card'
+                  ? registry.createInitialQuickCardState(formData)
+                  : registry.createInitialCinematicState(formData);
+              }
+              if (draftToApply) {
+                try {
+                  await repo.savePageByIdForOwner(this.user.id, data.id, {
+                    theme: 'custom',
+                    draft_content: draftToApply,
+                  });
+                  this.theme = 'custom';
+                  data.theme = 'custom';
+                  data.draft_content = draftToApply;
+                  if (pendingDraftStr) window.localStorage.removeItem(pendingDraftKey);
+                  window.localStorage.removeItem('dfops_pending_ai_slug');
+
+                  const returnTo = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('returnTo') : null;
+                  if (returnTo && returnTo.startsWith('/studio.html')) {
+                    window.location.href = returnTo;
+                    return;
+                  }
+                } catch (e) {
+                  console.warn('[Admin] Failed to auto-adopt AI Studio page:', e);
+                }
+              }
+            }
+          }
+
           /** Migawka opublikowanej wersji (kolumna `content`) — pod akcję „Odrzuć zmiany” (revert do produkcji). */
           this._publishedContentRaw = data.content ?? null;
           this._publishedTheme = data.theme;

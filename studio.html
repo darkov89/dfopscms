@@ -284,6 +284,26 @@
                     return `https://${this.pageSlug}.dfcms.pl/`;
                 },
 
+                async consumeAuthParamsFromUrl(client) {
+                    if (!client) return;
+                    try {
+                        const url = new URL(window.location.href);
+                        const code = url.searchParams.get('code');
+                        if (code) {
+                            const { error: exchangeErr } = await client.auth.exchangeCodeForSession(code);
+                            if (exchangeErr) {
+                                console.warn('[Studio] exchangeCodeForSession failed:', exchangeErr);
+                            } else {
+                                ['code', 'code_challenge', 'code_challenge_method', 'type'].forEach((k) => url.searchParams.delete(k));
+                                const qs = url.searchParams.toString();
+                                window.history.replaceState({}, document.title, url.pathname + (qs ? `?${qs}` : '') + url.hash);
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('[Studio] consumeAuthParamsFromUrl error:', e);
+                    }
+                },
+
                 async init() {
                     const params = new URLSearchParams(window.location.search);
                     this.pageSlug = params.get('site') || '';
@@ -298,7 +318,19 @@
                         const client = window.DFOPS_getSupabaseClient ? window.DFOPS_getSupabaseClient() : null;
                         if (!client) throw new Error('Brak klienta bazy danych.');
 
-                        const { data: { user } } = await client.auth.getUser();
+                        // 1. Obsługa tokenu jednorazowego PKCE z linku w wiadomości e-mail
+                        await this.consumeAuthParamsFromUrl(client);
+
+                        // 2. Pobranie aktywnego użytkownika
+                        let user = null;
+                        const { data: sessData } = await client.auth.getSession();
+                        if (sessData?.session?.user) {
+                            user = sessData.session.user;
+                        } else {
+                            const { data: userData } = await client.auth.getUser();
+                            user = userData?.user || null;
+                        }
+
                         if (!user) {
                             // Wymóg zalogowania do Studia — przekierowanie do formularza logowania w panelu
                             window.location.href = `/admin.html?returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}`;
@@ -306,7 +338,13 @@
                         }
                         this.currentUser = user;
 
+                        // 3. Współdzielenie sesji z iframe podglądu prywatnego
+                        if (typeof window.DFOPS_mirrorAuthForPreviewHandoff === 'function') {
+                            window.DFOPS_mirrorAuthForPreviewHandoff();
+                        }
+
                         const repo = window.DFOPS_pageRepository;
+                        const registry = window.DFOPS_customBlocksRegistry;
                         if (repo) {
                             const res = await repo.getPageBySlugForOwner(this.pageSlug);
                             if (res.error) throw res.error;
@@ -314,25 +352,53 @@
                                 this.pageRow = res.data;
                                 this.pageId = res.data.id;
 
-                                // Jeśli strona powstała przez trigger (theme: setup) lub brak draftu, a w localStorage jest szkic z kreatora:
+                                // Jeśli strona powstała przez trigger (theme: setup) lub brak draftu:
                                 const pendingDraftKey = `dfops_pending_draft_${this.pageSlug}`;
                                 const pendingDraftStr = localStorage.getItem(pendingDraftKey);
-                                if (pendingDraftStr && (!this.pageRow.draft_content || this.pageRow.theme === 'setup')) {
+                                let draftToApply = null;
+
+                                if (pendingDraftStr) {
                                     try {
-                                        const parsedDraft = JSON.parse(pendingDraftStr);
+                                        draftToApply = JSON.parse(pendingDraftStr);
+                                    } catch (e) {
+                                        console.warn('[Studio] Failed to parse pending draft JSON:', e);
+                                    }
+                                }
+
+                                // Fallback: jeśli brak w localStorage (np. link kliknięty na innym urządzeniu),
+                                // ale strona wymaga draftu (jest 'setup' lub nie ma draft_content):
+                                if (!draftToApply && (!this.pageRow.draft_content || this.pageRow.theme === 'setup')) {
+                                    if (registry) {
+                                        const meta = this.currentUser.user_metadata || {};
+                                        const formData = meta.form_data || { name: this.pageSlug };
+                                        const chosenType = meta.theme_type || 'cinematic';
+                                        draftToApply = chosenType === 'quick_card'
+                                            ? registry.createInitialQuickCardState(formData)
+                                            : registry.createInitialCinematicState(formData);
+                                    }
+                                }
+
+                                if (draftToApply && (!this.pageRow.draft_content || this.pageRow.theme === 'setup')) {
+                                    try {
                                         await repo.savePageByIdForOwner(this.currentUser.id, this.pageId, {
                                             theme: 'custom',
-                                            draft_content: parsedDraft,
+                                            draft_content: draftToApply,
                                         });
-                                        this.pageRow.draft_content = parsedDraft;
+                                        this.pageRow.draft_content = draftToApply;
                                         this.pageRow.theme = 'custom';
-                                        localStorage.removeItem(pendingDraftKey);
+                                        if (pendingDraftStr) localStorage.removeItem(pendingDraftKey);
+                                        localStorage.removeItem('dfops_pending_ai_slug');
                                     } catch (draftErr) {
-                                        console.warn('[Studio] Failed to apply pending draft from localStorage:', draftErr);
+                                        console.warn('[Studio] Failed to apply pending draft:', draftErr);
                                     }
                                 }
 
                                 this.themeType = this.pageRow.draft_content?.theme_type || this.pageRow.content?.theme_type || 'cinematic';
+
+                                // Ponowne odświeżenie mirrora autoryzacji podglądu
+                                if (typeof window.DFOPS_mirrorAuthForPreviewHandoff === 'function') {
+                                    window.DFOPS_mirrorAuthForPreviewHandoff();
+                                }
                             } else {
                                 this.authError = 'Nie znaleziono strony lub nie jesteś jej właścicielem.';
                             }
@@ -406,6 +472,9 @@
                         }
 
                         // Odśwież podgląd iframe
+                        if (typeof window.DFOPS_mirrorAuthForPreviewHandoff === 'function') {
+                            window.DFOPS_mirrorAuthForPreviewHandoff();
+                        }
                         this.iframeLoading = true;
                         this.refreshTimestamp = Date.now();
                         if (this.chatCount !== null) {

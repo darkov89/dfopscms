@@ -641,7 +641,7 @@
                 async init() {
                     try {
                         const urlParams = new URLSearchParams(window.location.search);
-                        const isPreview = urlParams.get('dfcms_preview') === '1';
+                        const isPreview = urlParams.get('dfcms_preview') === '1' || urlParams.get('draft') === '1';
                         const siteParam = urlParams.get('site');
                         const normalizeHostname = window.DFOPS_normalizeHostname || ((h) => (h || '').toLowerCase().replace(/^www\./, ''));
                         const hostname = normalizeHostname(window.location.hostname);
@@ -737,9 +737,10 @@
                         }
 
                         this.page = pageRow;
-                        const rawContent = (isPreview && isAuthenticatedPreview && pageRow.draft_content)
+                        const hasPublishedBlocks = Array.isArray(pageRow.content?.blocks) && pageRow.content.blocks.length > 0;
+                        const rawContent = (isPreview && pageRow.draft_content)
                             ? pageRow.draft_content
-                            : (pageRow.content || pageRow.draft_content || {});
+                            : (hasPublishedBlocks ? pageRow.content : (pageRow.draft_content || pageRow.content || {}));
 
                         this.content = rawContent;
                         this.themeType = rawContent.theme_type || 'cinematic';

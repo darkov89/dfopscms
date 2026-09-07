@@ -504,7 +504,21 @@
                                 email: this.authEmail.trim(),
                                 password: this.authPassword,
                                 options: {
-                                    data: { slug: safeSlug },
+                                    data: {
+                                        slug: safeSlug,
+                                        theme: 'custom',
+                                        theme_type: this.chosenType,
+                                        form_data: {
+                                            name: this.form.name || '',
+                                            role: this.form.role || '',
+                                            tagline: this.form.tagline || '',
+                                            video_url: this.form.video_url || '',
+                                            phone: this.form.phone || '',
+                                            city: this.form.city || '',
+                                            hours: this.form.hours || '',
+                                            services: this.form.services || '',
+                                        },
+                                    },
                                     captchaToken: turnstileToken || undefined,
                                     emailRedirectTo: origin ? `${origin}/studio.html?site=${encodeURIComponent(safeSlug)}` : undefined,
                                 },
@@ -539,6 +553,7 @@
                                         : registry.createInitialQuickCardState(this.form);
 
                                     localStorage.setItem(`dfops_pending_draft_${safeSlug}`, JSON.stringify(initialDraft));
+                                    localStorage.setItem('dfops_pending_ai_slug', safeSlug);
                                     this.pendingEmailConfirmation = true;
                                     this.loading = false;
                                     return;
