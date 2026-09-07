@@ -2085,18 +2085,51 @@
           return false;
         }
 
-        if (typeof window.DFOPS_buildNewSiteContent !== 'function') {
-          this.showError('Brak konfiguracji szablonów (registry).');
-          return false;
+        const meta = user.user_metadata || {};
+        const isAiStudio = meta.theme === 'custom' || localStorage.getItem('dfops_pending_ai_slug') === slug;
+        let insPayload = null;
+
+        if (isAiStudio) {
+          const registry = window.DFOPS_customBlocksRegistry;
+          const chosenType = meta.theme_type || 'cinematic';
+          const formData = meta.form_data || { name: slug };
+          let initialDraft = null;
+          const pendingDraftStr = localStorage.getItem(`dfops_pending_draft_${slug}`);
+          if (pendingDraftStr) {
+            try { initialDraft = JSON.parse(pendingDraftStr); } catch (_) {}
+          }
+          if (!initialDraft && registry) {
+            initialDraft = chosenType === 'quick_card'
+              ? registry.createInitialQuickCardState(formData)
+              : registry.createInitialCinematicState(formData);
+          }
+          if (initialDraft && initialDraft.pl && initialDraft.pl.settings) {
+            initialDraft.pl.settings.welcome_onboarding_completed = true;
+          }
+          insPayload = {
+            slug,
+            theme: 'custom',
+            color_preset: 'gold',
+            content: null,
+            draft_content: initialDraft,
+            user_id: user.id,
+          };
+        } else {
+          if (typeof window.DFOPS_buildNewSiteContent !== 'function') {
+            this.showError('Brak konfiguracji szablonów (registry).');
+            return false;
+          }
+          const content = window.DFOPS_buildNewSiteContent();
+          insPayload = {
+            slug,
+            theme: 'setup',
+            color_preset: content.pl.settings.color_preset,
+            content,
+            user_id: user.id,
+          };
         }
-        const content = window.DFOPS_buildNewSiteContent();
-        const { error: insErr } = await repo.createPage({
-          slug,
-          theme: 'setup',
-          color_preset: content.pl.settings.color_preset,
-          content,
-          user_id: user.id,
-        });
+
+        const { error: insErr } = await repo.createPage(insPayload);
         if (insErr) {
           const code = insErr.code || insErr?.code;
           if (code === '23505') {
@@ -2191,6 +2224,19 @@
                 return;
               }
               data = retry.data;
+              if (data?.theme === 'custom') {
+                const returnTo = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('returnTo') : null;
+                if (returnTo && returnTo.startsWith('/studio.html')) {
+                  window.location.href = returnTo;
+                  return;
+                }
+                const pendingAiSlug = localStorage.getItem('dfops_pending_ai_slug');
+                if (pendingAiSlug === data.slug) {
+                  localStorage.removeItem('dfops_pending_ai_slug');
+                  window.location.href = `/studio.html?site=${encodeURIComponent(data.slug)}`;
+                  return;
+                }
+              }
             }
             try {
               if (data?.id != null) {

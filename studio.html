@@ -338,16 +338,81 @@
                         }
                         this.currentUser = user;
 
+                        const repo = window.DFOPS_pageRepository;
+                        const registry = window.DFOPS_customBlocksRegistry;
+
+                        // Jeśli z jakiegoś powodu w URL zabrakło ?site=, spróbuj odzyskać slug z metadanych lub konta
+                        if (!this.pageSlug && user.user_metadata?.slug) {
+                            this.pageSlug = String(user.user_metadata.slug).trim().toLowerCase();
+                        }
+                        if (!this.pageSlug && repo) {
+                            try {
+                                const { data: userPages } = await repo.listCurrentUserPages(user.id);
+                                if (userPages && userPages.length > 0) {
+                                    this.pageSlug = userPages[0].slug;
+                                }
+                            } catch (_) {}
+                        }
+                        if (!this.pageSlug) {
+                            this.showToast('Brak przypisanego adresu strony w Twoim koncie.');
+                            window.location.href = '/kreator.html';
+                            return;
+                        }
+
                         // 3. Współdzielenie sesji z iframe podglądu prywatnego
                         if (typeof window.DFOPS_mirrorAuthForPreviewHandoff === 'function') {
                             window.DFOPS_mirrorAuthForPreviewHandoff();
                         }
 
-                        const repo = window.DFOPS_pageRepository;
-                        const registry = window.DFOPS_customBlocksRegistry;
                         if (repo) {
-                            const res = await repo.getPageBySlugForOwner(this.pageSlug);
+                            let res = await repo.getPageBySlugForOwner(this.pageSlug);
                             if (res.error) throw res.error;
+
+                            // RESILIENT AUTO-CREATION:
+                            // Jeśli strona nie istnieje jeszcze w bazie (np. brak triggera lub opóźnienie rejestracji),
+                            // sprawdź czy bieżący użytkownik jest jej prawowitym właścicielem i utwórz ją w locie:
+                            if (!res.data) {
+                                const meta = this.currentUser.user_metadata || {};
+                                const regSlug = meta.slug ? String(meta.slug).trim().toLowerCase() : '';
+                                const pendingSlug = (localStorage.getItem('dfops_pending_ai_slug') || '').trim().toLowerCase();
+                                const isEligible = regSlug === this.pageSlug || pendingSlug === this.pageSlug || !regSlug;
+
+                                if (isEligible) {
+                                    console.info('[Studio] Page not in DB yet; auto-creating from registration state for slug:', this.pageSlug);
+                                    const pendingDraftKey = `dfops_pending_draft_${this.pageSlug}`;
+                                    const pendingDraftStr = localStorage.getItem(pendingDraftKey);
+                                    let draftToApply = null;
+                                    if (pendingDraftStr) {
+                                        try { draftToApply = JSON.parse(pendingDraftStr); } catch (_) {}
+                                    }
+                                    const chosenType = meta.theme_type || 'cinematic';
+                                    const formData = meta.form_data || { name: this.pageSlug };
+                                    if (!draftToApply && registry) {
+                                        draftToApply = chosenType === 'quick_card'
+                                            ? registry.createInitialQuickCardState(formData)
+                                            : registry.createInitialCinematicState(formData);
+                                    }
+                                    if (draftToApply && draftToApply.pl && draftToApply.pl.settings) {
+                                        draftToApply.pl.settings.welcome_onboarding_completed = true;
+                                    }
+                                    const { data: newPage, error: createErr } = await repo.createPage({
+                                        slug: this.pageSlug,
+                                        theme: 'custom',
+                                        color_preset: 'gold',
+                                        content: null,
+                                        draft_content: draftToApply,
+                                        user_id: this.currentUser.id,
+                                    });
+                                    if (newPage && !createErr) {
+                                        res = { data: newPage, error: null };
+                                        if (pendingDraftStr) localStorage.removeItem(pendingDraftKey);
+                                        localStorage.removeItem('dfops_pending_ai_slug');
+                                    } else {
+                                        console.warn('[Studio] Auto-create page returned error:', createErr);
+                                    }
+                                }
+                            }
+
                             if (res.data) {
                                 this.pageRow = res.data;
                                 this.pageId = res.data.id;
