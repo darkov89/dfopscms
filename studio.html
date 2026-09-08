@@ -794,20 +794,27 @@
                         if (!client) throw new Error('Brak połączenia z API.');
 
                         // Wywołanie Edge Function chat-site-agent
+                        const cleanHistory = (this.messages || [])
+                            .filter(m => !m.text?.startsWith('Przepraszam, wystąpił problem') && !m.text?.startsWith('Odczekaj chwilę'))
+                            .slice(-6);
+
                         const { data, error } = await client.functions.invoke('chat-site-agent', {
                             body: {
                                 pageId: this.pageId,
                                 message: text,
-                                history: this.messages.slice(-6),
+                                history: cleanHistory,
                             },
                         });
 
                         if (error || !data || data.error) {
                             let detailedError = data?.error;
-                            if (!detailedError && error?.context && typeof error.context.json === 'function') {
+                            if (data?.details) {
+                                detailedError = `${detailedError} (${data.details})`;
+                            } else if (!detailedError && error?.context && typeof error.context.json === 'function') {
                                 try {
                                     const body = await error.context.json();
                                     detailedError = body?.error || body?.message;
+                                    if (body?.details) detailedError += ` (${body.details})`;
                                 } catch (_) {}
                             }
                             throw new Error(detailedError || error?.message || 'Nie udało się wykonać polecenia.');

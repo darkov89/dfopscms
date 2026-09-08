@@ -6,7 +6,7 @@ import { buildCorsHeadersForRequest } from "../_shared/allowedOrigins.ts";
 declare const Deno: { env: { get: (k: string) => string | undefined } };
 
 const DEFAULT_MODEL = "gemini-2.5-flash";
-const GEMINI_TIMEOUT_MS = 25_000;
+const GEMINI_TIMEOUT_MS = 40_000;
 const RATE_LIMIT_MS = 30_000;
 
 const corsHeadersBase: Record<string, string> = {
@@ -64,7 +64,7 @@ const PALETTE_COLORS: Record<string, string> = {
 // Import wspólnych domyślnych danych bloków (jedne źródło prawdy dla Edge Functions)
 import { BLOCK_DEFAULTS } from "../_shared/customBlockDefaults.ts";
 
-// Definicje narzędzi Gemini (Function Calling)
+// Definicje narzędzi Gemini (Function Calling) zgodne z OpenAPI 3.0
 const AGENT_TOOLS = [
   {
     functionDeclarations: [
@@ -76,7 +76,7 @@ const AGENT_TOOLS = [
           properties: {
             blockId: { type: "STRING", description: "Identyfikator bloku (np. hero_cinematic, projects_grid, contact_1)" },
             path: { type: "STRING", description: "Ścieżka do pola w danych bloku (np. phone, title, subtitle, video_url, showreel_url, tagline, email, city, place_query)" },
-            value: { description: "Nowa wartość tekstowa, URL lub tablica/obiekt" },
+            value: { type: "STRING", description: "Nowa wartość tekstowa, URL lub tablica/obiekt w formacie JSON" },
           },
           required: ["blockId", "path", "value"],
         },
@@ -91,7 +91,32 @@ const AGENT_TOOLS = [
             items: {
               type: "ARRAY",
               description: "Nowa tablica elementów zgodna ze schematem pozycji danego bloku",
-              items: { type: "OBJECT" },
+              items: {
+                type: "OBJECT",
+                description: "Pojedynczy element listy",
+                properties: {
+                  title: { type: "STRING", description: "Tytuł elementu" },
+                  desc: { type: "STRING", description: "Opis elementu" },
+                  subtitle: { type: "STRING", description: "Podtytuł" },
+                  icon: { type: "STRING", description: "Ikona (bolt, star, check, clock itp.)" },
+                  price: { type: "STRING", description: "Cena lub koszt" },
+                  unit: { type: "STRING", description: "Jednostka" },
+                  featured: { type: "BOOLEAN", description: "Wyróżniony" },
+                  question: { type: "STRING", description: "Pytanie FAQ" },
+                  answer: { type: "STRING", description: "Odpowiedź FAQ" },
+                  value: { type: "STRING", description: "Wartość liczbowa lub tekstowa statystyki" },
+                  label: { type: "STRING", description: "Etykieta statystyki" },
+                  number: { type: "STRING", description: "Numer wskaźnika" },
+                  url: { type: "STRING", description: "Adres URL" },
+                  author_name: { type: "STRING", description: "Autor opinii" },
+                  rating: { type: "NUMBER", description: "Ocena (1-5)" },
+                  text: { type: "STRING", description: "Treść opinii lub tekstu" },
+                  time_description: { type: "STRING", description: "Czas publikacji" },
+                  image_url: { type: "STRING", description: "URL zdjęcia" },
+                  caption: { type: "STRING", description: "Podpis" },
+                  duration: { type: "STRING", description: "Czas trwania usługi" },
+                },
+              },
             },
           },
           required: ["blockId", "items"],
@@ -114,7 +139,17 @@ const AGENT_TOOLS = [
             heading: { type: "STRING", description: "Tytuł/nagłówek nowo dodawanej sekcji" },
             initialData: {
               type: "OBJECT",
-              description: "Opcjonalne początkowe dane bloku nadpisujące wartości domyślne (np. items, phone, address itp.)",
+              description: "Opcjonalne początkowe dane bloku nadpisujące wartości domyślne",
+              properties: {
+                phone: { type: "STRING", description: "Numer telefonu" },
+                email: { type: "STRING", description: "Adres e-mail" },
+                address: { type: "STRING", description: "Adres fizyczny" },
+                city: { type: "STRING", description: "Miasto" },
+                heading: { type: "STRING", description: "Nagłówek" },
+                subtitle: { type: "STRING", description: "Podtytuł" },
+                place_query: { type: "STRING", description: "Nazwa firmy w Google" },
+                booking_url: { type: "STRING", description: "Link do rezerwacji" },
+              },
             },
           },
           required: ["blockType"],
@@ -386,7 +421,7 @@ ${JSON.stringify(currentDesign, null, 2)}
 AKTUALNY STAN STRONY (BLOKI):
 ${JSON.stringify(draft.blocks, null, 2)}`;
 
-    // 3. Konstrukcja zapytania do Gemini API z deduplikacją historii
+    // 3. Konstrukcja zapytania do Gemini API z deduplikacją i sanityzacją historii
     const contents: any[] = [];
     const historySlice = chatHistory.slice(-8);
 
@@ -401,13 +436,28 @@ ${JSON.stringify(draft.blocks, null, 2)}`;
 
     for (const h of historySlice) {
       const text = String(h.text || "").trim();
-      if ((h.role === "user" || h.role === "model") && text) {
+      if (!text) continue;
+      // Odrzuć komunikaty błędów z historii, aby nie zanieczyszczały kontekstu modelu
+      if (
+        text.startsWith("Przepraszam, wystąpił problem") ||
+        text.startsWith("Odczekaj chwilę") ||
+        text.includes("błąd serwera") ||
+        text.includes("429")
+      ) {
+        continue;
+      }
+      if (h.role === "user" || h.role === "model") {
         if (contents.length > 0 && contents[contents.length - 1].role === h.role) {
           contents[contents.length - 1].parts[0].text += `\n${text}`;
         } else {
           contents.push({ role: h.role, parts: [{ text }] });
         }
       }
+    }
+
+    // Upewnij się, że pierwszy element w contents ma rolę "user" (bezwzględny wymóg wieloturowego Gemini API)
+    while (contents.length > 0 && contents[0].role !== "user") {
+      contents.shift();
     }
 
     // Ostatnia tura musi być użytkownikiem z bieżącą wiadomością
@@ -442,7 +492,10 @@ ${JSON.stringify(draft.blocks, null, 2)}`;
     if (!geminiRes.ok) {
       const errText = await geminiRes.text();
       console.error("[chat-site-agent] Gemini error:", geminiRes.status, errText);
-      return jsonResponse(cors, { error: "Błąd komunikacji z AI" }, 502);
+      return jsonResponse(cors, {
+        error: `Błąd komunikacji z modelem AI (${geminiRes.status})`,
+        details: errText.slice(0, 300),
+      }, 502);
     }
 
     const geminiData = await geminiRes.json();
@@ -462,7 +515,7 @@ ${JSON.stringify(draft.blocks, null, 2)}`;
         executedTools.push(name);
 
         if (name === "update_block_data") {
-          const { blockId, path, value } = args;
+          const { blockId, path, value } = args || {};
           const targetBlock = draft.blocks.find((b: any) => b.id === blockId);
           if (targetBlock) {
             if (!targetBlock.data) targetBlock.data = {};
@@ -583,7 +636,7 @@ ${JSON.stringify(draft.blocks, null, 2)}`;
             draftChanged = true;
           }
         } else if (name === "remove_block") {
-          const { blockId } = args;
+          const { blockId } = args || {};
           const lenBefore = draft.blocks.length;
           draft.blocks = draft.blocks.filter((b: any) => b.id !== blockId);
           if (draft.blocks.length !== lenBefore) draftChanged = true;
@@ -679,8 +732,18 @@ ${JSON.stringify(draft.blocks, null, 2)}`;
       draft_content: draft,
       executedTools,
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error("[chat-site-agent] Exception:", err);
-    return jsonResponse(cors, { error: "Wystąpił nieoczekiwany błąd serwera." }, 500);
+    const isAbort = err?.name === "AbortError" || String(err?.message || "").includes("aborted");
+    if (isAbort) {
+      return jsonResponse(cors, {
+        error: "Czas oczekiwania na odpowiedź AI minął (timeout). Spróbuj ponownie za chwilę.",
+      }, 504);
+    }
+    const errMsg = err?.message || String(err);
+    return jsonResponse(cors, {
+      error: "Wystąpił błąd po stronie asystenta AI.",
+      details: errMsg.slice(0, 300),
+    }, 500);
   }
 });
