@@ -471,5 +471,49 @@ test('getSafeMapEmbedUrl: nowy adres wygrywa ze starym embedem Poznania', () => 
   assert.equal(loc.insertedBlock.data.map_embed_url, '', 'Domyślny blok nie wkleja sztywnego embedu Poznania');
 });
 
+// 22. Sanityzacja treści (pageRepository.sanitizeContent) nie niszczy struktury bloków
+test('pageRepository.sanitizeContent zachowuje id, type i treść bloków', async () => {
+  const { default: pageRepo } = await import('../js/core/pageRepository.js');
+  assert.equal(typeof pageRepo.sanitizeContent, 'function');
+
+  const draft = registry.createInitialCinematicState({ name: 'Studio Test' });
+  const sanitized = pageRepo.sanitizeContent(draft);
+
+  assert.ok(Array.isArray(sanitized.blocks), 'Bloki muszą pozostać tablicą');
+  assert.ok(sanitized.blocks.length >= 4, 'Szkielet musi mieć co najmniej 4 bloki');
+  for (const block of sanitized.blocks) {
+    assert.ok(block.id && typeof block.id === 'string', 'Każdy blok musi mieć zachowane id');
+    assert.ok(block.type && typeof block.type === 'string', 'Każdy blok musi mieć zachowany type');
+    assert.ok(block.data && typeof block.data === 'object', 'Każdy blok musi mieć zachowany obiekt data');
+  }
+
+  // Weryfikacja usunięcia niebezpiecznych tagów bez niszczenia zwykłego tekstu
+  const maliciousBlock = {
+    id: 'block_x',
+    type: 'trust_stats',
+    data: {
+      heading: 'Liczby <script>alert(1)</script>',
+      items: [{ value: '100+', label: 'Klientów' }]
+    }
+  };
+  const sanitizedMalicious = pageRepo.sanitizeContent(maliciousBlock);
+  assert.equal(sanitizedMalicious.type, 'trust_stats');
+  assert.ok(!sanitizedMalicious.data.heading.includes('<script>'), 'Tag script musi zostać usunięty');
+  assert.ok(sanitizedMalicious.data.heading.includes('Liczby'), 'Zwykły tekst musi ocaleć');
+});
+
+// 23. custom.html zawiera awaryjne generowanie bloków (resilient fallback)
+test('templates/custom.html posiada mechanizm fallbacku na wypadek pustych bloków', () => {
+  const customHtml = readFileSync(path.join(root, 'templates/custom.html'), 'utf8');
+  assert.ok(
+    customHtml.includes('hasHeroBlock'),
+    'custom.html weryfikuje obecność sekcji głównej hasHeroBlock'
+  );
+  assert.ok(
+    customHtml.includes('createInitialCinematicState'),
+    'custom.html generuje awaryjny stan w przypadku pustego draftu'
+  );
+});
+
 console.log(`\n${passed} tests passed successfully!`);
 

@@ -33,6 +33,7 @@
     </script>
     <link rel="stylesheet" href="/css/styles.css?v=20260906b">
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/js/core/utils.js?v=20260906b"></script>
     <script src="/js/core/platformRouting.js?v=20260906b"></script>
@@ -589,20 +590,44 @@
                                     }
                                 }
 
+                                const existingBlocks = this.pageRow.draft_content?.blocks;
+                                const validExistingBlocks = Array.isArray(existingBlocks)
+                                    ? existingBlocks.filter(b => b && typeof b.type === 'string' && b.type.trim() !== '')
+                                    : [];
+                                const hasHeroBlock = validExistingBlocks.some(b => b.type === 'cinematic_hero' || b.type === 'quick_hero');
+                                const needsDraftInit = !this.pageRow.draft_content || this.pageRow.theme === 'setup' || !hasHeroBlock;
+
                                 // Fallback: jeśli brak w localStorage (np. link kliknięty na innym urządzeniu),
-                                // ale strona wymaga draftu (jest 'setup' lub nie ma draft_content):
-                                if (!draftToApply && (!this.pageRow.draft_content || this.pageRow.theme === 'setup')) {
+                                // ale strona wymaga draftu (jest 'setup', brak draft_content lub brak sekcji głównej):
+                                if (!draftToApply && needsDraftInit) {
                                     if (registry) {
                                         const meta = this.currentUser.user_metadata || {};
                                         const formData = meta.form_data || { name: this.pageSlug };
-                                        const chosenType = meta.theme_type || 'cinematic';
+                                        const chosenType = this.pageRow.draft_content?.theme_type || meta.theme_type || 'cinematic';
                                         draftToApply = chosenType === 'quick_card'
                                             ? registry.createInitialQuickCardState(formData)
                                             : registry.createInitialCinematicState(formData);
+
+                                        // Zachowaj istniejące settings jeśli były:
+                                        if (this.pageRow.draft_content?.pl?.settings) {
+                                            draftToApply.pl = draftToApply.pl || {};
+                                            draftToApply.pl.settings = { ...draftToApply.pl.settings, ...this.pageRow.draft_content.pl.settings };
+                                        }
+
+                                        // Jeśli w drafcie użytkownik/agent dodał już inne sekcje (np. google_reviews, pricing_tiers itp.),
+                                        // zachowaj je i dołącz do wygenerowanego szkieletu:
+                                        if (validExistingBlocks.length > 0) {
+                                            const baseBlockTypes = new Set(draftToApply.blocks.map(b => b.type));
+                                            for (const existingBlock of validExistingBlocks) {
+                                                if (!baseBlockTypes.has(existingBlock.type)) {
+                                                    draftToApply.blocks.push(existingBlock);
+                                                }
+                                            }
+                                        }
                                     }
                                 }
 
-                                if (draftToApply && (!this.pageRow.draft_content || this.pageRow.theme === 'setup')) {
+                                if (draftToApply && needsDraftInit) {
                                     try {
                                         await repo.savePageByIdForOwner(this.currentUser.id, this.pageId, {
                                             theme: 'custom',

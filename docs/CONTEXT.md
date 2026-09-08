@@ -409,6 +409,22 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
    - `scripts/test-ai-act-rodo-compliance.mjs`: wymogi EU AI Act Art. 50 (informacja o AI w `studio.html`, klauzula w `regulamin.html`, badge `⚡ Stworzono w DFCMS AI` w `custom.html`, Undo/Redo human-in-the-loop), wymogi RODO (minimalizacja danych w schematach, retencja/purge w cronie i edge `expire-trial-pages`, prawa w `polityka.html`).
    - Pełny pakiet `npm test`: 77 testów (9 zestawów) ze statusem PASS.
 
+### 2026-09-08 — Naprawa Live Preview w AI Studio: Bezpieczna Sanityzacja (Anti-Wipe) & Resilient Fallback
+
+1. **Root Cause piaszczystego/czarnego podglądu (Zero Blocks Rendered):**
+   - `templates/custom.html`, `studio.html` oraz `kreator.html` nie ładowały skryptu DOMPurify (`purify.min.js`).
+   - W `js/core/pageRepository.js`, funkcja `sanitizeHtml` w przypadku braku DOMPurify zwracała pusty string `""` (fail-closed).
+   - Na skutek tego, każde wywołanie `sanitizeContent` (w `savePageByIdForOwner`, `getPageForAuthenticatedPreview`, `getPageBySlug`) czyściło wszystkie właściwości tekstowe (`id: ""`, `type: ""`, `heading: ""`, `siteTitle: ""`), uniemożliwiając dopasowanie szablonów `<template x-if="block.type === '...'">` w Alpine.js.
+2. **Bezpieczna Sanityzacja (Non-Destructive Anti-Wipe):**
+   - `pageRepository.js`: Zwykły tekst bez tagów HTML (`!/[<>]/.test(trimmed)`) jest natychmiast zwracany nienaruszony.
+   - W przypadku obecności tagów pod nieobecność DOMPurify, tagi są bezpiecznie usuwane wyrażeniem regularnym (`trimmed.replace(/<[^>]*>?/gm, '')`) zamiast niszczenia całego tekstu.
+   - Dodano skrypt DOMPurify (`https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js`) do `templates/custom.html`, `studio.html`, `kreator.html` oraz `setup.html`.
+3. **Resilient Fallback & Healing Bloków:**
+   - `studio.html`: Dodano detekcję braku sekcji głównej (`!hasHeroBlock`) lub pustych bloków w drafcie. Jeśli strona nie posiada prawidłowych bloków (np. po rejestracji przez trigger z pustym `draft_content` lub po uszkodzeniu), generowany jest pełny stan początkowy z zachowaniem dodanych wcześniej sekcji (np. `google_reviews`) i zapisywany w bazie.
+   - `templates/custom.html`: Dodano mechanizm awaryjnego uzupełniania brakujących bloków (`hasHeroBlock`), dzięki czemu ani w trybie podglądu, ani na żywej witrynie użytkownik nie zobaczy pustego czarnego ekranu.
+4. **Weryfikacja testami (`npm test`):**
+   - Rozszerzono `scripts/test-custom-blocks.mjs` o testy weryfikujące, że `pageRepository.sanitizeContent` nie niszczy struktury bloków oraz że `custom.html` posiada mechanizm fallbacku.
+
 ### 2026-09-07 — AI Studio Fala 0: Katalog Komponentów (Klocków), Deterministyczny Lokalny insertBlock, Obsługa Błędów Edge
 
 1. **Obsługa błędów Edge (`studio.html`):**

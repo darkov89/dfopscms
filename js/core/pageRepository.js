@@ -1,8 +1,16 @@
-;(function () {
-  const normalizeHostname = window.DFOPS_normalizeHostname;
+;(function (root, factory) {
+  if (typeof module === 'object' && module.exports) {
+    module.exports = factory(root);
+  } else {
+    root.DFOPS_pageRepository = factory(root);
+  }
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (root) {
+  'use strict';
+  root = root || {};
+  const normalizeHostname = root.DFOPS_normalizeHostname;
 
   function supabase() {
-    return window.DFOPS_getSupabaseClient();
+    return typeof root.DFOPS_getSupabaseClient === 'function' ? root.DFOPS_getSupabaseClient() : null;
   }
 
   /**
@@ -266,11 +274,15 @@
       return isSafeUrlForAttr('src', trimmed) ? trimmed : '';
     }
 
-    const purifier = window.DOMPurify;
+    // Bezpieczny tekst bez żadnych tagów HTML: nie niszcz danych jeśli to zwykły tekst
+    if (!/[<>]/.test(trimmed)) {
+      return trimmed;
+    }
+
+    const purifier = typeof window !== 'undefined' ? window.DOMPurify : null;
     if (!purifier || typeof purifier.sanitize !== 'function') {
-      // Fail-closed: bez DOMPurify nie renderujemy HTML (tylko pusty string),
-      // aby nie dopuścić do XSS przy brakującej bibliotece.
-      return '';
+      // Bezpieczny fallback bez DOMPurify: usuń tagi HTML zamiast czyścić do pustego stringa
+      return trimmed.replace(/<[^>]*>?/gm, '');
     }
 
     // Hooki są globalne, więc rejestrujemy je tylko raz.
@@ -337,7 +349,7 @@
       return obj.map((x) => sanitizeContent(x, childHint));
     }
     if (typeof obj === 'object') {
-      if (keyHint === 'subscription' && typeof window.DFOPS_stripBillingFromContentSubscription === 'function') {
+      if (keyHint === 'subscription' && typeof window !== 'undefined' && typeof window.DFOPS_stripBillingFromContentSubscription === 'function') {
         return window.DFOPS_stripBillingFromContentSubscription(obj);
       }
       const out = {};
@@ -677,7 +689,7 @@
     return { data: sanitizePageRow(data), error };
   }
 
-  window.DFOPS_pageRepository = {
+  return {
     getPageBySlug,
     getPageForAuthenticatedPreview,
     getDraftContentForOwner,
@@ -695,6 +707,8 @@
     savePageByIdForSuperadmin,
     createPage,
     sanitizeHtml,
+    sanitizeContent,
+    sanitizePageRow,
   };
-})();
+});
 

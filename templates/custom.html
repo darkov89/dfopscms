@@ -38,6 +38,7 @@
     </script>
     <link rel="stylesheet" href="/css/styles.css?v=20260906c">
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/js/core/utils.js?v=20260906c"></script>
     <script src="/js/core/platformRouting.js?v=20260906c"></script>
@@ -1268,6 +1269,32 @@
                         this.themeType = rawContent.theme_type || 'cinematic';
                         this.blocks = Array.isArray(rawContent.blocks) ? rawContent.blocks : [];
                         this.pageSlug = pageRow?.slug || currentSlug || '';
+
+                        const validLoadedBlocks = this.blocks.filter(b => b && typeof b.type === 'string' && b.type.trim() !== '');
+                        const hasHeroBlock = validLoadedBlocks.some(b => b.type === 'cinematic_hero' || b.type === 'quick_hero');
+
+                        if (!hasHeroBlock) {
+                            const registry = window.DFOPS_customBlocksRegistry;
+                            if (registry) {
+                                console.warn('[CustomSite] No valid hero block found in content or draft; generating fallback initial blocks for slug:', this.pageSlug);
+                                const formData = { name: this.pageSlug || 'DFCMS' };
+                                const initialState = (this.themeType === 'quick_card')
+                                    ? registry.createInitialQuickCardState(formData)
+                                    : registry.createInitialCinematicState(formData);
+                                if (initialState?.blocks?.length) {
+                                    const baseBlockTypes = new Set(initialState.blocks.map(b => b.type));
+                                    for (const extra of validLoadedBlocks) {
+                                        if (!baseBlockTypes.has(extra.type)) {
+                                            initialState.blocks.push(extra);
+                                        }
+                                    }
+                                    this.blocks = initialState.blocks;
+                                    this.content.blocks = initialState.blocks;
+                                }
+                            }
+                        } else {
+                            this.blocks = validLoadedBlocks;
+                        }
 
                         // Trial blocking check (14 dni okresu próbnego)
                         const shouldBlock = typeof window.DFOPS_shouldBlockPublicPageView === 'function'
