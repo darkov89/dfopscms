@@ -2250,6 +2250,7 @@
             }
           }
           this.pageId = data.id;
+          this.rawDraftContent = data.draft_content && typeof data.draft_content === 'object' ? data.draft_content : null;
           this.slug = data.slug;
           this.impersonatedPageOwnerId = this.isImpersonating ? (data.user_id || null) : null;
           this.trialBlockedAt = data.trial_blocked_at ?? null;
@@ -2444,6 +2445,30 @@
         if (!getSwitchableTemplateIds().includes(id)) return;
         if (this.theme === id) return;
 
+        if (id === 'custom') {
+          const confirmedCustom = await this.confirmAsync({
+            title: 'Przejść do AI Studio?',
+            message:
+              'Zamiast formularzy panelu będziesz edytować stronę w czacie z Agentem AI. Zabierzemy nazwę firmy i dane kontaktowe z obecnej strony — nie musisz wpisywać ich od zera. Opublikowana wersja zmieni się dopiero gdy w Studio klikniesz „Opublikuj na żywo”.',
+            yesLabel: 'Tak, otwórz Studio',
+            noLabel: 'Nie',
+          });
+          if (!confirmedCustom) return;
+          try {
+            const { error } = await this.saveActivePage({ theme: 'custom' });
+            if (error) throw error;
+            this.showTemplateSwitcher = false;
+            this.message = 'Przechodzę do AI Studio…';
+            setTimeout(() => {
+              window.location.href = '/studio.html?site=' + encodeURIComponent(this.slug || '');
+            }, 400);
+          } catch (e) {
+            console.error(e);
+            this.showError('Nie udało się przełączyć na AI Studio.');
+          }
+          return;
+        }
+
         const savedAiContext =
           typeof window.DFOPS_aiBusinessContext?.buildDefaultAiContext === 'function'
             ? window.DFOPS_aiBusinessContext.buildDefaultAiContext(this.content?.pl?.settings)
@@ -2484,6 +2509,12 @@
           return;
         }
         try {
+          const handoffRules = window.DFOPS_studioHandoffRules;
+          const handoffSource = handoffRules
+            ? handoffRules.pickHandoffSource(this.content, this.rawDraftContent, this._publishedContentRaw)
+            : this.content;
+          const handoff = handoffRules ? handoffRules.extractHandoffAnswers(handoffSource) : null;
+
           const savedContact = JSON.parse(JSON.stringify(this.content?.pl?.contact || {}));
           const savedLogo = this.content?.pl?.nav?.logo ?? '';
           const savedLogoImage = this.content?.pl?.nav?.logoImage ?? '';
@@ -2509,6 +2540,9 @@
           if (!merged.pl.nav) merged.pl.nav = {};
           merged.pl.nav.logo = savedLogo;
           merged.pl.nav.logoImage = savedLogoImage;
+          if (handoff && handoffRules && typeof handoffRules.applyHandoffToClassicContent === 'function') {
+            handoffRules.applyHandoffToClassicContent(merged, handoff);
+          }
           if (merged.pl.settings) {
             merged.pl.settings.subscription = {
               ...(merged.pl.settings.subscription || {}),
@@ -2541,8 +2575,18 @@
           this.enforceQuickChatForStarter();
           this.applyThemeStylingFromContent();
 
-          const ok = await this.saveData({ silentSuccess: true });
-          if (!ok) return;
+          if (this.content.pl.settings) this.content.pl.settings.theme = this.theme;
+          if (typeof this.prepareContentForPersist === 'function') {
+            this.prepareContentForPersist();
+          }
+          const { error: switchErr } = await this.saveActivePage({
+            theme: id,
+            draft_content: this.content,
+          });
+          if (switchErr) {
+            this.showError('Nie udało się zapisać zmiany szablonu.');
+            return;
+          }
 
           this.showTemplateSwitcher = false;
           clearWizardStateFromStorage(this.slug);
@@ -3266,6 +3310,8 @@
       /** Migawka opublikowanej treści (kolumna `content`) — pod „Odrzuć zmiany”. */
       _publishedContentRaw: null,
       _publishedTheme: '',
+      /** Surowe `draft_content` z bazy (bloki Studio) — handoff przy zmianie motywu. */
+      rawDraftContent: null,
 
       googleReviewsPlaceInput: '',
       googleReviewsPlaceResults: [],

@@ -41,6 +41,7 @@
     <script defer src="/js/core/supabaseClient.js?v=20260906b"></script>
     <script defer src="/js/core/pageRepository.js?v=20260906b"></script>
     <script defer src="/js/core/customBlocksRegistry.js?v=20260907a"></script>
+    <script defer src="/js/core/studioHandoffRules.js?v=20260908a"></script>
     <script defer src="/js/core/customThemeRules.js?v=20260908a"></script>
     <script defer src="/js/core/studioDraftHistoryRules.js?v=20260908a"></script>
     <script defer src="/js/features/studio/studioDraftManager.js?v=20260908a"></script>
@@ -627,11 +628,21 @@
                                 if (!draftToApply && needsDraftInit) {
                                     if (registry) {
                                         const meta = this.currentUser.user_metadata || {};
-                                        const formData = meta.form_data || { name: this.pageSlug };
-                                        const chosenType = this.pageRow.draft_content?.theme_type || meta.theme_type || 'cinematic';
-                                        draftToApply = chosenType === 'quick_card'
-                                            ? registry.createInitialQuickCardState(formData)
-                                            : registry.createInitialCinematicState(formData);
+                                        const handoffRules = window.DFOPS_studioHandoffRules;
+                                        const source = handoffRules
+                                            ? handoffRules.pickHandoffSource(this.pageRow.draft_content, this.pageRow.content, null)
+                                            : (this.pageRow.draft_content || this.pageRow.content);
+                                        const extracted = handoffRules ? handoffRules.extractHandoffAnswers(source) : {};
+                                        const formData = Object.assign({ name: this.pageSlug }, meta.form_data || {});
+                                        Object.keys(extracted).forEach(function (k) {
+                                            if (extracted[k]) formData[k] = extracted[k];
+                                        });
+                                        const chosenType = handoffRules
+                                            ? handoffRules.preferredStudioKind(source, this.pageRow.theme)
+                                            : (this.pageRow.draft_content?.theme_type || meta.theme_type || 'cinematic');
+                                        draftToApply = chosenType === 'cinematic'
+                                            ? registry.createInitialCinematicState(formData)
+                                            : registry.createInitialQuickCardState(formData);
 
                                         // Zachowaj istniejące settings jeśli były:
                                         if (this.pageRow.draft_content?.pl?.settings) {
@@ -989,6 +1000,7 @@
                         // Zapis przez savePageByIdForOwner — z pełną sanityzacją treści!
                         const saveRes = await repo.savePageByIdForOwner(this.currentUser.id, this.pageId, {
                             content: res.data.draft_content,
+                            theme: 'custom',
                         });
 
                         if (saveRes.error) throw saveRes.error;

@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-09-08 — AI Studio: odrzucanie zmian per-message (snapshot), theming klocków wizytówki (resolveThemeType), separacja WhatsApp FAB i watermark badge (safe-area + bottom-left), mobile UX (hamburger menu w headerze, responsywna ramka podglądu)
+**Ostatnia aktualizacja:** 2026-09-08 — Handoff custom ↔ szablon (kontakt/nazwa) + kreator bez `billing_plan` na INSERT (42501)
 
 ---
 
@@ -408,6 +408,12 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
    - `scripts/test-security-compliance.mjs`: audyt CSP (`object-src 'none'`, `frame-ancestors`, `connect-src` Supabase/Stripe), ochrona przed Prototype Pollution (`customBlocksRegistry`), izolacja zablokowanych tenantów (`trialBlocking`).
    - `scripts/test-ai-act-rodo-compliance.mjs`: wymogi EU AI Act Art. 50 (informacja o AI w `studio.html`, klauzula w `regulamin.html`, badge `⚡ Stworzono w DFCMS AI` w `custom.html`, Undo/Redo human-in-the-loop), wymogi RODO (minimalizacja danych w schematach, retencja/purge w cronie i edge `expire-trial-pages`, prawa w `polityka.html`).
    - Pełny pakiet `npm test`: 77 testów (9 zestawów) ze statusem PASS.
+
+### 2026-09-08 — Handoff Studio ↔ szablon branżowy i 42501 na `pages`
+
+1. **Access denied przy powrocie do AI Studio (`kreator.html`):** INSERT klienta wysyłał `billing_plan: 'trial'`, a GRANT authenticated na `pages` **nie obejmuje** tej kolumny (`protect_pages_billing_columns` / migracja `20260805120000`) — Postgres 42501. Usunięto pole z INSERT (trigger i tak ustawia `trial`). Własna strona o tym samym slugu jest **konwertowana UPDATE-em** (beauty→custom), zamiast wymuszać nowy slug i drugi INSERT.
+2. **Utrata danych przy zmianie motywu:** `js/core/studioHandoffRules.js` mapuje telefon/e-mail/nazwę/miasto między `pl.*` a blokami Studio. Panel: custom → szablon nakłada handoff na kontakt/logo; szablon → „Strona AI” ustawia `pages.theme` i otwiera Studio, które seeduje draft z istniejącego kontaktu (nie z placeholderów „Jan Kowalski”).
+3. **Testy:** `scripts/test-studio-handoff-rules.mjs` (`npm run test:studio-handoff`).
 
 ### 2026-09-08 — AI Studio: Odrzucanie Zmian per Message, Theming Wizytówki (resolveThemeType), Separacja WhatsApp/Watermark & Mobile UX
 

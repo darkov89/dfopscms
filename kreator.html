@@ -42,6 +42,7 @@
     <script defer src="/js/core/supabaseClient.js?v=20260906b"></script>
     <script defer src="/js/core/pageRepository.js?v=20260906b"></script>
     <script defer src="/js/core/customBlocksRegistry.js?v=20260906b"></script>
+    <script defer src="/js/core/studioHandoffRules.js?v=20260908a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 
     <style>
@@ -359,11 +360,36 @@
                                 const adoptable = this.userPages.find(p => p.theme === 'setup' || (p.theme === 'custom' && !p.content));
                                 if (adoptable && !this.slug && (this.fromWizard || this.userPages.length === 1)) {
                                     this.slug = adoptable.slug;
+                                } else if (!this.slug && this.userPages.length === 1) {
+                                    this.slug = this.userPages[0].slug;
                                 }
+                                this.prefillFormFromExistingPage();
                             }
                         }
                     } catch (e) {
                         console.debug('[Wizard] Auth check failed:', e);
+                    }
+                },
+
+                prefillFormFromExistingPage() {
+                    const rules = window.DFOPS_studioHandoffRules;
+                    if (!rules || !this.userPages.length) return;
+                    const match = (this.slug && this.userPages.find(p => p.slug === this.slug)) || (this.userPages.length === 1 ? this.userPages[0] : null);
+                    if (!match) return;
+                    const source = rules.pickHandoffSource(match.draft_content, match.content, null);
+                    const h = rules.extractHandoffAnswers(source);
+                    if (h.name && !this.form.name) this.form.name = h.name;
+                    if (h.business_name && !this.form.business_name) this.form.business_name = h.business_name;
+                    if (h.role && !this.form.role) this.form.role = h.role;
+                    if (h.specialty && !this.form.specialty) this.form.specialty = h.specialty;
+                    if (h.tagline && !this.form.tagline) this.form.tagline = h.tagline;
+                    if (h.phone && !this.form.phone) this.form.phone = h.phone;
+                    if (h.email && !this.form.email) this.form.email = h.email;
+                    if (h.city && !this.form.city) this.form.city = h.city;
+                    if (h.hours && !this.form.hours) this.form.hours = h.hours;
+                    if (h.video_url && !this.form.video_url) this.form.video_url = h.video_url;
+                    if (rules.preferredStudioKind(source, match.theme) === 'cinematic') {
+                        this.chosenType = 'cinematic';
                     }
                 },
 
@@ -418,17 +444,10 @@
                     if (!s) { this.slugStatus = 'idle'; return false; }
                     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(s)) { this.slugStatus = 'invalid'; return false; }
 
-                    // Ochrona istniejących stron zalogowanego użytkownika
+                    // Własny slug (dowolny motyw) — konwersja w miejscu, nie nowa strona
                     if (this.currentUser && Array.isArray(this.userPages)) {
-                        const activeExisting = this.userPages.find(p => p.slug === s && p.theme !== 'setup' && (p.theme !== 'custom' || p.content));
-                        if (activeExisting) {
-                            this.slugStatus = 'taken';
-                            this.errorMessage = `Adres "${s}" należy do Twojej aktywnej strony (${activeExisting.theme}). Wybierz inny adres dla nowej strony.`;
-                            return false;
-                        }
-
-                        const adoptable = this.userPages.find(p => p.slug === s && (p.theme === 'setup' || (p.theme === 'custom' && !p.content)));
-                        if (adoptable) {
+                        const own = this.userPages.find(p => p.slug === s);
+                        if (own) {
                             this.slugStatus = 'available';
                             this.errorMessage = '';
                             return true;
@@ -581,25 +600,25 @@
 
                         const allPages = Array.isArray(userPages) ? userPages : [];
 
-                        // Ochrona aktywnej strony branżowej (nie nadpisujemy aktywnej strony innym motywem)
-                        const activeConflict = allPages.find(p => p.slug === safeSlug && p.theme !== 'setup' && (p.theme !== 'custom' || p.content));
-                        if (activeConflict) {
-                            throw new Error(`Adres "${safeSlug}" należy do Twojej aktywnej strony (${activeConflict.theme}). Wybierz inny adres subdomeny dla nowej strony.`);
-                        }
-
-                        // Sprawdzenie, czy możemy zaadoptować istniejący rekord:
-                        // 1. Jeśli użytkownik ma już wiersz o dokładnie takim samym slugu (i nie jest to inna aktywna strona)
                         const pageWithSameSlug = allPages.find(p => p.slug === safeSlug);
-
-                        // 2. Jeśli użytkownik ma nieukończony rekord setup/pusty custom:
-                        // Adoptujemy go TYLKO gdy przyszedł z kreatora panelu (from=wizard) lub gdy nowy slug jest identyczny ze starym
                         const unconfiguredSetup = allPages.find(p => p.theme === 'setup' || (p.theme === 'custom' && !p.content));
                         const canAdoptSetup = unconfiguredSetup && (this.fromWizard || unconfiguredSetup.slug === safeSlug);
-
                         const targetPageToUpdate = pageWithSameSlug || (canAdoptSetup ? unconfiguredSetup : null);
 
+                        function throwPageWriteError(err) {
+                            if (!err) return;
+                            if (err.code === '23505') {
+                                throw new Error('Ten adres strony (.dfcms.pl) jest już zajęty. Wybierz inną nazwę.');
+                            }
+                            const msg = String(err.message || '');
+                            if (err.code === '42501' || /permission denied|access denied/i.test(msg)) {
+                                throw new Error('Nie udało się zapisać strony (odmowa zapisu w bazie). W panelu wybierz motyw „Strona AI” albo spróbuj ponownie na tym samym adresie subdomeny.');
+                            }
+                            throw err;
+                        }
+
                         if (targetPageToUpdate) {
-                            // Zaktualizuj istniejący rekord (jeśli np. zmienił się slug lub konfiguracja z 'setup' na 'custom')
+                            // Konwersja własnej strony (także beauty→custom) — bez INSERT i bez billing_plan
                             const { error: updErr } = await client
                                 .from('pages')
                                 .update({
@@ -607,18 +626,12 @@
                                     theme: 'custom',
                                     color_preset: 'gold',
                                     draft_content: initialDraft,
-                                    content: null, // Tylko draft! Publikacja dopiero ręcznie w Studio
                                 })
                                 .eq('id', targetPageToUpdate.id);
 
-                            if (updErr) {
-                                if (updErr.code === '23505') {
-                                    throw new Error('Ten adres strony (.dfcms.pl) jest już zajęty. Wybierz inną nazwę.');
-                                }
-                                throw updErr;
-                            }
+                            throwPageWriteError(updErr);
                         } else {
-                            // Utwórz nowy rekord
+                            // Nowy rekord: NIE wysyłaj billing_plan — GRANT authenticated tego zabrania (42501)
                             const { error: insertErr } = await client
                                 .from('pages')
                                 .insert({
@@ -627,16 +640,10 @@
                                     theme: 'custom',
                                     color_preset: 'gold',
                                     draft_content: initialDraft,
-                                    content: null, // Nie publikujemy demo z góry
-                                    billing_plan: 'trial',
+                                    content: null,
                                 });
 
-                            if (insertErr) {
-                                if (insertErr.code === '23505') {
-                                    throw new Error('Ten adres strony (.dfcms.pl) jest już zajęty. Wybierz inną nazwę.');
-                                }
-                                throw insertErr;
-                            }
+                            throwPageWriteError(insertErr);
                         }
 
                         // 4. Przejście do Studio Edycji AI

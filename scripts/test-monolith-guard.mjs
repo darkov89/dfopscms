@@ -122,7 +122,7 @@ test('Moduły w js/features (onboarding, billing, growth) eksportują funkcje at
 
 // 5. Czystość logiki domenowej w js/core/
 test('Moduły reguł w js/core/ (wizardRules, aiBusinessContext) są czyste (brak odwołań do Alpine/DOM)', () => {
-  const coreFiles = ['js/core/wizardRules.js', 'js/core/aiBusinessContext.js', 'js/core/trialBlocking.js'];
+  const coreFiles = ['js/core/wizardRules.js', 'js/core/aiBusinessContext.js', 'js/core/trialBlocking.js', 'js/core/studioHandoffRules.js'];
 
   for (const file of coreFiles) {
     const filePath = path.join(root, file);
