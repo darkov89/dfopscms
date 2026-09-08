@@ -50,6 +50,7 @@
     <script defer src="/js/core/trialBlocking.js?v=20260906c"></script>
     <script defer src="/js/core/siteAnalytics.js?v=20260906c"></script>
     <script defer src="/js/core/customBlocksRegistry.js?v=20260906c"></script>
+    <script defer src="/js/core/customThemeRules.js?v=20260908a"></script>
     <script defer src="/js/features/custom-site/cinematicFx.js?v=20260906c"></script>
     <script defer src="/js/features/cookieConsentApp.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.13.3/dist/cdn.min.js"></script>
@@ -145,13 +146,15 @@
 
     <!-- Main Navigation Bar -->
     <header x-show="dataLoaded && !loadError"
-            :class="isCinematic ? 'bg-black/60 border-white/10' : 'bg-white/90 border-slate-200'"
+            :class="isCinematic ? 'bg-black/80 border-white/10' : 'bg-white/95 border-slate-200'"
             class="sticky top-0 z-40 backdrop-blur-xl border-b transition-colors duration-300">
-        <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-            <a href="#top" class="font-bold tracking-tight text-lg sm:text-xl flex items-center gap-2">
-                <span :class="isCinematic ? 'font-cinematic text-white' : 'font-display text-slate-900'" x-text="siteTitle"></span>
+        <div class="mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4">
+            <a href="#top" class="font-bold tracking-tight text-base sm:text-xl flex items-center gap-2 max-w-[200px] sm:max-w-md truncate">
+                <span :class="isCinematic ? 'font-cinematic text-white' : 'font-display text-slate-900'" class="truncate" x-text="siteTitle"></span>
             </a>
-            <nav class="flex items-center gap-5 sm:gap-8 text-xs sm:text-sm font-medium">
+
+            <!-- Desktop Nav -->
+            <nav class="hidden sm:flex items-center gap-6 sm:gap-8 text-xs sm:text-sm font-medium">
                 <template x-if="hasBlock('projects_grid')">
                     <a href="#projekty" :class="isCinematic ? 'text-zinc-400 hover:text-brand-gold' : 'text-slate-600 hover:text-black'" class="transition">Realizacje</a>
                 </template>
@@ -167,6 +170,61 @@
                     Kontakt
                 </a>
             </nav>
+
+            <!-- Mobile Nav Trigger & Compact Contact -->
+            <div class="flex sm:hidden items-center gap-2">
+                <a href="#kontakt"
+                   :class="isCinematic ? 'bg-brand-gold text-black font-bold' : 'bg-slate-900 text-white font-semibold'"
+                   class="rounded-full px-3 py-1.5 text-[11px] uppercase tracking-wider transition shadow-sm">
+                    Kontakt
+                </a>
+                <button type="button" @click="mobileMenuOpen = !mobileMenuOpen"
+                        :class="isCinematic ? 'text-zinc-300 hover:text-white bg-white/5' : 'text-slate-700 hover:text-black bg-slate-100'"
+                        class="p-2 rounded-xl border border-transparent transition"
+                        aria-label="Menu nawigacji"
+                        :aria-expanded="mobileMenuOpen ? 'true' : 'false'">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path x-show="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        <path x-show="mobileMenuOpen" x-cloak stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Dropdown Menu -->
+        <div x-show="mobileMenuOpen" x-cloak
+             @click.outside="mobileMenuOpen = false"
+             @keydown.window.escape="mobileMenuOpen = false"
+             x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0 -translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             :class="isCinematic ? 'bg-black/95 border-b border-white/10 text-white' : 'bg-white/98 border-b border-slate-200 text-slate-900 shadow-xl'"
+             class="sm:hidden px-6 py-4 space-y-3 backdrop-blur-2xl">
+            <template x-if="hasBlock('projects_grid')">
+                <a href="#projekty" @click="mobileMenuOpen = false" class="block py-1.5 text-sm font-medium" :class="isCinematic ? 'text-zinc-300 hover:text-brand-gold' : 'text-slate-700 hover:text-black'">Realizacje</a>
+            </template>
+            <template x-if="hasBlock('awards_strip')">
+                <a href="#nagrody" @click="mobileMenuOpen = false" class="block py-1.5 text-sm font-medium" :class="isCinematic ? 'text-zinc-300 hover:text-brand-gold' : 'text-slate-700 hover:text-black'">Wyróżnienia</a>
+            </template>
+            <template x-if="hasBlock('key_features')">
+                <a href="#atuty" @click="mobileMenuOpen = false" class="block py-1.5 text-sm font-medium" :class="isCinematic ? 'text-zinc-300 hover:text-brand-gold' : 'text-slate-700 hover:text-black'">O ofercie</a>
+            </template>
+            <template x-if="hasBlock('services_list')">
+                <a href="#uslugi" @click="mobileMenuOpen = false" class="block py-1.5 text-sm font-medium" :class="isCinematic ? 'text-zinc-300 hover:text-brand-gold' : 'text-slate-700 hover:text-black'">Usługi</a>
+            </template>
+            <template x-if="hasBlock('pricing_tiers')">
+                <a href="#cennik" @click="mobileMenuOpen = false" class="block py-1.5 text-sm font-medium" :class="isCinematic ? 'text-zinc-300 hover:text-brand-gold' : 'text-slate-700 hover:text-black'">Cennik</a>
+            </template>
+            <template x-if="hasBlock('faq_accordion') || hasBlock('faq_simple')">
+                <a href="#faq" @click="mobileMenuOpen = false" class="block py-1.5 text-sm font-medium" :class="isCinematic ? 'text-zinc-300 hover:text-brand-gold' : 'text-slate-700 hover:text-black'">FAQ</a>
+            </template>
+            <div class="pt-2 border-t" :class="isCinematic ? 'border-white/10' : 'border-slate-100'">
+                <a href="#kontakt" @click="mobileMenuOpen = false"
+                   :class="isCinematic ? 'bg-brand-gold text-black hover:bg-brand-goldHover font-bold' : 'bg-slate-900 text-white hover:bg-slate-800 font-semibold'"
+                   class="block text-center rounded-xl py-2.5 text-xs uppercase tracking-wider shadow-sm transition">
+                    Przejdź do kontaktu
+                </a>
+            </div>
         </div>
     </header>
 
@@ -354,22 +412,27 @@
 
                 <!-- 6. QUICK HERO (WIZYTÓWKA) -->
                 <template x-if="block.type === 'quick_hero'">
-                    <section class="px-6 py-20 text-center bg-gradient-to-b from-amber-50/60 to-white">
-                        <div class="mx-auto max-w-3xl space-y-6">
+                    <section class="px-4 py-12 sm:px-6 sm:py-20 text-center transition-colors"
+                             :class="isCinematic ? 'bg-[#050505] text-white' : 'bg-gradient-to-b from-amber-50/60 to-white text-slate-900'">
+                        <div class="mx-auto max-w-3xl space-y-5 sm:space-y-6">
                             <span x-show="block.data.badge"
-                                  class="inline-flex rounded-full bg-emerald-100 px-3.5 py-1 text-xs font-bold text-emerald-800 tracking-wide"
+                                  class="inline-flex rounded-full px-3.5 py-1 text-xs font-bold tracking-wide"
+                                  :class="isCinematic ? 'bg-brand-gold/15 text-brand-gold border border-brand-gold/30' : 'bg-emerald-100 text-emerald-800'"
                                   x-text="block.data.badge"></span>
-                            <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight"
+                            <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight break-words"
+                                :class="isCinematic ? 'font-cinematic text-white' : 'font-display text-slate-900'"
                                 x-text="block.data.title"></h1>
-                            <p class="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto"
+                            <p class="text-base sm:text-xl max-w-2xl mx-auto leading-relaxed"
+                               :class="isCinematic ? 'text-zinc-300 font-light' : 'text-slate-600'"
                                x-text="block.data.subtitle"></p>
                             <p x-show="block.data.city"
-                               class="text-sm font-semibold uppercase tracking-wider text-slate-400"
+                               class="text-xs sm:text-sm font-semibold uppercase tracking-wider"
+                               :class="isCinematic ? 'text-zinc-500' : 'text-slate-400'"
                                x-text="'Obszar działania: ' + block.data.city"></p>
-                            <div class="pt-4 flex flex-wrap items-center justify-center gap-4">
+                            <div class="pt-4 flex flex-col sm:flex-row w-full sm:w-auto items-stretch sm:items-center justify-center gap-3">
                                 <a :href="'tel:' + (block.data.phone || '').replace(/\s+/g, '')"
                                    @click="onConversionClick('phone_click', 'contact')"
-                                   class="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-7 py-4 text-base font-bold text-white shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition transform hover:-translate-y-0.5">
+                                   class="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-gold px-7 py-3.5 sm:py-4 text-sm sm:text-base font-bold text-black shadow-lg shadow-brand-gold/20 hover:bg-brand-goldHover transition transform hover:-translate-y-0.5 w-full sm:w-auto">
                                     <svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                                     <span x-text="block.data.cta_primary_text || 'Zadzwoń teraz'"></span>
                                 </a>
@@ -377,7 +440,7 @@
                                     <a :href="'https://wa.me/' + (block.data.whatsapp || '').replace(/[^0-9]/g, '')"
                                        @click="onConversionClick('whatsapp_click', 'hero')"
                                        target="_blank" rel="noopener noreferrer"
-                                       class="inline-flex items-center gap-2 rounded-2xl bg-[#25D366] px-6 py-4 text-base font-bold text-white shadow-lg shadow-emerald-500/10 hover:bg-[#20bd5a] transition transform hover:-translate-y-0.5">
+                                       class="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#25D366] px-6 py-3.5 sm:py-4 text-sm sm:text-base font-bold text-white shadow-lg shadow-emerald-500/10 hover:bg-[#20bd5a] transition transform hover:-translate-y-0.5 w-full sm:w-auto">
                                         <svg aria-hidden="true" class="h-5 w-5 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.969.541 1.83.824 2.802.825l.006.001c3.179 0 5.767-2.586 5.768-5.766 0-3.18-2.587-5.767-5.78-5.767v-.046zm3.376 8.21c-.143.404-.712.744-1.026.791-.31.047-.714.074-2.255-.548-1.841-.741-3.029-2.607-3.12-2.729-.092-.122-.734-.979-.734-1.868 0-.889.467-1.326.634-1.505.166-.179.364-.224.485-.224.122 0 .243.002.349.007.112.005.263-.042.411.315.153.37.521 1.272.567 1.364.046.092.077.199.015.321-.061.122-.092.199-.184.305-.092.107-.194.239-.277.322-.092.091-.188.19-.081.373.107.183.476.786 1.022 1.272.703.626 1.296.82 1.48.911.183.092.29.076.398-.046.107-.122.459-.534.581-.718.122-.183.244-.153.411-.092.167.061 1.059.499 1.242.59.183.092.305.138.351.214.045.077.045.443-.098.847z"/></svg>
                                         <span x-text="block.data.cta_secondary_text || 'Napisz na WhatsApp'"></span>
                                     </a>
@@ -389,46 +452,73 @@
 
                 <!-- 7. KEY FEATURES (WIZYTÓWKA) -->
                 <template x-if="block.type === 'key_features'">
-                    <section id="atuty" class="mx-auto max-w-5xl px-6 py-16">
-                        <h2 class="text-2xl font-bold text-center text-slate-900 mb-10" x-text="block.data.heading || 'Dlaczego my?'"></h2>
-                        <div class="grid gap-6 sm:grid-cols-3">
-                            <template x-for="(item, idx) in (block.data.items || [])" :key="idx">
-                                <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition">
-                                    <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-800 font-bold">
-                                        ✓
+                    <section id="atuty" class="py-12 sm:py-20 px-4 sm:px-6 transition-colors"
+                             :class="isCinematic ? 'bg-[#0a0a0a]' : 'bg-white'">
+                        <div class="mx-auto max-w-5xl">
+                            <h2 class="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12"
+                                :class="isCinematic ? 'font-cinematic text-white' : 'font-display text-slate-900'"
+                                x-text="block.data.heading || 'Dlaczego my?'"></h2>
+                            <div class="grid gap-4 sm:gap-6 sm:grid-cols-3">
+                                <template x-for="(item, idx) in (block.data.items || [])" :key="idx">
+                                    <div class="rounded-2xl p-5 sm:p-6 transition border"
+                                         :class="isCinematic ? 'border-white/10 bg-white/[0.03] text-white hover:border-brand-gold/30 hover:bg-white/[0.06]' : 'border-slate-200 bg-slate-50/70 text-slate-900 shadow-sm hover:shadow-md'">
+                                        <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl font-bold"
+                                             :class="isCinematic ? 'bg-brand-gold/15 text-brand-gold' : 'bg-brand-gold/15 text-brand-gold'">
+                                            ✓
+                                        </div>
+                                        <h3 class="text-base font-bold"
+                                            :class="isCinematic ? 'text-white' : 'text-slate-900'"
+                                            x-text="item.title"></h3>
+                                        <p class="mt-2 text-sm leading-relaxed"
+                                           :class="isCinematic ? 'text-zinc-400' : 'text-slate-600'"
+                                           x-text="item.desc"></p>
                                     </div>
-                                    <h3 class="text-base font-bold text-slate-900" x-text="item.title"></h3>
-                                    <p class="mt-2 text-sm text-slate-600 leading-relaxed" x-text="item.desc"></p>
-                                </div>
-                            </template>
+                                </template>
+                            </div>
                         </div>
                     </section>
                 </template>
 
                 <!-- 8. QUICK CONTACT CARD (WIZYTÓWKA) -->
                 <template x-if="block.type === 'quick_contact_card'">
-                    <footer id="kontakt" class="bg-slate-50 border-t border-slate-200 px-6 py-16">
+                    <footer id="kontakt" class="px-4 py-12 sm:px-6 sm:py-20 border-t transition-colors"
+                            :class="isCinematic ? 'bg-[#050505] border-white/10' : 'bg-slate-50 border-slate-200'">
                         <div class="mx-auto max-w-4xl">
-                            <h2 class="text-2xl font-bold text-slate-900 text-center mb-8" x-text="block.data.heading || 'Kontakt'"></h2>
-                            <div class="rounded-2xl bg-white p-8 border border-slate-200 shadow-sm grid gap-6 sm:grid-cols-2">
+                            <h2 class="text-2xl sm:text-3xl font-bold text-center mb-8"
+                                :class="isCinematic ? 'font-cinematic text-white' : 'font-display text-slate-900'"
+                                x-text="block.data.heading || 'Kontakt'"></h2>
+                            <div class="rounded-2xl p-5 sm:p-8 border shadow-sm grid gap-6 sm:grid-cols-2"
+                                 :class="isCinematic ? 'bg-zinc-950 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900'">
                                 <div>
-                                    <h3 class="font-bold text-slate-900 text-lg" x-text="block.data.company_name"></h3>
-                                    <p class="text-sm text-slate-600 mt-1" x-text="block.data.address"></p>
-                                    <p class="text-sm text-slate-600 font-medium" x-text="block.data.city"></p>
-                                    <div class="mt-4 pt-4 border-t border-slate-100 space-y-2 text-sm">
-                                        <p><strong class="text-slate-900">Tel:</strong> <a :href="'tel:' + (block.data.phone || '').replace(/\s+/g, '')" @click="onConversionClick('phone_click', 'contact')" class="text-emerald-700 font-semibold" x-text="block.data.phone"></a></p>
-                                        <p x-show="block.data.email"><strong class="text-slate-900">E-mail:</strong> <a :href="'mailto:' + block.data.email" @click="onConversionClick('email_click', 'contact')" class="text-slate-700" x-text="block.data.email"></a></p>
+                                    <h3 class="font-bold text-lg"
+                                        :class="isCinematic ? 'text-white' : 'text-slate-900'"
+                                        x-text="block.data.company_name"></h3>
+                                    <p class="text-sm mt-1"
+                                       :class="isCinematic ? 'text-zinc-400' : 'text-slate-600'"
+                                       x-text="block.data.address"></p>
+                                    <p class="text-sm font-medium"
+                                       :class="isCinematic ? 'text-zinc-400' : 'text-slate-600'"
+                                       x-text="block.data.city"></p>
+                                    <div class="mt-4 pt-4 border-t space-y-2 text-sm"
+                                         :class="isCinematic ? 'border-white/10' : 'border-slate-100'">
+                                        <p><strong :class="isCinematic ? 'text-white' : 'text-slate-900'">Tel:</strong> <a :href="'tel:' + (block.data.phone || '').replace(/\s+/g, '')" @click="onConversionClick('phone_click', 'contact')" class="text-emerald-500 font-semibold hover:underline" x-text="block.data.phone"></a></p>
+                                        <p x-show="block.data.email"><strong :class="isCinematic ? 'text-white' : 'text-slate-900'">E-mail:</strong> <a :href="'mailto:' + block.data.email" @click="onConversionClick('email_click', 'contact')" :class="isCinematic ? 'text-zinc-300' : 'text-slate-700'" class="hover:underline" x-text="block.data.email"></a></p>
                                     </div>
                                 </div>
-                                <div class="border-t sm:border-t-0 sm:border-l sm:pl-8 border-slate-100 flex flex-col justify-between">
+                                <div class="border-t sm:border-t-0 sm:border-l sm:pl-8 flex flex-col justify-between"
+                                     :class="isCinematic ? 'border-white/10' : 'border-slate-100'">
                                     <div>
-                                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Godziny pracy</h4>
-                                        <pre class="font-sans text-sm text-slate-600 whitespace-pre-line leading-relaxed" x-text="block.data.hours"></pre>
+                                        <h4 class="text-xs font-bold uppercase tracking-wider mb-2"
+                                            :class="isCinematic ? 'text-zinc-500' : 'text-slate-400'">Godziny pracy</h4>
+                                        <pre class="font-sans text-sm whitespace-pre-line leading-relaxed"
+                                             :class="isCinematic ? 'text-zinc-300' : 'text-slate-600'"
+                                             x-text="block.data.hours"></pre>
                                     </div>
                                     <template x-if="block.data.booking_url">
                                         <div class="mt-6">
                                             <a :href="block.data.booking_url" target="_blank" rel="noopener noreferrer"
-                                               class="inline-flex w-full justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800 transition">
+                                               :class="isCinematic ? 'bg-brand-gold text-black hover:bg-brand-goldHover font-bold' : 'bg-slate-900 text-white hover:bg-slate-800 font-semibold'"
+                                               class="inline-flex w-full justify-center rounded-xl px-5 py-3 text-sm transition">
                                                 Umów wizytę online
                                             </a>
                                         </div>
@@ -441,7 +531,7 @@
 
                 <!-- 9. SIMPLE FAQ BLOCK -->
                 <template x-if="block.type === 'faq_simple'">
-                    <section class="mx-auto max-w-3xl px-6 py-16">
+                    <section :id="hasBlock('faq_accordion') ? 'faq-lista' : 'faq'" class="mx-auto max-w-3xl px-6 py-16">
                         <h2 class="text-2xl font-bold text-center mb-8" :class="isCinematic ? 'text-white' : 'text-slate-900'" x-text="block.data.heading || 'Częste pytania'"></h2>
                         <div class="space-y-4">
                             <template x-for="(faq, idx) in (block.data.items || [])" :key="idx">
@@ -486,7 +576,7 @@
 
                 <!-- 11. FAQ ACCORDION BLOCK -->
                 <template x-if="block.type === 'faq_accordion'">
-                    <section class="py-20 sm:py-28 px-6" :class="isCinematic ? 'bg-[#0a0a0a]' : 'bg-white'">
+                    <section id="faq" class="py-20 sm:py-28 px-6" :class="isCinematic ? 'bg-[#0a0a0a]' : 'bg-white'">
                         <div class="max-w-3xl mx-auto">
                             <h2 class="text-2xl sm:text-3xl font-bold text-center mb-12"
                                 :class="isCinematic ? 'font-cinematic text-white' : 'text-slate-900'"
@@ -516,7 +606,7 @@
 
                 <!-- 12. PRICING TIERS BLOCK -->
                 <template x-if="block.type === 'pricing_tiers'">
-                    <section class="py-20 sm:py-28 px-6" :class="isCinematic ? 'bg-[#0e0e0e]' : 'bg-gray-50'">
+                    <section id="cennik" class="py-20 sm:py-28 px-6" :class="isCinematic ? 'bg-[#0e0e0e]' : 'bg-gray-50'">
                         <div class="max-w-5xl mx-auto text-center">
                             <h2 class="text-2xl sm:text-3xl font-bold mb-3"
                                 :class="isCinematic ? 'font-cinematic text-white' : 'text-slate-900'"
@@ -607,7 +697,7 @@
 
                 <!-- 14. SERVICES LIST BLOCK -->
                 <template x-if="block.type === 'services_list'">
-                    <section class="py-20 sm:py-28 px-6 transition-colors" :class="isCinematic ? 'bg-[#0e0e0e]' : 'bg-gray-50'">
+                    <section id="uslugi" class="py-20 sm:py-28 px-6 transition-colors" :class="isCinematic ? 'bg-[#0e0e0e]' : 'bg-gray-50'">
                         <div class="max-w-4xl mx-auto">
                             <div class="text-center mb-12">
                                 <h2 class="text-2xl sm:text-3xl font-bold mb-3"
@@ -978,6 +1068,7 @@
     <div x-show="content" x-cloak>
         <div x-data="cookieConsent"
              x-show="showBanner"
+             x-init="$watch('showBanner', val => { if (val) document.body.classList.add('has-cookie-banner'); else document.body.classList.remove('has-cookie-banner'); }); if (showBanner) document.body.classList.add('has-cookie-banner');"
              x-transition.opacity.duration.500ms
              style="z-index: 2147483647 !important;"
              class="fixed bottom-0 left-0 right-0 w-full bg-white shadow-2xl border-t border-gray-200">
@@ -1017,9 +1108,10 @@
                 </div>
             </div>
         </div>
-    <!-- Floating WhatsApp FAB -->
+    <!-- Floating WhatsApp FAB (Nigdy nie koliduje z badge na lewej stronie) -->
     <div x-show="quickChatWhatsappNumber" x-cloak
-         class="fixed bottom-6 right-6 z-40">
+         class="fixed bottom-6 right-5 sm:right-6 z-40"
+         style="bottom: max(24px, env(safe-area-inset-bottom, 24px)); right: max(20px, env(safe-area-inset-right, 20px));">
         <a :href="'https://wa.me/' + quickChatWhatsappNumber"
            target="_blank" rel="noopener noreferrer"
            @click="onConversionClick('whatsapp_click', 'fab')"
@@ -1083,8 +1175,8 @@
                         <style>
                             .dfcms-badge {
                                 position: fixed !important;
-                                bottom: 16px !important;
-                                right: 16px !important;
+                                bottom: max(16px, env(safe-area-inset-bottom, 16px)) !important;
+                                left: max(16px, env(safe-area-inset-left, 16px)) !important;
                                 background: rgba(18, 18, 18, 0.92) !important;
                                 backdrop-filter: blur(8px) !important;
                                 -webkit-backdrop-filter: blur(8px) !important;
@@ -1100,7 +1192,7 @@
                                 text-decoration: none !important;
                                 z-index: 2147483647 !important;
                                 box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important;
-                                transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease !important;
+                                transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease !important;
                                 display: inline-flex !important;
                                 align-items: center !important;
                                 gap: 6px !important;
@@ -1110,6 +1202,10 @@
                                 background: #000 !important;
                                 border-color: rgba(212, 175, 55, 0.5) !important;
                                 transform: translateY(-2px) !important;
+                            }
+                            :host-context(body.has-cookie-banner) .dfcms-badge,
+                            body.has-cookie-banner .dfcms-badge {
+                                display: none !important;
                             }
                         </style>
                         <a href="https://dfcms.pl?ref=custom-ai" target="_blank" rel="noopener noreferrer" class="dfcms-badge" aria-label="Strona stworzona w technologii DFCMS AI">
@@ -1150,6 +1246,7 @@
                 themeType: 'cinematic',
                 siteTitle: 'DFCMS',
                 pageSlug: '',
+                mobileMenuOpen: false,
 
                 // Modal state (Video)
                 modalOpen: false,
@@ -1266,7 +1363,14 @@
                             : (hasPublishedBlocks ? pageRow.content : (pageRow.draft_content || pageRow.content || {}));
 
                         this.content = rawContent;
-                        this.themeType = rawContent.theme_type || 'cinematic';
+                        const themeRules = window.DFOPS_customThemeRules;
+                        const themeRes = themeRules
+                            ? themeRules.resolveThemeType(rawContent, pageRow)
+                            : { themeType: rawContent.theme_type || 'cinematic', healed: false };
+                        this.themeType = themeRes.themeType;
+                        if (themeRes.healed) {
+                            rawContent.theme_type = this.themeType;
+                        }
                         this.blocks = Array.isArray(rawContent.blocks) ? rawContent.blocks : [];
                         this.pageSlug = pageRow?.slug || currentSlug || '';
 

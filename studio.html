@@ -41,6 +41,9 @@
     <script defer src="/js/core/supabaseClient.js?v=20260906b"></script>
     <script defer src="/js/core/pageRepository.js?v=20260906b"></script>
     <script defer src="/js/core/customBlocksRegistry.js?v=20260907a"></script>
+    <script defer src="/js/core/customThemeRules.js?v=20260908a"></script>
+    <script defer src="/js/core/studioDraftHistoryRules.js?v=20260908a"></script>
+    <script defer src="/js/features/studio/studioDraftManager.js?v=20260908a"></script>
     <script defer src="/js/features/studio/studioCatalog.js?v=20260907a"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 
@@ -140,7 +143,7 @@
 
         <!-- Left / Center: Live Preview Iframe Container -->
         <div class="flex-1 bg-black/90 p-3 sm:p-6 flex items-center justify-center overflow-hidden transition-all duration-300">
-            <div :class="deviceMode === 'mobile' ? 'w-[390px] h-[844px] rounded-[48px] border-[10px] border-zinc-800 shadow-2xl overflow-hidden' : 'w-full h-full rounded-2xl border border-white/10 overflow-hidden shadow-2xl'"
+            <div :class="deviceMode === 'mobile' ? 'w-[375px] sm:w-[390px] max-w-[92vw] h-full max-h-[calc(100vh-5.5rem)] rounded-[40px] sm:rounded-[48px] border-[8px] sm:border-[10px] border-zinc-800 shadow-2xl overflow-hidden' : 'w-full h-full rounded-2xl border border-white/10 overflow-hidden shadow-2xl'"
                  class="transition-all duration-300 bg-black flex flex-col relative">
                 <!-- Preview Iframe Loading Overlay -->
                 <div x-show="iframeLoading" x-cloak
@@ -184,10 +187,32 @@
 
             <!-- Messages Stream -->
             <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs" id="dfcms-chat-messages">
-                <template x-for="(msg, idx) in messages" :key="idx">
+                <template x-for="(msg, idx) in messages" :key="msg.id || idx">
                     <div :class="msg.role === 'user' ? 'ml-auto bg-brand-gold text-black rounded-2xl rounded-br-sm' : 'mr-auto bg-white/5 border border-white/10 text-zinc-200 rounded-2xl rounded-bl-sm'"
                          class="max-w-[85%] p-3.5 leading-relaxed shadow-sm">
                         <p x-text="msg.text" class="whitespace-pre-wrap"></p>
+
+                        <!-- Akcja odrzucenia zmiany AI -->
+                        <div x-show="msg.hasChanges && !msg.rejected && !msg.stale" class="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between gap-2">
+                            <span class="text-[10px] text-zinc-400 font-medium">Sprawdź podgląd po lewej stronie</span>
+                            <button type="button" @click="rejectMessageDraft(msg)" :disabled="agentThinking || historySaving || publishing"
+                                    class="rounded-lg bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 px-2.5 py-1 text-[11px] font-semibold text-red-400 hover:text-red-300 transition flex items-center gap-1 shadow-sm disabled:opacity-50">
+                                <span aria-hidden="true">↩️</span>
+                                <span>Odrzuć tę zmianę</span>
+                            </button>
+                        </div>
+
+                        <!-- Status po odrzuceniu -->
+                        <div x-show="msg.rejected" class="mt-2 text-[10px] text-zinc-500 italic flex items-center gap-1">
+                            <span aria-hidden="true">↩️</span>
+                            <span>Ta zmiana została odrzucona</span>
+                        </div>
+
+                        <!-- Informacja jeśli zmiana została nadpisana inną akcją -->
+                        <div x-show="msg.stale" class="mt-2 text-[10px] text-zinc-500 italic flex items-center gap-1">
+                            <span aria-hidden="true">ℹ️</span>
+                            <span>Zmiana zastąpiona późniejszą akcją</span>
+                        </div>
                     </div>
                 </template>
 
@@ -642,7 +667,10 @@
                                     }
                                 }
 
-                                this.themeType = this.pageRow.draft_content?.theme_type || this.pageRow.content?.theme_type || 'cinematic';
+                                const themeRules = window.DFOPS_customThemeRules;
+                                this.themeType = themeRules
+                                    ? themeRules.resolveThemeType(this.pageRow.draft_content || this.pageRow.content, this.pageRow)
+                                    : (this.pageRow.draft_content?.theme_type || this.pageRow.content?.theme_type || 'cinematic');
 
                                 // Ponowne odświeżenie mirrora autoryzacji podglądu
                                 if (typeof window.DFOPS_mirrorAuthForPreviewHandoff === 'function') {
@@ -784,7 +812,20 @@
                     const text = this.userInput.trim();
                     if (!text || this.agentThinking || !this.pageId) return;
 
-                    this.messages.push({ role: 'user', text });
+                    const rules = window.DFOPS_studioDraftHistoryRules;
+                    const snapshotBefore = (rules && this.pageRow?.draft_content)
+                        ? rules.cloneDraft(this.pageRow.draft_content)
+                        : (this.pageRow?.draft_content ? JSON.parse(JSON.stringify(this.pageRow.draft_content)) : null);
+
+                    this.messages.push({
+                        id: `usr_${Date.now()}`,
+                        role: 'user',
+                        text,
+                        hasChanges: false,
+                        snapshotBefore: null,
+                        rejected: false,
+                        stale: false,
+                    });
                     this.userInput = '';
                     this.agentThinking = true;
                     this.scrollToBottom();
@@ -793,10 +834,11 @@
                         const client = window.DFOPS_getSupabaseClient ? window.DFOPS_getSupabaseClient() : null;
                         if (!client) throw new Error('Brak połączenia z API.');
 
-                        // Wywołanie Edge Function chat-site-agent
+                        // Wywołanie Edge Function chat-site-agent — minimalizacja payloadu (RODO / transfer)
                         const cleanHistory = (this.messages || [])
                             .filter(m => !m.text?.startsWith('Przepraszam, wystąpił problem') && !m.text?.startsWith('Odczekaj chwilę'))
-                            .slice(-6);
+                            .slice(-6)
+                            .map(m => ({ role: m.role || 'user', text: String(m.text || '') }));
 
                         const { data, error } = await client.functions.invoke('chat-site-agent', {
                             body: {
@@ -820,14 +862,31 @@
                             throw new Error(detailedError || error?.message || 'Nie udało się wykonać polecenia.');
                         }
 
-                        this.messages.push({
-                            role: 'model',
-                            text: data.reply || 'Wprowadziłem zmiany na stronie.',
-                        });
+                        const hasChanges = Boolean(data.draft_content && data.executedTools?.length);
+                        const aiMsg = rules
+                            ? rules.createAiMessage({
+                                text: data.reply || 'Wprowadziłem zmiany na stronie.',
+                                hasChanges,
+                                snapshotBefore,
+                            })
+                            : {
+                                id: `msg_${Date.now()}`,
+                                role: 'model',
+                                text: data.reply || 'Wprowadziłem zmiany na stronie.',
+                                hasChanges,
+                                snapshotBefore: hasChanges ? snapshotBefore : null,
+                                rejected: false,
+                                stale: false,
+                            };
+
+                        this.messages.push(aiMsg);
 
                         if (data.draft_content && this.pageRow) {
                             this.pushDraftSnapshot();
                             this.pageRow.draft_content = data.draft_content;
+                            if (data.draft_content.theme_type) {
+                                this.themeType = data.draft_content.theme_type;
+                            }
                         }
 
                         // Odśwież podgląd iframe
@@ -840,8 +899,13 @@
                     } catch (err) {
                         console.error('[Studio] Agent error:', err);
                         this.messages.push({
+                            id: `err_${Date.now()}`,
                             role: 'model',
                             text: 'Przepraszam, wystąpił problem: ' + (err.message || 'Spróbuj ponownie.'),
+                            hasChanges: false,
+                            snapshotBefore: null,
+                            rejected: false,
+                            stale: false,
                         });
                     } finally {
                         this.agentThinking = false;
@@ -955,6 +1019,9 @@
 
             if (typeof window.DFOPS_attachStudioCatalog === 'function') {
                 window.DFOPS_attachStudioCatalog(app);
+            }
+            if (typeof window.DFOPS_attachStudioDraftManager === 'function') {
+                window.DFOPS_attachStudioDraftManager(app);
             }
 
             return app;

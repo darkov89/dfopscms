@@ -58,6 +58,7 @@ const PALETTE_COLORS: Record<string, string> = {
   red: "#ef4444",
   purple: "#a855f7",
   amber: "#f59e0b",
+  warm_amber: "#f59e0b",
   clean_light: "#2563eb",
 };
 
@@ -168,12 +169,13 @@ const AGENT_TOOLS = [
       },
       {
         name: "update_design",
-        description: "Aktualizuje kolorystykę i styl wizualny strony.",
+        description: "Aktualizuje kolorystykę, motyw powierzchni i styl wizualny strony.",
         parameters: {
           type: "OBJECT",
           properties: {
-            palette: { type: "STRING", description: "Nazwa palety (np. dark_gold, dark_silver, clean_light)" },
-            accentColor: { type: "STRING", description: "Kod koloru akcentu (np. #D4AF37, #ef4444, #10b981)" },
+            palette: { type: "STRING", description: "Nazwa palety (np. dark_gold, dark_silver, emerald, cobalt, crimson, clean_light, warm_amber)" },
+            accentColor: { type: "STRING", description: "Kod koloru akcentu hex (np. #D4AF37, #ef4444, #10b981, #3b82f6, #f59e0b)" },
+            themeType: { type: "STRING", description: "Opcjonalna zmiana stylu powierzchni: 'quick_card' (jasna wizytówka / light) lub 'cinematic' (ciemny, elegancki klimat / dark)" },
           },
         },
       },
@@ -389,23 +391,33 @@ serve(async (req) => {
 
     // Przygotowanie promptu kontekstowego
     const currentDesign = draft.design || { palette: "dark_gold", accent_color: "#D4AF37" };
+    const currentThemeType = draft.theme_type || (draft.blocks?.some((b: any) => b?.type === 'quick_hero' || b?.type === 'quick_contact_card') ? 'quick_card' : 'cinematic');
+    const isQuickCard = currentThemeType === 'quick_card';
 
     const systemPrompt = `Jesteś profesjonalnym, autonomicznym Agentem DFCMS pełniącym rolę CMS-a strony użytkownika.
 Zarządzasz stroną w formacie blokowym (Zero-CMS Architecture).
+Bieżący motyw strony: ${currentThemeType} (${isQuickCard ? 'jasna wizytówka firmowa' : 'ciemny styl filmowy cinematic'}).
 
 ZASADY PRACY I INTERAKCJI:
 1. Zmieniaj TYLKO to, o co użytkownik prosi. NIGDY nie usuwaj ani nie zmieniaj innych sekcji ani stylów samowolnie.
 2. Gdy użytkownik prosi o zmianę treści, telefonu, wideo, kolejności lub kolorów, ZAWSZE wywołaj odpowiednie narzędzie (update_block_data, add_block, remove_block, update_design, reorder_blocks).
 3. Gdy użytkownik pyta ogólnie o zmianę stylu lub kolorystyki (np. "Zmień styl", "Zmień kolorystykę strony", "Jakie opcje polecasz?") i nie podał konkretnego koloru ani nazwy:
-   NIE zmieniaj stylu w ciemno. Zamiast tego przedstaw użytkownikowi w uprzejmej wiadomości 5 dopracowanych wariantów do wyboru:
-   1) 👑 Złoty luksus (czerń + złoto #D4AF37) — styl klasyczny
+   NIE zmieniaj stylu w ciemno. Zamiast tego przedstaw użytkownikowi w uprzejmej wiadomości 5 dopracowanych wariantów dopasowanych do obecnego motywu:
+   ${isQuickCard ? `1) 🔵 Nowoczesny błękit (czyste jasne tło + kobaltowy akcent #2563eb)
+   2) 🟢 Szmaragdowa świeżość (czyste jasne tło + zieleń #10b981)
+   3) 👑 Złoty prestiż (czyste jasne tło + złoty akcent #D4AF37)
+   4) 🟠 Ciepły bursztyn (czyste jasne tło + pomarańcz #f59e0b)
+   5) 🌙 Ciemny luksus (przełączenie na elegancki styl nocny / cinematic)` : `1) 👑 Złoty luksus (czerń + złoto #D4AF37) — styl klasyczny
    2) ⚪ Srebrny minimalizm (grafit + chłodne srebro #94a3b8)
    3) 🟢 Szmaragdowa elegancja (głęboka czerń + butelkowa zieleń #10b981)
    4) 🔵 Nowoczesny kobalt (czerń + neonowy błękit #3b82f6)
-   5) 🔴 Karmin filmowy (czerń + czerwień #ef4444)
+   5) ☀️ Jasna wizytówka (przełączenie na czysty styl dzienny / quick_card)`}
    Zapytaj krótko, który wariant wybiera lub jaki własny kolor preferuje.
-4. Gdy użytkownik wybierze wariant (np. "2", "srebrny", "chcę szmaragd", "niebieski", "czerwony", "zmień na złoty"):
-   ZAWSZE wywołaj narzędzie update_design z odpowiednim palette i accentColor (np. palette: "emerald", accentColor: "#10b981"), a w odpowiedzi potwierdź zmianę i zapytaj, jak podoba mu się ten klimat.
+4. Gdy użytkownik wybierze wariant lub poprosi o zmianę kolorystyki:
+   ZAWSZE wywołaj narzędzie update_design z odpowiednim palette i accentColor.
+   Jeśli użytkownik prosi o styl ciemny/nocny, przekaż themeType: "cinematic".
+   Jeśli użytkownik prosi o styl jasny/dzienny, przekaż themeType: "quick_card".
+   W odpowiedzi potwierdź zmianę i zapytaj, jak podoba mu się ten klimat.
 5. Gdy użytkownik prosi o dodanie sekcji (np. opinie google, cennik, usługi, formularz, mapa, statystyki, galeria):
    - Wybierz odpowiedni typ bloku z listy (google_reviews, trust_stats, services_list, booking_cta, location_map, gallery_grid, pricing_tiers, faq_accordion, testimonials_grid itp.).
    - Jeśli użytkownik podał już szczegóły (np. nazwę firmy, adres, telefon, pozycje), przekaż je w initialData lub zaktualizuj po dodaniu.
@@ -654,6 +666,9 @@ ${JSON.stringify(draft.blocks, null, 2)}`;
           }
           if (accent && /^#[0-9a-fA-F]{3,8}$/.test(accent)) {
             draft.design.accent_color = accent;
+          }
+          if (args?.themeType === "quick_card" || args?.themeType === "cinematic") {
+            draft.theme_type = args.themeType;
           }
           draftChanged = true;
         } else if (name === "reorder_blocks") {

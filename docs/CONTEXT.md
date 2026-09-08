@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-09-07 — AI Studio Fale 0–4 (katalog, 18 klocków, Places przez JWT usera, mapa z address)
+**Ostatnia aktualizacja:** 2026-09-08 — AI Studio: odrzucanie zmian per-message (snapshot), theming klocków wizytówki (resolveThemeType), separacja WhatsApp FAB i watermark badge (safe-area + bottom-left), mobile UX (hamburger menu w headerze, responsywna ramka podglądu)
 
 ---
 
@@ -408,6 +408,56 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
    - `scripts/test-security-compliance.mjs`: audyt CSP (`object-src 'none'`, `frame-ancestors`, `connect-src` Supabase/Stripe), ochrona przed Prototype Pollution (`customBlocksRegistry`), izolacja zablokowanych tenantów (`trialBlocking`).
    - `scripts/test-ai-act-rodo-compliance.mjs`: wymogi EU AI Act Art. 50 (informacja o AI w `studio.html`, klauzula w `regulamin.html`, badge `⚡ Stworzono w DFCMS AI` w `custom.html`, Undo/Redo human-in-the-loop), wymogi RODO (minimalizacja danych w schematach, retencja/purge w cronie i edge `expire-trial-pages`, prawa w `polityka.html`).
    - Pełny pakiet `npm test`: 77 testów (9 zestawów) ze statusem PASS.
+
+### 2026-09-08 — AI Studio: Odrzucanie Zmian per Message, Theming Wizytówki (resolveThemeType), Separacja WhatsApp/Watermark & Mobile UX
+
+1. **P0: Theming klocków wizytówki i samoleczenie motywu (`customThemeRules.js` & `templates/custom.html`):**
+   - Dodano czysty moduł `js/core/customThemeRules.js` z funkcją `resolveThemeType(content, pageRow)`:
+     - Jeśli `content.theme_type` istnieje, jest zachowywany.
+     - Jeśli brakuje `theme_type`, analizowana jest sekcja hero: obecność `quick_hero` / `quick_contact_card` automatycznie rozstrzyga na `'quick_card'` (zamiast błędnego fallbacku do czarnego tła `'cinematic'`), a obecność `cinematic_hero` na `'cinematic'`.
+   - W `templates/custom.html` usunięto problem "czarnej dziury" z ciemnoniebieskim tekstem `#0f172a` na `#0a0a0a`:
+     - Sekcje `quick_hero`, `key_features`, `quick_contact_card` otrzymały dynamiczne style w zależności od `isCinematic`:
+       - `quick_hero`: w trybie `quick_card` ma jasne tło (`bg-slate-50`), a w trybie `cinematic` ciemne tło (`bg-zinc-900 border-zinc-800`).
+       - `key_features`: w trybie `quick_card` posiada jasne tło z ciemnym tekstem nagłówka; w trybie `cinematic` posiada ciemne karty (`bg-zinc-900/80 border-zinc-800 text-white`).
+       - Przyciski CTA stosują dynamiczny akcent CSS `--brand-gold`.
+   - W `supabase/functions/chat-site-agent/index.ts`:
+     - Narzędzie `update_design` wspiera teraz opcjonalny parametr `themeType` ('quick_card' | 'cinematic') oraz nową paletę `warm_amber`.
+     - Prompt systemowy uwzględnia aktualny `themeType` i proponuje jasne palety (1–5) dla `quick_card` oraz ciemne (1–5) dla `cinematic`.
+
+2. **P0: Kolizja WhatsApp FAB i Watermark Badge:**
+   - Przeniesiono badge `⚡ Stworzono w DFCMS AI` na lewą stronę dołu ekranu (`left: max(16px, env(safe-area-inset-left, 16px)) !important;`) w obu plikach: `templates/custom.html` (komponent webowy `<dfcms-watermark>`) oraz `js/features/publicSiteApp.js`.
+   - Dodano tłumienie badge'a (`display: none !important;`) na czas wyświetlania bannera ciasteczek (`body.has-cookie-banner`).
+   - W `js/features/cookieConsentApp.js` dodano dodawanie/usuwanie klasy `has-cookie-banner` na `document.body`.
+   - Pływający przycisk WhatsApp pozostaje na prawej stronie (`right: max(20px, env(safe-area-inset-right, 20px)); bottom: max(24px, env(safe-area-inset-bottom, 24px))`) w kanonicznym zielonym kolorze (`#25D366`), z pełnym uwzględnieniem `env(safe-area-inset-*)`.
+   - Zaktualizowano testy zgodności w `scripts/test-ai-act-rodo-compliance.mjs` weryfikujące lewe pozycjonowanie badge'a.
+
+3. **P1: Odrzucanie zmian AI per dymek (Save-First, Snapshot per Message & History Sync):**
+   - Utworzono czyste reguły `js/core/studioDraftHistoryRules.js` (`cloneDraft`, `createAiMessage`, `markMessageRejected`):
+     - Wiadomości czatu przechowują `snapshotBefore` stanu `draft_content` sprzed wykonania operacji przez model.
+     - `markMessageRejected` przywraca dokładnie ten snapshot, oznacza wiadomość jako `rejected: true`, a wszystkie późniejsze wiadomości ze zmianami oznacza jako `stale: true`.
+     - Brak sztucznego przycisku "Zatwierdź" (draft zapisuje się automatycznie po wywołaniu Edge Function).
+   - Utworzono `js/features/studio/studioDraftManager.js` we wzorcu pionowego `attach` (`DFOPS_attachStudioDraftManager(app)`) dołączający metodę `rejectMessageDraft(msg)`:
+     - **Save-first:** Najpierw wykonywany jest zapis do bazy danych (`savePageByIdForOwner`). Przy błędzie DB wiadomość NIE jest mutowana (`hasChanges` pozostaje `true`), a użytkownik otrzymuje toast błędu.
+     - **Synchronizacja historii:** Po udanym zapisie `draftHistory` jest przycinane, usuwając stany powstałe po odrzucanym snapshotcie, a `draftRedoStack` jest czyszczony, co zapobiega przywróceniu odrzuconego stanu przez przycisk *Cofnij* w toolbarze.
+   - W `studio.html`:
+     - W dymkach asystenta wyświetlany jest przycisk `↩️ Odrzuć tę zmianę` dla wiadomości posiadających snapshot (`msg.hasChanges && !msg.rejected && !msg.stale`).
+     - Po odrzuceniu pojawia się wskaźnik `↩️ Ta zmiana została odrzucona`, a dla przestarzałych `ℹ️ Zmiana zastąpiona późniejszą akcją`.
+     - **RODO / Minimalizacja payloadu:** `cleanHistory` wysyłane do Edge Function `chat-site-agent` jest mapowane wyłącznie do `{ role, text }`, co usuwa ciężkie obiekty `snapshotBefore` z żądania HTTP.
+
+4. **P1: Poprawa UX na urządzeniach mobilnych i linkowania sekcji:**
+   - W `templates/custom.html`:
+     - W nagłówku dodano responsywne menu hamburgerowe (przycisk ☰ z animowanym rozwijaniem na telefonach i zamykaniem na `Escape` / kliknięcie poza).
+     - **Kotwice nawigacji:** Dodano brakujące atrybuty `id` na znacznikach `<section>` dla `services_list` (`id="uslugi"`), `pricing_tiers` (`id="cennik"`), `faq_simple` (`id="faq"`) oraz `faq_accordion` (`id="faq"`), eliminując problem martwych linków w menu.
+     - Tytuł strony w nagłówku ma `truncate` i elastyczną szerokość, zapobiegając rozpychaniu paska nawigacji na wąskich ekranach.
+     - Przyciski CTA w sekcji `quick_hero` układają się pionowo na telefonach i mają pełną szerokość pod kciuk (`w-full sm:w-auto`).
+     - **Eliminacja side-effectu w iframe:** Usunięto asynchroniczny zapis do bazy danych podczas renderowania podglądu w iframe szablonu — leczenie motywu `theme_type` odbywa się w podglądzie wyłącznie in-memory.
+   - W `studio.html`:
+     - Ramka podglądu urządzenia w trybie mobilnym została uniezależniona od sztywnej wysokości `h-[844px]`: ma teraz `w-[375px] sm:w-[390px] max-w-[92vw] h-full max-h-[calc(100vh-5.5rem)] rounded-[40px] sm:rounded-[48px] border-[8px] sm:border-[10px]`, dzięki czemu idealnie mieści się na ekranach laptopów i mniejszych monitorów.
+
+5. **Weryfikacja testami (`npm test`):**
+   - Nowe pliki testów: `scripts/test-custom-theme-rules.mjs` (5 testów) i `scripts/test-studio-draft-history.mjs` (6 testów: save-first, synchronizacja stosu, kotwice menu).
+   - Wszystkie 11 pakietów testowych w `npm test` przechodzi ze statusem 100% PASS (88 testów).
+   - *Uwaga wdrożeniowa:* Po scaleniu zmian do gałęzi staging wymagane jest wdrożenie funkcji brzegowej: `npm run supabase:link:staging && supabase functions deploy chat-site-agent`.
 
 ### 2026-09-08 — Naprawa Live Preview w AI Studio: Bezpieczna Sanityzacja (Anti-Wipe) & Resilient Fallback
 

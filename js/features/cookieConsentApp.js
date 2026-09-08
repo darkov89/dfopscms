@@ -41,9 +41,11 @@
         if (stored) {
           this.consents = { ...this.consents, ...stored };
           this.showBanner = false;
+          if (document.body) document.body.classList.remove('has-cookie-banner');
           emitConsentEvents(this.consents);
         } else {
           this.showBanner = true;
+          if (document.body) document.body.classList.add('has-cookie-banner');
         }
       },
 
@@ -51,6 +53,7 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(this.consents));
         this.showBanner = false;
         this.showDetails = false;
+        if (document.body) document.body.classList.remove('has-cookie-banner');
         emitConsentEvents(this.consents);
       },
 

@@ -17,8 +17,8 @@
             <style>
                 .dfcms-badge {
                     position: fixed !important;
-                    bottom: 16px !important;
-                    right: 16px !important;
+                    bottom: max(16px, env(safe-area-inset-bottom, 16px)) !important;
+                    left: max(16px, env(safe-area-inset-left, 16px)) !important;
                     background: #121212 !important;
                     color: #D4AF37 !important;
                     padding: 8px 12px !important;
@@ -38,6 +38,10 @@
                     pointer-events: auto !important;
                 }
                 .dfcms-badge:hover { background: #000 !important; transform: translateY(-2px) !important; }
+                :host-context(body.has-cookie-banner) .dfcms-badge,
+                body.has-cookie-banner .dfcms-badge {
+                    display: none !important;
+                }
             </style>
             <a href="https://dfcms.pl?ref=watermark" target="_blank" rel="noopener noreferrer" class="dfcms-badge">⚡ Stworzono w DFCMS</a>
         `;

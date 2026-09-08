@@ -81,3 +81,9 @@ Wszystkie powyższe zasady nie są tylko deklaracjami w dokumentacji – **są s
 * `test:security` — weryfikuje szczelność nagłówków CSP i ochronę przed Prototype Pollution.
 * `test:ai-act-rodo` — weryfikuje obecność disclaimera AI, badge'a transparentności oraz reguł retencji i minimalizacji danych.
 * `test` — uruchamia pełen zestaw testów przed jakimkolwiek wdrożeniem.
+
+---
+
+## 📚 Baza Wiedzy i Wzorce Anty-Regresyjne
+
+* Szczegółowe studia przypadków, błędy runtime i reguły unikania regresji (Save-First, History Stack Sync, zakaz DB writes w iframe, RODO payload strip) znajdują się w **[`docs/LESSONS_LEARNED.md`](docs/LESSONS_LEARNED.md)**. Obowiązuje zapoznanie się z nimi przed modyfikacją AI Studio i szablonów.

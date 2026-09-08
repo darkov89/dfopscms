@@ -82,6 +82,21 @@ test('EU AI Act Transparency: templates/custom.html posiada nienaruszalny badge 
     html.includes('dfcms-badge') || html.includes('aria-label="Strona stworzona w technologii DFCMS AI"'),
     'templates/custom.html musi mieć poprawnie zdefiniowaną dostępność badge AI'
   );
+
+  // Znak wodny musi być pozycjonowany po lewej stronie (left:), aby nie kolidować z WhatsApp FAB (right:)
+  const badgeMatch = html.match(/\.dfcms-badge\s*\{([^}]+)\}/);
+  assert.ok(badgeMatch, 'templates/custom.html: musi definiować styl .dfcms-badge');
+  assert.ok(badgeMatch[1].includes('left:'), 'templates/custom.html: .dfcms-badge musi mieć pozycjonowanie left:');
+  assert.ok(!badgeMatch[1].includes('right: 16px'), 'templates/custom.html: .dfcms-badge nie może mieć right: 16px');
+
+  const publicAppPath = path.join(root, 'js', 'features', 'publicSiteApp.js');
+  if (existsSync(publicAppPath)) {
+    const publicAppCode = readFileSync(publicAppPath, 'utf8');
+    const publicBadgeMatch = publicAppCode.match(/\.dfcms-badge\s*\{([^}]+)\}/);
+    assert.ok(publicBadgeMatch, 'publicSiteApp.js: musi definiować styl .dfcms-badge');
+    assert.ok(publicBadgeMatch[1].includes('left:'), 'publicSiteApp.js: .dfcms-badge musi mieć pozycjonowanie left:');
+    assert.ok(!publicBadgeMatch[1].includes('right: 16px'), 'publicSiteApp.js: .dfcms-badge nie może mieć right: 16px');
+  }
 });
 
 test('EU AI Act Human-in-the-loop: studio.html posiada mechanizm cofania zmian AI (Undo)', () => {
