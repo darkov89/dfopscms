@@ -188,6 +188,13 @@ serve(async (req) => {
   });
 
   if (insertError) {
+    // 23505 = unique_violation (ten sam visitor_key w tym samym dniu dla danej strony)
+    if (insertError.code === "23505" || insertError.message?.toLowerCase().includes("duplicate key")) {
+      return new Response(JSON.stringify({ ok: true, skipped: "duplicate_visit" }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     console.error("record-site-event: insert error", insertError);
     return new Response(JSON.stringify({ error: "Insert failed" }), {
       status: 500,

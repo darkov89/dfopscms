@@ -145,4 +145,69 @@ test('trialBlocking uniemożliwia publiczne przeglądanie wygasłych i zablokowa
   assert.equal(isPaidBlocked, false, 'Opłacona strona nie może być blokowana');
 });
 
+// 6. Whitelist protokołów w extractEmbedUrl i extractEmbedSrcOrUrl (ochrona przed javascript: i data:)
+test('extractEmbedUrl i extractEmbedSrcOrUrl odrzucają niebezpieczne protokoły (javascript:, data:)', () => {
+  const publicAppCode = readFileSync(path.join(root, 'js/features/publicSiteApp.js'), 'utf8');
+  const pageRepoCode = readFileSync(path.join(root, 'js/core/pageRepository.js'), 'utf8');
+
+  // Weryfikacja regexu i walidacji protokołu w publicSiteApp.js
+  assert.ok(
+    publicAppCode.includes('return /^https?:\\/\\//i.test(src) ? src : \'\';'),
+    'extractEmbedUrl w publicSiteApp.js musi sprawdzać czy iframe src to http(s)'
+  );
+
+  // Weryfikacja regexu i walidacji protokołu w pageRepository.js
+  assert.ok(
+    pageRepoCode.includes('return /^https?:\\/\\//i.test(src) ? src : \'\';'),
+    'extractEmbedSrcOrUrl w pageRepository.js musi sprawdzać czy iframe src to http(s)'
+  );
+});
+
+// 7. Usunięcie innerHTML z seoPlainText (ochrona przed DOM XSS)
+test('seoPlainText nie używa innerHTML i bezpiecznie oczyszcza znaczniki HTML', () => {
+  const publicAppCode = readFileSync(path.join(root, 'js/features/publicSiteApp.js'), 'utf8');
+
+  // Weryfikacja braku innerHTML w seoPlainText
+  assert.ok(
+    !publicAppCode.includes('d.innerHTML = s'),
+    'seoPlainText nie może używać innerHTML (wektor DOM XSS)'
+  );
+
+  // Sprawdzenie implementacji oczyszczania
+  assert.ok(
+    publicAppCode.includes('.replace(/<[^>]*>/g, \' \')'),
+    'seoPlainText musi bezpiecznie czyścić tagi HTML bez użycia DOM'
+  );
+});
+
+// 8. Deduplikacja odsłon dziennych (migracja indeksu i obsługa duplikatów)
+test('Deduplikacja odwiedzin: unikalny indeks oraz obsługa unique_violation w Edge Function', () => {
+  const migrationPath = path.join(
+    root,
+    'supabase/migrations/20260705040000_analytics_unique_daily_visits.sql'
+  );
+  const migrationCode = readFileSync(migrationPath, 'utf8');
+  assert.ok(
+    migrationCode.includes('analytics_events_unique_daily_visit_idx'),
+    'Brak unikalnego indeksu analytics_events_unique_daily_visit_idx w migracji'
+  );
+  assert.ok(
+    migrationCode.includes("event_scope = 'visit'"),
+    'Indeks musi dotyczyć tylko event_scope = visit'
+  );
+
+  const edgeFuncCode = readFileSync(
+    path.join(root, 'supabase/functions/record-site-event/index.ts'),
+    'utf8'
+  );
+  assert.ok(
+    edgeFuncCode.includes('23505'),
+    'Edge Function record-site-event musi obsługiwać kod błędu 23505 (unique_violation)'
+  );
+  assert.ok(
+    edgeFuncCode.includes('duplicate_visit'),
+    'Edge Function record-site-event musi zwracać skipped: duplicate_visit'
+  );
+});
+
 console.log(`\n${passed} security compliance tests passed successfully.`);

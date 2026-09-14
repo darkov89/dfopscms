@@ -107,10 +107,11 @@
     // If user pasted full iframe HTML, extract src
     const iframeSrc = value.match(/src\s*=\s*["']([^"']+)["']/i);
     if (iframeSrc?.[1]) {
-      return iframeSrc[1]
+      const src = iframeSrc[1]
         .replace(/&amp;/gi, '&')
         .replace(/&#38;/gi, '&')
         .trim();
+      return /^https?:\/\//i.test(src) ? src : '';
     }
 
     // If user pasted plain URL, normalize common HTML-escaped chars
@@ -170,15 +171,22 @@
     }
   }
 
-  /** Usuwa prosty HTML z tytułów/opisów SEO (żeby nie trafił surowy markup do <title>). */
+  /** Usuwa prosty HTML z tytułów/opisów SEO (żeby nie trafił surowy markup do <title> ani nie wywołał DOM XSS przez innerHTML). */
   function seoPlainText(value) {
     if (value == null || value === '') return '';
     const s = String(value).trim();
     if (!s) return '';
-    if (!/[<>]/.test(s)) return s;
-    const d = document.createElement('div');
-    d.innerHTML = s;
-    return (d.textContent || d.innerText || '').trim();
+    if (!/[<>&]/.test(s)) return s;
+    return s
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'")
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 
   function escapeHtml(value) {

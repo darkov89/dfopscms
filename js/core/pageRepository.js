@@ -29,10 +29,11 @@
     } catch (_) {}
     const iframeSrc = value.match(/src\s*=\s*["']([^"']+)["']/i);
     if (iframeSrc?.[1]) {
-      return iframeSrc[1]
+      const src = iframeSrc[1]
         .replace(/&amp;/gi, '&')
         .replace(/&#38;/gi, '&')
         .trim();
+      return /^https?:\/\//i.test(src) ? src : '';
     }
     if (/^https?:\/\//i.test(value)) {
       return value

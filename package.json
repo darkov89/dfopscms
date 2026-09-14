@@ -4,6 +4,8 @@
   "description": "DFCMS — statyczny front + Supabase",
   "scripts": {
     "dev": "serve . -l 3000",
+    "trello": "node tools/trello.mjs",
+    "trello:list": "node tools/trello.mjs list",
     "build:admin": "node scripts/build-admin.mjs",
     "split:admin": "node scripts/split-admin-html.mjs",
     "test": "npm run test:ai-context && npm run test:wizard-rules && npm run test:content-schema && npm run test:reviews && npm run test:custom-blocks && npm run test:trial-blocking && npm run test:monolith-guard && npm run test:security && npm run test:ai-act-rodo && npm run test:custom-theme-rules && npm run test:studio-draft-history && npm run test:studio-handoff",
