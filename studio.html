@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="pl" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DFCMS — AI Studio</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        display: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            gold: '#D4AF37',
+                            goldHover: '#e6c35c',
+                            dark: '#0f0f0f',
+                            card: '#161616',
+                            border: '#242424',
+                        },
+                    },
+                },
+            },
+        };
+    </script>
+    <link rel="stylesheet" href="/css/styles.css?v=20260906b">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/js/core/utils.js?v=20260906b"></script>
+    <script src="/js/core/platformRouting.js?v=20260906b"></script>
+    <script defer src="/js/core/config.js?v=20260906b"></script>
+    <script defer src="/js/core/supabaseClient.js?v=20260906b"></script>
+    <script defer src="/js/core/pageRepository.js?v=20260906b"></script>
+    <script defer src="/js/core/customBlocksRegistry.js?v=20260907a"></script>
+    <script defer src="/js/core/studioHandoffRules.js?v=20260908a"></script>
+    <script defer src="/js/core/customThemeRules.js?v=20260908a"></script>
+    <script defer src="/js/core/studioDraftHistoryRules.js?v=20260908a"></script>
+    <script defer src="/js/features/studio/studioDraftManager.js?v=20260908a"></script>
+    <script defer src="/js/features/studio/studioCatalog.js?v=20260907a"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body x-data="createStudioApp()" class="h-full bg-[#0d0d0d] text-zinc-100 font-sans antialiased flex flex-col overflow-hidden">
+
+    <!-- Top Studio Toolbar -->
+    <header class="h-16 border-b border-brand-border bg-black/80 px-6 flex items-center justify-between z-30 flex-shrink-0">
+        <div class="flex items-center gap-3 sm:gap-4">
+            <a href="/" class="hidden sm:flex items-center gap-2 font-sans text-sm font-bold tracking-tight text-white hover:opacity-90 transition">
+                <img src="/favicon.svg" alt="" width="22" height="22" class="rounded" aria-hidden="true">
+                <span><span class="text-brand-gold">DF</span>CMS</span>
+            </a>
+            <div class="hidden sm:block h-4 w-px bg-white/10"></div>
+            <a href="/admin.html" class="text-xs font-bold text-zinc-400 hover:text-white transition flex items-center gap-1.5">
+                <span>← Panel</span>
+            </a>
+            <div class="h-4 w-px bg-white/10"></div>
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold uppercase tracking-widest text-brand-gold">AI Studio:</span>
+                <span class="text-sm font-semibold text-white" x-text="pageSlug"></span>
+                <span class="text-[10px] bg-white/10 text-zinc-300 font-bold px-2 py-0.5 rounded-full uppercase" x-text="themeType"></span>
+            </div>
+        </div>
+
+        <!-- Center: Device Switcher -->
+        <div class="hidden sm:flex items-center rounded-xl bg-white/5 p-1 border border-white/10">
+            <button type="button" @click="deviceMode = 'desktop'"
+                    :class="deviceMode === 'desktop' ? 'bg-white/15 text-white shadow-sm' : 'text-zinc-400 hover:text-white'"
+                    class="rounded-lg px-3 py-1 text-xs font-semibold transition flex items-center gap-1.5">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                <span>Komputer</span>
+            </button>
+            <button type="button" @click="deviceMode = 'mobile'"
+                    :class="deviceMode === 'mobile' ? 'bg-white/15 text-white shadow-sm' : 'text-zinc-400 hover:text-white'"
+                    class="rounded-lg px-3 py-1 text-xs font-semibold transition flex items-center gap-1.5">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                <span>Telefon</span>
+            </button>
+        </div>
+
+        <!-- Right: Actions -->
+        <div class="flex items-center gap-2.5 sm:gap-3">
+            <!-- Undo / Redo buttons -->
+            <div class="flex items-center rounded-xl bg-white/5 p-0.5 border border-white/10">
+                <button type="button" @click="undoDraft()" :disabled="!draftHistory.length || agentThinking || publishing || loading || historySaving || imageUploading"
+                        class="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/10 hover:text-white transition disabled:opacity-25 disabled:cursor-not-allowed flex items-center gap-1"
+                        aria-label="Cofnij zmianę (Undo)"
+                        title="Cofnij zmianę (Undo)">
+                    <span aria-hidden="true">↩️</span>
+                    <span class="hidden xl:inline text-[11px]">Cofnij</span>
+                </button>
+                <div class="h-3.5 w-px bg-white/10"></div>
+                <button type="button" @click="redoDraft()" :disabled="!draftRedoStack.length || agentThinking || publishing || loading || historySaving || imageUploading"
+                        class="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/10 hover:text-white transition disabled:opacity-25 disabled:cursor-not-allowed flex items-center gap-1"
+                        aria-label="Ponów zmianę (Redo)"
+                        title="Ponów zmianę (Redo)">
+                    <span aria-hidden="true">↪️</span>
+                    <span class="hidden xl:inline text-[11px]">Ponów</span>
+                </button>
+            </div>
+
+            <!-- Component Library Button -->
+            <button type="button" @click="openCatalog()"
+                    class="rounded-xl border border-brand-gold/30 bg-brand-gold/10 px-3 py-1.5 text-xs font-semibold text-brand-gold hover:bg-brand-gold/20 hover:text-white transition flex items-center gap-1.5 shadow-sm"
+                    title="Przeglądaj bibliotekę komponentów i dodaj sekcję">
+                <span aria-hidden="true">🧩</span>
+                <span class="hidden md:inline">Biblioteka sekcji</span>
+                <span class="text-[10px] bg-brand-gold/20 text-brand-gold px-1.5 py-0.5 rounded-full font-bold" x-text="typeof getCatalogTotalCount === 'function' ? getCatalogTotalCount() : 12"></span>
+            </button>
+
+            <a href="/admin.html#subscription" class="hidden lg:inline-flex rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/10 hover:text-white transition">
+                Domeny & Płatności ⚙️
+            </a>
+            <button type="button" @click="toggleChat()"
+                    :class="chatOpen ? 'bg-brand-gold/15 text-brand-gold border-brand-gold/30' : 'bg-white/5 text-zinc-300 border-white/10'"
+                    class="sm:hidden rounded-xl border px-3 py-1.5 text-xs font-semibold transition flex items-center gap-1.5">
+                <span>Agent AI</span>
+            </button>
+            <a :href="'/templates/custom.html?site=' + pageSlug" target="_blank"
+               class="hidden md:inline-flex rounded-xl border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/10 hover:text-white transition">
+                Otwórz LIVE ↗
+            </a>
+            <button type="button" @click="publishChanges()" :disabled="publishing || loading"
+                    class="inline-flex items-center gap-2 rounded-full bg-brand-gold px-5 py-2 text-xs font-bold uppercase tracking-wider text-black shadow-lg shadow-brand-gold/20 hover:bg-brand-goldHover transition disabled:opacity-50">
+                <span x-show="publishing" class="h-3 w-3 animate-spin rounded-full border-2 border-black border-t-transparent"></span>
+                <span x-text="publishing ? 'Publikowanie...' : 'Opublikuj na żywo ⚡'"></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace Area -->
+    <div class="flex-1 flex overflow-hidden relative">
+
+        <!-- Left / Center: Live Preview Iframe Container -->
+        <div class="flex-1 bg-black/90 p-3 sm:p-6 flex items-center justify-center overflow-hidden transition-all duration-300">
+            <div :class="deviceMode === 'mobile' ? 'w-[375px] sm:w-[390px] max-w-[92vw] h-full max-h-[calc(100vh-5.5rem)] rounded-[40px] sm:rounded-[48px] border-[8px] sm:border-[10px] border-zinc-800 shadow-2xl overflow-hidden' : 'w-full h-full rounded-2xl border border-white/10 overflow-hidden shadow-2xl'"
+                 class="transition-all duration-300 bg-black flex flex-col relative">
+                <!-- Preview Iframe Loading Overlay -->
+                <div x-show="iframeLoading" x-cloak
+                     class="absolute inset-0 z-10 bg-black/70 backdrop-blur-xs flex flex-col items-center justify-center gap-2">
+                    <span class="h-6 w-6 animate-spin rounded-full border-2 border-brand-gold border-t-transparent"></span>
+                    <span class="text-[11px] text-zinc-300 font-medium">Odświeżanie podglądu...</span>
+                </div>
+                <!-- Preview Iframe -->
+                <iframe id="dfcms-studio-iframe"
+                        @load="iframeLoading = false"
+                        :src="'/templates/custom.html?site=' + pageSlug + '&dfcms_preview=1&t=' + refreshTimestamp"
+                        class="w-full h-full border-0 bg-black"></iframe>
+            </div>
+        </div>
+
+        <!-- Right Side: AI Agent Chat Sidebar -->
+        <aside :class="chatOpen ? 'translate-x-0' : 'translate-x-full sm:translate-x-0'"
+               class="fixed inset-y-16 right-0 sm:static sm:inset-auto w-full sm:w-96 border-l border-brand-border bg-brand-card flex flex-col z-20 shadow-2xl transition-transform duration-300">
+
+            <!-- Chat Header -->
+            <div class="p-4 border-b border-white/10 flex items-center justify-between bg-black/40">
+                <div class="flex items-center gap-2.5">
+                    <div class="h-7 w-7 rounded-full bg-brand-gold/15 text-brand-gold flex items-center justify-center font-bold text-xs">
+                        AI
+                    </div>
+                    <div>
+                        <h2 class="text-xs font-bold text-white uppercase tracking-wider">Agent Zero-CMS</h2>
+                        <p class="text-[10px] text-zinc-400">Edytuje stronę bez ruszania kodu</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div x-show="chatCount !== null" x-cloak
+                         class="rounded-full bg-white/5 border border-white/10 px-2.5 py-0.5 text-[10px] font-medium text-zinc-400"
+                         :title="'Wykorzystano ' + chatCount + ' z ' + chatLimit + ' zapytań w tym miesiącu'">
+                        <span class="text-zinc-200 font-semibold" x-text="chatCount"></span>/<span x-text="chatLimit"></span>
+                        <span class="text-[9px] text-zinc-500 ml-0.5">AI</span>
+                    </div>
+                    <button type="button" @click="chatOpen = false" class="sm:hidden text-zinc-400 hover:text-white text-lg leading-none p-1">✕</button>
+                </div>
+            </div>
+
+            <!-- Messages Stream -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs" id="dfcms-chat-messages">
+                <template x-for="(msg, idx) in messages" :key="msg.id || idx">
+                    <div :class="msg.role === 'user' ? 'ml-auto bg-brand-gold text-black rounded-2xl rounded-br-sm' : 'mr-auto bg-white/5 border border-white/10 text-zinc-200 rounded-2xl rounded-bl-sm'"
+                         class="max-w-[85%] p-3.5 leading-relaxed shadow-sm">
+                        <p x-text="msg.text" class="whitespace-pre-wrap"></p>
+
+                        <!-- Akcja odrzucenia zmiany AI -->
+                        <div x-show="msg.hasChanges && !msg.rejected && !msg.stale" class="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between gap-2">
+                            <span class="text-[10px] text-zinc-400 font-medium">Sprawdź podgląd po lewej stronie</span>
+                            <button type="button" @click="rejectMessageDraft(msg)" :disabled="agentThinking || historySaving || publishing"
+                                    class="rounded-lg bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 px-2.5 py-1 text-[11px] font-semibold text-red-400 hover:text-red-300 transition flex items-center gap-1 shadow-sm disabled:opacity-50">
+                                <span aria-hidden="true">↩️</span>
+                                <span>Odrzuć tę zmianę</span>
+                            </button>
+                        </div>
+
+                        <!-- Status po odrzuceniu -->
+                        <div x-show="msg.rejected" class="mt-2 text-[10px] text-zinc-500 italic flex items-center gap-1">
+                            <span aria-hidden="true">↩️</span>
+                            <span>Ta zmiana została odrzucona</span>
+                        </div>
+
+                        <!-- Informacja jeśli zmiana została nadpisana inną akcją -->
+                        <div x-show="msg.stale" class="mt-2 text-[10px] text-zinc-500 italic flex items-center gap-1">
+                            <span aria-hidden="true">ℹ️</span>
+                            <span>Zmiana zastąpiona późniejszą akcją</span>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Typing indicator -->
+                <div x-show="agentThinking" x-cloak class="mr-auto bg-white/5 border border-white/10 text-zinc-400 rounded-2xl rounded-bl-sm p-3.5 flex items-center gap-2">
+                    <div class="h-2 w-2 rounded-full bg-brand-gold animate-bounce"></div>
+                    <div class="h-2 w-2 rounded-full bg-brand-gold animate-bounce [animation-delay:0.2s]"></div>
+                    <div class="h-2 w-2 rounded-full bg-brand-gold animate-bounce [animation-delay:0.4s]"></div>
+                    <span class="text-[11px] text-zinc-400 ml-1">Agent wprowadza zmiany...</span>
+                </div>
+            </div>
+
+            <!-- Quick Suggestions (Dynamic Chips) -->
+            <div class="p-3 border-t border-white/5 bg-black/20 flex flex-wrap gap-1.5" x-show="suggestedChips.length > 0" x-cloak>
+                <button type="button" @click="openCatalog()"
+                        class="rounded-lg bg-brand-gold/10 hover:bg-brand-gold/20 border border-brand-gold/30 px-2.5 py-1 text-[11px] font-semibold text-brand-gold transition flex items-center gap-1.5"
+                        title="Otwórz katalog sekcji i dodaj nowy blok">
+                    <span aria-hidden="true">🧩</span>
+                    <span>+ Biblioteka</span>
+                </button>
+                <template x-for="chip in suggestedChips" :key="chip.label">
+                    <button type="button" @click="chip.blockType ? insertBlockFromCatalog(chip.blockType) : sendQuickPrompt(chip.prompt)" :disabled="agentThinking || imageUploading"
+                            class="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-300 hover:text-white transition flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
+                        <span x-text="chip.emoji" aria-hidden="true"></span>
+                        <span x-text="chip.label"></span>
+                    </button>
+                </template>
+            </div>
+
+            <!-- Input Box -->
+            <form @submit.prevent="sendMessage()" class="p-3 border-t border-white/10 bg-black/60">
+                <div class="flex items-center gap-2 rounded-xl border border-white/15 bg-brand-dark px-3 py-2 focus-within:border-brand-gold transition">
+                    <label class="cursor-pointer h-7 w-7 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center flex-shrink-0 transition"
+                           :class="(agentThinking || imageUploading) ? 'opacity-30 cursor-not-allowed pointer-events-none' : ''"
+                           title="Wgraj zdjęcie ze swojego urządzenia">
+                        <span aria-hidden="true" class="text-sm">📷</span>
+                        <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden"
+                               aria-label="Wgraj zdjęcie ze swojego urządzenia"
+                               @change="handleImageUpload($event)" :disabled="agentThinking || imageUploading">
+                    </label>
+                    <input type="text" x-model="userInput" :disabled="agentThinking || imageUploading"
+                           placeholder="Napisz, co chcesz zmienić na stronie..."
+                           class="w-full bg-transparent text-xs text-white placeholder:text-zinc-500 focus:outline-none disabled:opacity-50">
+                    <button type="submit" :disabled="agentThinking || imageUploading || !userInput.trim()"
+                            class="h-7 w-7 rounded-lg bg-brand-gold text-black flex items-center justify-center font-bold transition hover:bg-brand-goldHover disabled:opacity-30 flex-shrink-0">
+                        ↑
+                    </button>
+                </div>
+            </form>
+        </aside>
+
+    </div>
+
+    <!-- Slide-over Drawer: Biblioteka Komponentów (Katalog Klocków) -->
+    <div x-show="catalogOpen" x-cloak
+         class="fixed inset-0 z-50 overflow-hidden"
+         @keydown.escape.window="closeCatalog()"
+         role="dialog" aria-modal="true" aria-labelledby="dfcms-catalog-title">
+        <!-- Backdrop -->
+        <div x-show="catalogOpen"
+             x-transition:enter="ease-in-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in-out duration-300"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="absolute inset-0 bg-black/75 backdrop-blur-sm transition-opacity"
+             @click="closeCatalog()"></div>
+
+        <div class="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
+            <div x-show="catalogOpen"
+                 x-transition:enter="transform transition ease-in-out duration-300 sm:duration-400"
+                 x-transition:enter-start="translate-x-full"
+                 x-transition:enter-end="translate-x-0"
+                 x-transition:leave="transform transition ease-in-out duration-300 sm:duration-400"
+                 x-transition:leave-start="translate-x-0"
+                 x-transition:leave-end="translate-x-full"
+                 class="w-screen max-w-md bg-[#141414] border-l border-white/10 text-zinc-100 shadow-2xl flex flex-col">
+
+                <!-- Drawer Header -->
+                <div class="p-4 sm:p-5 border-b border-white/10 bg-black/40 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="h-9 w-9 rounded-xl bg-brand-gold/15 text-brand-gold flex items-center justify-center text-lg font-bold border border-brand-gold/30">
+                            🧩
+                        </div>
+                        <div>
+                            <h2 id="dfcms-catalog-title" class="text-sm font-bold text-white uppercase tracking-wider">Biblioteka sekcji</h2>
+                            <p class="text-xs text-zinc-400">Dodaj klocki na stronę bez pisania kodu</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="closeCatalog()"
+                            class="h-8 w-8 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center text-lg transition"
+                            aria-label="Zamknij katalog">
+                        ✕
+                    </button>
+                </div>
+
+                <!-- Category Filter Pills -->
+                <div class="px-4 sm:px-5 py-3 border-b border-white/5 bg-black/20 overflow-x-auto flex gap-1.5">
+                    <template x-for="grp in (typeof getCatalogGroups === 'function' ? getCatalogGroups() : [])" :key="grp.id">
+                        <button type="button" @click="setCatalogFilter(grp.id)"
+                                :class="catalogFilter === grp.id ? 'bg-brand-gold text-black font-bold shadow-sm' : 'bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white'"
+                                class="px-3 py-1 rounded-lg text-xs font-semibold transition whitespace-nowrap">
+                            <span x-text="grp.label"></span>
+                        </button>
+                    </template>
+                </div>
+
+                <!-- Block Cards List -->
+                <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3">
+                    <template x-for="item in (typeof getCatalogBlocksList === 'function' ? getCatalogBlocksList() : [])" :key="item.type">
+                        <div class="p-4 rounded-xl border border-white/10 bg-white/[0.03] hover:border-brand-gold/40 hover:bg-white/[0.06] transition flex flex-col justify-between gap-3 group">
+                            <div class="flex items-start gap-3">
+                                <span class="text-2xl flex-shrink-0" x-text="item.icon" aria-hidden="true"></span>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h3 class="text-xs font-bold text-white group-hover:text-brand-gold transition" x-text="item.label"></h3>
+                                        <span x-show="item.isOnPage" x-cloak
+                                              class="text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                                            ✓ Na stronie
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-zinc-400 mt-1 leading-relaxed" x-text="item.summary"></p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-2 border-t border-white/5">
+                                <span class="text-[10px] text-zinc-500 uppercase font-semibold tracking-wider"
+                                      x-text="item.allow_multiple ? 'Wielokrotny' : 'Pojedyncza sekcja'"></span>
+                                <button type="button" @click="insertBlockFromCatalog(item.type)" :disabled="catalogSaving"
+                                        class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 disabled:opacity-50"
+                                        :class="item.isOnPage && !item.allow_multiple
+                                            ? 'bg-white/10 text-zinc-300 hover:bg-white/20 hover:text-white'
+                                            : 'bg-brand-gold text-black hover:bg-brand-goldHover shadow-sm'">
+                                    <span x-text="item.isOnPage && !item.allow_multiple ? 'Dostosuj sekcję →' : '+ Dodaj na stronę'"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Footer / Prompt Hint -->
+                <div class="p-3 sm:p-4 border-t border-white/10 bg-black/40 text-center">
+                    <p class="text-[11px] text-zinc-400">
+                        ⚡ Wstawienie sekcji działa natychmiast na podglądzie i nie zużywa limitu AI.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div x-show="toastMessage" x-cloak
+         class="fixed bottom-6 left-6 z-50 rounded-2xl bg-zinc-900 border border-white/10 px-5 py-3 text-xs font-semibold text-white shadow-2xl flex items-center gap-3">
+        <span class="text-brand-gold">⚡</span>
+        <span x-text="toastMessage"></span>
+    </div>
+
+    <!-- Auth / Page Load Error Modal Overlay -->
+    <div x-show="authError" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-6 text-center">
+        <div class="max-w-md w-full rounded-2xl border border-red-500/30 bg-zinc-900 p-8 shadow-2xl">
+            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-500/10 text-red-400 text-2xl">
+                ⚠️
+            </div>
+            <h2 class="font-sans text-xl font-bold tracking-tight text-white mb-2">Brak dostępu do edycji</h2>
+            <p class="text-zinc-400 text-xs sm:text-sm mb-6 leading-relaxed" x-text="authError"></p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <a href="/admin.html" class="w-full sm:w-auto inline-flex justify-center rounded-xl bg-brand-gold px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-black hover:bg-brand-goldHover transition">
+                    Zaloguj się w Panelu
+                </a>
+                <a href="/kreator.html" class="w-full sm:w-auto inline-flex justify-center rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-xs font-semibold text-zinc-300 hover:bg-white/10 transition">
+                    Otwórz Kreator
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function createStudioApp() {
+            const app = {
+                pageSlug: '',
+                pageId: null,
+                pageRow: null,
+                themeType: 'custom',
+                deviceMode: 'desktop',
+                chatOpen: true,
+                loading: true,
+                publishing: false,
+                agentThinking: false,
+                refreshTimestamp: Date.now(),
+                iframeLoading: true,
+                chatCount: null,
+                chatLimit: 15,
+                toastMessage: '',
+
+                draftHistory: [],
+                draftRedoStack: [],
+                maxHistorySize: 20,
+                historySaving: false,
+                imageUploading: false,
+
+                // Stan biblioteki sekcji (katalog klocków w kernelu)
+                catalogOpen: false,
+                catalogFilter: 'all',
+                catalogSaving: false,
+
+                userInput: '',
+                messages: [
+                    {
+                        role: 'model',
+                        text: 'Cześć! Jestem Twoim asystentem DFCMS. Napisz mi po ludzku, co chcesz zmienić na stronie — np. wklej link do nowego filmu, poproś o zmianę numeru telefonu lub dodanie nowej sekcji.',
+                    },
+                ],
+
+                currentUser: null,
+                authError: '',
+
+                get liveSiteUrl() {
+                    if (!this.pageSlug) return '#';
+                    return `https://${this.pageSlug}.dfcms.pl/`;
+                },
+
+                get suggestedChips() {
+                    if (!this.pageRow) return [];
+                    const blocks = this.pageRow?.draft_content?.blocks || this.pageRow?.content?.blocks || [];
+                    const blockTypes = blocks.map((b) => b.type);
+                    const chips = [];
+
+                    chips.push({ emoji: '🎨', label: 'Zmień styl', prompt: 'Chcę zmienić styl lub kolorystykę strony. Jakie warianty polecasz?' });
+                    chips.push({ emoji: '📞', label: 'Zmień telefon', prompt: 'Zmień numer telefonu kontaktowego' });
+
+                    if (!blockTypes.includes('faq_simple') && !blockTypes.includes('faq_accordion')) {
+                        chips.push({ emoji: '❓', label: 'Dodaj FAQ', blockType: 'faq_accordion', prompt: 'Dodaj sekcję z najczęściej zadawanymi pytaniami' });
+                    }
+                    if (!blockTypes.includes('google_reviews') && !blockTypes.includes('testimonials_grid')) {
+                        chips.push({ emoji: '⭐', label: 'Dodaj opinie', blockType: 'google_reviews', prompt: 'Dodaj sekcję z opiniami z Google' });
+                    }
+                    if (!blockTypes.includes('pricing_tiers')) {
+                        chips.push({ emoji: '💰', label: 'Dodaj cennik', blockType: 'pricing_tiers', prompt: 'Dodaj sekcję z cennikiem usług' });
+                    }
+
+                    if (this.themeType === 'cinematic') {
+                        chips.push({ emoji: '🎬', label: 'Zmień showreel', prompt: 'Wstaw link do mojego showreela' });
+                        if (!blockTypes.includes('awards_strip')) {
+                            chips.push({ emoji: '🏆', label: 'Dodaj nagrody', blockType: 'awards_strip', prompt: 'Dodaj sekcję z nagrodami festiwalowymi' });
+                        }
+                    }
+                    if (this.themeType === 'quick_card') {
+                        chips.push({ emoji: '🕐', label: 'Godziny otwarcia', prompt: 'Zaktualizuj godziny otwarcia' });
+                        chips.push({ emoji: '🔧', label: 'Zmień usługi', prompt: 'Zmień opis moich usług' });
+                    }
+
+                    return chips.slice(0, 6);
+                },
+
+                async consumeAuthParamsFromUrl(client) {
+                    if (!client) return;
+                    try {
+                        const url = new URL(window.location.href);
+                        const code = url.searchParams.get('code');
+                        if (code) {
+                            const { error: exchangeErr } = await client.auth.exchangeCodeForSession(code);
+                            if (exchangeErr) {
+                                console.warn('[Studio] exchangeCodeForSession failed:', exchangeErr);
+                            } else {
+                                ['code', 'code_challenge', 'code_challenge_method', 'type'].forEach((k) => url.searchParams.delete(k));
+                                const qs = url.searchParams.toString();
+                                window.history.replaceState({}, document.title, url.pathname + (qs ? `?${qs}` : '') + url.hash);
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('[Studio] consumeAuthParamsFromUrl error:', e);
+                    }
+                },
+
+                async init() {
+                    const params = new URLSearchParams(window.location.search);
+                    this.pageSlug = params.get('site') || '';
+
+                    if (!this.pageSlug) {
+                        this.showToast('Brak parametru ?site= w adresie.');
+                        window.location.href = '/kreator.html';
+                        return;
+                    }
+
+                    try {
+                        const client = window.DFOPS_getSupabaseClient ? window.DFOPS_getSupabaseClient() : null;
+                        if (!client) throw new Error('Brak klienta bazy danych.');
+
+                        // 1. Obsługa tokenu jednorazowego PKCE z linku w wiadomości e-mail
+                        await this.consumeAuthParamsFromUrl(client);
+
+                        // 2. Pobranie aktywnego użytkownika
+                        let user = null;
+                        const { data: sessData } = await client.auth.getSession();
+                        if (sessData?.session?.user) {
+                            user = sessData.session.user;
+                        } else {
+                            const { data: userData } = await client.auth.getUser();
+                            user = userData?.user || null;
+                        }
+
+                        if (!user) {
+                            // Wymóg zalogowania do Studia — przekierowanie do formularza logowania w panelu
+                            window.location.href = `/admin.html?returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+                            return;
+                        }
+                        this.currentUser = user;
+
+                        const repo = window.DFOPS_pageRepository;
+                        const registry = window.DFOPS_customBlocksRegistry;
+
+                        // Jeśli z jakiegoś powodu w URL zabrakło ?site=, spróbuj odzyskać slug z metadanych lub konta
+                        if (!this.pageSlug && user.user_metadata?.slug) {
+                            this.pageSlug = String(user.user_metadata.slug).trim().toLowerCase();
+                        }
+                        if (!this.pageSlug && repo) {
+                            try {
+                                const { data: userPages } = await repo.listCurrentUserPages(user.id);
+                                if (userPages && userPages.length > 0) {
+                                    this.pageSlug = userPages[0].slug;
+                                }
+                            } catch (_) {}
+                        }
+                        if (!this.pageSlug) {
+                            this.showToast('Brak przypisanego adresu strony w Twoim koncie.');
+                            window.location.href = '/kreator.html';
+                            return;
+                        }
+
+                        // 3. Współdzielenie sesji z iframe podglądu prywatnego
+                        if (typeof window.DFOPS_mirrorAuthForPreviewHandoff === 'function') {
+                            window.DFOPS_mirrorAuthForPreviewHandoff();
+                        }
+
+                        if (repo) {
+                            let res = await repo.getPageBySlugForOwner(this.pageSlug);
+                            if (res.error) throw res.error;
+
+                            // RESILIENT AUTO-CREATION:
+                            // Jeśli strona nie istnieje jeszcze w bazie (np. brak triggera lub opóźnienie rejestracji),
+                            // sprawdź czy bieżący użytkownik jest jej prawowitym właścicielem i utwórz ją w locie:
+                            if (!res.data) {
+                                const meta = this.currentUser.user_metadata || {};
+                                const regSlug = meta.slug ? String(meta.slug).trim().toLowerCase() : '';
+                                const pendingSlug = (localStorage.getItem('dfops_pending_ai_slug') || '').trim().toLowerCase();
+                                const isEligible = regSlug === this.pageSlug || pendingSlug === this.pageSlug || !regSlug;
+
+                                if (isEligible) {
+                                    console.info('[Studio] Page not in DB yet; auto-creating from registration state for slug:', this.pageSlug);
+                                    const pendingDraftKey = `dfops_pending_draft_${this.pageSlug}`;
+                                    const pendingDraftStr = localStorage.getItem(pendingDraftKey);
+                                    let draftToApply = null;
+                                    if (pendingDraftStr) {
+                                        try { draftToApply = JSON.parse(pendingDraftStr); } catch (_) {}
+                                    }
+                                    const chosenType = meta.theme_type || 'cinematic';
+                                    const formData = meta.form_data || { name: this.pageSlug };
+                                    if (!draftToApply && registry) {
+                                        draftToApply = chosenType === 'quick_card'
+                                            ? registry.createInitialQuickCardState(formData)
+                                            : registry.createInitialCinematicState(formData);
+                                    }
+                                    if (draftToApply && draftToApply.pl && draftToApply.pl.settings) {
+                                        draftToApply.pl.settings.welcome_onboarding_completed = true;
+                                    }
+                                    const { data: newPage, error: createErr } = await repo.createPage({
+                                        slug: this.pageSlug,
+                                        theme: 'custom',
+                                        color_preset: 'gold',
+                                        content: null,
+                                        draft_content: draftToApply,
+                                        user_id: this.currentUser.id,
+                                    });
+                                    if (newPage && !createErr) {
+                                        res = { data: newPage, error: null };
+                                        if (pendingDraftStr) localStorage.removeItem(pendingDraftKey);
+                                        localStorage.removeItem('dfops_pending_ai_slug');
+                                    } else {
+                                        console.warn('[Studio] Auto-create page returned error:', createErr);
+                                    }
+                                }
+                            }
+
+                            if (res.data) {
+                                this.pageRow = res.data;
+                                this.pageId = res.data.id;
+
+                                // Jeśli strona powstała przez trigger (theme: setup) lub brak draftu:
+                                const pendingDraftKey = `dfops_pending_draft_${this.pageSlug}`;
+                                const pendingDraftStr = localStorage.getItem(pendingDraftKey);
+                                let draftToApply = null;
+
+                                if (pendingDraftStr) {
+                                    try {
+                                        draftToApply = JSON.parse(pendingDraftStr);
+                                    } catch (e) {
+                                        console.warn('[Studio] Failed to parse pending draft JSON:', e);
+                                    }
+                                }
+
+                                const existingBlocks = this.pageRow.draft_content?.blocks;
+                                const validExistingBlocks = Array.isArray(existingBlocks)
+                                    ? existingBlocks.filter(b => b && typeof b.type === 'string' && b.type.trim() !== '')
+                                    : [];
+                                const hasHeroBlock = validExistingBlocks.some(b => b.type === 'cinematic_hero' || b.type === 'quick_hero');
+                                const needsDraftInit = !this.pageRow.draft_content || this.pageRow.theme === 'setup' || !hasHeroBlock;
+
+                                // Fallback: jeśli brak w localStorage (np. link kliknięty na innym urządzeniu),
+                                // ale strona wymaga draftu (jest 'setup', brak draft_content lub brak sekcji głównej):
+                                if (!draftToApply && needsDraftInit) {
+                                    if (registry) {
+                                        const meta = this.currentUser.user_metadata || {};
+                                        const handoffRules = window.DFOPS_studioHandoffRules;
+                                        const source = handoffRules
+                                            ? handoffRules.pickHandoffSource(this.pageRow.draft_content, this.pageRow.content, null)
+                                            : (this.pageRow.draft_content || this.pageRow.content);
+                                        const extracted = handoffRules ? handoffRules.extractHandoffAnswers(source) : {};
+                                        const formData = Object.assign({ name: this.pageSlug }, meta.form_data || {});
+                                        Object.keys(extracted).forEach(function (k) {
+                                            if (extracted[k]) formData[k] = extracted[k];
+                                        });
+                                        const chosenType = handoffRules
+                                            ? handoffRules.preferredStudioKind(source, this.pageRow.theme)
+                                            : (this.pageRow.draft_content?.theme_type || meta.theme_type || 'cinematic');
+                                        draftToApply = chosenType === 'cinematic'
+                                            ? registry.createInitialCinematicState(formData)
+                                            : registry.createInitialQuickCardState(formData);
+
+                                        // Zachowaj istniejące settings jeśli były:
+                                        if (this.pageRow.draft_content?.pl?.settings) {
+                                            draftToApply.pl = draftToApply.pl || {};
+                                            draftToApply.pl.settings = { ...draftToApply.pl.settings, ...this.pageRow.draft_content.pl.settings };
+                                        }
+
+                                        // Jeśli w drafcie użytkownik/agent dodał już inne sekcje (np. google_reviews, pricing_tiers itp.),
+                                        // zachowaj je i dołącz do wygenerowanego szkieletu:
+                                        if (validExistingBlocks.length > 0) {
+                                            const baseBlockTypes = new Set(draftToApply.blocks.map(b => b.type));
+                                            for (const existingBlock of validExistingBlocks) {
+                                                if (!baseBlockTypes.has(existingBlock.type)) {
+                                                    draftToApply.blocks.push(existingBlock);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (draftToApply && needsDraftInit) {
+                                    try {
+                                        await repo.savePageByIdForOwner(this.currentUser.id, this.pageId, {
+                                            theme: 'custom',
+                                            draft_content: draftToApply,
+                                        });
+                                        this.pageRow.draft_content = draftToApply;
+                                        this.pageRow.theme = 'custom';
+                                        if (pendingDraftStr) localStorage.removeItem(pendingDraftKey);
+                                        localStorage.removeItem('dfops_pending_ai_slug');
+                                    } catch (draftErr) {
+                                        console.warn('[Studio] Failed to apply pending draft:', draftErr);
+                                    }
+                                }
+
+                                const themeRules = window.DFOPS_customThemeRules;
+                                this.themeType = themeRules
+                                    ? themeRules.resolveThemeType(this.pageRow.draft_content || this.pageRow.content, this.pageRow)
+                                    : (this.pageRow.draft_content?.theme_type || this.pageRow.content?.theme_type || 'cinematic');
+
+                                // Ponowne odświeżenie mirrora autoryzacji podglądu
+                                if (typeof window.DFOPS_mirrorAuthForPreviewHandoff === 'function') {
+                                    window.DFOPS_mirrorAuthForPreviewHandoff();
+                                }
+                            } else {
+                                this.authError = 'Nie znaleziono strony lub nie jesteś jej właścicielem.';
+                            }
+                        }
+
+                        // Pobierz limit i licznik czatu z profilu
+                        try {
+                            const { data: profile } = await client
+                                .from('billing_profiles')
+                                .select('agent_chat_count, agent_chat_month, plan')
+                                .eq('user_id', user.id)
+                                .maybeSingle();
+                            if (profile) {
+                                this.chatCount = profile.agent_chat_count || 0;
+                                const plan = profile.plan || 'trial';
+                                this.chatLimit = (plan === 'tier1' || plan === 'custom') ? 100 : (plan === 'tier0' ? 30 : 15);
+                            }
+                        } catch (quotaErr) {
+                            console.debug('[Studio] Quota load skipped:', quotaErr);
+                        }
+
+                        // 4. Obsługa Click-to-Prompt z iframe podglądu
+                        window.addEventListener('message', (e) => {
+                            if (e.origin !== window.location.origin) return;
+                            if (!e.data || e.data.type !== 'dfcms:click-to-prompt') return;
+                            if (this.agentThinking || this.imageUploading) return;
+                            const { text, blockId } = e.data;
+                            if (!text) return;
+
+                            const snippet = text.length > 60 ? text.substring(0, 60) + '…' : text;
+                            this.userInput = blockId
+                                ? `Zmień treść "${snippet}" w sekcji ${blockId}: `
+                                : `Zmień treść "${snippet}": `;
+
+                            if (!this.chatOpen) {
+                                this.chatOpen = true;
+                            }
+                            this.showToast('Wybrano tekst do edycji ✍️');
+
+                            this.$nextTick(() => {
+                                const input = document.querySelector('input[x-model="userInput"]');
+                                if (input) {
+                                    input.focus();
+                                    input.selectionStart = input.selectionEnd = input.value.length;
+                                }
+                            });
+                        });
+                    } catch (e) {
+                        console.error('[Studio] Init error:', e);
+                        this.authError = e.message || 'Błąd inicjalizacji Studio.';
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                toggleChat() {
+                    this.chatOpen = !this.chatOpen;
+                },
+
+                pushDraftSnapshot() {
+                    if (!this.pageRow?.draft_content) return;
+                    const snap = JSON.parse(JSON.stringify(this.pageRow.draft_content));
+                    this.draftHistory.push(snap);
+                    if (this.draftHistory.length > this.maxHistorySize) {
+                        this.draftHistory.shift();
+                    }
+                    this.draftRedoStack = [];
+                },
+
+                async undoDraft() {
+                    if (!this.draftHistory.length || !this.pageRow || this.historySaving || this.agentThinking || this.publishing) return;
+                    this.historySaving = true;
+                    try {
+                        const previous = this.draftHistory.pop();
+                        this.draftRedoStack.push(JSON.parse(JSON.stringify(this.pageRow.draft_content)));
+                        this.pageRow.draft_content = previous;
+                        if (previous?.theme_type) this.themeType = previous.theme_type;
+
+                        const repo = window.DFOPS_pageRepository;
+                        if (repo && this.currentUser && this.pageId) {
+                            const res = await repo.savePageByIdForOwner(this.currentUser.id, this.pageId, { draft_content: previous });
+                            if (res?.error) {
+                                console.warn('[Studio] undo save error:', res.error);
+                            }
+                        }
+                        this.refreshPreview();
+                        this.showToast('Cofnięto ostatnią zmianę');
+                    } catch (e) {
+                        console.warn('[Studio] undo error:', e);
+                    } finally {
+                        this.historySaving = false;
+                    }
+                },
+
+                async redoDraft() {
+                    if (!this.draftRedoStack.length || !this.pageRow || this.historySaving || this.agentThinking || this.publishing) return;
+                    this.historySaving = true;
+                    try {
+                        const next = this.draftRedoStack.pop();
+                        this.draftHistory.push(JSON.parse(JSON.stringify(this.pageRow.draft_content)));
+                        this.pageRow.draft_content = next;
+                        if (next?.theme_type) this.themeType = next.theme_type;
+
+                        const repo = window.DFOPS_pageRepository;
+                        if (repo && this.currentUser && this.pageId) {
+                            const res = await repo.savePageByIdForOwner(this.currentUser.id, this.pageId, { draft_content: next });
+                            if (res?.error) {
+                                console.warn('[Studio] redo save error:', res.error);
+                            }
+                        }
+                        this.refreshPreview();
+                        this.showToast('Przywrócono zmianę');
+                    } catch (e) {
+                        console.warn('[Studio] redo error:', e);
+                    } finally {
+                        this.historySaving = false;
+                    }
+                },
+
+                refreshPreview() {
+                    if (typeof window.DFOPS_mirrorAuthForPreviewHandoff === 'function') {
+                        window.DFOPS_mirrorAuthForPreviewHandoff();
+                    }
+                    this.iframeLoading = true;
+                    this.refreshTimestamp = Date.now();
+                },
+
+                sendQuickPrompt(promptText) {
+                    this.userInput = promptText;
+                    this.sendMessage();
+                },
+
+                async sendMessage() {
+                    const text = this.userInput.trim();
+                    if (!text || this.agentThinking || !this.pageId) return;
+
+                    const rules = window.DFOPS_studioDraftHistoryRules;
+                    const snapshotBefore = (rules && this.pageRow?.draft_content)
+                        ? rules.cloneDraft(this.pageRow.draft_content)
+                        : (this.pageRow?.draft_content ? JSON.parse(JSON.stringify(this.pageRow.draft_content)) : null);
+
+                    this.messages.push({
+                        id: `usr_${Date.now()}`,
+                        role: 'user',
+                        text,
+                        hasChanges: false,
+                        snapshotBefore: null,
+                        rejected: false,
+                        stale: false,
+                    });
+                    this.userInput = '';
+                    this.agentThinking = true;
+                    this.scrollToBottom();
+
+                    try {
+                        const client = window.DFOPS_getSupabaseClient ? window.DFOPS_getSupabaseClient() : null;
+                        if (!client) throw new Error('Brak połączenia z API.');
+
+                        // Wywołanie Edge Function chat-site-agent — minimalizacja payloadu (RODO / transfer)
+                        const cleanHistory = (this.messages || [])
+                            .filter(m => !m.text?.startsWith('Przepraszam, wystąpił problem') && !m.text?.startsWith('Odczekaj chwilę'))
+                            .slice(-6)
+                            .map(m => ({ role: m.role || 'user', text: String(m.text || '') }));
+
+                        const { data, error } = await client.functions.invoke('chat-site-agent', {
+                            body: {
+                                pageId: this.pageId,
+                                message: text,
+                                history: cleanHistory,
+                            },
+                        });
+
+                        if (error || !data || data.error) {
+                            let detailedError = data?.error;
+                            if (data?.details) {
+                                detailedError = `${detailedError} (${data.details})`;
+                            } else if (!detailedError && error?.context && typeof error.context.json === 'function') {
+                                try {
+                                    const body = await error.context.json();
+                                    detailedError = body?.error || body?.message;
+                                    if (body?.details) detailedError += ` (${body.details})`;
+                                } catch (_) {}
+                            }
+                            throw new Error(detailedError || error?.message || 'Nie udało się wykonać polecenia.');
+                        }
+
+                        const hasChanges = Boolean(data.draft_content && data.executedTools?.length);
+                        const aiMsg = rules
+                            ? rules.createAiMessage({
+                                text: data.reply || 'Wprowadziłem zmiany na stronie.',
+                                hasChanges,
+                                snapshotBefore,
+                            })
+                            : {
+                                id: `msg_${Date.now()}`,
+                                role: 'model',
+                                text: data.reply || 'Wprowadziłem zmiany na stronie.',
+                                hasChanges,
+                                snapshotBefore: hasChanges ? snapshotBefore : null,
+                                rejected: false,
+                                stale: false,
+                            };
+
+                        this.messages.push(aiMsg);
+
+                        if (data.draft_content && this.pageRow) {
+                            this.pushDraftSnapshot();
+                            this.pageRow.draft_content = data.draft_content;
+                            if (data.draft_content.theme_type) {
+                                this.themeType = data.draft_content.theme_type;
+                            }
+                        }
+
+                        // Odśwież podgląd iframe
+                        this.refreshPreview();
+                        if (this.chatCount !== null) {
+                            this.chatCount += 1;
+                        }
+                        this.showToast('Zaktualizowano podgląd witryny');
+
+                    } catch (err) {
+                        console.error('[Studio] Agent error:', err);
+                        this.messages.push({
+                            id: `err_${Date.now()}`,
+                            role: 'model',
+                            text: 'Przepraszam, wystąpił problem: ' + (err.message || 'Spróbuj ponownie.'),
+                            hasChanges: false,
+                            snapshotBefore: null,
+                            rejected: false,
+                            stale: false,
+                        });
+                    } finally {
+                        this.agentThinking = false;
+                        this.scrollToBottom();
+                    }
+                },
+
+                async handleImageUpload(event) {
+                    const file = event.target.files?.[0];
+                    if (!file) return;
+                    event.target.value = '';
+
+                    if (!this.currentUser?.id) {
+                        this.showToast('Musisz być zalogowany, aby wgrać zdjęcie.');
+                        return;
+                    }
+
+                    const maxSize = 10 * 1024 * 1024; // 10 MB
+                    if (file.size > maxSize) {
+                        this.showToast('Plik jest za duży (maksymalnie 10 MB).');
+                        return;
+                    }
+
+                    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+                    if (!allowedTypes.includes(file.type)) {
+                        this.showToast('Dozwolone formaty to JPG, PNG, WebP.');
+                        return;
+                    }
+
+                    this.imageUploading = true;
+                    this.messages.push({ role: 'user', text: '📷 Wysyłam zdjęcie...' });
+                    this.scrollToBottom();
+
+                    try {
+                        const client = window.DFOPS_getSupabaseClient ? window.DFOPS_getSupabaseClient() : null;
+                        if (!client) throw new Error('Brak połączenia z API.');
+
+                        const ext = file.name.split('.').pop() || 'jpg';
+                        const cleanExt = ext.toLowerCase().replace(/[^a-z0-9]/g, '');
+                        const path = `${this.currentUser.id}/studio_${Date.now()}.${cleanExt}`;
+
+                        const { data: uploadData, error: uploadErr } = await client.storage
+                            .from('images')
+                            .upload(path, file, { cacheControl: '3600', upsert: false });
+
+                        if (uploadErr) throw uploadErr;
+
+                        const { data: { publicUrl } } = client.storage
+                            .from('images')
+                            .getPublicUrl(uploadData.path);
+
+                        this.messages[this.messages.length - 1].text = `📷 Wgrałem zdjęcie: ${file.name}`;
+                        this.imageUploading = false;
+                        this.userInput = `Wstaw to zdjęcie na stronę jako miniaturę lub zdjęcie główne: ${publicUrl}`;
+                        await this.sendMessage();
+                    } catch (err) {
+                        this.imageUploading = false;
+                        console.error('[Studio] Image upload error:', err);
+                        this.messages.push({
+                            role: 'model',
+                            text: 'Nie udało się wgrać zdjęcia: ' + (err.message || 'Spróbuj ponownie.'),
+                        });
+                    } finally {
+                        this.imageUploading = false;
+                        this.scrollToBottom();
+                    }
+                },
+
+                async publishChanges() {
+                    if (this.publishing) return;
+                    this.publishing = true;
+
+                    try {
+                        const repo = window.DFOPS_pageRepository;
+                        if (!repo || !this.currentUser || !this.pageId) throw new Error('Brak uprawnień lub ID strony.');
+
+                        // Pobierz najświeższy draft
+                        const res = await repo.getPageBySlugForOwner(this.pageSlug);
+                        if (!res.data || !res.data.draft_content) throw new Error('Brak wersji roboczej do publikacji.');
+
+                        // Zapis przez savePageByIdForOwner — z pełną sanityzacją treści!
+                        const saveRes = await repo.savePageByIdForOwner(this.currentUser.id, this.pageId, {
+                            content: res.data.draft_content,
+                            theme: 'custom',
+                        });
+
+                        if (saveRes.error) throw saveRes.error;
+
+                        this.showToast('Strona została pomyślnie opublikowana na żywo! 🚀');
+                    } catch (err) {
+                        console.error('[Studio] Publish error:', err);
+                        this.showToast('Błąd podczas publikacji: ' + (err.message || err));
+                    } finally {
+                        this.publishing = false;
+                    }
+                },
+
+                showToast(msg) {
+                    this.toastMessage = msg;
+                    setTimeout(() => {
+                        this.toastMessage = '';
+                    }, 4000);
+                },
+
+                scrollToBottom() {
+                    setTimeout(() => {
+                        const el = document.getElementById('dfcms-chat-messages');
+                        if (el) el.scrollTop = el.scrollHeight;
+                    }, 50);
+                },
+            };
+
+            if (typeof window.DFOPS_attachStudioCatalog === 'function') {
+                window.DFOPS_attachStudioCatalog(app);
+            }
+            if (typeof window.DFOPS_attachStudioDraftManager === 'function') {
+                window.DFOPS_attachStudioDraftManager(app);
+            }
+
+            return app;
+        }
+    </script>
+</body>
+</html>

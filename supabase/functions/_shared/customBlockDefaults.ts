@@ -1,0 +1,214 @@
+// DFCMS Custom AI Sites — Shared Block Defaults
+// Source of truth for block schemas across Edge Functions (chat-site-agent, god-provision-site)
+
+// deno-lint-ignore no-explicit-any
+export const BLOCK_DEFAULTS: Record<string, Record<string, any>> = {
+  cinematic_hero: {
+    title: "Twórca Filmowy",
+    subtitle: "Director & Cinematographer",
+    tagline: "Historie opowiadane światłem i ruchem.",
+    video_url: "https://vimeo.com/76979871",
+    video_provider: "vimeo",
+    video_id: "76979871",
+    showreel_url: "https://vimeo.com/76979871",
+    cta_text: "Odtwórz Showreel",
+    cta_secondary_text: "Zobacz Projekty",
+    cta_secondary_target: "#projekty",
+  },
+  projects_grid: {
+    heading: "Wybrane Realizacje",
+    subheading: "Reklama · Teledyski · Formy Fabularne",
+    items: [
+      {
+        id: "p1",
+        title: "Spot Komercyjny — Nowa Fala",
+        category: "Commercial",
+        role: "Reżyseria / Zdjęcia",
+        video_url: "https://vimeo.com/76979871",
+        thumbnail: "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=800&q=80",
+      },
+      {
+        id: "p2",
+        title: "Teledysk — Nocny Kurs",
+        category: "Music Video",
+        role: "Director of Photography",
+        video_url: "https://vimeo.com/76979871",
+        thumbnail: "https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?auto=format&fit=crop&w=800&q=80",
+      },
+    ],
+  },
+  awards_strip: {
+    heading: "Wyróżnienia & Festiwale",
+    items: [
+      { name: "Camerimage 2025", desc: "Oficjalna selekcja" },
+      { name: "Fryderyk 2024", desc: "Nominacja — Teledysk Roku" },
+      { name: "Grand Video Awards", desc: "Nagroda Główna w kategorii Branded Content" },
+    ],
+  },
+  director_statement: {
+    heading: "Podejście i Wizja",
+    quote: "Kino to dla mnie przede wszystkim rytm, kontrast i autentyczność.",
+    text: "Od ponad 8 lat realizuję projekty wideo dla czołowych marek i artystów w Polsce i za granicą. Łączę rzemiosło operatorskie z narracją fabularną.",
+    signature: "Jan Kowalski",
+  },
+  minimal_contact: {
+    heading: "Porozmawiajmy o projekcie",
+    subheading: "Dostępność: realizacje komercyjne, teledyski, etiudy i filmy dokumentalne.",
+    phone: "+48 600 700 800",
+    email: "kontakt@tworcafilmowy.pl",
+    instagram: "https://instagram.com/",
+    vimeo: "https://vimeo.com/",
+    location: "Warszawa · Dostępny na całym świecie",
+  },
+  quick_hero: {
+    badge: "Dostępny od zaraz",
+    title: "Usługi Elektryczne — Szybko i Solidnie",
+    subtitle: "Kompleksowe instalacje, pomiary i usuwanie awarii.",
+    city: "Poznań i okolice",
+    phone: "+48 600 700 800",
+    whatsapp: "+48600700800",
+    cta_primary_text: "Zadzwoń teraz",
+    cta_secondary_text: "Napisz na WhatsApp",
+  },
+  key_features: {
+    heading: "Dlaczego warto?",
+    items: [
+      {
+        title: "Ekspresowy dojazd",
+        desc: "W nagłych awariach jesteśmy na miejscu w 60 minut.",
+        icon: "bolt",
+      },
+      {
+        title: "Uprawnienia SEP",
+        desc: "Pełne uprawnienia dozoru i eksploatacji, protokoły do ubezpieczenia.",
+        icon: "check",
+      },
+      {
+        title: "Gwarancja i faktura",
+        desc: "Darmowa wycena przed rozpoczęciem prac, faktury VAT 23%.",
+        icon: "shield",
+      },
+    ],
+  },
+  quick_contact_card: {
+    heading: "Skontaktuj się bezpośrednio",
+    company_name: "Elektro-Fach Poznań",
+    address: "ul. Dąbrowskiego 45",
+    city: "60-842 Poznań",
+    phone: "+48 600 700 800",
+    email: "kontakt@elektrofach.pl",
+    hours: "Poniedziałek – Sobota: 7:00 – 21:00\nPogotowie awaryjne: 24/7",
+    booking_url: "",
+  },
+  faq_simple: {
+    heading: "Często zadawane pytania",
+    items: [
+      { question: "Jak szybko możecie przyjechać?", answer: "W przypadku awarii zazwyczaj dojeżdżamy w ciągu 45-60 minut." },
+      { question: "Czy wycena jest płatna?", answer: "Wstępna wycena telefoniczna jest całkowicie bezpłatna." },
+    ],
+  },
+  testimonials_grid: {
+    heading: "Co mówią nasi klienci",
+    items: [
+      { name: "Anna K.", text: "Profesjonalna obsługa i szybki termin. Zdecydowanie polecam!", rating: 5 },
+      { name: "Marek W.", text: "Solidna robota, wysoka jakość i przejrzyste zasady współpracy.", rating: 5 },
+      { name: "Katarzyna M.", text: "Bardzo dobry kontakt i terminowa realizacja projektu.", rating: 5 },
+    ],
+  },
+  faq_accordion: {
+    heading: "Najczęściej zadawane pytania",
+    items: [
+      { question: "Jak wygląda proces współpracy?", answer: "Na początku ustalamy zakres prac i termin, a następnie przedstawiamy bezpłatną wycenę." },
+      { question: "Jaki jest standardowy czas realizacji?", answer: "Standardowy termin wynosi od 3 do 7 dni roboczych, w zależności od skali projektu." },
+      { question: "Czy wystawiacie fakturę VAT?", answer: "Tak, do każdego zlecenia wystawiamy pełną fakturę VAT 23%." },
+    ],
+  },
+  pricing_tiers: {
+    heading: "Przejrzysty cennik",
+    subheading: "Wybierz pakiet dopasowany do Twoich potrzeb. Bez ukrytych opłat.",
+    items: [
+      {
+        name: "Pakiet Podstawowy",
+        price: "199 zł",
+        period: "",
+        features: ["Wstępna konsultacja", "Szybka wycena w 24h", "Gwarancja jakości"],
+        highlighted: false,
+        cta_text: "Wybierz pakiet",
+      },
+      {
+        name: "Pakiet Profesjonalny",
+        price: "499 zł",
+        period: "",
+        features: ["Wszystko z Podstawowego", "Priorytetowy termin", "Protokół i raport", "Gwarancja 24 miesiące"],
+        highlighted: true,
+        cta_text: "Najpopularniejszy",
+      },
+      {
+        name: "Pakiet Indywidualny",
+        price: "Wycena",
+        period: "indywidualna",
+        features: ["Kompleksowa obsługa", "Dedykowany opiekun", "Wsparcie posprzedażowe", "Elastyczne warunki"],
+        highlighted: false,
+        cta_text: "Skontaktuj się",
+      },
+    ],
+  },
+  trust_stats: {
+    heading: "Liczby, które mówią same za siebie",
+    subheading: "Konkretne rezultaty i wieloletnie doświadczenie",
+    items: [
+      { value: "10+", label: "Lat doświadczenia", desc: "Na rynku usług" },
+      { value: "500+", label: "Zrealizowanych zleceń", desc: "Dla klientów indywidualnych i firm" },
+      { value: "100%", label: "Zadowolonych klientów", desc: "Gwarancja jakości i terminowości" },
+      { value: "24h", label: "Czas reakcji", desc: "Szybki kontakt i wycena" },
+    ],
+  },
+  services_list: {
+    heading: "Nasze Usługi",
+    subheading: "Wybierz usługę dopasowaną do Twoich potrzeb",
+    items: [
+      { title: "Usługa Podstawowa", desc: "Szybka realizacja i standardowy zakres prac", price: "od 150 zł", duration: "60 min" },
+      { title: "Usługa Kompleksowa", desc: "Pełne wykonanie, materiały i gwarancja", price: "od 350 zł", duration: "120 min" },
+      { title: "Konsultacja i Diagnoza", desc: "Dojazd, sprawdzenie i kosztorys na miejscu", price: "Bezpłatnie", duration: "30 min" },
+    ],
+  },
+  booking_cta: {
+    badge: "Dostępne terminy w tym tygodniu",
+    heading: "Zarezerwuj dogodny termin już teraz",
+    subheading: "Umów wizytę w kilka sekund bez czekania na telefon.",
+    button_text: "Zarezerwuj wizytę",
+    booking_url: "#kontakt",
+    phone: "+48 600 700 800",
+    note: "Bezpłatne odwołanie do 24h przed wizytą",
+  },
+  location_map: {
+    heading: "Nasza Lokalizacja",
+    subheading: "Odwiedź nas stacjonarnie lub sprawdź dojazd",
+    address: "ul. Przykładowa 12, 60-100 Poznań",
+    city: "Poznań",
+    phone: "+48 600 700 800",
+    hours: "Poniedziałek – Piątek: 8:00 – 18:00\nSobota: 9:00 – 14:00",
+    map_embed_url: "",
+  },
+  gallery_grid: {
+    heading: "Galeria Realizacji",
+    subheading: "Zobacz efekty naszej pracy na fotografiach",
+    items: [
+      { url: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80", title: "Precyzja i jakość", category: "Montaż" },
+      { url: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80", title: "Nowoczesne rozwiązania", category: "Projekt" },
+      { url: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", title: "Dbałość o detale", category: "Realizacja" },
+      { url: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80", title: "Komfortowa przestrzeń", category: "Wnętrza" },
+    ],
+  },
+  google_reviews: {
+    heading: "Opinie z Profilu Google",
+    place_name: "",
+    place_id: "",
+    place_query: "",
+    rating: null,
+    reviews_count: 0,
+    user_ratings_total: 0,
+    write_review_url: "",
+    items: [],
+  },
+};

@@ -1,7 +1,7 @@
 ---
 description: Split panelu Alpine — pionowy attach, rejestr hooków, zakaz mixinów/spreadu/Vite
 globs: js/features/adminApp.js,js/features/growth/**,js/features/onboarding/**,js/features/billing-panel/**,js/features/i18nPanel.js,js/features/aiGenerator.js,admin/partials/**
-alwaysApply: false
+alwaysApply: true
 ---
 
 # Split panelu Alpine (adminApp)

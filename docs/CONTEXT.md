@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-09-04 — PR-4: sprzątanie fali split panelu JS (kernel + onboarding + billing)
+**Ostatnia aktualizacja:** 2026-09-08 — Handoff custom ↔ szablon (kontakt/nazwa) + kreator bez `billing_plan` na INSERT (42501)
 
 ---
 
@@ -73,7 +73,7 @@ Użytkownik → Auth → pages.content + pages.billing_plan + billing_profiles
 
 | Warstwa | Kluczowe artefakty |
 |--------|---------------------|
-| **Front publiczny** | `index.html` (dark-mode SaaS landing spójny z admin/rejestracją: `#121212` + `#D4AF37`; hero (wynik biznesowy + AI w subcopy), `#jak`, `#ai`, `#korzysci`, `#panel`, `#demo`, `#spokoj`, `#cennik`, SEO + `favicon.svg`), demo przez `router.html?site=demo-*` (beauty/services/care/gastro/fitness/consultant). Szablony branżowe HTML są w `/templates/` (`beauty`, `consultant`, `fitness`, `services`, `gastro`, `care`); media statyczne przenoszone z root trafiają do `/assets/images/`; boilerplate nowych szablonów: `/templates/_base_template.html`; klocki UI: `/templates/_components_library.html`; partial FAB czatu: `/templates/_partials/quick_chat_fab.html`. `setup.html` zostaje w root. `landingPricing.js` — plany cennika i dane landingowe. **Szybki kontakt:** pływający przycisk WhatsApp (`contact.whatsapp` → `wa.me`) lub Messenger (`contact.messenger` → `m.me`) — `publicSiteApp` + Alpine `x-show`; dostępny na wszystkich planach w tym Starter (`tier0`, `DFOPS_planAllowsQuickChat` — od 2026-07-05). Opcjonalna lista gotowych pytań (`contact.quick_chat_questions: string[]`, panel Kontakt → Szybki czat): klik w FAB rozwija popover, wybór pytania otwiera czat z wpisaną treścią (WhatsApp `?text=`; Messenger nie wspiera pre-fillu → kopiowanie do schowka + toast). |
+| **Front publiczny** | `index.html` (dark-mode SaaS landing spójny z admin/rejestracją: `#121212` + `#D4AF37`; hero (wynik biznesowy + AI w subcopy), `#jak`, `#ai`, `#korzysci`, `#panel`, `#demo`, `#spokoj`, `#cennik`, SEO + `favicon.svg`), demo przez `router.html?site=demo-*` (beauty/services/care/gastro/fitness/consultant). Szablony HTML są w `/templates/` (`beauty`, `consultant`, `fitness`, `services`, `gastro`, `care`, **`custom`**); media statyczne przenoszone z root trafiają do `/assets/images/`; boilerplate nowych szablonów: `/templates/_base_template.html`; klocki UI: `/templates/_components_library.html`; partial FAB czatu: `/templates/_partials/quick_chat_fab.html`. `setup.html` zostaje w root. `landingPricing.js` — plany cennika i dane landingowe. **Szybki kontakt:** pływający przycisk WhatsApp (`contact.whatsapp` → `wa.me`) lub Messenger (`contact.messenger` → `m.me`) — `publicSiteApp` + Alpine `x-show`; dostępny na wszystkich planach w tym Starter (`tier0`, `DFOPS_planAllowsQuickChat` — od 2026-07-05). Opcjonalna lista gotowych pytań (`contact.quick_chat_questions: string[]`, panel Kontakt → Szybki czat): klik w FAB rozwija popover, wybór pytania otwiera czat z wpisaną treścią (WhatsApp `?text=`; Messenger nie wspiera pre-fillu → kopiowanie do schowka + toast). |
 | **Panel CMS** | `admin.html` (~2,5k linii HTML), kernel `adminApp.js` (~3,5k linii Alpine) + pionowe attach-e. **IA (2026-07):** domyślny ekran `dashboard` (adres + checklista + **AI Site Generator**); sidebar w 3 grupach zwijanych (Na start / Więcej treści / Ustawienia); nagłówek z CTA „Opublikuj”, menu ⋯; rezerwacje w Kontakcie; scalone Opinie; bez Leady w menu; bez globalnej widoczności sekcji w Wyglądzie — szczegóły §1.5.2. **`js/core/themeConfig.js`** — sekcje per `pages.theme`; **`js/core/contentSchema.js`** + **`contentUpgrader.js`** — kontrakt/migracja pól JSON (`pages.content` / `draft_content`). **`js/templates/registry.js`** — domyślna treść startowa (nie mylić z `templates/*.html`). Draft vs published: `pages.draft_content` / `pages.content`. **Zero-Friction AI (2026-08-08):** `draft_content.pl.settings.ai_business_context` (+ `business_category` / `city`) — kontekst branżowy niezależny od nazwy szablonu; `js/core/aiBusinessContext.js`; fallback ręczny w kreatorze/Kontakcie gdy Places bez kategorii. Subskrypcja, Smart Booking, szybki kontakt, God Mode — jak wcześniej. Adaptery poza kernel: `growth/`, `onboarding/`, `billing-panel/`, `aiGenerator.js`, `i18nPanel.js`. |
 | **Backend** | `pages`, `billing_profiles`, `superadmins`, RLS. Schemat baseline: `20260603072317_remote_schema.sql`; God Mode: `20260623100512_add_god_mode.sql`. |
 | **Płatności** | Starter `tier0`, Standard `tier1`, Custom poza Stripe. Secrets: `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_STARTER_YEARLY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_PRO_YEARLY`. wFirma: `WFIRMA_*`, ledger `wfirma_invoice_ledger`. |
@@ -235,7 +235,8 @@ Poniżej grup: **Subskrypcja i płatności**, **Pomocnik krok po kroku** (`#dfcm
 | `sync-stripe-subscription` | Ręczna synchronizacja statusu subskrypcji |
 | `add-custom-domain` | Cloudflare Custom Hostname + zapis w DB |
 | `get-google-reviews` | Places / opinie (`GOOGLE_MAPS_API_KEY`); embed iframe (`GOOGLE_MAPS_EMBED_API_KEY`); `listPlaces` zwraca też `category` / `primaryType*` / `types`; wymaga sesji |
-| `generate-ai-content` | AI Site Generator (Gemini): JWT + ownership + quota → merge copy do `pages.draft_content`; secrets `GEMINI_API_KEY`, opcjonalnie `GEMINI_MODEL` / `DFCMS_ENV` / `AI_LOG_PROMPTS` |
+| `generate-ai-content` | AI Site Generator (Gemini): JWT + ownership + quota (`ai_gen_month` / `ai_gen_count`) → merge copy do `pages.draft_content`; secrets `GEMINI_API_KEY`, opcjonalnie `GEMINI_MODEL` / `DFCMS_ENV` / `AI_LOG_PROMPTS` |
+| `chat-site-agent` | Studio Custom AI: Gemini function calling → atomowe patche `pages.draft_content.blocks`; JWT + ownership/God; cooldown 30s/isolate; quota `agent_chat_month` / `agent_chat_count` (osobno od generatora) |
 | **`expire-trial-pages`** | **Cron** (`POST` + `Bearer CRON_SECRET`): `expire_manual_grants()` → `expire_trial_pages()` → `notify_purge_upcoming_pages()` → `list_pages_pending_purge()` → opcjonalnie `purge_trial_blocked_pages_after_grace()` gdy `AUTO_PURGE_ENABLED=true`. **Powiadomienia operacyjne przez Telegram** (Markdown): alert −7 dni per slug; raport ręcznej kasacji (30+ dni) z gotowym SQL. Brak alertów → `200` bez wiadomości. |
 | `telegram-webhook` | Router alertów (Sentry, Database Webhooks `users`/`pages`/`billing_profiles`, logi) → Telegram; **`Bearer TELEGRAM_WEBHOOK_SECRET`**; prefix `[STAGING]` / `[PROD]` z `DFCMS_ENV` lub project ref |
 | `send-custom-inquiry` | Publiczny formularz Custom (`zapytanie-custom.html`): Turnstile → SMTP (`SMTP_*`, jak Auth) + Telegram ops (`verify_jwt=false`) |
@@ -384,7 +385,8 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 | Multi-site panel | `pageRepository.listCurrentUserPages`, selektor w `08-header.html` |
 | Demo seeds (localhost fallback) | `data/seeds/demo_pages.json`, `scripts/extract-demo-seeds-from-migration.mjs` |
 | Demo seeds (DB / prod) | `supabase/migrations/20260616150000_seed_demo_catalog_pages.sql` |
-| Szablony publiczne | `templates/{beauty,fitness,services,consultant,gastro,care}.html`, boilerplate `templates/_base_template.html` |
+| Szablony publiczne | `templates/{beauty,fitness,services,consultant,gastro,care,custom}.html`, boilerplate `templates/_base_template.html` |
+| Custom AI Sites | `kreator.html` → `studio.html` + Edge `chat-site-agent`; silnik `js/core/customBlocksRegistry.js`; spec [`docs/specs/custom-ai-sites.md`](specs/custom-ai-sites.md) |
 | Rejestracja | `rejestracja.html`, `registrationApp.js`, trigger `handle_new_user` |
 | Edge Stripe | `create-checkout`, `stripe-webhook`, `sync-stripe-subscription`, `_shared/stripeBilling.ts` |
 | Silnik Wzrostu (spec) | [`docs/specs/growth.md`](specs/growth.md) |
@@ -392,6 +394,141 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
 ---
 
 ## 4. Dziennik transformacji
+
+### 2026-09-07 — Always-On Lenses (Anti-Monolith, Security, EU AI Act, RODO), AGENTS.md, Subagents & Test Guards
+
+1. **Standard inżynieryjny Anti-Monolith (Extract-First):**
+   - Zdefiniowano `AGENTS.md` w roocie jako stały system prompt dla agentów AI pracujących nad repozytorium.
+   - Utworzono `.cursor/rules/lenses.mdc` oraz zaktualizowano `.cursor/rules/admin-split.mdc` z flagą `alwaysApply: true`.
+   - Utworzono `.cursorrules` w głównym katalogu projektu.
+   - Zdefiniowano wyspecjalizowane subagenty: `anti-monolith-architect`, `security-auditor`, `ai-act-compliance`, `rodo-gdpr-guardian`.
+
+2. **Automatyzacja strażników jakości w `npm test`:**
+   - `scripts/test-monolith-guard.mjs`: kontrola synchronizacji `admin.html` z `admin/partials/`, limit linii `adminApp.js` (<3800), zakaz mixinów/spreadu w Alpine.
+   - `scripts/test-security-compliance.mjs`: audyt CSP (`object-src 'none'`, `frame-ancestors`, `connect-src` Supabase/Stripe), ochrona przed Prototype Pollution (`customBlocksRegistry`), izolacja zablokowanych tenantów (`trialBlocking`).
+   - `scripts/test-ai-act-rodo-compliance.mjs`: wymogi EU AI Act Art. 50 (informacja o AI w `studio.html`, klauzula w `regulamin.html`, badge `⚡ Stworzono w DFCMS AI` w `custom.html`, Undo/Redo human-in-the-loop), wymogi RODO (minimalizacja danych w schematach, retencja/purge w cronie i edge `expire-trial-pages`, prawa w `polityka.html`).
+   - Pełny pakiet `npm test`: 77 testów (9 zestawów) ze statusem PASS.
+
+### 2026-09-08 — Handoff Studio ↔ szablon branżowy i 42501 na `pages`
+
+1. **Access denied przy powrocie do AI Studio (`kreator.html`):** INSERT klienta wysyłał `billing_plan: 'trial'`, a GRANT authenticated na `pages` **nie obejmuje** tej kolumny (`protect_pages_billing_columns` / migracja `20260805120000`) — Postgres 42501. Usunięto pole z INSERT (trigger i tak ustawia `trial`). Własna strona o tym samym slugu jest **konwertowana UPDATE-em** (beauty→custom), zamiast wymuszać nowy slug i drugi INSERT.
+2. **Utrata danych przy zmianie motywu:** `js/core/studioHandoffRules.js` mapuje telefon/e-mail/nazwę/miasto między `pl.*` a blokami Studio. Panel: custom → szablon nakłada handoff na kontakt/logo; szablon → „Strona AI” ustawia `pages.theme` i otwiera Studio, które seeduje draft z istniejącego kontaktu (nie z placeholderów „Jan Kowalski”).
+3. **Testy:** `scripts/test-studio-handoff-rules.mjs` (`npm run test:studio-handoff`).
+
+### 2026-09-08 — AI Studio: Odrzucanie Zmian per Message, Theming Wizytówki (resolveThemeType), Separacja WhatsApp/Watermark & Mobile UX
+
+1. **P0: Theming klocków wizytówki i samoleczenie motywu (`customThemeRules.js` & `templates/custom.html`):**
+   - Dodano czysty moduł `js/core/customThemeRules.js` z funkcją `resolveThemeType(content, pageRow)`:
+     - Jeśli `content.theme_type` istnieje, jest zachowywany.
+     - Jeśli brakuje `theme_type`, analizowana jest sekcja hero: obecność `quick_hero` / `quick_contact_card` automatycznie rozstrzyga na `'quick_card'` (zamiast błędnego fallbacku do czarnego tła `'cinematic'`), a obecność `cinematic_hero` na `'cinematic'`.
+   - W `templates/custom.html` usunięto problem "czarnej dziury" z ciemnoniebieskim tekstem `#0f172a` na `#0a0a0a`:
+     - Sekcje `quick_hero`, `key_features`, `quick_contact_card` otrzymały dynamiczne style w zależności od `isCinematic`:
+       - `quick_hero`: w trybie `quick_card` ma jasne tło (`bg-slate-50`), a w trybie `cinematic` ciemne tło (`bg-zinc-900 border-zinc-800`).
+       - `key_features`: w trybie `quick_card` posiada jasne tło z ciemnym tekstem nagłówka; w trybie `cinematic` posiada ciemne karty (`bg-zinc-900/80 border-zinc-800 text-white`).
+       - Przyciski CTA stosują dynamiczny akcent CSS `--brand-gold`.
+   - W `supabase/functions/chat-site-agent/index.ts`:
+     - Narzędzie `update_design` wspiera teraz opcjonalny parametr `themeType` ('quick_card' | 'cinematic') oraz nową paletę `warm_amber`.
+     - Prompt systemowy uwzględnia aktualny `themeType` i proponuje jasne palety (1–5) dla `quick_card` oraz ciemne (1–5) dla `cinematic`.
+
+2. **P0: Kolizja WhatsApp FAB i Watermark Badge:**
+   - Przeniesiono badge `⚡ Stworzono w DFCMS AI` na lewą stronę dołu ekranu (`left: max(16px, env(safe-area-inset-left, 16px)) !important;`) w obu plikach: `templates/custom.html` (komponent webowy `<dfcms-watermark>`) oraz `js/features/publicSiteApp.js`.
+   - Dodano tłumienie badge'a (`display: none !important;`) na czas wyświetlania bannera ciasteczek (`body.has-cookie-banner`).
+   - W `js/features/cookieConsentApp.js` dodano dodawanie/usuwanie klasy `has-cookie-banner` na `document.body`.
+   - Pływający przycisk WhatsApp pozostaje na prawej stronie (`right: max(20px, env(safe-area-inset-right, 20px)); bottom: max(24px, env(safe-area-inset-bottom, 24px))`) w kanonicznym zielonym kolorze (`#25D366`), z pełnym uwzględnieniem `env(safe-area-inset-*)`.
+   - Zaktualizowano testy zgodności w `scripts/test-ai-act-rodo-compliance.mjs` weryfikujące lewe pozycjonowanie badge'a.
+
+3. **P1: Odrzucanie zmian AI per dymek (Save-First, Snapshot per Message & History Sync):**
+   - Utworzono czyste reguły `js/core/studioDraftHistoryRules.js` (`cloneDraft`, `createAiMessage`, `markMessageRejected`):
+     - Wiadomości czatu przechowują `snapshotBefore` stanu `draft_content` sprzed wykonania operacji przez model.
+     - `markMessageRejected` przywraca dokładnie ten snapshot, oznacza wiadomość jako `rejected: true`, a wszystkie późniejsze wiadomości ze zmianami oznacza jako `stale: true`.
+     - Brak sztucznego przycisku "Zatwierdź" (draft zapisuje się automatycznie po wywołaniu Edge Function).
+   - Utworzono `js/features/studio/studioDraftManager.js` we wzorcu pionowego `attach` (`DFOPS_attachStudioDraftManager(app)`) dołączający metodę `rejectMessageDraft(msg)`:
+     - **Save-first:** Najpierw wykonywany jest zapis do bazy danych (`savePageByIdForOwner`). Przy błędzie DB wiadomość NIE jest mutowana (`hasChanges` pozostaje `true`), a użytkownik otrzymuje toast błędu.
+     - **Synchronizacja historii:** Po udanym zapisie `draftHistory` jest przycinane, usuwając stany powstałe po odrzucanym snapshotcie, a `draftRedoStack` jest czyszczony, co zapobiega przywróceniu odrzuconego stanu przez przycisk *Cofnij* w toolbarze.
+   - W `studio.html`:
+     - W dymkach asystenta wyświetlany jest przycisk `↩️ Odrzuć tę zmianę` dla wiadomości posiadających snapshot (`msg.hasChanges && !msg.rejected && !msg.stale`).
+     - Po odrzuceniu pojawia się wskaźnik `↩️ Ta zmiana została odrzucona`, a dla przestarzałych `ℹ️ Zmiana zastąpiona późniejszą akcją`.
+     - **RODO / Minimalizacja payloadu:** `cleanHistory` wysyłane do Edge Function `chat-site-agent` jest mapowane wyłącznie do `{ role, text }`, co usuwa ciężkie obiekty `snapshotBefore` z żądania HTTP.
+
+4. **P1: Poprawa UX na urządzeniach mobilnych i linkowania sekcji:**
+   - W `templates/custom.html`:
+     - W nagłówku dodano responsywne menu hamburgerowe (przycisk ☰ z animowanym rozwijaniem na telefonach i zamykaniem na `Escape` / kliknięcie poza).
+     - **Kotwice nawigacji:** Dodano brakujące atrybuty `id` na znacznikach `<section>` dla `services_list` (`id="uslugi"`), `pricing_tiers` (`id="cennik"`), `faq_simple` (`id="faq"`) oraz `faq_accordion` (`id="faq"`), eliminując problem martwych linków w menu.
+     - Tytuł strony w nagłówku ma `truncate` i elastyczną szerokość, zapobiegając rozpychaniu paska nawigacji na wąskich ekranach.
+     - Przyciski CTA w sekcji `quick_hero` układają się pionowo na telefonach i mają pełną szerokość pod kciuk (`w-full sm:w-auto`).
+     - **Eliminacja side-effectu w iframe:** Usunięto asynchroniczny zapis do bazy danych podczas renderowania podglądu w iframe szablonu — leczenie motywu `theme_type` odbywa się w podglądzie wyłącznie in-memory.
+   - W `studio.html`:
+     - Ramka podglądu urządzenia w trybie mobilnym została uniezależniona od sztywnej wysokości `h-[844px]`: ma teraz `w-[375px] sm:w-[390px] max-w-[92vw] h-full max-h-[calc(100vh-5.5rem)] rounded-[40px] sm:rounded-[48px] border-[8px] sm:border-[10px]`, dzięki czemu idealnie mieści się na ekranach laptopów i mniejszych monitorów.
+
+5. **Weryfikacja testami (`npm test`):**
+   - Nowe pliki testów: `scripts/test-custom-theme-rules.mjs` (5 testów) i `scripts/test-studio-draft-history.mjs` (6 testów: save-first, synchronizacja stosu, kotwice menu).
+   - Wszystkie 11 pakietów testowych w `npm test` przechodzi ze statusem 100% PASS (88 testów).
+   - *Uwaga wdrożeniowa:* Po scaleniu zmian do gałęzi staging wymagane jest wdrożenie funkcji brzegowej: `npm run supabase:link:staging && supabase functions deploy chat-site-agent`.
+
+### 2026-09-08 — Naprawa Live Preview w AI Studio: Bezpieczna Sanityzacja (Anti-Wipe) & Resilient Fallback
+
+1. **Root Cause piaszczystego/czarnego podglądu (Zero Blocks Rendered):**
+   - `templates/custom.html`, `studio.html` oraz `kreator.html` nie ładowały skryptu DOMPurify (`purify.min.js`).
+   - W `js/core/pageRepository.js`, funkcja `sanitizeHtml` w przypadku braku DOMPurify zwracała pusty string `""` (fail-closed).
+   - Na skutek tego, każde wywołanie `sanitizeContent` (w `savePageByIdForOwner`, `getPageForAuthenticatedPreview`, `getPageBySlug`) czyściło wszystkie właściwości tekstowe (`id: ""`, `type: ""`, `heading: ""`, `siteTitle: ""`), uniemożliwiając dopasowanie szablonów `<template x-if="block.type === '...'">` w Alpine.js.
+2. **Bezpieczna Sanityzacja (Non-Destructive Anti-Wipe):**
+   - `pageRepository.js`: Zwykły tekst bez tagów HTML (`!/[<>]/.test(trimmed)`) jest natychmiast zwracany nienaruszony.
+   - W przypadku obecności tagów pod nieobecność DOMPurify, tagi są bezpiecznie usuwane wyrażeniem regularnym (`trimmed.replace(/<[^>]*>?/gm, '')`) zamiast niszczenia całego tekstu.
+   - Dodano skrypt DOMPurify (`https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js`) do `templates/custom.html`, `studio.html`, `kreator.html` oraz `setup.html`.
+3. **Resilient Fallback & Healing Bloków:**
+   - `studio.html`: Dodano detekcję braku sekcji głównej (`!hasHeroBlock`) lub pustych bloków w drafcie. Jeśli strona nie posiada prawidłowych bloków (np. po rejestracji przez trigger z pustym `draft_content` lub po uszkodzeniu), generowany jest pełny stan początkowy z zachowaniem dodanych wcześniej sekcji (np. `google_reviews`) i zapisywany w bazie.
+   - `templates/custom.html`: Dodano mechanizm awaryjnego uzupełniania brakujących bloków (`hasHeroBlock`), dzięki czemu ani w trybie podglądu, ani na żywej witrynie użytkownik nie zobaczy pustego czarnego ekranu.
+4. **Weryfikacja testami (`npm test`):**
+   - Rozszerzono `scripts/test-custom-blocks.mjs` o testy weryfikujące, że `pageRepository.sanitizeContent` nie niszczy struktury bloków oraz że `custom.html` posiada mechanizm fallbacku.
+
+### 2026-09-07 — AI Studio Fala 0: Katalog Komponentów (Klocków), Deterministyczny Lokalny insertBlock, Obsługa Błędów Edge
+
+1. **Obsługa błędów Edge (`studio.html`):**
+   - `sendMessage()` parsuje `error.context.json()` (kod `429` rate limiter 30s, quota, timeouty) — użytkownik otrzymuje czytelny komunikat zamiast surowego *"Edge Function returned a non-2xx status code"*.
+2. **Architektura Anti-Monolith Studio (`js/features/studio/studioCatalog.js`):**
+   - Utworzono moduł katalogu dołączany pionowo (`DFOPS_attachStudioCatalog(app)`). Brak rozrostu monolitu `studio.html`.
+3. **Metadane katalogu (`customBlocksRegistry.js`):**
+   - Dodano pola katalogowe do wszystkich 12 klocków: `catalog_group` (*hero, offer, trust, contact, info*), `icon`, `summary`, `allow_multiple`, `required_fields`.
+   - Nienaruszone pole `category` (*cinematic, quick_card, universal*).
+   - Nowe helpers: `getCatalogGroups()` oraz `getCatalogBlocks(currentBlocks)` z dynamicznym statusem `isOnPage`.
+4. **Deterministyczny lokalny `insertBlock` (Zero-LLM Latency & 0 Quota):**
+   - Kliknięcie w katalogu natychmiast wstawia blok na podglądzie w 0 ms (`pushDraftSnapshot` -> `insertBlock` -> `savePageByIdForOwner` -> `refreshPreview`).
+   - Brak zużycia quoty AI i brak 30-sekundowego cooldownu przy dodawaniu sekcji.
+   - Lokalne wstrzyknięcie pytania asystenta z `required_fields` do czatu.
+5. **UI Slide-over Drawer w Studio (`studio.html`):**
+   - Przycisk `🧩 Biblioteka sekcji` w toolbarze (z licznikiem klocków) oraz `+ Biblioteka` w dynamicznych chipsach.
+   - Płynny drawer boczny z filtrami grup, kartami sekcji i inteligentnymi przyciskami dodawania / dostosowania.
+
+### 2026-09-07 — AI Studio MVP: Auth PKCE, Auto-provisioning, Edge Function, Block Engine, Undo/Redo, Media Upload, Click-to-Prompt, EU AI Act, Interactive Chat
+
+1. **Auth PKCE & Auto-provisioning (`studio.html`, `authPKCE.js`, `kreator.html`):**
+   - Obsługa `code` / `#access_token` po kliknięciu linku potwierdzającego z maila rejestracyjnego w `studio.html` (wymiana PKCE przed ładowaniem wiersza witryny).
+   - Trigger bazy danych `on_auth_user_created` na `auth.users` (`handle_new_user()`): natychmiastowe tworzenie rekordu `pages` i `billing_profiles` z metadanych rejestracji (`slug`, `format`, `industry`, `city`).
+   - Telegram alert dla nowej witryny wysyłany natychmiast po rejestracji.
+   - Fallback auto-provisioningu po stronie klienta w `studio.html` i `adminApp.js`, gdy webhook lub trigger napotkają opóźnienie replikacji.
+   - Poprawka 14-dniowego trialu (`trialBlocking.js`): nowe witryny `content=null` z dzisiejszym `trial_started_at` nie są blokowane.
+
+2. **Zgodność z prawem i EU AI Act:**
+   - `regulamin.html`: Dodano §7 „Funkcje Sztucznej Inteligencji (AI)” — informacja o Gemini 2.5 Flash, weryfikacji przez człowieka, zakazie treści nielegalnych/deepfake, prawach autorskich i braku trenowania modeli na danych klientów.
+   - `polityka.html`: Jawna klauzula podwykonawcy Google Cloud Ireland / Google LLC (Gemini API) oraz praw RODO w kontekście AI.
+   - `publicSiteApp.js`: Klauzula infrastrukturalna w stopce polityki prywatności zaktualizowana o Gemini AI.
+
+3. **6 Pełnych Funkcjonalności AI Studio:**
+   - **Narzędzie `reorder_blocks`:** Zadeklarowane w `AGENT_TOOLS` i zaimplementowane w pętli wywołań w `chat-site-agent/index.ts`.
+   - **Undo / Redo:** Stos migawek (`draftHistory`, `draftRedoStack`, limit 20) w `studio.html` z blokadą wielobieżności `historySaving` i zapisem do `pages.draft_content`.
+   - **Dynamic Quick Action Chips:** Reaktywny getter `suggestedChips` analizujący istniejące bloki oraz `themeType`, z gotowymi promptami prowadzącymi do interakcji.
+   - **Upload multimediów przez czat:** Przycisk `[📷]`, walidacja MIME/rozmiaru (10MB), upload do Supabase Storage (`images/{user_id}/studio_{ts}.{ext}`), generowanie publicznego URL i przekazanie promptu Agentowi.
+   - **3 Nowe Typy Bloków:** `testimonials_grid` (z gwiazdkami `★`/`☆`), `faq_accordion` (z Alpine `x-collapse`), `pricing_tiers` (3 pakiety z podświetlonym planem). Dodane w 4 warstwach: `customBlocksRegistry.js`, `customBlockDefaults.ts`, `custom.html`, `chat-site-agent`.
+   - **Click-to-Prompt:** Podgląd witryny w trybie preview podświetla klikalne elementy; kliknięcie wysyła przez `postMessage` (z `targetOrigin: window.location.origin` i atrybutem `:data-block-id`) precyzyjny prompt do edycji konkretnego tekstu.
+   - **Interaktywne prowadzenie stylu (Guided Design):** Narzędzie `update_design` zintegrowane ze słownikiem `PALETTE_COLORS`. Gdy użytkownik pyta o zmianę stylu, Agent przedstawia 5 wariantów (Złoty, Srebrny, Szmaragd, Kobalt, Karmin) i po wyborze natychmiast aplikuje dynamiczne zmienne CSS `--brand-gold`.
+
+4. **Wdrożenie & Testy:**
+   - Edge Function `chat-site-agent` zdeployowana na projekt Staging `asxrsdsprrbvjvgcsckh`.
+   - Komplet testów automatycznych `npm test`: 60/60 PASS.
+
+### 2026-09-06 — Custom AI Sites + returnTo Studio
+
+Nowy motyw `custom` (cinematic / quick_card): Zero-CMS — Agent AI mutuje drzewo bloków, nie HTML. Front: `kreator.html` (Turnstile, polityka hasła, `content=null` do publikacji) → `studio.html` (owner-query `getPageBySlugForOwner`, iframe `dfcms_preview=1`) → `templates/custom.html`. Middleware: `custom` w allowliście; `frame-ancestors 'self'` tylko przy preview; CSP frame-src Vimeo/YouTube-nocookie/Stream. JSON: `blocks` + `pl.settings.subscription.{plan:'trial', trial_started_at}` pod cron `expire_trial_pages()`. Quota czatu: migracja `20260906190000_chat_agent_quota.sql` (`billing_profiles.agent_chat_*`). Login z Studio: `admin.html?returnTo=` (anty-open-redirect); cache-bust `adminApp.js` / `registrationApp.js` `?v=20260906b`. Deploy Staging: `db push` + `functions deploy chat-site-agent` (osobno od git push Pages).
 
 ### 2026-09-04 — PR-4: sprzątanie fali split panelu JS
 
@@ -783,6 +920,40 @@ Na gałęzi `staging` przetestowano podział logiki panelu — **cofnięto**; st
 
 **Następny krok (opcjonalnie):** refaktor JS panelu dopiero z CI (`build:panel` na deploy) lub po testach E2E onboardingu; ewentualnie pozostajemy przy monolicie + partials HTML.
 
+### 2026-09-07 — AI Studio Catalog, Komponenty Branżowe & Anti-Monolith (Fale 0–4 Hardened)
+
+1. **Fala 0 — AI Studio Catalog (`studioCatalog.js`, `studio.html`):**
+   * Dodano Slide-over Drawer z katalogiem bloków i filtrowaniem kategorii (Oferta, Zaufanie, Kontakt, Informacje, Hero) w `studio.html`.
+   * Stan reaktywny (`catalogOpen`, `catalogFilter`, `catalogSaving`) zadeklarowany z góry w literałowym obiekcie jądra `createStudioApp()`.
+   * Wdrożono czysty wzorzec `window.DFOPS_attachStudioCatalog(app)` bez spreadu i niszczenia Proxy w Alpine.js 3.
+   * Obsłużono błędy zapisu draftu w katalogu: rollback migawki (`pageRow.draft_content`), odświeżenie podglądu i komunikat toast.
+   * Sugestie w czacie (`+ Opinie`, `+ Cennik`, `+ FAQ`, `+ Nagrody`) wywołują lokalny `insertBlockFromCatalog` (0 ms latency, 0 quota LLM, brak 30-sekundowego cooldownu).
+   * Naprawiono maskowanie błędów w `sendMessage()` (`error.context.json()`), dzięki czemu użytkownik widzi realne kody HTTP 429/500 zamiast surowego komunikatu Supabase.
+
+2. **Fala 1 — Narzędzia Agenta AI (`chat-site-agent/index.ts`, `customBlocksRegistry.js`):**
+   * Dodano narzędzie `replace_block_items` z pełną ochroną przed Prototype Pollution (`__proto__`, `constructor`, `prototype`) oraz sanityzacją linków URL (`https://` / `mailto:` / `tel:`).
+   * Parsowanie JSON string w `update_block_data` zawężono wyłącznie do `path === "items"`.
+   * Walidator `isGoogleMapsEmbedHttpsUrl` chroni `map_embed_url` w `setDeepValue` przed podaniem złośliwych adresów spoza dozwolonych domen Google Maps.
+
+3. **Fala 2 — Unifikacja schematu i rendererów (`templates/custom.html`):**
+   * `services_list`: renderer wspiera zarówno `srv.desc`, jak i `srv.description`.
+   * `booking_cta`: renderer czyta `button_text || cta_text || 'Zarezerwuj wizytę teraz'`.
+   * `trust_stats`: spójny kontrakt pól (`value`, `label`, `desc`).
+
+4. **Fala 3 — Dynamiczna mapa i dedykowany Lightbox (`templates/custom.html`, `_middleware.js`):**
+   * `location_map`: `getSafeMapEmbedUrl` w `customBlocksRegistry.js` — `address`/`city` wygrywają ze starym `map_embed_url` (brak sztywnego embedu Poznania w defaults). `whitespace-pre-line` dla godzin.
+   * CSP w `functions/_middleware.js`: dodano `https://maps.google.com` do `frame-src`.
+   * `gallery_grid`: kliknięcie w zdjęcie otwiera dedykowany Lightbox fotografii (`imageLightboxOpen`, modal z tagiem `<img>`), nie zanieczyszczając uniwersalnego odtwarzacza wideo (`modalOpen`).
+
+5. **Fala 4 — Soczewka EU AI Act i brak fałszywego social proof (`customBlocksRegistry.js`, `customBlockDefaults.ts`, `custom.html`):**
+   * Usunięto spreparowane recenzje i sztuczną ocenę 5.0 / 4.9 z domyślnych schematów `google_reviews`.
+   * Szablon `custom.html` dla niepodłączonych opinii renderuje kartę konfiguracyjną (wezwanie do podania profilu w czacie).
+   * Places tylko przez istniejącą Edge `get-google-reviews` z **JWT użytkownika** (`supabaseAuth.functions.invoke` + `Authorization`) — `service_role` nie przechodzi `auth.getUser()` w `get-google-reviews`.
+
+6. **Automatyczny pakiet testów (`npm test`):**
+   * `test-custom-blocks.mjs`: 22 testy (sync 18 kluczy, brak fake reviews, kontrakty renderera, mapa vs stale embed).
+   * 9 pakietów — pełny `npm test` (85 testów po kontrakcie mapy).
+
 ---
 
 ## Utrzymanie tego pliku
@@ -790,3 +961,4 @@ Na gałęzi `staging` przetestowano podział logiki panelu — **cofnięto**; st
 1. Na koniec sesji zmieniającej produkcję: zaktualizuj sekcje **1–3** i wpis w **§4**.
 2. Szczegóły implementacyjne zostaw w kodzie; tutaj **decyzje, stany, luki**.
 3. Plany post-MVP → [`ROADMAP.md`](ROADMAP.md).
+

@@ -1,8 +1,16 @@
-;(function () {
-  const normalizeHostname = window.DFOPS_normalizeHostname;
+;(function (root, factory) {
+  if (typeof module === 'object' && module.exports) {
+    module.exports = factory(root);
+  } else {
+    root.DFOPS_pageRepository = factory(root);
+  }
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (root) {
+  'use strict';
+  root = root || {};
+  const normalizeHostname = root.DFOPS_normalizeHostname;
 
   function supabase() {
-    return window.DFOPS_getSupabaseClient();
+    return typeof root.DFOPS_getSupabaseClient === 'function' ? root.DFOPS_getSupabaseClient() : null;
   }
 
   /**
@@ -21,10 +29,11 @@
     } catch (_) {}
     const iframeSrc = value.match(/src\s*=\s*["']([^"']+)["']/i);
     if (iframeSrc?.[1]) {
-      return iframeSrc[1]
+      const src = iframeSrc[1]
         .replace(/&amp;/gi, '&')
         .replace(/&#38;/gi, '&')
         .trim();
+      return /^https?:\/\//i.test(src) ? src : '';
     }
     if (/^https?:\/\//i.test(value)) {
       return value
@@ -222,6 +231,7 @@
     'profile_photo_url',
     'qrImage',
     'menu_image',
+    'thumbnail',
   ]);
 
   const HREF_URL_KEYS = new Set([
@@ -238,6 +248,10 @@
     'twitter',
     'url',
     'youtube',
+    'video_url',
+    'showreel_url',
+    'cta_secondary_target',
+    'vimeo',
   ]);
 
   function sanitizeUrlField(raw, attrName) {
@@ -261,11 +275,15 @@
       return isSafeUrlForAttr('src', trimmed) ? trimmed : '';
     }
 
-    const purifier = window.DOMPurify;
+    // Bezpieczny tekst bez żadnych tagów HTML: nie niszcz danych jeśli to zwykły tekst
+    if (!/[<>]/.test(trimmed)) {
+      return trimmed;
+    }
+
+    const purifier = typeof window !== 'undefined' ? window.DOMPurify : null;
     if (!purifier || typeof purifier.sanitize !== 'function') {
-      // Fail-closed: bez DOMPurify nie renderujemy HTML (tylko pusty string),
-      // aby nie dopuścić do XSS przy brakującej bibliotece.
-      return '';
+      // Bezpieczny fallback bez DOMPurify: usuń tagi HTML zamiast czyścić do pustego stringa
+      return trimmed.replace(/<[^>]*>?/gm, '');
     }
 
     // Hooki są globalne, więc rejestrujemy je tylko raz.
@@ -332,7 +350,7 @@
       return obj.map((x) => sanitizeContent(x, childHint));
     }
     if (typeof obj === 'object') {
-      if (keyHint === 'subscription' && typeof window.DFOPS_stripBillingFromContentSubscription === 'function') {
+      if (keyHint === 'subscription' && typeof window !== 'undefined' && typeof window.DFOPS_stripBillingFromContentSubscription === 'function') {
         return window.DFOPS_stripBillingFromContentSubscription(obj);
       }
       const out = {};
@@ -470,8 +488,33 @@
     if (!user?.id) return { data: null, error: null };
     const { data, error } = await sb
       .from('pages')
-      .select('slug, theme, content, color_preset, custom_domain, trial_blocked_at, billing_failed_at, billing_plan')
+      .select('id, slug, theme, content, draft_content, color_preset, custom_domain, trial_blocked_at, billing_failed_at, billing_plan, created_at')
       .eq('slug', slugTrimmed)
+      .limit(1)
+      .maybeSingle();
+    return { data: sanitizePageRow(data), error };
+  }
+
+  /**
+   * Pobiera pełny rekord strony dla zalogowanego właściciela po slugu (z id i draft_content).
+   * Używane przez Studio i panel autorski.
+   */
+  async function getPageBySlugForOwner(slug) {
+    const slugTrimmed = typeof slug === 'string' ? slug.trim().toLowerCase() : '';
+    if (!slugTrimmed) return { data: null, error: null };
+    const sb = supabase();
+    try {
+      await sb.auth.getSession();
+    } catch (_) {}
+    const {
+      data: { user } = { user: null },
+    } = await sb.auth.getUser();
+    if (!user?.id) return { data: null, error: new Error('UNAUTHORIZED') };
+    const { data, error } = await sb
+      .from('pages')
+      .select('id, created_at, slug, user_id, theme, content, draft_content, color_preset, custom_domain, custom_domain_status, trial_blocked_at, billing_failed_at, billing_plan')
+      .eq('slug', slugTrimmed)
+      .eq('user_id', user.id)
       .limit(1)
       .maybeSingle();
     return { data: sanitizePageRow(data), error };
@@ -647,7 +690,7 @@
     return { data: sanitizePageRow(data), error };
   }
 
-  window.DFOPS_pageRepository = {
+  return {
     getPageBySlug,
     getPageForAuthenticatedPreview,
     getDraftContentForOwner,
@@ -657,6 +700,7 @@
     getCurrentUserPage,
     listCurrentUserPages,
     getPageByIdForOwner,
+    getPageBySlugForOwner,
     isCurrentUserSuperadmin,
     getPageBySlugForSuperadmin,
     saveCurrentUserPage,
@@ -664,6 +708,8 @@
     savePageByIdForSuperadmin,
     createPage,
     sanitizeHtml,
+    sanitizeContent,
+    sanitizePageRow,
   };
-})();
+});
 

@@ -17,6 +17,7 @@ const PUBLISHED_THEMES = new Set([
   "services",
   "gastro",
   "care",
+  "custom",
 ]);
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -42,8 +43,8 @@ function json(
   });
 }
 
-function trialContentJson() {
-  return {
+function trialContentJson(theme?: string) {
+  const base = {
     pl: {
       settings: {
         subscription: {
@@ -54,6 +55,44 @@ function trialContentJson() {
       },
     },
   };
+  if (theme === "custom") {
+    return {
+      ...base,
+      theme_type: "cinematic",
+      design: {
+        palette: "gold_minimal",
+        accent_color: "#D4AF37",
+        font_theme: "cinematic",
+      },
+      blocks: [
+        {
+          id: "cinematic_hero",
+          type: "cinematic_hero",
+          data: {
+            title: "Studio Filmowe",
+            role: "Cinematography & Direction",
+            tagline: "Światło · Kadr · Emocja",
+            video_url: "https://vimeo.com/76979871",
+            video_provider: "vimeo",
+            video_id: "76979871",
+            cta_primary_text: "Obejrzyj showreel",
+            cta_secondary_text: "Kontakt",
+          },
+        },
+        {
+          id: "minimal_contact",
+          type: "minimal_contact",
+          data: {
+            heading: "Kontakt",
+            email: "",
+            phone: "",
+            location: "Polska",
+          },
+        },
+      ],
+    };
+  }
+  return base;
 }
 
 function adminRedirectUrl(req: Request): string {
@@ -281,7 +320,7 @@ serve(async (req) => {
   }
 
   if (!page) {
-    const content = trialContentJson();
+    const content = trialContentJson(theme);
     const { data: inserted, error: insErr } = await auth.supabaseAdmin
       .from("pages")
       .insert({

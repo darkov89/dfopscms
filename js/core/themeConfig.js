@@ -63,6 +63,7 @@
       'booking',
       'nav_labels',
     ],
+    custom: ['seo', 'legal'],
   };
 
   /** Zakładki panelu — widoczne gdy motyw ma wskazaną sekcję (lub always). */

@@ -601,6 +601,18 @@
       },
       /** Checklista na ekranie startowym — proste kroki dla właściciela firmy. */
       get dashboardStartTasks() {
+        if (this.theme === 'custom') {
+          const raw = this.content;
+          const blocks = Array.isArray(raw?.blocks) ? raw.blocks : (Array.isArray(raw?.pl?.blocks) ? raw.pl.blocks : []);
+          const hasBlocks = blocks.length > 0;
+          const isPublished = Boolean(this._publishedContentRaw);
+          const hasCustomDomain = Boolean(this.customDomain);
+          return [
+            { id: 'studio_edit', label: 'Edytuj stronę w Studio AI', href: `/studio.html?site=${encodeURIComponent(this.slug || '')}`, done: hasBlocks },
+            { id: 'publish', label: 'Opublikuj stronę na żywo', tab: 'dashboard', done: isPublished },
+            { id: 'domain', label: 'Podłącz własną domenę', tab: 'subscription', done: hasCustomDomain },
+          ];
+        }
         const pl = this.content?.pl;
         if (!pl) return [];
         const tasks = [];
@@ -647,6 +659,7 @@
         return tasks;
       },
       get incompleteOnboardingChecks() {
+        if (this.theme === 'custom') return [];
         if (!this.content?.pl?.settings || this.content.pl.settings.onboarding_completed === true) return [];
         const pl = this.content.pl;
         if (!pl) return [];
@@ -1913,6 +1926,11 @@
           !portalRefreshScheduled &&
           !this.isForcedPasswordReset
         ) {
+          const returnTo = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('returnTo') : null;
+          if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//') && !returnTo.includes('\\')) {
+            window.location.href = returnTo;
+            return;
+          }
           await this.loadData();
         } else if (this.user && this.isForcedPasswordReset) {
           this.isLoading = false;
@@ -1985,6 +2003,11 @@
           this.assignAuthUser(data.user);
           await this.syncAuthUserFromServer();
           await this.refreshSuperadminStatus();
+          const returnTo = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('returnTo') : null;
+          if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//') && !returnTo.includes('\\')) {
+            window.location.href = returnTo;
+            return;
+          }
           if (!this.schedulePostPaymentDataRefresh()) {
             await this.loadData();
           }
@@ -2062,18 +2085,51 @@
           return false;
         }
 
-        if (typeof window.DFOPS_buildNewSiteContent !== 'function') {
-          this.showError('Brak konfiguracji szablonów (registry).');
-          return false;
+        const meta = user.user_metadata || {};
+        const isAiStudio = meta.theme === 'custom' || localStorage.getItem('dfops_pending_ai_slug') === slug;
+        let insPayload = null;
+
+        if (isAiStudio) {
+          const registry = window.DFOPS_customBlocksRegistry;
+          const chosenType = meta.theme_type || 'cinematic';
+          const formData = meta.form_data || { name: slug };
+          let initialDraft = null;
+          const pendingDraftStr = localStorage.getItem(`dfops_pending_draft_${slug}`);
+          if (pendingDraftStr) {
+            try { initialDraft = JSON.parse(pendingDraftStr); } catch (_) {}
+          }
+          if (!initialDraft && registry) {
+            initialDraft = chosenType === 'quick_card'
+              ? registry.createInitialQuickCardState(formData)
+              : registry.createInitialCinematicState(formData);
+          }
+          if (initialDraft && initialDraft.pl && initialDraft.pl.settings) {
+            initialDraft.pl.settings.welcome_onboarding_completed = true;
+          }
+          insPayload = {
+            slug,
+            theme: 'custom',
+            color_preset: 'gold',
+            content: null,
+            draft_content: initialDraft,
+            user_id: user.id,
+          };
+        } else {
+          if (typeof window.DFOPS_buildNewSiteContent !== 'function') {
+            this.showError('Brak konfiguracji szablonów (registry).');
+            return false;
+          }
+          const content = window.DFOPS_buildNewSiteContent();
+          insPayload = {
+            slug,
+            theme: 'setup',
+            color_preset: content.pl.settings.color_preset,
+            content,
+            user_id: user.id,
+          };
         }
-        const content = window.DFOPS_buildNewSiteContent();
-        const { error: insErr } = await repo.createPage({
-          slug,
-          theme: 'setup',
-          color_preset: content.pl.settings.color_preset,
-          content,
-          user_id: user.id,
-        });
+
+        const { error: insErr } = await repo.createPage(insPayload);
         if (insErr) {
           const code = insErr.code || insErr?.code;
           if (code === '23505') {
@@ -2168,6 +2224,19 @@
                 return;
               }
               data = retry.data;
+              if (data?.theme === 'custom') {
+                const returnTo = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('returnTo') : null;
+                if (returnTo && returnTo.startsWith('/studio.html')) {
+                  window.location.href = returnTo;
+                  return;
+                }
+                const pendingAiSlug = localStorage.getItem('dfops_pending_ai_slug');
+                if (pendingAiSlug === data.slug) {
+                  localStorage.removeItem('dfops_pending_ai_slug');
+                  window.location.href = `/studio.html?site=${encodeURIComponent(data.slug)}`;
+                  return;
+                }
+              }
             }
             try {
               if (data?.id != null) {
@@ -2181,6 +2250,7 @@
             }
           }
           this.pageId = data.id;
+          this.rawDraftContent = data.draft_content && typeof data.draft_content === 'object' ? data.draft_content : null;
           this.slug = data.slug;
           this.impersonatedPageOwnerId = this.isImpersonating ? (data.user_id || null) : null;
           this.trialBlockedAt = data.trial_blocked_at ?? null;
@@ -2201,6 +2271,53 @@
           this.theme =
             (workingRaw?.pl?.settings?.theme && String(workingRaw.pl.settings.theme).trim()) ||
             data.theme;
+
+          // Auto-adopcja strony AI Studio, jeśli powstała jako 'setup' przez trigger bazy danych
+          if (this.theme === 'setup') {
+            const pendingAiSlug = window.localStorage.getItem('dfops_pending_ai_slug');
+            const pendingDraftKey = 'dfops_pending_draft_' + data.slug;
+            const pendingDraftStr = window.localStorage.getItem(pendingDraftKey);
+            const isAiRegistered = this.user?.user_metadata?.theme === 'custom' || pendingAiSlug === data.slug || Boolean(pendingDraftStr);
+
+            if (isAiRegistered) {
+              const registry = window.DFOPS_customBlocksRegistry;
+              let draftToApply = null;
+              if (pendingDraftStr) {
+                try {
+                  draftToApply = JSON.parse(pendingDraftStr);
+                } catch (_) {}
+              }
+              if (!draftToApply && registry) {
+                const meta = this.user?.user_metadata || {};
+                const formData = meta.form_data || { name: data.slug };
+                const chosenType = meta.theme_type || 'cinematic';
+                draftToApply = chosenType === 'quick_card'
+                  ? registry.createInitialQuickCardState(formData)
+                  : registry.createInitialCinematicState(formData);
+              }
+              if (draftToApply) {
+                try {
+                  await repo.savePageByIdForOwner(this.user.id, data.id, {
+                    theme: 'custom',
+                    draft_content: draftToApply,
+                  });
+                  this.theme = 'custom';
+                  data.theme = 'custom';
+                  data.draft_content = draftToApply;
+                  if (pendingDraftStr) window.localStorage.removeItem(pendingDraftKey);
+                  window.localStorage.removeItem('dfops_pending_ai_slug');
+
+                  const returnTo = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('returnTo') : null;
+                  if (returnTo && returnTo.startsWith('/studio.html')) {
+                    window.location.href = returnTo;
+                    return;
+                  }
+                } catch (e) {
+                  console.warn('[Admin] Failed to auto-adopt AI Studio page:', e);
+                }
+              }
+            }
+          }
 
           /** Migawka opublikowanej wersji (kolumna `content`) — pod akcję „Odrzuć zmiany” (revert do produkcji). */
           this._publishedContentRaw = data.content ?? null;
@@ -2328,6 +2445,30 @@
         if (!getSwitchableTemplateIds().includes(id)) return;
         if (this.theme === id) return;
 
+        if (id === 'custom') {
+          const confirmedCustom = await this.confirmAsync({
+            title: 'Przejść do AI Studio?',
+            message:
+              'Zamiast formularzy panelu będziesz edytować stronę w czacie z Agentem AI. Zabierzemy nazwę firmy i dane kontaktowe z obecnej strony — nie musisz wpisywać ich od zera. Opublikowana wersja zmieni się dopiero gdy w Studio klikniesz „Opublikuj na żywo”.',
+            yesLabel: 'Tak, otwórz Studio',
+            noLabel: 'Nie',
+          });
+          if (!confirmedCustom) return;
+          try {
+            const { error } = await this.saveActivePage({ theme: 'custom' });
+            if (error) throw error;
+            this.showTemplateSwitcher = false;
+            this.message = 'Przechodzę do AI Studio…';
+            setTimeout(() => {
+              window.location.href = '/studio.html?site=' + encodeURIComponent(this.slug || '');
+            }, 400);
+          } catch (e) {
+            console.error(e);
+            this.showError('Nie udało się przełączyć na AI Studio.');
+          }
+          return;
+        }
+
         const savedAiContext =
           typeof window.DFOPS_aiBusinessContext?.buildDefaultAiContext === 'function'
             ? window.DFOPS_aiBusinessContext.buildDefaultAiContext(this.content?.pl?.settings)
@@ -2368,6 +2509,12 @@
           return;
         }
         try {
+          const handoffRules = window.DFOPS_studioHandoffRules;
+          const handoffSource = handoffRules
+            ? handoffRules.pickHandoffSource(this.content, this.rawDraftContent, this._publishedContentRaw)
+            : this.content;
+          const handoff = handoffRules ? handoffRules.extractHandoffAnswers(handoffSource) : null;
+
           const savedContact = JSON.parse(JSON.stringify(this.content?.pl?.contact || {}));
           const savedLogo = this.content?.pl?.nav?.logo ?? '';
           const savedLogoImage = this.content?.pl?.nav?.logoImage ?? '';
@@ -2393,6 +2540,9 @@
           if (!merged.pl.nav) merged.pl.nav = {};
           merged.pl.nav.logo = savedLogo;
           merged.pl.nav.logoImage = savedLogoImage;
+          if (handoff && handoffRules && typeof handoffRules.applyHandoffToClassicContent === 'function') {
+            handoffRules.applyHandoffToClassicContent(merged, handoff);
+          }
           if (merged.pl.settings) {
             merged.pl.settings.subscription = {
               ...(merged.pl.settings.subscription || {}),
@@ -2425,8 +2575,18 @@
           this.enforceQuickChatForStarter();
           this.applyThemeStylingFromContent();
 
-          const ok = await this.saveData({ silentSuccess: true });
-          if (!ok) return;
+          if (this.content.pl.settings) this.content.pl.settings.theme = this.theme;
+          if (typeof this.prepareContentForPersist === 'function') {
+            this.prepareContentForPersist();
+          }
+          const { error: switchErr } = await this.saveActivePage({
+            theme: id,
+            draft_content: this.content,
+          });
+          if (switchErr) {
+            this.showError('Nie udało się zapisać zmiany szablonu.');
+            return;
+          }
 
           this.showTemplateSwitcher = false;
           clearWizardStateFromStorage(this.slug);
@@ -3150,6 +3310,8 @@
       /** Migawka opublikowanej treści (kolumna `content`) — pod „Odrzuć zmiany”. */
       _publishedContentRaw: null,
       _publishedTheme: '',
+      /** Surowe `draft_content` z bazy (bloki Studio) — handoff przy zmianie motywu. */
+      rawDraftContent: null,
 
       googleReviewsPlaceInput: '',
       googleReviewsPlaceResults: [],

@@ -17,8 +17,8 @@
             <style>
                 .dfcms-badge {
                     position: fixed !important;
-                    bottom: 16px !important;
-                    right: 16px !important;
+                    bottom: max(16px, env(safe-area-inset-bottom, 16px)) !important;
+                    left: max(16px, env(safe-area-inset-left, 16px)) !important;
                     background: #121212 !important;
                     color: #D4AF37 !important;
                     padding: 8px 12px !important;
@@ -38,6 +38,10 @@
                     pointer-events: auto !important;
                 }
                 .dfcms-badge:hover { background: #000 !important; transform: translateY(-2px) !important; }
+                :host-context(body.has-cookie-banner) .dfcms-badge,
+                body.has-cookie-banner .dfcms-badge {
+                    display: none !important;
+                }
             </style>
             <a href="https://dfcms.pl?ref=watermark" target="_blank" rel="noopener noreferrer" class="dfcms-badge">⚡ Stworzono w DFCMS</a>
         `;
@@ -103,10 +107,11 @@
     // If user pasted full iframe HTML, extract src
     const iframeSrc = value.match(/src\s*=\s*["']([^"']+)["']/i);
     if (iframeSrc?.[1]) {
-      return iframeSrc[1]
+      const src = iframeSrc[1]
         .replace(/&amp;/gi, '&')
         .replace(/&#38;/gi, '&')
         .trim();
+      return /^https?:\/\//i.test(src) ? src : '';
     }
 
     // If user pasted plain URL, normalize common HTML-escaped chars
@@ -166,15 +171,22 @@
     }
   }
 
-  /** Usuwa prosty HTML z tytułów/opisów SEO (żeby nie trafił surowy markup do <title>). */
+  /** Usuwa prosty HTML z tytułów/opisów SEO (żeby nie trafił surowy markup do <title> ani nie wywołał DOM XSS przez innerHTML). */
   function seoPlainText(value) {
     if (value == null || value === '') return '';
     const s = String(value).trim();
     if (!s) return '';
-    if (!/[<>]/.test(s)) return s;
-    const d = document.createElement('div');
-    d.innerHTML = s;
-    return (d.textContent || d.innerText || '').trim();
+    if (!/[<>&]/.test(s)) return s;
+    return s
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'")
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 
   function escapeHtml(value) {
@@ -200,6 +212,8 @@
         <h3 class="text-lg font-bold mb-4">Statystyki odwiedzin i kliknięć elementów kontaktowych (CTA)</h3>
         <p class="mb-4">Aby Administrator mógł ocenić skuteczność strony i lepiej dopasować sposób kontaktu do potrzeb klientów, platforma DFCMS odnotowuje: (a) odsłony strony (samo wejście na stronę) oraz (b) zdarzenia kliknięcia w elementy kontaktowe strony, takie jak: numer telefonu, przycisk rezerwacji, WhatsApp / Messenger, adres e-mail lub mapę dojazdu. Zdarzenia te <strong>nie są powiązane z plikami cookies</strong> ani żadnymi identyfikatorami zapisywanymi w przeglądarce użytkownika.</p>
         <p>Do celów wyłącznie technicznych (ochrona przed nadużyciami i wielokrotnym zliczeniem tego samego zdarzenia) po stronie serwera tworzony jest jednorazowy, nieodwracalny skrót kryptograficzny (hash) na podstawie adresu IP, adresu strony i bieżącej daty — sam adres IP nie jest zapisywany w bazie danych. Zebrane w ten sposób dane mają charakter wyłącznie zbiorczy (liczba odwiedzin i kliknięć w danym okresie) i służą do wyświetlenia Administratorowi statystyk w panelu zarządzania stroną oraz — w formie w pełni zanonimizowanej i uśrednionej dla branży — do porównań (benchmarków) między stronami o podobnym profilu działalności. Dane te nie umożliwiają zidentyfikowania konkretnego użytkownika ani odtworzenia jego adresu IP.</p>
+        <h3 class="text-lg font-bold mt-6 mb-4">Wsparcie Technologiczne i Narzędzia Sztucznej Inteligencji</h3>
+        <p>Treści, układ wizualny lub elementy oferty prezentowane na niniejszej witrynie mogły zostać przygotowane przy wsparciu narzędzi generatywnej sztucznej inteligencji (DFCMS AI) pod bezpośrednim nadzorem redakcyjnym Administratora. Każda publikowana informacja podlega weryfikacji i ostatecznemu zatwierdzeniu przez człowieka przed udostępnieniem publicznym.</p>
       </div>
     `;
   }
