@@ -44,8 +44,12 @@
     <script defer src="/js/core/studioHandoffRules.js?v=20260908a"></script>
     <script defer src="/js/core/customThemeRules.js?v=20260908a"></script>
     <script defer src="/js/core/studioDraftHistoryRules.js?v=20260908a"></script>
+    <script defer src="/js/core/studioInlineRules.js?v=20260908b"></script>
     <script defer src="/js/features/studio/studioDraftManager.js?v=20260908a"></script>
     <script defer src="/js/features/studio/studioCatalog.js?v=20260907a"></script>
+    <script defer src="/js/features/studio/studioInlineEditor.js?v=20260908b"></script>
+    <script defer src="/js/features/studio/studioMediaManager.js?v=20260908b"></script>
+    <script defer src="/js/features/studio/studioThemeCustomizer.js?v=20260908b"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 
     <style>
@@ -55,26 +59,27 @@
 <body x-data="createStudioApp()" class="h-full bg-[#0d0d0d] text-zinc-100 font-sans antialiased flex flex-col overflow-hidden">
 
     <!-- Top Studio Toolbar -->
-    <header class="h-16 border-b border-brand-border bg-black/80 px-6 flex items-center justify-between z-30 flex-shrink-0">
-        <div class="flex items-center gap-3 sm:gap-4">
+    <!-- Top Studio Toolbar -->
+    <header class="h-14 sm:h-16 border-b border-brand-border bg-black/90 px-3 sm:px-6 flex items-center justify-between z-30 flex-shrink-0">
+        <div class="flex items-center gap-2 sm:gap-4 min-w-0">
             <a href="/" class="hidden sm:flex items-center gap-2 font-sans text-sm font-bold tracking-tight text-white hover:opacity-90 transition">
                 <img src="/favicon.svg" alt="" width="22" height="22" class="rounded" aria-hidden="true">
                 <span><span class="text-brand-gold">DF</span>CMS</span>
             </a>
             <div class="hidden sm:block h-4 w-px bg-white/10"></div>
-            <a href="/admin.html" class="text-xs font-bold text-zinc-400 hover:text-white transition flex items-center gap-1.5">
+            <a href="/admin.html" class="text-xs font-bold text-zinc-400 hover:text-white transition flex items-center gap-1 flex-shrink-0">
                 <span>← Panel</span>
             </a>
-            <div class="h-4 w-px bg-white/10"></div>
-            <div class="flex items-center gap-2">
-                <span class="text-xs font-bold uppercase tracking-widest text-brand-gold">AI Studio:</span>
-                <span class="text-sm font-semibold text-white" x-text="pageSlug"></span>
-                <span class="text-[10px] bg-white/10 text-zinc-300 font-bold px-2 py-0.5 rounded-full uppercase" x-text="themeType"></span>
+            <div class="h-4 w-px bg-white/10 flex-shrink-0"></div>
+            <div class="flex items-center gap-1.5 min-w-0">
+                <span class="text-xs font-bold uppercase tracking-wider text-brand-gold hidden sm:inline flex-shrink-0">AI Studio:</span>
+                <span class="text-xs sm:text-sm font-semibold text-white truncate max-w-[100px] sm:max-w-[180px]" x-text="pageSlug"></span>
+                <span class="text-[9px] sm:text-[10px] bg-white/10 text-zinc-300 font-bold px-1.5 sm:px-2 py-0.5 rounded-full uppercase flex-shrink-0" x-text="themeType === 'quick_card' ? 'Wizytówka' : 'Kinowy'"></span>
             </div>
         </div>
 
-        <!-- Center: Device Switcher -->
-        <div class="hidden sm:flex items-center rounded-xl bg-white/5 p-1 border border-white/10">
+        <!-- Center: Device Switcher (Desktop) & Mobile Tab Switcher (Mobile) -->
+        <div class="hidden md:flex items-center rounded-xl bg-white/5 p-1 border border-white/10">
             <button type="button" @click="deviceMode = 'desktop'"
                     :class="deviceMode === 'desktop' ? 'bg-white/15 text-white shadow-sm' : 'text-zinc-400 hover:text-white'"
                     class="rounded-lg px-3 py-1 text-xs font-semibold transition flex items-center gap-1.5">
@@ -89,12 +94,29 @@
             </button>
         </div>
 
+        <!-- Mobile Segmented Tab Switcher (Visible only on < sm) -->
+        <div class="sm:hidden flex items-center bg-white/10 rounded-xl p-0.5 border border-white/10">
+            <button type="button" @click="mobileTab = 'preview'"
+                    :class="mobileTab === 'preview' ? 'bg-white/20 text-white font-bold shadow-xs' : 'text-zinc-400 hover:text-white'"
+                    class="px-2.5 py-1 text-xs rounded-lg transition flex items-center gap-1">
+                <span>👁️</span>
+                <span class="text-[11px]">Podgląd</span>
+            </button>
+            <button type="button" @click="mobileTab = 'chat'"
+                    :class="mobileTab === 'chat' ? 'bg-white/20 text-white font-bold shadow-xs' : 'text-zinc-400 hover:text-white'"
+                    class="px-2.5 py-1 text-xs rounded-lg transition flex items-center gap-1 relative">
+                <span>💬</span>
+                <span class="text-[11px]">AI</span>
+                <span x-show="agentThinking" class="h-1.5 w-1.5 rounded-full bg-brand-gold animate-ping"></span>
+            </button>
+        </div>
+
         <!-- Right: Actions -->
-        <div class="flex items-center gap-2.5 sm:gap-3">
+        <div class="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
             <!-- Undo / Redo buttons -->
             <div class="flex items-center rounded-xl bg-white/5 p-0.5 border border-white/10">
                 <button type="button" @click="undoDraft()" :disabled="!draftHistory.length || agentThinking || publishing || loading || historySaving || imageUploading"
-                        class="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/10 hover:text-white transition disabled:opacity-25 disabled:cursor-not-allowed flex items-center gap-1"
+                        class="rounded-lg p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/10 hover:text-white transition disabled:opacity-25 disabled:cursor-not-allowed flex items-center gap-1"
                         aria-label="Cofnij zmianę (Undo)"
                         title="Cofnij zmianę (Undo)">
                     <span aria-hidden="true">↩️</span>
@@ -102,7 +124,7 @@
                 </button>
                 <div class="h-3.5 w-px bg-white/10"></div>
                 <button type="button" @click="redoDraft()" :disabled="!draftRedoStack.length || agentThinking || publishing || loading || historySaving || imageUploading"
-                        class="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/10 hover:text-white transition disabled:opacity-25 disabled:cursor-not-allowed flex items-center gap-1"
+                        class="rounded-lg p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/10 hover:text-white transition disabled:opacity-25 disabled:cursor-not-allowed flex items-center gap-1"
                         aria-label="Ponów zmianę (Redo)"
                         title="Ponów zmianę (Redo)">
                     <span aria-hidden="true">↪️</span>
@@ -110,31 +132,104 @@
                 </button>
             </div>
 
+            <!-- Theme & Palette Customizer Button & Popover -->
+            <div class="relative" @click.outside="themeCustomizerOpen = false">
+                <button type="button" @click="toggleThemeCustomizer()"
+                        class="rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 p-1.5 sm:px-3 sm:py-1.5 text-xs font-semibold text-zinc-200 hover:text-white transition flex items-center gap-1.5 shadow-sm"
+                        title="Zmień kolorystykę, styl powierzchni i typografię">
+                    <span aria-hidden="true">🎨</span>
+                    <span class="hidden md:inline">Styl & Kolory</span>
+                </button>
+
+                <!-- Popover Panel -->
+                <div x-show="themeCustomizerOpen" x-cloak
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-100"
+                     x-transition:leave-start="opacity-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 translate-y-1"
+                     class="absolute right-0 mt-2 w-80 rounded-2xl border border-white/15 bg-[#141414] p-5 shadow-2xl z-50 text-xs">
+                    
+                    <div class="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
+                        <span class="font-bold text-white uppercase tracking-wider text-[11px]">Dostosuj styl strony</span>
+                        <button type="button" @click="themeCustomizerOpen = false" class="text-zinc-400 hover:text-white text-sm">✕</button>
+                    </div>
+
+                    <!-- Styl Powierzchni: Quick Card vs Cinematic -->
+                    <div class="mb-4">
+                        <span class="block text-[10px] uppercase font-bold text-zinc-400 tracking-wider mb-2">Styl powierzchni</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" @click="selectThemeType('quick_card')"
+                                    :class="themeType === 'quick_card' ? 'border-brand-gold bg-white/10 text-white font-bold' : 'border-white/10 text-zinc-400 hover:text-white hover:bg-white/5'"
+                                    class="rounded-xl border p-2.5 text-center transition flex flex-col items-center gap-1">
+                                <span class="text-base">⚡</span>
+                                <span class="text-[11px]">Jasny (Wizytówka)</span>
+                            </button>
+                            <button type="button" @click="selectThemeType('cinematic')"
+                                    :class="themeType === 'cinematic' ? 'border-brand-gold bg-white/10 text-white font-bold' : 'border-white/10 text-zinc-400 hover:text-white hover:bg-white/5'"
+                                    class="rounded-xl border p-2.5 text-center transition flex flex-col items-center gap-1">
+                                <span class="text-base">🎬</span>
+                                <span class="text-[11px]">Ciemny (Kinowy)</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Paleta kolorów akcentu -->
+                    <div class="mb-4">
+                        <span class="block text-[10px] uppercase font-bold text-zinc-400 tracking-wider mb-2">Kolor wiodący (Akcent)</span>
+                        <div class="grid grid-cols-4 gap-2">
+                            <template x-for="p in availablePalettes" :key="p.id">
+                                <button type="button" @click="selectPalette(p.id)"
+                                        class="group relative flex flex-col items-center justify-center p-2 rounded-xl border border-white/10 hover:border-white/30 transition"
+                                        :title="p.name">
+                                    <span class="h-6 w-6 rounded-full border border-white/20 shadow-sm" :style="'background-color: ' + p.color"></span>
+                                    <span class="text-[9px] text-zinc-400 mt-1 truncate max-w-[56px] text-center" x-text="p.name.split(' ')[0]"></span>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Typografia -->
+                    <div>
+                        <span class="block text-[10px] uppercase font-bold text-zinc-400 tracking-wider mb-2">Krój pisma</span>
+                        <div class="space-y-1.5">
+                            <template x-for="f in availableFontThemes" :key="f.id">
+                                <button type="button" @click="selectFontTheme(f.id)"
+                                        class="w-full text-left p-2 rounded-xl border border-white/10 hover:border-brand-gold/40 hover:bg-white/5 transition flex items-center justify-between">
+                                    <div>
+                                        <div class="text-[11px] font-semibold text-white" x-text="f.name"></div>
+                                        <div class="text-[9px] text-zinc-400" x-text="f.desc"></div>
+                                    </div>
+                                    <span class="text-xs text-brand-gold">Aa</span>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Component Library Button -->
             <button type="button" @click="openCatalog()"
-                    class="rounded-xl border border-brand-gold/30 bg-brand-gold/10 px-3 py-1.5 text-xs font-semibold text-brand-gold hover:bg-brand-gold/20 hover:text-white transition flex items-center gap-1.5 shadow-sm"
+                    class="rounded-xl border border-brand-gold/30 bg-brand-gold/10 p-1.5 sm:px-3 sm:py-1.5 text-xs font-semibold text-brand-gold hover:bg-brand-gold/20 hover:text-white transition flex items-center gap-1.5 shadow-sm"
                     title="Przeglądaj bibliotekę komponentów i dodaj sekcję">
                 <span aria-hidden="true">🧩</span>
                 <span class="hidden md:inline">Biblioteka sekcji</span>
-                <span class="text-[10px] bg-brand-gold/20 text-brand-gold px-1.5 py-0.5 rounded-full font-bold" x-text="typeof getCatalogTotalCount === 'function' ? getCatalogTotalCount() : 12"></span>
+                <span class="text-[9px] sm:text-[10px] bg-brand-gold/20 text-brand-gold px-1 sm:px-1.5 py-0.5 rounded-full font-bold" x-text="typeof getCatalogTotalCount === 'function' ? getCatalogTotalCount() : 12"></span>
             </button>
 
             <a href="/admin.html#subscription" class="hidden lg:inline-flex rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/10 hover:text-white transition">
                 Domeny & Płatności ⚙️
             </a>
-            <button type="button" @click="toggleChat()"
-                    :class="chatOpen ? 'bg-brand-gold/15 text-brand-gold border-brand-gold/30' : 'bg-white/5 text-zinc-300 border-white/10'"
-                    class="sm:hidden rounded-xl border px-3 py-1.5 text-xs font-semibold transition flex items-center gap-1.5">
-                <span>Agent AI</span>
-            </button>
             <a :href="'/templates/custom.html?site=' + pageSlug" target="_blank"
                class="hidden md:inline-flex rounded-xl border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/10 hover:text-white transition">
                 Otwórz LIVE ↗
             </a>
             <button type="button" @click="publishChanges()" :disabled="publishing || loading"
-                    class="inline-flex items-center gap-2 rounded-full bg-brand-gold px-5 py-2 text-xs font-bold uppercase tracking-wider text-black shadow-lg shadow-brand-gold/20 hover:bg-brand-goldHover transition disabled:opacity-50">
+                    class="inline-flex items-center gap-1 sm:gap-2 rounded-full bg-brand-gold px-3 py-1.5 sm:px-5 sm:py-2 text-xs font-bold uppercase tracking-wider text-black shadow-lg shadow-brand-gold/20 hover:bg-brand-goldHover transition disabled:opacity-50">
                 <span x-show="publishing" class="h-3 w-3 animate-spin rounded-full border-2 border-black border-t-transparent"></span>
-                <span x-text="publishing ? 'Publikowanie...' : 'Opublikuj na żywo ⚡'"></span>
+                <span class="sm:hidden text-xs">⚡</span>
+                <span class="hidden sm:inline" x-text="publishing ? 'Publikowanie...' : 'Opublikuj na żywo ⚡'"></span>
             </button>
         </div>
     </header>
@@ -143,8 +238,9 @@
     <div class="flex-1 flex overflow-hidden relative">
 
         <!-- Left / Center: Live Preview Iframe Container -->
-        <div class="flex-1 bg-black/90 p-3 sm:p-6 flex items-center justify-center overflow-hidden transition-all duration-300">
-            <div :class="deviceMode === 'mobile' ? 'w-[375px] sm:w-[390px] max-w-[92vw] h-full max-h-[calc(100vh-5.5rem)] rounded-[40px] sm:rounded-[48px] border-[8px] sm:border-[10px] border-zinc-800 shadow-2xl overflow-hidden' : 'w-full h-full rounded-2xl border border-white/10 overflow-hidden shadow-2xl'"
+        <div :class="mobileTab === 'preview' ? 'flex' : 'hidden sm:flex'"
+             class="flex-1 bg-black/90 p-0 sm:p-6 items-center justify-center overflow-hidden transition-all duration-300 relative w-full h-full">
+            <div :class="deviceMode === 'mobile' ? 'w-full h-full sm:w-[390px] sm:max-w-[92vw] sm:h-full sm:max-h-[calc(100vh-5.5rem)] rounded-none sm:rounded-[48px] border-0 sm:border-[10px] border-zinc-800 shadow-2xl overflow-hidden' : 'w-full h-full rounded-none sm:rounded-2xl border-0 sm:border border-white/10 overflow-hidden shadow-2xl'"
                  class="transition-all duration-300 bg-black flex flex-col relative">
                 <!-- Preview Iframe Loading Overlay -->
                 <div x-show="iframeLoading" x-cloak
@@ -158,14 +254,23 @@
                         :src="'/templates/custom.html?site=' + pageSlug + '&dfcms_preview=1&t=' + refreshTimestamp"
                         class="w-full h-full border-0 bg-black"></iframe>
             </div>
+
+            <!-- Mobile Floating Switch to AI Agent button -->
+            <div class="sm:hidden absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
+                <button type="button" @click="mobileTab = 'chat'"
+                        class="rounded-full bg-gradient-to-r from-brand-gold to-amber-500 text-black font-bold px-4 py-2 text-xs shadow-xl flex items-center gap-2 border border-brand-gold/50 active:scale-95 transition">
+                    <span>💬 Rozmawiaj z Agentem AI</span>
+                    <span x-show="agentThinking" class="h-1.5 w-1.5 rounded-full bg-black animate-ping"></span>
+                </button>
+            </div>
         </div>
 
         <!-- Right Side: AI Agent Chat Sidebar -->
-        <aside :class="chatOpen ? 'translate-x-0' : 'translate-x-full sm:translate-x-0'"
-               class="fixed inset-y-16 right-0 sm:static sm:inset-auto w-full sm:w-96 border-l border-brand-border bg-brand-card flex flex-col z-20 shadow-2xl transition-transform duration-300">
+        <aside :class="mobileTab === 'chat' ? 'flex' : 'hidden sm:flex'"
+               class="w-full sm:w-96 flex-shrink-0 border-l border-brand-border bg-brand-card flex flex-col z-20 shadow-2xl h-full overflow-hidden">
 
             <!-- Chat Header -->
-            <div class="p-4 border-b border-white/10 flex items-center justify-between bg-black/40">
+            <div class="p-3 sm:p-4 border-b border-white/10 flex items-center justify-between bg-black/40">
                 <div class="flex items-center gap-2.5">
                     <div class="h-7 w-7 rounded-full bg-brand-gold/15 text-brand-gold flex items-center justify-center font-bold text-xs">
                         AI
@@ -182,7 +287,9 @@
                         <span class="text-zinc-200 font-semibold" x-text="chatCount"></span>/<span x-text="chatLimit"></span>
                         <span class="text-[9px] text-zinc-500 ml-0.5">AI</span>
                     </div>
-                    <button type="button" @click="chatOpen = false" class="sm:hidden text-zinc-400 hover:text-white text-lg leading-none p-1">✕</button>
+                    <button type="button" @click="mobileTab = 'preview'" class="sm:hidden text-zinc-300 hover:text-white text-xs px-2.5 py-1 rounded-lg bg-white/10 border border-white/10 flex items-center gap-1">
+                        <span>👁️ Podgląd</span>
+                    </button>
                 </div>
             </div>
 
@@ -193,14 +300,16 @@
                          class="max-w-[85%] p-3.5 leading-relaxed shadow-sm">
                         <p x-text="msg.text" class="whitespace-pre-wrap"></p>
 
-                        <!-- Akcja odrzucenia zmiany AI -->
-                        <div x-show="msg.hasChanges && !msg.rejected && !msg.stale" class="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between gap-2">
-                            <span class="text-[10px] text-zinc-400 font-medium">Sprawdź podgląd po lewej stronie</span>
+                        <!-- Akcja odrzucenia zmiany AI i podgląd na telefonie -->
+                        <div x-show="msg.hasChanges && !msg.rejected && !msg.stale" class="mt-2.5 pt-2 border-t border-white/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <span class="text-[10px] text-zinc-400 font-medium hidden sm:inline">Sprawdź podgląd po lewej stronie</span>
+                            <button type="button" @click="mobileTab = 'preview'" class="sm:hidden inline-flex items-center justify-center gap-1.5 rounded-lg bg-brand-gold/20 border border-brand-gold/40 px-3 py-1.5 text-[11px] font-bold text-brand-gold hover:bg-brand-gold/30 transition">
+                                <span>👁️ Zobacz zmiany na podglądzie →</span>
+                            </button>
                             <button type="button" @click="rejectMessageDraft(msg)" :disabled="agentThinking || historySaving || publishing"
-                                    class="rounded-lg bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 px-2.5 py-1 text-[11px] font-semibold text-red-400 hover:text-red-300 transition flex items-center gap-1 shadow-sm disabled:opacity-50">
+                                    class="rounded-lg bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 px-2.5 py-1 text-[11px] font-semibold text-red-400 hover:text-red-300 transition flex items-center justify-center gap-1 shadow-sm disabled:opacity-50">
                                 <span aria-hidden="true">↩️</span>
                                 <span>Odrzuć tę zmianę</span>
-                            </button>
                         </div>
 
                         <!-- Status po odrzuceniu -->
@@ -366,6 +475,65 @@
         </div>
     </div>
 
+    <!-- Media Picker Modal (Bezpośrednia podmiana zdjęć) -->
+    <div x-show="mediaModalOpen" x-cloak
+         class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4"
+         @keydown.escape.window="closeMediaPicker()"
+         role="dialog" aria-modal="true" aria-labelledby="dfcms-media-title">
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" @click="closeMediaPicker()"></div>
+
+        <div class="relative w-full max-w-lg rounded-2xl border border-white/15 bg-[#161616] p-6 shadow-2xl text-zinc-100 z-10">
+            <div class="flex items-center justify-between pb-4 border-b border-white/10">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-xl">📷</span>
+                    <div>
+                        <h3 id="dfcms-media-title" class="text-sm font-bold text-white uppercase tracking-wider">Wybierz zdjęcie dla sekcji</h3>
+                        <p class="text-xs text-zinc-400">Podmień zdjęcie na żywo bez pisania promptów</p>
+                    </div>
+                </div>
+                <button type="button" @click="closeMediaPicker()" class="text-zinc-400 hover:text-white p-1">✕</button>
+            </div>
+
+            <!-- Zakładka: Upload z dysku -->
+            <div class="mt-5 space-y-4">
+                <label class="flex flex-col items-center justify-center border-2 border-dashed border-white/20 hover:border-brand-gold/60 rounded-2xl p-6 cursor-pointer bg-white/[0.02] hover:bg-white/[0.05] transition text-center">
+                    <span class="text-2xl mb-1">📁</span>
+                    <span class="text-xs font-bold text-white">Wgraj zdjęcie ze swojego urządzenia</span>
+                    <span class="text-[11px] text-zinc-400 mt-1">Formaty JPG, PNG, WebP do 10 MB</span>
+                    <span x-show="mediaUploading" class="mt-2 text-xs text-brand-gold font-bold animate-pulse">Wgrywanie pliku...</span>
+                    <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="handleDirectFileUpload($event)" :disabled="mediaUploading">
+                </label>
+
+                <!-- Stock Curated Images -->
+                <div>
+                    <span class="block text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-2">Lub wybierz profesjonalne zdjęcie z biblioteki</span>
+                    <div class="grid grid-cols-3 gap-2">
+                        <template x-for="item in curatedStockPhotos" :key="item.url">
+                            <button type="button" @click="applySelectedImage(item.url)"
+                                    class="group relative aspect-video rounded-xl overflow-hidden border border-white/10 hover:border-brand-gold transition focus:outline-none">
+                                <img :src="item.url" class="h-full w-full object-cover group-hover:scale-105 transition duration-300" alt="">
+                                <span class="absolute inset-x-0 bottom-0 bg-black/70 p-1 text-[9px] text-zinc-200 truncate" x-text="item.label"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Custom URL -->
+                <div class="pt-2 border-t border-white/10">
+                    <span class="block text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-1.5">Lub wklej bezpośredni link URL</span>
+                    <div class="flex gap-2">
+                        <input type="text" x-model="mediaCustomUrl" placeholder="https://example.com/photo.jpg"
+                               class="flex-1 rounded-xl border border-white/10 bg-black/60 px-3 py-2 text-xs text-white focus:border-brand-gold focus:outline-none">
+                        <button type="button" @click="applySelectedImage(mediaCustomUrl.trim())" :disabled="!mediaCustomUrl.trim()"
+                                class="rounded-xl bg-brand-gold text-black font-bold text-xs px-4 py-2 hover:bg-brand-goldHover transition disabled:opacity-40">
+                            Zastosuj
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div x-show="toastMessage" x-cloak
          class="fixed bottom-6 left-6 z-50 rounded-2xl bg-zinc-900 border border-white/10 px-5 py-3 text-xs font-semibold text-white shadow-2xl flex items-center gap-3">
@@ -400,6 +568,7 @@
                 pageRow: null,
                 themeType: 'custom',
                 deviceMode: 'desktop',
+                mobileTab: 'preview',
                 chatOpen: true,
                 loading: true,
                 publishing: false,
@@ -493,12 +662,6 @@
                 async init() {
                     const params = new URLSearchParams(window.location.search);
                     this.pageSlug = params.get('site') || '';
-
-                    if (!this.pageSlug) {
-                        this.showToast('Brak parametru ?site= w adresie.');
-                        window.location.href = '/kreator.html';
-                        return;
-                    }
 
                     try {
                         const client = window.DFOPS_getSupabaseClient ? window.DFOPS_getSupabaseClient() : null;
@@ -724,6 +887,7 @@
                             if (!this.chatOpen) {
                                 this.chatOpen = true;
                             }
+                            this.mobileTab = 'chat';
                             this.showToast('Wybrano tekst do edycji ✍️');
 
                             this.$nextTick(() => {
@@ -734,6 +898,14 @@
                                 }
                             });
                         });
+
+                        // Inicjalizacja nasłuchiwania zdarzeń edycji bezpośredniej i podmiany mediów
+                        if (typeof this.initInlineEditor === 'function') {
+                            this.initInlineEditor();
+                        }
+                        if (typeof this.initMediaManager === 'function') {
+                            this.initMediaManager();
+                        }
                     } catch (e) {
                         console.error('[Studio] Init error:', e);
                         this.authError = e.message || 'Błąd inicjalizacji Studio.';
@@ -873,17 +1045,24 @@
                             throw new Error(detailedError || error?.message || 'Nie udało się wykonać polecenia.');
                         }
 
+                        let replyText = 'Wprowadziłem zmiany na stronie.';
+                        if (typeof data.reply === 'string') {
+                            replyText = data.reply.trim() === '[object Object]' ? replyText : data.reply;
+                        } else if (typeof data.reply === 'object' && data.reply !== null) {
+                            replyText = data.reply.text || data.reply.message || data.reply.reply || replyText;
+                        }
+
                         const hasChanges = Boolean(data.draft_content && data.executedTools?.length);
                         const aiMsg = rules
                             ? rules.createAiMessage({
-                                text: data.reply || 'Wprowadziłem zmiany na stronie.',
+                                text: replyText,
                                 hasChanges,
                                 snapshotBefore,
                             })
                             : {
                                 id: `msg_${Date.now()}`,
                                 role: 'model',
-                                text: data.reply || 'Wprowadziłem zmiany na stronie.',
+                                text: replyText,
                                 hasChanges,
                                 snapshotBefore: hasChanges ? snapshotBefore : null,
                                 rejected: false,
@@ -909,10 +1088,14 @@
 
                     } catch (err) {
                         console.error('[Studio] Agent error:', err);
+                        const rawErr = (err && typeof err === 'object' && err.message)
+                            ? String(err.message)
+                            : (typeof err === 'string' ? err : 'Spróbuj ponownie.');
+                        const cleanErr = rawErr === '[object Object]' ? 'Spróbuj ponownie.' : rawErr;
                         this.messages.push({
                             id: `err_${Date.now()}`,
                             role: 'model',
-                            text: 'Przepraszam, wystąpił problem: ' + (err.message || 'Spróbuj ponownie.'),
+                            text: 'Przepraszam, wystąpił problem: ' + cleanErr,
                             hasChanges: false,
                             snapshotBefore: null,
                             rejected: false,
@@ -1015,7 +1198,12 @@
                 },
 
                 showToast(msg) {
-                    this.toastMessage = msg;
+                    if (typeof msg === 'object' && msg !== null) {
+                        this.toastMessage = msg.message || msg.text || '';
+                    } else {
+                        const s = String(msg || '');
+                        this.toastMessage = s === '[object Object]' ? '' : s;
+                    }
                     setTimeout(() => {
                         this.toastMessage = '';
                     }, 4000);
@@ -1034,6 +1222,15 @@
             }
             if (typeof window.DFOPS_attachStudioDraftManager === 'function') {
                 window.DFOPS_attachStudioDraftManager(app);
+            }
+            if (typeof window.DFOPS_attachStudioInlineEditor === 'function') {
+                window.DFOPS_attachStudioInlineEditor(app);
+            }
+            if (typeof window.DFOPS_attachStudioMediaManager === 'function') {
+                window.DFOPS_attachStudioMediaManager(app);
+            }
+            if (typeof window.DFOPS_attachStudioThemeCustomizer === 'function') {
+                window.DFOPS_attachStudioThemeCustomizer(app);
             }
 
             return app;

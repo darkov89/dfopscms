@@ -96,8 +96,10 @@
         this.pushDraftSnapshot();
       }
 
-      // 2. Wstaw blok lokalnie
-      const res = reg.insertBlock(currentBlocks, null, blockType);
+      // 2. Wstaw blok lokalnie (z uwzględnieniem pożądanego miejsca po afterBlockId)
+      const afterId = this.catalogTargetAfterBlockId || null;
+      const res = reg.insertBlock(currentBlocks, afterId, blockType);
+      this.catalogTargetAfterBlockId = null;
       if (!res.success) {
         if (typeof this.showToast === 'function') this.showToast(res.error || 'Nie udało się dodać sekcji');
         return;

@@ -515,5 +515,93 @@ test('templates/custom.html posiada mechanizm fallbacku na wypadek pustych blok�
   );
 });
 
+// 24. toCleanString i ochrona przed [object Object]
+test('toCleanString poprawnie rozpakowuje obiekty i odrzuca [object Object]', () => {
+  const clean = registry.toCleanString;
+  assert.equal(typeof clean, 'function', 'toCleanString musi być wyeksportowane');
+  assert.equal(clean('[object Object]'), '');
+  assert.equal(clean('[object Object]', 'Fallback'), 'Fallback');
+  assert.equal(clean({ text: 'Złota Usługa' }), 'Złota Usługa');
+  assert.equal(clean({ title: 'Tytuł Sekcji' }), 'Tytuł Sekcji');
+  assert.equal(clean({ name: 'Firma ABC' }), 'Firma ABC');
+  assert.equal(clean({ value: '150 zł' }), '150 zł');
+  assert.equal(clean({ desc: 'Opis pozycji' }), 'Opis pozycji');
+  assert.equal(clean({ unknown: 'cos' }, 'Domyślna'), 'Domyślna');
+  assert.equal(clean('  Normalny tekst  '), 'Normalny tekst');
+  assert.equal(clean(1234), '1234');
+  assert.equal(clean(null, 'Pusty'), 'Pusty');
+});
+
+// 25. applyBlockUpdate nie dopuszcza [object Object] do pól tekstowych
+test('applyBlockUpdate oczyszcza obiekty w polach tekstowych zamiast [object Object]', () => {
+  const state = registry.createInitialCinematicState({ name: 'Jan Kowalski' });
+  const heroBlock = state.blocks.find((b) => b.type === 'cinematic_hero');
+  assert.ok(heroBlock, 'Musi istnieć cinematic_hero');
+
+  // Gemini przesyła { text: 'Nowy Tytuł' } zamiast stringa
+  const res1 = registry.applyBlockUpdate(state.blocks, heroBlock.id, 'title', { text: 'Nowy Kinowy Tytuł' });
+  assert.ok(res1.success);
+  assert.equal(res1.updatedBlock.data.title, 'Nowy Kinowy Tytuł');
+
+  // Gemini przesyła literalny string "[object Object]"
+  const res2 = registry.applyBlockUpdate(state.blocks, heroBlock.id, 'title', '[object Object]');
+  assert.ok(res2.success);
+  assert.notEqual(res2.updatedBlock.data.title, '[object Object]');
+});
+
+// 26. replaceBlockItems rozpakowuje elementy i cechy pakietów
+test('replaceBlockItems rozpakowuje obiekty w features i polach pozycji', () => {
+  const state = registry.createInitialQuickCardState({ business_name: 'Auto Spa' });
+  const block = {
+    id: 'pricing_test',
+    type: 'pricing_tiers',
+    data: { heading: 'Cennik', items: [] },
+  };
+  state.blocks.push(block);
+
+  const rawItems = [
+    {
+      name: { text: 'Pakiet Premium' },
+      price: { value: '299 zł' },
+      period: '/ usługa',
+      features: [{ text: 'Mycie detailingowe' }, 'Woskowanie ceramiczne', { title: 'Czyszczenie skór' }],
+      highlighted: true,
+      cta_text: { title: 'Wybierz pakiet' },
+    },
+  ];
+
+  const res = registry.replaceBlockItems(state.blocks, 'pricing_test', rawItems);
+  assert.ok(res.success);
+  const updatedTier = res.updatedBlock.data.items[0];
+  assert.equal(updatedTier.name, 'Pakiet Premium');
+  assert.equal(updatedTier.price, '299 zł');
+  assert.equal(updatedTier.cta_text, 'Wybierz pakiet');
+  assert.deepEqual([...updatedTier.features], ['Mycie detailingowe', 'Woskowanie ceramiczne', 'Czyszczenie skór']);
+});
+
+// 27. createInitialCinematicState oraz createInitialQuickCardState są odporne na obiektowe odpowiedzi
+test('Generowanie stanu początkowego rozpakowuje odpowiedzi obiektowe', () => {
+  const cinematic = registry.createInitialCinematicState({
+    name: { text: 'Artur Nowak' },
+    role: { title: 'Reżyser & Operator' },
+    city: { value: 'Kraków' },
+  });
+  const cHero = cinematic.blocks.find((b) => b.type === 'cinematic_hero');
+  const cContact = cinematic.blocks.find((b) => b.type === 'minimal_contact');
+  assert.equal(cHero.data.title, 'Artur Nowak');
+  assert.equal(cHero.data.subtitle, 'Reżyser & Operator');
+  assert.equal(cContact.data.location, 'Kraków');
+
+  const quick = registry.createInitialQuickCardState({
+    business_name: { text: 'Hydraulik 24h' },
+    specialty: { title: 'Awarie i instalacje' },
+    city: { value: 'Gdańsk' },
+  });
+  const qHero = quick.blocks.find((b) => b.type === 'quick_hero');
+  assert.equal(qHero.data.title, 'Hydraulik 24h');
+  assert.equal(qHero.data.subtitle, 'Awarie i instalacje');
+  assert.equal(qHero.data.city, 'Gdańsk');
+});
+
 console.log(`\n${passed} tests passed successfully!`);
 

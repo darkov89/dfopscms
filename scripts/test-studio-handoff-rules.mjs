@@ -82,3 +82,24 @@ test('kreator.html: INSERT strony nie wysyła billing_plan (GRANT authenticated 
     'kreator.html nie może wstawiać pages.billing_plan — kolumna jest tylko dla service_role'
   );
 });
+
+test('extractHandoffAnswers: rozpakowuje obiekty i nigdy nie zwraca [object Object]', () => {
+  const draft = {
+    blocks: [
+      {
+        type: 'quick_hero',
+        data: {
+          title: { text: 'Studio Foto' },
+          subtitle: { title: 'Fotografia Biznesowa' },
+          phone: '[object Object]',
+          city: { value: 'Wrocław' },
+        },
+      },
+    ],
+  };
+  const h = studioHandoffRules.extractHandoffAnswers(draft);
+  assert.equal(h.name, 'Studio Foto');
+  assert.equal(h.specialty, 'Fotografia Biznesowa');
+  assert.equal(h.phone, '');
+  assert.equal(h.city, 'Wrocław');
+});

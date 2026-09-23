@@ -1234,6 +1234,30 @@
                                     Zobacz stronę na żywo &nearr;
                                 </a>
                             </div>
+
+                            <!-- Szybkie Kafelki Zarządzania Biznesowego -->
+                            <div class="mt-6 pt-6 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                <button type="button" @click="setTab('subscription')" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition flex flex-col justify-between group">
+                                    <span class="text-base mb-1">💳</span>
+                                    <span class="text-xs font-bold text-white group-hover:text-amber-400 transition">Subskrypcja & Faktury</span>
+                                    <span class="text-[10px] text-zinc-400 mt-1">Plan, Stripe, wFirma</span>
+                                </button>
+                                <button type="button" @click="setTab('settings')" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition flex flex-col justify-between group">
+                                    <span class="text-base mb-1">🌐</span>
+                                    <span class="text-xs font-bold text-white group-hover:text-amber-400 transition">Własna Domena & SSL</span>
+                                    <span class="text-[10px] text-zinc-400 mt-1">Cloudflare for SaaS</span>
+                                </button>
+                                <button type="button" @click="setTab('stats')" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition flex flex-col justify-between group">
+                                    <span class="text-base mb-1">📈</span>
+                                    <span class="text-xs font-bold text-white group-hover:text-amber-400 transition">Silnik Wzrostu</span>
+                                    <span class="text-[10px] text-zinc-400 mt-1">Odwiedziny, telefony</span>
+                                </button>
+                                <button type="button" @click="setTab('legal')" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition flex flex-col justify-between group">
+                                    <span class="text-base mb-1">⚖️</span>
+                                    <span class="text-xs font-bold text-white group-hover:text-amber-400 transition">Polityka & RODO</span>
+                                    <span class="text-[10px] text-zinc-400 mt-1">Klauzule, zgody</span>
+                                </button>
+                            </div>
                         </div>
 
                         <div x-show="theme !== 'custom'" class="rounded-xl border border-slate-200/70 bg-white p-6 mb-6 shadow-panel ring-1 ring-slate-900/5 md:p-8">

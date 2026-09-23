@@ -8,7 +8,17 @@
   const CLASSIC_THEMES = ['beauty', 'consultant', 'fitness', 'services', 'gastro', 'care'];
 
   function str(v) {
-    return v == null ? '' : String(v).trim();
+    if (v == null) return '';
+    if (typeof v === 'object') {
+      if (typeof v.text === 'string') return v.text.trim();
+      if (typeof v.title === 'string') return v.title.trim();
+      if (typeof v.name === 'string') return v.name.trim();
+      if (typeof v.value === 'string') return v.value.trim();
+      if (typeof v.desc === 'string') return v.desc.trim();
+      return '';
+    }
+    const s = String(v).trim();
+    return s === '[object Object]' ? '' : s;
   }
 
   function emptyHandoff() {

@@ -15,6 +15,26 @@
     return JSON.parse(JSON.stringify(obj || {}));
   }
 
+  function toCleanString(v, fallback = '') {
+    if (v == null) return fallback;
+    if (typeof v === 'string') {
+      const s = v.trim();
+      return s === '[object Object]' ? fallback : s;
+    }
+    if (typeof v === 'number') return String(v);
+    if (typeof v === 'object') {
+      if (typeof v.text === 'string') return toCleanString(v.text, fallback);
+      if (typeof v.title === 'string') return toCleanString(v.title, fallback);
+      if (typeof v.name === 'string') return toCleanString(v.name, fallback);
+      if (typeof v.value === 'string') return toCleanString(v.value, fallback);
+      if (typeof v.desc === 'string') return toCleanString(v.desc, fallback);
+      if (typeof v.content === 'string') return toCleanString(v.content, fallback);
+      return fallback;
+    }
+    const s = String(v).trim();
+    return s === '[object Object]' ? fallback : s;
+  }
+
   function extractVideoMeta(url) {
     if (!url || typeof url !== 'string') return { provider: 'unknown', id: '', embedUrl: '' };
     const cleanUrl = url.trim();
@@ -114,6 +134,7 @@
       defaults: {
         heading: 'Wybrane Realizacje',
         subheading: 'Reklama · Teledyski · Formy Fabularne',
+        feed_source: { type: 'manual', handle: '', folder_id: '' },
         items: [
           {
             id: 'p1',
@@ -473,6 +494,7 @@
       defaults: {
         heading: 'Galeria Realizacji',
         subheading: 'Zobacz efekty naszej pracy na fotografiach',
+        feed_source: { type: 'manual', handle: '', folder_id: '' },
         items: [
           { url: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80', title: 'Precyzja i jakość', category: 'Montaż' },
           { url: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80', title: 'Nowoczesne rozwiązania', category: 'Projekt' },
@@ -511,13 +533,13 @@
    */
   function createInitialCinematicState(answers) {
     const a = answers || {};
-    const name = (a.name || 'Jan Kowalski').trim();
-    const role = (a.role || 'Director & Cinematographer').trim();
-    const videoUrl = (a.video_url || 'https://vimeo.com/76979871').trim();
+    const name = toCleanString(a.name, 'Jan Kowalski');
+    const role = toCleanString(a.role, 'Director & Cinematographer');
+    const videoUrl = toCleanString(a.video_url, 'https://vimeo.com/76979871');
     const videoMeta = extractVideoMeta(videoUrl);
-    const phone = (a.phone || '+48 600 700 800').trim();
-    const email = (a.email || 'kontakt@tworca.pl').trim();
-    const city = (a.city || 'Warszawa · Dostępny na całym świecie').trim();
+    const phone = toCleanString(a.phone, '+48 600 700 800');
+    const email = toCleanString(a.email, 'kontakt@tworca.pl');
+    const city = toCleanString(a.city, 'Warszawa · Dostępny na całym świecie');
 
     return {
       theme_type: 'cinematic',
@@ -628,12 +650,13 @@
    */
   function createInitialQuickCardState(answers) {
     const a = answers || {};
-    const businessName = (a.business_name || a.name || 'Usługi Specjalistyczne').trim();
-    const city = (a.city || 'Warszawa i okolice').trim();
-    const specialty = (a.specialty || 'Szybkie i profesjonalne usługi').trim();
-    const phone = (a.phone || '+48 600 700 800').trim();
-    const email = (a.email || 'kontakt@wizytowka.pl').trim();
-    const whatsapp = (a.whatsapp || phone.replace(/\s+/g, '')).trim();
+    const businessName = toCleanString(a.business_name || a.name, 'Usługi Specjalistyczne');
+    const city = toCleanString(a.city, 'Warszawa i okolice');
+    const specialty = toCleanString(a.specialty || a.role, 'Szybkie i profesjonalne usługi');
+    const phone = toCleanString(a.phone, '+48 600 700 800');
+    const email = toCleanString(a.email, 'kontakt@wizytowka.pl');
+    const rawWhatsapp = toCleanString(a.whatsapp, phone);
+    const whatsapp = rawWhatsapp.replace(/\s+/g, '');
 
     return {
       theme_type: 'quick_card',
@@ -741,7 +764,7 @@
 
     if (!block.data) block.data = {};
 
-    // P4.3: Walidacja typów pól tablicowych (zapobiega crashom w x-for)
+    // P4.3: Walidacja typów pól tablicowych (zapobiega crashom w x-for) i oczyszczanie stringów
     let resolvedValue = value;
     const def = BLOCK_DEFINITIONS[block.type];
     if (def && def.defaults && Object.prototype.hasOwnProperty.call(def.defaults, path)) {
@@ -763,6 +786,17 @@
             return { success: false, blocks: list, error: `Pole '${path}' w bloku '${block.type}' wymaga tablicy (Array).` };
           }
         }
+      } else if (typeof defaultVal === 'string') {
+        resolvedValue = toCleanString(resolvedValue, defaultVal);
+      }
+    } else {
+      // Dla ścieżek zagnieżdżonych lub spoza defaults: jeśli wartość to obiekt z tekstem lub string zawierający [object Object]
+      if (typeof resolvedValue === 'object' && resolvedValue !== null && !Array.isArray(resolvedValue)) {
+        if (typeof resolvedValue.text === 'string' || typeof resolvedValue.title === 'string' || typeof resolvedValue.name === 'string' || typeof resolvedValue.value === 'string' || typeof resolvedValue.desc === 'string') {
+          resolvedValue = toCleanString(resolvedValue, '');
+        }
+      } else if (typeof resolvedValue === 'string') {
+        resolvedValue = toCleanString(resolvedValue, '');
       }
     }
 
@@ -801,7 +835,17 @@
       const clean = {};
       Object.keys(item).forEach((k) => {
         if (k === '__proto__' || k === 'constructor' || k === 'prototype') return;
-        clean[k] = item[k];
+        const v = item[k];
+        if (k === 'features' && Array.isArray(v)) {
+          clean[k] = v.map((f) => toCleanString(f, '')).filter((f) => f.length > 0);
+        } else if (typeof v === 'string') {
+          clean[k] = toCleanString(v, '');
+        } else if (typeof v === 'object' && v !== null && !Array.isArray(v)) {
+          // Rozpakuj { text: '...', title: '...' } zamiast wstawiać obiekt
+          clean[k] = toCleanString(v, '');
+        } else {
+          clean[k] = v;
+        }
       });
       return clean;
     });
@@ -940,6 +984,7 @@
   }
 
   return {
+    toCleanString,
     BLOCK_DEFINITIONS,
     CATALOG_GROUPS,
     getCatalogGroups,

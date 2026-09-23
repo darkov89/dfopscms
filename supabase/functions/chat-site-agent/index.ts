@@ -97,10 +97,19 @@ const AGENT_TOOLS = [
                 description: "Pojedynczy element listy",
                 properties: {
                   title: { type: "STRING", description: "Tytuł elementu" },
+                  name: { type: "STRING", description: "Nazwa pakietu, usługi lub osoby" },
                   desc: { type: "STRING", description: "Opis elementu" },
                   subtitle: { type: "STRING", description: "Podtytuł" },
                   icon: { type: "STRING", description: "Ikona (bolt, star, check, clock itp.)" },
-                  price: { type: "STRING", description: "Cena lub koszt" },
+                  price: { type: "STRING", description: "Cena lub koszt (np. '99 zł', 'od 150 zł')" },
+                  period: { type: "STRING", description: "Okres rozliczeniowy (np. '/ mies.', '/ projekt')" },
+                  features: {
+                    type: "ARRAY",
+                    description: "Lista cech lub punktów oferty (tablica pojedynczych stringów)",
+                    items: { type: "STRING" },
+                  },
+                  highlighted: { type: "BOOLEAN", description: "Czy pakiet jest wyróżniony (polecany)" },
+                  cta_text: { type: "STRING", description: "Tekst przycisku akcji" },
                   unit: { type: "STRING", description: "Jednostka" },
                   featured: { type: "BOOLEAN", description: "Wyróżniony" },
                   question: { type: "STRING", description: "Pytanie FAQ" },
@@ -226,6 +235,27 @@ function isGoogleMapsEmbedHttpsUrl(val: string): boolean {
   }
 }
 
+function cleanString(v: unknown, fallback = ""): string {
+  if (v == null) return fallback;
+  if (typeof v === "string") {
+    const s = v.trim();
+    return s === "[object Object]" ? fallback : s;
+  }
+  if (typeof v === "number") return String(v);
+  if (typeof v === "object") {
+    const obj = v as Record<string, unknown>;
+    if (typeof obj.text === "string") return cleanString(obj.text, fallback);
+    if (typeof obj.title === "string") return cleanString(obj.title, fallback);
+    if (typeof obj.name === "string") return cleanString(obj.name, fallback);
+    if (typeof obj.value === "string") return cleanString(obj.value, fallback);
+    if (typeof obj.desc === "string") return cleanString(obj.desc, fallback);
+    if (typeof obj.content === "string") return cleanString(obj.content, fallback);
+    return fallback;
+  }
+  const s = String(v).trim();
+  return s === "[object Object]" ? fallback : s;
+}
+
 function setDeepValue(obj: Record<string, unknown>, path: string, value: unknown): boolean {
   if (!obj || typeof obj !== "object") return false;
   const cleanPath = String(path || "").trim();
@@ -245,7 +275,7 @@ function setDeepValue(obj: Record<string, unknown>, path: string, value: unknown
   const last = parts[parts.length - 1];
   if (last === "__proto__" || last === "constructor" || last === "prototype") return false;
 
-  // Sanityzacja pól URL
+  // Sanityzacja pól URL i ochrona przed [object Object]
   if (last === "map_embed_url") {
     cur[last] = (typeof value === "string" && isGoogleMapsEmbedHttpsUrl(value)) ? value.trim() : "";
   } else if (
@@ -253,6 +283,21 @@ function setDeepValue(obj: Record<string, unknown>, path: string, value: unknown
     (last.endsWith("_url") || last === "instagram" || last === "vimeo" || last === "thumbnail" || last === "booking_url")
   ) {
     cur[last] = sanitizeUrl(value);
+  } else if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    const objVal = value as Record<string, unknown>;
+    if (
+      typeof objVal.text === "string" ||
+      typeof objVal.title === "string" ||
+      typeof objVal.name === "string" ||
+      typeof objVal.value === "string" ||
+      typeof objVal.desc === "string"
+    ) {
+      cur[last] = cleanString(value);
+    } else {
+      cur[last] = value;
+    }
+  } else if (typeof value === "string") {
+    cur[last] = cleanString(value);
   } else {
     cur[last] = value;
   }
@@ -611,6 +656,12 @@ ${JSON.stringify(draft.blocks, null, 2)}`;
                     (k.endsWith("_url") || k === "url" || k === "booking_url" || k === "thumbnail" || k === "author_url")
                   ) {
                     cleanItem[k] = sanitizeUrl(v);
+                  } else if (k === "features" && Array.isArray(v)) {
+                    cleanItem[k] = v.map((f: unknown) => cleanString(f)).filter((f: string) => f.length > 0);
+                  } else if (typeof v === "object" && v !== null && !Array.isArray(v)) {
+                    cleanItem[k] = cleanString(v);
+                  } else if (typeof v === "string") {
+                    cleanItem[k] = cleanString(v);
                   } else {
                     cleanItem[k] = v;
                   }
@@ -625,11 +676,27 @@ ${JSON.stringify(draft.blocks, null, 2)}`;
           const { blockType, afterBlockId, heading, initialData } = args || {};
           if (blockType && BLOCK_DEFAULTS[blockType]) {
             const defaults = JSON.parse(JSON.stringify(BLOCK_DEFAULTS[blockType]));
-            if (heading) defaults.heading = heading;
+            if (heading) defaults.heading = cleanString(heading);
             if (initialData && typeof initialData === "object" && !Array.isArray(initialData)) {
               for (const [k, v] of Object.entries(initialData)) {
                 if (k !== "__proto__" && k !== "constructor" && k !== "prototype") {
-                  defaults[k] = v;
+                  if (typeof v === "string") {
+                    defaults[k] = cleanString(v);
+                  } else if (typeof v === "object" && v !== null && !Array.isArray(v)) {
+                    const objVal = v as Record<string, unknown>;
+                    if (
+                      typeof objVal.text === "string" ||
+                      typeof objVal.title === "string" ||
+                      typeof objVal.name === "string" ||
+                      typeof objVal.value === "string"
+                    ) {
+                      defaults[k] = cleanString(v);
+                    } else {
+                      defaults[k] = v;
+                    }
+                  } else {
+                    defaults[k] = v;
+                  }
                 }
               }
             }

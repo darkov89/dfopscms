@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-09-08 — Handoff custom ↔ szablon (kontakt/nazwa) + kreator bez `billing_plan` na INSERT (42501)
+**Ostatnia aktualizacja:** 2026-09-15 — World-Class AI Studio Architecture: Direct WYSIWYG, Hover Toolbars, Clickable Media Picker, Visual Theme Customizer, CMS Integration & Future Data Feeds Ready
 
 ---
 
@@ -408,6 +408,34 @@ Feature branch → PR do `staging` → po akceptacji merge do `main`.
    - `scripts/test-security-compliance.mjs`: audyt CSP (`object-src 'none'`, `frame-ancestors`, `connect-src` Supabase/Stripe), ochrona przed Prototype Pollution (`customBlocksRegistry`), izolacja zablokowanych tenantów (`trialBlocking`).
    - `scripts/test-ai-act-rodo-compliance.mjs`: wymogi EU AI Act Art. 50 (informacja o AI w `studio.html`, klauzula w `regulamin.html`, badge `⚡ Stworzono w DFCMS AI` w `custom.html`, Undo/Redo human-in-the-loop), wymogi RODO (minimalizacja danych w schematach, retencja/purge w cronie i edge `expire-trial-pages`, prawa w `polityka.html`).
    - Pełny pakiet `npm test`: 77 testów (9 zestawów) ze statusem PASS.
+
+### 2026-09-15 — World-Class AI Studio Architecture: Direct WYSIWYG, Hover Toolbars, Clickable Media Picker, Visual Theme Customizer, CMS Integration & Future Data Feeds Ready
+
+1. **Anti-Monolith & Direct WYSIWYG (`js/core/studioInlineRules.js`, `js/features/studio/studioInlineEditor.js`, `templates/custom.html`):**
+   - Utworzono czyste funkcje w `js/core/studioInlineRules.js` (`findBlockIndex`, `findBlockById`, `moveBlockInList`, `removeBlockFromList`, `insertBlockAt`, `resolveFieldPath`). Pokryte pełnym pakietem testów `scripts/test-studio-inline-rules.mjs` (5 testów PASS).
+   - Wprowadzono moduł pionowego attach `js/features/studio/studioInlineEditor.js` (`window.DFOPS_attachStudioInlineEditor(app)`) obsługujący komunikację `postMessage` z iframe canvas:
+     - `dfcms:inline-edit`: bezpośrednia edycja tekstu w podglądzie (`contenteditable="plaintext-only"`) z debounced (400ms) auto-save do `pages.draft_content` bez spalania zapytań AI.
+     - `dfcms:block-move`: natychmiastowe przesuwanie sekcji w górę/dół (`↑`/`↓`).
+     - `dfcms:block-remove`: natychmiastowe usuwanie sekcji (`🗑️`) z potwiedzeniem.
+     - `dfcms:block-ai-prompt`: kontekstowe otwarcie promptu AI dla wskazanego bloku (`✨ AI`).
+     - `dfcms:open-catalog-at`: otwarcie katalogu komponentów ze wskazaniem pozycji (`+ Dodaj sekcję tutaj`).
+   - W `templates/custom.html` zastąpiono stary "click-to-prompt" pełnym mechanizmem pływających pasków narzędzi (`.dfcms-section-toolbar`), międzysekcyjnych inserterów (`.dfcms-section-inserter`) oraz edytowalnych pól z auto-detekcją ścieżki (`x-text` / `items[i].field`).
+
+2. **Bezpośredni Media Picker (`js/features/studio/studioMediaManager.js`, `studio.html`, `templates/custom.html`):**
+   - W podglądzie wszystkie grafiki oznaczone jako `.dfcms-img-editable` emitują po kliknięciu `dfcms:pick-image`.
+   - Moduł `studioMediaManager.js` (`window.DFOPS_attachStudioMediaManager(app)`) udostępnia modal wyboru mediów bez angażowania LLM:
+     - Upload z urządzenia bezpośrednio do Supabase Storage (`{user.id}/media_{ts}.{ext}`).
+     - Gotowa selekcja zdjęć stockowych (Hero, Salon, Biznes, Trening).
+     - Wprowadzenie własnego adresu URL.
+
+3. **Wizualny Customizer Motywu i Palety (`js/features/studio/studioThemeCustomizer.js`, `studio.html`, `templates/custom.html`):**
+   - Dołączany moduł `studioThemeCustomizer.js` z panelem wyboru palety (`dark_gold`, `amber`, `emerald`, `cobalt`, `crimson`, `silver`, `clean_light`), typu powierzchni (`quick_card` Light vs `cinematic` Dark) oraz krojów pisma (`cinematic_sans`, `modern_display`, `classic_clean`).
+   - Zerowa latencja: wysyła zdarzenie `dfcms:theme-preview` do iframe dla natychmiastowej zmiany zmiennych CSS (`--brand-gold`) i flagi `isCinematic` in-memory, a w tle utrwala wybór w bazie (`saveThemeCustomization`).
+
+4. **Mostek CMS ↔ Studio & Przygotowanie na Przyszłe Feedy Danych (Trello Future):**
+   - W `admin/partials/tab-dashboard.html` dla stron z motywem `custom` dodano kafelki szybkiego dostępu operacyjnego (Subskrypcja, Własna Domena, Silnik Wzrostu, Polityka & RODO). Skompilowano `admin.html` za pomocą `npm run build:admin`.
+   - Rozszerzono schematy klocków `gallery_grid` i `projects_grid` o `feed_source: { type: 'manual', handle: '', folder_id: '' }` w `js/core/customBlocksRegistry.js` oraz w `supabase/functions/_shared/customBlockDefaults.ts`, przygotowując bazę pod integracje z Instagramem i Google Drive.
+   - Pakiet testowy `npm test`: 13 zestawów testowych (83+ testy) ze statusem PASS.
 
 ### 2026-09-08 — Handoff Studio ↔ szablon branżowy i 42501 na `pages`
 
@@ -953,6 +981,30 @@ Na gałęzi `staging` przetestowano podział logiki panelu — **cofnięto**; st
 6. **Automatyczny pakiet testów (`npm test`):**
    * `test-custom-blocks.mjs`: 22 testy (sync 18 kluczy, brak fake reviews, kontrakty renderera, mapa vs stale embed).
    * 9 pakietów — pełny `npm test` (85 testów po kontrakcie mapy).
+
+### 2026-09-23 — AI Studio Mobile UX & Eliminacja `[object Object]` we wszystkich warstwach
+
+1. **Eliminacja `[object Object]` we wszystkich modułach (End-to-End):**
+   * `js/core/studioHandoffRules.js`: pomocnik `str(v)` bezpiecznie rozpakowuje obiekty zawierające `{ text, title, name, value, desc }` i filtruje literalny ciąg `[object Object]`.
+   * `js/core/aiBusinessContext.js`: `stripControlAndHtml(raw)` rozpakowuje obiekty Google Places API v1 (`{ text: string }`) przed sanityzacją.
+   * `js/features/adminApp.js`: ekstrakcja `hit.primaryTypeDisplayName?.text || hit.primaryTypeDisplayName` bez rzutowania obiektu do stringa.
+   * `js/core/customBlocksRegistry.js`: wyeksportowano funkcję `toCleanString(v, fallback)`. `applyBlockUpdate` i `replaceBlockItems` rozpakowują przekazywane obiekty i oczyszczają tablice `features` w cenniku (`pricing_tiers`).
+   * `supabase/functions/chat-site-agent/index.ts`: dodano `cleanString(v)` w `setDeepValue`, `replace_block_items` oraz `add_block`. Rozszerzono schemat narzędzia `replace_block_items` o brakujące pola pakietów cennika (`name`, `period`, `features: string[]`, `highlighted`, `cta_text`).
+   * `templates/custom.html`: dodano metody `safeText()` i `sanitizeLoadedBlocks()`. Tytuł strony (`siteTitle`) oraz pętle `pricing_tiers` i `items` chronione przed wyświetlaniem `[object Object]`.
+   * `kreator.html`: zapis `business_name`, `specialty` i `email` w `form_data` zapobiega utracie danych podczas rejestracji z motywem `quick_card`.
+
+2. **Przeprojektowanie AI Studio pod urządzenia mobilne (`studio.html`):**
+   * Wprowadzono stan `mobileTab: 'preview' | 'chat'` z segmentowym przełącznikiem w nagłówku na ekranach `< sm`.
+   * Zlikwidowano ucinanie widoku przez `fixed inset-y-16 w-full` — sidebar czatu i podgląd działają w naturalnym układzie `flex` z obsługą `safe-area-inset-bottom`.
+   * Na podglądzie mobilnym dodano pływający przycisk `💬 Rozmawiaj z Agentem AI`.
+   * W wiadomościach Agenta AI (po wprowadzeniu zmian) dodano przycisk `👁️ Zobacz zmiany na podglądzie →` przełączający natychmiast na zakładkę podglądu.
+   * Responsywny nagłówek (`h-14 sm:h-16 px-3 sm:px-6`): zoptymalizowane przyciski Undo/Redo, Styl & Kolory, Biblioteka oraz Publikuj (`⚡` na telefonie).
+   * Naprawiono błąd odzyskiwania sluga w `init()` — usunięto przedwczesny redirect przed weryfikacją sesji i bazy.
+   * `js/features/studio/studioInlineEditor.js`: zdarzenia Click-to-Prompt oraz AI prompt automatycznie przełączają `mobileTab = 'chat'`.
+
+3. **Testy jednostkowe (`npm test`):**
+   * Rozszerzono `scripts/test-custom-blocks.mjs` i `scripts/test-studio-handoff-rules.mjs` o testy unwrappers i odporności na `[object Object]`.
+   * 100% testów (13 pakietów) przechodzi pomyślnie.
 
 ---
 

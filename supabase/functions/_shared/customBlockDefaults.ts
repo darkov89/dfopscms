@@ -18,6 +18,7 @@ export const BLOCK_DEFAULTS: Record<string, Record<string, any>> = {
   projects_grid: {
     heading: "Wybrane Realizacje",
     subheading: "Reklama · Teledyski · Formy Fabularne",
+    feed_source: { type: "manual", handle: "", folder_id: "" },
     items: [
       {
         id: "p1",
@@ -193,6 +194,7 @@ export const BLOCK_DEFAULTS: Record<string, Record<string, any>> = {
   gallery_grid: {
     heading: "Galeria Realizacji",
     subheading: "Zobacz efekty naszej pracy na fotografiach",
+    feed_source: { type: "manual", handle: "", folder_id: "" },
     items: [
       { url: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80", title: "Precyzja i jakość", category: "Montaż" },
       { url: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80", title: "Nowoczesne rozwiązania", category: "Projekt" },

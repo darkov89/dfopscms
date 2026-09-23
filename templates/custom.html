@@ -105,6 +105,119 @@
             outline-offset: 3px !important;
             border-radius: 4px !important;
         }
+        .dfcms-preview-mode [contenteditable="true"], .dfcms-preview-mode [contenteditable="plaintext-only"] {
+            outline: 2px solid var(--brand-gold) !important;
+            outline-offset: 2px !important;
+            border-radius: 4px !important;
+            background: rgba(212, 175, 55, 0.12) !important;
+            cursor: text !important;
+        }
+        .dfcms-preview-mode [data-block-id] {
+            position: relative;
+            transition: outline 0.2s ease;
+        }
+        .dfcms-preview-mode [data-block-id]:hover {
+            outline: 1px dashed rgba(212, 175, 55, 0.25);
+        }
+        .dfcms-section-toolbar {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            z-index: 50;
+            display: none;
+            align-items: center;
+            gap: 4px;
+            background: rgba(18, 18, 18, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 9999px;
+            padding: 4px 8px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+        }
+        .dfcms-preview-mode [data-block-id]:hover > .dfcms-section-toolbar {
+            display: flex;
+        }
+        .dfcms-tb-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #e4e4e7;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .dfcms-tb-btn:hover {
+            background: rgba(255, 255, 255, 0.22);
+            color: #fff;
+        }
+        .dfcms-tb-del:hover {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #f87171;
+        }
+        .dfcms-tb-ai {
+            color: #D4AF37;
+            border-color: rgba(212, 175, 55, 0.35);
+        }
+        .dfcms-tb-ai:hover {
+            background: rgba(212, 175, 55, 0.25);
+            color: #fff;
+        }
+        .dfcms-section-inserter {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 10px 0;
+            position: relative;
+            z-index: 45;
+        }
+        .dfcms-preview-mode [data-block-id]:hover + .dfcms-section-inserter,
+        .dfcms-section-inserter:hover {
+            display: flex;
+        }
+        .dfcms-inserter-btn {
+            background: #18181b;
+            color: #D4AF37;
+            border: 1px dashed rgba(212, 175, 55, 0.5);
+            border-radius: 9999px;
+            padding: 5px 14px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+        }
+        .dfcms-inserter-btn:hover {
+            background: #D4AF37;
+            color: #000;
+            border-style: solid;
+            transform: scale(1.04);
+        }
+        .dfcms-img-editable {
+            position: relative;
+            cursor: pointer;
+        }
+        .dfcms-img-editable:hover::after {
+            content: '📷 Zmień zdjęcie';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.85);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.2);
+            pointer-events: none;
+            z-index: 25;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
     </style>
 </head>
 <body :class="isCinematic ? 'bg-[#0a0a0a] text-zinc-100 selection:bg-brand-gold selection:text-black' : 'bg-white text-slate-900 selection:bg-amber-400 selection:text-black'"
@@ -626,7 +739,7 @@
                                         <div class="flex items-center justify-between gap-2 mb-2">
                                             <h3 class="text-base sm:text-lg font-bold"
                                                 :class="isCinematic ? 'text-white' : 'text-slate-900'"
-                                                x-text="tier.name"></h3>
+                                                x-text="safeText(tier.name || tier.title)"></h3>
                                             <span x-show="tier.highlighted"
                                                   class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
                                                   :class="isCinematic ? 'bg-brand-gold/20 text-brand-gold border border-brand-gold/30' : 'bg-amber-100 text-amber-800'">
@@ -636,17 +749,17 @@
                                         <div class="mb-5 flex items-baseline gap-1">
                                             <span class="text-2xl sm:text-3xl font-extrabold"
                                                   :class="isCinematic ? 'text-brand-gold' : 'text-amber-600'"
-                                                  x-text="tier.price"></span>
+                                                  x-text="safeText(tier.price)"></span>
                                             <span class="text-xs"
                                                   :class="isCinematic ? 'text-zinc-500' : 'text-slate-400'"
-                                                  x-text="tier.period" x-show="tier.period"></span>
+                                                  x-text="safeText(tier.period)" x-show="tier.period"></span>
                                         </div>
                                         <ul class="space-y-2.5 mb-6 flex-1">
                                             <template x-for="(feat, fi) in (tier.features || [])" :key="fi">
                                                 <li class="flex items-start gap-2 text-xs sm:text-sm"
                                                     :class="isCinematic ? 'text-zinc-300' : 'text-slate-600'">
                                                     <span class="text-emerald-500 font-bold mt-0.5">✓</span>
-                                                    <span x-text="feat"></span>
+                                                    <span x-text="safeText(feat)"></span>
                                                 </li>
                                             </template>
                                         </ul>
@@ -655,7 +768,7 @@
                                            :class="tier.highlighted
                                                ? 'bg-brand-gold text-black hover:bg-brand-goldHover shadow-md shadow-brand-gold/10'
                                                : (isCinematic ? 'bg-white/10 text-white hover:bg-white/15 border border-white/10' : 'bg-slate-900 text-white hover:bg-slate-800')"
-                                           x-text="tier.cta_text || 'Wybierz'"></a>
+                                           x-text="safeText(tier.cta_text || 'Wybierz')"></a>
                                     </div>
                                 </template>
                             </div>
@@ -1275,6 +1388,63 @@
                     return '';
                 },
 
+                safeText(val, fallback = '') {
+                    if (val == null) return fallback;
+                    if (typeof val === 'string') {
+                        const s = val.trim();
+                        return s === '[object Object]' ? fallback : s;
+                    }
+                    if (typeof val === 'number') return String(val);
+                    if (typeof val === 'object') {
+                        if (typeof val.text === 'string') return this.safeText(val.text, fallback);
+                        if (typeof val.title === 'string') return this.safeText(val.title, fallback);
+                        if (typeof val.name === 'string') return this.safeText(val.name, fallback);
+                        if (typeof val.value === 'string') return this.safeText(val.value, fallback);
+                        if (typeof val.desc === 'string') return this.safeText(val.desc, fallback);
+                        if (typeof val.content === 'string') return this.safeText(val.content, fallback);
+                        return fallback;
+                    }
+                    const s = String(val).trim();
+                    return s === '[object Object]' ? fallback : s;
+                },
+
+                sanitizeLoadedBlocks(blocksList) {
+                    if (!Array.isArray(blocksList)) return [];
+                    const self = this;
+                    return blocksList.map(b => {
+                        if (!b || typeof b !== 'object') return b;
+                        if (!b.data || typeof b.data !== 'object') return b;
+                        const cleanData = {};
+                        for (const [k, v] of Object.entries(b.data)) {
+                            if (k === 'items' && Array.isArray(v)) {
+                                cleanData[k] = v.map(item => {
+                                    if (!item || typeof item !== 'object') return item;
+                                    const cleanItem = {};
+                                    for (const [ik, iv] of Object.entries(item)) {
+                                        if (ik === 'features' && Array.isArray(iv)) {
+                                            cleanItem[ik] = iv.map(f => self.safeText(f, '')).filter(Boolean);
+                                        } else if (typeof iv === 'object' && iv !== null && !Array.isArray(iv)) {
+                                            cleanItem[ik] = self.safeText(iv, '');
+                                        } else if (typeof iv === 'string') {
+                                            cleanItem[ik] = self.safeText(iv, iv);
+                                        } else {
+                                            cleanItem[ik] = iv;
+                                        }
+                                    }
+                                    return cleanItem;
+                                });
+                            } else if (typeof v === 'object' && v !== null && !Array.isArray(v) && (v.text || v.title || v.name || v.value)) {
+                                cleanData[k] = self.safeText(v, '');
+                            } else if (typeof v === 'string') {
+                                cleanData[k] = self.safeText(v, v);
+                            } else {
+                                cleanData[k] = v;
+                            }
+                        }
+                        return { ...b, data: cleanData };
+                    });
+                },
+
                 hasBlock(type) {
                     return Array.isArray(this.blocks) && this.blocks.some(b => b.type === type);
                 },
@@ -1371,7 +1541,7 @@
                         if (themeRes.healed) {
                             rawContent.theme_type = this.themeType;
                         }
-                        this.blocks = Array.isArray(rawContent.blocks) ? rawContent.blocks : [];
+                        this.blocks = this.sanitizeLoadedBlocks(Array.isArray(rawContent.blocks) ? rawContent.blocks : []);
                         this.pageSlug = pageRow?.slug || currentSlug || '';
 
                         const validLoadedBlocks = this.blocks.filter(b => b && typeof b.type === 'string' && b.type.trim() !== '');
@@ -1392,12 +1562,12 @@
                                             initialState.blocks.push(extra);
                                         }
                                     }
-                                    this.blocks = initialState.blocks;
-                                    this.content.blocks = initialState.blocks;
+                                    this.blocks = this.sanitizeLoadedBlocks(initialState.blocks);
+                                    this.content.blocks = this.blocks;
                                 }
                             }
                         } else {
-                            this.blocks = validLoadedBlocks;
+                            this.blocks = this.sanitizeLoadedBlocks(validLoadedBlocks);
                         }
 
                         // Trial blocking check (14 dni okresu próbnego)
@@ -1452,7 +1622,7 @@
 
                         // Tytuł z bloków
                         const hero = this.blocks.find(b => b.type === 'cinematic_hero' || b.type === 'quick_hero');
-                        this.siteTitle = hero?.data?.title || rawContent.meta?.title || pageRow.slug || 'DFCMS';
+                        this.siteTitle = this.safeText(hero?.data?.title || rawContent.meta?.title || pageRow?.slug, 'DFCMS');
 
                         // Inicjalizacja znaku wodnego
                         if (typeof window.DFOPS_initWatermark === 'function') {
@@ -1465,7 +1635,7 @@
 
                         if (isPreview) {
                             document.body.classList.add('dfcms-preview-mode');
-                            this.initClickToPrompt();
+                            this.initPreviewCanvasControls();
                         }
                     } catch (err) {
                         console.error('[CustomSiteApp] Init error:', err);
@@ -1474,42 +1644,235 @@
                     }
                 },
 
-                initClickToPrompt() {
+                initPreviewCanvasControls() {
+                    const self = this;
+
+                    // 1. Obsługa podglądu stylów z parenta w locie (zero latency theme preview)
+                    window.addEventListener('message', (e) => {
+                        if (e.origin !== window.location.origin) return;
+                        if (!e.data || e.data.type !== 'dfcms:theme-preview') return;
+                        const design = e.data.design || {};
+                        if (design.accentColor || design.accent_color) {
+                            const acc = design.accentColor || design.accent_color;
+                            document.documentElement.style.setProperty('--brand-gold', acc);
+                        }
+                        if (design.themeType) {
+                            self.isCinematic = design.themeType === 'cinematic';
+                            self.themeType = design.themeType;
+                        }
+                    });
+
+                    // 2. Renderowanie pływających pasków sekcji (Move up / down / remove / AI prompt) i inserterów
+                    const renderToolbars = () => {
+                        const blockEls = document.querySelectorAll('[data-block-id]');
+                        blockEls.forEach((blockEl, idx) => {
+                            if (blockEl.querySelector('.dfcms-section-toolbar')) return;
+
+                            const blockId = blockEl.getAttribute('data-block-id');
+                            const headingEl = blockEl.querySelector('h1, h2, h3, h4');
+                            const heading = headingEl ? (headingEl.innerText || headingEl.textContent || '').trim() : blockId;
+
+                            // Pływający toolbar sekcji
+                            const toolbar = document.createElement('div');
+                            toolbar.className = 'dfcms-section-toolbar';
+                            toolbar.innerHTML = `
+                                <button type="button" class="dfcms-tb-btn" data-action="move-up" title="Przesuń sekcję w górę">↑</button>
+                                <button type="button" class="dfcms-tb-btn" data-action="move-down" title="Przesuń sekcję w dół">↓</button>
+                                <button type="button" class="dfcms-tb-btn dfcms-tb-del" data-action="remove" title="Usuń tę sekcję">🗑️</button>
+                                <button type="button" class="dfcms-tb-btn dfcms-tb-ai" data-action="ai-prompt" title="Edytuj z Agentem AI">✨ AI</button>
+                            `;
+
+                            toolbar.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                const btn = e.target.closest('.dfcms-tb-btn');
+                                if (!btn) return;
+                                const action = btn.getAttribute('data-action');
+
+                                if (action === 'move-up') {
+                                    window.parent.postMessage({ type: 'dfcms:block-move', blockId, direction: 'up' }, window.location.origin);
+                                } else if (action === 'move-down') {
+                                    window.parent.postMessage({ type: 'dfcms:block-move', blockId, direction: 'down' }, window.location.origin);
+                                } else if (action === 'remove') {
+                                    if (confirm('Czy na pewno chcesz usunąć tę sekcję ze strony?')) {
+                                        window.parent.postMessage({ type: 'dfcms:block-remove', blockId }, window.location.origin);
+                                    }
+                                } else if (action === 'ai-prompt') {
+                                    window.parent.postMessage({ type: 'dfcms:block-ai-prompt', blockId, heading: heading.substring(0, 50) }, window.location.origin);
+                                }
+                            });
+
+                            blockEl.appendChild(toolbar);
+
+                            // Inserter pomiędzy sekcjami
+                            if (!blockEl.nextElementSibling || !blockEl.nextElementSibling.classList.contains('dfcms-section-inserter')) {
+                                const inserter = document.createElement('div');
+                                inserter.className = 'dfcms-section-inserter';
+                                inserter.innerHTML = `<button type="button" class="dfcms-inserter-btn">+ Dodaj sekcję tutaj</button>`;
+                                inserter.addEventListener('click', (e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    window.parent.postMessage({ type: 'dfcms:open-catalog-at', afterBlockId: blockId }, window.location.origin);
+                                });
+                                blockEl.parentNode.insertBefore(inserter, blockEl.nextSibling);
+                            }
+
+                            // Oznaczenie obrazów jako edytowalnych
+                            const images = blockEl.querySelectorAll('img, [style*="background-image"]');
+                            images.forEach((imgEl) => {
+                                if (imgEl.closest('.dfcms-section-toolbar') || imgEl.closest('dfcms-watermark')) return;
+                                imgEl.classList.add('dfcms-img-editable');
+                            });
+                        });
+                    };
+
+                    this.$nextTick(() => {
+                        renderToolbars();
+                        setTimeout(renderToolbars, 400);
+                    });
+
+                    // 3. Obsługa kliknięć: bezpośrednia edycja tekstu (Inline WYSIWYG) oraz klikalna podmiana zdjęć
                     document.addEventListener('click', (e) => {
                         if (e.target.closest('#dfcms-preview-banner') || e.target.closest('dfcms-watermark') || e.target.closest('[x-data*="cookieConsent"]')) return;
+                        if (e.target.closest('.dfcms-section-toolbar') || e.target.closest('.dfcms-section-inserter')) return;
 
                         const el = e.target;
                         if (!el) return;
 
-                        // Nie przechwytuj kliknięć w przyciski zwijania akordeonu
-                        if (el.closest('button') && el.closest('[x-data*="open"]')) return;
+                        const blockEl = el.closest('[data-block-id]');
+                        const blockId = blockEl ? blockEl.getAttribute('data-block-id') : '';
+                        if (!blockId) return;
 
+                        // A. Kliknięcie w zdjęcie -> otwórz Media Picker
+                        const imgTarget = el.tagName && el.tagName.toLowerCase() === 'img' ? el : el.closest('.dfcms-img-editable');
+                        if (imgTarget) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            let currentUrl = '';
+                            if (imgTarget.tagName && imgTarget.tagName.toLowerCase() === 'img') {
+                                currentUrl = imgTarget.src || imgTarget.getAttribute('src') || '';
+                            } else {
+                                const bg = imgTarget.style.backgroundImage || '';
+                                const match = bg.match(/url\(["']?(.*?)["']?\)/);
+                                if (match) currentUrl = match[1];
+                            }
+
+                            // Określ pole zdjęcia
+                            let imgFieldPath = 'image_url';
+                            const xBindSrc = (imgTarget.getAttribute(':src') || imgTarget.getAttribute('x-bind:src') || '').trim();
+                            if (xBindSrc.includes('thumbnail')) imgFieldPath = 'thumbnail';
+                            else if (xBindSrc.includes('avatar')) imgFieldPath = 'avatar';
+                            else if (xBindSrc.includes('logo')) imgFieldPath = 'logo';
+
+                            // Jeśli w pętli items:
+                            const itemEl = imgTarget.closest('[data-item-index]') || (imgTarget.parentElement && imgTarget.parentElement.closest('[x-for*="item"]'));
+                            if (itemEl) {
+                                const allInLoop = Array.from(itemEl.parentElement ? itemEl.parentElement.children : []);
+                                const itemIdx = allInLoop.indexOf(itemEl);
+                                if (itemIdx >= 0) {
+                                    imgFieldPath = 'items.' + itemIdx + '.' + imgFieldPath;
+                                }
+                            }
+
+                            window.parent.postMessage({
+                                type: 'dfcms:pick-image',
+                                blockId: blockId,
+                                path: imgFieldPath,
+                                currentUrl: currentUrl,
+                            }, window.location.origin);
+                            return;
+                        }
+
+                        // B. Kliknięcie w tekst -> Prawdziwy Inline Edit (contenteditable)
                         const tag = el.tagName ? el.tagName.toLowerCase() : '';
                         const editableTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'li', 'a', 'blockquote'];
                         if (!editableTags.includes(tag)) return;
 
-                        // Wyklucz pojedyncze symbole dekoracyjne
+                        // Wyklucz akordeon i ikony dekoracyjne
+                        if (el.closest('button') && el.closest('[x-data*="open"]')) return;
                         if (tag === 'span' && (el.textContent === '★' || el.textContent === '☆' || el.textContent === '▾' || el.textContent === '✓')) return;
 
-                        const text = (el.innerText || el.textContent || '').trim();
-                        if (!text || text.length < 2) return;
+                        const originalText = (el.innerText || el.textContent || '').trim();
+                        if (!originalText || originalText.length < 1) return;
 
                         if (tag === 'a' || el.closest('a')) {
                             e.preventDefault();
                         }
 
-                        // Pobierz dokładnie data-block-id kontenera bloku
-                        const blockEl = el.closest('[data-block-id]');
-                        const blockId = blockEl ? blockEl.getAttribute('data-block-id') : '';
+                        // Jeśli element już jest w trakcie edycji, pozwól pisać
+                        if (el.isContentEditable) return;
 
-                        if (window.parent && window.parent !== window) {
-                            window.parent.postMessage({
-                                type: 'dfcms:click-to-prompt',
-                                text: text.substring(0, 100),
-                                blockId: blockId,
-                                tagName: tag,
-                            }, window.location.origin);
-                        }
+                        el.contentEditable = 'plaintext-only';
+                        el.focus();
+
+                        // Rozstrzygnij docelową ścieżkę pola w obiekcie data bloku
+                        const resolvePath = () => {
+                            const xText = (el.getAttribute('x-text') || '').trim();
+                            if (xText.includes('block.data.title')) return 'title';
+                            if (xText.includes('block.data.subtitle')) return 'subtitle';
+                            if (xText.includes('block.data.tagline')) return 'tagline';
+                            if (xText.includes('block.data.heading')) return 'heading';
+                            if (xText.includes('block.data.subheading')) return 'subheading';
+                            if (xText.includes('block.data.phone')) return 'phone';
+                            if (xText.includes('block.data.email')) return 'email';
+                            if (xText.includes('block.data.address')) return 'address';
+                            if (xText.includes('block.data.city')) return 'city';
+                            if (xText.includes('block.data.cta_text')) return 'cta_text';
+                            if (xText.includes('block.data.cta_secondary_text')) return 'cta_secondary_text';
+
+                            // Jeśli wewnątrz pętli items (np. usługi, FAQ, statystyki, opinie):
+                            const loopContainer = el.closest('[x-for*="item"]');
+                            if (loopContainer || xText.startsWith('item.')) {
+                                const parentList = loopContainer ? loopContainer.parentElement : el.closest('ul, .grid, .space-y-4');
+                                if (parentList) {
+                                    const items = Array.from(parentList.children).filter(c => !c.classList.contains('dfcms-section-toolbar'));
+                                    const targetItemContainer = loopContainer || el.closest('li, .rounded-2xl, .rounded-xl');
+                                    const idx = targetItemContainer ? items.indexOf(targetItemContainer) : -1;
+                                    const fieldName = xText.replace(/^item\./, '').split(' ')[0] || (tag.startsWith('h') ? 'title' : 'desc');
+                                    if (idx >= 0) {
+                                        return 'items.' + idx + '.' + fieldName;
+                                    }
+                                }
+                            }
+
+                            // Fallback na podstawie tagu:
+                            if (tag === 'h1' || tag === 'h2') return 'heading';
+                            if (tag === 'h3' || tag === 'h4') return 'title';
+                            return 'subheading';
+                        };
+
+                        const finishEditing = () => {
+                            el.contentEditable = 'false';
+                            const newText = (el.innerText || el.textContent || '').trim();
+                            if (newText && newText !== originalText) {
+                                const path = resolvePath();
+                                window.parent.postMessage({
+                                    type: 'dfcms:inline-edit',
+                                    blockId: blockId,
+                                    path: path,
+                                    value: newText,
+                                }, window.location.origin);
+                            }
+                        };
+
+                        const onBlur = () => {
+                            el.removeEventListener('blur', onBlur);
+                            el.removeEventListener('keydown', onKeyDown);
+                            finishEditing();
+                        };
+
+                        const onKeyDown = (ke) => {
+                            if (ke.key === 'Enter' && (tag.startsWith('h') || tag === 'span')) {
+                                ke.preventDefault();
+                                el.blur();
+                            } else if (ke.key === 'Escape') {
+                                el.innerText = originalText;
+                                el.blur();
+                            }
+                        };
+
+                        el.addEventListener('blur', onBlur);
+                        el.addEventListener('keydown', onKeyDown);
                     });
                 },
 

@@ -25,7 +25,18 @@
   ]);
 
   function stripControlAndHtml(raw) {
-    return String(raw == null ? '' : raw)
+    if (raw == null) return '';
+    if (typeof raw === 'object') {
+      if (typeof raw.text === 'string') raw = raw.text;
+      else if (typeof raw.title === 'string') raw = raw.title;
+      else if (typeof raw.name === 'string') raw = raw.name;
+      else if (typeof raw.value === 'string') raw = raw.value;
+      else if (typeof raw.category === 'string') raw = raw.category;
+      else return '';
+    }
+    const s = String(raw);
+    if (s === '[object Object]') return '';
+    return s
       .replace(/<[^>]*>/g, ' ')
       .replace(/[\u0000-\u001F\u007F]/g, ' ')
       .replace(/\s+/g, ' ')
