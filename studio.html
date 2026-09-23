@@ -67,14 +67,20 @@
                 <span><span class="text-brand-gold">DF</span>CMS</span>
             </a>
             <div class="hidden sm:block h-4 w-px bg-white/10"></div>
-            <a href="/admin.html" class="text-xs font-bold text-zinc-400 hover:text-white transition flex items-center gap-1 flex-shrink-0">
-                <span>← Panel</span>
+            <a :href="isImpersonating ? ('/admin.html?impersonate=' + encodeURIComponent(pageSlug)) : '/admin.html'" class="text-xs font-bold text-zinc-400 hover:text-white transition flex items-center gap-1 flex-shrink-0">
+                <span>←</span>
+                <span x-text="isImpersonating ? 'Master Panel' : 'Panel'"></span>
             </a>
             <div class="h-4 w-px bg-white/10 flex-shrink-0"></div>
             <div class="flex items-center gap-1.5 min-w-0">
                 <span class="text-xs font-bold uppercase tracking-wider text-brand-gold hidden sm:inline flex-shrink-0">AI Studio:</span>
                 <span class="text-xs sm:text-sm font-semibold text-white truncate max-w-[100px] sm:max-w-[180px]" x-text="pageSlug"></span>
                 <span class="text-[9px] sm:text-[10px] bg-white/10 text-zinc-300 font-bold px-1.5 sm:px-2 py-0.5 rounded-full uppercase flex-shrink-0" x-text="themeType === 'quick_card' ? 'Wizytówka' : 'Kinowy'"></span>
+                <template x-if="isImpersonating">
+                    <span class="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase flex-shrink-0">
+                        👑 Master
+                    </span>
+                </template>
             </div>
         </div>
 
@@ -218,7 +224,7 @@
                 <span class="text-[9px] sm:text-[10px] bg-brand-gold/20 text-brand-gold px-1 sm:px-1.5 py-0.5 rounded-full font-bold" x-text="typeof getCatalogTotalCount === 'function' ? getCatalogTotalCount() : 12"></span>
             </button>
 
-            <a href="/admin.html#subscription" class="hidden lg:inline-flex rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/10 hover:text-white transition">
+            <a :href="isImpersonating ? ('/admin.html?impersonate=' + encodeURIComponent(pageSlug) + '#subscription') : '/admin.html#subscription'" class="hidden lg:inline-flex rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/10 hover:text-white transition">
                 Domeny & Płatności ⚙️
             </a>
             <a :href="'/templates/custom.html?site=' + pageSlug" target="_blank"
@@ -251,7 +257,7 @@
                 <!-- Preview Iframe -->
                 <iframe id="dfcms-studio-iframe"
                         @load="iframeLoading = false"
-                        :src="'/templates/custom.html?site=' + pageSlug + '&dfcms_preview=1&t=' + refreshTimestamp"
+                        :src="'/templates/custom.html?site=' + pageSlug + '&dfcms_preview=1' + (isImpersonating ? '&impersonate=' + pageSlug : '') + '&t=' + refreshTimestamp"
                         class="w-full h-full border-0 bg-black"></iframe>
             </div>
 
@@ -550,8 +556,8 @@
             <h2 class="font-sans text-xl font-bold tracking-tight text-white mb-2">Brak dostępu do edycji</h2>
             <p class="text-zinc-400 text-xs sm:text-sm mb-6 leading-relaxed" x-text="authError"></p>
             <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <a href="/admin.html" class="w-full sm:w-auto inline-flex justify-center rounded-xl bg-brand-gold px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-black hover:bg-brand-goldHover transition">
-                    Zaloguj się w Panelu
+                <a :href="isImpersonating ? ('/admin.html?impersonate=' + encodeURIComponent(pageSlug)) : '/admin.html'" class="w-full sm:w-auto inline-flex justify-center rounded-xl bg-brand-gold px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-black hover:bg-brand-goldHover transition">
+                    Przejdź do Panelu
                 </a>
                 <a href="/kreator.html" class="w-full sm:w-auto inline-flex justify-center rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-xs font-semibold text-zinc-300 hover:bg-white/10 transition">
                     Otwórz Kreator
@@ -566,6 +572,8 @@
                 pageSlug: '',
                 pageId: null,
                 pageRow: null,
+                isSuperadmin: false,
+                isImpersonating: false,
                 themeType: 'custom',
                 deviceMode: 'desktop',
                 mobileTab: 'preview',
@@ -661,7 +669,7 @@
 
                 async init() {
                     const params = new URLSearchParams(window.location.search);
-                    this.pageSlug = params.get('site') || '';
+                    this.pageSlug = params.get('site') || params.get('impersonate') || '';
 
                     try {
                         const client = window.DFOPS_getSupabaseClient ? window.DFOPS_getSupabaseClient() : null;
@@ -690,11 +698,16 @@
                         const repo = window.DFOPS_pageRepository;
                         const registry = window.DFOPS_customBlocksRegistry;
 
-                        // Jeśli z jakiegoś powodu w URL zabrakło ?site=, spróbuj odzyskać slug z metadanych lub konta
-                        if (!this.pageSlug && user.user_metadata?.slug) {
+                        if (repo && typeof repo.isCurrentUserSuperadmin === 'function') {
+                            const access = await repo.isCurrentUserSuperadmin(user.id);
+                            this.isSuperadmin = !!(access && access.allowed);
+                        }
+
+                        // Jeśli z jakiegoś powodu w URL zabrakło ?site=, spróbuj odzyskać slug z metadanych lub konta (dla zwykłego użytkownika)
+                        if (!this.pageSlug && !this.isSuperadmin && user.user_metadata?.slug) {
                             this.pageSlug = String(user.user_metadata.slug).trim().toLowerCase();
                         }
-                        if (!this.pageSlug && repo) {
+                        if (!this.pageSlug && !this.isSuperadmin && repo) {
                             try {
                                 const { data: userPages } = await repo.listCurrentUserPages(user.id);
                                 if (userPages && userPages.length > 0) {
@@ -703,8 +716,8 @@
                             } catch (_) {}
                         }
                         if (!this.pageSlug) {
-                            this.showToast('Brak przypisanego adresu strony w Twoim koncie.');
-                            window.location.href = '/kreator.html';
+                            this.showToast('Brak przypisanego adresu strony.');
+                            window.location.href = this.isSuperadmin ? '/godmode.html' : '/kreator.html';
                             return;
                         }
 
@@ -715,12 +728,15 @@
 
                         if (repo) {
                             let res = await repo.getPageBySlugForOwner(this.pageSlug);
+                            if (!res.data && this.isSuperadmin) {
+                                res = await repo.getPageBySlugForSuperadmin(this.pageSlug);
+                            }
                             if (res.error) throw res.error;
 
                             // RESILIENT AUTO-CREATION:
                             // Jeśli strona nie istnieje jeszcze w bazie (np. brak triggera lub opóźnienie rejestracji),
                             // sprawdź czy bieżący użytkownik jest jej prawowitym właścicielem i utwórz ją w locie:
-                            if (!res.data) {
+                            if (!res.data && !this.isSuperadmin) {
                                 const meta = this.currentUser.user_metadata || {};
                                 const regSlug = meta.slug ? String(meta.slug).trim().toLowerCase() : '';
                                 const pendingSlug = (localStorage.getItem('dfops_pending_ai_slug') || '').trim().toLowerCase();
@@ -765,6 +781,9 @@
                             if (res.data) {
                                 this.pageRow = res.data;
                                 this.pageId = res.data.id;
+                                if (this.currentUser && res.data.user_id !== this.currentUser.id) {
+                                    this.isImpersonating = true;
+                                }
 
                                 // Jeśli strona powstała przez trigger (theme: setup) lub brak draftu:
                                 const pendingDraftKey = `dfops_pending_draft_${this.pageSlug}`;
@@ -828,10 +847,17 @@
 
                                 if (draftToApply && needsDraftInit) {
                                     try {
-                                        await repo.savePageByIdForOwner(this.currentUser.id, this.pageId, {
-                                            theme: 'custom',
-                                            draft_content: draftToApply,
-                                        });
+                                        if (this.isImpersonating || (this.isSuperadmin && this.pageRow.user_id !== this.currentUser.id)) {
+                                            await repo.savePageByIdForSuperadmin(this.pageId, {
+                                                theme: 'custom',
+                                                draft_content: draftToApply,
+                                            });
+                                        } else {
+                                            await repo.savePageByIdForOwner(this.currentUser.id, this.pageId, {
+                                                theme: 'custom',
+                                                draft_content: draftToApply,
+                                            });
+                                        }
                                         this.pageRow.draft_content = draftToApply;
                                         this.pageRow.theme = 'custom';
                                         if (pendingDraftStr) localStorage.removeItem(pendingDraftKey);
@@ -855,20 +881,25 @@
                             }
                         }
 
-                        // Pobierz limit i licznik czatu z profilu
-                        try {
-                            const { data: profile } = await client
-                                .from('billing_profiles')
-                                .select('agent_chat_count, agent_chat_month, plan')
-                                .eq('user_id', user.id)
-                                .maybeSingle();
-                            if (profile) {
-                                this.chatCount = profile.agent_chat_count || 0;
-                                const plan = profile.plan || 'trial';
-                                this.chatLimit = (plan === 'tier1' || plan === 'custom') ? 100 : (plan === 'tier0' ? 30 : 15);
+                        // Pobierz limit i licznik czatu z profilu (dla superadmina nielimitowane)
+                        if (this.isSuperadmin) {
+                            this.chatCount = 0;
+                            this.chatLimit = 9999;
+                        } else {
+                            try {
+                                const { data: profile } = await client
+                                    .from('billing_profiles')
+                                    .select('agent_chat_count, agent_chat_month, plan')
+                                    .eq('user_id', user.id)
+                                    .maybeSingle();
+                                if (profile) {
+                                    this.chatCount = profile.agent_chat_count || 0;
+                                    const plan = profile.plan || 'trial';
+                                    this.chatLimit = (plan === 'tier1' || plan === 'custom') ? 100 : (plan === 'tier0' ? 30 : 15);
+                                }
+                            } catch (quotaErr) {
+                                console.debug('[Studio] Quota load skipped:', quotaErr);
                             }
-                        } catch (quotaErr) {
-                            console.debug('[Studio] Quota load skipped:', quotaErr);
                         }
 
                         // 4. Obsługa Click-to-Prompt z iframe podglądu
@@ -939,7 +970,9 @@
 
                         const repo = window.DFOPS_pageRepository;
                         if (repo && this.currentUser && this.pageId) {
-                            const res = await repo.savePageByIdForOwner(this.currentUser.id, this.pageId, { draft_content: previous });
+                            const res = (this.isImpersonating || (this.isSuperadmin && this.pageRow?.user_id !== this.currentUser?.id))
+                                ? await repo.savePageByIdForSuperadmin(this.pageId, { draft_content: previous })
+                                : await repo.savePageByIdForOwner(this.currentUser.id, this.pageId, { draft_content: previous });
                             if (res?.error) {
                                 console.warn('[Studio] undo save error:', res.error);
                             }
@@ -964,7 +997,9 @@
 
                         const repo = window.DFOPS_pageRepository;
                         if (repo && this.currentUser && this.pageId) {
-                            const res = await repo.savePageByIdForOwner(this.currentUser.id, this.pageId, { draft_content: next });
+                            const res = (this.isImpersonating || (this.isSuperadmin && this.pageRow?.user_id !== this.currentUser?.id))
+                                ? await repo.savePageByIdForSuperadmin(this.pageId, { draft_content: next })
+                                : await repo.savePageByIdForOwner(this.currentUser.id, this.pageId, { draft_content: next });
                             if (res?.error) {
                                 console.warn('[Studio] redo save error:', res.error);
                             }
@@ -1177,14 +1212,22 @@
                         if (!repo || !this.currentUser || !this.pageId) throw new Error('Brak uprawnień lub ID strony.');
 
                         // Pobierz najświeższy draft
-                        const res = await repo.getPageBySlugForOwner(this.pageSlug);
+                        let res = await repo.getPageBySlugForOwner(this.pageSlug);
+                        if (!res.data && this.isSuperadmin) {
+                            res = await repo.getPageBySlugForSuperadmin(this.pageSlug);
+                        }
                         if (!res.data || !res.data.draft_content) throw new Error('Brak wersji roboczej do publikacji.');
 
-                        // Zapis przez savePageByIdForOwner — z pełną sanityzacją treści!
-                        const saveRes = await repo.savePageByIdForOwner(this.currentUser.id, this.pageId, {
-                            content: res.data.draft_content,
-                            theme: 'custom',
-                        });
+                        // Zapis przez savePageByIdForSuperadmin (gdy impersonacja/superadmin) lub savePageByIdForOwner
+                        const saveRes = (this.isImpersonating || (this.isSuperadmin && this.pageRow?.user_id !== this.currentUser?.id))
+                            ? await repo.savePageByIdForSuperadmin(this.pageId, {
+                                content: res.data.draft_content,
+                                theme: 'custom',
+                            })
+                            : await repo.savePageByIdForOwner(this.currentUser.id, this.pageId, {
+                                content: res.data.draft_content,
+                                theme: 'custom',
+                            });
 
                         if (saveRes.error) throw saveRes.error;
 

@@ -1011,6 +1011,25 @@ Na gałęzi `staging` przetestowano podział logiki panelu — **cofnięto**; st
    * Podbito wersje cache-busting w `admin/partials/01-head.html` (`adminApp.js?v=20260923d`, `aiBusinessContext.js?v=20260923a`, `studioHandoffRules.js?v=20260923a`) i przebudowano `admin.html` (`npm run build:admin`).
    * Wprowadzono do `test:monolith-guard` automatyczną weryfikację składniową Node.js (`vm.Script`) dla wszystkich plików w katalogu `js/`, trwale eliminując ryzyko deploymentu uszkodzonych skryptów.
 
+### 2026-09-23 — Master Dashboard (God Mode) Impersonation w AI Studio (`studio.html` & `godmode.html`)
+
+1. **Obsługa Superadmina / Impersonacji w repozytorium danych (`js/core/pageRepository.js`):**
+   * Dodano bezpieczny fallback w `getPageBySlugForOwner(slug)` oraz `getDraftContentForOwner(slug)`: w przypadku braku wyników (gdy `user_id` strony należy do klienta lub jest `null` dla demo) i aktywnej roli superadmina (`isCurrentUserSuperadmin`), zapytanie automatycznie odpytuje `getPageBySlugForSuperadmin(slug)`.
+   * Dodano fallback w `savePageByIdForOwner(userId, pageId, payload)`: w przypadku błędu zapisu spowodowanego filtrem `user_id`, zapis automatycznie korzysta z `savePageByIdForSuperadmin(pageId, payload)`.
+   * Wprowadzono pamięć podręczną `_superadminCache` dla `isCurrentUserSuperadmin`, ograniczającą zapytania do bazy.
+
+2. **Pełne wsparcie impersonacji w AI Studio (`studio.html`):**
+   * Parametr URL `?impersonate={slug}` lub `?site={slug}`: `init()` weryfikuje rolę superadmina i ładuje witrynę klienta/demo w trybie God Mode bez blokady autoryzacyjnej ("Nie znaleziono strony lub nie jesteś jej właścicielem").
+   * Wyłączono niepożądany auto-provisioning po stronie klienta dla sesji superadmina.
+   * Odblokowano limit zapytań czatu dla superadmina (9999 zapytań / brak throttlingu profilu).
+   * Operacje `saveDraft`, `undoDraft`, `redoDraft`, `publishChanges` poprawnie zapisują wersję roboczą oraz publikują stronę klienta z uprawnieniami superadmina (`savePageByIdForSuperadmin`).
+   * UI: dodano dedykowaną belkę oraz odznakę `👑 Master` oraz link powrotny `← Master Panel` wskazujący na `admin.html?impersonate={slug}`.
+
+3. **Integracja w Master Dashboard (`godmode.html`) i Panelu Klienta (`admin/partials/`, `adminApp.js`):**
+   * `godmode.html`: dodano przycisk `Studio AI` (`studioUrl(slug)`) w widoku mobilnym i tabeli desktopowej.
+   * `admin/partials/08-header.html`, `admin/partials/tab-dashboard.html` oraz `js/features/adminApp.js`: zachowywanie parametru `&impersonate={slug}` we wszystkich przejściach do Studio AI, gdy aktywny jest tryb impersonacji (`isImpersonating`).
+   * Przebudowano `admin.html` z zachowaniem reguły Anti-Monolith (`npm run build:admin`).
+
 ---
 
 ## Utrzymanie tego pliku
@@ -1018,4 +1037,5 @@ Na gałęzi `staging` przetestowano podział logiki panelu — **cofnięto**; st
 1. Na koniec sesji zmieniającej produkcję: zaktualizuj sekcje **1–3** i wpis w **§4**.
 2. Szczegóły implementacyjne zostaw w kodzie; tutaj **decyzje, stany, luki**.
 3. Plany post-MVP → [`ROADMAP.md`](ROADMAP.md).
+
 

@@ -85,7 +85,7 @@
                                 Ta strona działa w trybie nowej generacji. Zamiast ręcznie klikać po formularzach CMS, rozmawiasz z Agentem AI, który wprowadza zmiany na żywo z natychmiastowym podglądem.
                             </p>
                             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                                <a :href="'/studio.html?site=' + encodeURIComponent(slug || '')" class="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-400 hover:bg-amber-300 px-6 py-3 text-xs font-bold uppercase tracking-wider text-black shadow-lg shadow-amber-400/20 transition">
+                                <a :href="'/studio.html?site=' + encodeURIComponent(slug || '') + (isImpersonating ? '&impersonate=' + encodeURIComponent(slug || '') : '')" class="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-400 hover:bg-amber-300 px-6 py-3 text-xs font-bold uppercase tracking-wider text-black shadow-lg shadow-amber-400/20 transition">
                                     <span>⚡</span> Otwórz Studio AI i edytuj z Agentem &rarr;
                                 </a>
                                 <a :href="getLiveSiteUrl()" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 px-5 py-3 text-xs font-semibold text-zinc-300 hover:text-white transition">

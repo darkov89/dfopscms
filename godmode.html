@@ -318,6 +318,7 @@
                             </dl>
                             <div class="mt-4 flex flex-wrap gap-2">
                                 <a x-show="isDemoPage(page)" :href="demoPreviewUrl(page.slug)" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-9 flex-1 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] font-bold uppercase tracking-widest text-slate-700 hover:bg-slate-50 sm:flex-none" x-cloak>Podgląd</a>
+                                <a :href="studioUrl(page.slug)" class="inline-flex min-h-9 flex-1 items-center justify-center rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-[11px] font-bold uppercase tracking-widest text-amber-950 hover:bg-amber-100 sm:flex-none">Studio AI</a>
                                 <a :href="manageUrl(page.slug)" class="inline-flex min-h-9 flex-1 items-center justify-center rounded-lg bg-accent px-3 py-2 text-[11px] font-bold uppercase tracking-widest text-accent-fg shadow-sm hover:bg-accent/90 sm:flex-none">Zarządzaj</a>
                                 <button type="button" x-show="!isDemoPage(page)" @click="openGrant(page)" class="inline-flex min-h-9 flex-1 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] font-bold uppercase tracking-widest text-slate-700 hover:bg-slate-50 sm:flex-none">Aktywuj</button>
                                 <button type="button" x-show="canRevoke(page)" x-cloak @click="revokeGrant(page)" :disabled="busy" class="inline-flex min-h-9 flex-1 items-center justify-center rounded-lg border border-red-200 bg-white px-3 py-2 text-[11px] font-bold uppercase tracking-widest text-red-700 hover:bg-red-50 disabled:opacity-50 sm:flex-none">Cofnij</button>
@@ -360,6 +361,7 @@
                                     <td class="px-3 py-3 text-right">
                                         <div class="inline-flex flex-wrap items-center justify-end gap-1.5">
                                             <a x-show="isDemoPage(page)" :href="demoPreviewUrl(page.slug)" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-700 hover:bg-slate-50" x-cloak>Podgląd</a>
+                                            <a :href="studioUrl(page.slug)" class="inline-flex items-center justify-center rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-950 hover:bg-amber-100">Studio AI</a>
                                             <a :href="manageUrl(page.slug)" class="inline-flex items-center justify-center rounded-lg bg-accent px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-accent-fg shadow-sm hover:bg-accent/90">Zarządzaj</a>
                                             <button type="button" x-show="!isDemoPage(page)" @click="openGrant(page)" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-700 hover:bg-slate-50">Aktywuj</button>
                                             <button type="button" x-show="canRevoke(page)" x-cloak @click="revokeGrant(page)" :disabled="busy" class="inline-flex items-center justify-center rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-red-700 hover:bg-red-50 disabled:opacity-50">Cofnij</button>
@@ -628,6 +630,10 @@
 
           manageUrl(slug) {
             return `admin.html?impersonate=${encodeURIComponent(slug || '')}`;
+          },
+
+          studioUrl(slug) {
+            return `studio.html?site=${encodeURIComponent(slug || '')}&impersonate=${encodeURIComponent(slug || '')}`;
           },
 
           expiresAtIso(dateStr) {

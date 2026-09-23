@@ -455,17 +455,33 @@
   async function getDraftContentForOwner(slug) {
     const slugTrimmed = typeof slug === 'string' ? slug.trim() : '';
     if (!slugTrimmed) return { data: null, error: null };
+    const sb = supabase();
+    if (!sb) return { data: null, error: null };
     const {
       data: { user } = { user: null },
-    } = await supabase().auth.getUser();
+    } = await sb.auth.getUser();
     if (!user?.id) return { data: null, error: null };
-    const { data, error } = await supabase()
+    const { data, error } = await sb
       .from('pages')
       .select('draft_content')
       .eq('slug', slugTrimmed)
       .eq('user_id', user.id)
       .limit(1)
       .maybeSingle();
+
+    if (!data && !error && user?.id) {
+      const access = await isCurrentUserSuperadmin(user.id);
+      if (access && access.allowed) {
+        const { data: saData, error: saError } = await sb
+          .from('pages')
+          .select('draft_content')
+          .eq('slug', slugTrimmed)
+          .limit(1)
+          .maybeSingle();
+        return { data: saData?.draft_content ? sanitizeContent(saData.draft_content) : null, error: saError };
+      }
+    }
+
     return { data: data?.draft_content ? sanitizeContent(data.draft_content) : null, error };
   }
 
@@ -477,6 +493,7 @@
     const slugTrimmed = typeof slug === 'string' ? slug.trim().toLowerCase() : '';
     if (!slugTrimmed) return { data: null, error: null };
     const sb = supabase();
+    if (!sb) return { data: null, error: null };
     try {
       await sb.auth.getSession();
     } catch (_) {
@@ -497,12 +514,13 @@
 
   /**
    * Pobiera pełny rekord strony dla zalogowanego właściciela po slugu (z id i draft_content).
-   * Używane przez Studio i panel autorski.
+   * Używane przez Studio i panel autorski. Jeśli użytkownik jest superadminem, pobiera stronę klienta.
    */
   async function getPageBySlugForOwner(slug) {
     const slugTrimmed = typeof slug === 'string' ? slug.trim().toLowerCase() : '';
     if (!slugTrimmed) return { data: null, error: null };
     const sb = supabase();
+    if (!sb) return { data: null, error: null };
     try {
       await sb.auth.getSession();
     } catch (_) {}
@@ -517,6 +535,14 @@
       .eq('user_id', user.id)
       .limit(1)
       .maybeSingle();
+
+    if (!data && !error && user?.id) {
+      const access = await isCurrentUserSuperadmin(user.id);
+      if (access && access.allowed) {
+        return getPageBySlugForSuperadmin(slugTrimmed);
+      }
+    }
+
     return { data: sanitizePageRow(data), error };
   }
 
@@ -610,22 +636,32 @@
     return { data: sanitizePageRow(data), error };
   }
 
+  const _superadminCache = new Map();
   async function isCurrentUserSuperadmin(userId) {
     if (!userId) return { allowed: false, error: null };
-    const { data, error } = await supabase()
+    if (_superadminCache.has(userId)) {
+      return { allowed: _superadminCache.get(userId), error: null };
+    }
+    const sb = supabase();
+    if (!sb) return { allowed: false, error: null };
+    const { data, error } = await sb
       .from('superadmins')
       .select('user_id')
       .eq('user_id', userId)
       .limit(1)
       .maybeSingle();
     if (error) return { allowed: false, error };
-    return { allowed: !!data, error: null };
+    const allowed = !!data;
+    _superadminCache.set(userId, allowed);
+    return { allowed, error: null };
   }
 
   async function getPageBySlugForSuperadmin(slug) {
     const slugTrimmed = typeof slug === 'string' ? slug.trim().toLowerCase() : '';
     if (!slugTrimmed) return { data: null, error: null };
-    const { data, error } = await supabase()
+    const sb = supabase();
+    if (!sb) return { data: null, error: null };
+    const { data, error } = await sb
       .from('pages')
       .select('id, created_at, slug, user_id, theme, content, draft_content, color_preset, custom_domain, custom_domain_status, trial_blocked_at, billing_failed_at, billing_plan')
       .eq('slug', slugTrimmed)
@@ -646,13 +682,23 @@
     const safe = stripClientDomainFields(payload);
     if (safe.content) safe.content = sanitizeContent(safe.content);
     if (safe.draft_content) safe.draft_content = sanitizeContent(safe.draft_content);
-    const { data, error } = await supabase()
+    const sb = supabase();
+    if (!sb) return { data: null, error: null };
+    const { data, error } = await sb
       .from('pages')
       .update(safe)
       .eq('id', pageId)
       .eq('user_id', userId)
       .select()
       .maybeSingle();
+
+    if (!data && !error && userId) {
+      const access = await isCurrentUserSuperadmin(userId);
+      if (access && access.allowed) {
+        return savePageByIdForSuperadmin(pageId, payload);
+      }
+    }
+
     return { data: sanitizePageRow(data), error };
   }
 

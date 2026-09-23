@@ -608,7 +608,7 @@
           const isPublished = Boolean(this._publishedContentRaw);
           const hasCustomDomain = Boolean(this.customDomain);
           return [
-            { id: 'studio_edit', label: 'Edytuj stronę w Studio AI', href: `/studio.html?site=${encodeURIComponent(this.slug || '')}`, done: hasBlocks },
+            { id: 'studio_edit', label: 'Edytuj stronę w Studio AI', href: `/studio.html?site=${encodeURIComponent(this.slug || '')}${this.isImpersonating ? `&impersonate=${encodeURIComponent(this.slug || '')}` : ''}`, done: hasBlocks },
             { id: 'publish', label: 'Opublikuj stronę na żywo', tab: 'dashboard', done: isPublished },
             { id: 'domain', label: 'Podłącz własną domenę', tab: 'subscription', done: hasCustomDomain },
           ];
@@ -2460,7 +2460,7 @@
             this.showTemplateSwitcher = false;
             this.message = 'Przechodzę do AI Studio…';
             setTimeout(() => {
-              window.location.href = '/studio.html?site=' + encodeURIComponent(this.slug || '');
+              window.location.href = '/studio.html?site=' + encodeURIComponent(this.slug || '') + (this.isImpersonating ? '&impersonate=' + encodeURIComponent(this.slug || '') : '');
             }, 400);
           } catch (e) {
             console.error(e);
