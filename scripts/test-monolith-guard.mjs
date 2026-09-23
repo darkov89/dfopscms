@@ -11,7 +11,8 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import vm from 'node:vm';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
@@ -136,6 +137,35 @@ test('Moduły reguł w js/core/ (wizardRules, aiBusinessContext) są czyste (bra
         !content.includes('document.querySelector'),
         `${file} nie powinien bezpośrednio mutować DOM!`
       );
+    }
+  }
+});
+
+// 6. Poprawność składniowa wszystkich plików JS w js/ (ochrona przed awarią Alpine i białym ekranem)
+test('Wszystkie pliki w js/ przechodzą weryfikację składniową bez błędów SyntaxError', () => {
+  const jsDir = path.join(root, 'js');
+  function scan(dir) {
+    const entries = readdirSync(dir, { withFileTypes: true });
+    const files = [];
+    for (const ent of entries) {
+      const full = path.join(dir, ent.name);
+      if (ent.isDirectory()) {
+        files.push(...scan(full));
+      } else if (ent.isFile() && ent.name.endsWith('.js')) {
+        files.push(full);
+      }
+    }
+    return files;
+  }
+
+  const allJs = scan(jsDir);
+  assert.ok(allJs.length > 10, 'Wykryto pliki JS w katalogu js/');
+  for (const f of allJs) {
+    const code = readFileSync(f, 'utf8');
+    try {
+      new vm.Script(code, { filename: f });
+    } catch (e) {
+      assert.fail(`Błąd składni w pliku ${path.relative(root, f)}: ${e.message}`);
     }
   }
 });

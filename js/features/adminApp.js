@@ -3517,9 +3517,11 @@
           });
           this.needsManualIndustry = !!applied.needsManualIndustry;
           if (!this.needsManualIndustry) this.manualIndustryInput = '';
+        } else {
           const rawCat = hit.category || (hit.primaryTypeDisplayName && (hit.primaryTypeDisplayName.text || hit.primaryTypeDisplayName)) || '';
           const cat = (typeof rawCat === 'object' ? (rawCat.text || '') : String(rawCat)).trim();
           this.needsManualIndustry = !cat || cat === '[object Object]';
+        }
 
         this.mapPlaceLoading = true;
         this.mapPlaceError = '';

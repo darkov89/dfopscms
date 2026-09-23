@@ -1006,6 +1006,11 @@ Na gałęzi `staging` przetestowano podział logiki panelu — **cofnięto**; st
    * Rozszerzono `scripts/test-custom-blocks.mjs` i `scripts/test-studio-handoff-rules.mjs` o testy unwrappers i odporności na `[object Object]`.
    * 100% testów (13 pakietów) przechodzi pomyślnie.
 
+4. **Hotfix Panelu Admina (`admin.html` / `adminApp.js`):**
+   * Usunięto błąd składni (niedomknięty blok `if` w obsłudze miejsc Google Places w `adminApp.js`), który powodował biały ekran w panelu admina przez brak inicjalizacji Alpine.js (`[x-cloak]`).
+   * Podbito wersje cache-busting w `admin/partials/01-head.html` (`adminApp.js?v=20260923d`, `aiBusinessContext.js?v=20260923a`, `studioHandoffRules.js?v=20260923a`) i przebudowano `admin.html` (`npm run build:admin`).
+   * Wprowadzono do `test:monolith-guard` automatyczną weryfikację składniową Node.js (`vm.Script`) dla wszystkich plików w katalogu `js/`, trwale eliminując ryzyko deploymentu uszkodzonych skryptów.
+
 ---
 
 ## Utrzymanie tego pliku
