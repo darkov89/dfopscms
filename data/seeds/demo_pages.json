@@ -860,18 +860,17 @@
           "title": "ANIXE | Growing Digital Travel & Commerce",
           "description": "Leading travel technology provider specialized in third-party hotel supplier aggregation, high-speed cache data exports, Resfinity IBE, and automated hotel mapping."
         },
-        "pl": {
-          "settings": {
-            "business_name": "ANIXE Polska Sp. z o.o.",
-            "city": "Wrocław",
-            "subscription": {
-              "plan": "tier1",
-              "payment_completed": true,
-              "trial_started_at": "2026-09-01T10:00:00.000Z"
-            },
-            "is_demo_catalog": true
+        "settings": {
+          "business_name": "ANIXE Polska Sp. z o.o.",
+          "city": "Wrocław",
+          "subscription": {
+            "plan": "tier1",
+            "payment_completed": true,
+            "trial_started_at": "2026-09-01T10:00:00.000Z"
           },
-          "blocks": [
+          "is_demo_catalog": true
+        },
+        "blocks": [
             {
               "id": "nav_mega",
               "type": "mega_navbar",
@@ -1391,7 +1390,6 @@
               }
             }
           ]
-        }
       }
     }
   ]

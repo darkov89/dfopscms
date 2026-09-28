@@ -13,7 +13,7 @@
    */
   function shouldBlockPublicPageView(page) {
     if (!page || typeof page !== 'object') return true;
-    if (page.content?.pl?.settings?.is_demo_catalog === true) return false;
+    if (page.content?.settings?.is_demo_catalog === true || page.content?.pl?.settings?.is_demo_catalog === true) return false;
     const billingPlan = String(page.billing_plan || '').trim() || 'trial';
     if (billingPlan === 'tier0' || billingPlan === 'tier1' || billingPlan === 'tier2') {
       return false;

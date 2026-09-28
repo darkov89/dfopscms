@@ -1991,12 +1991,24 @@
                         }
 
                         this.page = pageRow;
-                        const hasPublishedBlocks = Array.isArray(pageRow.content?.blocks) && pageRow.content.blocks.length > 0;
+                        const extractBlocks = (c) => {
+                            if (!c || typeof c !== 'object') return [];
+                            if (Array.isArray(c.blocks) && c.blocks.length > 0) return c.blocks;
+                            if (Array.isArray(c.pl?.blocks) && c.pl.blocks.length > 0) return c.pl.blocks;
+                            return [];
+                        };
+                        const hasPublishedBlocks = extractBlocks(pageRow.content).length > 0;
                         const rawContent = (isPreview && pageRow.draft_content)
                             ? pageRow.draft_content
                             : (hasPublishedBlocks ? pageRow.content : (pageRow.draft_content || pageRow.content || {}));
 
                         this.content = rawContent;
+                        if (!Array.isArray(this.content.blocks) && Array.isArray(this.content.pl?.blocks)) {
+                            this.content.blocks = this.content.pl.blocks;
+                        }
+                        if (!this.content.settings && this.content.pl?.settings) {
+                            this.content.settings = this.content.pl.settings;
+                        }
                         const themeRules = window.DFOPS_customThemeRules;
                         const themeRes = themeRules
                             ? themeRules.resolveThemeType(rawContent, pageRow)
@@ -2005,7 +2017,7 @@
                         if (themeRes.healed) {
                             rawContent.theme_type = this.themeType;
                         }
-                        this.blocks = this.sanitizeLoadedBlocks(Array.isArray(rawContent.blocks) ? rawContent.blocks : []);
+                        this.blocks = this.sanitizeLoadedBlocks(extractBlocks(rawContent));
                         this.pageSlug = pageRow?.slug || currentSlug || '';
 
                         const validLoadedBlocks = this.blocks.filter(b => b && typeof b.type === 'string' && b.type.trim() !== '');
