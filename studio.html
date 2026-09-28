@@ -803,7 +803,13 @@
                                     ? existingBlocks.filter(b => b && typeof b.type === 'string' && b.type.trim() !== '')
                                     : [];
                                 const hasHeroBlock = validExistingBlocks.some(b => b.type === 'cinematic_hero' || b.type === 'quick_hero');
-                                const needsDraftInit = !this.pageRow.draft_content || this.pageRow.theme === 'setup' || !hasHeroBlock;
+
+                                // Jeśli draft jest pusty, ale mamy opublikowane bloki w content, zacznij draft od wersji opublikowanej!
+                                if (!draftToApply && (!this.pageRow.draft_content || !hasHeroBlock) && Array.isArray(this.pageRow.content?.blocks) && this.pageRow.content.blocks.length > 0) {
+                                    draftToApply = JSON.parse(JSON.stringify(this.pageRow.content));
+                                }
+
+                                const needsDraftInit = !draftToApply && (!this.pageRow.draft_content || this.pageRow.theme === 'setup' || !hasHeroBlock);
 
                                 // Fallback: jeśli brak w localStorage (np. link kliknięty na innym urządzeniu),
                                 // ale strona wymaga draftu (jest 'setup', brak draft_content lub brak sekcji głównej):
