@@ -6,7 +6,7 @@
 -- 1. Tabela Sygnałów Percepcji (surowy strumień zdarzeń z zewnętrznych zmysłów)
 CREATE TABLE IF NOT EXISTS public.presence_signals (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  page_id uuid NOT NULL REFERENCES public.pages(id) ON DELETE CASCADE,
+  page_id bigint NOT NULL REFERENCES public.pages(id) ON DELETE CASCADE,
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   source text NOT NULL, -- 'instagram', 'google_reviews', 'google_business', 'drive', 'direct_note'
   scope text NOT NULL DEFAULT 'public', -- 'public', 'work', 'direct'
@@ -28,7 +28,7 @@ CREATE INDEX IF NOT EXISTS idx_presence_signals_user_id
 -- 2. Tabela Propozycji Ewolucji (bufor Human-in-the-loop — AI nie nadpisuje strony bez akceptacji)
 CREATE TABLE IF NOT EXISTS public.presence_proposals (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  page_id uuid NOT NULL REFERENCES public.pages(id) ON DELETE CASCADE,
+  page_id bigint NOT NULL REFERENCES public.pages(id) ON DELETE CASCADE,
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   type text NOT NULL, -- 'new_project_case_study', 'review_spotlight', 'hero_focus_shift', 'timeline_update'
   title text NOT NULL,

@@ -1046,9 +1046,12 @@ Na gałęzi `staging` przetestowano podział logiki panelu — **cofnięto**; st
    * **Tryb AI Studio:** Zaktualizowano deklaracje narzędzi Agenta AI (`chat-site-agent/index.ts`) oraz wartości domyślne (`customBlockDefaults.ts`) zachowując ścisłą synchronizację 1:1 z rejestrem bloków. Agent potrafi tworzyć, modyfikować i dodawać wszystkie nowe bloki za pomocą poleceń naturalnych.
    * **Tryb Wizualny CMS (`templates/custom.html`):** Wszystkie nowe bloki wspierają natychmiastową edycję inline (`contenteditable="plaintext-only"`), klikalną podmianę grafik (`.dfcms-img-editable`) oraz paski narzędziowe sekcji (`.dfcms-section-toolbar`) bez naruszania reaktywności Alpine.js.
 
-3. **Strona pokazowa ANIXE (`demo-anixe`):**
+3. **Strona pokazowa ANIXE (`demo-anixe`) & Integracja z Master Dashboard:**
    * Przygotowano kompletny seed demo `demo-anixe` (`data/seeds/demo_pages.json`) z realnymi danymi spółki ANIXE (Resfinity Booking Engine, dane z Forbes Polska, wystąpienia ITB Berlin, oferty pracy C# .NET / Cloud DevOps).
    * Dodano obsługę sluga `demo-anixe` w `js/core/pageRepository.js` (`DEMO_SEED_SLUG_RE`).
+   * Zarejestrowano `demo-anixe` w bazie danych Staging (`public.pages`) poprzez migrację `20260928180000_seed_demo_anixe.sql`.
+   * Zaktualizowano `godmode.html` (Master Dashboard): dodano `demo-anixe` do listy chronionych slugów demonstracyjnych (`protectedDemoSlugs`) oraz zaimplementowano automatyczny fallback scalający katalogowe dema z `data/seeds/demo_pages.json`.
+   * Rozszerzono Edge Function `god-manage-demo`: dodano motyw `custom` oraz ochronę przed przypadkowym usunięciem `demo-anixe`.
 
 4. **Weryfikacja testowa (`npm test`):**
    * Zaktualizowano `scripts/test-custom-blocks.mjs` (test 17b weryfikujący wszystkie 5 nowych bloków oraz test 18 sprawdzający równość 23 definicji i domyślnych wartości).

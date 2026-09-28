@@ -12,6 +12,7 @@ const PUBLISHED_THEMES = new Set([
   "services",
   "gastro",
   "care",
+  "custom",
 ]);
 
 /** Katalog landingowy — nie kasować z God Mode. */
@@ -22,6 +23,7 @@ const PROTECTED_DEMO_SLUGS = new Set([
   "demo-gastro",
   "demo-care",
   "demo-consultant",
+  "demo-anixe",
 ]);
 
 const DEMO_SLUG_RE = /^demo-[a-z0-9]+(?:-[a-z0-9]+)*$/;
