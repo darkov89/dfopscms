@@ -134,13 +134,13 @@ const AGENT_TOOLS = [
       },
       {
         name: "add_block",
-        description: "Wstawia nowy blok na stronę. Dostępne typy bloków: cinematic_hero, projects_grid, awards_strip, director_statement, minimal_contact, quick_hero, key_features, quick_contact_card, faq_simple, testimonials_grid, faq_accordion, pricing_tiers, trust_stats, services_list, booking_cta, location_map, gallery_grid, google_reviews.",
+        description: "Wstawia nowy blok na stronę. Dostępne typy bloków: cinematic_hero, projects_grid, awards_strip, director_statement, minimal_contact, quick_hero, key_features, quick_contact_card, faq_simple, testimonials_grid, faq_accordion, pricing_tiers, trust_stats, services_list, booking_cta, location_map, gallery_grid, google_reviews, client_logos_grid, careers_board, blog_showcase, b2b_lead_scheduler, mega_navbar.",
         parameters: {
           type: "OBJECT",
           properties: {
             blockType: {
               type: "STRING",
-              description: "Typ bloku do wstawienia (np. google_reviews, trust_stats, services_list, booking_cta, location_map, gallery_grid, pricing_tiers, testimonials_grid, faq_accordion)",
+              description: "Typ bloku do wstawienia (np. google_reviews, trust_stats, services_list, booking_cta, location_map, gallery_grid, pricing_tiers, testimonials_grid, faq_accordion, client_logos_grid, careers_board, blog_showcase, b2b_lead_scheduler, mega_navbar)",
             },
             afterBlockId: {
               type: "STRING",

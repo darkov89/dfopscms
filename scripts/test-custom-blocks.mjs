@@ -262,7 +262,7 @@ test('nowe bloki: wstawianie i domyślne dane dla testimonials_grid, faq_accordi
 // 14. Metadane katalogu sekcji (catalog_group, icon, summary, required_fields)
 test('katalog sekcji: kompletność metadanych i zachowanie category', () => {
   const defs = Object.values(registry.BLOCK_DEFINITIONS);
-  assert.equal(defs.length, 18, 'Wszystkie 18 bloków powinno być zdefiniowane');
+  assert.equal(defs.length, 23, 'Wszystkie 23 bloki powinny być zdefiniowane');
 
   const validGroups = new Set(['hero', 'offer', 'trust', 'contact', 'info']);
   const validCategories = new Set(['cinematic', 'quick_card', 'universal']);
@@ -297,7 +297,7 @@ test('getCatalogGroups i getCatalogBlocks poprawnie wyliczają obecność na str
   ];
 
   const catalog = registry.getCatalogBlocks(fakeBlocks);
-  assert.equal(catalog.length, 18);
+  assert.equal(catalog.length, 23);
 
   const heroItem = catalog.find((c) => c.type === 'quick_hero');
   assert.ok(heroItem);
@@ -367,8 +367,35 @@ test('6 nowych bloków (trust_stats, services_list, booking_cta, location_map, g
   assert.equal(currentBlocks.length, state.blocks.length + 6);
 });
 
+// 17b. Test wstawiania 5 nowych bloków enterprise B2B
+test('5 nowych bloków enterprise B2B (client_logos_grid, careers_board, blog_showcase, b2b_lead_scheduler, mega_navbar)', () => {
+  const state = registry.createInitialCinematicState({ name: 'ANIXE Tech' });
+  const enterpriseTypes = [
+    'client_logos_grid',
+    'careers_board',
+    'blog_showcase',
+    'b2b_lead_scheduler',
+    'mega_navbar',
+  ];
+
+  let currentBlocks = state.blocks;
+  for (const t of enterpriseTypes) {
+    const res = registry.insertBlock(currentBlocks, null, t);
+    assert.equal(res.success, true, `Wstawianie bloku ${t} powiodło się`);
+    assert.equal(res.insertedBlock.type, t);
+    assert.ok(res.insertedBlock.data, `Blok ${t} posiada obiekt data`);
+
+    const def = registry.BLOCK_DEFINITIONS[t];
+    assert.ok(def, `BLOCK_DEFINITIONS ma definicję dla ${t}`);
+    assert.ok(def.required_fields.length > 0, `Blok ${t} posiada required_fields`);
+    currentBlocks = res.blocks;
+  }
+
+  assert.equal(currentBlocks.length, state.blocks.length + 5);
+});
+
 // 18. Synchronizacja kluczy bloków między customBlocksRegistry a customBlockDefaults.ts (Edge)
-test('BLOCK_DEFINITIONS w registry oraz BLOCK_DEFAULTS w Edge Functions mają identyczny zestaw 18 kluczy', () => {
+test('BLOCK_DEFINITIONS w registry oraz BLOCK_DEFAULTS w Edge Functions mają identyczny zestaw 23 kluczy', () => {
   const tsSrc = readFileSync(path.join(root, 'supabase/functions/_shared/customBlockDefaults.ts'), 'utf8');
   const jsSrc = tsSrc
     .replace(/export\s+const\s+BLOCK_DEFAULTS[\s\S]*?=\s*\{/, 'const BLOCK_DEFAULTS = {') +
@@ -380,8 +407,8 @@ test('BLOCK_DEFINITIONS w registry oraz BLOCK_DEFAULTS w Edge Functions mają id
   const registryKeys = Object.keys(registry.BLOCK_DEFINITIONS).sort();
   const edgeKeys = Object.keys(edgeDefaults).sort();
 
-  assert.equal(registryKeys.length, 18, 'Registry ma dokładnie 18 bloków');
-  assert.equal(edgeKeys.length, 18, 'Edge defaults ma dokładnie 18 bloków');
+  assert.equal(registryKeys.length, 23, 'Registry ma dokładnie 23 bloki');
+  assert.equal(edgeKeys.length, 23, 'Edge defaults ma dokładnie 23 bloki');
   assert.equal(registryKeys.join(','), edgeKeys.join(','), 'Zestaw kluczy bloków musi być w 100% zsynchronizowany');
 });
 

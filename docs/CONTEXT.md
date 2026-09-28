@@ -3,7 +3,7 @@
 > **Źródło prawdy technicznego stanu aplikacji.** Aktualizuj **na koniec sesji**, gdy zmienia się zachowanie w produkcji, API, flow użytkownika lub architektura.  
 > Plany post-MVP: [`docs/ROADMAP.md`](ROADMAP.md). Szybki start repo: [`README.md`](../README.md).
 
-**Ostatnia aktualizacja:** 2026-09-15 — World-Class AI Studio Architecture: Direct WYSIWYG, Hover Toolbars, Clickable Media Picker, Visual Theme Customizer, CMS Integration & Future Data Feeds Ready
+**Ostatnia aktualizacja:** 2026-09-28 — Enterprise B2B Modular Blocks (Wave 23), ANIXE Showcase & Dual-Mode CMS/AI Studio Management
 
 ---
 
@@ -107,6 +107,8 @@ Ceny UI: Starter 29 zł/msc (278,40 zł/rok); Standard 49 zł/msc (470,40 zł/ro
 **Security (skrót):** forced password reset, DOMPurify, sanitizacja URL-like pól `pages.content` na zapisie i odczycie, Cloudflare Turnstile dla rejestracji/custom inquiry/checkout, CSP/HSTS/XFO/nosniff w `functions/_middleware.js`, publiczny odczyt `pages` (anon + query); authenticated SELECT tylko własne wiersze (+ God Mode); `billing_plan` / `trial_*` tylko `service_role` (trigger); brak client INSERT na `billing_profiles`; Storage `images` z ownership; Stripe webhook tylko Edge; Places key vs Embed key osobno; `telegram-webhook` wymaga `Bearer TELEGRAM_WEBHOOK_SECRET`; Checkout/Portal `returnUrl` na allowliście hostów (bez `*.pages.dev`).
 
 **Silnik Wzrostu (G0–G3 wdrożone na Staging i Produkcję):** CMS podpowiada co tydzień jedną zmianę związaną z konwersją (telefon, rezerwacja, opinie), liczniki kliknięć CTA, odwiedzin (`page_view`) i benchmarki branżowe per `theme`. **Spec:** [`docs/specs/growth.md`](specs/growth.md). **Repurpose** `analytics_events` (`event_scope`: `conversion` | `visit` | `legacy`) + `growth_benchmarks` + `pages.draft_updated_at` (trigger `publish_reminder`); Edge `record-site-event` i `aggregate-growth-benchmarks`; RPC `get_page_growth_stats` / `aggregate_growth_benchmarks`. Tracking: `siteAnalytics.js` + `publicSiteApp.onConversionClick` / `recordPageView()`. Panel: `js/features/growth/` + hook `DFOPS_attachGrowthPanel` (3 linie w `adminApp.js`). Dashboard: karta priorytetu + 4 liczniki (odwiedziny + 3× CTA) z przyciskiem „Odśwież”. Zakładka „Statystyki” (`statsPanel.js` + `tab-stats.html`): zakres dat (presety + własny), total vs unikalni dziennie, eksport CSV/Excel — RPC `get_page_stats_range`. RODO: klauzula w `infrastructurePrivacyHtml()`. **Pozostało operacyjnie:** harmonogram cron Dashboardu (`aggregate-growth-benchmarks`, `0 3 * * 1`, `Bearer CRON_SECRET`) na Staging **i** Prod; test manualny G1/G3 na żywym ruchu. G4 (one-click draft) — poza zakresem.
+ 
+**Personal Presence Engine (Living Internet Presence — Fala 0, 2026-09-26):** Nowa kategoria produktowa — przejście od ręcznego budowania stron do autonomicznego utrzymywania cyfrowej obecności. **Specyfikacja:** [`docs/specs/presence-engine.md`](specs/presence-engine.md). Cztery warstwy: Perception (Instagram, Google Places/Reviews, Drive, notatki direct) → Digital Twin Model (`js/core/digitalTwinSchema.js`) → Autonomous Curator (`js/core/presenceRules.js`) → Living Projection (dynamiczne bloki, live timeline, Site Agent). Baza danych: `presence_signals` oraz bufor propozycji Human-in-the-loop `presence_proposals` chronione szczelnym RLS (`20260926160000_presence_engine_init.sql`). Testy logiczne i bezpieczeństwa: `scripts/test-presence-engine.mjs` wpięte do `npm test`. Pełna zgodność z EU AI Act (Art. 50, brak automatycznego nadpisywania treści publicznej bez akceptacji/reversibility) oraz RODO (minimalizacja danych i stripowanie wrażliwych PII).
 
 **Luki:** brak obowiązkowego E2E/CI dla Edge; wildcard `*.dfcms.pl` w Cloudflare Pages; RLS anon read wymaga GRANT + polityki; brak historii wersji treści. Kernel panelu nadal trzyma auth, domeny, upload, Places i CRUD zakładek — onboarding i billing UI są poza `adminApp.js` (wzorzec Growth; fala [`admin-split.md`](specs/admin-split.md) PR-0–PR-4).
 
@@ -1029,6 +1031,28 @@ Na gałęzi `staging` przetestowano podział logiki panelu — **cofnięto**; st
    * `godmode.html`: dodano przycisk `Studio AI` (`studioUrl(slug)`) w widoku mobilnym i tabeli desktopowej.
    * `admin/partials/08-header.html`, `admin/partials/tab-dashboard.html` oraz `js/features/adminApp.js`: zachowywanie parametru `&impersonate={slug}` we wszystkich przejściach do Studio AI, gdy aktywny jest tryb impersonacji (`isImpersonating`).
    * Przebudowano `admin.html` z zachowaniem reguły Anti-Monolith (`npm run build:admin`).
+
+### 2026-09-28 — Enterprise B2B Modular Blocks & ANIXE Pitch Suite (Wave 23)
+
+1. **Enterprise B2B Komponenty (`customBlocksRegistry.js`, `customBlockDefaults.ts`, `custom.html`):**
+   * Dodano 5 nowych modułów blokowych dla klientów korporacyjnych i technologicznych B2B (łączna liczba bloków wzrosła z 18 do 23):
+     - `mega_navbar`: wielopoziomowe menu nawigacyjne z dropdownami kolumnowymi (`menu_columns`), linkami akcji oraz CTA.
+     - `client_logos_grid`: siatka logotypów partnerów i klientów enterprise (ANIXE partners: e-travel, Corendon, Trip.com, Gulf Air, MTS Globe) z opcjonalnymi linkami i statystyką zaufania.
+     - `blog_showcase`: nowoczesny showcase bazy wiedzy / artykułów technologicznych i branżowych z filtrem kategorii, czasem czytania, modalnym czytnikiem artykułów (`articleModalOpen`) oraz wezwaniem do subskrypcji / kontaktu.
+     - `careers_board`: portal rekrutacyjny z ofertami pracy (C#, DevOps, QA), widełkami wynagrodzeń, tagami technologicznymi, wymaganiami i modalem/przyciskiem aplikowania.
+     - `b2b_lead_scheduler`: zintegrowany formularz B2B (NIP, budżet, cele wdrożenia) połączony z bezpośrednim kalendarzem spotkań (Microsoft Bookings / Calendly) do rezerwacji demo w czasie rzeczywistym.
+
+2. **Podwójny tryb zarządzania (Dual-Mode CMS & AI Studio):**
+   * **Tryb AI Studio:** Zaktualizowano deklaracje narzędzi Agenta AI (`chat-site-agent/index.ts`) oraz wartości domyślne (`customBlockDefaults.ts`) zachowując ścisłą synchronizację 1:1 z rejestrem bloków. Agent potrafi tworzyć, modyfikować i dodawać wszystkie nowe bloki za pomocą poleceń naturalnych.
+   * **Tryb Wizualny CMS (`templates/custom.html`):** Wszystkie nowe bloki wspierają natychmiastową edycję inline (`contenteditable="plaintext-only"`), klikalną podmianę grafik (`.dfcms-img-editable`) oraz paski narzędziowe sekcji (`.dfcms-section-toolbar`) bez naruszania reaktywności Alpine.js.
+
+3. **Strona pokazowa ANIXE (`demo-anixe`):**
+   * Przygotowano kompletny seed demo `demo-anixe` (`data/seeds/demo_pages.json`) z realnymi danymi spółki ANIXE (Resfinity Booking Engine, dane z Forbes Polska, wystąpienia ITB Berlin, oferty pracy C# .NET / Cloud DevOps).
+   * Dodano obsługę sluga `demo-anixe` w `js/core/pageRepository.js` (`DEMO_SEED_SLUG_RE`).
+
+4. **Weryfikacja testowa (`npm test`):**
+   * Zaktualizowano `scripts/test-custom-blocks.mjs` (test 17b weryfikujący wszystkie 5 nowych bloków oraz test 18 sprawdzający równość 23 definicji i domyślnych wartości).
+   * 100% testów przechodzi (14 zestawów testowych, 29 testów bloków modularnych).
 
 ---
 

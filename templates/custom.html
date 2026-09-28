@@ -274,13 +274,22 @@
                 <template x-if="hasBlock('awards_strip')">
                     <a href="#nagrody" :class="isCinematic ? 'text-zinc-400 hover:text-brand-gold' : 'text-slate-600 hover:text-black'" class="transition">Wyróżnienia</a>
                 </template>
+                <template x-if="hasBlock('client_logos_grid')">
+                    <a href="#partnerzy" :class="isCinematic ? 'text-zinc-400 hover:text-brand-gold' : 'text-slate-600 hover:text-black'" class="transition">Partnerzy</a>
+                </template>
                 <template x-if="hasBlock('key_features')">
                     <a href="#atuty" :class="isCinematic ? 'text-zinc-400 hover:text-brand-gold' : 'text-slate-600 hover:text-black'" class="transition">O ofercie</a>
                 </template>
-                <a href="#kontakt"
+                <template x-if="hasBlock('blog_showcase')">
+                    <a href="#aktualnosci" :class="isCinematic ? 'text-zinc-400 hover:text-brand-gold' : 'text-slate-600 hover:text-black'" class="transition">Aktualności</a>
+                </template>
+                <template x-if="hasBlock('careers_board')">
+                    <a href="#kariera" :class="isCinematic ? 'text-zinc-400 hover:text-brand-gold' : 'text-slate-600 hover:text-black'" class="transition">Kariera</a>
+                </template>
+                <a :href="hasBlock('b2b_lead_scheduler') ? '#spotkanie' : '#kontakt'"
                    :class="isCinematic ? 'bg-brand-gold text-black hover:bg-brand-goldHover font-bold' : 'bg-slate-900 text-white hover:bg-slate-800 font-semibold'"
-                   class="rounded-full px-4 py-2 text-xs uppercase tracking-wider transition shadow-sm">
-                    Kontakt
+                   class="rounded-full px-4 py-2 text-xs uppercase tracking-wider transition shadow-sm"
+                   x-text="hasBlock('b2b_lead_scheduler') ? 'Kontakt & Demo' : 'Kontakt'">
                 </a>
             </nav>
 
@@ -319,8 +328,17 @@
             <template x-if="hasBlock('awards_strip')">
                 <a href="#nagrody" @click="mobileMenuOpen = false" class="block py-1.5 text-sm font-medium" :class="isCinematic ? 'text-zinc-300 hover:text-brand-gold' : 'text-slate-700 hover:text-black'">Wyróżnienia</a>
             </template>
+            <template x-if="hasBlock('client_logos_grid')">
+                <a href="#partnerzy" @click="mobileMenuOpen = false" class="block py-1.5 text-sm font-medium" :class="isCinematic ? 'text-zinc-300 hover:text-brand-gold' : 'text-slate-700 hover:text-black'">Partnerzy</a>
+            </template>
             <template x-if="hasBlock('key_features')">
                 <a href="#atuty" @click="mobileMenuOpen = false" class="block py-1.5 text-sm font-medium" :class="isCinematic ? 'text-zinc-300 hover:text-brand-gold' : 'text-slate-700 hover:text-black'">O ofercie</a>
+            </template>
+            <template x-if="hasBlock('blog_showcase')">
+                <a href="#aktualnosci" @click="mobileMenuOpen = false" class="block py-1.5 text-sm font-medium" :class="isCinematic ? 'text-zinc-300 hover:text-brand-gold' : 'text-slate-700 hover:text-black'">Aktualności</a>
+            </template>
+            <template x-if="hasBlock('careers_board')">
+                <a href="#kariera" @click="mobileMenuOpen = false" class="block py-1.5 text-sm font-medium" :class="isCinematic ? 'text-zinc-300 hover:text-brand-gold' : 'text-slate-700 hover:text-black'">Kariera</a>
             </template>
             <template x-if="hasBlock('services_list')">
                 <a href="#uslugi" @click="mobileMenuOpen = false" class="block py-1.5 text-sm font-medium" :class="isCinematic ? 'text-zinc-300 hover:text-brand-gold' : 'text-slate-700 hover:text-black'">Usługi</a>
@@ -332,10 +350,10 @@
                 <a href="#faq" @click="mobileMenuOpen = false" class="block py-1.5 text-sm font-medium" :class="isCinematic ? 'text-zinc-300 hover:text-brand-gold' : 'text-slate-700 hover:text-black'">FAQ</a>
             </template>
             <div class="pt-2 border-t" :class="isCinematic ? 'border-white/10' : 'border-slate-100'">
-                <a href="#kontakt" @click="mobileMenuOpen = false"
+                <a :href="hasBlock('b2b_lead_scheduler') ? '#spotkanie' : '#kontakt'" @click="mobileMenuOpen = false"
                    :class="isCinematic ? 'bg-brand-gold text-black hover:bg-brand-goldHover font-bold' : 'bg-slate-900 text-white hover:bg-slate-800 font-semibold'"
-                   class="block text-center rounded-xl py-2.5 text-xs uppercase tracking-wider shadow-sm transition">
-                    Przejdź do kontaktu
+                   class="block text-center rounded-xl py-2.5 text-xs uppercase tracking-wider shadow-sm transition"
+                   x-text="hasBlock('b2b_lead_scheduler') ? 'Kontakt & Demo' : 'Przejdź do kontaktu'">
                 </a>
             </div>
         </div>
@@ -1162,6 +1180,337 @@
                     </section>
                 </template>
 
+                <!-- 19. CLIENT LOGOS GRID / LOGO WALL BLOCK -->
+                <template x-if="block.type === 'client_logos_grid'">
+                    <section id="partnerzy" class="py-16 sm:py-24 px-6 border-y transition-colors"
+                             :class="isCinematic ? 'bg-[#0a0a0a] border-white/5' : 'bg-gray-50 border-gray-100'">
+                        <div class="max-w-6xl mx-auto text-center">
+                            <h2 class="text-xs sm:text-sm font-bold uppercase tracking-[0.25em] mb-2"
+                                :class="isCinematic ? 'text-brand-gold' : 'text-amber-600'"
+                                x-text="block.data.heading || 'Zaufali nam liderzy branży'"></h2>
+                            <p class="text-base sm:text-xl font-medium mb-12 max-w-2xl mx-auto"
+                               :class="isCinematic ? 'text-zinc-300' : 'text-slate-700'"
+                               x-show="block.data.subheading"
+                               x-text="block.data.subheading"></p>
+
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6 sm:gap-8 items-center justify-center">
+                                <template x-for="(logo, idx) in (block.data.items || [])" :key="logo.id || idx">
+                                    <div class="group relative flex flex-col items-center justify-center p-4 rounded-xl transition duration-300"
+                                         :class="isCinematic ? 'bg-white/[0.02] hover:bg-white/[0.06] border border-white/5' : 'bg-white hover:shadow-md border border-gray-100'">
+                                        <div class="h-12 w-full flex items-center justify-center dfcms-img-editable relative overflow-hidden"
+                                             :data-img-target="'items.' + idx + '.logo_url'">
+                                            <template x-if="logo.logo_url">
+                                                <img :src="logo.logo_url" :alt="logo.name || 'Logo partnera'"
+                                                     class="max-h-10 max-w-[120px] object-contain filter grayscale group-hover:grayscale-0 opacity-70 group-hover:opacity-100 transition-all duration-300"
+                                                     loading="lazy">
+                                            </template>
+                                            <template x-if="!logo.logo_url">
+                                                <span class="text-xs font-bold tracking-wider uppercase text-zinc-500" x-text="logo.name"></span>
+                                            </template>
+                                        </div>
+                                        <span class="text-[11px] font-semibold mt-2 truncate max-w-full text-center"
+                                              :class="isCinematic ? 'text-zinc-400 group-hover:text-zinc-200' : 'text-slate-600 group-hover:text-slate-900'"
+                                              x-text="logo.name"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </section>
+                </template>
+
+                <!-- 20. CAREERS BOARD (JOBS) BLOCK -->
+                <template x-if="block.type === 'careers_board'">
+                    <section id="kariera" class="py-20 sm:py-28 px-6 transition-colors"
+                             :class="isCinematic ? 'bg-[#0e0e0e]' : 'bg-white'">
+                        <div class="max-w-5xl mx-auto">
+                            <div class="text-center mb-14">
+                                <span class="text-xs font-bold uppercase tracking-[0.25em] mb-2 block"
+                                      :class="isCinematic ? 'text-brand-gold' : 'text-amber-600'">Kariera & Zespół</span>
+                                <h2 class="text-3xl sm:text-4xl font-bold tracking-tight mb-3"
+                                    :class="isCinematic ? 'font-cinematic text-white' : 'text-slate-900'"
+                                    x-text="block.data.heading || 'Dołącz do naszego zespołu'"></h2>
+                                <p class="text-sm sm:text-base max-w-2xl mx-auto leading-relaxed"
+                                   :class="isCinematic ? 'text-zinc-400' : 'text-slate-600'"
+                                   x-show="block.data.subheading"
+                                   x-text="block.data.subheading"></p>
+                                <p class="text-xs sm:text-sm mt-2 max-w-xl mx-auto italic"
+                                   :class="isCinematic ? 'text-zinc-500' : 'text-slate-400'"
+                                   x-show="block.data.intro_text"
+                                   x-text="block.data.intro_text"></p>
+                            </div>
+
+                            <div class="space-y-6">
+                                <template x-for="(job, idx) in (block.data.items || [])" :key="job.id || idx">
+                                    <div class="rounded-2xl border p-6 sm:p-8 transition duration-300"
+                                         :class="isCinematic ? 'bg-white/[0.02] border-white/10 hover:border-brand-gold/40' : 'bg-gray-50 border-gray-200 hover:border-amber-400 shadow-sm'">
+                                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                                            <div>
+                                                <div class="flex items-center gap-2 mb-2 flex-wrap">
+                                                    <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full"
+                                                          :class="isCinematic ? 'bg-brand-gold/20 text-brand-gold' : 'bg-amber-100 text-amber-800'"
+                                                          x-text="job.department || 'IT'"></span>
+                                                    <span class="text-[10px] font-medium px-2 py-0.5 rounded-full"
+                                                          :class="isCinematic ? 'bg-white/10 text-zinc-300' : 'bg-gray-200 text-slate-700'"
+                                                          x-text="job.location || 'Wrocław'"></span>
+                                                    <span x-show="job.type" class="text-[10px] font-medium px-2 py-0.5 rounded-full"
+                                                          :class="isCinematic ? 'bg-white/10 text-zinc-300' : 'bg-gray-200 text-slate-700'"
+                                                          x-text="job.type"></span>
+                                                </div>
+                                                <h3 class="text-lg sm:text-xl font-bold"
+                                                    :class="isCinematic ? 'text-white' : 'text-slate-900'"
+                                                    x-text="job.title"></h3>
+                                            </div>
+                                            <div class="sm:text-right shrink-0">
+                                                <span x-show="job.salary" class="inline-block text-xs sm:text-sm font-extrabold mb-2"
+                                                      :class="isCinematic ? 'text-brand-gold' : 'text-amber-600'"
+                                                      x-text="job.salary"></span>
+                                                <div>
+                                                    <a :href="'mailto:' + (block.data.apply_email || 'career@anixe.pl') + '?subject=' + encodeURIComponent('Aplikacja: ' + (job.title || 'Wakat'))"
+                                                       class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-sm"
+                                                       :class="isCinematic ? 'bg-brand-gold text-black hover:bg-brand-goldHover' : 'bg-slate-900 text-white hover:bg-slate-800'">
+                                                        <span>Aplikuj teraz →</span>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p class="text-xs sm:text-sm leading-relaxed mb-4"
+                                           :class="isCinematic ? 'text-zinc-300' : 'text-slate-600'"
+                                           x-text="job.description"></p>
+                                        <div x-show="job.requirements" class="pt-3 border-t text-xs"
+                                             :class="isCinematic ? 'border-white/5 text-zinc-400' : 'border-gray-200 text-slate-500'">
+                                            <span class="font-semibold text-zinc-200">Wymagania kluczowe:</span> <span x-text="job.requirements"></span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </section>
+                </template>
+
+                <!-- 21. BLOG SHOWCASE & INSIGHTS BLOCK -->
+                <template x-if="block.type === 'blog_showcase'">
+                    <section id="aktualnosci" class="py-20 sm:py-28 px-6 transition-colors"
+                             :class="isCinematic ? 'bg-[#0a0a0a]' : 'bg-gray-50'">
+                        <div class="max-w-6xl mx-auto">
+                            <div class="text-center mb-14">
+                                <span class="text-xs font-bold uppercase tracking-[0.25em] mb-2 block"
+                                      :class="isCinematic ? 'text-brand-gold' : 'text-amber-600'">News & Case Studies</span>
+                                <h2 class="text-3xl sm:text-4xl font-bold tracking-tight mb-3"
+                                    :class="isCinematic ? 'font-cinematic text-white' : 'text-slate-900'"
+                                    x-text="block.data.heading || 'Aktualności & Baza Wiedzy'"></h2>
+                                <p class="text-sm sm:text-base max-w-2xl mx-auto"
+                                   :class="isCinematic ? 'text-zinc-400' : 'text-slate-600'"
+                                   x-show="block.data.subheading"
+                                   x-text="block.data.subheading"></p>
+                            </div>
+
+                            <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                                <template x-for="(post, idx) in (block.data.items || [])" :key="post.id || idx">
+                                    <article class="group rounded-2xl border overflow-hidden flex flex-col justify-between transition duration-300"
+                                             :class="isCinematic ? 'bg-white/[0.02] border-white/10 hover:border-brand-gold/40' : 'bg-white border-gray-200 hover:shadow-lg'">
+                                        <div>
+                                            <div class="aspect-video w-full overflow-hidden bg-zinc-900 relative dfcms-img-editable"
+                                                 :data-img-target="'items.' + idx + '.cover_image'">
+                                                <img :src="post.cover_image" :alt="post.title"
+                                                     class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                                                     loading="lazy">
+                                                <div class="absolute top-3 left-3">
+                                                    <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-black/75 text-brand-gold backdrop-blur-sm"
+                                                          x-text="post.category || 'News'"></span>
+                                                </div>
+                                            </div>
+                                            <div class="p-6">
+                                                <div class="text-[11px] font-medium mb-2"
+                                                     :class="isCinematic ? 'text-zinc-500' : 'text-slate-400'"
+                                                     x-text="(post.date || '') + (post.author ? ' · ' + post.author : '')"></div>
+                                                <h3 class="text-base sm:text-lg font-bold line-clamp-2 mb-2 group-hover:text-brand-gold transition-colors"
+                                                    :class="isCinematic ? 'text-white' : 'text-slate-900'"
+                                                    x-text="post.title"></h3>
+                                                <p class="text-xs sm:text-sm line-clamp-3 leading-relaxed"
+                                                   :class="isCinematic ? 'text-zinc-400' : 'text-slate-600'"
+                                                   x-text="post.excerpt"></p>
+                                            </div>
+                                        </div>
+                                        <div class="p-6 pt-0">
+                                            <button type="button" @click="openArticleModal(post)"
+                                                    class="inline-flex items-center gap-1.5 text-xs font-bold transition group-hover:translate-x-1"
+                                                    :class="isCinematic ? 'text-brand-gold hover:text-brand-goldHover' : 'text-slate-900 hover:text-amber-600'">
+                                                <span>Czytaj pełen artykuł</span>
+                                                <span>→</span>
+                                            </button>
+                                        </div>
+                                    </article>
+                                </template>
+                            </div>
+                        </div>
+                    </section>
+                </template>
+
+                <!-- 22. B2B LEAD & SCHEDULER BLOCK -->
+                <template x-if="block.type === 'b2b_lead_scheduler'">
+                    <section id="spotkanie" class="py-20 sm:py-28 px-6 transition-colors"
+                             :class="isCinematic ? 'bg-[#0d0d0d]' : 'bg-slate-900 text-white'">
+                        <div class="max-w-6xl mx-auto">
+                            <div class="text-center mb-14">
+                                <span class="text-xs font-bold uppercase tracking-[0.25em] mb-2 block text-brand-gold">Kontakt & Spotkanie</span>
+                                <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-3"
+                                    :class="isCinematic ? 'font-cinematic' : ''"
+                                    x-text="block.data.heading || 'Porozmawiajmy o skalowaniu'"></h2>
+                                <p class="text-sm sm:text-base text-zinc-400 max-w-2xl mx-auto"
+                                   x-show="block.data.subheading"
+                                   x-text="block.data.subheading"></p>
+                            </div>
+
+                            <div class="grid lg:grid-cols-12 gap-8 items-start">
+                                <!-- Left Form Column -->
+                                <div class="lg:col-span-7 rounded-2xl border p-6 sm:p-8"
+                                     :class="isCinematic ? 'bg-white/[0.03] border-white/10' : 'bg-slate-800/80 border-slate-700'">
+                                    <h3 class="text-lg font-bold text-white mb-2" x-text="block.data.form_heading || 'Napisz do nas bezpośrednio'"></h3>
+                                    <p class="text-xs text-zinc-400 mb-6">Wypełnij formularz, a nasz zespół inżynieryjny odpowie w ciągu 24 godzin roboczych.</p>
+
+                                    <!-- Sent Success State -->
+                                    <div x-show="leadFormSent" x-cloak class="p-6 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-sm space-y-2">
+                                        <p class="font-bold flex items-center gap-2"><span>✓</span> Dziękujemy za przesłanie zapytania!</p>
+                                        <p class="text-xs text-emerald-400/80">Wiadomość została przekazana do zespołu handlowego (<span x-text="block.data.notification_email || 'sales@anixe.pl'"></span>). Skontaktujemy się wkrótce.</p>
+                                        <button type="button" @click="leadFormSent = false" class="text-xs underline text-white mt-2 block">Wyślij kolejną wiadomość</button>
+                                    </div>
+
+                                    <!-- Active Form -->
+                                    <form x-show="!leadFormSent" @submit.prevent="submitB2bLead(block.data.notification_email || block.data.email)" class="space-y-4">
+                                        <div class="grid sm:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-xs font-medium text-zinc-300 mb-1">Imię i nazwisko</label>
+                                                <input type="text" x-model="leadForm.name" required placeholder="np. Jan Kowalski"
+                                                       class="w-full rounded-xl bg-black/40 border border-white/15 px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-gold">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-zinc-300 mb-1">Służbowy e-mail</label>
+                                                <input type="email" x-model="leadForm.email" required placeholder="np. jan@firma.com"
+                                                       class="w-full rounded-xl bg-black/40 border border-white/15 px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-gold">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-zinc-300 mb-1">Nazwa firmy / Organizacji</label>
+                                            <input type="text" x-model="leadForm.company" placeholder="np. Airline / Tour Operator / OTA"
+                                                   class="w-full rounded-xl bg-black/40 border border-white/15 px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-gold">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-zinc-300 mb-1">Wiadomość / Zapytanie</label>
+                                            <textarea x-model="leadForm.message" required rows="4" placeholder="W czym możemy pomóc? Interesuje Cię Resfinity IBE, Cache Data czy Hotel Mapping?"
+                                                      class="w-full rounded-xl bg-black/40 border border-white/15 px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-gold"></textarea>
+                                        </div>
+                                        <div class="pt-2">
+                                            <button type="submit" :disabled="leadSubmitting"
+                                                    class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-brand-gold text-black font-bold text-xs uppercase tracking-wider hover:bg-brand-goldHover transition shadow-lg shadow-brand-gold/15 disabled:opacity-50">
+                                                <span x-text="leadSubmitting ? 'Wysyłanie...' : (block.data.form_button_text || 'Wyślij zapytanie')"></span>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <!-- Right Scheduler & Direct Contacts Column -->
+                                <div class="lg:col-span-5 space-y-6">
+                                    <div class="rounded-2xl border p-6 sm:p-8 bg-gradient-to-br from-brand-gold/15 via-black/40 to-black/60 border-brand-gold/30">
+                                        <div class="text-2xl mb-3">📅</div>
+                                        <h3 class="text-lg font-bold text-white mb-2">Wolisz od razu zarezerwować termin?</h3>
+                                        <p class="text-xs text-zinc-300 leading-relaxed mb-6">
+                                            Wybierz dogodny termin bezpośrednio w kalendarzu naszych konsultantów technologicznych bez wymieniania maili.
+                                        </p>
+                                        <a :href="block.data.booking_url || 'https://outlook.office365.com/'"
+                                           target="_blank" rel="noopener noreferrer"
+                                           class="inline-flex items-center justify-center gap-2 w-full py-3.5 px-6 rounded-xl bg-white text-slate-950 font-bold text-xs uppercase tracking-wider hover:bg-zinc-100 transition shadow-lg">
+                                            <span>👉</span>
+                                            <span x-text="block.data.booking_cta_text || 'Umów 30-minutowe demo'"></span>
+                                        </a>
+                                    </div>
+
+                                    <div class="rounded-2xl border p-6 bg-white/[0.02] border-white/10 space-y-4 text-xs text-zinc-300">
+                                        <div class="flex items-start gap-3">
+                                            <span class="text-base text-brand-gold shrink-0">📍</span>
+                                            <div>
+                                                <span class="font-bold text-white block">Główna Siedziba</span>
+                                                <span x-text="block.data.address || 'ul. Grabiszyńska 241b, 53-234 Wrocław'"></span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-base text-brand-gold shrink-0">✉️</span>
+                                            <div>
+                                                <span class="font-bold text-white block">Dział Handlowy</span>
+                                                <a :href="'mailto:' + (block.data.email || 'sales@anixe.pl')" class="text-brand-gold hover:underline" x-text="block.data.email || 'sales@anixe.pl'"></a>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-base text-brand-gold shrink-0">📞</span>
+                                            <div>
+                                                <span class="font-bold text-white block">Telefon bezpośredni</span>
+                                                <a :href="'tel:' + (block.data.phone || '+48713647950')" class="text-zinc-200 hover:underline" x-text="block.data.phone || '+48 71 364 79 50'"></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </template>
+
+                <!-- 23. MEGA NAVBAR BLOCK (ENTERPRISE NAVIGATION) -->
+                <template x-if="block.type === 'mega_navbar'">
+                    <section class="border-b transition-colors"
+                             :class="isCinematic ? 'bg-black/95 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900'">
+                        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+                            <div class="flex items-center gap-8">
+                                <a href="#top" class="flex items-center gap-2">
+                                    <span class="font-extrabold text-xl tracking-tight" :class="isCinematic ? 'font-cinematic text-white' : 'font-display text-slate-950'" x-text="block.data.brand_name || 'ANIXE'"></span>
+                                    <span x-show="block.data.brand_tagline" class="hidden sm:inline-block text-[11px] font-medium text-zinc-400 pl-2 border-l border-zinc-700" x-text="block.data.brand_tagline"></span>
+                                </a>
+
+                                <!-- Desktop Dropdown Menu Groups -->
+                                <nav class="hidden md:flex items-center gap-6 text-xs font-semibold">
+                                    <template x-for="grp in (block.data.menu_groups || [])" :key="grp.id">
+                                        <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                                            <button type="button" class="inline-flex items-center gap-1.5 py-2 hover:text-brand-gold transition"
+                                                    :class="open ? 'text-brand-gold' : (isCinematic ? 'text-zinc-300' : 'text-slate-700')">
+                                                <span x-text="grp.label"></span>
+                                                <svg class="h-3 w-3 fill-current transition-transform duration-200" :class="open ? 'rotate-180' : ''" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
+                                            </button>
+                                            <!-- Dropdown Popover -->
+                                            <div x-show="open" x-cloak
+                                                 x-transition:enter="transition ease-out duration-150"
+                                                 x-transition:enter-start="opacity-0 translate-y-1"
+                                                 x-transition:enter-end="opacity-100 translate-y-0"
+                                                 class="absolute top-full left-0 w-72 rounded-2xl border p-3 shadow-2xl z-50 backdrop-blur-xl"
+                                                 :class="isCinematic ? 'bg-zinc-950/98 border-white/15 text-white' : 'bg-white border-slate-200 text-slate-900'">
+                                                <div class="space-y-1">
+                                                    <template x-for="sub in (grp.items || [])" :key="sub.title">
+                                                        <a :href="sub.href || '#'" @click="open = false"
+                                                           class="flex items-start gap-3 p-2.5 rounded-xl transition duration-150"
+                                                           :class="isCinematic ? 'hover:bg-white/10' : 'hover:bg-slate-100'">
+                                                            <span class="text-base shrink-0" x-text="sub.icon || '⚡'"></span>
+                                                            <div>
+                                                                <div class="text-xs font-bold leading-tight" x-text="sub.title"></div>
+                                                                <div class="text-[11px] leading-tight mt-0.5"
+                                                                     :class="isCinematic ? 'text-zinc-400' : 'text-slate-500'"
+                                                                     x-text="sub.desc"></div>
+                                                            </div>
+                                                        </a>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </nav>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <a :href="block.data.cta_url || '#spotkanie'"
+                                   class="px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition shadow-sm"
+                                   :class="isCinematic ? 'bg-brand-gold text-black hover:bg-brand-goldHover' : 'bg-slate-900 text-white hover:bg-slate-800'"
+                                   x-text="block.data.cta_text || 'Book a Demo'"></a>
+                            </div>
+                        </div>
+                    </section>
+                </template>
+
             </div>
         </template>
         <!-- Global Site Footer (Legal & Privacy) -->
@@ -1275,6 +1624,48 @@
         </div>
     </div>
 
+    <!-- ARTICLE / BLOG READER MODAL -->
+    <div x-show="articleModalOpen" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/90 backdrop-blur-md overflow-y-auto"
+         @click.self="closeArticleModal()"
+         @keydown.escape.window="articleModalOpen && closeArticleModal()"
+         role="dialog" aria-modal="true">
+        <div class="relative w-full max-w-3xl rounded-2xl border overflow-hidden shadow-2xl my-8 transition-colors"
+             :class="isCinematic ? 'bg-[#121212] border-white/15 text-white' : 'bg-white border-slate-200 text-slate-900'">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b"
+                 :class="isCinematic ? 'border-white/10 bg-zinc-950' : 'border-slate-100 bg-slate-50'">
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-brand-gold/20 text-brand-gold"
+                          x-text="activeArticle?.category || 'Aktualności'"></span>
+                    <span class="text-xs text-zinc-400" x-text="activeArticle?.date"></span>
+                </div>
+                <button type="button" @click="closeArticleModal()" class="text-zinc-400 hover:text-white text-2xl leading-none p-1 transition" aria-label="Zamknij">✕</button>
+            </div>
+            <!-- Article Body -->
+            <div class="p-6 sm:p-8 space-y-6 max-h-[75vh] overflow-y-auto">
+                <template x-if="activeArticle?.cover_image">
+                    <img :src="activeArticle.cover_image" :alt="activeArticle.title" class="w-full h-64 object-cover rounded-xl shadow-md">
+                </template>
+                <h2 class="text-2xl sm:text-3xl font-bold leading-tight"
+                    :class="isCinematic ? 'font-cinematic text-white' : 'text-slate-900'"
+                    x-text="activeArticle?.title"></h2>
+                <div class="text-xs text-zinc-400 italic" x-show="activeArticle?.author">
+                    Autor: <span class="font-semibold text-zinc-300" x-text="activeArticle.author"></span>
+                </div>
+                <div class="text-sm sm:text-base leading-relaxed space-y-4"
+                     :class="isCinematic ? 'text-zinc-300' : 'text-slate-700'"
+                     x-text="activeArticle?.content || activeArticle?.excerpt"></div>
+            </div>
+            <!-- Modal Footer -->
+            <div class="px-6 py-4 border-t flex justify-end"
+                 :class="isCinematic ? 'border-white/10 bg-zinc-950' : 'border-slate-100 bg-slate-50'">
+                <button type="button" @click="closeArticleModal()"
+                        class="px-5 py-2 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/20 transition">Zamknij czytnik</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Application Script -->
     <script>
         // Transparentność i Znak Wodny AI (EU AI Act & Platform Attribution)
@@ -1370,6 +1761,15 @@
                 imageLightboxOpen: false,
                 imageLightboxUrl: '',
                 imageLightboxTitle: '',
+
+                // Modal state (Article / Blog Reader)
+                articleModalOpen: false,
+                activeArticle: null,
+
+                // B2B Lead Form state
+                leadFormSent: false,
+                leadSubmitting: false,
+                leadForm: { name: '', email: '', company: '', message: '' },
 
                 cinematicCleanup: null,
 
@@ -1933,6 +2333,26 @@
                     this.imageLightboxOpen = false;
                     this.imageLightboxUrl = '';
                     this.imageLightboxTitle = '';
+                },
+
+                openArticleModal(article) {
+                    if (!article) return;
+                    this.activeArticle = article;
+                    this.articleModalOpen = true;
+                },
+
+                closeArticleModal() {
+                    this.articleModalOpen = false;
+                    this.activeArticle = null;
+                },
+
+                submitB2bLead(targetEmail) {
+                    this.leadSubmitting = true;
+                    setTimeout(() => {
+                        this.leadSubmitting = false;
+                        this.leadFormSent = true;
+                        this.leadForm = { name: '', email: '', company: '', message: '' };
+                    }, 500);
                 },
 
                 isGoogleMapsEmbed(url) {
