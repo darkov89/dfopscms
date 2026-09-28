@@ -258,7 +258,7 @@
     </div>
 
     <!-- Main Navigation Bar -->
-    <header x-show="dataLoaded && !loadError"
+    <header x-show="dataLoaded && !loadError && !hasBlock('mega_navbar')"
             :class="isCinematic ? 'bg-black/80 border-white/10' : 'bg-white/95 border-slate-200'"
             class="sticky top-0 z-40 backdrop-blur-xl border-b transition-colors duration-300">
         <div class="mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4">
@@ -468,7 +468,9 @@
 
                 <!-- 3. AWARDS STRIP BLOCK -->
                 <template x-if="block.type === 'awards_strip'">
-                    <section id="nagrody" class="border-y border-white/10 bg-black/40 py-16 px-6">
+                    <section :id="block.id || 'nagrody'" class="border-y border-white/10 bg-black/40 py-16 px-6 scroll-mt-16 relative">
+                        <span id="nagrody" class="absolute -top-20"></span>
+                        <span id="awards" class="absolute -top-20"></span>
                         <div class="mx-auto max-w-5xl text-center">
                             <h2 class="text-xs font-bold uppercase tracking-[0.25em] text-brand-gold mb-10" x-text="block.data.heading || 'Wyróżnienia & Festiwale'"></h2>
                             <div class="grid gap-6 sm:grid-cols-3">
@@ -583,8 +585,10 @@
 
                 <!-- 7. KEY FEATURES (WIZYTÓWKA) -->
                 <template x-if="block.type === 'key_features'">
-                    <section id="atuty" class="py-12 sm:py-20 px-4 sm:px-6 transition-colors"
+                    <section :id="block.id || 'atuty'" class="py-12 sm:py-20 px-4 sm:px-6 transition-colors scroll-mt-16 relative"
                              :class="isCinematic ? 'bg-[#0a0a0a]' : 'bg-white'">
+                        <span id="atuty" class="absolute -top-20"></span>
+                        <span id="products" class="absolute -top-20"></span>
                         <div class="mx-auto max-w-5xl">
                             <h2 class="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12"
                                 :class="isCinematic ? 'font-cinematic text-white' : 'font-display text-slate-900'"
@@ -678,7 +682,9 @@
 
                 <!-- 10. TESTIMONIALS GRID BLOCK -->
                 <template x-if="block.type === 'testimonials_grid'">
-                    <section class="py-20 sm:py-28 px-6" :class="isCinematic ? 'bg-[#0e0e0e]' : 'bg-gray-50'">
+                    <section :id="block.id || 'opinie'" class="py-20 sm:py-28 px-6 scroll-mt-16 relative" :class="isCinematic ? 'bg-[#0e0e0e]' : 'bg-gray-50'">
+                        <span id="opinie" class="absolute -top-20"></span>
+                        <span id="testimonials" class="absolute -top-20"></span>
                         <div class="max-w-5xl mx-auto">
                             <h2 class="text-2xl sm:text-3xl font-bold text-center mb-12"
                                 :class="isCinematic ? 'font-cinematic text-white' : 'text-slate-900'"
@@ -695,9 +701,20 @@
                                         <p class="text-sm leading-relaxed mb-4"
                                            :class="isCinematic ? 'text-zinc-300' : 'text-slate-600'"
                                            x-text="item.text"></p>
-                                        <p class="text-xs font-semibold"
-                                           :class="isCinematic ? 'text-brand-gold' : 'text-slate-900'"
-                                           x-text="'— ' + (item.name || 'Klient')"></p>
+                                        <div class="flex items-center gap-3 pt-3 border-t mt-4" :class="isCinematic ? 'border-white/10' : 'border-gray-100'">
+                                            <template x-if="item.avatar || item.avatar_url">
+                                                <img :src="item.avatar || item.avatar_url" :alt="item.name || 'Avatar'" class="w-10 h-10 rounded-full object-cover shrink-0 border" :class="isCinematic ? 'border-white/20' : 'border-gray-200'" loading="lazy">
+                                            </template>
+                                            <div class="min-w-0">
+                                                <p class="text-xs font-semibold truncate"
+                                                   :class="isCinematic ? 'text-brand-gold' : 'text-slate-900'"
+                                                   x-text="item.name || 'Klient'"></p>
+                                                <p class="text-[11px] truncate leading-tight mt-0.5"
+                                                   :class="isCinematic ? 'text-zinc-400' : 'text-slate-500'"
+                                                   x-show="item.role || item.title"
+                                                   x-text="item.role || item.title"></p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </template>
                             </div>
@@ -796,7 +813,9 @@
 
                 <!-- 13. TRUST STATS BLOCK -->
                 <template x-if="block.type === 'trust_stats'">
-                    <section class="py-20 sm:py-28 px-6 transition-colors" :class="isCinematic ? 'bg-[#0a0a0a]' : 'bg-white'">
+                    <section :id="block.id || 'liczby'" class="py-20 sm:py-28 px-6 transition-colors scroll-mt-16 relative" :class="isCinematic ? 'bg-[#0a0a0a]' : 'bg-white'">
+                        <span id="liczby" class="absolute -top-20"></span>
+                        <span id="numbers" class="absolute -top-20"></span>
                         <div class="max-w-5xl mx-auto text-center">
                             <h2 class="text-2xl sm:text-3xl font-bold mb-3"
                                 :class="isCinematic ? 'font-cinematic text-white' : 'text-slate-900'"
@@ -828,7 +847,9 @@
 
                 <!-- 14. SERVICES LIST BLOCK -->
                 <template x-if="block.type === 'services_list'">
-                    <section id="uslugi" class="py-20 sm:py-28 px-6 transition-colors" :class="isCinematic ? 'bg-[#0e0e0e]' : 'bg-gray-50'">
+                    <section :id="block.id || 'uslugi'" class="py-20 sm:py-28 px-6 transition-colors scroll-mt-16 relative" :class="isCinematic ? 'bg-[#0e0e0e]' : 'bg-gray-50'">
+                        <span id="uslugi" class="absolute -top-20"></span>
+                        <span id="solutions" class="absolute -top-20"></span>
                         <div class="max-w-4xl mx-auto">
                             <div class="text-center mb-12">
                                 <h2 class="text-2xl sm:text-3xl font-bold mb-3"
@@ -1182,8 +1203,10 @@
 
                 <!-- 19. CLIENT LOGOS GRID / LOGO WALL BLOCK -->
                 <template x-if="block.type === 'client_logos_grid'">
-                    <section id="partnerzy" class="py-16 sm:py-24 px-6 border-y transition-colors"
+                    <section :id="block.id || 'partnerzy'" class="py-16 sm:py-24 px-6 border-y transition-colors scroll-mt-16 relative"
                              :class="isCinematic ? 'bg-[#0a0a0a] border-white/5' : 'bg-gray-50 border-gray-100'">
+                        <span id="partnerzy" class="absolute -top-20"></span>
+                        <span id="customers" class="absolute -top-20"></span>
                         <div class="max-w-6xl mx-auto text-center">
                             <h2 class="text-xs sm:text-sm font-bold uppercase tracking-[0.25em] mb-2"
                                 :class="isCinematic ? 'text-brand-gold' : 'text-amber-600'"
@@ -1220,8 +1243,10 @@
 
                 <!-- 20. CAREERS BOARD (JOBS) BLOCK -->
                 <template x-if="block.type === 'careers_board'">
-                    <section id="kariera" class="py-20 sm:py-28 px-6 transition-colors"
+                    <section :id="block.id || 'kariera'" class="py-20 sm:py-28 px-6 transition-colors scroll-mt-16 relative"
                              :class="isCinematic ? 'bg-[#0e0e0e]' : 'bg-white'">
+                        <span id="kariera" class="absolute -top-20"></span>
+                        <span id="careers" class="absolute -top-20"></span>
                         <div class="max-w-5xl mx-auto">
                             <div class="text-center mb-14">
                                 <span class="text-xs font-bold uppercase tracking-[0.25em] mb-2 block"
@@ -1289,8 +1314,10 @@
 
                 <!-- 21. BLOG SHOWCASE & INSIGHTS BLOCK -->
                 <template x-if="block.type === 'blog_showcase'">
-                    <section id="aktualnosci" class="py-20 sm:py-28 px-6 transition-colors"
+                    <section :id="block.id || 'aktualnosci'" class="py-20 sm:py-28 px-6 transition-colors scroll-mt-16 relative"
                              :class="isCinematic ? 'bg-[#0a0a0a]' : 'bg-gray-50'">
+                        <span id="aktualnosci" class="absolute -top-20"></span>
+                        <span id="news" class="absolute -top-20"></span>
                         <div class="max-w-6xl mx-auto">
                             <div class="text-center mb-14">
                                 <span class="text-xs font-bold uppercase tracking-[0.25em] mb-2 block"
@@ -1348,8 +1375,10 @@
 
                 <!-- 22. B2B LEAD & SCHEDULER BLOCK -->
                 <template x-if="block.type === 'b2b_lead_scheduler'">
-                    <section id="spotkanie" class="py-20 sm:py-28 px-6 transition-colors"
+                    <section :id="block.id || 'contact'" class="py-20 sm:py-28 px-6 transition-colors scroll-mt-16 relative"
                              :class="isCinematic ? 'bg-[#0d0d0d]' : 'bg-slate-900 text-white'">
+                        <span id="spotkanie" class="absolute -top-20"></span>
+                        <span id="kontakt" class="absolute -top-20"></span>
                         <div class="max-w-6xl mx-auto">
                             <div class="text-center mb-14">
                                 <span class="text-xs font-bold uppercase tracking-[0.25em] mb-2 block text-brand-gold">Kontakt & Spotkanie</span>
@@ -1455,10 +1484,11 @@
 
                 <!-- 23. MEGA NAVBAR BLOCK (ENTERPRISE NAVIGATION) -->
                 <template x-if="block.type === 'mega_navbar'">
-                    <section class="border-b transition-colors"
-                             :class="isCinematic ? 'bg-black/95 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900'">
-                        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                            <div class="flex items-center gap-8">
+                    <header class="sticky top-0 z-40 border-b transition-colors backdrop-blur-xl"
+                            :class="isCinematic ? 'bg-black/90 border-white/10 text-white' : 'bg-white/95 border-slate-200 text-slate-900'"
+                            x-data="{ mobileMegaOpen: false }">
+                        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between">
+                            <div class="flex items-center gap-6 lg:gap-8">
                                 <a href="#top" class="flex items-center gap-2">
                                     <span class="font-extrabold text-xl tracking-tight" :class="isCinematic ? 'font-cinematic text-white' : 'font-display text-slate-950'" x-text="block.data.brand_name || 'ANIXE'"></span>
                                     <span x-show="block.data.brand_tagline" class="hidden sm:inline-block text-[11px] font-medium text-zinc-400 pl-2 border-l border-zinc-700" x-text="block.data.brand_tagline"></span>
@@ -1478,7 +1508,7 @@
                                                  x-transition:enter="transition ease-out duration-150"
                                                  x-transition:enter-start="opacity-0 translate-y-1"
                                                  x-transition:enter-end="opacity-100 translate-y-0"
-                                                 class="absolute top-full left-0 w-72 rounded-2xl border p-3 shadow-2xl z-50 backdrop-blur-xl"
+                                                 class="absolute top-full left-0 w-80 rounded-2xl border p-3 shadow-2xl z-50 backdrop-blur-xl"
                                                  :class="isCinematic ? 'bg-zinc-950/98 border-white/15 text-white' : 'bg-white border-slate-200 text-slate-900'">
                                                 <div class="space-y-1">
                                                     <template x-for="sub in (grp.items || [])" :key="sub.title">
@@ -1502,13 +1532,47 @@
                             </div>
 
                             <div class="flex items-center gap-3">
-                                <a :href="block.data.cta_url || '#spotkanie'"
-                                   class="px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition shadow-sm"
+                                <a :href="block.data.cta_url || '#contact'"
+                                   class="px-4 sm:px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition shadow-sm"
                                    :class="isCinematic ? 'bg-brand-gold text-black hover:bg-brand-goldHover' : 'bg-slate-900 text-white hover:bg-slate-800'"
                                    x-text="block.data.cta_text || 'Book a Demo'"></a>
+
+                                <!-- Mobile Hamburger Toggle -->
+                                <button type="button" @click="mobileMegaOpen = !mobileMegaOpen"
+                                        :class="isCinematic ? 'text-zinc-300 hover:text-white bg-white/5' : 'text-slate-700 hover:text-black bg-slate-100'"
+                                        class="md:hidden p-2 rounded-xl transition"
+                                        aria-label="Menu nawigacji">
+                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path x-show="!mobileMegaOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                                        <path x-show="mobileMegaOpen" x-cloak stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
                             </div>
                         </div>
-                    </section>
+
+                        <!-- Mobile Mega Menu Dropdown -->
+                        <div x-show="mobileMegaOpen" x-cloak
+                             @click.outside="mobileMegaOpen = false"
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 -translate-y-2"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             class="md:hidden px-6 py-4 border-t space-y-4 max-h-[80vh] overflow-y-auto"
+                             :class="isCinematic ? 'bg-black/98 border-white/10 text-white' : 'bg-white/98 border-slate-200 text-slate-900'">
+                            <template x-for="grp in (block.data.menu_groups || [])" :key="'m-' + grp.id">
+                                <div class="space-y-1">
+                                    <p class="text-[10px] font-bold uppercase tracking-widest" :class="isCinematic ? 'text-brand-gold' : 'text-amber-600'" x-text="grp.label"></p>
+                                    <template x-for="sub in (grp.items || [])" :key="'msub-' + sub.title">
+                                        <a :href="sub.href || '#'" @click="mobileMegaOpen = false"
+                                           class="flex items-center gap-2.5 py-1.5 text-xs font-semibold"
+                                           :class="isCinematic ? 'text-zinc-300 hover:text-white' : 'text-slate-700 hover:text-black'">
+                                            <span x-text="sub.icon || '•'"></span>
+                                            <span x-text="sub.title"></span>
+                                        </a>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </header>
                 </template>
 
             </div>
